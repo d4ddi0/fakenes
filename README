@@ -57,7 +57,7 @@
       FakeNES supports the 4-player adapter automatically, but you
       will need to enable emulation of the Zapper (Optical Gun)
       manually.  You can toggle emulation of the Zapper and display
-      of the crosshair by pressing the F5 key during gameplay.
+      of the crosshair by pressing the F6 key during gameplay.
 
       Note: A mouse is required for Zapper support.
 

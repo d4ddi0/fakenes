@@ -1,5 +1,20 @@
 
 
+/*
+
+FakeNES - A portable, Open Source NES emulator.
+
+gui.c: Implementation of the object-based GUI.
+
+Copyright (c) 2002, Randy McDowell and Ian Smith.
+Portions copyright (c) 2002, Charles Bilyue'.
+
+This is free software.  See 'LICENSE' for details.
+You must read and accept the license prior to use.
+
+*/
+
+
 #include <allegro.h>
 
 
@@ -18,6 +33,8 @@
 
 #include "papu.h"
 
+#include "ppu.h"
+
 #include "rom.h"
 
 #include "video.h"
@@ -30,6 +47,8 @@
 
 #include "timing.h"
 
+
+/* Keep these in order! */
 
 #include "gui/objects.h"
 
@@ -50,6 +69,8 @@ static int redraw_flag = FALSE;
 
 
 static RGB * current_palette = NULL;
+
+static PALETTE custom_palette;
 
 
 static void reset_timer (void)
@@ -175,6 +196,24 @@ void gui_spawn_machine_state_menu_restore (void)
 }
 
 
+void gui_spawn_options_video_layers_menu_sprites_a (void)
+{
+    options_video_layers_menu_sprites_a ();
+}
+
+
+void gui_spawn_options_video_layers_menu_sprites_b (void)
+{
+    options_video_layers_menu_sprites_b ();
+}
+
+
+void gui_spawn_options_video_layers_menu_background (void)
+{
+    options_video_layers_menu_background ();
+}
+
+
 void gui_show_dialog (DIALOG * dialog, int items)
 {
     int index;
@@ -198,31 +237,43 @@ void gui_show_dialog (DIALOG * dialog, int items)
 
 static INLINE void update_menus (void)
 {
-    TOGGLE_MENU (machine_type_menu,
-        0, (machine_type == MACHINE_TYPE_NTSC));
+    TOGGLE_MENU (machine_type_menu, 0, (machine_type == MACHINE_TYPE_NTSC));
 
-    TOGGLE_MENU (machine_type_menu,
-        2, (machine_type == MACHINE_TYPE_PAL));
+    TOGGLE_MENU (machine_type_menu, 2, (machine_type == MACHINE_TYPE_PAL));
 
 
     TOGGLE_MENU (machine_menu, 2, video_display_status);
 
 
-    TOGGLE_MENU (options_audio_filter_menu,
-        0, (papu_filter_type == APU_FILTER_NONE));
+    TOGGLE_MENU (options_audio_filter_menu, 0, (papu_filter_type == APU_FILTER_NONE));
 
 
-    TOGGLE_MENU (options_audio_filter_low_pass_menu,
-        0, (papu_filter_type == APU_FILTER_LOWPASS));
+    TOGGLE_MENU (options_audio_filter_low_pass_menu, 0, (papu_filter_type == APU_FILTER_LOWPASS));
 
-    TOGGLE_MENU (options_audio_filter_low_pass_menu,
-        2, (papu_filter_type == APU_FILTER_WEIGHTED));
+    TOGGLE_MENU (options_audio_filter_low_pass_menu, 2, (papu_filter_type == APU_FILTER_WEIGHTED));
 
-    TOGGLE_MENU (options_audio_filter_low_pass_menu,
-        4, (papu_filter_type == APU_FILTER_DYNAMIC));
+    TOGGLE_MENU (options_audio_filter_low_pass_menu, 4, (papu_filter_type == APU_FILTER_DYNAMIC));
+
+
+    TOGGLE_MENU (options_audio_channels_menu, 0, papu_enable_square_1);
+
+    TOGGLE_MENU (options_audio_channels_menu, 2, papu_enable_square_2);
+
+    TOGGLE_MENU (options_audio_channels_menu, 4, papu_enable_triangle);
+
+    TOGGLE_MENU (options_audio_channels_menu, 6, papu_enable_noise);
+
+    TOGGLE_MENU (options_audio_channels_menu, 8, papu_enable_dmc);
 
 
     TOGGLE_MENU (options_video_menu, 0, video_enable_vsync);
+
+
+    TOGGLE_MENU (options_video_layers_menu, 0, ppu_enable_sprite_layer_a);
+
+    TOGGLE_MENU (options_video_layers_menu, 2, ppu_enable_sprite_layer_b);
+
+    TOGGLE_MENU (options_video_layers_menu, 4, ppu_enable_background_layer);
 }
 
 
@@ -384,12 +435,10 @@ static int file_menu_snapshot (void)
         {
             count = 1000;
 
-            save_bitmap (filename,
-                video_buffer, current_palette);
 
+            save_bitmap (filename, video_buffer, current_palette);
 
-            gui_message (GUI_COLOR_WHITE,
-                "Snapshot saved to %s.", filename);
+            gui_message (GUI_COLOR_WHITE,"Snapshot saved to %s.", filename);
         }
     }
 
@@ -458,9 +507,7 @@ static int machine_type_menu_pal (void)
     papu_exit ();
 
 
-    audio_init ();
-
-    papu_init ();
+    papu_reinit ();
 
 
     return (D_O_K);
@@ -541,9 +588,112 @@ static int options_audio_filter_low_pass_menu_dynamic (void)
 }
 
 
+static int options_audio_channels_menu_square_1 (void)
+{
+    papu_enable_square_1 = (! papu_enable_square_1);
+
+    papu_update_channels ();
+
+
+    update_menus ();
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_channels_menu_square_2 (void)
+{
+    papu_enable_square_2 = (! papu_enable_square_2);
+
+    papu_update_channels ();
+
+
+    update_menus ();
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_channels_menu_triangle (void)
+{
+    papu_enable_triangle = (! papu_enable_triangle);
+
+    papu_update_channels ();
+
+
+    update_menus ();
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_channels_menu_noise (void)
+{
+    papu_enable_noise = (! papu_enable_noise);
+
+    papu_update_channels ();
+
+
+    update_menus ();
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_channels_menu_dmc (void)
+{
+    papu_enable_dmc = (! papu_enable_dmc);
+
+    papu_update_channels ();
+
+
+    update_menus ();
+
+
+    return (D_O_K);
+}
+
+
 static int options_video_menu_vsync (void)
 {
     video_enable_vsync = (! video_enable_vsync);
+
+    update_menus ();
+
+
+    return (D_O_K);
+}
+
+
+static int options_video_layers_menu_sprites_a (void)
+{
+    ppu_enable_sprite_layer_a = (! ppu_enable_sprite_layer_a);
+
+    update_menus ();
+
+
+    return (D_O_K);
+}
+
+
+static int options_video_layers_menu_sprites_b (void)
+{
+    ppu_enable_sprite_layer_b = (! ppu_enable_sprite_layer_b);
+
+    update_menus ();
+
+
+    return (D_O_K);
+}
+
+
+static int options_video_layers_menu_background (void)
+{
+    ppu_enable_background_layer = (! ppu_enable_background_layer);
 
     update_menus ();
 
@@ -557,6 +707,10 @@ static int options_video_palette_menu_default (void)
     UNCHECK_MENU (options_video_palette_menu, 2);
 
     UNCHECK_MENU (options_video_palette_menu, 4);
+
+    UNCHECK_MENU (options_video_palette_menu, 6);
+
+    UNCHECK_MENU (options_video_palette_menu, 8);
 
 
     CHECK_MENU (options_video_palette_menu, 0);
@@ -577,6 +731,10 @@ static int options_video_palette_menu_gnuboy (void)
 
     UNCHECK_MENU (options_video_palette_menu, 4);
 
+    UNCHECK_MENU (options_video_palette_menu, 6);
+
+    UNCHECK_MENU (options_video_palette_menu, 8);
+
 
     CHECK_MENU (options_video_palette_menu, 2);
 
@@ -596,6 +754,10 @@ static int options_video_palette_menu_nester (void)
 
     UNCHECK_MENU (options_video_palette_menu, 2);
 
+    UNCHECK_MENU (options_video_palette_menu, 6);
+
+    UNCHECK_MENU (options_video_palette_menu, 8);
+
 
     CHECK_MENU (options_video_palette_menu, 4);
 
@@ -609,9 +771,85 @@ static int options_video_palette_menu_nester (void)
 }
 
 
+static int options_video_palette_menu_nesticle (void)
+{
+    UNCHECK_MENU (options_video_palette_menu, 0);
+
+    UNCHECK_MENU (options_video_palette_menu, 2);
+
+    UNCHECK_MENU (options_video_palette_menu, 4);
+
+    UNCHECK_MENU (options_video_palette_menu, 8);
+
+
+    CHECK_MENU (options_video_palette_menu, 6);
+
+
+    set_palette (DATA_NESTICLE_PALETTE);
+
+    current_palette = DATA_NESTICLE_PALETTE;
+
+
+    return (D_O_K);
+}
+
+
+static int options_video_palette_menu_custom (void)
+{
+    FILE * palette_file;
+
+    int index;
+
+
+    palette_file = fopen ("fakenes.pal", "rb");
+
+    if (palette_file)
+    {
+        custom_palette [0].r = custom_palette [0].g = custom_palette [0].b = 0;
+
+
+        for (index = 1; index <= 64; index ++)
+        {
+            custom_palette [index].r = (fgetc (palette_file) / 4);
+
+            custom_palette [index].g = (fgetc (palette_file) / 4);
+
+            custom_palette [index].b = (fgetc (palette_file) / 4);
+        }
+
+
+        fclose (palette_file);
+
+
+        UNCHECK_MENU (options_video_palette_menu, 0);
+    
+        UNCHECK_MENU (options_video_palette_menu, 2);
+    
+        UNCHECK_MENU (options_video_palette_menu, 4);
+
+        UNCHECK_MENU (options_video_palette_menu, 6);
+    
+    
+        CHECK_MENU (options_video_palette_menu, 8);
+    
+    
+        set_palette (custom_palette);
+    
+        current_palette = ((RGB *) &custom_palette);
+    }
+    else
+    {
+        gui_message (GUI_COLOR_RED, "Error opening FAKENES.PAL!");
+    }
+
+
+    return (D_O_K);
+}
+
+
 static int help_menu_shortcuts (void)
 {
-    gui_show_dialog (help_shortcuts_dialog, 10);
+    gui_show_dialog (help_shortcuts_dialog, 11);
 
 
     return (D_O_K);

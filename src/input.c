@@ -715,6 +715,22 @@ int input_process (void)
                 break;
 
 
+            case KEY_F1:
+
+                gui_spawn_file_menu_snapshot ();
+
+
+                break;
+
+
+            case KEY_F2:
+
+                gui_spawn_machine_menu_status ();
+
+
+                break;
+
+
             case KEY_F3:
 
                 gui_spawn_machine_state_menu_save ();
@@ -733,7 +749,7 @@ int input_process (void)
 
             case KEY_F5:
 
-                input_enable_zapper = (! input_enable_zapper);
+                ppu_invert_mirroring ();
 
 
                 break;
@@ -741,7 +757,7 @@ int input_process (void)
 
             case KEY_F6:
 
-                ppu_invert_mirroring ();
+                input_enable_zapper = (! input_enable_zapper);
 
 
                 break;
@@ -749,7 +765,9 @@ int input_process (void)
 
             case KEY_F7:
 
-                gui_spawn_machine_menu_status ();
+                gui_spawn_options_video_layers_menu_sprites_a ();
+
+                gui_spawn_options_video_layers_menu_sprites_b ();
 
 
                 break;
@@ -757,7 +775,7 @@ int input_process (void)
 
             case KEY_F8:
 
-                gui_spawn_file_menu_snapshot ();
+                gui_spawn_options_video_layers_menu_background ();
 
 
                 break;

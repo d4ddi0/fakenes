@@ -24,6 +24,9 @@ extern "C" {
 
 #include "misc.h"
 
+int ppu_enable_sprite_layer_a;
+int ppu_enable_sprite_layer_b;
+int ppu_enable_background_layer;
 
 void ppu_free_chr_rom (ROM *rom);
 UINT8 * ppu_get_chr_rom_pages (ROM *rom);

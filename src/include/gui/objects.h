@@ -1,6 +1,6 @@
 
 
-int gui_raised_label_object (int message, DIALOG * dialog, int key)
+int gui_label_object (int message, DIALOG * dialog, int key)
 {
     int x, y;
 

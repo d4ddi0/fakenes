@@ -26,6 +26,9 @@ DATAFILE * data;
 #define DATA_NESTER_PALETTE     \
     ((RGB *) data [NESTER_PALETTE].dat)
 
+#define DATA_NESTICLE_PALETTE   \
+    ((RGB *) data [NESTICLE_PALETTE].dat)
+
 
 #define DATA_LARGE_FONT     \
     ((FONT *) data [LARGE_FONT].dat)

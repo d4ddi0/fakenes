@@ -26,6 +26,19 @@ extern "C" {
 int papu_filter_type;
 
 
+int papu_enable_square_1;
+
+int papu_enable_square_2;
+
+
+int papu_enable_triangle;
+
+int papu_enable_noise;
+
+
+int papu_enable_dmc;
+
+
 int papu_init (void);
 
 void papu_reinit (void);
@@ -42,6 +55,9 @@ void papu_write (UINT16, UINT8);
 
 
 void papu_update (void);
+
+
+void papu_update_channels (void);
 
 
 #ifdef __cplusplus

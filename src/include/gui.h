@@ -46,6 +46,13 @@ void gui_spawn_machine_state_menu_save (void);
 void gui_spawn_machine_state_menu_restore (void);
 
 
+void gui_spawn_options_video_layers_menu_sprites_a (void);
+
+void gui_spawn_options_video_layers_menu_sprites_b (void);
+
+void gui_spawn_options_video_layers_menu_background (void);
+
+
 #ifdef __cplusplus
 }
 #endif

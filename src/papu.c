@@ -38,6 +38,20 @@ static apu_t * default_apu = NULL;
 
 int papu_filter_type = 0;
 
+
+int papu_enable_square_1 = TRUE;
+
+int papu_enable_square_2 = TRUE;
+
+
+int papu_enable_triangle = TRUE;
+
+int papu_enable_noise = TRUE;
+
+
+int papu_enable_dmc = TRUE;
+
+
 int papu_swap_channels = 0;
 
 
@@ -150,3 +164,20 @@ void papu_update (void)
         frames = 0;
     }
 }
+
+
+void papu_update_channels (void)
+{
+    apu_setchan (0, papu_enable_square_1);
+
+    apu_setchan (1, papu_enable_square_2);
+
+
+    apu_setchan (2, papu_enable_triangle);
+
+    apu_setchan (3, papu_enable_noise);
+
+
+    apu_setchan (4, papu_enable_dmc);
+}
+

@@ -82,6 +82,9 @@ static UINT8 ppu_palette [32];
 
 static UINT8 ppu_spr_ram [256];
 
+int ppu_enable_sprite_layer_a = TRUE;
+int ppu_enable_sprite_layer_b = TRUE;
+int ppu_enable_background_layer = TRUE;
 
 #define ppu_background_palette ppu_palette
 #define ppu_sprite_palette (ppu_palette + 16)
@@ -1387,8 +1390,11 @@ static void ppu_render_background (int line)
                     color = ppu_background_palette [color];
 
 
-                    PPU_PUTPIXEL (video_buffer,
-                        ((x * 8) + sub_x - x_offset), line, color);
+                    if (ppu_enable_background_layer)
+                    {
+                        PPU_PUTPIXEL (video_buffer,
+                            ((x * 8) + sub_x - x_offset), line, color);
+                    }
                 }
             }
             else
@@ -1403,8 +1409,11 @@ static void ppu_render_background (int line)
                     color = ppu_background_palette [color];
 
 
-                    PPU_PUTPIXEL (video_buffer,
-                        ((x * 8) + sub_x - x_offset), line, color);
+                    if (ppu_enable_background_layer)
+                    {
+                        PPU_PUTPIXEL (video_buffer,
+                            ((x * 8) + sub_x - x_offset), line, color);
+                    }
                 }
             }
         }
@@ -1807,8 +1816,11 @@ static INLINE void ppu_render_sprite (int sprite, int line)
                 color = ppu_sprite_palette [color];
 
 
-                PPU_PUTPIXEL (video_buffer,
-                    (x + sub_x), line, color);
+                if (ppu_enable_sprite_layer_a)
+                {
+                    PPU_PUTPIXEL (video_buffer,
+                        (x + sub_x), line, color);
+                }
 
             }
         }
@@ -1848,9 +1860,11 @@ static INLINE void ppu_render_sprite (int sprite, int line)
                 color = ppu_sprite_palette [color];
 
 
-                PPU_PUTPIXEL (video_buffer,
-                    (x + sub_x), line, color);
-
+                if (ppu_enable_sprite_layer_b)
+                {
+                    PPU_PUTPIXEL (video_buffer,
+                        (x + sub_x), line, color);
+                }
             }
         }
     }
