@@ -175,7 +175,9 @@ UINT8 * ppu_get_chr_rom_pages (ROM *rom)
     if (((num_pages * 2 - 1) & (num_pages - 1)) == (num_pages - 1))
     /* compute mask for even power of two */
     {
-        rom -> chr_rom_page_overflow_mask = (num_pages * 8) - 1;
+        rom -> chr_rom_page_overflow_premask = (num_pages * 8) - 1;
+        rom -> chr_rom_page_overflow_mask =
+         rom -> chr_rom_page_overflow_premask;
     }
     else
     /* compute mask */
@@ -186,6 +188,7 @@ UINT8 * ppu_get_chr_rom_pages (ROM *rom)
            CHR ROM page count, and use that to compute the mask */
         for (i = 0; (num_pages >> (i + 1)) > 0; i++);
 
+        rom -> chr_rom_page_overflow_premask = ((1 << i + 1) * 8) - 1;
         rom -> chr_rom_page_overflow_mask = ((1 << i) * 8) - 1;
     }
 
@@ -231,9 +234,14 @@ void ppu_set_ram_1k_pattern_vram_block (UINT16 block_address, int vram_block)
 
 void ppu_set_ram_1k_pattern_vrom_block (UINT16 block_address, int vrom_block)
 {
-    if (vrom_block >= (ROM_CHR_ROM_PAGES * 8))
+    if ((vrom_block & ROM_CHR_ROM_PAGE_OVERFLOW_PREMASK)
+     >= (ROM_CHR_ROM_PAGES * 8))
     {
         vrom_block &= ROM_CHR_ROM_PAGE_OVERFLOW_MASK;
+    }
+    else
+    {
+        vrom_block &= ROM_CHR_ROM_PAGE_OVERFLOW_PREMASK;
     }
 
     ppu_vram_block [block_address >> 10] =
@@ -338,9 +346,14 @@ void ppu_set_name_table_address_rom (int table, UINT8 *address)
 
 void ppu_set_name_table_address_vrom (int table, int vrom_block)
 {
-    if (vrom_block >= (ROM_CHR_ROM_PAGES * 8))
+    if ((vrom_block & ROM_CHR_ROM_PAGE_OVERFLOW_PREMASK)
+     >= (ROM_CHR_ROM_PAGES * 8))
     {
         vrom_block &= ROM_CHR_ROM_PAGE_OVERFLOW_MASK;
+    }
+    else
+    {
+        vrom_block &= ROM_CHR_ROM_PAGE_OVERFLOW_PREMASK;
     }
 
     ppu_set_name_table_address_rom (table, ROM_CHR_ROM + (vrom_block << 10));

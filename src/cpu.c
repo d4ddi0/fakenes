@@ -289,7 +289,9 @@ UINT8 * cpu_get_prg_rom_pages (ROM *rom)
     if (((num_pages * 2 - 1) & (num_pages - 1)) == (num_pages - 1))
     /* compute mask for even power of two */
     {
-        rom -> prg_rom_page_overflow_mask = (num_pages * 2) - 1;
+        rom -> prg_rom_page_overflow_premask = (num_pages * 2) - 1;
+        rom -> prg_rom_page_overflow_mask =
+         rom -> prg_rom_page_overflow_premask;
     }
     else
     /* compute mask */
@@ -300,6 +302,7 @@ UINT8 * cpu_get_prg_rom_pages (ROM *rom)
            PRG ROM page count, and use that to compute the mask */
         for (i = 0; (num_pages >> (i + 1)) > 0; i++);
 
+        rom -> prg_rom_page_overflow_premask = ((1 << i + 1) * 2) - 1;
         rom -> prg_rom_page_overflow_mask = ((1 << i) * 2) - 1;
     }
 

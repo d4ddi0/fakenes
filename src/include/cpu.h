@@ -276,9 +276,14 @@ static INLINE void cpu_set_write_handler_32k (UINT16 block_start, void (*handler
 
 static INLINE void cpu_set_read_address_8k_rom_block (UINT16 block_start, int rom_block)
 {
-    if (rom_block >= (ROM_PRG_ROM_PAGES * 2))
+    if ((rom_block & ROM_PRG_ROM_PAGE_OVERFLOW_PREMASK)
+     >= (ROM_PRG_ROM_PAGES * 2))
     {
         rom_block &= ROM_PRG_ROM_PAGE_OVERFLOW_MASK;
+    }
+    else
+    {
+        rom_block &= ROM_PRG_ROM_PAGE_OVERFLOW_PREMASK;
     }
 
     cpu_set_read_address_8k (block_start, ROM_PRG_ROM + (rom_block << 13));
@@ -287,9 +292,14 @@ static INLINE void cpu_set_read_address_8k_rom_block (UINT16 block_start, int ro
 
 static INLINE void cpu_set_read_address_16k_rom_block (UINT16 block_start, int rom_block)
 {
-    if (rom_block >= ROM_PRG_ROM_PAGES)
+    if ((rom_block & ROM_PRG_ROM_PAGE_OVERFLOW_PREMASK / 2)
+     >= ROM_PRG_ROM_PAGES)
     {
         rom_block &= ROM_PRG_ROM_PAGE_OVERFLOW_MASK / 2;
+    }
+    else
+    {
+        rom_block &= ROM_PRG_ROM_PAGE_OVERFLOW_PREMASK / 2;
     }
 
     cpu_set_read_address_16k (block_start, ROM_PRG_ROM + (rom_block << 14));
