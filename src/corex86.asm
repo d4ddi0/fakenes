@@ -114,7 +114,7 @@ C_LABEL(%1):
 
 %define R_Base edi
 
-%include "coreoff.inc"
+%include "core/x86/offsets.inc"
 
 EXTERN_C(cpu_block_2k_read_address)
 EXTERN_C(cpu_block_2k_read_handler)

@@ -1,109 +1,123 @@
-# Default to x86 optimized core.
+# Options.
+ASM_CORE ?= 1
 
-ifndef ASM_CORE
-    ASM_CORE := 1
-endif
-
-ifdef CPU_TYPE
-    ifdef CPU_ARCH
-        CPU = -mcpu=$(CPU_TYPE) -march=$(CPU_ARCH)
-    else
-        CPU = -mcpu=$(CPU_TYPE)
-    endif
-else
-    ifdef CPU_ARCH
-        CPU = -march=$(CPU_ARCH)
-    else
-        CPU = -mcpu=i486 -march=pentium2
-    endif
-endif
-
+# Tools.
 CC = gcc
-ifndef NASM
-    NASM = nasm
-endif
-RM = rm -f -v
+NASM ?= nasm
+MKDIR = mkdir -p
+RMDIR = rmdir
+RM = rm -f
 
-EXEEXT = .exe
-OBJEXT = .o
+# Paths.
+INCLUDE_PATH = include
+OBJECT_PATH = build/djgpp
+BINARY_PATH ?= .
 
-BINARY = fakenes${EXEEXT}
-BINARY_DEBUG = fakenesd${EXEEXT}
+# Extensions.
+EXEEXT ?= .exe
+OBJEXT ?= .o
 
+# Binaries.
+BINARY := ${BINARY_PATH}/fakenes${EXEEXT}
+BINARY_DEBUG := ${BINARY_PATH}/fakenesd${EXEEXT}
+
+# Special (don't touch).
 ifndef DOS_PATHS
-    COREOFF = support/coreoff$(EXEEXT)
-    COREINC = support/coreoff.inc
+    COREOFF := ${BINARY_PATH}/coreoff${EXEEXT}
+    COREOFF_INC := ${INCLUDE_PATH}/core/x86/offsets.inc
 else
-    COREOFF = support\coreoff$(EXEEXT)
-    COREINC = support\coreoff.inc
+    COREOFF := ${BINARY_PATH}/coreoff${EXEEXT}
+    COREOFF_INC := ${INCLUDE_PATH}/core/x86/offsets.inc
 endif
 
-IFLAGS = -Iinclude/ -Isupport/
-
-NASMDFLAGS = -DC_LABELS_PREFIX=_
-
+# GCC flags.
+TARGET_ARCH ?= i486
+TARGET_CPU ?= i686
+MFLAGS := -march=${TARGET_ARCH} -mcpu=${TARGET_CPU}
 ifdef DEBUG
     OFLAGS = -O0 -g -ggdb3
     DFLAGS = -DDEBUG -DUSE_ZLIB -DLSB_FIRST
-    NASMFLAGS = ${IFLAGS} -g -f coff ${NASMDFLAGS}
 else
-    OFLAGS = ${CPU} -O3 -fomit-frame-pointer -fno-rtti -fno-exceptions \
+    OFLAGS = -O3 -fomit-frame-pointer -fno-rtti -fno-exceptions \
     -funroll-loops -ffast-math -fforce-addr -fforce-mem -fstrength-reduce \
     -fthread-jumps -fexpensive-optimizations -foptimize-sibling-calls \
     -fstrict-aliasing -maccumulate-outgoing-args -fschedule-insns \
     -fschedule-insns2
-
     DFLAGS = -DUSE_ZLIB -DLSB_FIRST
-    NASMFLAGS = ${IFLAGS} -O3 -f coff ${NASMDFLAGS}
 endif
-
 ifneq (${ASM_CORE}, 0)
     DFLAGS += -DNO_C_CORE
 endif
+CFLAGS := -I${INCLUDE_PATH} ${MFLAGS} ${OFLAGS} -Wall -Wno-unused ${DFLAGS}
 
-WFLAGS = -Wall -Wno-unused
+# NASM flags.
+ifdef DEBUG
+    NASMOFLAGS = -g
+else
+    NASMOFLAGS = -O3
+endif
+NASMFLAGS := -I${INCLUDE_PATH}/ ${NASMOFLAGS} -f coff -DC_LABELS_PREFIX=_
 
-CFLAGS = ${IFLAGS} ${OFLAGS} ${WFLAGS} ${DFLAGS}
-
-LIBRARIES = -lalleg -lz
-
-OBJECTS = apu${OBJEXT} audio${OBJEXT} core${OBJEXT} cpu${OBJEXT} \
-    data${OBJEXT} gui${OBJEXT} input${OBJEXT} papu${OBJEXT} ppu${OBJEXT} \
-    rom${OBJEXT} main${OBJEXT} mmc${OBJEXT} netplay${OBJEXT} \
-    video${OBJEXT} crc32${OBJEXT} support/unzip${OBJEXT}
-
+# Objects.
+OBJECTS := ${OBJECT_PATH}/apu${OBJEXT} \
+    ${OBJECT_PATH}/audio${OBJEXT} \
+    ${OBJECT_PATH}/core${OBJEXT} \
+    ${OBJECT_PATH}/cpu${OBJEXT} \
+    ${OBJECT_PATH}/data${OBJEXT} \
+    ${OBJECT_PATH}/gui${OBJEXT} \
+    ${OBJECT_PATH}/input${OBJEXT} \
+    ${OBJECT_PATH}/papu${OBJEXT} \
+    ${OBJECT_PATH}/ppu${OBJEXT} \
+    ${OBJECT_PATH}/rom${OBJEXT} \
+    ${OBJECT_PATH}/main${OBJEXT} \
+    ${OBJECT_PATH}/mmc${OBJEXT} \
+    ${OBJECT_PATH}/netplay${OBJEXT} \
+    ${OBJECT_PATH}/video${OBJEXT} \
+    ${OBJECT_PATH}/crc32${OBJEXT} \
+    ${OBJECT_PATH}/unzip${OBJEXT}
 ifneq (${ASM_CORE}, 0)
-    OBJECTS += corex86${OBJEXT}
+    OBJECTS += ${OBJECT_PATH}/corex86${OBJEXT}
 endif
 
+# Libraries.
+LIBRARIES = -lalleg -lz
+
+# Targets.
+.PHONY: all bootstrap clean distclean
 ifdef DEBUG
     all: ${BINARY_DEBUG}
 else
     all: ${BINARY}
 endif
-
-${BINARY}: ${OBJECTS}
+bootstrap:
+	@echo Building.
+	${MKDIR} ${OBJECT_PATH}
+${BINARY}: bootstrap \
+    ${OBJECTS}
 	${CC} ${OBJECTS} -o ${BINARY} -s ${LIBRARIES}
-
-${BINARY_DEBUG}: ${OBJECTS}
+${BINARY_DEBUG}: bootstrap \
+    ${OBJECTS}
 	${CC} ${OBJECTS} -o ${BINARY_DEBUG} -g -ggdb3 ${LIBRARIES}
-
+${COREOFF_INC}: \
+    coreoff.c \
+    ${INCLUDE_PATH}/core.h \
+    ${INCLUDE_PATH}/misc.h
+	${CC} $< -o ${COREOFF} -I${INCLUDE_PATH}
+	${COREOFF} > ${COREOFF_INC}
+	${RM} ${COREOFF}
 .SUFFIXES: .asm .c
-
-%${OBJEXT}: %.asm
+${OBJECT_PATH}/%${OBJEXT}: \
+    %.asm
 	${NASM} $< -o $@ ${NASMFLAGS}
-
-%${OBJEXT}: %.c
+${OBJECT_PATH}/%${OBJEXT}: \
+    %.c
 	${CC} -c $< -o $@ ${CFLAGS}
-
-support/coreoff.inc: support/coreoff.c include/core.h include/misc.h
-	${CC} $< -o support/coreoff${EXEEXT} ${CFLAGS} -s
-	$(COREOFF) > $(COREINC)
 
 include build/common.mk
 
 clean:
-	${RM} ${OBJECTS}
-	${RM} ${BINARY} ${BINARY_DEBUG}
+	${RM} ${OBJECTS} ${BINARY} ${BINARY_DEBUG}
 
-	${RM} $(COREOFF) $(COREINC)
+distclean: clean
+	-${RMDIR} ${OBJECT_PATH}
+	${RM} ${COREOFF} ${COREOFF_INC}

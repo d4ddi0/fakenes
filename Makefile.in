@@ -1,35 +1,23 @@
-
+.EXPORT_ALL_VARIABLES:
 
 MAKE = @MAKE@
+RM = @RM@ -f
 
-RM = @RM@ -f -v
+BINARY_PATH = ..
 
+.PHONY: all install uninstall clean distclean
+all:
+	${MAKE} -C src all
 
-all :
+install:
+	${MAKE} -C src install
 
-	cd src && ${MAKE} all
+uninstall:
+	${MAKE} -C src uninstall
 
+clean:
+	${MAKE} -C src clean
 
-install :
-
-	cd src && ${MAKE} install
-
-
-uninstall :
-
-	cd src && ${MAKE} uninstall
-
-
-clean :
-
-	cd src && ${MAKE} clean
-
-
-distclean : clean
-
-	${RM} config.log config.cache config.status
-
-	${RM} Makefile
-
-
-	cd src && ${MAKE} distclean
+distclean: clean
+	${MAKE} -C src distclean
+	${RM} config.cache config.log config.status Makefile

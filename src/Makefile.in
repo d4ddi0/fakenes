@@ -1,132 +1,111 @@
+# Options.
+ASM_CORE ?= @ASM_CORE@
 
-
-ASM_CORE := @ASM_CORE@
-
-
+# Tools.
 CC = @CC@
-
-NASM = @NASM@
-
-RM = @RM@ -f -v
-
-
+NASM ?= @NASM@
+MKDIR = @MKDIR@ -p
+RMDIR = @RMDIR@
+RM = @RM@ -fv
 CHMOD = @CHMOD@
-
 INSTALL = @INSTALL@
 
+# Paths.
+INCLUDE_PATH = include
+OBJECT_PATH = build/posix
+BINARY_PATH ?= .
 
+# Extensions.
 EXEEXT = @EXEEXT@
-
 OBJEXT = @OBJEXT@
 
+# Binaries.
+BINARY := ${BINARY_PATH}/fakenes${EXEEXT}
 
-BINARY = fakenes${EXEEXT}
+# Special (don't touch).
+COREOFF := ${BINARY_PATH}/coreoff${EXEEXT}
+COREOFF_INC := ${INCLUDE_PATH}/core/x86/offsets.inc
 
-
-IFLAGS = -Iinclude/ -Isupport/
-
-DFLAGS := @DFLAGS@ -DPOSIX
-
+# C compiler flags.
+DFLAGS = @DFLAGS@ -DPOSIX
 ifneq (${ASM_CORE}, 0)
-    DFLAGS := ${DFLAGS} -DNO_C_CORE
+    DFLAGS += -DNO_C_CORE
 endif
+CFLAGS := `allegro-config --cflags` -I${INCLUDE_PATH} @CFLAGS@ ${DFLAGS}
 
-
-CFLAGS = `allegro-config --cflags` ${IFLAGS} @CFLAGS@ ${DFLAGS}
-
-
-NASMDFLAGS = -DC_LABELS_PREFIX
-
+# NASM flags.
 ifdef DEBUG
-    NASMFLAGS = ${IFLAGS} -g -f elf ${NASMDFLAGS}
+    NASMOFLAGS = -g
 else
-    NASMFLAGS = ${IFLAGS} -O3 -f elf ${NASMDFLAGS}
+    NASMOFLAGS = -O3
+endif
+NASMFLAGS := -I{$INCLUDE_PATH}/ ${NASMOFLAGS} -f elf -DC_LABELS_PREFIX
+
+# Objects.
+OBJECTS := ${OBJECT_PATH}/apu${OBJEXT} \
+    ${OBJECT_PATH}/audio${OBJEXT} \
+    ${OBJECT_PATH}/core${OBJEXT} \
+    ${OBJECT_PATH}/cpu${OBJEXT} \
+    ${OBJECT_PATH}/data${OBJEXT} \
+    ${OBJECT_PATH}/gui${OBJEXT} \
+    ${OBJECT_PATH}/input${OBJEXT} \
+    ${OBJECT_PATH}/papu${OBJEXT} \
+    ${OBJECT_PATH}/ppu${OBJEXT} \
+    ${OBJECT_PATH}/rom${OBJEXT} \
+    ${OBJECT_PATH}/main${OBJEXT} \
+    ${OBJECT_PATH}/mmc${OBJEXT} \
+    ${OBJECT_PATH}/netplay${OBJEXT} \
+    ${OBJECT_PATH}/video${OBJEXT} \
+    ${OBJECT_PATH}/crc32${OBJEXT} \
+    ${OBJECT_PATH}/unzip${OBJEXT}
+ifneq (${ASM_CORE}, 0)
+    OBJECTS += ${OBJECT_PATH}/corex86${OBJEXT}
 endif
 
-
+# Libraries.
 LIBRARIES = `allegro-config --libs` @LIBRARIES@
 
-
-OBJECTS := apu${OBJEXT} audio${OBJEXT} core${OBJEXT} cpu${OBJEXT} \
-    data${OBJEXT} gui${OBJEXT} input${OBJEXT} papu${OBJEXT} ppu${OBJEXT} \
-    rom${OBJEXT} main${OBJEXT} mmc${OBJEXT} netplay${OBJEXT} \
-    video${OBJEXT} crc32${OBJEXT} support/unzip${OBJEXT}
-
-ifneq (${ASM_CORE}, 0)
-    OBJECTS := ${OBJECTS} corex86${OBJEXT}
-endif
-
-
-all : bootstrap ${BINARY}
-
-
-bootstrap :
-
-	@echo Please wait while FakeNES builds...
-
-
-${BINARY} : ${OBJECTS}
-
+.PHONY: all bootstrap install uninstall clean distclean
+all: bootstrap ${BINARY}
+bootstrap:
+	@echo Building.
+	${MKDIR} ${OBJECT_PATH}
+${BINARY}: bootstrap \
+    ${OBJECTS}
 	${CC} ${OBJECTS} -o ${BINARY} ${LIBRARIES}
-
-
-install : ${BINARY}
-
-	@echo Installing the FakeNES binary...
-
-	${INSTALL} -m 0755 ${BINARY} /usr/local/bin
-
-
-	@echo Run \'${BINARY}\' once to create the configuration file.
-
-	@echo It will be stored in \'${HOME}/.fakenes\'.
-
-
-uninstall :
-
-	@echo Removing FakeNES from your system...
-
-	@echo User specific generated files will NOT be removed.
-
-
-	${RM} /usr/local/bin/${BINARY}
-
-
-.SUFFIXES : .asm .c
-
-%${OBJEXT} : %.asm
-
+${COREOFF_INC}: \
+    coreoff.c \
+    ${INCLUDE_PATH}/core.h \
+    ${INCLUDE_PATH}/misc.h
+    ${CC} $< -o ${COREOFF} -I${INCLUDE_PATH}
+	${CHMOD} +x ${COREOFF}
+    ${COREOFF} > ${COREOFF_INC}
+	${RM} ${COREOFF}
+.SUFFIXES: .asm .c
+${OBJECT_PATH}/%${OBJEXT}: \
+    %.asm
 	${NASM} $< -o $@ ${NASMFLAGS}
-
-
-%${OBJEXT} : %.c
-
+${OBJECT_PATH}/%${OBJEXT}: \
+    %.c
 	${CC} -c $< -o $@ ${CFLAGS}
 
+install: ${BINARY}
+	${INSTALL} -m 0755 ${BINARY} /usr/local/bin
+	@echo Installed.
+	@echo Run \'${BINARY}\' once to create the configuration file.
+	@echo It will be stored in \'${HOME}/.fakenes\'.
 
-support/coreoff.inc: support/coreoff.c include/core.h include/misc.h
-
-	${CC} $< -o support/coreoff${EXEEXT} ${CFLAGS} -s
-
-
-	${CHMOD} +x support/coreoff${EXEEXT}
-
-	./support/coreoff${EXEEXT} > support/coreoff.inc
-
+uninstall:
+	${RM} /usr/local/bin/${BINARY}
+	@echo Uninstalled.
+	@echo \'${HOME}/.fakenes\' must be removed manually.
 
 include build/common.mk
 
+clean:
+	${RM} ${OBJECTS} ${BINARY}
 
-clean :
-
-	${RM} ${OBJECTS}
-
-	${RM} ${BINARY}
-
-
-	${RM} support/coreoff${EXEEXT} support/coreoff.inc
-
-
-distclean :
-
+distclean: clean
+	-${RMDIR} ${OBJECT_PATH}
+	${RM} ${COREOFF} ${COREOFF_INC}
 	${RM} Makefile

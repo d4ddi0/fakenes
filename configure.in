@@ -5,53 +5,46 @@ AC_CONFIG_HEADER(src/include/config.h)
 
 AC_MSG_WARN(ignoring --prefix if it is present)
 
-dnl Checks for programs.
 AC_PROG_CC
+
+dnl Should probably try non-GNU tools...
+AC_PATH_PROGS(MAKE, make gmake, make)
+AC_PATH_PROG(NASM, nasm, nasm)
+AC_PATH_PROG(MKDIR, mkdir, mkdir)
+AC_PATH_PROG(RMDIR, rmdir, rmdir)
+AC_PATH_PROG(RM, rm, rm)
+AC_PATH_PROGS(INSTALL, install ginstall, install)
+AC_PATH_PROG(CHMOD, chmod, chmod)
 
 dnl Docs say autoconf defines these, I say otherwise.
 AC_MSG_CHECKING(for executable file suffix)
-
 EXEEXT="$ac_exeext"
-
 if [[ "x$EXEEXT" = "x" ]]; then
     AC_MSG_RESULT(none)
 else
     AC_MSG_RESULT("$EXEEXT")
-
     EXEEXT=".$EXEEXT"
 fi
 
 AC_MSG_CHECKING(for object file suffix)
-
 OBJEXT="$ac_objext"
-
 if [[ "x$OBJEXT" = "x" ]]; then
     AC_MSG_RESULT(none)
 else
     AC_MSG_RESULT("$OBJEXT")
-
     OBJEXT=".$OBJEXT"
 fi
 
-AC_PATH_PROGS(MAKE, make gmake, make)
-AC_PATH_PROG(NASM, nasm, nasm)
-AC_PATH_PROG(RM, rm, rm)
-
-dnl Checks for libraries.
 AC_ARG_WITH(zlib,   [  --with-zlib             build with ZIP and gzip support [default=yes]], [USE_ZLIB=$enableval], [USE_ZLIB=yes])
 AC_ARG_WITH(hawknl, [  --with-hawknl           build with NetPlay support [default=yes]], [USE_HAWKNL=$enableval], [USE_HAWKNL=yes])
 
+dnl A hack, will probably be changed later.
 AC_MSG_CHECKING(whether to use x86 optimized core)
-
-dnl Somewhat of a hack, will probably be changed later.
-dnl AC_LANG_PUSH(C)
 AC_TRY_COMPILE(,
       [#ifndef __i386__
         #error __i386__ not defined.
       #endif],
     [ASM_CORE=1], [ASM_CORE=0])
-dnl AC_LANG_POP(C)
-
 if [[ "x$ASM_CORE" = "x1" ]]; then
     AC_MSG_RESULT(yes)
 else
@@ -59,71 +52,51 @@ else
 fi
 
 AC_MSG_CHECKING(whether to enable ZIP and gzip support)
-
 if [[ "x$USE_ZLIB" = "xyes" ]]; then
     DFLAGS="$DFLAGS -DUSE_ZLIB"
 	AC_MSG_RESULT(yes)
-
     LIBRARIES="$LIBRARIES -lz"
-
     echo if this is not what you want, use --without-zlib
 else
 	AC_MSG_RESULT(no)
-
     echo if this is not what you want, use --with-zlib
 fi
 
 AC_MSG_CHECKING(whether to enable NetPlay support)
-
 if [[ "x$USE_HAWKNL" = "xyes" ]]; then
     DFLAGS="$DFLAGS -DUSE_HAWKNL"
 	AC_MSG_RESULT(yes)
-
     LIBRARIES="$LIBRARIES -lNL"
-
     echo if this is not what you want, use --without-hawknl
 else
 	AC_MSG_RESULT(no)
-
     echo if this is not what you want, use --with-hawknl
 fi
 
-AC_PROG_INSTALL
-AC_PATH_PROG(CHMOD, chmod, chmod)
-
-dnl Checks for header files.
-
-dnl Checks for typedefs, structures, and compiler characteristics.
+dnl Add -DLSB_FIRST to DFLAGS if on a little endian platform.
 AC_C_BIGENDIAN
-
-dnl Set DFLAGS to -DLSB_FIRST if on a little endian platform,
-dnl otherwise do nothing.
-
 if test "$ac_cv_c_bigendian" != yes; then
     DFLAGS="$DFLAGS -DLSB_FIRST"
 fi
 
-dnl There is also the data type definitions that need to be
-dnl handled by using configure to detect size.
 AC_CHECK_SIZEOF(short int)
 AC_CHECK_SIZEOF(int)
 AC_CHECK_SIZEOF(long int)
 
-dnl Checks for library functions.
-
 AC_SUBST(ASM_CORE)
-
 AC_SUBST(MAKE)
 AC_SUBST(NASM)
+AC_SUBST(MKDIR)
+AC_SUBST(RMDIR)
 AC_SUBST(RM)
 AC_SUBST(CHMOD)
-
+AC_SUBST(INSTALL)
 AC_SUBST(EXEEXT)
 AC_SUBST(OBJEXT)
-
 AC_SUBST(DFLAGS)
 AC_SUBST(LIBRARIES)
 
 AC_OUTPUT(Makefile src/Makefile)
 
-echo type \'make install\' to build and install FakeNES
+echo type \'make all\' to just build FakeNES
+echo type \'make all install\' to build and install FakeNES

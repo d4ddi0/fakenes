@@ -1,84 +1,103 @@
+Building FakeNES
 
+    For the moment, FakeNES is fairly easy to build from the source code,
+    assuming that you have the proper tools to do so.  The FakeNES
+    developers make no promises as to whether or not you will be able build
+    or run any of this software on your system.
 
-  ==================
-   Building FakeNES
-  ==================
+    See the bottom of this document for annotations.
 
-    For the moment, the FakeNES source code is fairly easy to compile,
-    assuming that you have the proper tools to do so.
+POSIX Version
 
-    The FakeNES developers make no promises to whether or not you will
-    be able build or run any of this software on your system.
+    The POSIX version should build on any mostly POSIX compatible platform
+    (including Linux and most other flavors of Unix), but greatly relies on
+    a GNU tool set.  Generally, FakeNES should build with a standard tool
+    set (usually included with the operating system) but unforseen issues
+    may arise, therefor we cannot officially support using such a tool set.
+    However, if you wish to use one, scan through 'configure.in' looking for
+    any changes you may need to make.  As an exception, you will still
+    require GNU autoconf (to regenerate 'configure') and make.
 
+    You will also need the following:
 
-  =============
-   DOS Version
-  =============
+    - Allegro(2) version 4.1.0 or higher.  I recommend using at least
+      version 4.1.1.  As of this writing, I am using the latest, version
+      4.1.12.  I do not recommend using the prebuilt development binaries,
+      you should build it yourself to avoid issues.  Make sure that the
+      Allegro examples all build and run fine.
 
-    With the following tools I can build the complete DOS version of
-    FakeNES, I hope that it will also work for you.
+    A pregenerated 'configure' script is provided, but you will probably
+    need to make it executable first.  Simply run it, and it should set
+    everything up in the makefile quite nicely.  If you have problems
+    building afterwards, try disabling the use of zlib(4) and/or HawkNL(5)
+    (execute 'configure --help' for a list of all options).
 
-    - DJGPP v2 or higher.  As of this writing I am using DJGPP v2 with
-      GCC version 3.02.  Just go to 'http://www.delorie.com/djgpp' and
-      click on the 'Zip Picker' link.  The default options are fine as
-      long as you also select 'C++' and 'Assembler' under languages.
-      
-      If you plan on doing a 'make clean' then you will also need to
-      get the GNU fileutils package, available on your nearest DJGPP
-      mirror under the directory 'v2gnu'.
+    Be warned; a successful execution of 'configure' will overwrite the
+    stock 'Makefile' that is normally required to build the DOS and Windows
+    versions of FakeNES from the topmost directory of the source code tree.
 
-    - Allegro version 3.9.34 or higher.  I recommend using at least
-      version 3.9.39.  As of this writing, I am using the latest,
-      version 3.9.40, which does not compile with GCC version 3.02.
-      I do not recommend using the pre-built development binaries,
-      you should build Allegro yourself to avoid problems.
+DOS Version
 
-      The Allegro homepage is at http://alleg.sourceforge.net/.
+    With the following tools I can build the complete 32-bit DOS version of
+    FakeNES, designed to run under a DPMI manager such as CWSDPMI(6).
 
-      You can get a preliminary build of GCC version 3.03 for DJGPP
-      that will compile Allegro version 3.9.xx from this page:
+    - DJGPP v2 or higher.  As of this writing I am using DJGPP v2 with GCC
+      version 3.2.  Just go to 'http://www.delorie.com/djgpp' and click on
+      the 'Zip Picker' link.  The default selections are fine(1).  Follow
+      the instructions given for installing DJGPP on your system.
 
-      http://www.ltn.lv/~pavenis/gcctest.html
+    - Allegro(2) version 4.1.0 or higher.  I recommend using at least
+      version 4.1.1.  As of this writing, I am using the latest, version
+      4.1.12.  I do not recommend using the prebuilt development binaries,
+      you should build it yourself to avoid issues.  Make sure that the
+      Allegro examples all build and run fine.
 
-   Once everything is installed and built, switch to the 'src' child
-   directory and execute 'make -f build/makefile.djgpp'.
+   Once you have everything installed an in proper working order, simply
+   execute 'config djgpp' and follow any further instructions given.  If you
+   have problems building, try disabling the use of zlib(4) by setting the
+   'NO_ZLIB' environment variable or passing it to 'make' on invocation
+   (e.g make NO_ZLIB=1).
 
+Windows Version
 
-  =================
-   Windows Version 
-  =================
-
-    With the following tools I can build the complete Windows version
-    of FakeNES designed to run with the Microsoft DirectX 7.x runtime.
+    With the following tools I can build the complete 32-bit Windows version
+    of FakeNES, designed to run with the Microsoft DirectX 7.x(3) runtime.
 
     - Mingw32 version 1.0.1 or higher.  As of this writing I am using
-      version 1.1.  Just go to 'http://www.mingw.org' and get the
-      single distribution archive and you will have everything you
-      need.  It is quite large, you should use a download manager when
-      downloading it.
+      version 2.0.0.  Just go to 'http://www.mingw.org' and get the complete
+      installer executable and you should have just about everything you
+      need(1).  Simply run the installer to install Mingw32 on your system.
 
-      If you plan on doing a 'make clean' then you will also need to
-      get the GNU fileutils package, you can get it from DJGPP (read
-      above) or Cygwin, which is what I use.
+    - Allegro(2) version 4.1.0 or higher.  I recommend using at least
+      version 4.1.1.  As of this writing, I am using the latest, version
+      4.1.12.  I do not recommend using the prebuilt development binaries,
+      you should build it yourself to avoid issues.  Make sure that the
+      Allegro examples all build and run fine.
 
-      You will need to place the path to the GNU fileutils binaries
-      __after__ Mingw32 in your 'PATH' environment variable.
+    Once you have everything installed an in proper working order, simply
+    execute 'config mingw32' and follow any further instructions given.  If
+    you have problems building, try disabling the use of zlib(4) by setting
+    the 'NO_ZLIB' environment variable or passing it to 'make' on invocation
+    (e.g make NO_ZLIB=1).  Likewise for HawkNL(5) if neccessary.
 
-    - Allegro version 3.9.34 or higher.  I recommend using at least
-      version 3.9.39.  As of this writing, I am using version 3.9.40.
-      I do not recommend using the pre-built development binaries,
-      you should build Allegro yourself to avoid problems.
+(1) If you want to execute a 'make clean' then you will also need to get GNU
+fileutils.  It is available for DJGPP, Mingw32, and is installed with Cygwin
+by default.  See the documentation for your development system for
+information on obtaining and installing supplemental GNU packages.
 
-      The Allegro homepage is at http://alleg.sourceforge.net/.
+(2) The Allegro home page is at 'http://alleg.sourceforge.net'.
 
-      NOTICE: The FakeNES developers will not support the DirectX 8.x
-      runtime at this time except through backwards compatibility with
-      the DirectX 7.x runtime.  The DirectX 8.x runtime removes all
-      support for non-Pentium systems.
+(3) The FakeNES developers will not officially support DirectX 8 at this
+time except through backwards compatibility with DirectX 7, because the
+runtime removes all support for non-Pentium (e.g i486) processors.
 
-      Due to the nature of the FakeNES license, you are free to build
-      the Windows version of FakeNES yourself and link it against the
-      DirectX 8.x libraries, and distribute such copies freely.
+(4) Disabling zlib removes ZIP and gzip support.  zlib source code, prebuilt
+packages, and more can be obtained from 'http://www.gzip.org/zlib'.
 
-   Once everything is installed and built, switch to the 'src' child
-   directory and execute 'make -f build/makefile.mingw32'.
+(5) Disabling HawkNL removes NetPlay support.  HawkNL source code, prebuilt
+packages, and more can be obtained from 'http://www.hawksoft.com/hawknl'.
+
+(6) CWSDPMI is a DPMI server and virtual memory manager (VMM).  It allows
+DOS programs to be run in 32-bit protected mode on i386 and higher
+processors, giving access to all memory and a cleaner execution environment.
+The CWSDPMI home page is at 'http://clio.rice.edu/cwsdpmi'.

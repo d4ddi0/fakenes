@@ -1,83 +1,236 @@
+# Dependancies.
+${OBJECT_PATH}/apu${OBJEXT}: \
+    apu.c \
+    ${INCLUDE_PATH}/apu.h \
+    ${INCLUDE_PATH}/misc.h \
+    ${INCLUDE_PATH}/cpu.h \
+    ${INCLUDE_PATH}/core.h \
+    ${INCLUDE_PATH}/rom.h \
+    ${INCLUDE_PATH}/mmc.h \
+    ${INCLUDE_PATH}/cpu_in.h \
+    ${INCLUDE_PATH}/apu_ex.h \
+    ${INCLUDE_PATH}/apu/vrc6.h \
+    ${INCLUDE_PATH}/apu/vrc7.h \
+    ${INCLUDE_PATH}/apu/fds.h \
+    ${INCLUDE_PATH}/apu/mmc5.h \
+    ${INCLUDE_PATH}/apu/n106.h \
+    ${INCLUDE_PATH}/apu/fme7.h
 
-apu${OBJEXT} : apu.c include/apu.h include/misc.h include/cpu.h include/core.h \
-  include/rom.h include/mmc.h include/cpu_in.h include/apu_ex.h \
-  include/apu/vrc6.h include/apu/vrc7.h include/apu/fds.h \
-  include/apu/mmc5.h include/apu/n106.h include/apu/fme7.h
-
-audio${OBJEXT} : audio.c include/audio.h include/gui.h include/misc.h \
-  include/timing.h
+${OBJECT_PATH}/audio${OBJEXT}: \
+    audio.c \
+    ${INCLUDE_PATH}/audio.h \
+    ${INCLUDE_PATH}/gui.h \
+    ${INCLUDE_PATH}/misc.h \
+    ${INCLUDE_PATH}/timing.h
 
 ifndef ASM_CORE
-
-core${OBJEXT} : core.c include/core.h include/misc.h include/core/tables.h \
-  include/core/memory.h include/cpu.h include/rom.h include/mmc.h \
-  include/cpu_in.h include/core/addr.h include/core/insns.h \
-  include/core/codes.h
-
+    ${OBJECT_PATH}/core${OBJEXT}: \
+        core.c \
+        ${INCLUDE_PATH}/core.h \
+        ${INCLUDE_PATH}/misc.h \
+        ${INCLUDE_PATH}/core/tables.h \
+        ${INCLUDE_PATH}/core/memory.h \
+        ${INCLUDE_PATH}/cpu.h \
+        ${INCLUDE_PATH}/rom.h \
+        ${INCLUDE_PATH}/mmc.h \
+        ${INCLUDE_PATH}/cpu_in.h \
+        ${INCLUDE_PATH}/core/addr.h \
+        ${INCLUDE_PATH}/core/insns.h \
+        ${INCLUDE_PATH}/core/codes.h
 else
+    ${OBJECT_PATH}/core${OBJEXT}: \
+        core.c \
+        ${INCLUDE_PATH}/core.h \
+        ${INCLUDE_PATH}/misc.h \
+        ${INCLUDE_PATH}/core/tables.h \
+        ${INCLUDE_PATH}/core/memory.h \
+        ${INCLUDE_PATH}/cpu.h \
+        ${INCLUDE_PATH}/rom.h \
+        ${INCLUDE_PATH}/mmc.h \
+        ${INCLUDE_PATH}/cpu_in.h \
+        ${INCLUDE_PATH}/core/addr.h \
+        ${INCLUDE_PATH}/core/insns.h
 
-core${OBJEXT} : core.c include/core.h include/misc.h include/core/tables.h \
-  include/core/memory.h include/cpu.h include/rom.h include/mmc.h \
-  include/cpu_in.h include/core/addr.h include/core/insns.h
-
-corex86${OBJEXT}: corex86.asm support/coreoff.inc \
-    include/core/x86/addr.inc include/core/x86/codes.inc \
-    include/core/x86/insns.inc
-
+    ${OBJECT_PATH}/corex86${OBJEXT}: \
+        corex86.asm \
+        ${INCLUDE_PATH}/core/x86/offsets.inc \
+        ${INCLUDE_PATH}/core/x86/addr.inc \
+        ${INCLUDE_PATH}/core/x86/codes.inc \
+        ${INCLUDE_PATH}/core/x86/insns.inc
 endif
 
-cpu${OBJEXT} : cpu.c include/cpu.h include/core.h include/misc.h include/rom.h \
-  include/mmc.h include/cpu_in.h include/input.h include/papu.h \
-  include/ppu.h include/crc32.h
+${OBJECT_PATH}/cpu${OBJEXT}: \
+    cpu.c \
+    ${INCLUDE_PATH}/cpu.h \
+    ${INCLUDE_PATH}/core.h \
+    ${INCLUDE_PATH}/misc.h \
+    ${INCLUDE_PATH}/rom.h \
+    ${INCLUDE_PATH}/mmc.h \
+    ${INCLUDE_PATH}/cpu_in.h \
+    ${INCLUDE_PATH}/input.h \
+    ${INCLUDE_PATH}/papu.h \
+    ${INCLUDE_PATH}/ppu.h \
+    ${INCLUDE_PATH}/crc32.h
 
-crc32${OBJEXT} : crc32.c include/misc.h include/crc32.h
+${OBJECT_PATH}/crc32${OBJEXT}: \
+    crc32.c \
+    ${INCLUDE_PATH}/misc.h \
+    ${INCLUDE_PATH}/crc32.h
 
-data${OBJEXT} : data.c
+${OBJECT_PATH}/data${OBJEXT}: \
+    data.c
 
-gui${OBJEXT} : gui.c include/apu.h include/misc.h include/audio.h include/cpu.h \
-  include/core.h include/rom.h include/mmc.h include/cpu_in.h \
-  include/gui.h include/input.h include/papu.h include/ppu.h \
-  include/video.h include/data.h include/datafile.h include/version.h \
-  include/genie.h include/netplay.h include/timing.h \
-  include/gui/objects.h include/gui/menus.h include/gui/dialogs.h
+${OBJECT_PATH}/gui${OBJEXT}: \
+    gui.c \
+    ${INCLUDE_PATH}/apu.h \
+    ${INCLUDE_PATH}/misc.h \
+    ${INCLUDE_PATH}/audio.h \
+    ${INCLUDE_PATH}/cpu.h \
+    ${INCLUDE_PATH}/core.h \
+    ${INCLUDE_PATH}/rom.h \
+    ${INCLUDE_PATH}/mmc.h \
+    ${INCLUDE_PATH}/cpu_in.h \
+    ${INCLUDE_PATH}/gui.h \
+    ${INCLUDE_PATH}/input.h \
+    ${INCLUDE_PATH}/papu.h \
+    ${INCLUDE_PATH}/ppu.h \
+    ${INCLUDE_PATH}/video.h \
+    ${INCLUDE_PATH}/data.h \
+    ${INCLUDE_PATH}/datafile.h \
+    ${INCLUDE_PATH}/version.h \
+    ${INCLUDE_PATH}/genie.h \
+    ${INCLUDE_PATH}/netplay.h \
+    ${INCLUDE_PATH}/timing.h \
+    ${INCLUDE_PATH}/gui/objects.h \
+    ${INCLUDE_PATH}/gui/menus.h \
+    ${INCLUDE_PATH}/gui/dialogs.h
 
-input${OBJEXT} : input.c include/audio.h include/gui.h include/misc.h \
-  include/input.h include/ppu.h include/rom.h include/mmc.h \
-  include/video.h include/timing.h
+${OBJECT_PATH}/input${OBJEXT}: \
+    input.c \
+    ${INCLUDE_PATH}/audio.h \
+    ${INCLUDE_PATH}/gui.h \
+    ${INCLUDE_PATH}/misc.h \
+    ${INCLUDE_PATH}/input.h \
+    ${INCLUDE_PATH}/ppu.h \
+    ${INCLUDE_PATH}/rom.h \
+    ${INCLUDE_PATH}/mmc.h \
+    ${INCLUDE_PATH}/video.h \
+    ${INCLUDE_PATH}/timing.h
 
-main${OBJEXT} : main.c include/build.h include/audio.h include/cpu.h \
-  include/core.h include/misc.h include/rom.h include/mmc.h \
-  include/cpu_in.h include/gui.h include/input.h include/papu.h \
-  include/ppu.h include/video.h include/data.h include/datafile.h \
-  include/version.h include/netplay.h include/timing.h
+${OBJECT_PATH}/main${OBJEXT}: \
+    main.c \
+    ${INCLUDE_PATH}/build.h \
+    ${INCLUDE_PATH}/audio.h \
+    ${INCLUDE_PATH}/cpu.h \
+    ${INCLUDE_PATH}/core.h \
+    ${INCLUDE_PATH}/misc.h \
+    ${INCLUDE_PATH}/rom.h \
+    ${INCLUDE_PATH}/mmc.h \
+    ${INCLUDE_PATH}/cpu_in.h \
+    ${INCLUDE_PATH}/gui.h \
+    ${INCLUDE_PATH}/input.h \
+    ${INCLUDE_PATH}/papu.h \
+    ${INCLUDE_PATH}/ppu.h \
+    ${INCLUDE_PATH}/video.h \
+    ${INCLUDE_PATH}/data.h \
+    ${INCLUDE_PATH}/datafile.h \
+    ${INCLUDE_PATH}/version.h \
+    ${INCLUDE_PATH}/netplay.h \
+    ${INCLUDE_PATH}/timing.h
 
-mmc${OBJEXT} : mmc.c include/cpu.h include/core.h include/misc.h include/rom.h \
-  include/mmc.h include/cpu_in.h include/gui.h include/papu.h \
-  include/ppu.h include/timing.h include/mmc/mmc1.h include/mmc/mmc3.h \
-  include/mmc/mmc2and4.h include/mmc/mmc5.h include/mmc/unrom.h \
-  include/mmc/shared.h include/mmc/cnrom.h include/mmc/aorom.h \
-  include/mmc/gnrom.h include/mmc/bandai.h include/mmc/dreams.h \
-  include/mmc/nina.h include/mmc/sunsoft4.h include/mmc/vrc6.h \
-  include/mmc/ffe_f3.h
+${OBJECT_PATH}/mmc${OBJEXT}: \
+    mmc.c \
+    ${INCLUDE_PATH}/cpu.h \
+    ${INCLUDE_PATH}/core.h \
+    ${INCLUDE_PATH}/misc.h \
+    ${INCLUDE_PATH}/rom.h \
+    ${INCLUDE_PATH}/mmc.h \
+    ${INCLUDE_PATH}/cpu_in.h \
+    ${INCLUDE_PATH}/gui.h \
+    ${INCLUDE_PATH}/papu.h \
+    ${INCLUDE_PATH}/ppu.h \
+    ${INCLUDE_PATH}/timing.h \
+    ${INCLUDE_PATH}/mmc/mmc1.h \
+    ${INCLUDE_PATH}/mmc/mmc3.h \
+    ${INCLUDE_PATH}/mmc/mmc2and4.h \
+    ${INCLUDE_PATH}/mmc/mmc5.h \
+    ${INCLUDE_PATH}/mmc/unrom.h \
+    ${INCLUDE_PATH}/mmc/shared.h \
+    ${INCLUDE_PATH}/mmc/cnrom.h \
+    ${INCLUDE_PATH}/mmc/aorom.h \
+    ${INCLUDE_PATH}/mmc/gnrom.h \
+    ${INCLUDE_PATH}/mmc/bandai.h \
+    ${INCLUDE_PATH}/mmc/dreams.h \
+    ${INCLUDE_PATH}/mmc/nina.h \
+    ${INCLUDE_PATH}/mmc/sunsoft4.h \
+    ${INCLUDE_PATH}/mmc/vrc6.h \
+    ${INCLUDE_PATH}/mmc/ffe_f3.h
 
-netplay${OBJEXT} : netplay.c include/misc.h include/netplay.h
+${OBJECT_PATH}/netplay${OBJEXT}: \
+    netplay.c \
+    ${INCLUDE_PATH}/misc.h \
+    ${INCLUDE_PATH}/netplay.h
 
-papu${OBJEXT} : papu.c include/audio.h include/apu.h include/misc.h \
-  include/input.h include/papu.h include/timing.h
+${OBJECT_PATH}/papu${OBJEXT}: \
+    papu.c \
+    ${INCLUDE_PATH}/audio.h \
+    ${INCLUDE_PATH}/apu.h \
+    ${INCLUDE_PATH}/misc.h \
+    ${INCLUDE_PATH}/input.h \
+    ${INCLUDE_PATH}/papu.h \
+    ${INCLUDE_PATH}/timing.h
 
-ppu${OBJEXT} : ppu.c include/cpu.h include/core.h include/misc.h include/rom.h \
-  include/mmc.h include/cpu_in.h include/input.h include/ppu.h \
-  include/video.h include/timing.h include/crc32.h include/ppu/tiles.h \
-  include/ppu/backgrnd.h include/ppu/sprites.h
+${OBJECT_PATH}/ppu${OBJEXT}: \
+    ppu.c \
+    ${INCLUDE_PATH}/cpu.h \
+    ${INCLUDE_PATH}/core.h \
+    ${INCLUDE_PATH}/misc.h \
+    ${INCLUDE_PATH}/rom.h \
+    ${INCLUDE_PATH}/mmc.h \
+    ${INCLUDE_PATH}/cpu_in.h \
+    ${INCLUDE_PATH}/input.h \
+    ${INCLUDE_PATH}/ppu.h \
+    ${INCLUDE_PATH}/video.h \
+    ${INCLUDE_PATH}/timing.h \
+    ${INCLUDE_PATH}/crc32.h \
+    ${INCLUDE_PATH}/ppu/tiles.h \
+    ${INCLUDE_PATH}/ppu/backgrnd.h \
+    ${INCLUDE_PATH}/ppu/sprites.h
 
-rom${OBJEXT} : rom.c include/ppu.h include/rom.h include/misc.h include/mmc.h \
-  include/cpu.h include/core.h include/cpu_in.h
+${OBJECT_PATH}/rom${OBJEXT}: \
+    rom.c \
+    ${INCLUDE_PATH}/ppu.h \
+    ${INCLUDE_PATH}/rom.h \
+    ${INCLUDE_PATH}/misc.h \
+    ${INCLUDE_PATH}/mmc.h \
+    ${INCLUDE_PATH}/cpu.h \
+    ${INCLUDE_PATH}/core.h \
+    ${INCLUDE_PATH}/cpu_in.h
 
-video${OBJEXT} : video.c include/audio.h include/cpu.h include/core.h \
-  include/misc.h include/rom.h include/mmc.h include/cpu_in.h \
-  include/gui.h include/input.h include/ppu.h include/video.h \
-  include/data.h include/datafile.h include/timing.h include/blit/2xsoe.h \
-  include/blit/shared.h include/blit/2xscl.h include/blit/interp2x.h \
-  include/blit/interp3x.h include/blit/s2xsoe.h include/blit/s2xscl.h
+${OBJECT_PATH}/video${OBJEXT}: \
+    video.c \
+    ${INCLUDE_PATH}/audio.h \
+    ${INCLUDE_PATH}/cpu.h \
+    ${INCLUDE_PATH}/core.h \
+    ${INCLUDE_PATH}/misc.h \
+    ${INCLUDE_PATH}/rom.h \
+    ${INCLUDE_PATH}/mmc.h \
+    ${INCLUDE_PATH}/cpu_in.h \
+    ${INCLUDE_PATH}/gui.h \
+    ${INCLUDE_PATH}/input.h \
+    ${INCLUDE_PATH}/ppu.h \
+    ${INCLUDE_PATH}/video.h \
+    ${INCLUDE_PATH}/data.h \
+    ${INCLUDE_PATH}/datafile.h \
+    ${INCLUDE_PATH}/timing.h \
+    ${INCLUDE_PATH}/blit/2xsoe.h \
+    ${INCLUDE_PATH}/blit/shared.h \
+    ${INCLUDE_PATH}/blit/2xscl.h \
+    ${INCLUDE_PATH}/blit/interp2x.h \
+    ${INCLUDE_PATH}/blit/interp3x.h \
+    ${INCLUDE_PATH}/blit/s2xsoe.h \
+    ${INCLUDE_PATH}/blit/s2xscl.h
 
-support/unzip${OBJEXT} : support/unzip.c support/unzip.h
+${OBJECT_PATH}/unzip${OBJEXT}: \
+    unzip.c \
+    ${INCLUDE_PATH}/unzip.h
