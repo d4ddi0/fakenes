@@ -74,7 +74,7 @@ int papu_linear_echo = TRUE;
 int papu_surround_sound = TRUE;
 
 
-int papu_dithering = TRUE;
+int papu_dithering = FALSE;
 
 
 static void * echo_buffer_a = NULL;
@@ -259,7 +259,7 @@ int papu_init (void)
     papu_smooth_sweep = get_config_int ("papu", "smooth_sweep", FALSE);
 
 
-    papu_dithering = get_config_int ("papu", "dithering", TRUE);
+    papu_dithering = get_config_int ("papu", "dithering", FALSE);
 
 
     papu_update ();

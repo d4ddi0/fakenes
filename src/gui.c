@@ -894,7 +894,7 @@ static int options_audio_mixing_quality_menu_dithering (void)
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Toggled audio noise distribution dithering.");
+    gui_message (GUI_COLOR_WHITE, "Toggled audio random noise dithering.");
 
 
     return (D_O_K);
