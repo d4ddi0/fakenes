@@ -421,14 +421,6 @@ static INLINE int mmc1_init (void)
     {
         printf ("Using memory mapper #1 (MMC1) "
             "(%d PRG, %d CHR).\n\n", ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
-
-
-        printf ("Warning: This mapper is only partially supported.\n");
-        printf ("Press any key to continue...\n");
-
-
-        while (!keypressed ());
-        readkey ();
     }
 
     if (ROM_PRG_ROM_PAGES == 1) mmc1_prg_mask = 1;
