@@ -644,37 +644,29 @@ void ppu_reset (void)
     ppu_vram_needs_cache_update = FALSE;
 
 
+    ppu_write (0x2000, 0);
+
+    ppu_write (0x2001,
+     PPU_BACKGROUND_SHOW_LEFT_EDGE_BIT |
+     PPU_SPRITES_SHOW_LEFT_EDGE_BIT |
+     PPU_BACKGROUND_ENABLE_BIT | PPU_SPRITES_ENABLE_BIT);
+
+
+    spr_ram_address = 0;
+    sprite_list_needs_recache = TRUE;
+
+
     vram_address = 0;
     address_temp = 0;
 
     x_offset = 0;
 
-    spr_ram_address = 0;
-
     address_write = FALSE;
-
-    address_increment = 1;
-
-    want_vblank_nmi = FALSE;
-
-    vblank_occurred = FALSE;
-
-
-    sprite_height = 8;
-    sprite_list_needs_recache = TRUE;
 
     buffered_vram_read = 0;
 
-    ppu_register_2001 =
-     PPU_BACKGROUND_SHOW_LEFT_EDGE_BIT |
-     PPU_SPRITES_SHOW_LEFT_EDGE_BIT |
-     PPU_BACKGROUND_ENABLE_BIT | PPU_SPRITES_ENABLE_BIT;
-
-    background_tileset = 0;
 
     ppu_set_mirroring(ppu_mirroring);
-
-    sprite_tileset = 0;
 
     ppu_clear ();
 }
@@ -969,6 +961,8 @@ void ppu_write (UINT16 address, UINT8 value)
         case 0x2000 & 7:
 
             /* Control register #1. */
+
+            ppu_register_2000 = value;
 
             {
                 int new_sprite_height =

@@ -33,6 +33,9 @@ extern "C" {
 #define PPU_ADDRESS_INCREMENT_BIT   (1 << 2)
 #define PPU_NAME_TABLE_SELECT       (3 << 0)
 
+#define PPU_WANT_VBLANK_NMI \
+ (ppu_register_2000 & PPU_VBLANK_NMI_FLAG_BIT)
+
 
 /* register $2001 */
 #define PPU_COLOR_INTENSITY         (7 << 5)
@@ -41,13 +44,6 @@ extern "C" {
 #define PPU_SPRITES_SHOW_LEFT_EDGE_BIT      (1 << 2)
 #define PPU_BACKGROUND_SHOW_LEFT_EDGE_BIT   (1 << 1)
 #define PPU_MONOCHROME_DISPLAY_BIT  (1 << 0)
-
-
-/* register $2002 */
-#define PPU_VBLANK_FLAG_BIT         (1 << 7)
-#define PPU_SPRITE_0_COLLISION_BIT  (1 << 6)
-#define PPU_SPRITE_OVERFLOW_BIT     (1 << 5)
-
 
 #define PPU_BACKGROUND_ENABLED \
  (ppu_register_2001 & PPU_BACKGROUND_ENABLE_BIT)
@@ -62,6 +58,14 @@ extern "C" {
  (!(ppu_register_2001 & PPU_SPRITES_SHOW_LEFT_EDGE_BIT))
 
 
+/* register $2002 */
+#define PPU_VBLANK_FLAG_BIT         (1 << 7)
+#define PPU_SPRITE_0_COLLISION_BIT  (1 << 6)
+#define PPU_SPRITE_OVERFLOW_BIT     (1 << 5)
+
+
+
+UINT8 ppu_register_2000;
 UINT8 ppu_register_2001;
 
 int ppu_enable_sprite_layer_a;
