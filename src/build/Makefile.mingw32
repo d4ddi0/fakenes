@@ -32,20 +32,20 @@ OBJECTS = apu.o audio.o core.o cpu.o gui.o input.o papu.o ppu.o rom.o \
 
 
 ifdef DEBUG
-    all : fakenesw-debug.exe
+    all : fakenesd.exe
 else
-    all : fakenesw.exe
+    all : fakenes.exe
 endif
 
 
-fakenesw.exe : ${OBJECTS}
+fakenes.exe : ${OBJECTS}
 
-	${CC} ${OBJECTS} -o fakenesw.exe -s ${LIBRARIES} -mconsole
+	${CC} ${OBJECTS} -o fakenes.exe -s ${LIBRARIES} -mconsole
 
 
-fakenesw-debug.exe : ${OBJECTS}
+fakenesd.exe : ${OBJECTS}
 
-	${CC} ${OBJECTS} -o fakenesw-debug.exe -g3 ${LIBRARIES} -mconsole
+	${CC} ${OBJECTS} -o fakenesd.exe -g3 ${LIBRARIES} -mconsole
 
 
 .SUFFIXES : .c
@@ -100,4 +100,4 @@ clean :
 
 	${RM} ${OBJECTS}
 
-	${RM} fakenesw.exe fakenesw-debug.exe
+	${RM} fakenes.exe fakenesd.exe

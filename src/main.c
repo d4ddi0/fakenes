@@ -208,11 +208,11 @@ int main (int argc, char * argv [])
 
     allegro_init ();
 
+    set_window_title ("FakeNES");
 
 #ifdef POSIX
 
     /* by amit */
-    set_window_title ("FakeNES");
 
     /* Configuration directory checking */
     homedir = getenv("HOME");
@@ -351,8 +351,6 @@ int main (int argc, char * argv [])
         }
     }
 #else
-
-    set_window_title ("FakeNESw");
 
     set_config_file ("fakenes.cfg");
 

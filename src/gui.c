@@ -352,8 +352,12 @@ static int file_menu_load_rom (void)
 
     UINT8 buffer [256];
 
+    UINT8 buffer2 [256];
+
 
     memset (buffer, NULL, sizeof (buffer));
+
+    memset (buffer2, NULL, sizeof (buffer2));
 
 
 #ifdef USE_ZLIB
@@ -405,6 +409,11 @@ static int file_menu_load_rom (void)
             ENABLE_MENU (machine_state_menu, 2);
 
             ENABLE_MENU (machine_state_menu, 4);
+
+
+            sprintf (buffer2, "FakeNES - %s", get_filename (global_rom.filename));
+
+            set_window_title (buffer2);
 
 
             return (D_CLOSE);
