@@ -699,9 +699,11 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_video_driver_windows_menu, 0, (gfx_driver -> id == GFX_DIRECTX));
 
-    TOGGLE_MENU (options_video_driver_windows_menu, 2, (gfx_driver -> id == GFX_DIRECTX_OVL));
+    TOGGLE_MENU (options_video_driver_windows_menu, 2, (gfx_driver -> id == GFX_DIRECTX_WIN));
 
-    TOGGLE_MENU (options_video_driver_windows_menu, 4, (gfx_driver -> id == GFX_GDI));
+    TOGGLE_MENU (options_video_driver_windows_menu, 4, (gfx_driver -> id == GFX_DIRECTX_OVL));
+
+    TOGGLE_MENU (options_video_driver_windows_menu, 6, (gfx_driver -> id == GFX_GDI));
 
 #endif
 
@@ -3211,6 +3213,8 @@ DRIVER_MENU_HANDLER (dos, vesa_vbe_af, GFX_VBEAF)
 #ifdef ALLEGRO_WINDOWS
 
 DRIVER_MENU_HANDLER (windows, directx, GFX_DIRECTX)
+
+DRIVER_MENU_HANDLER (windows, directx_window, GFX_DIRECTX_WIN)
 
 DRIVER_MENU_HANDLER (windows, directx_overlay, GFX_DIRECTX_OVL)
 

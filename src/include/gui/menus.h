@@ -556,6 +556,8 @@ static MENU options_video_driver_dos_menu [] =
 
 static int options_video_driver_windows_menu_directx (void);
 
+static int options_video_driver_windows_menu_directx_window (void);
+
 static int options_video_driver_windows_menu_directx_overlay (void);
 
 static int options_video_driver_windows_menu_gdi (void);
@@ -564,6 +566,8 @@ static int options_video_driver_windows_menu_gdi (void);
 static MENU options_video_driver_windows_menu [] =
 {
     {         "&DirectX",         options_video_driver_windows_menu_directx, NIL, 0, NIL },
+    {                 "",                                               NIL, NIL, 0, NIL },
+    {  "DirectX &Window",  options_video_driver_windows_menu_directx_window, NIL, 0, NIL },
     {                 "",                                               NIL, NIL, 0, NIL },
     { "DirectX &Overlay", options_video_driver_windows_menu_directx_overlay, NIL, 0, NIL },
     {                 "",                                               NIL, NIL, 0, NIL },
