@@ -56,6 +56,8 @@ You must read and accept the license prior to use.
 #include "mmc/gnrom.h"
 
 
+#include "mmc/bandai.h"
+
 #include "mmc/dreams.h"
 
 #include "mmc/nina.h"
@@ -152,6 +154,11 @@ void mmc_request (ROM *rom)
         case 11: rom -> current_mmc = &mmc_dreams; break;
 
 
+        /* Bandai. */
+
+        case 16: rom -> current_mmc = &mmc_bandai; break;
+
+
         /* Nina-1. */
 
         case 34: rom -> current_mmc = &mmc_nina; break;
@@ -187,6 +194,9 @@ int mmc_init (void)
 
 
     mmc_scanline_start = NULL;
+
+    mmc_scanline_end = NULL;
+
 
     mmc_check_latches = NULL;
 

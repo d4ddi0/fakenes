@@ -660,6 +660,13 @@ int main (int argc, char * argv [])
                         cpu_execute (HBLANK_CLOCKS);
                     }
 
+                    if (mmc_scanline_end)
+                    {
+                        if (mmc_scanline_end (ppu_scanline))
+                        {
+                            cpu_interrupt (CPU_INTERRUPT_IRQ);
+                        }
+                    }
 
                 }
 
@@ -730,6 +737,13 @@ int main (int argc, char * argv [])
                         cpu_execute (HBLANK_CLOCKS);
                     }
 
+                    if (mmc_scanline_end)
+                    {
+                        if (mmc_scanline_end (ppu_scanline))
+                        {
+                            cpu_interrupt (CPU_INTERRUPT_IRQ);
+                        }
+                    }
 
                 }
 

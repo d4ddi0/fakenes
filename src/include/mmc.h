@@ -43,7 +43,11 @@ typedef struct _MMC
  void (* reset) (void);
 } MMC;
 
+
 int (* mmc_scanline_start) (int);
+
+int (* mmc_scanline_end) (int);
+
 
 void (* mmc_check_latches) (UINT16);
 

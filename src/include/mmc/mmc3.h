@@ -297,7 +297,7 @@ static INLINE int mmc3_init (void)
     cpu_set_write_handler_32k (0x8000, mmc3_write);
 
 
-    mmc_scanline_start = mmc3_irq_tick;
+    mmc_scanline_end = mmc3_irq_tick;
     mmc3_disable_irqs = TRUE;
 
 
