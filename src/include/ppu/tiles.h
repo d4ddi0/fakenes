@@ -188,9 +188,9 @@ static void recache_vram_set (int vram_block)
                 [(ppu_pattern_vram [tile * 16 + y + 8]) & 0x0F];
             
 
-            *(UINT32 *) VRAM_CACHE_TILE_TAG_ADDRESS(tile,y) =
+            *(UINT32 *) VRAM_CACHE_TILE_ADDRESS(tile,y) =
                 pixels0_3;
-            *(UINT32 *) (VRAM_CACHE_TILE_TAG_ADDRESS(tile,y) + 4) =
+            *(UINT32 *) (VRAM_CACHE_TILE_ADDRESS(tile,y) + 4) =
                 pixels4_7;
 
             *VRAM_CACHE_TILE_TAG_ADDRESS(tile,y) =
