@@ -4,8 +4,8 @@ Version 0.3.1
 Note: NetPlay is incomplete and replays are semi-broken in this release.
 Trying to use NetPlay in this will get you nothing!
 
-This version is experimental, and I am releasing it for Christmas so that I
-can worry about more important, such as (eventually) finishing NetPlay.
+This version is experimental.  I am releasing it for Christmas so that I can
+worry about more important things, such as (eventually) finishing NetPlay.
 
 Miscellaneous changes:
   Input 'Start' and 'Select' buttons configuration reversed fix.
