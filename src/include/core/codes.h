@@ -11,6 +11,7 @@
 /**     commercially. Please, notify me, if you make any    **/
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 16.January  2002 TRAC      Added flag emulation to TSX.   */
 /* 09.January  2002 TRAC      Added opcodes 04, 0F, 80.      */
 /* 07.January  2002 TRAC      Altered method of flag         */
 /*                            emulation.                     */
@@ -114,7 +115,7 @@ case 0xE8: R->X++;M_FL(R->X);break;          /* INX */
 case 0xCA: R->X--;M_FL(R->X);break;          /* DEX */
 case 0xEA: break;                            /* NOP */
 case 0x9A: R->S=R->X;break;                  /* TXS */
-case 0xBA: R->X=R->S;break;                  /* TSX */
+case 0xBA: R->X=R->S;M_FL(R->X);break;       /* TSX */
 
 case 0x24: MR_Zp(I);M_BIT(I);break;       /* BIT $ss ZP */
 case 0x2C: MR_Ab(I);M_BIT(I);break;       /* BIT $ssss ABS */
