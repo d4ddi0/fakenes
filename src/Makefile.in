@@ -79,7 +79,7 @@ ${COREOFF_INC}: \
     ${INCLUDE_PATH}/misc.h
 	${CC} $< -o ${COREOFF} -I${INCLUDE_PATH}
 	${CHMOD} +x ${COREOFF}
-    ${COREOFF} > ${COREOFF_INC}
+	${COREOFF} > ${COREOFF_INC}
 	${RM} ${COREOFF}
 .SUFFIXES: .asm .c
 ${OBJECT_PATH}/%${OBJEXT}: \
