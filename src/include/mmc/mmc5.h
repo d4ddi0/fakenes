@@ -415,12 +415,12 @@ static int mmc5_irq_tick (int line)
         if (++mmc5_irq_line_counter == mmc5_irq_line_requested)
         {
             mmc5_irq_status |= 0x80;
-            if (!mmc5_disable_irqs) return 1;
+            if (!mmc5_disable_irqs) return CPU_INTERRUPT_IRQ_MMC;
         }
     }
 
 
-    return 0;
+    return CPU_INTERRUPT_NONE;
 }
 
 
@@ -486,6 +486,8 @@ static UINT8 mmc5_read (UINT16 address)
         case 0x5204:
         {
             UINT8 read_value = mmc5_irq_status;
+
+            cpu_clear_interrupt (CPU_INTERRUPT_IRQ_MMC);
 
             mmc5_irq_status &= 0x40;
 
@@ -905,12 +907,16 @@ static void mmc5_write (UINT16 address, UINT8 value)
 /* 5203: IRQ scanline select */
         case 0x5203:
 
+            cpu_clear_interrupt (CPU_INTERRUPT_IRQ_MMC);
+
             mmc5_irq_line_requested = value;
 
             break;
 
 /* 5204: IRQ enable/status register */
         case 0x5204:
+
+            cpu_clear_interrupt (CPU_INTERRUPT_IRQ_MMC);
 
             mmc5_disable_irqs = (~value & 0x80);
 

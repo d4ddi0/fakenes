@@ -38,7 +38,7 @@ the emulation core.
 #define FN2A03_INT_NMI      1  /* Non-maskable interrupt     */
 
 #define FN2A03_INT_IRQ_BASE         2
-/* Maskable IRQ cleared after single acknowledgement */
+/* Maskable IRQ, cleared after an IRQ is acknowledged */
 #define FN2A03_INT_IRQ_SINGLE_SHOT  (FN2A03_INT_IRQ_BASE)
 /* Maskable IRQs cleared via FN2A03_Clear_Interrupt() */
 #define FN2A03_INT_IRQ_SOURCE(x)    (FN2A03_INT_IRQ_BASE + 1 + (x))
@@ -151,8 +151,8 @@ void FN2A03_Clear_Interrupt(FN2A03 *R,UINT8 Type);
   This function requests an interrupt of the specified type.
  FN2A03_INT_NMI will raise a non-maskable interrupt.
  FN2A03_INT_IRQ_SINGLE_SHOT will raise a maskable interrupt to be cleared
- after a single acknowledgement, and FN2A03_INT_IRQ(x) will raise a
- maskable interrupt to be cleared later by FN2A03_Clear_Interrupt().
+ after a single acknowledgement, and FN2A03_INT_IRQ_SOURCE(x) will raise
+ a maskable interrupt to be cleared later by FN2A03_Clear_Interrupt().
   No interrupts are acknowledged while the CPU is jammed.  Maskable
  interrupts will not be acknowledged until the I flag is clear.
 */

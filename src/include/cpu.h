@@ -32,10 +32,25 @@ extern "C" {
                                /* inline functions for stack */
                                /* and zero page handlers     */
 
-#define CPU_INTERRUPT_IRQ   0
-
+#define CPU_INTERRUPT_NONE  0
 #define CPU_INTERRUPT_NMI   1
 
+#define CPU_INTERRUPT_IRQ_BASE          2
+
+/* Maskable IRQ, cleared after an IRQ is acknowledged */
+#define CPU_INTERRUPT_IRQ_SINGLE_SHOT   2
+#define CPU_INTERRUPT_IRQ               CPU_INTERRUPT_IRQ_SINGLE_SHOT
+
+#define CPU_INTERRUPT_IRQ_SOURCE(x)     (CPU_INTERRUPT_IRQ_BASE + 1 + (x))
+
+/* pAPU Delta Modulation Code IRQ */
+#define CPU_INTERRUPT_IRQ_DMC           CPU_INTERRUPT_IRQ_SOURCE(0)
+/* Frame IRQ */
+#define CPU_INTERRUPT_IRQ_FRAME         CPU_INTERRUPT_IRQ_SOURCE(1)
+/* MMC-specific IRQ */
+#define CPU_INTERRUPT_IRQ_MMC           CPU_INTERRUPT_IRQ_SOURCE(2)
+
+#define CPU_INTERRUPT_IRQ_SOURCE_MAX    FN2A03_INT_IRQ_SOURCE_MAX
 
 UINT8 cpu_ram [65536];
 
@@ -56,6 +71,7 @@ void cpu_reset (void);
 
 
 void cpu_interrupt (int);
+void cpu_clear_interrupt (int);
 
 static INLINE void cpu_execute (int cycles)
 {

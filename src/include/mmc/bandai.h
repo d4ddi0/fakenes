@@ -56,17 +56,15 @@ static int bandai_irq_tick (int line)
 
             bandai_enable_irqs = FALSE;
 
-            return (TRUE);
+            return CPU_INTERRUPT_IRQ_MMC;
         }
         else
         {
-            return (FALSE);
+            return CPU_INTERRUPT_NONE;
         }
     }
-    else
-    {
-        return (FALSE);
-    }
+
+    return CPU_INTERRUPT_NONE;
 }
 
 
@@ -133,6 +131,8 @@ static void bandai_write (UINT16 address, UINT8 value)
             case 0x800a:
 
                 /* Enable/disable IRQs. */
+
+                cpu_clear_interrupt (CPU_INTERRUPT_IRQ_MMC);
 
                 bandai_enable_irqs = (value & 0x01);
 

@@ -50,20 +50,20 @@ static int mmc3_irq_tick (int line)
     {
         mmc3_counter_latched = TRUE;
 
-        if (mmc3_irq_counter --) return 0;
+        if (mmc3_irq_counter --) return CPU_INTERRUPT_NONE;
 
         /* Load next counter position */
         mmc3_irq_counter = mmc3_irq_latch;
 
-        if (mmc3_disable_irqs) return 0;
+        if (mmc3_disable_irqs) return CPU_INTERRUPT_NONE;
 
         mmc3_counter_latched = FALSE;
 
-        return 1;
+        return CPU_INTERRUPT_IRQ_MMC;
     }
 
 
-    return 0;
+    return CPU_INTERRUPT_NONE;
 }
 
 
@@ -268,6 +268,8 @@ static void mmc3_write (UINT16 address, UINT8 value)
             /* Disable IRQs. */
 
             mmc3_disable_irqs = TRUE;
+            cpu_clear_interrupt (CPU_INTERRUPT_IRQ_MMC);
+
             if (!mmc3_counter_latched) mmc3_irq_counter = mmc3_irq_latch;
 
 

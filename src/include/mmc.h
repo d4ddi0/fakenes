@@ -49,7 +49,7 @@ typedef struct _MMC
 } MMC;
 
 
-int (* mmc_scanline_start) (int);
+int (* mmc_hblank_start) (int);
 
 int (* mmc_scanline_end) (int);
 

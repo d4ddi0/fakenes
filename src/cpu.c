@@ -353,7 +353,7 @@ void cpu_interrupt (int type)
 {
     switch (type)
     {
-        case CPU_INTERRUPT_IRQ:
+        case CPU_INTERRUPT_IRQ_SINGLE_SHOT:
 
             FN2A03_Interrupt (&cpu_context, FN2A03_INT_IRQ_SINGLE_SHOT);
 
@@ -371,8 +371,33 @@ void cpu_interrupt (int type)
 
         default:
 
+            FN2A03_Interrupt (&cpu_context,
+                FN2A03_INT_IRQ_SOURCE(type - CPU_INTERRUPT_IRQ_SOURCE(0)));
+
 
             break;
+    }
+}
+
+
+void cpu_clear_interrupt (int type)
+{
+    switch (type)
+    {
+        case CPU_INTERRUPT_IRQ_SINGLE_SHOT:
+        case CPU_INTERRUPT_NMI:
+
+            break;
+
+
+        default:
+
+            FN2A03_Clear_Interrupt (&cpu_context,
+                FN2A03_INT_IRQ_SOURCE(type - CPU_INTERRUPT_IRQ_SOURCE(0)));
+
+
+            break;
+
     }
 }
 

@@ -64,7 +64,7 @@ static int vrc6_irq_tick (int line)
             vrc6_irq_counter = vrc6_irq_latch;
 
 
-            return (TRUE);
+            return CPU_INTERRUPT_IRQ;
         }
         else
         {
@@ -73,7 +73,7 @@ static int vrc6_irq_tick (int line)
     }
 
 
-    return (FALSE);
+    return CPU_INTERRUPT_NONE;
 }
 
 

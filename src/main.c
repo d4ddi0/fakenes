@@ -804,11 +804,12 @@ int main (int argc, char * argv [])
                     }
             
 
-                    if (mmc_scanline_start)
+                    if (mmc_hblank_start)
                     {
-                        if (mmc_scanline_start (ppu_scanline))
+                        int type = mmc_hblank_start (ppu_scanline);
+                        if (type != CPU_INTERRUPT_NONE)
                         {
-                            cpu_interrupt (CPU_INTERRUPT_IRQ);
+                           cpu_interrupt (type);
                         }
                     }
 
@@ -832,9 +833,10 @@ int main (int argc, char * argv [])
 
                     if (mmc_scanline_end)
                     {
-                        if (mmc_scanline_end (ppu_scanline))
+                        int type = mmc_scanline_end (ppu_scanline);
+                        if (type != CPU_INTERRUPT_NONE)
                         {
-                            cpu_interrupt (CPU_INTERRUPT_IRQ);
+                           cpu_interrupt (type);
                         }
                     }
                 }
@@ -892,11 +894,12 @@ int main (int argc, char * argv [])
                     }
 
 
-                    if (mmc_scanline_start)
+                    if (mmc_hblank_start)
                     {
-                        if (mmc_scanline_start (ppu_scanline))
+                        int type = mmc_hblank_start (ppu_scanline);
+                        if (type != CPU_INTERRUPT_NONE)
                         {
-                            cpu_interrupt (CPU_INTERRUPT_IRQ);
+                           cpu_interrupt (type);
                         }
                     }
 
@@ -920,9 +923,10 @@ int main (int argc, char * argv [])
 
                     if (mmc_scanline_end)
                     {
-                        if (mmc_scanline_end (ppu_scanline))
+                        int type = mmc_scanline_end (ppu_scanline);
+                        if (type != CPU_INTERRUPT_NONE)
                         {
-                            cpu_interrupt (CPU_INTERRUPT_IRQ);
+                           cpu_interrupt (type);
                         }
                     }
                 }

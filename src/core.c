@@ -106,7 +106,7 @@ void FN2A03_Reset(FN2A03 *R)
   R->PC.bytes.low=Read(0xFFFC);
   R->PC.bytes.high=Read(0xFFFD);   
   R->ICount=0;
-  R->IRequest=FN2A03_INT_NONE;
+  R->IRequest=FN2A03_INT_IRQ_NONE;
   R->AfterCLI=0;
   R->Jammed=0;
 }
@@ -147,7 +147,7 @@ UINT16 FN2A03_Exec(FN2A03 *R)
 #endif
   switch(opcode)
   {
-    PAIR address, temp_address, result;
+    PAIR address, result;
     UINT8 zero_page_address, data;
 #include "core/codes.h"
   }
@@ -158,6 +158,23 @@ UINT16 FN2A03_Exec(FN2A03 *R)
   return(PC.word);
 }
 #endif
+
+
+/*
+ FN2A03_Clear_Interrupt()
+
+  This function clears a maskable interrupt source previously raised by
+ FN2A03_Interrupt().
+*/
+void FN2A03_Clear_Interrupt(FN2A03 *R,UINT8 Type)
+{
+    if (Type >= FN2A03_INT_IRQ_SOURCE(0) &&
+        Type <= FN2A03_INT_IRQ_SOURCE(FN2A03_INT_IRQ_SOURCE_MAX))
+    {
+        R->IRequest &= ~(1 << (Type - FN2A03_INT_IRQ_BASE));
+    }
+}
+
 
 /*
  FN2A03_Interrupt()
@@ -172,34 +189,40 @@ UINT16 FN2A03_Exec(FN2A03 *R)
 */
 void FN2A03_Interrupt(FN2A03 *R,UINT8 Type)
 {
-  UINT16 vector;
+    UINT16 vector;
 
-  if (R->Jammed) return;
+    if (R->Jammed) return;
 
-  if((Type==FN2A03_INT_NMI)||((Type==FN2A03_INT_IRQ_SINGLE_SHOT)&&!(R->I)))
-  {
-    UINT8 P;
-    R->ICount-=7*CYCLE_LENGTH;
-    R->Cycles+=7*CYCLE_LENGTH;
-    Push16(R->PC);
-    P = Pack_Flags() & ~B_FLAG;
-    Push(P);
-    /* R->D=0; */
-    if(Type==FN2A03_INT_NMI) vector=0xFFFA;
-    else
+    if (Type == FN2A03_INT_IRQ_SINGLE_SHOT ||
+        (Type >= FN2A03_INT_IRQ_SOURCE(0) &&
+        Type <= FN2A03_INT_IRQ_SOURCE(FN2A03_INT_IRQ_SOURCE_MAX)))
     {
-     R->I=1;
-     vector=0xFFFE;
-     R->IRequest=FN2A03_INT_NONE;
+        R->IRequest |= (1 << (Type - FN2A03_INT_IRQ_BASE));
     }
-    R->PC.bytes.low=Read(vector);
-    R->PC.bytes.high=Read(vector+1);
-  }
-  else if ((Type==FN2A03_INT_IRQ_SINGLE_SHOT)&&(R->I))
-  {
-    R->IRequest=FN2A03_INT_IRQ_SINGLE_SHOT;
-  }
+
+    if ((Type == FN2A03_INT_NMI) || (R->IRequest && !(R->I)))
+    {
+        UINT8 P;
+
+        R->ICount -= 7 * CYCLE_LENGTH;
+        R->Cycles += 7 * CYCLE_LENGTH;
+        Push16(R->PC);
+        P = Pack_Flags() & ~B_FLAG;
+        Push(P);
+        /* R->D = 0; */
+        if (Type == FN2A03_INT_NMI) vector = 0xFFFA;
+        else
+        {
+            R->I=1;
+            vector = 0xFFFE;
+            R->IRequest &= ~(1 << (FN2A03_INT_IRQ_SINGLE_SHOT -
+                FN2A03_INT_IRQ_BASE));
+        }
+        R->PC.bytes.low=Read(vector);
+        R->PC.bytes.high=Read(vector + 1);
+    }
 }
+
 
 /*
  FN2A03_Run()
@@ -238,7 +261,7 @@ void FN2A03_Run(FN2A03 *R)
 #endif
       switch(opcode)
       {
-        PAIR address, temp_address, result;
+        PAIR address, result;
         UINT8 zero_page_address, data;
 #include "core/codes.h"
       }
@@ -250,15 +273,11 @@ void FN2A03_Run(FN2A03 *R)
     if (!R->AfterCLI) return;
 
     /* If we have come after CLI, get FN2A03_INT_? from IRequest */
-    {
-      int interrupt;
+    R->ICount+=R->IBackup-1;  /* Restore the ICount        */
+    R->AfterCLI=0;            /* Done with AfterCLI state  */
 
-      interrupt=R->IRequest;    /* Get pending interrupt     */
-      R->ICount+=R->IBackup-1;  /* Restore the ICount        */
-      R->AfterCLI=0;            /* Done with AfterCLI state  */
-
-      if (interrupt) FN2A03_Interrupt(R,interrupt);  /* Interrupt if needed */ 
-    }
+    /* Process pending interrupts */
+    if (R->IRequest) FN2A03_Interrupt(R, FN2A03_INT_NONE);
   }
 
   /* Execution stopped */

@@ -197,7 +197,7 @@ int mmc_init (void)
     }
 
 
-    mmc_scanline_start = NULL;
+    mmc_hblank_start = NULL;
 
     mmc_scanline_end = NULL;
 
