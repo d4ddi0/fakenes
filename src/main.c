@@ -292,7 +292,7 @@ int main (int argc, char * argv [])
 
         if (! confdir)
         {
-            fprintf (stderr, "Error when generating configuration path.\nConfiguration will not be saved.\n");
+            fprintf (stderr, "Error when generating configuration path.\nConfiguration will not be saved.\n\n");
         }
         else
         {
@@ -306,7 +306,7 @@ int main (int argc, char * argv [])
                 {
                     if (mkdir (confdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) == -1)
                     {
-                        fprintf (stderr, "Error creating \"%s\".\nConfiguration will not be saved.\n", confdir);
+                        fprintf (stderr, "Error creating \"%s\".\nConfiguration will not be saved.\n\n", confdir);
 
 
                         free (confdir);
@@ -335,7 +335,7 @@ int main (int argc, char * argv [])
                     perror (errorbuf);
 
 
-                    fprintf (stderr, "%s.\nConfiguration will not be saved.\n", errorbuf);
+                    fprintf (stderr, "%s.\nConfiguration will not be saved.\n\n", errorbuf);
 
 
                     free (confdir);
@@ -354,7 +354,7 @@ int main (int argc, char * argv [])
     }
     else
     {
-        fprintf (stderr, "$HOME appears to not be set.\nConfiguration will not be saved.\n");
+        fprintf (stderr, "$HOME appears to not be set.\nConfiguration will not be saved.\n\n");
     }
 
 
@@ -389,7 +389,7 @@ int main (int argc, char * argv [])
 
         if (homedir)
         {
-            fprintf (stderr, "Error when generating save path.\nSRAM files will not be saved.\n");
+            fprintf (stderr, "Error when generating save path.\nSRAM files will not be saved.\n\n");
         }
     }
     else
@@ -400,7 +400,7 @@ int main (int argc, char * argv [])
             {
                 if (mkdir (sramdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) == -1)
                 {
-                    fprintf (stderr, "Error creating \"%s\"", sramdir);
+                    fprintf (stderr, "Error creating \"%s\"\n\n", sramdir);
 
 
                     free (sramdir);
@@ -418,7 +418,7 @@ int main (int argc, char * argv [])
                 perror (errorbuf);
 
 
-                fprintf (stderr, "%s.\nConfiguration will not be saved.\n", errorbuf);
+                fprintf (stderr, "%s.\nConfiguration will not be saved.\n\n", errorbuf);
 
 
                 free (confdir);
@@ -443,7 +443,7 @@ int main (int argc, char * argv [])
 
         if (homedir)
         {
-            fprintf (stderr, "Error when generating log path.\nLogs will not be saved.\n");
+            fprintf (stderr, "Error when generating log path.\nLogs will not be saved.\n\n");
         }
     }
     else
@@ -454,7 +454,7 @@ int main (int argc, char * argv [])
             {
                 if (mkdir (sramdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) == -1)
                 {
-                    fprintf (stderr, "Error creating \"%s\"", logdir);
+                    fprintf (stderr, "Error creating \"%s\"\n\n", logdir);
 
 
                     free (logdir);
@@ -472,7 +472,7 @@ int main (int argc, char * argv [])
                 perror (errorbuf);
 
 
-                fprintf (stderr, "%s.\nConfiguration will not be saved.\n", errorbuf);
+                fprintf (stderr, "%s.\nConfiguration will not be saved.\n\n", errorbuf);
 
 
                 free (confdir);
