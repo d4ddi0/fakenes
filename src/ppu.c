@@ -975,7 +975,8 @@ void ppu_render_line (int line)
 {
     int i;
 
-    hline (video_buffer, 0, line, 255, ppu_background_palette [0]);
+    memset (PPU_GET_LINE_ADDRESS (video_buffer, line),
+        ppu_background_palette [0], 256);
 
     if (!PPU_BACKGROUND_ENABLED && !PPU_SPRITES_ENABLED)
     {
