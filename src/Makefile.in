@@ -48,10 +48,10 @@ cpu.o : cpu.c include/core.h include/cpu.h include/input.h \
         include/misc.h include/mmc.h include/papu.h include/ppu.h \
         include/rom.h
 
-gui.o : gui.c include/apu.h include/audio.h include/cpu.h include/data.h \
-        include/gui/dialogs.h include/gui.h include/gui2.h \
-        include/misc.h include/papu.h include/rom.h include/video.h \
-        include/timing.h
+gui.o : gui.c include/apu.h include/audio.h include/cpu.h \
+        include/data.h include/gui/dialogs.h include/gui.h \
+        include/gui/menus.h include/misc.h include/gui/objects.h \
+        include/papu.h include/rom.h include/video.h include/timing.h
 
 input.o : input.c include/gui.h include/input.h include/misc.h \
           include/ppu.h include/rom.h include/video.h include/timing.h

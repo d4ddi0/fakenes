@@ -25,12 +25,17 @@
 
 #include "data.h"
 
-#include "gui2.h"
-
 #include "misc.h"
 
 
 #include "timing.h"
+
+
+#include "gui/objects.h"
+
+#include "gui/menus.h"
+
+#include "gui/dialogs.h"
 
 
 int gui_is_active = FALSE;
