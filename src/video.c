@@ -289,7 +289,7 @@ int video_init (void)
 
     if (preserve_palette)
     {
-        set_palette (internal_palette);
+        video_set_palette (internal_palette);
     }
     else
     {
@@ -778,7 +778,7 @@ void video_handle_keypress (int index)
 #define GUI_PALETTE_END         (GUI_PALETTE_START + 64)
 
 
-static UINT8 solid_map [64] [64] [64];
+static UINT16 solid_map [64] [64] [64];
 
 
 static COLOR_MAP half_transparency_map;
@@ -796,10 +796,13 @@ void video_set_palette (RGB * palette)
     int b;
 
 
-    last_palette = palette;
-
-
-    memcpy (internal_palette, palette, sizeof (internal_palette));
+    if (palette != internal_palette)
+    {
+        last_palette = palette;
+    
+    
+        memcpy (internal_palette, palette, sizeof (internal_palette));
+    }
 
 
     for (index = NES_PALETTE_START; index < NES_PALETTE_END; index ++)
@@ -825,13 +828,16 @@ void video_set_palette (RGB * palette)
     set_palette (internal_palette);
 
 
-    for (r = 0; r < 64; r ++)
+    if (color_depth < 32)
     {
-        for (g = 0; g < 64; g ++)
+        for (r = 0; r < 64; r ++)
         {
-            for (b = 0; b < 64; b ++)
+            for (g = 0; g < 64; g ++)
             {
-                solid_map [r] [g] [b] = makecol8 ((r * 4), (g * 4), (b * 4));
+                for (b = 0; b < 64; b ++)
+                {
+                    solid_map [r] [g] [b] = makecol ((r * 4), (g * 4), (b * 4));
+                }
             }
         }
     }
@@ -853,17 +859,11 @@ int video_create_color (int r, int g, int b)
     {
         case 8:
 
-            return (solid_map [(r / 4)] [(g / 4)] [(b / 4)]);
-
-
         case 15:
-
-            return (makecol15 (r, g, b));
-
 
         case 16:
 
-            return (makecol16 (r, g, b));
+            return (solid_map [(r / 4)] [(g / 4)] [(b / 4)]);
 
 
         case 32:
