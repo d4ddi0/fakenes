@@ -277,6 +277,8 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_audio_mixing_quality_menu, 2, (audio_sample_size == 16));
 
+    TOGGLE_MENU (options_audio_mixing_quality_menu, 4, papu_dithering);
+
 
     TOGGLE_MENU (options_audio_effects_menu, 0, papu_linear_echo);
 
@@ -350,6 +352,21 @@ static INLINE void update_menus (void)
     else
     {
         ENABLE_MENU (options_audio_effects_menu, 2);
+    }
+
+
+    if (audio_sample_size != 8)
+    {
+        papu_dithering = FALSE;
+
+
+        UNCHECK_MENU (options_audio_mixing_quality_menu, 4);
+
+        DISABLE_MENU (options_audio_mixing_quality_menu, 4);
+    }
+    else
+    {
+        ENABLE_MENU (options_audio_mixing_quality_menu, 4);
     }
 }
 
@@ -863,6 +880,21 @@ static int options_audio_mixing_quality_menu_high_16_bit (void)
 
 
     gui_message (GUI_COLOR_WHITE, "Audio mixing quality set to high.");
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_mixing_quality_menu_dithering (void)
+{
+    papu_dithering = (! papu_dithering);
+
+
+    update_menus ();
+
+
+    gui_message (GUI_COLOR_WHITE, "Toggled audio noise distribution dithering.");
 
 
     return (D_O_K);

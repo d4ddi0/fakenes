@@ -588,7 +588,7 @@ typedef struct apu_s
    int sample_bits;
    int refresh_rate;
 
-   void (*process)(void *buffer, int num_samples);
+   void (*process)(void *buffer, int num_samples, int dither);
 
    /* external sound chip */
    apuext_t *ext;
@@ -609,8 +609,8 @@ extern void apu_destroy(apu_t **apu);
 extern void apu_setparams(int sample_rate, int refresh_rate, int frag_size,
                           int sample_bits);
 
-extern void apu_process(void *buffer, int num_samples);
-extern void apu_process_stereo(void *buffer, int num_samples, int style, int flip, int surround);
+extern void apu_process(void *buffer, int num_samples, int dither);
+extern void apu_process_stereo(void *buffer, int num_samples, int dither, int style, int flip, int surround);
 extern void apu_reset(void);
 
 extern void apu_setext(apu_t *apu, apuext_t *ext);
@@ -638,6 +638,9 @@ extern boolean sync_dmc_register(UINT32 cpu_cycles);
 
 /*
 ** $Log$
+** Revision 1.6  2002/07/17 10:46:40  stainless
+** Added random noise dithering for 8-bit audio.
+**
 ** Revision 1.5  2002/05/02 16:48:43  stainless
 ** Added 'enhanced' & 'accurate' variations of pseudo stereo.
 **

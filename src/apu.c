@@ -45,6 +45,7 @@
 #include <allegro.h>
 #include <string.h>
 #include <stdlib.h> //DCR
+#include <time.h>
 #include "apu.h"
 #include "cpu.h"
 //DCR#include "log.h"
@@ -1237,7 +1238,7 @@ void apu_getpcmdata(void **data, int *num_samples, int *sample_bits)
 }
 
 
-void apu_process(void *buffer, int num_samples)
+void apu_process(void *buffer, int num_samples, int dither)
 {
    apudata_t *d;
    UINT32 elapsed_cycles;
@@ -1457,7 +1458,12 @@ void apu_process(void *buffer, int num_samples)
             //*((INT16 *) buffer)++ = (INT16) accum;
             *((UINT16 *) buffer)++ = accum ^ 0x8000;
          else
+         {
+            if (dither)
+                accum += ((drand48 () - 0.5f) * 256.0f);
+
             *((UINT8 *) buffer)++ = (accum >> 8) ^ 0x80;
+         }
       }
    }
 
@@ -1467,7 +1473,7 @@ void apu_process(void *buffer, int num_samples)
 
 static boolean cycle_noise = TRUE;
 
-void apu_process_stereo(void *buffer, int num_samples, int style, int flip, int surround)
+void apu_process_stereo(void *buffer, int num_samples, int dither, int style, int flip, int surround)
 {
    apudata_t *d;
    UINT32 elapsed_cycles;
@@ -1790,6 +1796,11 @@ void apu_process_stereo(void *buffer, int num_samples, int style, int flip, int 
             *((UINT16 *) buffer)++ = accum_left ^ 0x8000;
             *((UINT16 *) buffer)++ = accum_right ^ 0x8000;
          } else {
+            if (dither) {
+                accum_left += ((drand48 () - 0.5f) * 128.0f);
+                accum_right += ((drand48 () - 0.5f) * 128.0f);
+            }
+
             *((UINT8 *) buffer)++ = (accum_left >> 8) ^ 0x80;
             *((UINT8 *) buffer)++ = (accum_right >> 8) ^ 0x80;
          }
@@ -1829,6 +1840,8 @@ void apu_reset_apus(APUSOUND *apus)
    apus->triangle.ideal_triangle = mode;
    memset(&apus->noise, 0, sizeof(apus->noise));
    memset(&apus->dmc, 0, sizeof(apus->dmc));
+
+   srand48 (time (0));  // for 8-bit dither
 }
 
 void apu_reset(void)
@@ -2072,6 +2085,9 @@ boolean sync_dmc_register(UINT32 cpu_cycles)
 
 /*
 ** $Log$
+** Revision 1.10  2002/07/17 10:46:39  stainless
+** Added random noise dithering for 8-bit audio.
+**
 ** Revision 1.9  2002/05/03 01:22:12  stainless
 ** Enhanced stereo fix & improvements.
 **

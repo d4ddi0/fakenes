@@ -72,13 +72,17 @@ static int options_audio_mixing_quality_menu_low_8_bit (void);
 
 static int options_audio_mixing_quality_menu_high_16_bit (void);
 
+static int options_audio_mixing_quality_menu_dithering (void);
+
 
 static MENU options_audio_mixing_quality_menu [] =
 {
-    {   "&Low (8 bits)",  options_audio_mixing_quality_menu_low_8_bit, NULL, 0, NULL },
-    {                "",                                     NULL, NULL, 0, NULL },
+    {   "&Low (8 bits)",   options_audio_mixing_quality_menu_low_8_bit, NULL, 0, NULL },
+    {                "",                                          NULL, NULL, 0, NULL },
     { "&High (16 bits)", options_audio_mixing_quality_menu_high_16_bit, NULL, 0, NULL },
-    {              NULL,                                     NULL, NULL, 0, NULL }
+    {                "",                                          NULL, NULL, 0, NULL },
+    {      "&Dithering",   options_audio_mixing_quality_menu_dithering, NULL, 0, NULL },
+    {              NULL,                                          NULL, NULL, 0, NULL }
 };
 
 

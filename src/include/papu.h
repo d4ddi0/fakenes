@@ -61,6 +61,9 @@ int papu_linear_echo;
 int papu_surround_sound;
 
 
+int papu_dithering;
+
+
 int papu_init (void);
 
 int papu_reinit (void);
