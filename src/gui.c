@@ -245,7 +245,27 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (machine_menu, 2, video_display_status);
 
 
+    TOGGLE_MENU (options_audio_menu, 0, audio_enable_output);
+
+
+    TOGGLE_MENU (options_audio_mixing_menu, 0, (! audio_pseudo_stereo));
+
+    TOGGLE_MENU (options_audio_mixing_menu, 2, audio_pseudo_stereo);
+
+
+    TOGGLE_MENU (options_audio_mixing_quality_menu, 0, (audio_sample_size == 8));
+
+    TOGGLE_MENU (options_audio_mixing_quality_menu, 2, (audio_sample_size == 16));
+
+
+    TOGGLE_MENU (options_audio_effects_menu, 0, papu_linear_echo);
+
+    TOGGLE_MENU (options_audio_effects_menu, 2, papu_surround_sound);
+
+
     TOGGLE_MENU (options_audio_filter_menu, 0, (papu_filter_type == APU_FILTER_NONE));
+
+    TOGGLE_MENU (options_audio_filter_menu, 4, (papu_filter_type == APU_FILTER_HIGHPASS));
 
 
     TOGGLE_MENU (options_audio_filter_low_pass_menu, 0, (papu_filter_type == APU_FILTER_LOWPASS));
@@ -266,6 +286,13 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (options_audio_channels_menu, 8, papu_enable_dmc);
 
 
+    TOGGLE_MENU (options_audio_advanced_menu, 0, papu_ideal_triangle);
+
+    TOGGLE_MENU (options_audio_advanced_menu, 2, papu_smooth_envelope);
+
+    TOGGLE_MENU (options_audio_advanced_menu, 4, papu_smooth_sweep);
+
+
     TOGGLE_MENU (options_video_menu, 0, video_enable_vsync);
 
 
@@ -274,6 +301,21 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (options_video_layers_menu, 2, ppu_enable_sprite_layer_b);
 
     TOGGLE_MENU (options_video_layers_menu, 4, ppu_enable_background_layer);
+
+
+    if (! audio_pseudo_stereo)
+    {
+        papu_surround_sound = FALSE;
+
+
+        UNCHECK_MENU (options_audio_effects_menu, 2);
+
+        DISABLE_MENU (options_audio_effects_menu, 2);
+    }
+    else
+    {
+        ENABLE_MENU (options_audio_effects_menu, 2);
+    }
 }
 
 
@@ -489,8 +531,6 @@ static int machine_type_menu_ntsc (void)
 {
     machine_type = MACHINE_TYPE_NTSC;
 
-    update_menus ();
-
 
     audio_exit ();
 
@@ -498,6 +538,9 @@ static int machine_type_menu_ntsc (void)
 
 
     papu_reinit ();
+
+
+    update_menus ();
 
 
     return (D_O_K);
@@ -508,8 +551,6 @@ static int machine_type_menu_pal (void)
 {
     machine_type = MACHINE_TYPE_PAL;
 
-    update_menus ();
-
 
     audio_exit ();
 
@@ -517,6 +558,9 @@ static int machine_type_menu_pal (void)
 
 
     papu_reinit ();
+
+
+    update_menus ();
 
 
     return (D_O_K);
@@ -537,6 +581,134 @@ static int machine_state_menu_save (void)
 
 static int machine_state_menu_restore (void)
 {
+    return (D_O_K);
+}
+
+
+static int options_audio_menu_enabled (void)
+{
+    audio_enable_output = (! audio_enable_output);
+
+
+    audio_exit ();
+
+    audio_init ();
+
+
+    papu_reinit ();
+
+
+    update_menus ();
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_mixing_menu_normal (void)
+{
+    audio_pseudo_stereo = FALSE;
+
+
+    audio_exit ();
+
+    audio_init ();
+
+
+    papu_reinit ();
+
+
+    update_menus ();
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_mixing_menu_pseudo_stereo (void)
+{
+    audio_pseudo_stereo = TRUE;
+
+
+    audio_exit ();
+
+    audio_init ();
+
+
+    papu_reinit ();
+
+
+    update_menus ();
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_mixing_quality_menu_low_8_bit (void)
+{
+    audio_sample_size = 8;
+
+
+    audio_exit ();
+
+    audio_init ();
+
+
+    papu_reinit ();
+
+
+    update_menus ();
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_mixing_quality_menu_high_16_bit (void)
+{
+    audio_sample_size = 16;
+
+
+    audio_exit ();
+
+    audio_init ();
+
+
+    papu_reinit ();
+
+
+    update_menus ();
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_effects_menu_linear_echo (void)
+{
+    papu_linear_echo = (! papu_linear_echo);
+
+    update_menus ();
+
+
+    papu_reinit ();
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_effects_menu_surround_sound (void)
+{
+    papu_surround_sound = (! papu_surround_sound);
+
+    update_menus ();
+
+
+    papu_reinit ();
+
+
     return (D_O_K);
 }
 
@@ -597,11 +769,25 @@ static int options_audio_filter_low_pass_menu_dynamic (void)
 }
 
 
+static int options_audio_filter_menu_high_pass (void)
+{
+    papu_filter_type = APU_FILTER_HIGHPASS;
+
+    update_menus ();
+
+
+    apu_setfilter (APU_FILTER_HIGHPASS);
+
+
+    return (D_O_K);
+}
+
+
 static int options_audio_channels_menu_square_1 (void)
 {
     papu_enable_square_1 = (! papu_enable_square_1);
 
-    papu_update_channels ();
+    papu_update ();
 
 
     update_menus ();
@@ -615,7 +801,7 @@ static int options_audio_channels_menu_square_2 (void)
 {
     papu_enable_square_2 = (! papu_enable_square_2);
 
-    papu_update_channels ();
+    papu_update ();
 
 
     update_menus ();
@@ -629,7 +815,7 @@ static int options_audio_channels_menu_triangle (void)
 {
     papu_enable_triangle = (! papu_enable_triangle);
 
-    papu_update_channels ();
+    papu_update ();
 
 
     update_menus ();
@@ -643,7 +829,7 @@ static int options_audio_channels_menu_noise (void)
 {
     papu_enable_noise = (! papu_enable_noise);
 
-    papu_update_channels ();
+    papu_update ();
 
 
     update_menus ();
@@ -657,7 +843,7 @@ static int options_audio_channels_menu_dmc (void)
 {
     papu_enable_dmc = (! papu_enable_dmc);
 
-    papu_update_channels ();
+    papu_update ();
 
 
     update_menus ();
@@ -666,6 +852,75 @@ static int options_audio_channels_menu_dmc (void)
     return (D_O_K);
 }
 
+
+static int options_audio_advanced_menu_ideal_triangle (void)
+{
+    papu_ideal_triangle = (! papu_ideal_triangle);
+
+    papu_update ();
+
+
+    update_menus ();
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_advanced_menu_smooth_envelope (void)
+{
+    papu_smooth_envelope = (! papu_smooth_envelope);
+
+    papu_update ();
+
+
+    update_menus ();
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_advanced_menu_smooth_sweep (void)
+{
+    papu_smooth_sweep = (! papu_smooth_sweep);
+
+    papu_update ();
+
+
+    update_menus ();
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_record_menu_start (void)
+{
+    if (papu_start_record () == 0)
+    {
+        DISABLE_MENU (options_audio_record_menu, 0);
+
+        ENABLE_MENU (options_audio_record_menu, 2);
+    }
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_record_menu_stop (void)
+{
+    papu_stop_record ();
+
+
+    ENABLE_MENU (options_audio_record_menu, 0);
+
+    DISABLE_MENU (options_audio_record_menu, 2);
+
+
+    return (D_O_K);
+}
 
 static int options_video_menu_vsync (void)
 {

@@ -68,6 +68,50 @@ static MENU machine_menu [] =
 };
 
 
+static int options_audio_mixing_quality_menu_low_8_bit (void);
+
+static int options_audio_mixing_quality_menu_high_16_bit (void);
+
+
+static MENU options_audio_mixing_quality_menu [] =
+{
+    {   "&Low (8 bits)",  options_audio_mixing_quality_menu_low_8_bit, NULL, 0, NULL },
+    {                "",                                     NULL, NULL, 0, NULL },
+    { "&High (16 bits)", options_audio_mixing_quality_menu_high_16_bit, NULL, 0, NULL },
+    {              NULL,                                     NULL, NULL, 0, NULL }
+};
+
+
+static int options_audio_mixing_menu_normal (void);
+
+static int options_audio_mixing_menu_pseudo_stereo (void);
+
+
+static MENU options_audio_mixing_menu [] =
+{
+    {        "&Normal",        options_audio_mixing_menu_normal,                              NULL, 0, NULL },
+    {               "",                                    NULL,                              NULL, 0, NULL },
+    { "&Pseudo Stereo", options_audio_mixing_menu_pseudo_stereo,                              NULL, 0, NULL },
+    {               "",                                    NULL,                              NULL, 0, NULL },
+    {       "&Quality",                                    NULL, options_audio_mixing_quality_menu, 0, NULL },
+    {             NULL,                                    NULL,                              NULL, 0, NULL }
+};
+
+
+static int options_audio_effects_menu_linear_echo (void);
+
+static int options_audio_effects_menu_surround_sound (void);
+
+
+static MENU options_audio_effects_menu [] =
+{
+    {    "&Linear Echo",    options_audio_effects_menu_linear_echo, NULL, 0, NULL },
+    {                "",                                      NULL, NULL, 0, NULL },
+    { "&Surround Sound", options_audio_effects_menu_surround_sound, NULL, 0, NULL },
+    {              NULL,                                      NULL, NULL, 0, NULL }
+};
+
+
 static int options_audio_filter_low_pass_menu_simple (void);
 
 static int options_audio_filter_low_pass_menu_weighted (void);
@@ -88,13 +132,17 @@ static MENU options_audio_filter_low_pass_menu [] =
 
 static int options_audio_filter_menu_none (void);
 
+static int options_audio_filter_menu_high_pass (void);
+
 
 static MENU options_audio_filter_menu [] =
 {     
-    {      "&None", options_audio_filter_menu_none,                               NULL, 0, NULL },
-    {           "",                           NULL,                               NULL, 0, NULL },
-    {  "&Low Pass",                           NULL, options_audio_filter_low_pass_menu, 0, NULL },
-    {         NULL,                           NULL,                               NULL, 0, NULL }
+    {      "&None",      options_audio_filter_menu_none,                               NULL, 0, NULL },
+    {           "",                                NULL,                               NULL, 0, NULL },
+    {  "&Low Pass",                                NULL, options_audio_filter_low_pass_menu, 0, NULL },
+    {           "",                                NULL,                               NULL, 0, NULL },
+    { "&High Pass", options_audio_filter_menu_high_pass,                               NULL, 0, NULL },
+    {         NULL,                                NULL,                               NULL, 0, NULL }
 };
 
 
@@ -124,12 +172,57 @@ static MENU options_audio_channels_menu [] =
 };
 
 
+static int options_audio_advanced_menu_ideal_triangle (void);
+
+static int options_audio_advanced_menu_smooth_envelope (void);
+
+static int options_audio_advanced_menu_smooth_sweep (void);
+
+
+static MENU options_audio_advanced_menu [] =
+{
+    {  "&Ideal Triangle",  options_audio_advanced_menu_ideal_triangle, NULL, 0, NULL },
+    {                 "",                                        NULL, NULL, 0, NULL },
+    { "&Smooth Envelope", options_audio_advanced_menu_smooth_envelope, NULL, 0, NULL },
+    {                 "",                                        NULL, NULL, 0, NULL },
+    {    "S&mooth Sweep",    options_audio_advanced_menu_smooth_sweep, NULL, 0, NULL },
+    {               NULL,                                        NULL, NULL, 0, NULL }
+};
+
+
+static int options_audio_record_menu_start (void);
+
+static int options_audio_record_menu_stop (void);
+
+
+static MENU options_audio_record_menu [] =
+{
+    { "&Start",  options_audio_record_menu_start, NULL,          0, NULL },
+    {       "",                             NULL, NULL,          0, NULL },
+    {  "S&top",   options_audio_record_menu_stop, NULL, D_DISABLED, NULL },
+    {     NULL,                             NULL, NULL,          0, NULL }
+};
+
+
+static int options_audio_menu_enabled (void);
+
+
 static MENU options_audio_menu [] =
 {
-    {   "&Filter", NULL,   options_audio_filter_menu, 0, NULL },
-    {          "", NULL,                        NULL, 0, NULL },
-    { "&Channels", NULL, options_audio_channels_menu, 0, NULL },
-    {        NULL, NULL,                        NULL, 0, NULL }
+    {  "&Enabled", options_audio_menu_enabled,                        NULL, 0, NULL },
+    {          "",                       NULL,                        NULL, 0, NULL },
+    {   "&Mixing",                       NULL,   options_audio_mixing_menu, 0, NULL },
+    {          "",                       NULL,                        NULL, 0, NULL },
+    {  "&Effects",                       NULL,  options_audio_effects_menu, 0, NULL },
+    {          "",                       NULL,                        NULL, 0, NULL },
+    {   "&Filter",                       NULL,   options_audio_filter_menu, 0, NULL },
+    {          "",                       NULL,                        NULL, 0, NULL },
+    { "&Channels",                       NULL, options_audio_channels_menu, 0, NULL },
+    {          "",                       NULL,                        NULL, 0, NULL },
+    { "&Advanced",                       NULL, options_audio_advanced_menu, 0, NULL },
+    {          "",                       NULL,                        NULL, 0, NULL },
+    {   "&Record",                       NULL,   options_audio_record_menu, 0, NULL },
+    {        NULL,                       NULL,                        NULL, 0, NULL }
 };
 
 

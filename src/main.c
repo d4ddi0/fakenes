@@ -656,7 +656,7 @@ int main (int argc, char * argv [])
                 }
 
 
-                papu_update ();
+                papu_process ();
             }
             else
             {
@@ -726,7 +726,7 @@ int main (int argc, char * argv [])
                 }
 
 
-                papu_update ();
+                papu_process ();
             }
         }
     }
@@ -833,7 +833,14 @@ int machine_init (void)
 
 void machine_reset (void)
 {
+    audio_exit ();
+
+    audio_init ();
+
+
     mmc_reset ();
+
+    papu_reset ();
 
     ppu_reset ();
 

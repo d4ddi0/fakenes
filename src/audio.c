@@ -27,9 +27,7 @@ You must read and accept the license prior to use.
 #include "timing.h"
 
 
-SAMPLE * audio_sample = NULL;
-
-int audio_voice = 0;
+AUDIOSTREAM * audio_stream;
 
 
 int audio_enable_output = FALSE;
@@ -44,9 +42,6 @@ int audio_buffer_length = 0;
 
 
 int audio_pseudo_stereo = FALSE;
-
-
-static int disable_wait = FALSE;
 
 
 volatile int audio_fps = 0;
@@ -71,43 +66,31 @@ int audio_init (void)
     audio_pseudo_stereo = get_config_int ("audio", "pseudo_stereo", TRUE);
 
 
-    disable_wait = get_config_int ("audio", "disable_wait", TRUE);
-
-
     if (audio_enable_output)
     {
         set_volume_per_voice (0);
 
-
+    
         if (install_sound (DIGI_AUTODETECT, MIDI_NONE, NULL) != 0)
         {
-            audio_enable_output = FALSE;
-
             return (1);
         }
+    }
 
 
-        speed = (machine_type == MACHINE_TYPE_NTSC ? 60 : 50);
+    if (audio_enable_output)
+    {
+        speed = ((machine_type == MACHINE_TYPE_NTSC) ? 60 : 50);
 
 
-        audio_sample = create_sample (audio_sample_size, audio_pseudo_stereo,
-            audio_sample_rate, ((audio_sample_rate / speed) * audio_buffer_length));
+        audio_stream = play_audio_stream (((audio_sample_rate / speed) * audio_buffer_length),
+            audio_sample_size, audio_pseudo_stereo, audio_sample_rate, 255, 128);
+    
 
-
-        if (! audio_sample)
+        if (! audio_stream)
         {
-            remove_sound ();
-
-
-            audio_enable_output = FALSE;
-
-            return (1);
+            return (2);
         }
-
-        audio_voice = allocate_voice (audio_sample);
-
-
-        audio_buffer = audio_sample -> data;
     }
 
 
@@ -122,11 +105,9 @@ void audio_exit (void)
         remove_sound ();
 
 
-        if (audio_sample)
+        if (audio_stream)
         {
-            destroy_sample (audio_sample);
-
-            deallocate_voice (audio_voice);
+            stop_audio_stream (audio_stream);
         }
     }
 
@@ -143,37 +124,17 @@ void audio_exit (void)
 
 
     set_config_int ("audio", "pseudo_stereo", audio_pseudo_stereo);
-
-
-    set_config_int ("audio", "disable_wait", disable_wait);
 }
 
 
-void audio_start (void)
+void audio_update (void)
 {
-    voice_start (audio_voice);
-}
+    audio_buffer = get_audio_stream_buffer (audio_stream);
 
-
-void audio_stop (void)
-{
-    int offset;
-
-
-    if (! disable_wait)
+    if (audio_buffer)
     {
-        do
-        {
-            offset = voice_get_position (audio_voice);
-        }
-        while (offset != -1);
+        voice_stop (audio_stream -> voice);
     }
-
-
-    voice_stop (audio_voice);
-
-
-    audio_fps += audio_buffer_length;
 }
 
 
@@ -181,7 +142,7 @@ void audio_suspend (void)
 {
     if (audio_enable_output)
     {
-        voice_stop (audio_voice);
+        voice_stop (audio_stream -> voice);
     }
 }
 
@@ -190,6 +151,23 @@ void audio_resume (void)
 {
     if (audio_enable_output)
     {
-        voice_start (audio_voice);
+        voice_start (audio_stream -> voice);
     }
+}
+
+
+void audio_start (void)
+{
+    audio_buffer = get_audio_stream_buffer (audio_stream);
+}
+
+
+void audio_stop (void)
+{
+    voice_start (audio_stream -> voice);
+
+    free_audio_stream_buffer (audio_stream);
+
+
+    audio_fps += audio_buffer_length;
 }

@@ -2,12 +2,15 @@
 
 /*
 
-FakeNES - A portable, open-source NES emulator.
+FakeNES - A portable, Open Source NES emulator.
 
 papu.h: Declarations for the APU interface.
 
 Copyright (c) 2002, Randy McDowell and Ian Smith.
-All rights reserved.  See 'LICENSE' for details.
+Portions copyright (c) 2002, Charles Bilyue'.
+
+This is free software.  See 'LICENSE' for details.
+You must read and accept the license prior to use.
 
 */
 
@@ -39,9 +42,22 @@ int papu_enable_noise;
 int papu_enable_dmc;
 
 
+int papu_ideal_triangle;
+
+
+int papu_smooth_envelope;
+
+int papu_smooth_sweep;
+
+
+int papu_linear_echo;
+
+int papu_surround_sound;
+
+
 int papu_init (void);
 
-void papu_reinit (void);
+int papu_reinit (void);
 
 void papu_exit (void);
 
@@ -54,10 +70,14 @@ UINT8 papu_read (UINT16);
 void papu_write (UINT16, UINT8);
 
 
+int papu_start_record (void);
+
+void papu_stop_record (void);
+
+
+void papu_process (void);
+
 void papu_update (void);
-
-
-void papu_update_channels (void);
 
 
 #ifdef __cplusplus
