@@ -768,6 +768,12 @@ void video_blit (BITMAP * bitmap)
     }
 
 
+    if (video_enable_vsync)
+    {
+        vsync ();
+    }
+
+
     acquire_bitmap (bitmap);
 
     blit (screen_buffer, bitmap, 0, 0, image_offset_x, image_offset_y, SCREEN_W, SCREEN_H);
