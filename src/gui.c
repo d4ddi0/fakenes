@@ -246,7 +246,7 @@ void gui_handle_keypress (int index)
 
         case KEY_F2:
 
-            machine_menu_status ();
+            options_menu_status ();
 
 
             break;
@@ -254,7 +254,7 @@ void gui_handle_keypress (int index)
 
         case KEY_F3:
 
-            machine_state_menu_save ();
+            main_state_menu_save ();
 
 
             break;
@@ -264,7 +264,7 @@ void gui_handle_keypress (int index)
 
             if (! (input_mode & INPUT_MODE_REPLAY))
             {
-                machine_state_menu_restore ();
+                main_state_menu_restore ();
             }
 
     
@@ -488,6 +488,36 @@ static INLINE void update_menus (void)
     }
 
 
+    TOGGLE_MENU (main_state_select_menu, 0, (machine_state_index == 0));
+
+    TOGGLE_MENU (main_state_select_menu, 2, (machine_state_index == 1));
+
+    TOGGLE_MENU (main_state_select_menu, 4, (machine_state_index == 2));
+
+    TOGGLE_MENU (main_state_select_menu, 6, (machine_state_index == 3));
+
+    TOGGLE_MENU (main_state_select_menu, 8, (machine_state_index == 4));
+
+    TOGGLE_MENU (main_state_select_menu, 10, (machine_state_index == 5));
+
+    TOGGLE_MENU (main_state_select_menu, 12, (machine_state_index == 6));
+
+    TOGGLE_MENU (main_state_select_menu, 14, (machine_state_index == 7));
+
+    TOGGLE_MENU (main_state_select_menu, 16, (machine_state_index == 8));
+
+    TOGGLE_MENU (main_state_select_menu, 18, (machine_state_index == 9));
+
+
+    TOGGLE_MENU (main_state_autosave_menu, 0, (input_autosave_interval == 0));
+
+    TOGGLE_MENU (main_state_autosave_menu, 2, (input_autosave_interval == 10));
+
+    TOGGLE_MENU (main_state_autosave_menu, 4, (input_autosave_interval == 30));
+
+    TOGGLE_MENU (main_state_autosave_menu, 6, (input_autosave_interval == 60));
+
+
     TOGGLE_MENU (main_replay_select_menu, 0, (replay_index == 0));
 
     TOGGLE_MENU (main_replay_select_menu, 2, (replay_index == 1));
@@ -499,47 +529,12 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (main_replay_select_menu, 8, (replay_index == 4));
 
 
-    TOGGLE_MENU (machine_speed_menu, 0, (machine_type == MACHINE_TYPE_NTSC));
-
-    TOGGLE_MENU (machine_speed_menu, 2, (machine_type == MACHINE_TYPE_PAL));
+    TOGGLE_MENU (options_menu, 0, video_display_status);
 
 
-    TOGGLE_MENU (machine_menu, 2, video_display_status);
+    TOGGLE_MENU (options_system_menu, 0, (machine_type == MACHINE_TYPE_NTSC));
 
-
-    TOGGLE_MENU (machine_state_select_menu, 0, (machine_state_index == 0));
-
-    TOGGLE_MENU (machine_state_select_menu, 2, (machine_state_index == 1));
-
-    TOGGLE_MENU (machine_state_select_menu, 4, (machine_state_index == 2));
-
-    TOGGLE_MENU (machine_state_select_menu, 6, (machine_state_index == 3));
-
-    TOGGLE_MENU (machine_state_select_menu, 8, (machine_state_index == 4));
-
-    TOGGLE_MENU (machine_state_select_menu, 10, (machine_state_index == 5));
-
-    TOGGLE_MENU (machine_state_select_menu, 12, (machine_state_index == 6));
-
-    TOGGLE_MENU (machine_state_select_menu, 14, (machine_state_index == 7));
-
-    TOGGLE_MENU (machine_state_select_menu, 16, (machine_state_index == 8));
-
-    TOGGLE_MENU (machine_state_select_menu, 18, (machine_state_index == 9));
-
-
-    TOGGLE_MENU (machine_state_autosave_menu, 0, (input_autosave_interval == 0));
-
-    TOGGLE_MENU (machine_state_autosave_menu, 2, (input_autosave_interval == 10));
-
-    TOGGLE_MENU (machine_state_autosave_menu, 4, (input_autosave_interval == 30));
-
-    TOGGLE_MENU (machine_state_autosave_menu, 6, (input_autosave_interval == 60));
-
-
-    TOGGLE_MENU (netplay_protocol_menu, 0, (netplay_protocol == NETPLAY_PROTOCOL_TCPIP));
-
-    TOGGLE_MENU (netplay_protocol_menu, 2, (netplay_protocol == NETPLAY_PROTOCOL_SPX));
+    TOGGLE_MENU (options_system_menu, 2, (machine_type == MACHINE_TYPE_PAL));
 
 
     TOGGLE_MENU (options_audio_menu, 0, audio_enable_output);
@@ -779,6 +774,12 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (options_video_layers_menu, 2, ppu_enable_sprite_layer_b);
 
     TOGGLE_MENU (options_video_layers_menu, 4, ppu_enable_background_layer);
+
+
+    TOGGLE_MENU (netplay_protocol_menu, 0, (netplay_protocol == NETPLAY_PROTOCOL_TCPIP));
+
+    TOGGLE_MENU (netplay_protocol_menu, 2, (netplay_protocol == NETPLAY_PROTOCOL_SPX));
+
 }
 
 
@@ -882,17 +883,12 @@ int show_gui (int first_run)
 
         DISABLE_MENU (main_menu, 6);
 
+        DISABLE_MENU (main_menu, 8);
 
-        DISABLE_MENU (machine_menu, 0);
-
-        DISABLE_MENU (machine_menu, 6);
+        DISABLE_MENU (main_menu, 10);
 
 
-        DISABLE_MENU (machine_state_menu, 0);
-
-        DISABLE_MENU (machine_state_menu, 2);
-
-        DISABLE_MENU (machine_state_menu, 4);
+        DISABLE_MENU (options_menu, 10);
     }
 
 
@@ -1313,15 +1309,10 @@ static int main_replay_record_menu_start (void)
         DISABLE_MENU (main_replay_menu, 4);
 
 
-        DISABLE_MENU (machine_menu, 0);
-    
-        DISABLE_MENU (machine_menu, 6);
+        DISABLE_MENU (main_state_menu, 4);
     
     
-        DISABLE_MENU (machine_state_menu, 4);
-    
-    
-        DISABLE_MENU (top_menu, 3);
+        DISABLE_MENU (top_menu, 2);
     
     
         input_mode |= INPUT_MODE_REPLAY;
@@ -1375,15 +1366,10 @@ static int main_replay_record_menu_stop (void)
     ENABLE_MENU (main_replay_menu, 4);
 
 
-    ENABLE_MENU (machine_menu, 0);
-
-    ENABLE_MENU (machine_menu, 6);
+    ENABLE_MENU (main_state_menu, 4);
 
 
-    ENABLE_MENU (machine_state_menu, 4);
-
-
-    ENABLE_MENU (top_menu, 3);
+    ENABLE_MENU (top_menu, 2);
 
 
     gui_message (gui_fg_color, "Replay recording session stopped.");
@@ -1564,15 +1550,10 @@ static int main_replay_play_menu_start (void)
         DISABLE_MENU (main_replay_menu, 2);
 
 
-        DISABLE_MENU (machine_menu, 0);
-    
-        DISABLE_MENU (machine_menu, 6);
+        DISABLE_MENU (main_state_menu, 4);
     
     
-        DISABLE_MENU (machine_state_menu, 4);
-    
-    
-        DISABLE_MENU (top_menu, 3);
+        DISABLE_MENU (top_menu, 2);
     
     
         input_mode &= ~INPUT_MODE_PLAY;
@@ -1630,15 +1611,10 @@ static int main_replay_play_menu_stop (void)
     ENABLE_MENU (main_replay_menu, 2);
 
 
-    ENABLE_MENU (machine_menu, 0);
-
-    ENABLE_MENU (machine_menu, 6);
+    ENABLE_MENU (main_state_menu, 4);
 
 
-    ENABLE_MENU (machine_state_menu, 4);
-
-
-    ENABLE_MENU (top_menu, 3);
+    ENABLE_MENU (top_menu, 2);
 
 
     if (gui_is_active)
@@ -1733,7 +1709,7 @@ static int main_menu_load_rom (void)
 
             /* Update save state titles. */
 
-            machine_state_menu_select ();
+            main_state_menu_select ();
 
 
             /* Update replay titles. */
@@ -1753,18 +1729,13 @@ static int main_menu_load_rom (void)
                 ENABLE_MENU (main_menu, 4);
 
                 ENABLE_MENU (main_menu, 6);
-    
-    
-                ENABLE_MENU (machine_menu, 0);
 
-                ENABLE_MENU (machine_menu, 6);
-    
-    
-                ENABLE_MENU (machine_state_menu, 0);
+                ENABLE_MENU (main_menu, 8);
 
-                ENABLE_MENU (machine_state_menu, 2);
+                ENABLE_MENU (main_menu, 10);
     
-                ENABLE_MENU (machine_state_menu, 4);
+
+                ENABLE_MENU (options_menu, 10);
             }
 
 
@@ -1804,107 +1775,7 @@ static int main_menu_resume (void)
 }
 
 
-static int main_menu_snapshot (void)
-{
-    int count;
-
-    UINT8 filename [12];
-
-
-    for (count = 0; count < 999; count ++)
-    {
-        sprintf (filename, "snap%03d.pcx", count);
-
-        filename [11] = NIL;
-
-
-        if (! exists (filename))
-        {
-            count = 1000;
-
-
-            save_bitmap (filename, video_buffer, current_palette);
-
-            gui_message (gui_fg_color, "Snapshot saved to %s.", filename);
-        }
-    }
-
-
-    return (D_O_K);
-}
-
-
-static int main_menu_messages (void)
-{
-    PACKFILE * file;
-
-
-    UINT8 * buffer;
-
-
-    file = pack_fopen (logfile, "r");
-
-    if (! file)
-    {
-        buffer = malloc (strlen ("Failed to open (or bi-open) log file."));
-
-        if (! buffer)
-        {
-            /* Yuck. */
-
-            return (D_O_K);
-        }
-
-
-        sprintf (buffer, "Failed to open (or bi-open) log file.");
-    }
-    else
-    {
-        int size;
-
-
-        size = file_size (logfile);
-
-
-        buffer = malloc (size);
-
-        if (! buffer)
-        {
-            /* Log file has a maximum size of 64kB. */
-
-            /* Pretty sad if malloc failed to allocate that. */
-
-            return (D_O_K);
-        }
-
-
-        pack_fread (buffer, size, file);
-    }
-
-
-    pack_fclose (file);
-
-
-    main_messages_dialog [2].dp = buffer;
-
-
-    gui_show_dialog (main_messages_dialog);
-
-
-    return (D_O_K);
-}
-
-
-static int main_menu_exit (void)
-{
-    want_exit = TRUE;
-
-
-    return (D_CLOSE);
-}
-
-
-static int machine_menu_reset (void)
+static int main_menu_reset (void)
 {
     machine_reset ();
 
@@ -1913,65 +1784,8 @@ static int machine_menu_reset (void)
 }
 
 
-static int machine_menu_status (void)
-{
-    video_display_status = (! video_display_status);
-
-    update_menus ();
-
-
-    return (D_O_K);
-}
-
-
-static int machine_speed_menu_ntsc_60_hz (void)
-{
-    machine_type = MACHINE_TYPE_NTSC;
-
-
-    audio_exit ();
-
-    audio_init ();
-
-
-    papu_reinit ();
-
-
-    update_menus ();
-
-
-    gui_message (gui_fg_color, "Emulation speed set to NTSC (60 Hz).");
-
-
-    return (D_O_K);
-}
-
-
-static int machine_speed_menu_pal_50_hz (void)
-{
-    machine_type = MACHINE_TYPE_PAL;
-
-
-    audio_exit ();
-
-    audio_init ();
-
-
-    papu_reinit ();
-
-
-    update_menus ();
-
-
-    gui_message (gui_fg_color, "Emulation speed set to PAL (50 Hz).");
-
-
-    return (D_O_K);
-}
-
-
 #define STATE_SELECT_MENU_HANDLER(slot)         \
-    static int machine_state_select_menu_##slot (void)          \
+    static int main_state_select_menu_##slot (void)          \
     {                                           \
         machine_state_index = slot;             \
                                                 \
@@ -2007,12 +1821,12 @@ STATE_SELECT_MENU_HANDLER (8);
 STATE_SELECT_MENU_HANDLER (9);
 
 
-static UINT8 machine_state_menu_texts [10] [20];
+static UINT8 main_state_menu_texts [10] [20];
 
-static UINT8 machine_state_titles [10] [16];
+static UINT8 main_state_titles [10] [16];
 
 
-static int machine_state_menu_select (void)
+static int main_state_menu_select (void)
 {
     UINT8 buffer [256];
 
@@ -2071,27 +1885,27 @@ static int machine_state_menu_select (void)
             pack_fread (buffer2, sizeof (buffer2), file);
 
 
-            memset (machine_state_titles [index], NIL, 16);
+            memset (main_state_titles [index], NIL, 16);
 
-            strcat (machine_state_titles [index], buffer2);
+            strcat (main_state_titles [index], buffer2);
 
 
             pack_fclose (file);
         }
         else
         {
-            memset (machine_state_titles [index], NIL, 16);
+            memset (main_state_titles [index], NIL, 16);
 
-            strcat (machine_state_titles [index], "Empty");
+            strcat (main_state_titles [index], "Empty");
         }
 
 
-        memset (machine_state_menu_texts [index], NIL, 20);
+        memset (main_state_menu_texts [index], NIL, 20);
 
-        sprintf (machine_state_menu_texts [index], "&%d: %s", index, machine_state_titles [index]);
+        sprintf (main_state_menu_texts [index], "&%d: %s", index, main_state_titles [index]);
 
 
-        machine_state_select_menu [index * 2].text = machine_state_menu_texts [index];
+        main_state_select_menu [index * 2].text = main_state_menu_texts [index];
     }
 
 
@@ -2099,7 +1913,7 @@ static int machine_state_menu_select (void)
 }
 
 
-static int machine_state_menu_save (void)
+static int main_state_menu_save (void)
 {
     UINT8 buffer [256];
 
@@ -2120,22 +1934,22 @@ static int machine_state_menu_save (void)
 
     if (gui_is_active)
     {
-        machine_state_save_dialog [4].d1 = (sizeof (buffer2) - 1);
+        main_state_save_dialog [4].d1 = (sizeof (buffer2) - 1);
         
-        machine_state_save_dialog [4].dp = buffer2;
+        main_state_save_dialog [4].dp = buffer2;
         
 
-        if (strcmp (machine_state_titles [machine_state_index], "Empty") == 0)
+        if (strcmp (main_state_titles [machine_state_index], "Empty") == 0)
         {
             strcat (buffer2, "Untitled");
         }
         else
         {
-            strcat (buffer2, machine_state_titles [machine_state_index]);
+            strcat (buffer2, main_state_titles [machine_state_index]);
         }
         
         
-        if (gui_show_dialog (machine_state_save_dialog) != 5)
+        if (gui_show_dialog (main_state_save_dialog) != 5)
         {
             return (D_O_K);
         }
@@ -2148,13 +1962,13 @@ static int machine_state_menu_save (void)
     {
         /* Save using last title. */
 
-        if (strcmp (machine_state_titles [machine_state_index], "Empty") == 0)
+        if (strcmp (main_state_titles [machine_state_index], "Empty") == 0)
         {
             strcat (buffer2, "Untitled");
         }
         else
         {
-            strcat (buffer2, machine_state_titles [machine_state_index]);
+            strcat (buffer2, main_state_titles [machine_state_index]);
         }
     }
 
@@ -2236,7 +2050,7 @@ static int machine_state_menu_save (void)
 
         /* Update save state titles. */
 
-        machine_state_menu_select ();
+        main_state_menu_select ();
     }
     else
     {
@@ -2248,7 +2062,7 @@ static int machine_state_menu_save (void)
 }
 
 
-static int machine_state_menu_restore (void)
+static int main_state_menu_restore (void)
 {
     UINT8 buffer [256];
 
@@ -2400,7 +2214,7 @@ static int machine_state_menu_restore (void)
 }
 
 
-static int machine_state_autosave_menu_disabled (void)
+static int main_state_autosave_menu_disabled (void)
 {
     input_autosave_interval = 0;
 
@@ -2414,7 +2228,7 @@ static int machine_state_autosave_menu_disabled (void)
 }
 
 
-static int machine_state_autosave_menu_10_seconds (void)
+static int main_state_autosave_menu_10_seconds (void)
 {
     input_autosave_interval = 10;
 
@@ -2428,7 +2242,7 @@ static int machine_state_autosave_menu_10_seconds (void)
 }
 
 
-static int machine_state_autosave_menu_30_seconds (void)
+static int main_state_autosave_menu_30_seconds (void)
 {
     input_autosave_interval = 30;
 
@@ -2442,7 +2256,7 @@ static int machine_state_autosave_menu_30_seconds (void)
 }
 
 
-static int machine_state_autosave_menu_60_seconds (void)
+static int main_state_autosave_menu_60_seconds (void)
 {
     input_autosave_interval = 60;
 
@@ -2456,11 +2270,29 @@ static int machine_state_autosave_menu_60_seconds (void)
 }
 
 
-static int machine_menu_patches (void)
+static int main_menu_snapshot (void)
 {
-    if (gui_show_dialog (machine_patches_dialog) == 6)
+    int count;
+
+    UINT8 filename [12];
+
+
+    for (count = 0; count < 999; count ++)
     {
-        patches_save (global_rom.filename);
+        sprintf (filename, "snap%03d.pcx", count);
+
+        filename [11] = NIL;
+
+
+        if (! exists (filename))
+        {
+            count = 1000;
+
+
+            save_bitmap (filename, video_buffer, current_palette);
+
+            gui_message (gui_fg_color, "Snapshot saved to %s.", filename);
+        }
     }
 
 
@@ -2468,201 +2300,127 @@ static int machine_menu_patches (void)
 }
 
 
-static int netplay_protocol_menu_tcpip (void)
+static int main_menu_messages (void)
 {
-    netplay_protocol = NETPLAY_PROTOCOL_TCPIP;
-
-    update_menus ();
+    PACKFILE * file;
 
 
-    gui_message (gui_fg_color, "Netplay protocol set to TCP/IP.");
+    UINT8 * buffer;
 
 
-    return (D_O_K);
-}
+    file = pack_fopen (logfile, "r");
 
-
-static int netplay_protocol_menu_spx (void)
-{
-    netplay_protocol = NETPLAY_PROTOCOL_SPX;
-
-    update_menus ();
-
-
-    gui_message (gui_fg_color, "Netplay protocol set to SPX.");
-
-
-    return (D_O_K);
-}
-
-
-static int netplay_server_menu_start (void)
-{
-    if (netplay_open_server () != 0)
+    if (! file)
     {
-        gui_message (error_color, "Failed to start the netplay server!");
-    }
+        buffer = malloc (strlen ("Failed to open (or bi-open) log file."));
 
-
-    DISABLE_MENU (top_menu, 0);
-    
-    DISABLE_MENU (top_menu, 1);
-
-    DISABLE_MENU (top_menu, 2);
-
-    DISABLE_MENU (top_menu, 4);
-
-
-    DISABLE_MENU (netplay_menu, 0);
-
-    DISABLE_MENU (netplay_menu, 4);
-
-
-    DISABLE_MENU (netplay_server_menu, 0);
-
-
-    ENABLE_MENU (netplay_server_menu, 2);
-
-
-    gui_message (gui_fg_color, "Started NetPlay server, awaiting client.");
-
-
-    return (D_REDRAW);
-}
-
-
-static int netplay_server_menu_stop (void)
-{
-    netplay_close_server ();
-
-
-    DISABLE_MENU (netplay_server_menu, 2);
-
-
-    ENABLE_MENU (top_menu, 0);
-    
-    ENABLE_MENU (top_menu, 1);
-
-    ENABLE_MENU (top_menu, 2);
-
-    ENABLE_MENU (top_menu, 4);
-
-
-    ENABLE_MENU (netplay_menu, 0);
-
-    ENABLE_MENU (netplay_menu, 4);
-
-
-    ENABLE_MENU (netplay_server_menu, 0);
-
-
-    gui_message (gui_fg_color, "Stopped NetPlay server.");
-
-
-    return (D_REDRAW);
-}
-
-
-static int netplay_client_menu_connect (void)
-{
-    if (netplay_protocol == NETPLAY_PROTOCOL_TCPIP)
-    {
-        UINT8 buffer [16];
-    
-    
-        memset (buffer, NIL, sizeof (buffer));
-
-
-        netplay_client_connect_dialog [4].d1 = (sizeof (buffer) - 1);
-    
-        netplay_client_connect_dialog [4].dp = buffer;
-    
-    
-        strcat (buffer, get_config_string ("netplay", "ip_address", "0.0.0.0"));
-    
-    
-        if (gui_show_dialog (netplay_client_connect_dialog) != 5)
+        if (! buffer)
         {
-            return (D_O_K);
-        }
-
-
-        if (netplay_open_client (buffer) != 0)
-        {
-            gui_message (error_color, "Failed to connect to the server!");
-
+            /* Yuck. */
 
             return (D_O_K);
         }
 
 
-        set_config_string ("netplay", "ip_address", buffer);
+        sprintf (buffer, "Failed to open (or bi-open) log file.");
     }
     else
     {
-        if (netplay_open_client (NIL) != 0)
-        {
-            gui_message (error_color, "Failed to connect to the server!");
+        int size;
 
+
+        size = file_size (logfile);
+
+
+        buffer = malloc (size);
+
+        if (! buffer)
+        {
+            /* Log file has a maximum size of 64kB. */
+
+            /* Pretty sad if malloc failed to allocate that. */
 
             return (D_O_K);
         }
+
+
+        pack_fread (buffer, size, file);
     }
 
 
-    DISABLE_MENU (top_menu, 0);
-    
-    DISABLE_MENU (top_menu, 1);
-
-    DISABLE_MENU (top_menu, 2);
-
-    DISABLE_MENU (top_menu, 4);
+    pack_fclose (file);
 
 
-    DISABLE_MENU (netplay_menu, 0);
-
-    DISABLE_MENU (netplay_menu, 2);
+    main_messages_dialog [2].dp = buffer;
 
 
-    DISABLE_MENU (netplay_client_menu, 0);
-
-
-    ENABLE_MENU (netplay_client_menu, 2);
-
-
-    gui_message (gui_fg_color, "NetPlay client connected to the server.");
+    gui_show_dialog (main_messages_dialog);
 
 
     return (D_O_K);
 }
 
 
-static int netplay_client_menu_disconnect (void)
+static int main_menu_exit (void)
 {
-    netplay_close_client ();
+    want_exit = TRUE;
 
 
-    DISABLE_MENU (netplay_client_menu, 2);
+    return (D_CLOSE);
+}
 
 
-    ENABLE_MENU (top_menu, 0);
-    
-    ENABLE_MENU (top_menu, 1);
+static int options_menu_status (void)
+{
+    video_display_status = (! video_display_status);
 
-    ENABLE_MENU (top_menu, 2);
-
-    ENABLE_MENU (top_menu, 4);
+    update_menus ();
 
 
-    ENABLE_MENU (netplay_menu, 0);
-
-    ENABLE_MENU (netplay_menu, 2);
-
-
-    ENABLE_MENU (netplay_client_menu, 0);
+    return (D_O_K);
+}
 
 
-    gui_message (gui_fg_color, "NetPlay client disconnected from the server.");
+static int options_system_menu_ntsc_60_hz (void)
+{
+    machine_type = MACHINE_TYPE_NTSC;
+
+
+    audio_exit ();
+
+    audio_init ();
+
+
+    papu_reinit ();
+
+
+    update_menus ();
+
+
+    gui_message (gui_fg_color, "System type set to NTSC (60 Hz).");
+
+
+    return (D_O_K);
+}
+
+
+static int options_system_menu_pal_50_hz (void)
+{
+    machine_type = MACHINE_TYPE_PAL;
+
+
+    audio_exit ();
+
+    audio_init ();
+
+
+    papu_reinit ();
+
+
+    update_menus ();
+
+
+    gui_message (gui_fg_color, "System type set to PAL (50 Hz).");
 
 
     return (D_O_K);
@@ -4195,7 +3953,7 @@ static int help_menu_about (void)
 /* ---- Dialog handlers. ---- */
 
 
-static int machine_patches_dialog_list (DIALOG * dialog)
+static int options_patches_dialog_list (DIALOG * dialog)
 {
     CPU_PATCH * patch;
 
@@ -4211,17 +3969,17 @@ static int machine_patches_dialog_list (DIALOG * dialog)
 
     if (patch -> enabled)
     {
-        machine_patches_dialog [5].flags |= D_SELECTED;
+        options_patches_dialog [5].flags |= D_SELECTED;
     }
     else
     {
-        machine_patches_dialog [5].flags &= ~D_SELECTED;
+        options_patches_dialog [5].flags &= ~D_SELECTED;
     }
 
 
     scare_mouse ();
 
-    object_message (&machine_patches_dialog [5], MSG_DRAW, 0);
+    object_message (&options_patches_dialog [5], MSG_DRAW, 0);
 
     unscare_mouse ();
 
@@ -4230,7 +3988,7 @@ static int machine_patches_dialog_list (DIALOG * dialog)
 }
 
 
-static int machine_patches_dialog_add (DIALOG * dialog)
+static int options_patches_dialog_add (DIALOG * dialog)
 {
     UINT8 buffer [16];
 
@@ -4257,17 +4015,17 @@ static int machine_patches_dialog_add (DIALOG * dialog)
     memset (buffer2, NIL, sizeof (buffer2));
 
 
-    machine_patches_add_dialog [4].d1 = (sizeof (buffer) - 1);
+    options_patches_add_dialog [4].d1 = (sizeof (buffer) - 1);
 
-    machine_patches_add_dialog [4].dp = buffer;
-
-
-    machine_patches_add_dialog [7].d1 = (sizeof (buffer2) - 1);
-
-    machine_patches_add_dialog [7].dp = buffer2;
+    options_patches_add_dialog [4].dp = buffer;
 
 
-    if (gui_show_dialog (machine_patches_add_dialog) != 8)
+    options_patches_add_dialog [7].d1 = (sizeof (buffer2) - 1);
+
+    options_patches_add_dialog [7].dp = buffer2;
+
+
+    if (gui_show_dialog (options_patches_add_dialog) != 8)
     {
         return (D_O_K);
     }
@@ -4315,7 +4073,7 @@ static int machine_patches_dialog_add (DIALOG * dialog)
 }
 
 
-static int machine_patches_dialog_remove (DIALOG * dialog)
+static int options_patches_dialog_remove (DIALOG * dialog)
 {
     int index;
 
@@ -4334,7 +4092,7 @@ static int machine_patches_dialog_remove (DIALOG * dialog)
     }
 
 
-    start = machine_patches_dialog [2].d1;
+    start = options_patches_dialog [2].d1;
 
 
     source = &cpu_patch_info [start];
@@ -4404,7 +4162,7 @@ static int machine_patches_dialog_remove (DIALOG * dialog)
 
     if (cpu_patch_count == 0)
     {
-        machine_patches_dialog [5].flags &= ~D_SELECTED;
+        options_patches_dialog [5].flags &= ~D_SELECTED;
     }
 
 
@@ -4412,7 +4170,7 @@ static int machine_patches_dialog_remove (DIALOG * dialog)
 }
 
 
-static int machine_patches_dialog_enabled (DIALOG * dialog)
+static int options_patches_dialog_enabled (DIALOG * dialog)
 {
     CPU_PATCH * patch;
 
@@ -4426,7 +4184,7 @@ static int machine_patches_dialog_enabled (DIALOG * dialog)
     }
 
 
-    patch = &cpu_patch_info [machine_patches_dialog [2].d1];
+    patch = &cpu_patch_info [options_patches_dialog [2].d1];
 
 
     patch -> enabled = (dialog -> flags & D_SELECTED);
@@ -4463,7 +4221,7 @@ static int machine_patches_dialog_enabled (DIALOG * dialog)
 
     scare_mouse ();
 
-    object_message (&machine_patches_dialog [2], MSG_DRAW, 0);
+    object_message (&options_patches_dialog [2], MSG_DRAW, 0);
 
     unscare_mouse ();
 
@@ -4472,37 +4230,37 @@ static int machine_patches_dialog_enabled (DIALOG * dialog)
 }
 
 
-static UINT8 machine_patches_dialog_list_texts [MAX_PATCHES] [38];
+static UINT8 options_patches_dialog_list_texts [MAX_PATCHES] [38];
 
 
-static char * machine_patches_dialog_list_filler (int index, int * list_size)
+static char * options_patches_dialog_list_filler (int index, int * list_size)
 {
     if (index >= 0)
     {
         CPU_PATCH * patch;
 
 
-        memset (machine_patches_dialog_list_texts [index], NIL, 38);
+        memset (options_patches_dialog_list_texts [index], NIL, 38);
 
 
         patch = &cpu_patch_info [index];
 
 
-        sprintf (machine_patches_dialog_list_texts [index], "$%04x -$%02x +$%02x %s ", patch -> address,
+        sprintf (options_patches_dialog_list_texts [index], "$%04x -$%02x +$%02x %s ", patch -> address,
             patch -> match_value, patch -> value, (patch -> active ? "Active" : " Idle "));
 
 
         if (patch -> title)
         {
-            strncat (machine_patches_dialog_list_texts [index], patch -> title, 37);
+            strncat (options_patches_dialog_list_texts [index], patch -> title, 37);
         }
         else
         {
-            strcat (machine_patches_dialog_list_texts [index], "No title");
+            strcat (options_patches_dialog_list_texts [index], "No title");
         }
 
 
-        return (machine_patches_dialog_list_texts [index]);
+        return (options_patches_dialog_list_texts [index]);
     }
     else
     {
@@ -4729,6 +4487,211 @@ static int options_input_dialog_set_buttons (DIALOG * dialog)
 
             break;
     }
+
+
+    return (D_O_K);
+}
+
+
+static int options_menu_patches (void)
+{
+    if (gui_show_dialog (options_patches_dialog) == 6)
+    {
+        patches_save (global_rom.filename);
+    }
+
+
+    return (D_O_K);
+}
+
+
+static int netplay_protocol_menu_tcpip (void)
+{
+    netplay_protocol = NETPLAY_PROTOCOL_TCPIP;
+
+    update_menus ();
+
+
+    gui_message (gui_fg_color, "Netplay protocol set to TCP/IP.");
+
+
+    return (D_O_K);
+}
+
+
+static int netplay_protocol_menu_spx (void)
+{
+    netplay_protocol = NETPLAY_PROTOCOL_SPX;
+
+    update_menus ();
+
+
+    gui_message (gui_fg_color, "Netplay protocol set to SPX.");
+
+
+    return (D_O_K);
+}
+
+
+static int netplay_server_menu_start (void)
+{
+    if (netplay_open_server () != 0)
+    {
+        gui_message (error_color, "Failed to start the netplay server!");
+    }
+
+
+    DISABLE_MENU (top_menu, 0);
+    
+    DISABLE_MENU (top_menu, 1);
+
+    DISABLE_MENU (top_menu, 3);
+
+
+    DISABLE_MENU (netplay_menu, 0);
+
+    DISABLE_MENU (netplay_menu, 4);
+
+
+    DISABLE_MENU (netplay_server_menu, 0);
+
+
+    ENABLE_MENU (netplay_server_menu, 2);
+
+
+    gui_message (gui_fg_color, "Started NetPlay server, awaiting client.");
+
+
+    return (D_REDRAW);
+}
+
+
+static int netplay_server_menu_stop (void)
+{
+    netplay_close_server ();
+
+
+    DISABLE_MENU (netplay_server_menu, 2);
+
+
+    ENABLE_MENU (top_menu, 0);
+    
+    ENABLE_MENU (top_menu, 1);
+
+    ENABLE_MENU (top_menu, 3);
+
+
+    ENABLE_MENU (netplay_menu, 0);
+
+    ENABLE_MENU (netplay_menu, 4);
+
+
+    ENABLE_MENU (netplay_server_menu, 0);
+
+
+    gui_message (gui_fg_color, "Stopped NetPlay server.");
+
+
+    return (D_REDRAW);
+}
+
+
+static int netplay_client_menu_connect (void)
+{
+    if (netplay_protocol == NETPLAY_PROTOCOL_TCPIP)
+    {
+        UINT8 buffer [16];
+    
+    
+        memset (buffer, NIL, sizeof (buffer));
+
+
+        netplay_client_connect_dialog [4].d1 = (sizeof (buffer) - 1);
+    
+        netplay_client_connect_dialog [4].dp = buffer;
+    
+    
+        strcat (buffer, get_config_string ("netplay", "ip_address", "0.0.0.0"));
+    
+    
+        if (gui_show_dialog (netplay_client_connect_dialog) != 5)
+        {
+            return (D_O_K);
+        }
+
+
+        if (netplay_open_client (buffer) != 0)
+        {
+            gui_message (error_color, "Failed to connect to the server!");
+
+
+            return (D_O_K);
+        }
+
+
+        set_config_string ("netplay", "ip_address", buffer);
+    }
+    else
+    {
+        if (netplay_open_client (NIL) != 0)
+        {
+            gui_message (error_color, "Failed to connect to the server!");
+
+
+            return (D_O_K);
+        }
+    }
+
+
+    DISABLE_MENU (top_menu, 0);
+    
+    DISABLE_MENU (top_menu, 1);
+
+    DISABLE_MENU (top_menu, 3);
+
+
+    DISABLE_MENU (netplay_menu, 0);
+
+    DISABLE_MENU (netplay_menu, 2);
+
+
+    DISABLE_MENU (netplay_client_menu, 0);
+
+
+    ENABLE_MENU (netplay_client_menu, 2);
+
+
+    gui_message (gui_fg_color, "NetPlay client connected to the server.");
+
+
+    return (D_O_K);
+}
+
+
+static int netplay_client_menu_disconnect (void)
+{
+    netplay_close_client ();
+
+
+    DISABLE_MENU (netplay_client_menu, 2);
+
+
+    ENABLE_MENU (top_menu, 0);
+    
+    ENABLE_MENU (top_menu, 1);
+
+    ENABLE_MENU (top_menu, 3);
+
+
+    ENABLE_MENU (netplay_menu, 0);
+
+    ENABLE_MENU (netplay_menu, 2);
+
+
+    ENABLE_MENU (netplay_client_menu, 0);
+
+
+    gui_message (gui_fg_color, "NetPlay client disconnected from the server.");
 
 
     return (D_O_K);

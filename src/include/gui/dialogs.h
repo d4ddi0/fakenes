@@ -11,6 +11,18 @@ static DIALOG main_dialog [] =
 };
 
 
+static DIALOG main_state_save_dialog [] =
+{
+    {          sl_frame,   0,  0, 156, 84, 0, 0,   0,      0,            0, 0,   NIL, "Save State", NIL },
+    {     d_button_proc, 136,  4,  16, 12, 0, 0,   0, D_EXIT,            0, 0,   "X",          NIL, NIL },
+    {           sl_text,   9, 36,   0,  0, 0, 0,   0,      0,            0, 0,   NIL,    "&Title:", NIL },
+    { d_shadow_box_proc,  48, 32,  96, 16, 0, 0,   0,      0,            0, 0,   NIL,          NIL, NIL },
+    {       d_edit_proc,  50, 36,  92, 12, 0, 0, 't',      0,            0, 0,   NIL,          NIL, NIL },
+    {     d_button_proc, 112, 56,  32, 16, 0, 0, 'o', D_EXIT,            0, 0, "&OK",          NIL, NIL },
+    {               NIL,   0,  0,   0,  0, 0, 0,   0,      0, SL_FRAME_END, 0,   NIL,          NIL, NIL }
+};  
+
+
 static DIALOG main_replay_record_start_dialog [] =
 {
     {          sl_frame,   0,  0, 156, 84, 0, 0,   0,      0,            0, 0,   NIL, "Record Replay", NIL },
@@ -29,58 +41,6 @@ static DIALOG main_messages_dialog [] =
     { d_button_proc, 256,  4,  16,  12, 0, 0, 0, D_EXIT,            0, 0, "X",        NIL, NIL },
     {     sl_viewer,   9, 29, 257,  98, 0, 0, 0,      0,            0, 0, NIL,        NIL, NIL },
     {           NIL,   0,  0,   0,   0, 0, 0, 0,      0, SL_FRAME_END, 0, NIL,        NIL, NIL }
-};
-
-
-static DIALOG machine_state_save_dialog [] =
-{
-    {          sl_frame,   0,  0, 156, 84, 0, 0,   0,      0,            0, 0,   NIL, "Save State", NIL },
-    {     d_button_proc, 136,  4,  16, 12, 0, 0,   0, D_EXIT,            0, 0,   "X",          NIL, NIL },
-    {           sl_text,   9, 36,   0,  0, 0, 0,   0,      0,            0, 0,   NIL,    "&Title:", NIL },
-    { d_shadow_box_proc,  48, 32,  96, 16, 0, 0,   0,      0,            0, 0,   NIL,          NIL, NIL },
-    {       d_edit_proc,  50, 36,  92, 12, 0, 0, 't',      0,            0, 0,   NIL,          NIL, NIL },
-    {     d_button_proc, 112, 56,  32, 16, 0, 0, 'o', D_EXIT,            0, 0, "&OK",          NIL, NIL },
-    {               NIL,   0,  0,   0,  0, 0, 0,   0,      0, SL_FRAME_END, 0,   NIL,          NIL, NIL }
-};  
-
-
-static DIALOG machine_patches_add_dialog [] =
-{
-    {          sl_frame,   0,  0, 156, 100, 0, 0,   0,      0,            0, 0,   NIL, "Add Patch", NIL },
-    {     d_button_proc, 136,  4,  16,  12, 0, 0,   0, D_EXIT,            0, 0,   "X",         NIL, NIL },
-    {           sl_text,   9, 36,   0,   0, 0, 0, 't',      0,            0, 0,   NIL,   "&Title:", NIL },
-    { d_shadow_box_proc,  48, 32,  96,  16, 0, 0,   0,      0,            0, 0,   NIL,         NIL, NIL },
-    {       d_edit_proc,  50, 36,  92,  12, 0, 0,   0,      0,            0, 0,   NIL,         NIL, NIL },
-    {           sl_text,  14, 56,   0,   0, 0, 0, 'c',      0,            0, 0,   NIL,    "&Code:", NIL },
-    { d_shadow_box_proc,  48, 52,  61,  16, 0, 0,   0,      0,            0, 0,   NIL,         NIL, NIL },
-    {       d_edit_proc,  50, 56,  57,  12, 0, 0,   0,      0,            0, 0,   NIL,         NIL, NIL },
-    {     d_button_proc, 112, 76,  32,  16, 0, 0, 'o', D_EXIT,            0, 0, "&OK",         NIL, NIL },
-    {               NIL,   0,  0,   0,   0, 0, 0,   0,      0, SL_FRAME_END, 0,   NIL,         NIL, NIL }
-};
-
-
-static int machine_patches_dialog_list (DIALOG *);
-
-static int machine_patches_dialog_add (DIALOG *);
-
-static int machine_patches_dialog_remove (DIALOG *);
-
-static int machine_patches_dialog_enabled (DIALOG *);
-
-
-static char * machine_patches_dialog_list_filler (int, int *);
-
-
-static DIALOG machine_patches_dialog [] =
-{
-    {      sl_frame,   0,   0, 226, 160, 0, 0,   0,      0,            0, 0,                                NIL,                      "Patches",                         NIL },
-    { d_button_proc, 206,   4,  16,  12, 0, 0,   0, D_EXIT,            0, 0,                                "X",                            NIL,                         NIL },
-    {    sl_listbox,   9,  29, 207,  98, 0, 0,   0,      0,            0, 0, machine_patches_dialog_list_filler,                            NIL, machine_patches_dialog_list },
-    {     sl_button,   8, 136,  32,  16, 0, 0, 'a',      0,            0, 0,                             "&Add",     machine_patches_dialog_add,                         NIL },
-    {     sl_button,  48, 136,  53,  16, 0, 0, 'r',      0,            0, 0,                          "&Remove",  machine_patches_dialog_remove,                         NIL },
-    {   sl_checkbox, 121, 140,  64,   8, 0, 0, 'e',      0,            0, 0,                         "&Enabled", machine_patches_dialog_enabled,                         NIL },
-    { d_button_proc, 185, 136,  32,  16, 0, 0, 's', D_EXIT,            0, 0,                            "&Save",                            NIL,                         NIL },
-    {           NIL,   0,   0,   0,   0, 0, 0,   0,      0, SL_FRAME_END, 0,                                NIL,                            NIL,                         NIL }
 };
 
 
@@ -117,6 +77,46 @@ static DIALOG options_input_dialog [] =
     {     sl_button,  80, 120, 32,  12, 0, 0, 'a',      0,            0,      INPUT_DEVICE_BUTTON_A,           "&A",   options_input_dialog_set_buttons, NIL },
     {     sl_button,  80, 136, 32,  12, 0, 0, 'b',      0,            0,      INPUT_DEVICE_BUTTON_B,           "&B",   options_input_dialog_set_buttons, NIL },
     {           NIL,   0,   0,  0,   0, 0, 0,   0,      0, SL_FRAME_END,                          0,            NIL,                                NIL, NIL }
+};
+
+
+static DIALOG options_patches_add_dialog [] =
+{
+    {          sl_frame,   0,  0, 156, 100, 0, 0,   0,      0,            0, 0,   NIL, "Add Patch", NIL },
+    {     d_button_proc, 136,  4,  16,  12, 0, 0,   0, D_EXIT,            0, 0,   "X",         NIL, NIL },
+    {           sl_text,   9, 36,   0,   0, 0, 0, 't',      0,            0, 0,   NIL,   "&Title:", NIL },
+    { d_shadow_box_proc,  48, 32,  96,  16, 0, 0,   0,      0,            0, 0,   NIL,         NIL, NIL },
+    {       d_edit_proc,  50, 36,  92,  12, 0, 0,   0,      0,            0, 0,   NIL,         NIL, NIL },
+    {           sl_text,  14, 56,   0,   0, 0, 0, 'c',      0,            0, 0,   NIL,    "&Code:", NIL },
+    { d_shadow_box_proc,  48, 52,  61,  16, 0, 0,   0,      0,            0, 0,   NIL,         NIL, NIL },
+    {       d_edit_proc,  50, 56,  57,  12, 0, 0,   0,      0,            0, 0,   NIL,         NIL, NIL },
+    {     d_button_proc, 112, 76,  32,  16, 0, 0, 'o', D_EXIT,            0, 0, "&OK",         NIL, NIL },
+    {               NIL,   0,  0,   0,   0, 0, 0,   0,      0, SL_FRAME_END, 0,   NIL,         NIL, NIL }
+};
+
+
+static int options_patches_dialog_list (DIALOG *);
+
+static int options_patches_dialog_add (DIALOG *);
+
+static int options_patches_dialog_remove (DIALOG *);
+
+static int options_patches_dialog_enabled (DIALOG *);
+
+
+static char * options_patches_dialog_list_filler (int, int *);
+
+
+static DIALOG options_patches_dialog [] =
+{
+    {      sl_frame,   0,   0, 226, 160, 0, 0,   0,      0,            0, 0,                                NIL,                      "Patches",                         NIL },
+    { d_button_proc, 206,   4,  16,  12, 0, 0,   0, D_EXIT,            0, 0,                                "X",                            NIL,                         NIL },
+    {    sl_listbox,   9,  29, 207,  98, 0, 0,   0,      0,            0, 0, options_patches_dialog_list_filler,                            NIL, options_patches_dialog_list },
+    {     sl_button,   8, 136,  32,  16, 0, 0, 'a',      0,            0, 0,                             "&Add",     options_patches_dialog_add,                         NIL },
+    {     sl_button,  48, 136,  53,  16, 0, 0, 'r',      0,            0, 0,                          "&Remove",  options_patches_dialog_remove,                         NIL },
+    {   sl_checkbox, 121, 140,  64,   8, 0, 0, 'e',      0,            0, 0,                         "&Enabled", options_patches_dialog_enabled,                         NIL },
+    { d_button_proc, 185, 136,  32,  16, 0, 0, 's', D_EXIT,            0, 0,                            "&Save",                            NIL,                         NIL },
+    {           NIL,   0,   0,   0,   0, 0, 0,   0,      0, SL_FRAME_END, 0,                                NIL,                            NIL,                         NIL }
 };
 
 

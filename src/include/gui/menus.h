@@ -1,5 +1,93 @@
 
 
+static int main_state_select_menu_0 (void);
+
+static int main_state_select_menu_1 (void);
+
+static int main_state_select_menu_2 (void);
+
+static int main_state_select_menu_3 (void);
+
+static int main_state_select_menu_4 (void);
+
+static int main_state_select_menu_5 (void);
+
+static int main_state_select_menu_6 (void);
+
+static int main_state_select_menu_7 (void);
+
+static int main_state_select_menu_8 (void);
+
+static int main_state_select_menu_9 (void);
+
+
+static MENU main_state_select_menu [] =
+{
+    { NIL, main_state_select_menu_0, NIL, 0, NIL },
+    {  "",                      NIL, NIL, 0, NIL },
+    { NIL, main_state_select_menu_1, NIL, 0, NIL },
+    {  "",                      NIL, NIL, 0, NIL },
+    { NIL, main_state_select_menu_2, NIL, 0, NIL },
+    {  "",                      NIL, NIL, 0, NIL },
+    { NIL, main_state_select_menu_3, NIL, 0, NIL },
+    {  "",                      NIL, NIL, 0, NIL },
+    { NIL, main_state_select_menu_4, NIL, 0, NIL },
+    {  "",                      NIL, NIL, 0, NIL },
+    { NIL, main_state_select_menu_5, NIL, 0, NIL },
+    {  "",                      NIL, NIL, 0, NIL },
+    { NIL, main_state_select_menu_6, NIL, 0, NIL },
+    {  "",                      NIL, NIL, 0, NIL },
+    { NIL, main_state_select_menu_7, NIL, 0, NIL },
+    {  "",                      NIL, NIL, 0, NIL },
+    { NIL, main_state_select_menu_8, NIL, 0, NIL },
+    {  "",                      NIL, NIL, 0, NIL },
+    { NIL, main_state_select_menu_9, NIL, 0, NIL },
+    { NIL,                      NIL, NIL, 0, NIL }
+};
+
+
+static int main_state_autosave_menu_disabled (void);
+
+static int main_state_autosave_menu_10_seconds (void);
+
+static int main_state_autosave_menu_30_seconds (void);
+
+static int main_state_autosave_menu_60_seconds (void);
+
+
+static MENU main_state_autosave_menu [] =
+{
+    {      "&Disabled",   main_state_autosave_menu_disabled, NIL, 0, NIL },
+    {               "",                                 NIL, NIL, 0, NIL },
+    { "&1: 10 Seconds", main_state_autosave_menu_10_seconds, NIL, 0, NIL },
+    {               "",                                 NIL, NIL, 0, NIL },
+    { "&2: 30 Seconds", main_state_autosave_menu_30_seconds, NIL, 0, NIL },
+    {               "",                                 NIL, NIL, 0, NIL },
+    { "&3: 60 Seconds", main_state_autosave_menu_60_seconds, NIL, 0, NIL },
+    {              NIL,                                 NIL, NIL, 0, NIL }
+};
+
+
+static int main_state_menu_select (void);
+
+static int main_state_menu_save (void);
+
+static int main_state_menu_restore (void);
+
+
+static MENU main_state_menu [] =
+{
+    {   "S&elect",                     NIL,   main_state_select_menu, 0, NIL },
+    {          "",                     NIL,                         NIL, 0, NIL },
+    {     "&Save",    main_state_menu_save,                         NIL, 0, NIL },
+    {          "",                     NIL,                         NIL, 0, NIL },
+    {  "&Restore", main_state_menu_restore,                         NIL, 0, NIL },
+    {          "",                     NIL,                         NIL, 0, NIL },
+    { "&Autosave",                     NIL, main_state_autosave_menu, 0, NIL },
+    {         NIL,                     NIL,                         NIL, 0, NIL }
+};
+
+
 static int main_replay_select_menu_0 (void);
 
 static int main_replay_select_menu_1 (void);
@@ -69,6 +157,8 @@ static int main_menu_load_rom (void);
 
 static int main_menu_resume (void);
 
+static int main_menu_reset (void);
+
 static int main_menu_snapshot (void);
 
 static int main_menu_messages (void);
@@ -82,138 +172,18 @@ static MENU main_menu [] =
     {             "",                NIL,              NIL, 0, NIL },
     {      "&Resume",   main_menu_resume,              NIL, 0, NIL },
     {             "",                NIL,              NIL, 0, NIL },
-    {      "R&eplay",                NIL, main_replay_menu, 0, NIL },
+    {       "R&eset",    main_menu_reset,              NIL, 0, NIL },
     {             "",                NIL,              NIL, 0, NIL },
-    {    "&Snapshot", main_menu_snapshot,              NIL, 0, NIL },
+    {       "&State",                NIL,  main_state_menu, 0, NIL },
+    {             "",                NIL,              NIL, 0, NIL },
+    {      "Re&play",                NIL, main_replay_menu, 0, NIL },
+    {             "",                NIL,              NIL, 0, NIL },
+    {    "S&napshot", main_menu_snapshot,              NIL, 0, NIL },
     {             "",                NIL,              NIL, 0, NIL },
     { "&Messages...", main_menu_messages,              NIL, 0, NIL },
     {             "",                NIL,              NIL, 0, NIL },
     {        "E&xit",     main_menu_exit,              NIL, 0, NIL },
     {            NIL,                NIL,              NIL, 0, NIL }
-};
-
-
-static int machine_speed_menu_ntsc_60_hz (void);
-
-static int machine_speed_menu_pal_50_hz (void);
-
-
-static MENU machine_speed_menu [] =
-{
-    { "&NTSC (60 Hz)", machine_speed_menu_ntsc_60_hz, NIL, 0, NIL },
-    {              "",                           NIL, NIL, 0, NIL },
-    {  "&PAL (50 Hz)",  machine_speed_menu_pal_50_hz, NIL, 0, NIL },
-    {             NIL,                           NIL, NIL, 0, NIL }
-};
-
-
-static int machine_state_select_menu_0 (void);
-
-static int machine_state_select_menu_1 (void);
-
-static int machine_state_select_menu_2 (void);
-
-static int machine_state_select_menu_3 (void);
-
-static int machine_state_select_menu_4 (void);
-
-static int machine_state_select_menu_5 (void);
-
-static int machine_state_select_menu_6 (void);
-
-static int machine_state_select_menu_7 (void);
-
-static int machine_state_select_menu_8 (void);
-
-static int machine_state_select_menu_9 (void);
-
-
-static MENU machine_state_select_menu [] =
-{
-    { NIL, machine_state_select_menu_0, NIL, 0, NIL },
-    {  "",                         NIL, NIL, 0, NIL },
-    { NIL, machine_state_select_menu_1, NIL, 0, NIL },
-    {  "",                         NIL, NIL, 0, NIL },
-    { NIL, machine_state_select_menu_2, NIL, 0, NIL },
-    {  "",                         NIL, NIL, 0, NIL },
-    { NIL, machine_state_select_menu_3, NIL, 0, NIL },
-    {  "",                         NIL, NIL, 0, NIL },
-    { NIL, machine_state_select_menu_4, NIL, 0, NIL },
-    {  "",                         NIL, NIL, 0, NIL },
-    { NIL, machine_state_select_menu_5, NIL, 0, NIL },
-    {  "",                         NIL, NIL, 0, NIL },
-    { NIL, machine_state_select_menu_6, NIL, 0, NIL },
-    {  "",                         NIL, NIL, 0, NIL },
-    { NIL, machine_state_select_menu_7, NIL, 0, NIL },
-    {  "",                         NIL, NIL, 0, NIL },
-    { NIL, machine_state_select_menu_8, NIL, 0, NIL },
-    {  "",                         NIL, NIL, 0, NIL },
-    { NIL, machine_state_select_menu_9, NIL, 0, NIL },
-    { NIL,                         NIL, NIL, 0, NIL }
-};
-
-
-static int machine_state_autosave_menu_disabled (void);
-
-static int machine_state_autosave_menu_10_seconds (void);
-
-static int machine_state_autosave_menu_30_seconds (void);
-
-static int machine_state_autosave_menu_60_seconds (void);
-
-
-static MENU machine_state_autosave_menu [] =
-{
-    {      "&Disabled",   machine_state_autosave_menu_disabled, NIL, 0, NIL },
-    {               "",                                    NIL, NIL, 0, NIL },
-    { "&1: 10 Seconds", machine_state_autosave_menu_10_seconds, NIL, 0, NIL },
-    {               "",                                    NIL, NIL, 0, NIL },
-    { "&2: 30 Seconds", machine_state_autosave_menu_30_seconds, NIL, 0, NIL },
-    {               "",                                    NIL, NIL, 0, NIL },
-    { "&3: 60 Seconds", machine_state_autosave_menu_60_seconds, NIL, 0, NIL },
-    {              NIL,                                    NIL, NIL, 0, NIL }
-};
-
-
-static int machine_state_menu_select (void);
-
-static int machine_state_menu_save (void);
-
-static int machine_state_menu_restore (void);
-
-
-static MENU machine_state_menu [] =
-{
-    {   "S&elect",                        NIL,   machine_state_select_menu, 0, NIL },
-    {          "",                        NIL,                         NIL, 0, NIL },
-    {     "&Save",    machine_state_menu_save,                         NIL, 0, NIL },
-    {          "",                        NIL,                         NIL, 0, NIL },
-    {  "&Restore", machine_state_menu_restore,                         NIL, 0, NIL },
-    {          "",                        NIL,                         NIL, 0, NIL },
-    { "&Autosave",                        NIL, machine_state_autosave_menu, 0, NIL },
-    {         NIL,                        NIL,                         NIL, 0, NIL }
-};
-
-
-static int machine_menu_reset (void);
-
-static int machine_menu_status (void);
-
-static int machine_menu_patches (void);
-
-
-static MENU machine_menu [] =
-{
-    {      "&Reset",   machine_menu_reset,                NIL, 0, NIL },
-    {            "",                  NIL,                NIL, 0, NIL },
-    {     "&Status",  machine_menu_status,                NIL, 0, NIL },
-    {            "",                  NIL,                NIL, 0, NIL },
-    {      "S&peed",                  NIL, machine_speed_menu, 0, NIL },
-    {            "",                  NIL,                NIL, 0, NIL },
-    { "&Patches...", machine_menu_patches,                NIL, 0, NIL },
-    {            "",                  NIL,                NIL, 0, NIL },
-    {      "St&ate",                  NIL, machine_state_menu, 0, NIL },
-    {           NIL,                  NIL,                NIL, 0, NIL }
 };
 
 
@@ -267,6 +237,20 @@ static MENU netplay_menu [] =
     {          "", NIL,                   NIL, 0, NIL },
     {   "&Client", NIL,   netplay_client_menu, 0, NIL },
     {         NIL, NIL,                   NIL, 0, NIL }
+};
+
+
+static int options_system_menu_ntsc_60_hz (void);
+
+static int options_system_menu_pal_50_hz (void);
+
+
+static MENU options_system_menu [] =
+{
+    { "&NTSC (60 Hz)", options_system_menu_ntsc_60_hz, NIL, 0, NIL },
+    {              "",                            NIL, NIL, 0, NIL },
+    {  "&PAL (50 Hz)",  options_system_menu_pal_50_hz, NIL, 0, NIL },
+    {             NIL,                            NIL, NIL, 0, NIL }
 };
 
 
@@ -957,17 +941,27 @@ static MENU options_video_menu [] =
 };
 
 
+static int options_menu_status (void);
+
 static int options_menu_input (void);
+
+static int options_menu_patches (void);
 
 
 static MENU options_menu [] =
 {
-    {    "&Audio",                NIL, options_audio_menu, 0, NIL },
-    {          "",                NIL,                NIL, 0, NIL },
-    {    "&Video",                NIL, options_video_menu, 0, NIL },
-    {          "",                NIL,                NIL, 0, NIL },
-    { "&Input...", options_menu_input,                NIL, 0, NIL },
-    {         NIL,                NIL,                NIL, 0, NIL }
+    {     "&Status",  options_menu_status,                 NIL, 0, NIL },
+    {            "",                  NIL,                 NIL, 0, NIL },
+    {     "S&ystem",                  NIL, options_system_menu, 0, NIL },
+    {            "",                  NIL,                 NIL, 0, NIL },
+    {      "&Audio",                  NIL,  options_audio_menu, 0, NIL },
+    {            "",                  NIL,                 NIL, 0, NIL },
+    {      "&Video",                  NIL,  options_video_menu, 0, NIL },
+    {            "",                  NIL,                 NIL, 0, NIL },
+    {   "&Input...",   options_menu_input,                 NIL, 0, NIL },
+    {            "",                  NIL,                 NIL, 0, NIL },
+    { "&Patches...", options_menu_patches,                 NIL, 0, NIL },
+    {           NIL,                  NIL,                 NIL, 0, NIL }
 };
 
 
@@ -989,7 +983,6 @@ static MENU top_menu [] =
 { 
     {    "&Main", NIL,    main_menu, 0, NIL },
     { "&Options", NIL, options_menu, 0, NIL },
-    { "M&achine", NIL, machine_menu, 0, NIL },
     { "&NetPlay", NIL, netplay_menu, 0, NIL },
     {    "&Help", NIL,    help_menu, 0, NIL },
     {        NIL, NIL,          NIL, 0, NIL }
