@@ -178,21 +178,27 @@ int main (int argc, char * argv [])
     int result;
 
 
-    printf ("\nFakeNES 0.1.1 (CVS), by stainless and RobotBebop.\n");
+    printf ("\nFakeNES version 0.1.1 (CVS), by stainless and TRAC.\n"
+            "Assistance provided by amit and Lord_Nightmare.\n");
+
+    printf ("\nOriginal concept by stainless and RobotBebop.\n"
+            "Uses the Nofrendo NES APU core by Matthew Conte.\n");
 
     printf ("\nBe sure to visit http://fakenes.sourceforge.net/.\n"
             "Report bugs to fakenes-bugs@lists.sourceforge.net.\n");
 
+    printf ("\nCopyright (c) 2002, Randy McDowell and Ian Smith.\n"
+            "Portions copyright (c) 2002, Charles Bilyue'.\n");
 
 #ifdef POSIX
 
-    printf ("\nCopyright (c) 2002, Randy McDowell and Ian Smith.\n"
-            "All rights reserved.  See 'LICENSE' for details.\n\n");
+    printf ("\nThis is free software.  See 'LICENSE' for details.\n"
+            "You must read and accept the license prior to use.\n\n");
 
 #else
 
-    printf ("\nCopyright (c) 2002, Randy McDowell and Ian Smith.\n"
-            "All rights reserved.  See 'LICENSE.TXT' for details.\n\n");
+    printf ("\nThis is free software.  See 'LICENSE.TXT' for details.\n"
+            "You must read and accept the license prior to use.\n");
 
 #endif
 
