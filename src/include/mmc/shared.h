@@ -25,7 +25,7 @@
 #undef word
 
 
-typedef struct _MMC_COMBO16
+typedef union _MMC_COMBO16
 {
     struct
     {

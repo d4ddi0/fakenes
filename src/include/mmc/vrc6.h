@@ -5,9 +5,9 @@
 /* This mapper is fully supported. */
 
 
-/* Mapper #26 is also Konami VRC6. */
+/* Mapper #26 (Konami VRC6V). */
 
-/* See vrc6b_reset for the difference. */
+/* This mapper is fully supported. */
 
 
 #include "mmc/shared.h"
@@ -26,14 +26,14 @@ static const MMC mmc_vrc6 =
 };
 
 
-static void vrc6b_reset (void);
+static int vrc6v_init (void);
 
 
-static const MMC mmc_vrc6b =
+static const MMC mmc_vrc6v =
 {
-    26, "Konami VRC6 + ExSound",
+    26, "Konami VRC6V + ExSound",
 
-    vrc6_init, vrc6b_reset
+    vrc6v_init, vrc6_reset
 };
 
 
@@ -52,7 +52,7 @@ static char vrc6_enable_irqs = FALSE;
 
 static int vrc6_irq_counter = 0;
 
-static MMC_COMBO16 vrc6_irq_latch;
+static int vrc6_irq_latch = 0;
 
 
 static int vrc6_irq_tick (int line)
@@ -61,7 +61,7 @@ static int vrc6_irq_tick (int line)
     {
         if (vrc6_irq_counter == 0xff)
         {
-            vrc6_irq_counter = vrc6_irq_latch.word;
+            vrc6_irq_counter = vrc6_irq_latch;
 
 
             return (TRUE);
@@ -194,9 +194,9 @@ static void vrc6_write (UINT16 address, UINT8 value)
 
             if (minor == 0x0000)
             {
-                /* Both bytes of IRQ counter. (?) */
+                /* Both (?) bytes of IRQ counter. */
 
-                vrc6_irq_latch.word = value;
+                vrc6_irq_latch = value;
             }
             else if (minor == 0x0001)
             {
@@ -207,7 +207,7 @@ static void vrc6_write (UINT16 address, UINT8 value)
 
                 if (vrc6_enable_irqs & 0x02)
                 {
-                    vrc6_irq_counter = vrc6_irq_latch.word;
+                    vrc6_irq_counter = vrc6_irq_latch;
                 }
             }
             else if (minor == 0x0002)
@@ -252,24 +252,8 @@ static void vrc6_reset (void)
 }
 
 
-static void vrc6b_reset (void)
+static int vrc6_base_init (void)
 {
-    /* Pins A0 and A1 are swapped in mapper #26. */
-
-    vrc6_swap_address_pins = TRUE;
-
-
-    vrc6_reset ();
-}
-
-
-static int vrc6_init (void)
-{
-    /* Disable address pin swap. */
-
-    vrc6_swap_address_pins = FALSE;
-
-
     /* Start out with VRAM. */
 
     ppu_set_ram_8k_pattern_vram ();
@@ -296,4 +280,26 @@ static int vrc6_init (void)
 
 
     return (0);
+}
+
+
+static int vrc6_init (void)
+{
+    /* Disable address pin swap. */
+
+    vrc6_swap_address_pins = FALSE;
+
+
+    return (vrc6_base_init ());
+}
+
+
+static int vrc6v_init (void)
+{
+    /* Pins A0 and A1 are swapped in VRC6V. */
+
+    vrc6_swap_address_pins = TRUE;
+
+
+    return (vrc6_base_init ());
 }
