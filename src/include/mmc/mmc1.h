@@ -230,7 +230,7 @@ static void mmc1_write (UINT16 address, UINT8 value)
             if (mmc1_register[0] & 0x10)
             /* 4k VROM mapping? */
             {
-                int mmc1_bank_number = mmc1_register[1] & mmc1_chr_mask;
+                int mmc1_bank_number = mmc1_register[2] & mmc1_chr_mask;
 
                 if (mmc1_bank_number > ROM_CHR_ROM_PAGES * 2)
                 {
