@@ -231,7 +231,7 @@ int mmc_init (void)
 
     for (index = 0x8000; index < (64 << 10); index += (8 << 10))
     {
-        cpu_set_write_address_8k (index, dummy_read);
+        cpu_set_write_address_8k (index, dummy_write);
     }
 
 
