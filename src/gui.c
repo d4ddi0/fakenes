@@ -31,8 +31,92 @@ int gui_is_active = FALSE;
 static int want_exit = FALSE;
 
 
+static UINT8 message_buffer [256];
+
+static int redraw_flag = FALSE;
+
+
+static void reset_timer (void)
+{
+    remove_int (reset_timer);
+
+
+    message_buffer [0] = NULL;
+
+    redraw_flag = TRUE;
+};
+
+END_OF_STATIC_FUNCTION (reset_timer);
+
+
+void gui_message (int color, CONST UINT8 * message, ...)
+{
+    va_list format;
+
+
+    reset_timer ();
+
+
+    main_dialog [1].fg = color;
+
+
+    main_dialog [1].x = 16;
+
+    main_dialog [1].y = ((SCREEN_H - 16) - text_height (font));
+
+
+    va_start (format, message);
+
+    vsprintf (message_buffer, message, format);
+
+    va_end (format);
+
+
+    redraw_flag = TRUE;
+
+
+    install_int (reset_timer, 2000);
+}
+
+
+static int gui_redraw_callback (int msg, DIALOG * d, int c)
+{
+    /* HACK HACK HACK HACK */
+
+    if (redraw_flag)
+    {
+        redraw_flag = FALSE;
+
+
+        clear (screen);
+
+        video_blit ();
+
+
+        return (D_REDRAW);
+    }
+    else
+    {
+        return (D_O_K);
+    }
+}
+
+
 int show_gui (void)
 {
+    LOCK_VARIABLE (message_buffer);
+
+    LOCK_VARIABLE (redraw_flag);
+
+
+    LOCK_FUNCTION (reset_timer);
+
+
+    main_dialog [1].dp = screen;
+
+    main_dialog [1].dp2 = message_buffer;
+
+
     gui_bg_color = 3;
 
     gui_fg_color = 33;
@@ -42,6 +126,9 @@ int show_gui (void)
 
 
     gui_is_active = TRUE;
+
+
+    gui_message (33, "Emulation suspended.");
 
 
     unscare_mouse ();
@@ -128,8 +215,16 @@ static int file_menu_snapshot (void)
     
                 save_bitmap (filename,
                     video_buffer, DATA_NES_PALETTE);
+
+
+                gui_message (33,
+                    "Snapshot saved to %s.", filename);
             }
         }
+    }
+    else
+    {
+        gui_message (6, "No ROM loaded!");
     }
 
 

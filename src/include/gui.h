@@ -20,7 +20,13 @@ extern "C" {
 #endif
 
 
+#include "misc.h"
+
+
 int show_gui (void);
+
+
+void gui_message (int, CONST UINT8 *, ...);
 
 
 int gui_is_active;

@@ -78,10 +78,15 @@ static MENU menu_bar [6] =
 };
 
 
-static DIALOG main_dialog [2] =
+static int gui_redraw_callback (int msg, DIALOG * d, int c);
+
+
+static DIALOG main_dialog [4] =
 {
-    { gui_menu_object, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, menu_bar, NULL, NULL },
-    {            NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,     NULL, NULL, NULL }
+    {         gui_menu_object, 4, 4, 0, 0,  0, 0, 0, 0, 0, 0, menu_bar, NULL, NULL },
+    { gui_raised_label_object, 0, 0, 0, 0, 33, 0, 0, 0, 0, 0,     NULL,   "", NULL },
+    {     gui_redraw_callback, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,     NULL, NULL, NULL },
+    {                    NULL, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0,     NULL, NULL, NULL }
 };
 
 
