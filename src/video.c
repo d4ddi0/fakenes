@@ -159,6 +159,8 @@ static RGB * last_palette = NIL;
 
 #include "blit/s2xscl.h"
 
+#include "blit/u2xscl.h"
+
 
 int video_init (void)
 {
@@ -476,7 +478,7 @@ static INLINE int select_blitter (void)
 {
     if ((SCREEN_W >= 512) && (SCREEN_H >= 480))
     {
-        return (VIDEO_BLITTER_SUPER_2XSCL);
+        return (VIDEO_BLITTER_ULTRA_2XSCL);
     }
     else
     {
@@ -516,6 +518,8 @@ static INLINE void color_deemphasis_overlay (void)
         case VIDEO_BLITTER_SUPER_2XSOE:
 
         case VIDEO_BLITTER_SUPER_2XSCL:
+
+        case VIDEO_BLITTER_ULTRA_2XSCL:
 
             width = 512;
 
@@ -723,6 +727,14 @@ void video_blit (BITMAP * bitmap)
 
 
             break;
+
+
+        case VIDEO_BLITTER_ULTRA_2XSCL:
+
+            blit_ultra_2xscl (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
+
+
+            break;
     }
 
 
@@ -776,29 +788,12 @@ void video_blit (BITMAP * bitmap)
 }
 
 
-static INLINE int fix (int value, int base, int limit)
-{
-    if (value < base)
-    {
-        value = base;
-    }
-
-
-    if (value > limit)
-    {
-        value = limit;
-    }
-
-
-    return (value);
-}
-
-
 void video_zoom (int x_factor, int y_factor)
 {
     if (((blitter_type == VIDEO_BLITTER_2XSOE) || (blitter_type == VIDEO_BLITTER_SUPER_2XSOE)) ||
         ((blitter_type == VIDEO_BLITTER_2XSCL) || (blitter_type == VIDEO_BLITTER_SUPER_2XSCL)) ||
-         ((blitter_type == VIDEO_BLITTER_INTERPOLATED_2X) || (blitter_type == VIDEO_BLITTER_INTERPOLATED_3X)))
+        (blitter_type == VIDEO_BLITTER_ULTRA_2XSCL) ||
+        ((blitter_type == VIDEO_BLITTER_INTERPOLATED_2X) || (blitter_type == VIDEO_BLITTER_INTERPOLATED_3X)))
     {
         return;
     }
@@ -1302,6 +1297,8 @@ void video_set_blitter (int blitter)
         case VIDEO_BLITTER_SUPER_2XSOE:
 
         case VIDEO_BLITTER_SUPER_2XSCL:
+
+        case VIDEO_BLITTER_ULTRA_2XSCL:
 
             if (! ((SCREEN_W < 512) || (SCREEN_H < 480)))
             {

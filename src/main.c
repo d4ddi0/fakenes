@@ -291,24 +291,6 @@ void resume_throttling (void)
 }
 
 
-static INLINE int fix (int value, int base, int limit)
-{
-    if (value < base)
-    {
-        value = base;
-    }
-
-
-    if (value > limit)
-    {
-        value = limit;
-    }
-
-
-    return (value);
-}
-
-
 int main (int argc, char * argv [])
 {
     int result;

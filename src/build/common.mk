@@ -230,7 +230,8 @@ ${OBJECT_PATH}/video${OBJEXT}: \
     ${INCLUDE_PATH}/blit/interp2x.h \
     ${INCLUDE_PATH}/blit/interp3x.h \
     ${INCLUDE_PATH}/blit/s2xsoe.h \
-    ${INCLUDE_PATH}/blit/s2xscl.h
+    ${INCLUDE_PATH}/blit/s2xscl.h \
+    ${INCLUDE_PATH}/blit/u2xscl.h
 
 ${OBJECT_PATH}/unzip${OBJEXT}: \
     ${SOURCE_PATH}/unzip.c \

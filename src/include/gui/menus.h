@@ -844,6 +844,8 @@ static int options_video_blitter_menu_super_2xsoe (void);
 
 static int options_video_blitter_menu_super_2xscl (void);
 
+static int options_video_blitter_menu_ultra_2xscl (void);
+
 
 static MENU options_video_blitter_menu [] =
 {
@@ -864,6 +866,8 @@ static MENU options_video_blitter_menu [] =
     {     "&7: Super 2xSOE",     options_video_blitter_menu_super_2xsoe, NIL, 0, NIL },
     {                    "",                                        NIL, NIL, 0, NIL },
     {     "&8: Super 2xSCL",     options_video_blitter_menu_super_2xscl, NIL, 0, NIL },
+    {                    "",                                        NIL, NIL, 0, NIL },
+    {     "&9: Ultra 2xSCL",     options_video_blitter_menu_ultra_2xscl, NIL, 0, NIL },
     {                   NIL,                                        NIL, NIL, 0, NIL }
 };
 

@@ -870,6 +870,8 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_video_blitter_menu, 16, (video_get_blitter () == VIDEO_BLITTER_SUPER_2XSCL));
 
+    TOGGLE_MENU (options_video_blitter_menu, 18, (video_get_blitter () == VIDEO_BLITTER_ULTRA_2XSCL));
+
 
     TOGGLE_MENU (options_video_filters_menu, 0, (video_get_filter_list () & VIDEO_FILTER_SCANLINES_LOW));
 
@@ -3763,6 +3765,28 @@ static int options_video_blitter_menu_super_2xscl (void)
 
 
     gui_message (GUI_TEXT_COLOR, "Video blitter set to super 2xSCL engine.");
+
+
+    return (D_REDRAW);
+}
+
+
+static int options_video_blitter_menu_ultra_2xscl (void)
+{
+    video_set_blitter (VIDEO_BLITTER_ULTRA_2XSCL);
+
+    update_menus ();
+
+
+    clear (screen);
+
+    video_blit (screen);
+
+
+    draw_background ();
+
+
+    gui_message (GUI_TEXT_COLOR, "Video blitter set to ultra 2xSCL engine.");
 
 
     return (D_REDRAW);

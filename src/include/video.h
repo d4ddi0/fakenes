@@ -62,7 +62,10 @@ enum
 
     VIDEO_BLITTER_SUPER_2XSOE,
 
-    VIDEO_BLITTER_SUPER_2XSCL
+    VIDEO_BLITTER_SUPER_2XSCL,
+
+
+    VIDEO_BLITTER_ULTRA_2XSCL
 };
 
 
@@ -139,6 +142,24 @@ void video_set_driver (int);
 
 
 void video_message (const UINT8 *, ...);
+
+
+static INLINE int fix (int value, int base, int limit)
+{
+    if (value < base)
+    {
+        value = base;
+    }
+
+
+    if (value > limit)
+    {
+        value = limit;
+    }
+
+
+    return (value);
+}
 
 
 #endif /* ! VIDEO_H_INCLUDED */
