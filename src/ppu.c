@@ -188,7 +188,7 @@ UINT8 * ppu_get_chr_rom_pages (ROM *rom)
            CHR ROM page count, and use that to compute the mask */
         for (i = 0; (num_pages >> (i + 1)) > 0; i++);
 
-        rom -> chr_rom_page_overflow_premask = ((1 << i + 1) * 8) - 1;
+        rom -> chr_rom_page_overflow_premask = ((1 << (i + 1)) * 8) - 1;
         rom -> chr_rom_page_overflow_mask = ((1 << i) * 8) - 1;
     }
 
