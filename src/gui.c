@@ -357,7 +357,7 @@ void gui_handle_keypress (int index)
                 machine_state_index = ((index >> 8) - KEY_0);
     
     
-                gui_message (gui_fg_color, "Current machine state slot set to %d.", machine_state_index);
+                gui_message (gui_fg_color, "Machine state slot set to %d.", machine_state_index);
             }
 
 
@@ -905,7 +905,7 @@ int show_gui (int first_run)
     {
         case 8:
 
-            gui_message (gui_fg_color, "GUI initialized (%dx%dx256, %s).", SCREEN_W, SCREEN_H, gfx_driver -> name);
+            gui_message (gui_fg_color, "%dx%d 8-bit, %s.", SCREEN_W, SCREEN_H, gfx_driver -> name);
 
 
             break;
@@ -913,7 +913,7 @@ int show_gui (int first_run)
 
         case 15:
 
-            gui_message (gui_fg_color, "GUI initialized (%dx%dx32K, %s).", SCREEN_W, SCREEN_H, gfx_driver -> name);
+            gui_message (gui_fg_color, "%dx%d 15-bit, %s.", SCREEN_W, SCREEN_H, gfx_driver -> name);
 
 
             break;
@@ -921,7 +921,7 @@ int show_gui (int first_run)
 
         case 16:
 
-            gui_message (gui_fg_color, "GUI initialized (%dx%dx64K, %s).", SCREEN_W, SCREEN_H, gfx_driver -> name);
+            gui_message (gui_fg_color, "%dx%d 16-bit, %s.", SCREEN_W, SCREEN_H, gfx_driver -> name);
 
 
             break;
@@ -929,7 +929,7 @@ int show_gui (int first_run)
 
         case 32:
 
-            gui_message (gui_fg_color, "GUI initialized (%dx%dx16M, %s).", SCREEN_W, SCREEN_H, gfx_driver -> name);
+            gui_message (gui_fg_color, "%dx%d 32-bit, %s.", SCREEN_W, SCREEN_H, gfx_driver -> name);
 
 
             break;
@@ -1051,7 +1051,7 @@ static int netplay_handler (int message, DIALOG * dialog, int key)
         update_menus ();                        \
                                                 \
                                                 \
-        gui_message (gui_fg_color, "Current replay"     \
+        gui_message (gui_fg_color, "Replay"     \
             " slot set to %d.", replay_index);          \
                                                 \
                                                 \
@@ -1792,7 +1792,7 @@ static int main_menu_reset (void)
         update_menus ();                        \
                                                 \
                                                 \
-        gui_message (gui_fg_color, "Current machine"            \
+        gui_message (gui_fg_color, "Machine"            \
             " state slot set to %d.", machine_state_index);     \
                                                 \
                                                 \
@@ -2044,7 +2044,7 @@ static int main_state_menu_save (void)
 
         if (! input_autosave_triggered)
         {
-            gui_message (gui_fg_color, "Machine state saved in state slot %d.", machine_state_index);
+            gui_message (gui_fg_color, "Machine state saved in slot %d.", machine_state_index);
         }
 
 
@@ -2199,7 +2199,7 @@ static int main_state_menu_restore (void)
         pack_fclose (file);
     
     
-        gui_message (gui_fg_color, "Machine state loaded from state slot %d.", machine_state_index);
+        gui_message (gui_fg_color, "Machine state loaded from slot %d.", machine_state_index);
 
 
         return (D_CLOSE);
@@ -2221,7 +2221,7 @@ static int main_state_autosave_menu_disabled (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Machine state autosave disabled.");
+    gui_message (gui_fg_color, "Autosave disabled.");
 
 
     return (D_O_K);
@@ -2235,7 +2235,7 @@ static int main_state_autosave_menu_10_seconds (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Machine state autosave set to 10 seconds.");
+    gui_message (gui_fg_color, "Autosave interval set to 10 seconds.");
 
 
     return (D_O_K);
@@ -2249,7 +2249,7 @@ static int main_state_autosave_menu_30_seconds (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Machine state autosave set to 30 seconds.");
+    gui_message (gui_fg_color, "Autosave interval set to 30 seconds.");
 
 
     return (D_O_K);
@@ -2263,7 +2263,7 @@ static int main_state_autosave_menu_60_seconds (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Machine state autosave set to 60 seconds.");
+    gui_message (gui_fg_color, "Autosave interval set to 60 seconds.");
 
 
     return (D_O_K);
@@ -2443,7 +2443,14 @@ static int options_audio_menu_enabled (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Toggled audio rendering and output.");
+    if (! audio_enable_output)
+    {
+        gui_message (gui_fg_color, "Audio rendering and output disabled.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Audio rendering and output enabled.");
+    }
 
 
     return (D_O_K);
@@ -2509,7 +2516,7 @@ static int options_audio_mixing_channels_menu_mono (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Audio mixing channels set to mono.");
+    gui_message (gui_fg_color, "Audio channels set to mono.");
 
 
     return (D_O_K);
@@ -2539,7 +2546,7 @@ static int options_audio_mixing_channels_menu_pseudo_stereo_mode_1 (void)
     update_menus ();
     
 
-    gui_message (gui_fg_color, "Audio mixing channels set to pseudo stereo (mode 1).");
+    gui_message (gui_fg_color, "Audio channels set to pseudo stereo (mode 1).");
 
 
     return (D_O_K);
@@ -2569,7 +2576,7 @@ static int options_audio_mixing_channels_menu_pseudo_stereo_mode_2 (void)
     update_menus ();
     
 
-    gui_message (gui_fg_color, "Audio mixing channels set to pseudo stereo (mode 2).");
+    gui_message (gui_fg_color, "Audio channels set to pseudo stereo (mode 2).");
 
 
     return (D_O_K);
@@ -2599,7 +2606,7 @@ static int options_audio_mixing_channels_menu_pseudo_stereo_mode_3 (void)
     update_menus ();
     
 
-    gui_message (gui_fg_color, "Audio mixing channels set to pseudo stereo (mode 3).");
+    gui_message (gui_fg_color, "Audio channels set to pseudo stereo (mode 3).");
 
 
     return (D_O_K);
@@ -2622,7 +2629,7 @@ static int options_audio_mixing_quality_menu_low_8_bit (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Audio mixing quality set to low.");
+    gui_message (gui_fg_color, "Audio mixing quality set to low (8-bit).");
 
 
     return (D_O_K);
@@ -2645,7 +2652,7 @@ static int options_audio_mixing_quality_menu_high_16_bit (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Audio mixing quality set to high.");
+    gui_message (gui_fg_color, "Audio mixing quality set to high (16-bit).");
 
 
     return (D_O_K);
@@ -2660,7 +2667,14 @@ static int options_audio_mixing_quality_menu_dithering (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Toggled audio random noise dithering.");
+    if (! papu_dithering)
+    {
+        gui_message (gui_fg_color, "Audio random noise dithering disabled.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Audio random noise dithering enabled.");
+    }
 
 
     return (D_O_K);
@@ -2675,7 +2689,14 @@ static int options_audio_mixing_advanced_menu_reverse_stereo (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Toggled audio mixing reverse stereo order.");
+    if (! papu_swap_channels)
+    {
+        gui_message (gui_fg_color, "Audio reverse stereo disabled.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Audio reverse stereo enabled.");
+    }
 
 
     return (D_O_K);
@@ -2692,7 +2713,14 @@ static int options_audio_effects_menu_linear_echo (void)
     papu_reinit ();
 
 
-    gui_message (gui_fg_color, "Toggled linear echo audio effect.");
+    if (! papu_linear_echo)
+    {
+        gui_message (gui_fg_color, "Audio linear echo effect disabled.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Audio linear echo effect enabled.");
+    }
 
 
     return (D_O_K);
@@ -2712,11 +2740,11 @@ static int options_audio_effects_menu_spatial_stereo_mode_1 (void)
 
     if (! papu_spatial_stereo)
     {
-        gui_message (gui_fg_color, "Disabled spatial stereo audio effect.");
+        gui_message (gui_fg_color, "Audio spatial stereo effect disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Enabled spatial stereo audio effect (mode 1).");
+        gui_message (gui_fg_color, "Audio spatial stereo effect enabled (mode 1).");
     }
 
 
@@ -2737,11 +2765,11 @@ static int options_audio_effects_menu_spatial_stereo_mode_2 (void)
 
     if (! papu_spatial_stereo)
     {
-        gui_message (gui_fg_color, "Disabled spatial stereo audio effect.");
+        gui_message (gui_fg_color, "Audio spatial stereo effect disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Enabled spatial stereo audio effect (mode 2).");
+        gui_message (gui_fg_color, "Audio spatial stereo effect enabled (mode 2).");
     }
 
 
@@ -2762,11 +2790,11 @@ static int options_audio_effects_menu_spatial_stereo_mode_3 (void)
 
     if (! papu_spatial_stereo)
     {
-        gui_message (gui_fg_color, "Disabled spatial stereo audio effect.");
+        gui_message (gui_fg_color, "Audio spatial stereo effect disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Enabled spatial stereo audio effect (mode 3).");
+        gui_message (gui_fg_color, "Audio spatial stereo effect enabled (mode 3).");
     }
 
 
@@ -2800,7 +2828,14 @@ static int options_audio_filters_menu_low_pass_mode_1 (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Toggled low pass audio filter (mode 1).");
+    if (! (filters & PAPU_FILTER_LOW_PASS_MODE_1))
+    {
+        gui_message (gui_fg_color, "Low pass audio filter disabled.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Low pass audio filter enabled (mode 1).");
+    }
 
 
     return (D_O_K);
@@ -2833,7 +2868,14 @@ static int options_audio_filters_menu_low_pass_mode_2 (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Toggled low pass audio filter (mode 2).");
+    if (! (filters & PAPU_FILTER_LOW_PASS_MODE_2))
+    {
+        gui_message (gui_fg_color, "Low pass audio filter disabled.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Low pass audio filter enabled (mode 2).");
+    }
 
 
     return (D_O_K);
@@ -2866,7 +2908,14 @@ static int options_audio_filters_menu_low_pass_mode_3 (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Toggled low pass audio filter (mode 3).");
+    if (! (filters & PAPU_FILTER_LOW_PASS_MODE_3))
+    {
+        gui_message (gui_fg_color, "Low pass audio filter disabled.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Low pass audio filter enabled (mode 3).");
+    }
 
 
     return (D_O_K);
@@ -2911,7 +2960,14 @@ static int options_audio_channels_menu_rectangle_wave_a (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Toggled mixing of square wave channel A.");
+    if (! papu_enable_square_1)
+    {
+        gui_message (gui_fg_color, "Audio rectangle wave channel A disabled.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Audio rectangle wave channel A enabled.");
+    }
 
 
     return (D_O_K);
@@ -2928,7 +2984,14 @@ static int options_audio_channels_menu_rectangle_wave_b (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Toggled mixing of square wave channel B.");
+    if (! papu_enable_square_2)
+    {
+        gui_message (gui_fg_color, "Audio rectangle wave channel B disabled.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Audio rectangle wave channel B enabled.");
+    }
 
 
     return (D_O_K);
@@ -2945,7 +3008,14 @@ static int options_audio_channels_menu_triangle_wave (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Toggled mixing of triangle channel.");
+    if (! papu_enable_triangle)
+    {
+        gui_message (gui_fg_color, "Audio triangle wave channel disabled.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Audio triangle wave channel enabled.");
+    }
 
 
     return (D_O_K);
@@ -2962,7 +3032,14 @@ static int options_audio_channels_menu_white_noise (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Toggled mixing of noise channel.");
+    if (! papu_enable_noise)
+    {
+        gui_message (gui_fg_color, "Audio white noise channel disabled.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Audio white noise channel enabled.");
+    }
 
 
     return (D_O_K);
@@ -2979,7 +3056,14 @@ static int options_audio_channels_menu_digital (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Toggled mixing of delta modulation channel.");
+    if (! papu_enable_dmc)
+    {
+        gui_message (gui_fg_color, "Audio digital channel disabled.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Audio digital channel enabled.");
+    }
 
 
     return (D_O_K);
@@ -2996,7 +3080,14 @@ static int options_audio_channels_menu_extended (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Toggled mixing of external channels.");
+    if (! papu_enable_exsound)
+    {
+        gui_message (gui_fg_color, "Audio extended channels disabled.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Audio extended channels enabled.");
+    }
                                               
 
     return (D_O_K);
@@ -3013,7 +3104,14 @@ static int options_audio_advanced_menu_ideal_triangle (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Toggled emulation of ideal triangle.");
+    if (! papu_ideal_triangle)
+    {
+        gui_message (gui_fg_color, "Audio ideal triangle emulation disabled.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Audio ideal triangle emulation enabled.");
+    }
 
 
     return (D_O_K);
@@ -3047,7 +3145,7 @@ static int options_audio_record_menu_stop (void)
     DISABLE_MENU (options_audio_record_menu, 2);
 
 
-    gui_message (gui_fg_color, "Audio recording session halted.");
+    gui_message (gui_fg_color, "Audio recording session stopped.");
 
 
     return (D_O_K);
@@ -3321,14 +3419,7 @@ static int options_video_blitter_menu_stretched (void)
     draw_logo ();
 
 
-    if (video_get_color_depth () != 8)
-    {
-        gui_message (gui_fg_color, "Video blitter set to stretched (buffered!).");
-    }
-    else
-    {
-        gui_message (gui_fg_color, "Video blitter set to stretched.");
-    }
+    gui_message (gui_fg_color, "Video blitter set to stretched.");
 
 
     return (D_REDRAW);
@@ -3501,7 +3592,14 @@ static int options_video_filters_menu_scanlines_25_percent (void)
     draw_logo ();
 
 
-    gui_message (gui_fg_color, "Toggled scanlines video filter (25%% opacity).");
+    if (! (filters & VIDEO_FILTER_SCANLINES_LOW))
+    {
+        gui_message (gui_fg_color, "Scanlines video filter disabled.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Scanlines video filter enabled (25%%).");
+    }
 
 
     return (D_REDRAW);
@@ -3542,7 +3640,14 @@ static int options_video_filters_menu_scanlines_50_percent (void)
     draw_logo ();
 
 
-    gui_message (gui_fg_color, "Toggled scanlines video filter (50%% opacity).");
+    if (! (filters & VIDEO_FILTER_SCANLINES_MEDIUM))
+    {
+        gui_message (gui_fg_color, "Scanlines video filter disabled.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Scanlines video filter enabled (50%%).");
+    }
 
 
     return (D_REDRAW);
@@ -3583,7 +3688,14 @@ static int options_video_filters_menu_scanlines_100_percent (void)
     draw_logo ();
 
 
-    gui_message (gui_fg_color, "Toggled scanlines video filter (100%% opacity).");
+    if (! (filters & VIDEO_FILTER_SCANLINES_HIGH))
+    {
+        gui_message (gui_fg_color, "Scanlines video filter disabled.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Scanlines video filter enabled (100%%%).");
+    }
 
 
     return (D_REDRAW);
@@ -3597,7 +3709,14 @@ static int options_video_menu_vsync (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Toggled vsync synchronization.");
+    if (! video_enable_vsync)
+    {
+        gui_message (gui_fg_color, "VSync disabled.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "VSync enabled.");
+    }
 
 
     return (D_O_K);
@@ -3611,7 +3730,14 @@ static int options_video_layers_menu_sprites_a (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Toggled PPU sprites layer A (priority 1).");
+    if (! ppu_enable_sprite_layer_a)
+    {
+        gui_message (gui_fg_color, "Video sprites layer A disabled.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Video sprites layer A enabled.");
+    }
 
 
     return (D_O_K);
@@ -3625,7 +3751,14 @@ static int options_video_layers_menu_sprites_b (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Toggled PPU sprites layer B (priority 0).");
+    if (! ppu_enable_sprite_layer_b)
+    {
+        gui_message (gui_fg_color, "Video sprites layer B disabled.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Video sprites layer B enabled.");
+    }
 
 
     return (D_O_K);
@@ -3639,7 +3772,14 @@ static int options_video_layers_menu_background (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Toggled PPU background layer.");
+    if (! ppu_enable_background_layer)
+    {
+        gui_message (gui_fg_color, "Video background layer disabled.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Video background layer enabled.");
+    }
 
 
     return (D_O_K);
