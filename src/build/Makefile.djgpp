@@ -90,7 +90,8 @@ papu.o : papu.c include/audio.h include/apu.h include/misc.h \
          include/papu.h include/timing.h
 
 ppu.o : ppu.c include/cpu.h include/input.h include/misc.h include/mmc.h \
-        include/ppu.h include/rom.h include/timing.h include/video.h
+        include/ppu.h include/rom.h include/timing.h include/video.h \
+        include/ppu/tiles.h include/ppu/backgrnd.h include/ppu/sprites.h
 
 rom.o : rom.c include/ppu.h include/rom.h include/misc.h
 
