@@ -48,6 +48,7 @@ All rights reserved.  See 'LICENSE' for details.
 
 static UINT8 * ppu_vram_block_read_address [8];
 static UINT8 * ppu_vram_block_cache_address [8];
+static UINT8 * ppu_vram_block_cache_tag_address [8];
 static UINT8 * ppu_vram_block_write_address [8];
 
 /*
@@ -60,12 +61,14 @@ static UINT32 ppu_vram_block [8];
 
 static INT32 ppu_vram_set_begin [8];
 static INT32 ppu_vram_set_end [8];
+static INT8 ppu_vram_needs_cache_update;
 
 
 static UINT8 ppu_vram_dummy_write [1024];
 
 static UINT8 ppu_pattern_vram [8 * 1024];
 static UINT8 ppu_pattern_vram_cache [8 * 1024 / 2 * 8];
+static UINT8 ppu_pattern_vram_cache_tag [8 * 1024 / 2];
 
 
 static UINT8 ppu_name_table_vram [4 * 1024];
@@ -166,9 +169,11 @@ void ppu_free_chr_rom (ROM *rom)
 {
     if (rom -> chr_rom) free (rom -> chr_rom);
     if (rom -> chr_rom_cache) free (rom -> chr_rom_cache);
+    if (rom -> chr_rom_cache_tag) free (rom -> chr_rom_cache_tag);
 
     rom -> chr_rom = NULL;
     rom -> chr_rom_cache = NULL;
+    rom -> chr_rom_cache_tag = NULL;
 }
 
 
@@ -203,14 +208,18 @@ UINT8 * ppu_get_chr_rom_pages (ROM *rom)
 
     /* 2-bit planar tiles converted to 8-bit chunky */
     rom -> chr_rom_cache = malloc ((num_pages * 0x2000) / 2 * 8);
+    rom -> chr_rom_cache_tag = malloc ((num_pages * 0x2000) / 2);
 
-    if (rom -> chr_rom == 0 || rom -> chr_rom_cache == 0)
+    if (rom -> chr_rom == 0 || rom -> chr_rom_cache == 0 ||
+     rom -> chr_rom_cache_tag == 0)
     {
         if (rom -> chr_rom) free (rom -> chr_rom);
         if (rom -> chr_rom_cache) free (rom -> chr_rom_cache);
+        if (rom -> chr_rom_cache_tag) free (rom -> chr_rom_cache_tag);
 
         rom -> chr_rom = NULL;
         rom -> chr_rom_cache = NULL;
+        rom -> chr_rom_cache_tag = NULL;
     }
 
     return rom -> chr_rom;
@@ -252,6 +261,10 @@ void ppu_cache_chr_rom_pages (void)
                 pixels0_3;
             *(UINT32 *) (&ROM_CHR_ROM_CACHE [((tile * 8 + y) * 8) + 4]) =
                 pixels4_7;
+
+            ROM_CHR_ROM_CACHE_TAG [tile * 8 + y] =
+                ROM_CHR_ROM [tile * 16 + y] |
+                ROM_CHR_ROM [tile * 16 + y + 8];
         }
     }
 }
@@ -286,6 +299,10 @@ void ppu_cache_all_vram (void)
                 pixels0_3;
             *(UINT32 *) (&ppu_pattern_vram_cache [((tile * 8 + y) * 8) + 4]) =
                 pixels4_7;
+
+            ppu_pattern_vram_cache_tag [tile * 8 + y] =
+                ppu_pattern_vram [tile * 16 + y] |
+                ppu_pattern_vram [tile * 16 + y + 8];
         }
     }
 }
@@ -302,6 +319,9 @@ void ppu_set_ram_1k_pattern_vram_block (UINT16 block_address, int vram_block)
 
     ppu_vram_block_cache_address [block_address >> 10] =
         ppu_pattern_vram_cache + ((vram_block << 10) / 2 * 8);
+
+    ppu_vram_block_cache_tag_address [block_address >> 10] =
+        ppu_pattern_vram_cache_tag + ((vram_block << 10) / 2);
 }
 
 
@@ -322,6 +342,9 @@ void ppu_set_ram_1k_pattern_vrom_block (UINT16 block_address, int vrom_block)
 
     ppu_vram_block_cache_address [block_address >> 10] =
         ROM_CHR_ROM_CACHE + ((vrom_block << 10) / 2 * 8);
+
+    ppu_vram_block_cache_tag_address [block_address >> 10] =
+        ROM_CHR_ROM_CACHE_TAG + ((vrom_block << 10) / 2);
 }
 
 
@@ -446,6 +469,10 @@ void recache_vram_set (int vram_block)
                 pixels0_3;
             *(UINT32 *) (&ppu_pattern_vram_cache [((tile * 8 + y) * 8) + 4]) =
                 pixels4_7;
+
+            ppu_pattern_vram_cache_tag [tile * 8 + y] =
+                ppu_pattern_vram [tile * 16 + y] |
+                ppu_pattern_vram [tile * 16 + y + 8];
         }
     }
 }
@@ -457,12 +484,13 @@ void recache_vram_sets (void)
 
     for (i = 0; i < FIRST_VROM_BLOCK; i++)
     {
-        if ((ppu_vram_set_end [i] + 1) > 0)
+        if (ppu_vram_set_end [i] >= 0)
         {
             recache_vram_set (i);
             clear_vram_set (i);
         }
     }
+    ppu_vram_needs_cache_update = FALSE;
 }
 
 
@@ -627,6 +655,7 @@ void ppu_reset (void)
     {
         clear_vram_set (i);
     }
+    ppu_vram_needs_cache_update = FALSE;
 
 
     vram_address = 0;
@@ -741,6 +770,8 @@ void ppu_vram_write(UINT8 value)
     else
     /* pattern tables */
     {
+        int vram_block;
+
         if (mmc_check_latches)
         {
             if ((address & 0xFFF) >= 0xFD0 && (address & 0xFFF) <= 0xFEF)
@@ -749,31 +780,43 @@ void ppu_vram_write(UINT8 value)
             }
         }
 
-        if (ppu_vram_block [address >> 10] < FIRST_VROM_BLOCK)
+        vram_block = ppu_vram_block [address >> 10];
+
+        if (vram_block < FIRST_VROM_BLOCK)
+        /* if block is writable (VRAM) */
         {
-            int vram_block = ppu_vram_block [address >> 10];
-            int this_tile = (address & 0x3FF) / 16;
+            int this_tile;
 
-            if (ppu_vram_set_end [vram_block] != this_tile)
+            if (ppu_vram_block_write_address [address >> 10]
+                [address & 0x3FF] != value)
+            /* VRAM changed, track for cache update */
             {
-                if (ppu_vram_set_end [vram_block] == this_tile - 1)
-                {
-                    ppu_vram_set_end [vram_block] ++;
-                }
-                else
-                {
-                    recache_vram_set (vram_block);
+                ppu_vram_block_write_address [address >> 10]
+                    [address & 0x3FF] = value;
 
-                    ppu_vram_set_end [vram_block] =
-                        ppu_vram_set_begin [vram_block] = this_tile;
+                ppu_vram_needs_cache_update = TRUE;
+
+                this_tile = (address & 0x3FF) / 16;
+
+                if (ppu_vram_set_end [vram_block] != this_tile)
+                {
+                    if (ppu_vram_set_end [vram_block] == this_tile - 1)
+                    {
+                        ppu_vram_set_end [vram_block] ++;
+                    }
+                    else
+                    {
+                        recache_vram_set (vram_block);
+
+                        ppu_vram_set_end [vram_block] =
+                            ppu_vram_set_begin [vram_block] = this_tile;
+                    }
                 }
             }
         }
-            ppu_vram_block_write_address [address >> 10] [address & 0x3FF] = value;
     }
 
     vram_address += address_increment;
-
 
 }
 
@@ -1265,9 +1308,10 @@ static void ppu_render_background (int line)
     /* Draw the background. */
     for (x = 0; x < (256 / 8) + 1; x ++)
     {
-        UINT8 attribute;
-        int tile;
+        UINT8 attribute, cache_tag;
+        int tile_name, tile_address;
         UINT8 *cache_address;
+        int cache_bank, cache_index;
 
         if (!(vram_address & 3))
         /* fetch and shift attribute byte */
@@ -1277,51 +1321,77 @@ static void ppu_render_background (int line)
                 ( (y & 2) * 2);
         }
 
-        tile = name_table_address [vram_address & 0x3FF];
+        tile_name = name_table_address [vram_address & 0x3FF];
+        tile_address = ((tile_name * 16) + background_tileset);
 
-        tile = ((tile * 16) + background_tileset);
-    
-    
         if (mmc_check_latches)
         {
-            if ((tile & 0xFFF) >= 0xFD0 && (tile & 0xFFF) <= 0xFEF)
+            if ((tile_name >= 0xFD) && (tile_name <= 0xFE))
             {
-                mmc_check_latches(tile);
+                mmc_check_latches(tile_address);
             }
         }
+   
+    
+        cache_bank = tile_address >> 10;
+        cache_index = ((tile_address & 0x3FF) / 2) + sub_y;
 
-        cache_address = ppu_vram_block_cache_address [tile >> 10] +
-            ((tile & 0x3FF) / 2 * 8) + sub_y * 8;
+        cache_tag = ppu_vram_block_cache_tag_address [cache_bank]
+            [cache_index];
 
-
-        attribute = attribute_table [attribute_byte & 3];
-
-        if (background_clip_enabled && (x <= 1))
+        if (cache_tag)
+        /* some non-transparent pixels */
         {
-            if (x == 0) sub_x = 8;
-            else /* (x == 1) */ sub_x = x_offset;
-           
+            cache_address = ppu_vram_block_cache_address [cache_bank] +
+                cache_index * 8;
+
+            attribute = attribute_table [attribute_byte & 3];
+
+            if (background_clip_enabled && (x <= 1))
+            {
+                if (x == 0) sub_x = 8;
+                else /* (x == 1) */ sub_x = x_offset;
+            }
+            else
+            {
+                sub_x = 0;
+            }
+
+            if (cache_tag != 0xFF)
+            /* some transparent pixels */
+            {
+                for (; sub_x < 8; sub_x ++)
+                {
+                    UINT8 color = cache_address[sub_x] & attribute;
+
+                    if (color == 0) continue;
+
+                    background_pixels [8 + ((x * 8) + sub_x - x_offset)] = color;
+
+                    color = ppu_background_palette [color];
+
+
+                    PPU_PUTPIXEL (video_buffer,
+                        ((x * 8) + sub_x - x_offset), line, color);
+                }
+            }
+            else
+            /* no transparent pixels */
+            {
+                for (; sub_x < 8; sub_x ++)
+                {
+                    UINT8 color = cache_address[sub_x] & attribute;
+
+                    background_pixels [8 + ((x * 8) + sub_x - x_offset)] = color;
+
+                    color = ppu_background_palette [color];
+
+
+                    PPU_PUTPIXEL (video_buffer,
+                        ((x * 8) + sub_x - x_offset), line, color);
+                }
+            }
         }
-        else
-        {
-            sub_x = 0;
-        }
-
-        for (; sub_x < 8; sub_x ++)
-        {
-            UINT8 color = cache_address[sub_x] & attribute;
-
-            if (color == 0) continue;
-
-            background_pixels [8 + ((x * 8) + sub_x - x_offset)] = color;
-
-            color = ppu_background_palette [color];
-
-
-            PPU_PUTPIXEL (video_buffer,
-                ((x * 8) + sub_x - x_offset), line, color);
-        }
-
 
         ++vram_address;
 
@@ -1373,7 +1443,10 @@ void ppu_render_line (int line)
         memset (background_pixels + 8, 0, 256);
     }
 
-    recache_vram_sets ();
+    if (ppu_vram_needs_cache_update)
+    {
+        recache_vram_sets ();
+    }
 
     if (background_enabled)
     {

@@ -44,6 +44,8 @@ typedef struct _ROM
     UINT8 * prg_rom;       /* PRG-ROM buffer                       */
     UINT8 * chr_rom;       /* CHR-ROM buffer                       */
     UINT8 * chr_rom_cache; /* CHR-ROM tile cache buffer            */
+                           /* CHR-ROM tile cache tag buffer        */
+    UINT8 * chr_rom_cache_tag;
                            /* CHR-ROM bank # wrapping mask         */
     UINT8 chr_rom_page_overflow_mask;
 
@@ -84,6 +86,7 @@ ROM global_rom;
 #define ROM_PRG_ROM         (global_rom.prg_rom)
 #define ROM_CHR_ROM         (global_rom.chr_rom)
 #define ROM_CHR_ROM_CACHE   (global_rom.chr_rom_cache)
+#define ROM_CHR_ROM_CACHE_TAG   (global_rom.chr_rom_cache_tag)
 #define ROM_CHR_ROM_PAGE_OVERFLOW_MASK (global_rom.chr_rom_page_overflow_mask)
 
 
