@@ -18,6 +18,17 @@ else
 	AC_MSG_RESULT(no)
 fi
 
+AC_CHECK_LIB(HawkNL, nlInit)
+
+AC_MSG_CHECKING(whether to enable netplay support)
+
+if test x$HAVE_LIBHAWKNL != xno; then
+    DFLAGS="$DFLAGS -DUSE_HAWKNL"
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
+
 dnl Checks for header files.
 
 dnl Checks for typedefs, structures, and compiler characteristics.

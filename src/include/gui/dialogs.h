@@ -1,9 +1,13 @@
 
 
+static int netplay_handler (int, DIALOG *, int);
+
+
 static DIALOG main_dialog [] =
 {
-    { d_menu_proc, 16, 16, 0, 0, 0, 0, 0, 0, 0, 0, top_menu, NULL, NULL },
-    {        NULL,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0,     NULL, NULL, NULL }
+    { netplay_handler,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0,     NULL, NULL, NULL },
+    {     d_menu_proc, 16, 16, 0, 0, 0, 0, 0, 0, 0, 0, top_menu, NULL, NULL },
+    {            NULL,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0,     NULL, NULL, NULL }
 };
 
 
@@ -13,8 +17,8 @@ static DIALOG netplay_client_connect_dialog [] =
    {     d_button_proc, 136,  4,  16, 12, 0, 0, 0, D_EXIT,            0, 0,   "X",       NULL, NULL },
    {           sl_text,   9, 36,   0,  0, 0, 0, 0,      0,            0, 0,  NULL,  "Server:", NULL },
    { d_shadow_box_proc,  48, 32,  96, 16, 0, 0, 0,      0,            0, 0,  NULL,       NULL, NULL },
-   {       d_edit_proc,  50, 34,  92, 12, 0, 0, 0,      0,            0, 0,  NULL,       NULL, NULL },
-   {     d_button_proc, 112, 56,  32, 16, 0, 0, 0,      0,            0, 0, "&OK",       NULL, NULL },
+   {       d_edit_proc,  50, 36,  92, 12, 0, 0, 0,      0,            0, 0,  NULL,       NULL, NULL },
+   {     d_button_proc, 112, 56,  32, 16, 0, 0, 0, D_EXIT,            0, 0, "&OK",       NULL, NULL },
    {              NULL,   0,  0,   0,  0, 0, 0, 0,      0, SL_FRAME_END, 0,  NULL,       NULL, NULL }
 };
 

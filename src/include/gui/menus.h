@@ -72,10 +72,17 @@ static MENU machine_menu [] =
 };
 
 
+static int netplay_protocol_menu_tcpip (void);
+
+static int netplay_protocol_menu_spx (void);
+
+
 static MENU netplay_protocol_menu [] =
 {
-    { "&TCP/IP", NULL, NULL, (D_DISABLED | D_SELECTED), NULL },
-    {      NULL, NULL, NULL,                         0, NULL }
+    { "&TCP/IP", netplay_protocol_menu_tcpip, NULL, 0, NULL },
+    {        "",                        NULL, NULL, 0, NULL },
+    {    "&SPX",   netplay_protocol_menu_spx, NULL, 0, NULL },
+    {      NULL,                        NULL, NULL, 0, NULL }
 };
 
 
@@ -86,17 +93,16 @@ static int netplay_server_menu_stop (void);
 
 static MENU netplay_server_menu [] =
 {
-    { "&Start...", netplay_server_menu_start, NULL, D_DISABLED, NULL },
-    {          "",                      NULL, NULL,          0, NULL },
-    {     "S&top",  netplay_server_menu_stop, NULL, D_DISABLED, NULL },
-    {        NULL,                      NULL, NULL,          0, NULL }
+    { "&Start", netplay_server_menu_start, NULL,          0, NULL },
+    {       "",                      NULL, NULL,          0, NULL },
+    {  "S&top",  netplay_server_menu_stop, NULL, D_DISABLED, NULL },
+    {     NULL,                      NULL, NULL,          0, NULL }
 };
 
 
 static int netplay_client_menu_connect (void);
 
 static int netplay_client_menu_disconnect (void);
-
 
 
 static MENU netplay_client_menu [] =

@@ -45,6 +45,9 @@ You must read and accept the license prior to use.
 #include "misc.h"
 
 
+#include "netplay.h"
+
+
 #include "timing.h"
 
 
@@ -234,7 +237,7 @@ void gui_spawn_options_video_layers_menu_background (void)
 }
 
 
-void gui_show_dialog (DIALOG * dialog)
+int gui_show_dialog (DIALOG * dialog)
 {
     BITMAP * saved;
 
@@ -277,7 +280,7 @@ void gui_show_dialog (DIALOG * dialog)
 
   again:
 
-    do_dialog (dialog, -1);
+    index = do_dialog (dialog, -1);
 
 
     scare_mouse ();
@@ -300,6 +303,9 @@ void gui_show_dialog (DIALOG * dialog)
 
 
     destroy_bitmap (saved);
+
+
+    return (index);
 }
 
 
@@ -395,6 +401,11 @@ static INLINE void update_menus (void)
 
 
     TOGGLE_MENU (machine_menu, 2, video_display_status);
+
+
+    TOGGLE_MENU (netplay_protocol_menu, 0, (netplay_protocol == NETPLAY_PROTOCOL_TCPIP));
+
+    TOGGLE_MENU (netplay_protocol_menu, 2, (netplay_protocol == NETPLAY_PROTOCOL_SPX));
 
 
     TOGGLE_MENU (options_audio_menu, 0, audio_enable_output);
@@ -571,6 +582,9 @@ int show_gui (int first_run)
 #ifdef ALLEGRO_DOS
 
     DISABLE_MENU (options_video_advanced_menu, 0);
+
+
+    DISABLE_MENU (top_menu, 3);
 #endif
 
 
@@ -618,6 +632,18 @@ int show_gui (int first_run)
 
 
     return (want_exit);
+}
+
+
+static int netplay_handler (int message, DIALOG * dialog, int key)
+{
+    if (netplay_server_active)
+    {
+        netplay_poll_server ();
+    }
+
+
+    return (D_O_K);
 }
 
 
@@ -847,35 +873,169 @@ static int machine_state_menu_restore (void)
 }
 
 
+static int netplay_protocol_menu_tcpip (void)
+{
+    netplay_protocol = NETPLAY_PROTOCOL_TCPIP;
+
+    update_menus ();
+
+
+    gui_message (gui_fg_color, "Netplay protocol set to TCP/IP.");
+
+
+    return (D_O_K);
+}
+
+
+static int netplay_protocol_menu_spx (void)
+{
+    netplay_protocol = NETPLAY_PROTOCOL_SPX;
+
+    update_menus ();
+
+
+    gui_message (gui_fg_color, "Netplay protocol set to SPX.");
+
+
+    return (D_O_K);
+}
+
+
 static int netplay_server_menu_start (void)
 {
-    return (D_O_K);
+    if (netplay_open_server () != 0)
+    {
+        gui_message (error_color, "Failed to start the netplay server!");
+    }
+
+
+    DISABLE_MENU (top_menu, 0);
+    
+    DISABLE_MENU (top_menu, 1);
+
+    DISABLE_MENU (top_menu, 2);
+
+    DISABLE_MENU (top_menu, 4);
+
+
+    DISABLE_MENU (netplay_menu, 0);
+
+    DISABLE_MENU (netplay_menu, 4);
+
+
+    DISABLE_MENU (netplay_server_menu, 0);
+
+
+    ENABLE_MENU (netplay_server_menu, 2);
+
+
+    gui_message (gui_fg_color, "Started NetPlay server, awaiting client.");
+
+
+    return (D_REDRAW);
 }
 
 
 static int netplay_server_menu_stop (void)
 {
-    return (D_O_K);
+    netplay_close_server ();
+
+
+    DISABLE_MENU (netplay_server_menu, 2);
+
+
+    ENABLE_MENU (top_menu, 0);
+    
+    ENABLE_MENU (top_menu, 1);
+
+    ENABLE_MENU (top_menu, 2);
+
+    ENABLE_MENU (top_menu, 4);
+
+
+    ENABLE_MENU (netplay_menu, 0);
+
+    ENABLE_MENU (netplay_menu, 4);
+
+
+    ENABLE_MENU (netplay_server_menu, 0);
+
+
+    gui_message (gui_fg_color, "Stopped NetPlay server.");
+
+
+    return (D_REDRAW);
 }
 
 
 static int netplay_client_menu_connect (void)
 {
-    UINT8 buffer [16];
+    if (netplay_protocol == NETPLAY_PROTOCOL_TCPIP)
+    {
+        UINT8 buffer [16];
+    
+    
+        memset (buffer, NULL, sizeof (buffer));
 
 
-    memset (buffer, NULL, sizeof (buffer));
+        netplay_client_connect_dialog [4].d1 = (sizeof (buffer) - 1);
+    
+        netplay_client_connect_dialog [4].dp = buffer;
+    
+    
+        strcat (buffer, get_config_string ("netplay", "ip_address", "0.0.0.0"));
+    
+    
+        if (gui_show_dialog (netplay_client_connect_dialog) != 5)
+        {
+            return (D_O_K);
+        }
 
 
-    netplay_client_connect_dialog [4].d1 = (sizeof (buffer) - 1);
-
-    netplay_client_connect_dialog [4].dp = buffer;
-
-
-    gui_show_dialog (netplay_client_connect_dialog);
+        if (netplay_open_client (buffer) != 0)
+        {
+            gui_message (error_color, "Failed to connect to the server!");
 
 
-    alert ("- Error -", "", "Could not connect to the specified address.", "&OK", NULL, 0, 0);
+            return (D_O_K);
+        }
+
+
+        set_config_string ("netplay", "ip_address", buffer);
+    }
+    else
+    {
+        if (netplay_open_client (NULL) != 0)
+        {
+            gui_message (error_color, "Failed to connect to the server!");
+
+
+            return (D_O_K);
+        }
+    }
+
+
+    DISABLE_MENU (top_menu, 0);
+    
+    DISABLE_MENU (top_menu, 1);
+
+    DISABLE_MENU (top_menu, 2);
+
+    DISABLE_MENU (top_menu, 4);
+
+
+    DISABLE_MENU (netplay_menu, 0);
+
+    DISABLE_MENU (netplay_menu, 2);
+
+
+    DISABLE_MENU (netplay_client_menu, 0);
+
+
+    ENABLE_MENU (netplay_client_menu, 2);
+
+
+    gui_message (gui_fg_color, "NetPlay client connected to the server.");
 
 
     return (D_O_K);
@@ -884,6 +1044,32 @@ static int netplay_client_menu_connect (void)
 
 static int netplay_client_menu_disconnect (void)
 {
+    netplay_close_client ();
+
+
+    DISABLE_MENU (netplay_client_menu, 2);
+
+
+    ENABLE_MENU (top_menu, 0);
+    
+    ENABLE_MENU (top_menu, 1);
+
+    ENABLE_MENU (top_menu, 2);
+
+    ENABLE_MENU (top_menu, 4);
+
+
+    ENABLE_MENU (netplay_menu, 0);
+
+    ENABLE_MENU (netplay_menu, 2);
+
+
+    ENABLE_MENU (netplay_client_menu, 0);
+
+
+    gui_message (gui_fg_color, "NetPlay client disconnected from the server.");
+
+
     return (D_O_K);
 }
 

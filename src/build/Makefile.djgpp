@@ -31,7 +31,7 @@ LIBRARIES = -lalleg -lz
 
 
 OBJECTS = apu.o audio.o core.o cpu.o gui.o input.o papu.o ppu.o rom.o \
-          main.o mmc.o video.o support/unzip.o
+          main.o mmc.o netplay.o video.o support/unzip.o
 
 
 ifdef DEBUG

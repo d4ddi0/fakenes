@@ -10,14 +10,13 @@ IFLAGS = -Iinclude -Isupport
 ifdef DEBUG
     OFLAGS = -O0 -ggdb3
 
-    DFLAGS = -DDEBUG -DUSE_ZLIB -DLSB_FIRST
+    DFLAGS = -DDEBUG -DUSE_ZLIB -DLSB_FIRST -DUSE_HAWKNL
 else
     OFLAGS = -march=i486 -mcpu=pentium -O3 -fomit-frame-pointer -fno-rtti \
-    -fno-exceptions -funroll-loops -finline-functions -ffast-math \
-    -fforce-addr -fforce-mem -fstrength-reduce -fthread-jumps \
-    -fexpensive-optimizations -s
+    -fno-exceptions -funroll-loops -ffast-math -fforce-addr -fforce-mem \
+    -fstrength-reduce -fthread-jumps -fexpensive-optimizations -s
 
-    DFLAGS = -DUSE_ZLIB -DLSB_FIRST
+    DFLAGS = -DUSE_ZLIB -DLSB_FIRST -DUSE_HAWKNL
 endif
 
 WFLAGS = -Wall -Wno-unused
@@ -26,11 +25,11 @@ WFLAGS = -Wall -Wno-unused
 CFLAGS = ${IFLAGS} ${OFLAGS} ${WFLAGS} ${DFLAGS}
 
 
-LIBRARIES = support/resource.o -lalleg -lz
+LIBRARIES = support/resource.o -lalleg -lHawkNL -lz
 
 
 OBJECTS = apu.o audio.o core.o cpu.o gui.o input.o papu.o ppu.o rom.o \
-          main.o mmc.o video.o support/unzip.o
+          main.o mmc.o netplay.o video.o support/unzip.o
 
 
 ifdef DEBUG

@@ -31,6 +31,8 @@ mmc.o :  mmc.c include/cpu.h include/gui.h include/misc.h include/mmc.h \
          include/mmc/mmc3.h include/mmc/mmc5.h include/mmc/nina.h \
          include/mmc/sunsoft4.h include/mmc/unrom.h include/mmc/vrc6.h
 
+netplay.o : netplay.c include/misc.h include/netplay.h
+
 papu.o : papu.c include/audio.h include/apu.h include/misc.h \
          include/papu.h include/timing.h
 

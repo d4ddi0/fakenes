@@ -71,6 +71,9 @@ extern int errno;
 #include "misc.h"
 
 
+#include "netplay.h"
+
+
 #include "timing.h"
 
 
@@ -623,6 +626,9 @@ int main (int argc, char * argv [])
     papu_reset ();
 
 
+    netplay_init ();
+
+
     result = machine_init ();
 
     if (result != 0)
@@ -960,6 +966,9 @@ int main (int argc, char * argv [])
     video_exit ();
 
     ppu_exit ();
+
+
+    netplay_exit ();
 
 
     if (rom_is_loaded)
