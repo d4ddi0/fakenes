@@ -296,12 +296,6 @@ static INLINE void blit_2xsoe (BITMAP * source, BITMAP * target, int x, int y)
 
     if ((target -> w < (source -> w * 2)) || (target -> h < (source -> h * 2)))
     {
-        if (! rom_is_loaded)
-        {
-            return;
-        }
-
-
         /* Center error message on target. */
 
         y += ((source -> h / 2) - (((text_height (font) * 2) + (text_height (font) / 2)) / 2));
@@ -486,6 +480,12 @@ static INLINE void blit_2xsoe (BITMAP * source, BITMAP * target, int x, int y)
 void video_blit (BITMAP * bitmap)
 {
     BITMAP * source_buffer;
+
+
+    if (! rom_is_loaded)
+    {
+        return;
+    }
 
 
     if ((input_enable_zapper) && (! gui_is_active))
