@@ -696,6 +696,8 @@ void ppu_clear (void)
 
 void ppu_render_line (int line)
 {
+    hline (video_buffer, 0, line, 255, (ppu_vram [0x3f00] + 1));
+
     if (background_enabled)
     {
         int attribute_address, attribute_byte = 0;
@@ -764,13 +766,17 @@ void ppu_render_line (int line)
             {
                 color = ((pattern2 & 128) >> 6);
                 color += ((pattern1 & 128) >> 7);
-                color |= attribute;
-    
-                color = ppu_vram [0x3f00 + color];
-    
-    
-                _putpixel (video_buffer,
-                    ((x * 8) + sub_x - x_offset), line, (color + 1));
+
+                if (color != 0)
+                {
+                    color |= attribute;
+        
+                    color = ppu_vram [0x3f00 + color];
+        
+        
+                    _putpixel (video_buffer,
+                        ((x * 8) + sub_x - x_offset), line, (color + 1));
+                }
 
 
                 pattern1 <<= 1;
@@ -804,7 +810,6 @@ void ppu_render_line (int line)
             }
         }
     }
-
 }
 
 
