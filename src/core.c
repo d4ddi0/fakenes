@@ -1,19 +1,25 @@
+
+
 /*
 
 FakeNES - A portable, Open Source NES emulator.
 
-core.c: Implementation of the RP2A03G CPU emulation
+Distributed under the Clarified Artistic License.
 
-Copyright (c) 2002, Charles Bilyue' and Randy McDowell.
+core.c: Implementation of the RP2A03G CPU emulation.
+
+Copyright (c) 2003, Randy McDowell.
+Copyright (c) 2003, Charles Bilyue'.
 
 This is free software.  See 'LICENSE' for details.
 You must read and accept the license prior to use.
 
- This file contains emulation core functions for the Ricoh RP2A03G
-CPU, as used in the Nintendo Famicom (Family Computer) and NES
-(Nintendo Entertainment System).
+This file contains emulation core functions for the Ricoh
+RP2A03G CPU, as used in the Nintendo Famicom (Family
+Computer) and NES (Nintendo Entertainment System).
 
 */
+
 
 #include <allegro.h>
 #include <stdio.h>

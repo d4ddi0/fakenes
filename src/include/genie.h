@@ -1,5 +1,22 @@
 
 
+/*
+
+FakeNES - A portable, Open Source NES emulator.
+
+Distributed under the Clarified Artistic License.
+
+genie.h: Game Genie decoder macros and functions.
+
+Copyright (c) 2003, Randy McDowell.
+Copyright (c) 2003, Charles Bilyue'.
+
+This is free software.  See 'LICENSE' for details.
+You must read and accept the license prior to use.
+
+*/
+
+
 #ifndef GENIE_H_INCLUDED
 
 #define GENIE_H_INCLUDED

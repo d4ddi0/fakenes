@@ -1,5 +1,22 @@
 
 
+/*
+
+FakeNES - A portable, Open Source NES emulator.
+
+Distributed under the Clarified Artistic License.
+
+timing.h: Declarations for the timing system.
+
+Copyright (c) 2003, Randy McDowell.
+Copyright (c) 2003, Charles Bilyue'.
+
+This is free software.  See 'LICENSE' for details.
+You must read and accept the license prior to use.
+
+*/
+
+
 #ifndef __TIMING_H__
 #define __TIMING_H__
 

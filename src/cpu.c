@@ -2,12 +2,17 @@
 
 /*
 
-FakeNES - A portable, open-source NES emulator.
+FakeNES - A portable, Open Source NES emulator.
 
-cpu.c: Implementation of the CPU emulation.
+Distributed under the Clarified Artistic License.
 
-Copyright (c) 2001, Randy McDowell and Ian Smith.
-All rights reserved.  See 'LICENSE' for details.
+cpu.c: Implementation of the CPU abstraction.
+
+Copyright (c) 2003, Randy McDowell.
+Copyright (c) 2003, Charles Bilyue'.
+
+This is free software.  See 'LICENSE' for details.
+You must read and accept the license prior to use.
 
 */
 

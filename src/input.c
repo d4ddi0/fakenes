@@ -4,10 +4,12 @@
 
 FakeNES - A portable, Open Source NES emulator.
 
-input.c: Implementation of the input emulation.
+Distributed under the Clarified Artistic License.
 
-Copyright (c) 2002, Randy McDowell and Ian Smith.
-Portions copyright (c) 2002, Charles Bilyue'.
+input.c: Implementation of the input abstraction.
+
+Copyright (c) 2003, Randy McDowell.
+Copyright (c) 2003, Charles Bilyue'.
 
 This is free software.  See 'LICENSE' for details.
 You must read and accept the license prior to use.

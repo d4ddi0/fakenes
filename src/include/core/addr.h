@@ -1,18 +1,24 @@
+
+
 /*
 
 FakeNES - A portable, Open Source NES emulator.
 
-core.c: Implementation of the RP2A03G CPU emulation
+Distributed under the Clarified Artistic License.
 
-Copyright (c) 2002, Charles Bilyue' and Randy McDowell.
+addr.h: CPU addressing mode emulation macros.
+
+Copyright (c) 2003, Randy McDowell.
+Copyright (c) 2003, Charles Bilyue'.
 
 This is free software.  See 'LICENSE' for details.
 You must read and accept the license prior to use.
 
- This file contains macros for emulating addressing mode
+This file contains macros for emulating addressing mode
 behavior, for the Ricoh RP2A03G CPU.
 
 */
+
 
 /* Addressing modes */
 /* These macros calculate effective addresses, store them in */
