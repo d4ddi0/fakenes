@@ -7,6 +7,15 @@ ifndef ASM_CORE
 endif
 
 
+ifndef CPU_ARCH
+    CPU_ARCH := i486
+endif
+
+ifndef CPU_TYPE
+    CPU_TYPE := pentium2
+endif
+
+
 CC = gcc
 
 NASM = nasm
@@ -27,11 +36,11 @@ BINARY_DEBUG = fakenesd${EXEEXT}
 IFLAGS = -Iinclude/ -Isupport/
 
 ifdef DEBUG
-    OFLAGS = -O0 -g -ggdb3
+    OFLAGS := -O0 -g -ggdb3
 
     DFLAGS := -DDEBUG -DUSE_ZLIB -DUSE_HAWKNL -DLSB_FIRST
 else
-    OFLAGS = -march=i486 -mcpu=pentium2 -O3 -fomit-frame-pointer \
+    OFLAGS := -march=${CPU_ARCH} -mcpu=${CPU_TYPE} -O3 -fomit-frame-pointer \
     -fno-rtti -fno-exceptions -funroll-loops -ffast-math -fforce-addr \
     -fforce-mem -fstrength-reduce -fthread-jumps -fexpensive-optimizations \
     -foptimize-sibling-calls -fstrict-aliasing -maccumulate-outgoing-args \
