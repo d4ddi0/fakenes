@@ -480,9 +480,6 @@ static void mmc1_load_state (PACKFILE * file, int version)
     mmc1_set_register_value (3, pack_getc (file_chunk));
 
 
-    mmc1_cpu_bank_sort();
-
-
     pack_fclose_chunk (file_chunk);
 }
 
