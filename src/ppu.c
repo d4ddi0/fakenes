@@ -560,7 +560,7 @@ void ppu_write (UINT16 address, UINT8 value)
             background_clip_enabled =
                 !(value & BACKGROUND_CLIP_LEFT_EDGE_BIT);
 
-            ppu_clip_background = !background_clip_enabled;
+            ppu_clip_background = background_clip_enabled;
                                   
 
             sprites_clip_enabled =
