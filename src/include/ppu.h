@@ -24,7 +24,6 @@ extern "C" {
 
 
 int ppu_init (void);
-
 void ppu_exit (void);
 
 
@@ -32,7 +31,6 @@ void ppu_reset (void);
 
 
 UINT8 ppu_read (UINT16);
-
 void ppu_write (UINT16, UINT8);
 
 
@@ -42,7 +40,6 @@ void ppu_vblank (void);
 
 
 void ppu_start_line (void);
-
 void ppu_end_line (void);
 
 
@@ -52,8 +49,11 @@ void ppu_render_line (int);
 
 
 void ppu_start_render (void);
-
 void ppu_end_render (void);
+
+
+int background_enabled;
+int sprites_enabled;
 
 
 UINT8 * one_screen_base_address;

@@ -32,14 +32,19 @@ static unsigned int mmc3_chr_mask;
 
 static int mmc3_irq_tick (int line)
 {
-    if ((line >= FIRST_DISPLAYED_LINE) &&
-        (line <= LAST_DISPLAYED_LINE))
+    if (((line >= FIRST_DISPLAYED_LINE) &&
+        (line <= LAST_DISPLAYED_LINE)) &&
+        (background_enabled || sprites_enabled))
     {
-        mmc3_irq_counter --;
+        if (mmc3_irq_counter --) return 0;
+
+        /* Load next counter position */
+        mmc3_irq_counter = mmc3_irq_latch;
+        return 1;
     }
 
 
-    return ((mmc3_irq_counter ? 0 : 1));
+    return 0;
 }
 
 
@@ -222,11 +227,6 @@ static void mmc3_write (UINT16 address, UINT8 value)
             /* Disable IRQs. */
 
             mmc_disable_irqs = TRUE;
-
-
-            /* Copy latch to counter. */
-
-            mmc3_irq_counter = mmc3_irq_latch;
 
 
             break;

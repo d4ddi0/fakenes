@@ -100,9 +100,6 @@ static int vram_writable = FALSE;
 static int hit_first_sprite = FALSE;
 
 
-static int background_enabled = FALSE;
-static int sprites_enabled = FALSE;
-
 static int background_clip_enabled = FALSE;
 static int sprites_clip_enabled = FALSE;
 
