@@ -287,7 +287,6 @@ void sram_save (const char *rom_filename)
 
 int cpu_init (void)
 {
-
     memset (cpu_ram, NULL, sizeof (cpu_ram));
 
     memset (cpu_sram, NULL, sizeof (cpu_sram));
@@ -296,16 +295,7 @@ int cpu_init (void)
     if ((global_rom.control_byte_1 & ROM_CTRL_TRAINER))
     {
         memcpy (cpu_sram + 0x1000, global_rom.trainer, 512);
-
-        /* compute CRC32 for trainer */
-        global_rom.trainer_crc32 =
-            crc32_calculate (global_rom.trainer, ROM_TRAINER_SIZE);
     }
-
-
-    /* compute CRC32 for PRG ROM */
-    global_rom.prg_rom_crc32 = crc32_calculate (global_rom.prg_rom,
-        (global_rom.prg_rom_pages * 0x4000));
 
 
     cpu_active_pc = &cpu_context.PC.word;
@@ -429,6 +419,21 @@ void cpu_memmap_init (void)
 
     cpu_set_read_handler_2k (0x4000, ppu_read_4000_47FF);
     cpu_set_write_handler_2k (0x4000, ppu_write_4000_47FF);
+
+
+    if ((global_rom.control_byte_1 & ROM_CTRL_TRAINER))
+    {
+        /* compute CRC32 for trainer */
+        global_rom.trainer_crc32 =
+            crc32_calculate (global_rom.trainer, ROM_TRAINER_SIZE);
+    }
+
+
+    /* compute CRC32 for PRG ROM */
+    global_rom.prg_rom_crc32 = crc32_calculate (global_rom.prg_rom,
+        (global_rom.prg_rom_pages * 0x4000));
+
+
 }
 
 

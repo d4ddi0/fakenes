@@ -1025,7 +1025,34 @@ static int mmc5_init (void)
     mmc_name_table_count = 4;
 
 
-    mmc5_set_wram_size (8);
+    /* Autodetect WRAM size based on PRG ROM CRC */
+    switch (global_rom.prg_rom_crc32)
+    {
+    case 0x2B548D75:    /* Bandit Kings of Ancient China (J) */
+    case 0xF4CD4998:    /* Dai Koukai Jidai (J) */
+    case 0x8FA95456:    /* Ishin no Arashi (J) */
+    case 0x57E3218B:    /* L'Empereur (J) */
+    case 0x2F50BD38:    /* L'Empereur (U) */
+    case 0x8E9A5E2F:    /* L'Empereur (Alt)(U) */
+    case 0x98C8E090:    /* Nobunaga no Yabou - Sengoku Gunyuu Den (J) */
+    case 0xB56958D1:    /* Nobunaga's Ambition 2 (J) */
+    case 0xE6C28C5F:    /* Suikoden - Tenmei no Chikai (J) */
+    case 0xCD35E2E9:    /* Uncharted Waters (J) */
+        mmc5_set_wram_size (16);
+        break;
+
+    case 0xF4120E58:    /* Aoki Ookami to Shiroki Mejika - Genchou Hishi (J) */
+    case 0x286613D8:    /* Nobunaga no Yabou - Bushou Fuuun Roku (J) */
+    case 0x11EAAD26:    /* Romance of the 3 Kingdoms 2 (J) */
+    case 0x95BA5733:    /* Sangokushi 2 (J) */
+        mmc5_set_wram_size (32);
+        break;
+
+    default:
+        mmc5_set_wram_size (8);
+    }
+
+
     mmc5_reset ();
 
     cpu_set_write_handler_2k (0x5000, mmc5_write);
