@@ -38,6 +38,11 @@ void video_exit (void);
 void video_blit (void);
 
 
+void video_zoom_in (void);
+
+void video_zoom_out (void);
+
+
 #ifdef __cplusplus
 }
 #endif

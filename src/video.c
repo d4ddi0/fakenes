@@ -55,6 +55,9 @@ static int scale_width = 0;
 static int scale_height = 0;
 
 
+static int zoom_factor = 0;
+
+
 static int blit_x_offset = 0;
 
 static int blit_y_offset = 0;
@@ -68,7 +71,7 @@ int video_init (void)
     int driver;
 
 
-    screen_width = get_config_int ("video", "screen_width", 256);
+    screen_width = get_config_int ("video", "screen_width", 320);
 
     screen_height = get_config_int ("video", "screen_height", 240);
 
@@ -82,6 +85,9 @@ int video_init (void)
     scale_width = get_config_int ("video", "scale_width", 512);
 
     scale_height = get_config_int ("video", "scale_height", 480);
+
+
+    zoom_factor = get_config_int ("video", "zoom_factor", 256);
 
 
     video_display_status = get_config_int ("video", "display_status", FALSE);
@@ -171,6 +177,9 @@ void video_exit (void)
     set_config_int ("video", "scale_height", scale_height);
 
 
+    set_config_int ("video", "zoom_factor", zoom_factor);
+
+
     set_config_int ("video", "display_status", video_display_status);
 
     set_config_int ("video", "enable_vsync", video_enable_vsync);
@@ -245,4 +254,58 @@ void video_blit (void)
 
 
     release_screen ();
+}
+
+
+void video_zoom (int factor)
+{
+    if (scaled_mode)
+    {
+        scale_width += factor;
+
+        scale_height += factor;
+    }
+    else
+    {
+        scaled_mode = TRUE;
+
+
+        scale_width = (256 + factor);
+
+        scale_height = (240 + factor);
+    }
+
+
+    if ((scale_width != 256) && (scale_height != 240))
+    {
+        blit_x_offset = ((SCREEN_W / 2) - (scale_width / 2));
+    
+        blit_y_offset = ((SCREEN_H / 2) - (scale_height / 2));
+    }
+    else
+    {
+        scaled_mode = FALSE;
+
+
+        blit_x_offset = ((SCREEN_W / 2) - (256 / 2));
+    
+        blit_y_offset = ((SCREEN_H / 2) - (240 / 2));
+    }
+}
+
+
+void video_zoom_in (void)
+{
+    video_zoom (+zoom_factor);
+}
+
+
+void video_zoom_out (void)
+{
+    video_zoom (-zoom_factor);
+
+
+    vsync ();
+
+    clear (screen);
 }

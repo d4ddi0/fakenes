@@ -663,8 +663,6 @@ int input_process (void)
 
             case KEY_EQUALS:
 
-            case KEY_PLUS_PAD:
-
                 if (frame_skip_max < 60)
                 {
                     frame_skip_max ++;
@@ -676,12 +674,26 @@ int input_process (void)
 
            case KEY_MINUS:
 
-           case KEY_MINUS_PAD:
-
                 if (frame_skip_max > 1)
                 {
                     frame_skip_max --;
                 }
+
+
+                break;
+
+
+            case KEY_PLUS_PAD:
+
+                video_zoom_in ();
+
+
+                break;
+
+
+            case KEY_MINUS_PAD:
+
+                video_zoom_out ();
 
 
                 break;
