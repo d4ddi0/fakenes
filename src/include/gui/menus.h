@@ -1,19 +1,23 @@
 
 
-static int file_menu_load_rom (void);
+static int main_menu_load_rom (void);
 
-static int file_menu_snapshot (void);
+static int main_menu_resume (void);
 
-static int file_menu_exit (void);
+static int main_menu_snapshot (void);
+
+static int main_menu_exit (void);
 
 
-static MENU file_menu [] =
+static MENU main_menu [] =
 {
-    { "&Load ROM...", file_menu_load_rom, NULL, 0, NULL },
+    { "&Load ROM...", main_menu_load_rom, NULL, 0, NULL },
     {             "",               NULL, NULL, 0, NULL },
-    {    "&Snapshot", file_menu_snapshot, NULL, 0, NULL },
+    {      "&Resume",   main_menu_resume, NULL, 0, NULL },
     {             "",               NULL, NULL, 0, NULL },
-    {        "E&xit",     file_menu_exit, NULL, 0, NULL },
+    {    "&Snapshot", main_menu_snapshot, NULL, 0, NULL },
+    {             "",               NULL, NULL, 0, NULL },
+    {        "E&xit",     main_menu_exit, NULL, 0, NULL },
     {           NULL,               NULL, NULL, 0, NULL }
 };
 
@@ -65,6 +69,52 @@ static MENU machine_menu [] =
     {        "",                NULL,               NULL, 0, NULL },
     {  "&State",                NULL, machine_state_menu, 0, NULL },
     {      NULL,                NULL,               NULL, 0, NULL }
+};
+
+
+static MENU netplay_protocol_menu [] =
+{
+    { "&TCP/IP", NULL, NULL, (D_DISABLED | D_SELECTED), NULL },
+    {      NULL, NULL, NULL,                         0, NULL }
+};
+
+
+static int netplay_server_menu_start (void);
+
+static int netplay_server_menu_stop (void);
+
+
+static MENU netplay_server_menu [] =
+{
+    { "&Start...", netplay_server_menu_start, NULL, D_DISABLED, NULL },
+    {          "",                      NULL, NULL,          0, NULL },
+    {     "S&top",  netplay_server_menu_stop, NULL, D_DISABLED, NULL },
+    {        NULL,                      NULL, NULL,          0, NULL }
+};
+
+
+static int netplay_client_menu_connect (void);
+
+static int netplay_client_menu_disconnect (void);
+
+
+static MENU netplay_client_menu [] =
+{
+    { "&Connect...",    netplay_client_menu_connect, NULL, D_DISABLED, NULL },
+    {            "",                           NULL, NULL,          0, NULL },
+    { "&Disconnect", netplay_client_menu_disconnect, NULL, D_DISABLED, NULL },
+    {          NULL,                           NULL, NULL,          0, NULL }
+};
+
+
+static MENU netplay_menu [] =
+{
+    { "&Protocol", NULL, netplay_protocol_menu, 0, NULL },
+    {          "", NULL,                  NULL, 0, NULL },
+    {   "&Server", NULL,   netplay_server_menu, 0, NULL },
+    {          "", NULL,                  NULL, 0, NULL },
+    {   "&Client", NULL,   netplay_client_menu, 0, NULL },
+    {        NULL, NULL,                  NULL, 0, NULL }
 };
 
 
@@ -415,15 +465,12 @@ static MENU help_menu [] =
 };
 
 
-static int menu_bar_hide (void);
-
-
-static MENU menu_bar [] =
+static MENU top_menu [] =
 { 
-    {    "&File",          NULL,    file_menu, 0, NULL },
+    {    "&Main",          NULL,    main_menu, 0, NULL },
     { "&Machine",          NULL, machine_menu, 0, NULL },
     { "&Options",          NULL, options_menu, 0, NULL },
+    { "&NetPlay",          NULL, netplay_menu, 0, NULL },
     {    "&Help",          NULL,    help_menu, 0, NULL },
-    {        "<", menu_bar_hide,         NULL, 0, NULL },
     {       NULL,          NULL,         NULL, 0, NULL }
 };

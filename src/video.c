@@ -860,6 +860,16 @@ void video_zoom_out (void)
 }
 
 
+#define NES_PALETTE_START       1
+
+#define NES_PALETTE_END         (NES_PALETTE_START + 64)
+
+
+#define GUI_PALETTE_START       128
+
+#define GUI_PALETTE_END         (GUI_PALETTE_START + 64)
+
+
 void video_set_palette (RGB * palette)
 {
     int index;
@@ -868,13 +878,23 @@ void video_set_palette (RGB * palette)
     memcpy (internal_palette, palette, sizeof (internal_palette));
 
 
-    for (index = 1; index < 65; index ++)
+    for (index = NES_PALETTE_START; index < NES_PALETTE_END; index ++)
     {
         internal_palette [index].r = fix ((internal_palette [index].r + light_adjustment), 0, 63);
 
         internal_palette [index].g = fix ((internal_palette [index].g + light_adjustment), 0, 63);
 
         internal_palette [index].b = fix ((internal_palette [index].b + light_adjustment), 0, 63);
+    }
+
+
+    for (index = GUI_PALETTE_START; index < (GUI_PALETTE_START + GUI_PALETTE_END); index ++)
+    {
+        internal_palette [index].r = fix (((index - GUI_PALETTE_START) + light_adjustment), 0, 63);
+
+        internal_palette [index].g = fix (((index - GUI_PALETTE_START) + light_adjustment), 0, 63);
+
+        internal_palette [index].b = fix (((index - GUI_PALETTE_START) + light_adjustment), 0, 63);
     }
 
 

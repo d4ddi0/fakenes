@@ -67,44 +67,78 @@ static int want_exit = FALSE;
 
 static UINT8 message_buffer [256];
 
-static int redraw_flag = FALSE;
-
 
 static RGB * current_palette = NULL;
 
 static PALETTE custom_palette;
 
 
-static void reset_timer (void)
-{
-    remove_int (reset_timer);
-
-
-    message_buffer [0] = NULL;
-
-    redraw_flag = TRUE;
-};
-
-END_OF_STATIC_FUNCTION (reset_timer);
-
-
 static FILE * log_file = NULL;
+
+
+static int shadow_color = 0;
+
+static int error_color = 0;
+
+
+static void update_colors (void)
+{
+    gui_bg_color = makecol (127, 127, 127);
+
+    gui_fg_color = makecol (255, 255, 255);
+
+
+    gui_mg_color = makecol (191, 191, 191);
+
+
+    shadow_color = makecol (0, 0, 0);
+
+
+    error_color  = makecol (255, 63, 0);
+}
+
+
+
+
+static void gui_message_border (void)
+{
+    /* No longer a bevel, but... */
+
+    int x;
+
+    int y;
+
+
+    int x2;
+
+    int y2;
+
+
+    x = 16;
+
+    y = (((SCREEN_H - 16) - text_height (font)) - 8);
+
+
+    x2 = (SCREEN_W - 16);
+
+    y2 = (SCREEN_H - 16);
+
+
+    vline (screen, (x2 + 1), (y + 1), (y2 + 1), shadow_color);
+
+    hline (screen, (x + 1), (y2 + 1), (x2 + 1), shadow_color);
+
+
+    rectfill (screen, x, y, x2, y2, gui_bg_color);
+
+
+    rect (screen, x, y, x2, y2, gui_fg_color);
+}
 
 
 void gui_message (int color, AL_CONST UINT8 * message, ...)
 {
     va_list format;
-
-
-    reset_timer ();
-
-
-    main_dialog [1].fg = color;
-
-
-    main_dialog [1].x = 16;
-
-    main_dialog [1].y = ((SCREEN_H - 16) - text_height (font));
 
 
     va_start (format, message);
@@ -114,54 +148,19 @@ void gui_message (int color, AL_CONST UINT8 * message, ...)
     va_end (format);
 
 
+    gui_message_border ();
+
+
+    textout_centre (screen, font, message_buffer, (SCREEN_W / 2), ((SCREEN_H - 19) - text_height (font)), 0);
+
+    textout_centre (screen, font, message_buffer, ((SCREEN_W / 2) - 1), (((SCREEN_H - 19) - text_height (font)) - 1), color);
+
+
     if (log_file)
     {
         fprintf (log_file, "GUI: %s\n", message_buffer);
     }
-
-
-    redraw_flag = TRUE;
-
-
-    install_int (reset_timer, 2000);
 }
-
-
-static int gui_redraw_callback (int msg, DIALOG * d, int c)
-{
-    if (redraw_flag)
-    {
-        redraw_flag = FALSE;
-
-
-        vsync ();
-
-
-        clear (screen);
-
-        video_blit (screen);
-
-
-        vsync ();
-
-
-        return (D_REDRAW);
-    }
-    else
-    {
-        return (D_O_K);
-    }
-}
-
-
-#define GUI_COLOR_GRAY      palette_color [17]
-
-#define GUI_COLOR_WHITE     palette_color [33]
-
-
-#define GUI_COLOR_BLUE      palette_color [3]
-
-#define GUI_COLOR_RED       palette_color [6]
 
 
 #define CHECK_MENU(menu, item)   \
@@ -189,7 +188,7 @@ static int gui_redraw_callback (int msg, DIALOG * d, int c)
 
 void gui_spawn_file_menu_snapshot (void)
 {
-    file_menu_snapshot ();
+    main_menu_snapshot ();
 }
 
 
@@ -381,30 +380,20 @@ int show_gui (int first_run)
     time_t start;
 
 
-    LOCK_VARIABLE (message_buffer);
-
-    LOCK_VARIABLE (redraw_flag);
-
-
-    LOCK_FUNCTION (reset_timer);
-
-
-    main_dialog [1].dp = screen;
-
-    main_dialog [1].dp2 = message_buffer;
-
-
-    gui_bg_color = GUI_COLOR_BLUE;
-
-    gui_fg_color = GUI_COLOR_WHITE;
-
-
-    gui_mg_color = GUI_COLOR_GRAY;
+    update_colors ();
 
 
     gui_needs_restart = FALSE;
 
     gui_is_active = TRUE;
+
+
+    // gui_menu_opening_delay = 500;
+
+
+    gui_menu_draw_menu = sl_draw_menu;
+
+    gui_menu_draw_menu_item = sl_draw_menu_item;
 
 
 #ifdef POSIX
@@ -430,7 +419,10 @@ int show_gui (int first_run)
 
     if (! rom_is_loaded)
     {
-        DISABLE_MENU (file_menu, 2);
+        DISABLE_MENU (main_menu, 2);
+
+        DISABLE_MENU (main_menu, 4);
+
 
         DISABLE_MENU (machine_menu, 0);
     }
@@ -458,7 +450,7 @@ int show_gui (int first_run)
     video_blit (screen);
 
 
-    gui_message (GUI_COLOR_WHITE, "GUI initialized (%dx%d, %s).", SCREEN_W, SCREEN_H, gfx_driver -> name);
+    gui_message (gui_fg_color, "GUI initialized (%dx%d, %s).", SCREEN_W, SCREEN_H, gfx_driver -> name);
 
 
     unscare_mouse ();
@@ -494,13 +486,7 @@ int show_gui (int first_run)
 }
 
 
-static int menu_bar_hide (void)
-{
-    return (D_CLOSE);
-};
-
-
-static int file_menu_load_rom (void)
+static int main_menu_load_rom (void)
 {
     ROM test_rom;
 
@@ -524,12 +510,12 @@ static int file_menu_load_rom (void)
 
 #ifdef USE_ZLIB
 
-    if (file_select_ex ("iNES ROMs (*.NES, *.GZ, *.ZIP)",
-        buffer, "NES;nes;GZ;gz;ZIP;zip", sizeof (buffer), 0, 0) != 0)
+    if (file_select_ex ("iNES ROMs (*.NES, *.GZ, *.ZIP)", buffer, "NES;nes;GZ;gz;ZIP;zip",
+        sizeof (buffer), ((SCREEN_W / 5) * 4), ((SCREEN_H / 6) * 4)) != 0)
     {
 #else
-    if (file_select_ex ("iNES ROMs (*.NES)",
-        buffer, "NES;nes", sizeof (buffer), 0, 0) != 0)
+    if (file_select_ex ("iNES ROMs (*.NES)", buffer, "NES;nes",
+        sizeof (buffer), ((SCREEN_W / 5) * 4), ((SCREEN_H / 6) * 4)) != 0)
     {
 
 #endif
@@ -539,7 +525,7 @@ static int file_menu_load_rom (void)
 
         if (load_rom (buffer, &test_rom) != 0)
         {
-            gui_message (GUI_COLOR_RED, "Failed to load ROM!");
+            gui_message (error_color, "Failed to load ROM!");
 
 
             return (D_O_K);
@@ -566,7 +552,9 @@ static int file_menu_load_rom (void)
             machine_init ();
 
 
-            ENABLE_MENU (file_menu, 2);
+            ENABLE_MENU (main_menu, 2);
+
+            ENABLE_MENU (main_menu, 4);
 
 
             ENABLE_MENU (machine_menu, 0);
@@ -595,7 +583,13 @@ static int file_menu_load_rom (void)
 }
 
 
-static int file_menu_snapshot (void)
+static int main_menu_resume (void)
+{
+    return (D_CLOSE);
+}
+
+
+static int main_menu_snapshot (void)
 {
     int count;
 
@@ -616,7 +610,7 @@ static int file_menu_snapshot (void)
 
             save_bitmap (filename, video_buffer, current_palette);
 
-            gui_message (GUI_COLOR_WHITE,"Snapshot saved to %s.", filename);
+            gui_message (gui_fg_color, "Snapshot saved to %s.", filename);
         }
     }
 
@@ -625,7 +619,7 @@ static int file_menu_snapshot (void)
 }
 
 
-static int file_menu_exit (void)
+static int main_menu_exit (void)
 {
     want_exit = TRUE;
 
@@ -670,7 +664,7 @@ static int machine_type_menu_ntsc (void)
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Emulation set to NTSC (60 Hz).");
+    gui_message (gui_fg_color, "Emulation set to NTSC (60 Hz).");
 
 
     return (D_O_K);
@@ -693,7 +687,7 @@ static int machine_type_menu_pal (void)
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Emulation set to PAL (50 Hz).");
+    gui_message (gui_fg_color, "Emulation set to PAL (50 Hz).");
 
 
     return (D_O_K);
@@ -718,6 +712,30 @@ static int machine_state_menu_restore (void)
 }
 
 
+static int netplay_server_menu_start (void)
+{
+    return (D_O_K);
+}
+
+
+static int netplay_server_menu_stop (void)
+{
+    return (D_O_K);
+}
+
+
+static int netplay_client_menu_connect (void)
+{
+    return (D_O_K);
+}
+
+
+static int netplay_client_menu_disconnect (void)
+{
+    return (D_O_K);
+}
+
+
 static int options_audio_menu_enabled (void)
 {
     audio_enable_output = (! audio_enable_output);
@@ -734,7 +752,7 @@ static int options_audio_menu_enabled (void)
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Toggled audio rendering and output.");
+    gui_message (gui_fg_color, "Toggled audio rendering and output.");
 
 
     return (D_O_K);
@@ -757,7 +775,7 @@ static int options_audio_mixing_menu_normal (void)
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Audio mixing set to normal (mono).");
+    gui_message (gui_fg_color, "Audio mixing set to normal (mono).");
 
 
     return (D_O_K);
@@ -787,7 +805,7 @@ static int options_audio_mixing_stereo_menu_classic (void)
     update_menus ();
     
 
-    gui_message (GUI_COLOR_WHITE, "Audio mixing set to classic stereo.");
+    gui_message (gui_fg_color, "Audio mixing set to classic stereo.");
 
 
     return (D_O_K);
@@ -817,7 +835,7 @@ static int options_audio_mixing_stereo_menu_enhanced (void)
     update_menus ();
     
 
-    gui_message (GUI_COLOR_WHITE, "Audio mixing set to enhanced stereo.");
+    gui_message (gui_fg_color, "Audio mixing set to enhanced stereo.");
 
 
     return (D_O_K);
@@ -847,7 +865,7 @@ static int options_audio_mixing_stereo_menu_accurate (void)
     update_menus ();
     
 
-    gui_message (GUI_COLOR_WHITE, "Audio mixing set to accurate stereo.");
+    gui_message (gui_fg_color, "Audio mixing set to accurate stereo.");
 
 
     return (D_O_K);
@@ -870,7 +888,7 @@ static int options_audio_mixing_quality_menu_low_8_bit (void)
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Audio mixing quality set to low.");
+    gui_message (gui_fg_color, "Audio mixing quality set to low.");
 
 
     return (D_O_K);
@@ -893,7 +911,7 @@ static int options_audio_mixing_quality_menu_high_16_bit (void)
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Audio mixing quality set to high.");
+    gui_message (gui_fg_color, "Audio mixing quality set to high.");
 
 
     return (D_O_K);
@@ -908,7 +926,7 @@ static int options_audio_mixing_quality_menu_dithering (void)
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Toggled audio random noise dithering.");
+    gui_message (gui_fg_color, "Toggled audio random noise dithering.");
 
 
     return (D_O_K);
@@ -925,7 +943,7 @@ static int options_audio_effects_menu_linear_echo (void)
     papu_reinit ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Toggled linear echo audio effect.");
+    gui_message (gui_fg_color, "Toggled linear echo audio effect.");
 
 
     return (D_O_K);
@@ -948,7 +966,7 @@ static int options_audio_effects_menu_surround_sound (void)
     papu_reinit ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Toggled surround sound audio effect.");
+    gui_message (gui_fg_color, "Toggled surround sound audio effect.");
 
 
     return (D_O_K);
@@ -965,7 +983,7 @@ static int options_audio_filter_menu_none (void)
     apu_setfilter (APU_FILTER_NONE);
 
 
-    gui_message (GUI_COLOR_WHITE, "Audio filtering disabled.");
+    gui_message (gui_fg_color, "Audio filtering disabled.");
 
 
     return (D_O_K);
@@ -982,7 +1000,7 @@ static int options_audio_filter_low_pass_menu_simple (void)
     apu_setfilter (APU_FILTER_LOWPASS);
 
 
-    gui_message (GUI_COLOR_WHITE, "Audio filter set to low pass.");
+    gui_message (gui_fg_color, "Audio filter set to low pass.");
 
 
     return (D_O_K);
@@ -999,7 +1017,7 @@ static int options_audio_filter_low_pass_menu_weighted (void)
     apu_setfilter (APU_FILTER_WEIGHTED);
 
 
-    gui_message (GUI_COLOR_WHITE, "Audio filter set to weighted low pass.");
+    gui_message (gui_fg_color, "Audio filter set to weighted low pass.");
 
 
     return (D_O_K);
@@ -1016,7 +1034,7 @@ static int options_audio_filter_low_pass_menu_dynamic (void)
     apu_setfilter (APU_FILTER_DYNAMIC);
 
 
-    gui_message (GUI_COLOR_WHITE, "Audio filter set to dynamic low pass.");
+    gui_message (gui_fg_color, "Audio filter set to dynamic low pass.");
 
 
     return (D_O_K);
@@ -1033,7 +1051,7 @@ static int options_audio_filter_menu_high_pass (void)
     apu_setfilter (APU_FILTER_HIGHPASS);
 
 
-    gui_message (GUI_COLOR_WHITE, "Audio filter set to high pass.");
+    gui_message (gui_fg_color, "Audio filter set to high pass.");
 
 
     return (D_O_K);
@@ -1050,7 +1068,7 @@ static int options_audio_channels_menu_square_1 (void)
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Toggled mixing of square wave channel A.");
+    gui_message (gui_fg_color, "Toggled mixing of square wave channel A.");
 
 
     return (D_O_K);
@@ -1067,7 +1085,7 @@ static int options_audio_channels_menu_square_2 (void)
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Toggled mixing of square wave channel B.");
+    gui_message (gui_fg_color, "Toggled mixing of square wave channel B.");
 
 
     return (D_O_K);
@@ -1084,7 +1102,7 @@ static int options_audio_channels_menu_triangle (void)
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Toggled mixing of triangle channel.");
+    gui_message (gui_fg_color, "Toggled mixing of triangle channel.");
 
 
     return (D_O_K);
@@ -1101,7 +1119,7 @@ static int options_audio_channels_menu_noise (void)
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Toggled mixing of noise channel.");
+    gui_message (gui_fg_color, "Toggled mixing of noise channel.");
 
 
     return (D_O_K);
@@ -1118,7 +1136,7 @@ static int options_audio_channels_menu_dmc (void)
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Toggled mixing of delta modulation channel.");
+    gui_message (gui_fg_color, "Toggled mixing of delta modulation channel.");
 
 
     return (D_O_K);
@@ -1135,7 +1153,7 @@ static int options_audio_channels_menu_exsound (void)
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Toggled mixing of external channels.");
+    gui_message (gui_fg_color, "Toggled mixing of external channels.");
                                               
 
     return (D_O_K);
@@ -1152,7 +1170,7 @@ static int options_audio_advanced_menu_ideal_triangle (void)
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Toggled emulation of ideal triangle.");
+    gui_message (gui_fg_color, "Toggled emulation of ideal triangle.");
 
 
     return (D_O_K);
@@ -1169,7 +1187,7 @@ static int options_audio_advanced_menu_smooth_envelope (void)
     update_menus ();
 
 
-    gui_message (GUI_COLOR_RED, "Smooth envelope is not implemented.");
+    gui_message (error_color, "Smooth envelope is not implemented.");
 
 
     return (D_O_K);
@@ -1186,7 +1204,7 @@ static int options_audio_advanced_menu_smooth_sweep (void)
     update_menus ();
 
 
-    gui_message (GUI_COLOR_RED, "Smooth sweep is not implemented.");
+    gui_message (error_color, "Smooth sweep is not implemented.");
 
 
     return (D_O_K);
@@ -1203,7 +1221,7 @@ static int options_audio_record_menu_start (void)
     }
 
 
-    gui_message (GUI_COLOR_WHITE, "Audio recording session started.");
+    gui_message (gui_fg_color, "Audio recording session started.");
 
 
     return (D_O_K);
@@ -1220,7 +1238,7 @@ static int options_audio_record_menu_stop (void)
     DISABLE_MENU (options_audio_record_menu, 2);
 
 
-    gui_message (GUI_COLOR_WHITE, "Audio recording session halted.");
+    gui_message (gui_fg_color, "Audio recording session halted.");
 
 
     return (D_O_K);
@@ -1255,17 +1273,19 @@ RESOLUTION_MENU_HANDLER (640, 480)
 static int options_video_blitter_menu_normal (void)
 {
     video_set_blitter (VIDEO_BLITTER_NORMAL);
-
-
-    redraw_flag = TRUE;
-
+    
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Video blitter set to normal.");
+    clear (screen);
+
+    video_blit (screen);
 
 
-    return (D_O_K);
+    gui_message (gui_fg_color, "Video blitter set to normal.");
+
+
+    return (D_REDRAW);
 }
 
 
@@ -1273,16 +1293,18 @@ static int options_video_blitter_menu_stretched (void)
 {
     video_set_blitter (VIDEO_BLITTER_STRETCHED);
 
-
-    redraw_flag = TRUE;
-
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Video blitter set to stretched.");
+    clear (screen);
+
+    video_blit (screen);
 
 
-    return (D_O_K);
+    gui_message (gui_fg_color, "Video blitter set to stretched.");
+
+
+    return (D_REDRAW);
 }
 
 
@@ -1290,16 +1312,18 @@ static int options_video_blitter_menu_2xsoe (void)
 {
     video_set_blitter (VIDEO_BLITTER_2XSOE);
 
-
-    redraw_flag = TRUE;
-
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Video blitter set to 2xSOE engine.");
+    clear (screen);
+
+    video_blit (screen);
 
 
-    return (D_O_K);
+    gui_message (gui_fg_color, "Video blitter set to 2xSOE engine.");
+
+
+    return (D_REDRAW);
 }
 
 
@@ -1307,16 +1331,18 @@ static int options_video_blitter_menu_2xscl (void)
 {
     video_set_blitter (VIDEO_BLITTER_2XSCL);
 
-
-    redraw_flag = TRUE;
-
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Video blitter set to 2xSCL engine.");
+    clear (screen);
+
+    video_blit (screen);
 
 
-    return (D_O_K);
+    gui_message (gui_fg_color, "Video blitter set to 2xSCL engine.");
+
+
+    return (D_REDRAW);
 }
 
 
@@ -1338,15 +1364,18 @@ static int options_video_filters_menu_scanlines (void)
     }
 
 
-    redraw_flag = TRUE;
-
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Toggled scanlines video filter (priority 0).");
+    clear (screen);
+
+    video_blit (screen);
 
 
-    return (D_O_K);
+    gui_message (gui_fg_color, "Toggled scanlines video filter (priority 0).");
+
+
+    return (D_REDRAW);
 }
 
 
@@ -1357,7 +1386,7 @@ static int options_video_menu_vsync (void)
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Toggled vsync synchronization.");
+    gui_message (gui_fg_color, "Toggled vsync synchronization.");
 
 
     return (D_O_K);
@@ -1371,7 +1400,7 @@ static int options_video_layers_menu_sprites_a (void)
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Toggled PPU sprites layer A (priority 1).");
+    gui_message (gui_fg_color, "Toggled PPU sprites layer A (priority 1).");
 
 
     return (D_O_K);
@@ -1385,7 +1414,7 @@ static int options_video_layers_menu_sprites_b (void)
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Toggled PPU sprites layer B (priority 0).");
+    gui_message (gui_fg_color, "Toggled PPU sprites layer B (priority 0).");
 
 
     return (D_O_K);
@@ -1399,7 +1428,7 @@ static int options_video_layers_menu_background (void)
     update_menus ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Toggled PPU background layer.");
+    gui_message (gui_fg_color, "Toggled PPU background layer.");
 
 
     return (D_O_K);
@@ -1427,6 +1456,9 @@ static int options_video_palette_menu_default (void)
     current_palette = DATA_DEFAULT_PALETTE;
 
 
+    update_colors ();
+
+
     return (D_O_K);
 }
 
@@ -1452,6 +1484,9 @@ static int options_video_palette_menu_grayscale (void)
     current_palette = DATA_GRAYSCALE_PALETTE;
 
 
+    update_colors ();
+
+
     return (D_O_K);
 }
 
@@ -1474,6 +1509,9 @@ static int options_video_palette_menu_gnuboy (void)
     video_set_palette (DATA_GNUBOY_PALETTE);
 
     current_palette = DATA_GNUBOY_PALETTE;
+
+
+    update_colors ();
 
 
     return (D_O_K);
@@ -1501,6 +1539,9 @@ static int options_video_palette_menu_nester (void)
     current_palette = DATA_NESTER_PALETTE;
 
 
+    update_colors ();
+
+
     return (D_O_K);
 }
 
@@ -1524,6 +1565,9 @@ static int options_video_palette_menu_nesticle (void)
     video_set_palette (DATA_NESTICLE_PALETTE);
 
     current_palette = DATA_NESTICLE_PALETTE;
+
+
+    update_colors ();
 
 
     return (D_O_K);
@@ -1574,10 +1618,13 @@ static int options_video_palette_menu_custom (void)
         video_set_palette (((RGB *) custom_palette));
     
         current_palette = ((RGB *) &custom_palette);
+
+
+        update_colors ();
     }
     else
     {
-        gui_message (GUI_COLOR_RED, "Error opening FAKENES.PAL!");
+        gui_message (error_color, "Error opening FAKENES.PAL!");
     }
 
 
