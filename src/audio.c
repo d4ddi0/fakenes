@@ -18,6 +18,9 @@ You must read and accept the license prior to use.
 #include <allegro.h>
 
 
+#include <stdio.h>
+
+
 #include "audio.h"
 
 #include "gui.h"
