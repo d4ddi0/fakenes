@@ -107,7 +107,7 @@ static int current_read_p2 = 0;
 static int input_devices [4];
 
 
-static int zapper_mask = 0x08;
+static int zapper_mask = 0;
 
 
 void input_update_zapper (void)
@@ -234,6 +234,10 @@ int input_init (void)
         ("input", "player_4_device", INPUT_DEVICE_NONE);
 
 
+    input_enable_zapper =
+        get_config_int ("input", "enable_zapper", FALSE);
+
+
     _load_keycodes ();
 
     _load_joycodes ();
@@ -271,6 +275,9 @@ void input_exit (void)
     set_config_string ("input", "joy1_buttons", joy1_buffer);
 
     set_config_string ("input", "joy2_buttons", joy2_buffer);
+
+
+    set_config_int ("input", "enable_zapper", input_enable_zapper);
 }
 
 
@@ -306,6 +313,12 @@ void input_strobe_reset (void)
 UINT8 input_read (UINT16 address)               
 {
     int index;
+
+
+    if (! input_enable_zapper)
+    {
+        zapper_mask = 0;
+    }
 
 
     switch (address)
@@ -370,15 +383,7 @@ UINT8 input_read (UINT16 address)
 
                 current_read_p2 ++;
 
-
-                if (input_enable_zapper)
-                {
-                    return ((1 | zapper_mask));
-                }
-                else
-                {
-                    return (1);
-                }
+                return ((1 | zapper_mask));
             }
             else if ((current_read_p2 > 7) && (current_read_p2 < 16))
             {
@@ -389,16 +394,8 @@ UINT8 input_read (UINT16 address)
 
                 current_read_p2 ++;
 
-
-                if (input_enable_zapper)
-                {
-                    return ((buttons
-                        [INPUT_PLAYER_4] [index] | zapper_mask));
-                }
-                else
-                {
-                    return (buttons [INPUT_PLAYER_4] [index]);
-                }
+                return ((buttons
+                    [INPUT_PLAYER_4] [index] | zapper_mask));
             }
             else if ((current_read_p2 > 15) && (current_read_p2 < 23))
             {
@@ -406,15 +403,7 @@ UINT8 input_read (UINT16 address)
 
                 current_read_p2 ++;
 
-
-                if (input_enable_zapper)
-                {
-                    return (zapper_mask);
-                }
-                else
-                {
-                    return (0);
-                }
+                return (zapper_mask);
             }
             else if (current_read_p2 == 23)
             {
@@ -422,30 +411,14 @@ UINT8 input_read (UINT16 address)
 
                 current_read_p2 = 0;
 
-
-                if (input_enable_zapper)
-                {
-                    return (zapper_mask);
-                }
-                else
-                {
-                    return (0);
-                }
+                return (zapper_mask);
             }
             else
             {
                 /* Player 2 button status. */
 
-                if (input_enable_zapper)
-                {
-                    return ((buttons
-                        [INPUT_PLAYER_2] [current_read_p2 ++] | zapper_mask));
-                }
-                else
-                {
-                    return (buttons
-                        [INPUT_PLAYER_2] [current_read_p2 ++]);
-                }
+                return ((buttons [INPUT_PLAYER_2]
+                    [current_read_p2 ++] | zapper_mask));
             }
 
 
