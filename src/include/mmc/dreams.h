@@ -73,11 +73,6 @@ static INLINE int dreams_init (void)
     }
 
 
-    /* Is this right? */
-
-    mmc_no_vrom = FALSE;
-
-
     dreams_reset ();
 
     mmc_write = dreams_write;

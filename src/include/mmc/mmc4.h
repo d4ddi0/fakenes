@@ -219,9 +219,6 @@ static INLINE int mmc4_init (void)
     mmc4_prg_mask = (mmc4_prg_mask - 1);
 
 
-    mmc_no_vrom = FALSE;
-
-
     mmc4_reset ();
 
     mmc_write = mmc4_write;

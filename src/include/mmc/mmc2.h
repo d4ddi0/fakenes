@@ -243,9 +243,6 @@ static INLINE int mmc2_init (void)
     mmc2_prg_mask = ((mmc2_prg_mask * 2) - 1);
 
 
-    mmc_no_vrom = FALSE;
-
-
     mmc2_reset ();
 
     mmc_write = mmc2_write;

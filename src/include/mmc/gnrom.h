@@ -79,9 +79,6 @@ static INLINE int gnrom_init (void)
     }
 
 
-    mmc_no_vrom = FALSE;
-
-
     if (ROM_PRG_ROM_PAGES == 1) gnrom_prg_mask = 1;
     else if (ROM_PRG_ROM_PAGES == 2) gnrom_prg_mask = 2;
     else if (ROM_PRG_ROM_PAGES <= 4) gnrom_prg_mask = 4;

@@ -35,9 +35,6 @@ All rights reserved.  See 'LICENSE' for details.
 #include "timing.h"
 
 
-int mmc_no_vrom = FALSE;
-
-
 int mmc_disable_sram = FALSE;
 
 int mmc_disable_irqs = FALSE;
@@ -139,17 +136,12 @@ int mmc_init (void)
                 {
                     ppu_set_ram_1k_pattern_vrom_block (index << 10, index);
                 }
-                
-
-                mmc_no_vrom = FALSE;
             }
             else
             {
                 /* No VROM is present. */
 
                 ppu_set_ram_8k_pattern_vram ();
-
-                mmc_no_vrom = TRUE;
             }
 
 

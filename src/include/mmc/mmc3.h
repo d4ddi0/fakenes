@@ -320,12 +320,6 @@ static INLINE int mmc3_init (void)
         /* No VROM is present. */
 
         ppu_set_ram_8k_pattern_vram ();
-
-        mmc_no_vrom = TRUE;
-    }
-    else
-    {
-        mmc_no_vrom = FALSE;
     }
 
 

@@ -61,8 +61,6 @@ static INLINE int aorom_init (void)
 
     ppu_set_ram_8k_pattern_vram ();
 
-    mmc_no_vrom = TRUE;
-
 
     /* Set the default mirroring. */
 

@@ -63,9 +63,6 @@ static INLINE int cnrom_init (void)
     }
 
 
-    mmc_no_vrom = FALSE;
-
-
     cnrom_reset ();
 
     mmc_write = cnrom_write;

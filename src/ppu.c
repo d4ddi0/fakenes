@@ -253,6 +253,40 @@ void ppu_cache_chr_rom_pages (void)
 }
 
 
+void ppu_cache_all_vram (void)
+{
+    int tile, num_tiles;
+
+    num_tiles = sizeof(ppu_pattern_vram) / (8 * 2);
+
+    for (tile = 0; tile < num_tiles; tile++)
+    {
+        int y;
+
+        for (y = 0; y < 8; y++)
+        {
+            UINT32 pixels0_3, pixels4_7;
+
+            pixels0_3 = tile_decode_table_plane_0
+                [(ppu_pattern_vram [tile * 16 + y]) >> 4];
+            pixels4_7 = tile_decode_table_plane_0
+                [(ppu_pattern_vram [tile * 16 + y]) & 0x0F];
+
+            pixels0_3 |= tile_decode_table_plane_1
+                [(ppu_pattern_vram [tile * 16 + y + 8]) >> 4];
+            pixels4_7 |= tile_decode_table_plane_1
+                [(ppu_pattern_vram [tile * 16 + y + 8]) & 0x0F];
+            
+
+            *(UINT32 *) (&ppu_pattern_vram_cache [((tile * 8 + y) * 8)]) =
+                pixels0_3;
+            *(UINT32 *) (&ppu_pattern_vram_cache [((tile * 8 + y) * 8) + 4]) =
+                pixels4_7;
+        }
+    }
+}
+
+
 void ppu_set_ram_1k_pattern_vram_block (UINT16 block_address, int vram_block)
 {
     ppu_vram_block [block_address >> 10] = vram_block;
@@ -572,16 +606,16 @@ void ppu_reset (void)
     int i;
 
     memset (ppu_pattern_vram, NULL, sizeof (ppu_pattern_vram));
-    memset (ppu_pattern_vram_cache, NULL, sizeof (ppu_pattern_vram_cache));
+    memset (ppu_name_table_vram, NULL, sizeof (ppu_name_table_vram));
+    memset (ppu_spr_ram, NULL, sizeof (ppu_spr_ram));
+
+
+    ppu_cache_all_vram ();
 
     for (i = 0; i < FIRST_VROM_BLOCK; i++)
     {
         clear_vram_set (i);
     }
-
-    memset (ppu_name_table_vram, NULL, sizeof (ppu_name_table_vram));
-
-    memset (ppu_spr_ram, NULL, sizeof (ppu_spr_ram));
 
 
     vram_address = 0;
@@ -615,11 +649,6 @@ void ppu_reset (void)
     sprite_tileset = 0;
 
     ppu_clear ();
-
-    if (mmc_no_vrom)
-    {
-        ppu_set_ram_8k_pattern_vram();
-    }
 }
 
 

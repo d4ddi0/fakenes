@@ -67,8 +67,6 @@ static INLINE int unrom_init (void)
 
     ppu_set_ram_8k_pattern_vram ();
 
-    mmc_no_vrom = TRUE;
-
 
     unrom_reset ();
 
