@@ -705,10 +705,12 @@ void ppu_clear (void)
 
     first_line_this_frame = TRUE;
     vram_address_start_new_frame();
+}
 
 
-    rectfill (video_buffer, 0, 0,
-        255, 239, ppu_background_palette [0]);
+void ppu_start_render (void)
+{
+    clear_to_color (video_buffer, ppu_background_palette [0]);
 
     ppu_render_low_sprites ();
 }
@@ -864,7 +866,7 @@ void ppu_vblank (void)
 static void ppu_render_high_sprites (void);
 
 
-void ppu_render (void)
+void ppu_end_render (void)
 {
     ppu_render_high_sprites ();
 

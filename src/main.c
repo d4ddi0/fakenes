@@ -468,7 +468,10 @@ int main (int argc, char * argv [])
             if (redraw_flag)
             {
                 /* Perform a full render. */
-    
+
+                ppu_start_render ();
+
+
                 if (machine_type == MACHINE_TYPE_NTSC)
                 {
                     /* Use NTSC timing. */
@@ -500,7 +503,7 @@ int main (int argc, char * argv [])
                         }
                         else if (line == FIRST_VBLANK_LINE)
                         {
-                            ppu_render ();
+                            ppu_end_render ();
 
                             cpu_execute (SCANLINE_CLOCKS - 1);
                         }
@@ -520,7 +523,10 @@ int main (int argc, char * argv [])
                 else
                 {
                     /* Use PAL timing. */
-    
+
+                    ppu_start_render ();
+
+
                     for (line = 0; line < TOTAL_LINES_PAL; line ++)
                     {
                         if (mmc_scanline_start)
@@ -548,7 +554,7 @@ int main (int argc, char * argv [])
                         }
                         else if (line == FIRST_VBLANK_LINE)
                         {
-                            ppu_render ();
+                            ppu_end_render ();
 
                             cpu_execute (SCANLINE_CLOCKS - 1);
                         }
