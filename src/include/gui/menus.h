@@ -1007,8 +1007,8 @@ static MENU help_menu [] =
 static MENU top_menu [] =
 { 
     {    "&Main", NIL,    main_menu, 0, NIL },
-    { "M&achine", NIL, machine_menu, 0, NIL },
     { "&Options", NIL, options_menu, 0, NIL },
+    { "M&achine", NIL, machine_menu, 0, NIL },
     { "&NetPlay", NIL, netplay_menu, 0, NIL },
     {    "&Help", NIL,    help_menu, 0, NIL },
     {        NIL, NIL,          NIL, 0, NIL }
