@@ -79,9 +79,10 @@ int papu_dithering = FALSE;
 int papu_is_recording = FALSE;
 
 
-static void * echo_buffer_a = NIL;
+#define ECHO_DEPTH  3
 
-static void * echo_buffer_b = NIL;
+
+static void * echo_buffers [ECHO_DEPTH];
 
 
 static int echo_buffer_size = 0;
@@ -112,6 +113,9 @@ void papu_update (void)
 int papu_reinit (void)
 {
     int speed;
+
+
+    int index;
 
 
     speed = (machine_type == MACHINE_TYPE_NTSC ? 60 : 50);
@@ -145,59 +149,62 @@ int papu_reinit (void)
     }
 
 
-    if (echo_buffer_a)
+    for (index = 0; index < ECHO_DEPTH; index ++)
     {
-        free (echo_buffer_a);
-    }
-
-    if (echo_buffer_b)
-    {
-        free (echo_buffer_b);
-    }
+        if (echo_buffers [index])
+        {
+            free (echo_buffers [index]);
+        }
 
 
-    echo_buffer_a = malloc (echo_buffer_size);
+        echo_buffers [index] = malloc (echo_buffer_size);
 
-    echo_buffer_b = malloc (echo_buffer_size);
 
-    if ((! echo_buffer_a) || (! echo_buffer_b))
-    {
-        return (2);
+        /* Fix me: memory leak. */
+
+        if (! echo_buffers [index])
+        {
+            return (2);
+        }
     }
 
 
     if (audio_sample_size == 16)
     {
-        int index;
+        UINT16 * buffers [ECHO_DEPTH];
 
 
-        UINT16 * buffer_a = echo_buffer_a;
-
-        UINT16 * buffer_b = echo_buffer_b;
+        int offset;
 
 
-        for (index = 0; index < (echo_buffer_size / 2); index ++)
+        for (index = 0; index < ECHO_DEPTH; index ++)
         {
-            buffer_a [index] = 0x8000;
+            buffers [index] = echo_buffers [index];
 
-            buffer_b [index] = 0x8000;
+
+            for (offset = 0; offset < (echo_buffer_size / 2); offset ++)
+            {
+                buffers [index] [offset] = 0x8000;
+            }
         }
    }
    else
    {
-        int index;
+        UINT8 * buffers [ECHO_DEPTH];
 
 
-        UINT8 * buffer_a = echo_buffer_a;
-
-        UINT8 * buffer_b = echo_buffer_b;
+        int offset;
 
 
-        for (index = 0; index < echo_buffer_size; index ++)
+        for (index = 0; index < ECHO_DEPTH; index ++)
         {
-            buffer_a [index] = 0x80;
+            buffers [index] = echo_buffers [index];
 
-            buffer_b [index] = 0x80;
+
+            for (offset = 0; offset < echo_buffer_size; offset ++)
+            {
+                buffers [index] [offset] = 0x80;
+            }
         }
    }
 
@@ -269,17 +276,18 @@ int papu_init (void)
 
 void papu_exit (void)
 {
+    int index;
+
+
     apu_destroy (&default_apu);
 
 
-    if (echo_buffer_a)
+    for (index = 0; index < ECHO_DEPTH; index ++)
     {
-        free (echo_buffer_a);
-    }
-
-    if (echo_buffer_b)
-    {
-        free (echo_buffer_b);
+        if (echo_buffers [index])
+        {
+            free (echo_buffers [index]);
+        }
     }
 
 
@@ -353,30 +361,45 @@ void papu_clear_exsound (void)
 
 static INLINE void apply_echo (void)
 {
-    int offset;
+    int index;
 
 
     UINT8 * buffer = audio_buffer;
 
 
-    UINT8 * buffer_a = echo_buffer_a;
-
-    UINT8 * buffer_b = echo_buffer_b;
+    UINT8 * buffers [ECHO_DEPTH];
 
 
-    for (offset = 0; offset < echo_buffer_size; offset ++)
+    int offset;
+
+
+    for (index = 0; index < ECHO_DEPTH; index ++)
     {
-        buffer_b [offset] /= 2;
-
-        buffer_b [offset] += (buffer_a [offset] / 2);
+        buffers [index] = echo_buffers [index];
     }
 
 
     for (offset = 0; offset < echo_buffer_size; offset ++)
     {
-        buffer [offset] /= 2;
+        int accumulator;
 
-        buffer [offset] += (buffer_b [offset] / 2);
+
+        for (index = 0; index < ECHO_DEPTH; index ++)
+        {
+            if (index == 0)
+            {
+                accumulator = buffers [index] [offset];
+            }
+            else
+            {
+                accumulator /= 3;
+    
+                accumulator += ((buffers [index] [offset] / 3) * 2);
+            }
+        }
+
+
+        buffer [offset] = accumulator;
     }
 }
 
@@ -420,12 +443,13 @@ static int frames = 0;
 
 static int fast_forward = FALSE;
 
-static int current_buffer = 0;
-
 
 void papu_process (void)
 {
     int speed;
+
+
+    int index;
 
 
     speed = (machine_type == MACHINE_TYPE_NTSC ? 60 : 50);
@@ -489,21 +513,16 @@ void papu_process (void)
 
             if (papu_linear_echo)
             {
+                for (index = 1; index < ECHO_DEPTH; index ++)
+                {
+                    memcpy (echo_buffers [(index - 1)], echo_buffers [index], echo_buffer_size);
+                }
+
+
+                memcpy (echo_buffers [(ECHO_DEPTH - 1)], audio_buffer, echo_buffer_size);
+
+
                 apply_echo ();
-
-
-                if (current_buffer == 1)
-                {
-                    memcpy (echo_buffer_a, audio_buffer, echo_buffer_size);
-  
-                    current_buffer = 0;
-                }
-                else
-                {
-                    memcpy (echo_buffer_b, audio_buffer, echo_buffer_size);
-  
-                    current_buffer = 1;
-                }
             }
 
 
