@@ -25,6 +25,8 @@ You must read and accept the license prior to use.
 #include <string.h>
 
 
+#include "audio.h"
+
 #include "gui.h"
 
 #include "input.h"
@@ -885,6 +887,9 @@ int input_process (void)
 
                 if (want_exit && rom_is_loaded)
                 {
+                    audio_suspend ();
+
+
                     if (alert ("- Confirmation -", NIL, "A ROM is currently loaded.  Really exit?", "&OK", "&Cancel", 0, 0) == 2)
                     {
                         want_exit = FALSE;
@@ -892,6 +897,9 @@ int input_process (void)
 
                         gui_needs_restart = TRUE;
                     }
+
+
+                    audio_resume ();
                 }
 
 
