@@ -308,7 +308,7 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (options_video_filters_menu, 0, (video_get_filter_list () & VIDEO_FILTER_SCANLINES));
 
 
-    TOGGLE_MENU (options_video_menu, 4, video_enable_vsync);
+    TOGGLE_MENU (options_video_menu, 6, video_enable_vsync);
 
 
     TOGGLE_MENU (options_video_layers_menu, 0, ppu_enable_sprite_layer_a);
