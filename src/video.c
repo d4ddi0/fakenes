@@ -160,7 +160,7 @@ int video_init (void)
 
     screen_buffer = create_bitmap (SCREEN_W, SCREEN_H);
 
-    status_buffer = create_sub_bitmap (screen_buffer, 0, (SCREEN_H - 128), 64, 128);
+    status_buffer = create_sub_bitmap (screen_buffer, 0, (SCREEN_H - 128), 72, 128);
 
     clear (screen_buffer);
 
