@@ -213,7 +213,7 @@ void video_blit (void)
     }
 
 
-    if (input_enable_zapper)
+    if ((input_enable_zapper) && (rom_is_loaded))
     {
         if ((mouse_x < 256) && (mouse_y < 240))
         {
