@@ -55,7 +55,7 @@ apu.o: apu.c include/apu.h include/apu_ex.h include/cpu.h include/misc.h \
 
 audio.o: audio.c include/audio.h include/misc.h include/timing.h
 
-core.o : core.c include/core.h include/core/tables.h
+core.o : core.c include/core.h include/core/tables.h include/core/codes.h
 
 cpu.o : cpu.c include/cpu.h include/core.h include/input.h include/misc.h \
         include/mmc.h include/papu.h include/ppu.h include/rom.h
