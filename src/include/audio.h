@@ -46,6 +46,9 @@ int audio_init (void);
 void audio_exit (void);
 
 
+void audio_update (void);
+
+
 void audio_start (void);
 
 void audio_stop (void);

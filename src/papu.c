@@ -229,6 +229,8 @@ void papu_process_frame (void)
     }
     else
     {
+        audio_update ();
+
         frame_counter ++;
     }
 }
