@@ -529,6 +529,8 @@ int main (int argc, char * argv [])
 
                 for (ppu_scanline = 0; ppu_scanline <= ppu_frame_last_line; ppu_scanline ++)
                 {
+                    cpu_start_new_scanline ();
+
                     if (mmc_scanline_start)
                     {
                         if (! mmc_disable_irqs)
@@ -579,6 +581,8 @@ int main (int argc, char * argv [])
 
                 for (ppu_scanline = 0; ppu_scanline <= ppu_frame_last_line; ppu_scanline ++)
                 {
+                    cpu_start_new_scanline ();
+
                     if (mmc_scanline_start)
                     {
                         if (! mmc_disable_irqs)

@@ -340,16 +340,26 @@ int cpu_execute (int cycles)
 }
 
 
-int cpu_get_cycles_line (void)
+static int scanline_start_cycle;
+
+void cpu_start_new_scanline (void)
 {
-    return (cpu_context.IPeriod - cpu_context.ICount) / 3;
+    scanline_start_cycle = cpu_context.Cycles + cpu_context.ICount;
 }
+
 
 void cpu_consume_cycles (int cycles)
 {
-    cpu_context.ICount -= cycles * 3;
-    cpu_context.Cycles += cycles * 3;
+    cpu_context.ICount -= cycles * CYCLE_LENGTH;
+    cpu_context.Cycles += cycles * CYCLE_LENGTH;
 }
+
+
+int cpu_get_cycles_line (void)
+{
+    return (cpu_context.Cycles - scanline_start_cycle) / CYCLE_LENGTH;
+}
+
 
 int cpu_get_cycles (int reset)
 {
@@ -362,7 +372,7 @@ int cpu_get_cycles (int reset)
     }
 
 
-    return (cycles / 3);
+    return (cycles / CYCLE_LENGTH);
 }
 
 
