@@ -28,18 +28,17 @@ const MMC mmc_mmc1 =
 };
 
 
-static int mmc1_bit_stream;
+static UINT8 mmc1_bit_stream;
+static UINT8 mmc1_bit_counter;
 
-static int mmc1_bit_counter;
 
+static UINT8 mmc1_register[4];
 
-static int mmc1_register[4];
+static UINT8 mmc1_previous_register = 0x0000;
 
-static int mmc1_previous_register = 0x0000;
+static UINT8 mmc1_256k_bank_num;
 
-static int mmc1_256k_bank_num;
-
-static int mmc1_cpu_bank[2];
+static UINT8 mmc1_cpu_bank[2];
 
 
 #define MMC1_MIRRORING_ADDRESS_BIT  1
@@ -54,10 +53,64 @@ static int mmc1_cpu_bank[2];
 #define MMC1_256K_SELECT_1_BIT      0x10
 
 
-static INLINE void mmc1_cpu_bank_sort (void)
+static INLINE void mmc1_update_prg_banking (void)
 {
   cpu_set_read_address_16k_rom_block (0x8000, (mmc1_256k_bank_num * (256 / 16)) + mmc1_cpu_bank[0]);
   cpu_set_read_address_16k_rom_block (0xC000, (mmc1_256k_bank_num * (256 / 16)) + mmc1_cpu_bank[1]);
+}
+
+
+static INLINE void mmc1_update_prg_bank_select (void)
+{
+    if (mmc1_register[0] & MMC1_PRG_BANK_SIZE_BIT)
+    /* 16k PRG banking? */
+    {
+        int mmc1_bank_number = mmc1_register[3] & 0x0F;
+
+        if (mmc1_register[0] & MMC1_PRG_BANK_SELECT_BIT)
+        /* 8000-BFFF PRG banking? */
+        {
+            mmc1_cpu_bank [0] = mmc1_bank_number;
+            mmc1_cpu_bank [1] = (ROM_PRG_ROM_PAGES - 1) & 0x0F;
+        }
+        else
+        /* No, C000-FFFF PRG banking */
+        {
+            mmc1_cpu_bank [0] = 0;
+            mmc1_cpu_bank [1] = mmc1_bank_number;
+        }
+    }
+    else
+    /* No, 32k PRG banking */
+    {
+        int mmc1_bank_number = (mmc1_register[3] & 0x0F & ~1);
+
+        mmc1_cpu_bank [0] = mmc1_bank_number;
+        mmc1_cpu_bank [1] = mmc1_bank_number + 1;
+    }
+}
+
+
+void mmc1_update_256k_prg_banking (void)
+{
+    /* Handle >256K addressing */
+    if (mmc1_register[0] & MMC1_USE_256K_SELECT_1_BIT)
+    {
+        mmc1_256k_bank_num =
+            (mmc1_register[1] & MMC1_256K_SELECT_0_BIT) >> 4;
+        if (mmc1_register[0] & MMC1_PRG_BANK_SIZE_BIT)    /* Er...? */
+        {
+            mmc1_256k_bank_num |=
+                ((mmc1_register[2] & MMC1_256K_SELECT_1_BIT) >> 3);
+        }
+    }
+    else
+    {
+        mmc1_256k_bank_num =
+            (mmc1_register[1] & MMC1_256K_SELECT_0_BIT) ? 3 : 0;
+    }
+
+    mmc1_update_prg_banking();
 }
 
 
@@ -73,7 +126,7 @@ static void mmc1_set_register_value (unsigned address, UINT8 value)
             if (mmc1_register[0] & MMC1_MIRRORING_MODE_BIT)  
             /* standard h/v mirroring? */
             {
-		/* which way then? */
+                /* which way? */
                 ppu_set_mirroring (
                     (mmc1_register[0] & MMC1_MIRRORING_ADDRESS_BIT) ?
                     MIRRORING_HORIZONTAL : MIRRORING_VERTICAL);
@@ -81,60 +134,20 @@ static void mmc1_set_register_value (unsigned address, UINT8 value)
 	    else
             /* one-screen mirroring */
             {
-	        /* which page then? */
+                /* which page? */
                 ppu_set_mirroring (
                     (mmc1_register[0] & MMC1_MIRRORING_ADDRESS_BIT) ?
                     MIRRORING_ONE_SCREEN_2400 : MIRRORING_ONE_SCREEN_2000);
             }
 
-            if (mmc1_register[0] & MMC1_PRG_BANK_SIZE_BIT)
-            /* 16k PRG banking? */
-            {
-                int mmc1_bank_number = mmc1_register[3] & 0x0F;
+            mmc1_update_prg_bank_select();
 
-                if (mmc1_register[0] & MMC1_PRG_BANK_SELECT_BIT)
-                /* 8000-BFFF PRG banking? */
-                {
-                    mmc1_cpu_bank [0] = mmc1_bank_number;
-                    mmc1_cpu_bank [1] = (ROM_PRG_ROM_PAGES - 1) & 0x0F;
-                }
-                else
-                /* No, C000-FFFF PRG banking */
-                {
-                    mmc1_cpu_bank [0] = 0;
-                    mmc1_cpu_bank [1] = mmc1_bank_number;
-                }
-            }
-            else
-            /* No, 32k PRG banking */
-            {
-                int mmc1_bank_number = (mmc1_register[3] & ~1);
-
-                mmc1_cpu_bank [0] = mmc1_bank_number & 0x0F;
-                if (ROM_CHR_ROM_PAGES <= 16)
-                {
-                    mmc1_cpu_bank [1] = (mmc1_bank_number + 1) & 0x0F;
-                }
-            }
 
             /* Handle >256K addressing */
-            if (mmc1_register[0] & MMC1_USE_256K_SELECT_1_BIT)
-            {
-                mmc1_256k_bank_num =
-                    (mmc1_register[1] & MMC1_256K_SELECT_0_BIT) >> 4;
-                if (mmc1_register[0] & MMC1_PRG_BANK_SIZE_BIT)    /* Er...? */
-                {
-                    mmc1_256k_bank_num |=
-                        ((mmc1_register[2] & MMC1_256K_SELECT_1_BIT) >> 3);
-                }
-            }
-            else
-            {
-                mmc1_256k_bank_num =
-                    (mmc1_register[1] & MMC1_256K_SELECT_0_BIT) ? 3 : 0;
-            }
+            mmc1_update_256k_prg_banking();
 
-            mmc1_cpu_bank_sort();
+            mmc1_update_prg_banking();
+
 
             if (ROM_CHR_ROM_PAGES > 0)
             {
@@ -190,29 +203,16 @@ static void mmc1_set_register_value (unsigned address, UINT8 value)
                         mmc1_bank_number + 7);
                 }
             }
-            return;
+
+            break;
         }
 	
 	case 1:
         {
             /* Handle >256K addressing */
-            if (mmc1_register[0] & MMC1_USE_256K_SELECT_1_BIT)
-            {
-                mmc1_256k_bank_num =
-                    (mmc1_register[1] & MMC1_256K_SELECT_0_BIT) >> 4;
-                if (mmc1_register[0] & MMC1_PRG_BANK_SIZE_BIT)    /* Er...? */
-                {
-                    mmc1_256k_bank_num |=
-                        ((mmc1_register[2] & MMC1_256K_SELECT_1_BIT) >> 3);
-                }
-            }
-            else
-            {
-                mmc1_256k_bank_num =
-                    (mmc1_register[1] & MMC1_256K_SELECT_0_BIT) ? 3 : 0;
-            }
+            mmc1_update_256k_prg_banking();
 
-            mmc1_cpu_bank_sort();
+            mmc1_update_prg_banking();
 
             if (ROM_CHR_ROM_PAGES > 0)
             {
@@ -255,33 +255,18 @@ static void mmc1_set_register_value (unsigned address, UINT8 value)
                         mmc1_bank_number + 7);
                 }
             }
-            else
-            {
-                return;
-            }
+
+            break;
         }
 
         case 2:
         {
             int mmc1_bank_number = mmc1_register[2];
-            /* Handle >256K addressing */
-            if (mmc1_register[0] & MMC1_USE_256K_SELECT_1_BIT)
-            {
-                mmc1_256k_bank_num =
-                    (mmc1_register[1] & MMC1_256K_SELECT_0_BIT) >> 4;
-                if (mmc1_register[0] & MMC1_PRG_BANK_SIZE_BIT)    /* Er...? */
-                {
-                    mmc1_256k_bank_num |=
-                        ((mmc1_register[2] & MMC1_256K_SELECT_1_BIT) >> 3);
-                }
-            }
-            else
-            {
-                mmc1_256k_bank_num =
-                    (mmc1_register[1] & MMC1_256K_SELECT_0_BIT) ? 3 : 0;
-            }
 
-            mmc1_cpu_bank_sort();
+            /* Handle >256K addressing */
+            mmc1_update_256k_prg_banking();
+
+            mmc1_update_prg_banking();
 
             if (ROM_CHR_ROM_PAGES == 0)
             {
@@ -304,44 +289,17 @@ static void mmc1_set_register_value (unsigned address, UINT8 value)
                     mmc1_bank_number + 3);
             }
 
-            return;
+            break;
         }
 
         case 3:
         {
-            if (mmc1_register[0] & MMC1_PRG_BANK_SIZE_BIT)
-            /* 16k PRG banking? */
-            {
-                int mmc1_bank_number = mmc1_register[3] & 0x0F;
+            mmc1_update_prg_bank_select();
 
-                if (mmc1_register[0] & MMC1_PRG_BANK_SELECT_BIT)
-                /* 8000-BFFF PRG banking? */
-                {
-                    mmc1_cpu_bank [0] = mmc1_bank_number;
-                    mmc1_cpu_bank [1] = (ROM_PRG_ROM_PAGES - 1) & 0x0F;
-                }
-                else
-                /* No, C000-FFFF PRG banking */
-                {
-                    mmc1_cpu_bank [0] = 0;
-                    mmc1_cpu_bank [1] = mmc1_bank_number;
-                }
-            }
-            else
-            /* No, 32k PRG banking */
-            {
-                int mmc1_bank_number = (mmc1_register[3] & ~1);
+            mmc1_update_prg_banking();
 
-                mmc1_cpu_bank [0] = mmc1_bank_number & 0x0F;
-                if (ROM_CHR_ROM_PAGES <= 16)
-                {
-                    mmc1_cpu_bank [1] = (mmc1_bank_number + 1) & 0x0F;
-                }
-            }
-
-            mmc1_cpu_bank_sort();
+            break;
         }
-    return;
     }
 }
 
@@ -387,24 +345,12 @@ static void mmc1_reset (void)
 {
     int index;
 
-    mmc1_register[0]=0x0c;
-    mmc1_register[1]=0x00;
-    mmc1_register[2]=0x00;
-    mmc1_register[3]=0x00;
-
-    mmc1_256k_bank_num = 0;
-
     /* Select first 16k page in lower 16k. */
-
-    mmc1_cpu_bank [0] = 0;
-
-
     /* Select last 16k page in upper 16k. */
-
-    mmc1_cpu_bank [1] = (ROM_PRG_ROM_PAGES - 1) & 0x0F;
-
-    
-    mmc1_cpu_bank_sort();
+    mmc1_set_register_value (0, 0x0C);
+    mmc1_set_register_value (1, 0x00);
+    mmc1_set_register_value (2, 0x00);
+    mmc1_set_register_value (3, 0x00);
 
 
     if (ROM_CHR_ROM_PAGES)
