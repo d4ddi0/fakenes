@@ -72,7 +72,7 @@ static int bandai_irq_tick (int line)
         bandai_irq_counter -= PSEUDO_CLOCKS_PER_SCANLINE;
 
 
-        if (bandai_irq_counter <= PSEUDO_CLOCKS_PER_SCANLINE)
+        if (bandai_irq_counter <= 0)
         {
             bandai_irq_counter = 0;
 
@@ -218,7 +218,7 @@ static int bandai_init (void)
 
     /* Install IRQ tick handler. */
 
-    // mmc_scanline_end = bandai_irq_tick;
+    mmc_scanline_end = bandai_irq_tick;
 
 
     return (0);
