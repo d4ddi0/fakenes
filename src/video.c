@@ -117,6 +117,9 @@ static int preserve_palette = FALSE;
 static PALETTE internal_palette;
 
 
+static RGB * last_palette = NULL;
+
+
 int video_init (void)
 {
     int driver;
@@ -1119,6 +1122,12 @@ void video_handle_keypress (int index)
             }
 
 
+            vsync ();
+
+
+            clear (screen);
+
+
             break;
 
 
@@ -1132,6 +1141,40 @@ void video_handle_keypress (int index)
             {
                 image_offset_y -= 8;
             }
+
+
+            vsync ();
+
+
+            clear (screen);
+
+
+            break;
+
+
+        case KEY_COMMA:
+
+            if (light_adjustment > -63)
+            {
+                light_adjustment --;
+            }
+
+
+            video_set_palette (last_palette);
+
+
+            break;
+
+
+        case KEY_STOP:
+
+            if (light_adjustment < 63)
+            {
+                light_adjustment ++;
+            }
+
+
+            video_set_palette (last_palette);
 
 
             break;
@@ -1157,6 +1200,9 @@ void video_handle_keypress (int index)
 void video_set_palette (RGB * palette)
 {
     int index;
+
+
+    last_palette = palette;
 
 
     memcpy (internal_palette, palette, sizeof (internal_palette));
