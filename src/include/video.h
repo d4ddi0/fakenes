@@ -25,7 +25,7 @@ You must read and accept the license prior to use.
 #include "misc.h"
 
 
-#define MAX_MESSAGES        4
+#define MAX_MESSAGES        10
 
 
 #define MAX_MESSAGE_LENGTH  100
