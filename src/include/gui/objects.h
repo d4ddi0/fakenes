@@ -139,12 +139,12 @@ int sl_frame (int message, DIALOG * dialog, int key)
                     int shade;
 
 
-                    if (dialog -> w > 64)
+                    int y_offset;
+    
+    
+                    for (y_offset = y; y_offset <= y2; y_offset ++)
                     {
-                        int y_offset;
-        
-        
-                        for (y_offset = y; y_offset <= y2; y_offset ++)
+                        if (video_get_color_depth () == 8)
                         {
                             if (((pixel % 2) && (y_offset % 2)) && ((pixel + 1) < dialog -> w))
                             {
@@ -158,17 +158,24 @@ int sl_frame (int message, DIALOG * dialog, int key)
                             {
                                 shade = (191 - ((pixel * 128) / dialog -> w));
                             }
-        
-        
+
+
                             putpixel (screen, (x + pixel), y_offset, makecol (shade, shade, shade));
                         }
-                    }
-                    else
-                    {
-                        shade = (191 - ((pixel * 128) / dialog -> w));
-    
-    
-                        vline (screen, (x + pixel), y, y2, makecol (shade, shade, shade));
+                        else
+                        {
+                            shade = (191 - ((pixel * 128) / dialog -> w));
+
+
+                            if (video_get_color_depth () == 16)
+                            {
+                                putpixel (screen, (x + pixel), y_offset, makecol16_dither (shade, shade, shade, (x + pixel), y_offset));
+                            }
+                            else
+                            {
+                                putpixel (screen, (x + pixel), y_offset, makecol15_dither (shade, shade, shade, (x + pixel), y_offset));
+                            }
+                        }
                     }
                 }
 
@@ -315,12 +322,12 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
                 int shade;
 
 
-                if (width > 64)
+                int y_offset;
+
+
+                for (y_offset = y; y_offset <= (y + (text_height (font) + 3)); y_offset ++)
                 {
-                    int y_offset;
-    
-    
-                    for (y_offset = y; y_offset <= (y + (text_height (font) + 3)); y_offset ++)
+                    if (video_get_color_depth () == 8)
                     {
                         if (((pixel % 2) && (y_offset % 2)) && ((pixel + 1) < width))
                         {
@@ -338,13 +345,20 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
     
                         putpixel (screen, (x + pixel), y_offset, makecol (shade, shade, shade));
                     }
-                }
-                else
-                {
-                    shade = (191 - ((pixel * 128) / width));
+                    else
+                    {
+                        shade = (191 - ((pixel * 128) / width));
 
 
-                    vline (screen, (x + pixel), y, (y + (text_height (font) + 3)), makecol (shade, shade, shade));
+                        if (video_get_color_depth () == 16)
+                        {
+                            putpixel (screen, (x + pixel), y_offset, makecol16_dither (shade, shade, shade, (x + pixel), y_offset));
+                        }
+                        else
+                        {
+                            putpixel (screen, (x + pixel), y_offset, makecol15_dither (shade, shade, shade, (x + pixel), y_offset));
+                        }
+                    } 
                 }
             }
         }
@@ -398,12 +412,12 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
                 int shade;
 
 
-                if (width > 64)
+                int y_offset;
+
+
+                for (y_offset = y; y_offset <= (y + (text_height (font) + 3)); y_offset ++)
                 {
-                    int y_offset;
-    
-    
-                    for (y_offset = y; y_offset <= (y + (text_height (font) + 3)); y_offset ++)
+                    if (video_get_color_depth () == 8)
                     {
                         if (((pixel % 2) && (y_offset % 2)) && ((pixel + 1) < width))
                         {
@@ -421,13 +435,20 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
     
                         putpixel (screen, (x + pixel), y_offset, makecol (shade, shade, shade));
                     }
-                }
-                else
-                {
-                    shade = (191 - ((pixel * 128) / width));
+                    else
+                    {
+                        shade = (191 - ((pixel * 128) / width));
 
 
-                    vline (screen, (x + pixel), y, (y + (text_height (font) + 3)), makecol (shade, shade, shade));
+                        if (video_get_color_depth () == 16)
+                        {
+                            putpixel (screen, (x + pixel), y_offset, makecol16_dither (shade, shade, shade, (x + pixel), y_offset));
+                        }
+                        else
+                        {
+                            putpixel (screen, (x + pixel), y_offset, makecol15_dither (shade, shade, shade, (x + pixel), y_offset));
+                        }
+                    } 
                 }
             }
         }

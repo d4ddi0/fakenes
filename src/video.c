@@ -52,6 +52,9 @@ static BITMAP * status_buffer = NULL;
 static BITMAP * mouse_sprite_remove_buffer = NULL;
 
 
+static BITMAP * stretch_buffer = NULL;
+
+
 int video_display_status = FALSE;
 
 int video_enable_vsync = FALSE;
@@ -63,6 +66,9 @@ int video_force_window = FALSE;
 static int screen_height = 0;
 
 static int screen_width = 0;
+
+
+static int color_depth = 0;
 
 
 static int stretch_width = 0;
@@ -116,6 +122,9 @@ int video_init (void)
     screen_height = get_config_int ("video", "screen_height", 240);
 
 
+    color_depth = get_config_int ("video", "color_depth", 8);
+
+
     video_force_window = get_config_int ("video", "force_window", FALSE);
 
 
@@ -150,11 +159,23 @@ int video_init (void)
     driver = (video_force_window ? GFX_AUTODETECT_WINDOWED : GFX_AUTODETECT);
 
 
-    set_color_depth (8);
+    if ((color_depth != 8) && (color_depth != 15) && (color_depth != 16))
+    {
+        return (1);
+    }
+
+
+    set_color_depth (color_depth);
 
     if (set_gfx_mode (driver, screen_width, screen_height, 0, 0) != 0)
     {
-        return (1);
+        return (2);
+    }
+
+
+    if (color_depth != 8)
+    {
+        set_color_conversion (COLORCONV_TOTAL);
     }
 
 
@@ -165,7 +186,7 @@ int video_init (void)
     clear (screen_buffer);
 
 
-    mouse_sprite_remove_buffer = create_bitmap (16, 16);
+    mouse_sprite_remove_buffer = create_bitmap_ex (8, 16, 16);
 
 
 
@@ -178,7 +199,7 @@ int video_init (void)
 
     if (! preserve_video_buffer)
     {
-        base_video_buffer = create_bitmap (((8 + 256) + 8), ((16 + 240) + 16));
+        base_video_buffer = create_bitmap_ex (8, ((8 + 256) + 8), ((16 + 240) + 16));
     
         video_buffer = create_sub_bitmap (base_video_buffer, 8, 16, 256, 240);
     
@@ -263,6 +284,15 @@ void video_exit (void)
     destroy_bitmap (mouse_sprite_remove_buffer);
 
 
+    if (stretch_buffer)
+    {
+        destroy_bitmap (stretch_buffer);
+
+
+        stretch_buffer = NULL;
+    }
+
+
     if (! preserve_video_buffer)
     {
         destroy_bitmap (video_buffer);
@@ -274,6 +304,9 @@ void video_exit (void)
     set_config_int ("video", "screen_width", screen_width);
 
     set_config_int ("video", "screen_height", screen_height);
+
+
+    set_config_int ("video", "color_depth", color_depth);
 
 
     set_config_int ("video", "force_window", video_force_window);
@@ -714,6 +747,170 @@ static INLINE void blit_2xscl (BITMAP * source, BITMAP * target, int x, int y)
 }
 
 
+#define FAST_PUTPIXEL16(bitmap, x, y, color)    (((UINT16 *) bitmap -> line [y]) [x] = color)
+
+
+static INLINE int half (int color)
+{
+    int r;
+
+    int g;
+
+    int b;
+
+
+    /* 0 - 63 --> 0 - 127. */
+
+    r = (internal_palette [color].r * 2);
+
+    g = (internal_palette [color].g * 2);
+
+    b = (internal_palette [color].b * 2);
+
+
+    return (makecol (r, g, b));
+}
+
+
+static INLINE void blit_super_2xscl (BITMAP * source, BITMAP * target, int x, int y)
+{
+    int x_base;
+
+    int y_base;
+
+
+    int x_offset;
+
+    int y_offset;
+
+
+    int center_pixel;
+
+
+    int north_pixel;
+
+    int south_pixel;
+
+
+    int east_pixel;
+
+    int west_pixel;
+
+
+    if ((target -> w < (source -> w * 2)) || (target -> h < (source -> h * 2)))
+    {
+        /* Center error message on target. */
+
+        y += ((source -> h / 2) - (((text_height (font) * 2) + (text_height (font) / 2)) / 2));
+
+
+        textout (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_RED);
+
+
+        textprintf (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),
+            VIDEO_COLOR_RED, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
+
+
+        return;
+    }
+
+
+    for (y_offset = 0; y_offset < source -> h; y_offset ++)
+    {
+        y_base = (y + (y_offset * 2));
+
+
+        for (x_offset = 0; x_offset < source -> w; x_offset ++)
+        {
+            x_base = (x + (x_offset * 2));
+
+
+            center_pixel = palette_color [FAST_GETPIXEL (source, x_offset, y_offset)];
+
+
+            if (x_base == 0)
+            {
+                west_pixel = center_pixel;
+            }
+            else
+            {
+                west_pixel = palette_color [FAST_GETPIXEL (source, (x_offset - 1), y_offset)];
+            }
+        
+
+            if ((x_offset + 1) >= source -> w)
+            {
+                east_pixel = center_pixel;
+            }
+            else
+            {
+                east_pixel = palette_color [FAST_GETPIXEL (source, (x_offset + 1), y_offset)];
+            }
+	
+
+            if ((y_offset + 1) >= source -> h)
+            {
+                south_pixel = center_pixel;
+            }
+            else
+            {
+                south_pixel = palette_color [FAST_GETPIXEL (source, x_offset, (y_offset + 1))];
+            }
+	
+
+            if (y_base == 0)
+            {
+                north_pixel = center_pixel;
+            }
+            else
+            {
+                north_pixel = FAST_GETPIXEL (source, x_offset, (y_offset - 1));
+            }
+
+
+            if ((west_pixel == north_pixel) && (north_pixel != east_pixel) && (west_pixel != south_pixel))
+            {
+                FAST_PUTPIXEL16 (target, x_base, y_base, west_pixel);
+            }
+            else
+            {
+                FAST_PUTPIXEL16 (target, x_base, y_base, center_pixel);
+            }
+
+
+            if ((north_pixel == east_pixel) && (north_pixel != west_pixel) && (east_pixel != south_pixel))
+            {
+                FAST_PUTPIXEL16 (target, (x_base + 1), y_base, east_pixel);
+            }
+            else
+            {
+                FAST_PUTPIXEL16 (target, (x_base + 1), y_base, center_pixel);
+            }
+
+
+            if ((west_pixel == south_pixel) && (west_pixel != north_pixel) && (south_pixel != east_pixel))
+            {
+                FAST_PUTPIXEL16 (target, x_base, (y_base + 1), west_pixel);
+            }
+            else
+            {
+                FAST_PUTPIXEL16 (target, x_base, (y_base + 1), center_pixel);
+            }
+
+
+            if ((south_pixel == east_pixel) && (west_pixel != south_pixel) && (north_pixel != east_pixel))
+            {
+                FAST_PUTPIXEL16 (target, (x_base + 1), (y_base + 1), east_pixel);
+            }
+            else
+            {
+                FAST_PUTPIXEL16 (target, (x_base + 1), (y_base + 1), center_pixel);
+            }
+        }
+    }
+}
+
+
 void video_blit (BITMAP * bitmap)
 {
     BITMAP * source_buffer;
@@ -745,8 +942,20 @@ void video_blit (BITMAP * bitmap)
 
         case VIDEO_BLITTER_STRETCHED:
 
-            stretch_blit (video_buffer, screen_buffer, 0, first_blit_line, 256, (last_blit_line + 1),
-                blit_x_offset, blit_y_offset, stretch_width, stretch_height);
+            /* See comment in video_set_blitter(). */
+
+            if (color_depth != 8)
+            {
+                blit (video_buffer, stretch_buffer, 0, 0, 0, 0, 256, 240);
+
+                stretch_blit (stretch_buffer, screen_buffer, 0, first_blit_line, 256, (last_blit_line + 1),
+                    blit_x_offset, blit_y_offset, stretch_width, stretch_height);
+            }
+            else
+            {
+                stretch_blit (video_buffer, screen_buffer, 0, first_blit_line, 256, (last_blit_line + 1),
+                    blit_x_offset, blit_y_offset, stretch_width, stretch_height);
+            }
 
 
             break;
@@ -763,6 +972,14 @@ void video_blit (BITMAP * bitmap)
         case VIDEO_BLITTER_2XSCL:
 
             blit_2xscl (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
+
+
+            break;
+
+
+        case VIDEO_BLITTER_SUPER_2XSCL:
+
+            blit_super_2xscl (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
 
 
             break;
@@ -926,12 +1143,28 @@ void video_set_blitter (int blitter)
             blit_y_offset = ((SCREEN_H / 2) - (stretch_height / 2));
 
 
+            /* Yuck, no color conversion in stretch_blit! */
+
+            if (color_depth != 8)
+            {
+                if (stretch_buffer)
+                {
+                    destroy_bitmap (stretch_buffer);
+                }
+
+
+                stretch_buffer = create_bitmap (256, 240);
+            }
+
+
             break;
 
 
         case VIDEO_BLITTER_2XSOE:
 
         case VIDEO_BLITTER_2XSCL:
+
+        case VIDEO_BLITTER_SUPER_2XSCL:
 
             if (! ((SCREEN_W < 512) || (SCREEN_H < 480)))
             {
@@ -1020,6 +1253,58 @@ void video_set_resolution (int width, int height)
 }
 
 
+int video_get_color_depth (void)
+{
+    return (color_depth);
+}
+
+
+void video_set_color_depth (int depth)
+{
+    int old_depth;
+
+
+    if (color_depth == depth)
+    {
+        return;
+    }
+
+
+    old_depth = color_depth;
+
+
+    color_depth = depth;
+
+
+    preserve_video_buffer = TRUE;
+
+    preserve_palette = TRUE;
+
+
+    video_exit ();
+
+
+    if (video_init () != 0)
+    {
+        color_depth = old_depth;
+
+
+        video_init ();
+    }
+
+
+    preserve_video_buffer = FALSE;
+
+    preserve_palette = FALSE;
+
+
+    if (gui_is_active)
+    {
+        unscare_mouse ();
+    }
+}
+
+
 void video_set_filter_list (int filters)
 {
     filter_list = filters;
@@ -1040,11 +1325,41 @@ void video_filter (void)
     int y;
 
 
-    if (filter_list & VIDEO_FILTER_SCANLINES)
+    if (filter_list & VIDEO_FILTER_SCANLINES_HIGH)
     {
         for (y = 0; y < screen_buffer -> h; y += 2)
         {
             hline (screen_buffer, 0, y, screen_buffer -> w, 0);
         }
+    }
+    else if (filter_list & VIDEO_FILTER_SCANLINES_MEDIUM)
+    {
+        set_trans_blender (0, 0, 0, 127);
+
+        drawing_mode (DRAW_MODE_TRANS, NULL, 0, 0);
+
+
+        for (y = 0; y < screen_buffer -> h; y += 2)
+        {
+            hline (screen_buffer, 0, y, screen_buffer -> w, 0);
+        }
+
+
+        solid_mode ();
+    }
+    else if (filter_list & VIDEO_FILTER_SCANLINES_LOW)
+    {
+        set_trans_blender (0, 0, 0, 63);
+
+        drawing_mode (DRAW_MODE_TRANS, NULL, 0, 0);
+
+
+        for (y = 0; y < screen_buffer -> h; y += 2)
+        {
+            hline (screen_buffer, 0, y, screen_buffer -> w, 0);
+        }
+
+
+        solid_mode ();
     }
 }

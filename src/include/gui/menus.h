@@ -323,6 +323,24 @@ static MENU options_video_resolution_menu [] =
 };
 
 
+static int options_video_colors_menu_few_8_bit (void);
+
+static int options_video_colors_menu_many_15_bit (void);
+
+static int options_video_colors_menu_lots_16_bit (void);
+
+
+static MENU options_video_colors_menu [] =
+{
+    {   "&Few (8-bit)",   options_video_colors_menu_few_8_bit, NULL, 0, NULL },
+    {               "",                                  NULL, NULL, 0, NULL },
+    { "&Many (15-bit)", options_video_colors_menu_many_15_bit, NULL, 0, NULL },
+    {               "",                                  NULL, NULL, 0, NULL },
+    { "&Lots (16-bit)", options_video_colors_menu_lots_16_bit, NULL, 0, NULL },
+    {             NULL,                                  NULL, NULL, 0, NULL }
+};
+
+
 static int options_video_blitter_menu_normal (void);
 
 static int options_video_blitter_menu_stretched (void);
@@ -331,27 +349,46 @@ static int options_video_blitter_menu_2xsoe (void);
 
 static int options_video_blitter_menu_2xscl (void);
 
+static int options_video_blitter_menu_super_2xscl (void);
+
 
 static MENU options_video_blitter_menu [] =
 {
-    {    "&Normal",    options_video_blitter_menu_normal, NULL, 0, NULL },
-    {           "",                                 NULL, NULL, 0, NULL },
-    { "&Stretched", options_video_blitter_menu_stretched, NULL, 0, NULL },
-    {           "",                                 NULL, NULL, 0, NULL },
-    {     "&2xSOE",     options_video_blitter_menu_2xsoe, NULL, 0, NULL },
-    {           "",                                 NULL, NULL, 0, NULL },
-    {     "2&xSCL",     options_video_blitter_menu_2xscl, NULL, 0, NULL },
-    {         NULL,                                 NULL, NULL, 0, NULL }
+    {      "&Normal",      options_video_blitter_menu_normal, NULL, 0, NULL },
+    {             "",                                   NULL, NULL, 0, NULL },
+    {   "&Stretched",   options_video_blitter_menu_stretched, NULL, 0, NULL },
+    {             "",                                   NULL, NULL, 0, NULL },
+    {       "&2xSOE",       options_video_blitter_menu_2xsoe, NULL, 0, NULL },
+    {             "",                                   NULL, NULL, 0, NULL },
+    {       "2&xSCL",       options_video_blitter_menu_2xscl, NULL, 0, NULL },
+    {             "",                                   NULL, NULL, 0, NULL },
+    { "Su&per 2xSCL", options_video_blitter_menu_super_2xscl, NULL, 0, NULL },
+    {           NULL,                                   NULL, NULL, 0, NULL }
 };
 
 
-static int options_video_filters_menu_scanlines (void);
+static int options_video_filters_scanlines_menu_high (void);
+
+static int options_video_filters_scanlines_menu_medium (void);
+
+static int options_video_filters_scanlines_menu_low (void);
+
+
+static MENU options_video_filters_scanlines_menu [] =
+{
+    {  "&High (100%)",   options_video_filters_scanlines_menu_high, NULL, 0, NULL },
+    {              "",                                        NULL, NULL, 0, NULL },
+    { "&Medium (50%)", options_video_filters_scanlines_menu_medium, NULL, 0, NULL },
+    {              "",                                        NULL, NULL, 0, NULL },
+    {    "&Low (25%)",    options_video_filters_scanlines_menu_low, NULL, 0, NULL },
+    {            NULL,                                        NULL, NULL, 0, NULL }
+};
 
 
 static MENU options_video_filters_menu [] =
 {
-    { "&Scanlines", options_video_filters_menu_scanlines, NULL, 0, NULL },
-    {         NULL,                                 NULL, NULL, 0, NULL }
+    { "&Scanlines", NULL, options_video_filters_scanlines_menu, 0, NULL },
+    {         NULL, NULL,                                 NULL, 0, NULL }
 };
 
 
@@ -419,6 +456,8 @@ static int options_video_menu_vsync (void);
 static MENU options_video_menu [] =
 {
     { "&Resolution",                       NULL, options_video_resolution_menu, 0, NULL },
+    {            "",                       NULL,                          NULL, 0, NULL },
+    {     "&Colors",                       NULL,     options_video_colors_menu, 0, NULL },
     {            "",                       NULL,                          NULL, 0, NULL },
     {    "&Blitter",                       NULL,    options_video_blitter_menu, 0, NULL },
     {            "",                       NULL,                          NULL, 0, NULL },

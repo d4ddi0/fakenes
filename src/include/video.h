@@ -23,16 +23,27 @@ extern "C" {
 #endif
 
 
-#define VIDEO_BLITTER_NORMAL        0
+enum
+{
+    VIDEO_BLITTER_NORMAL,
 
-#define VIDEO_BLITTER_STRETCHED     1
-
-#define VIDEO_BLITTER_2XSOE         2
-
-#define VIDEO_BLITTER_2XSCL         3
+    VIDEO_BLITTER_STRETCHED,
 
 
-#define VIDEO_FILTER_SCANLINES      1
+    VIDEO_BLITTER_2XSOE,
+
+
+    VIDEO_BLITTER_2XSCL,
+
+    VIDEO_BLITTER_SUPER_2XSCL
+};
+
+
+#define VIDEO_FILTER_SCANLINES_LOW      1
+
+#define VIDEO_FILTER_SCANLINES_MEDIUM   2
+
+#define VIDEO_FILTER_SCANLINES_HIGH     4
 
 
 int video_display_status;
@@ -79,6 +90,11 @@ int video_get_filter_list (void);
 
 
 void video_set_resolution (int, int);
+
+
+int video_get_color_depth (void);
+
+void video_set_color_depth (int);
 
 
 #ifdef __cplusplus
