@@ -2028,7 +2028,7 @@ boolean sync_dmc_register(UINT32 cpu_cycles)
 
 /*
 ** $Log$
-** Revision 1.6  2002/04/27 03:24:53  stainless
+** Revision 1.7  2002/04/27 03:26:47  stainless
 ** Enabled generation of DMC IRQ.
 **
 ** Revision 1.5  2002/04/05 04:39:56  stainless
