@@ -322,7 +322,7 @@ void input_reset (void)
     {
         for (index = 0; index < 8; index ++)
         {
-            buttons [player] [index] = 0x01;
+            buttons [player] [index] = 1;
         }
     }
 
@@ -370,7 +370,7 @@ UINT8 input_read (UINT16 address)
 
                 current_read_p1 ++;
 
-                return (buttons [INPUT_PLAYER_3] [index]);
+                return (buttons [INPUT_PLAYER_3] [index] | 0x40);
             }
             else if ((current_read_p1 > 15) && (current_read_p1 < 23))
             {
@@ -392,7 +392,7 @@ UINT8 input_read (UINT16 address)
             {
                 /* Player 1 button status. */
 
-                return (buttons [INPUT_PLAYER_1] [current_read_p1 ++]);
+                return (buttons [INPUT_PLAYER_1] [current_read_p1 ++] | 0x40);
             }
 
 
@@ -420,7 +420,7 @@ UINT8 input_read (UINT16 address)
 
                 current_read_p2 ++;
 
-                return ((buttons [INPUT_PLAYER_4] [index] | zapper_mask));
+                return (buttons [INPUT_PLAYER_4] [index] | zapper_mask | 0x40);
             }
             else if ((current_read_p2 > 15) && (current_read_p2 < 23))
             {
@@ -442,7 +442,7 @@ UINT8 input_read (UINT16 address)
             {
                 /* Player 2 button status. */
 
-                return ((buttons [INPUT_PLAYER_2] [current_read_p2 ++] | zapper_mask));
+                return (buttons [INPUT_PLAYER_2] [current_read_p2 ++] | zapper_mask | 0x40);
             }
 
 
@@ -500,21 +500,21 @@ void input_write (UINT16 address, UINT8 value)
 
 
 #define JOYSTICK_BUTTON(device, index)  \
-    ((joy [device].button [index].b) ? 0x41 : 0)
+    ((joy [device].button [index].b) ? 1 : 0)
 
 
 #define JOYSTICK_LEFT(device)  \
-    ((joy [device].stick [0].axis [0].d1) ? 0x41 : 0)
+    ((joy [device].stick [0].axis [0].d1) ? 1 : 0)
 
 #define JOYSTICK_RIGHT(device)   \
-    ((joy [device].stick [0].axis [0].d2) ? 0x41 : 0)
+    ((joy [device].stick [0].axis [0].d2) ? 1 : 0)
 
 
 #define JOYSTICK_UP(device)  \
-    ((joy [device].stick [0].axis [1].d1) ? 0x41 : 0)
+    ((joy [device].stick [0].axis [1].d1) ? 1 : 0)
 
 #define JOYSTICK_DOWN(device)    \
-    ((joy [device].stick [0].axis [1].d2) ? 0x41 : 0)
+    ((joy [device].stick [0].axis [1].d2) ? 1 : 0)
 
 
 static INLINE void do_keyboard_1 (int player)
@@ -524,7 +524,7 @@ static INLINE void do_keyboard_1 (int player)
 
     for (index = 0; index < 8; index ++)
     {
-        buttons [player] [index] = (key [key1_scancodes [index]] ? 0x41 : 0);
+        buttons [player] [index] = (key [key1_scancodes [index]] ? 1 : 0);
     }
 }
 
@@ -536,7 +536,7 @@ static INLINE void do_keyboard_2 (int player)
 
     for (index = 0; index < 8; index ++)
     {
-        buttons [player] [index] = (key [key2_scancodes [index]] ? 0x41 : 0);
+        buttons [player] [index] = (key [key2_scancodes [index]] ? 1 : 0);
     }
 }
 
@@ -556,9 +556,9 @@ static INLINE void do_joystick_1 (int player)
     }
     else
     {
-        buttons [player] [2] = (key [key1_scancodes [2]] ? 0x41 : 0);
+        buttons [player] [2] = (key [key1_scancodes [2]] ? 1 : 0);
 
-        buttons [player] [3] = (key [key1_scancodes [3]] ? 0x41 : 0);
+        buttons [player] [3] = (key [key1_scancodes [3]] ? 1 : 0);
     }
 
 
@@ -588,9 +588,9 @@ static INLINE void do_joystick_2 (int player)
     }
     else
     {
-        buttons [player] [2] = (key [key2_scancodes [2]] ? 0x41 : 0);
+        buttons [player] [2] = (key [key2_scancodes [2]] ? 1 : 0);
 
-        buttons [player] [3] = (key [key2_scancodes [3]] ? 0x41 : 0);
+        buttons [player] [3] = (key [key2_scancodes [3]] ? 1 : 0);
     }
 
 
@@ -753,6 +753,21 @@ int input_process (void)
 
                 break;
         }
+
+
+        /* Prevent up and down from being pressed at the same time */
+        if (buttons [player] [4] && buttons [player] [5])
+        {
+            buttons [player] [4] = buttons [player] [5] = 0;
+        }
+
+
+        /* Prevent left and right from being pressed at the same time */
+        if (buttons [player] [6] && buttons [player] [7])
+        {
+            buttons [player] [6] = buttons [player] [7] = 0;
+        }
+
     }
 
 
