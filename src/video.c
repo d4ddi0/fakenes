@@ -500,6 +500,8 @@ static INLINE void color_emphasis_overlay (void)
 
             width = 256;
 
+            height = 1;
+
 
             break;
 
@@ -560,7 +562,6 @@ static INLINE void color_emphasis_overlay (void)
 
 
         bits = ((ppu_register_2001_cache [y] >> 5) & 0x07);
-
 
         if (bits == 0)
         {

@@ -1,4 +1,4 @@
-
+ 
 
 /*
 
@@ -867,22 +867,6 @@ void ppu_write (UINT16 address, UINT8 value)
 
             ppu_register_2001 = value;
 
-            if (ppu_scanline < PPU_DISPLAY_LINES)
-            {
-                ppu_register_2001_cache [ppu_scanline] = value;
-            }
-
-            if (value & PPU_MONOCHROME_DISPLAY_BIT)
-            {
-                palette_mask = 0xf0;
-                palette_adjust = 1;
-            }
-            else
-            {
-                palette_mask = 0xff;
-                palette_adjust = 0;
-            }
-
             break;
 
 
@@ -1068,11 +1052,6 @@ void ppu_clear (void)
 
     hit_first_sprite = 0;
     first_sprite_this_line = 0;
-
-    for (index = 0; index < PPU_DISPLAY_LINES; index ++)
-    {
-        ppu_register_2001_cache [index] = 0;
-    }
 }
 
 
@@ -1097,6 +1076,22 @@ void ppu_start_render (void)
 void ppu_render_line (int line)
 {
     int i;
+
+    if (line < PPU_DISPLAY_LINES)
+    {
+        ppu_register_2001_cache [line] = ppu_register_2001;
+    }
+
+    if (ppu_register_2001 & PPU_MONOCHROME_DISPLAY_BIT)
+    {
+        palette_mask = 0xf0;
+        palette_adjust = 1;
+    }
+    else
+    {
+        palette_mask = 0xff;
+        palette_adjust = 0;
+    }
 
     if (!PPU_BACKGROUND_ENABLED)
     {
