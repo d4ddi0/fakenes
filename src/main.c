@@ -219,9 +219,6 @@ int main (int argc, char * argv [])
     allegro_init ();
 
 
-    install_keyboard ();
-
-
     set_window_title ("FakeNES");
 
     set_window_close_button (FALSE);
@@ -508,20 +505,6 @@ int main (int argc, char * argv [])
     first_run = get_config_int ("gui", "first_run", TRUE);
 
 
-    if (first_run)
-    {
-        printf ("Press any key to continue...\n\n");
-
-
-        while (! keypressed ());
-
-        clear_keybuf ();
-
-
-        first_run = FALSE;
-    }
-
-
     install_timer ();
 
 
@@ -672,9 +655,15 @@ int main (int argc, char * argv [])
 
     if (! rom_is_loaded)
     {
-        show:
+      show:
 
-          show_gui ();
+        show_gui (first_run);
+
+
+        if (first_run)
+        {
+            first_run = FALSE;
+        }
 
 
         if (gui_needs_restart)

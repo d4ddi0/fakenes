@@ -374,7 +374,7 @@ static INLINE void update_menus (void)
 extern UINT8 logfile [256];
 
 
-int show_gui (void)
+int show_gui (int first_run)
 {
     time_t start;
 
@@ -455,6 +455,12 @@ int show_gui (void)
 
 
     unscare_mouse ();
+
+    if (first_run)
+    {
+        alert ("FakeNES version 0.1.5 (CVS)", "", "- http://fakenes.sourceforge.net/ -", "&OK", NULL, 0, 0);
+    }
+
 
     do_dialog (main_dialog, -1);
 

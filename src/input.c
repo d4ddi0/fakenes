@@ -249,7 +249,7 @@ static INLINE void load_joystick_layouts (void)
 
 int input_init (void)
 {
-    /* install_keyboard (); */
+    install_keyboard ();
 
     install_mouse ();
 
@@ -281,7 +281,7 @@ int input_init (void)
 
 void input_exit (void)
 {
-    /* remove_keyboard (); */
+    remove_keyboard ();
 
     remove_mouse ();
 
@@ -682,7 +682,7 @@ int input_process (void)
 
                 show:
 
-                  want_exit = show_gui ();
+                  want_exit = show_gui (FALSE);
 
 
                 if (gui_needs_restart)

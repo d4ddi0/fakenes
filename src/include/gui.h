@@ -29,7 +29,7 @@ extern "C" {
 #include "misc.h"
 
 
-int show_gui (void);
+int show_gui (int);
 
 
 void gui_message (int, AL_CONST UINT8 *, ...);
