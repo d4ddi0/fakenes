@@ -3786,7 +3786,7 @@ static int options_video_layers_menu_background (void)
 }
 
 
-static int options_video_palette_menu_default (void)
+static int options_video_palette_menu_ntsc_color (void)
 {
     UNCHECK_MENU (options_video_palette_menu, 2);
 
@@ -3818,14 +3818,14 @@ static int options_video_palette_menu_default (void)
     draw_logo ();
 
 
-    gui_message (gui_fg_color, "Video palette set to default.");
+    gui_message (gui_fg_color, "Video palette set to NTSC color.");
 
 
     return (D_REDRAW);
 }
 
 
-static int options_video_palette_menu_grayscale (void)
+static int options_video_palette_menu_ntsc_grayscale (void)
 {
     UNCHECK_MENU (options_video_palette_menu, 0);
 
@@ -3857,7 +3857,7 @@ static int options_video_palette_menu_grayscale (void)
     draw_logo ();
 
 
-    gui_message (gui_fg_color, "Video palette set to grayscale.");
+    gui_message (gui_fg_color, "Video palette set to NTSC grayscale.");
 
 
     return (D_REDRAW);

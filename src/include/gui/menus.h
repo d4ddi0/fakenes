@@ -875,9 +875,9 @@ static MENU options_video_layers_menu [] =
 };
 
 
-static int options_video_palette_menu_default (void);
+static int options_video_palette_menu_ntsc_color (void);
 
-static int options_video_palette_menu_grayscale (void);
+static int options_video_palette_menu_ntsc_grayscale (void);
 
 static int options_video_palette_menu_gnuboy (void);
 
@@ -890,18 +890,18 @@ static int options_video_palette_menu_custom (void);
 
 static MENU options_video_palette_menu [] =
 {
-    {   "&Default",   options_video_palette_menu_default, NIL, 0, NIL },
-    {           "",                                  NIL, NIL, 0, NIL },
-    { "&Grayscale", options_video_palette_menu_grayscale, NIL, 0, NIL },
-    {           "",                                  NIL, NIL, 0, NIL },
-    {    "gn&uboy",    options_video_palette_menu_gnuboy, NIL, 0, NIL },
-    {           "",                                  NIL, NIL, 0, NIL },
-    {    "&NESter",    options_video_palette_menu_nester, NIL, 0, NIL },
-    {           "",                                  NIL, NIL, 0, NIL },
-    {  "N&ESticle",  options_video_palette_menu_nesticle, NIL, 0, NIL },
-    {           "",                                  NIL, NIL, 0, NIL },
-    {    "&Custom",    options_video_palette_menu_custom, NIL, 0, NIL },
-    {          NIL,                                  NIL, NIL, 0, NIL }
+    {     "NTSC &Color",     options_video_palette_menu_ntsc_color, NIL, 0, NIL },
+    {                "",                                       NIL, NIL, 0, NIL },
+    { "NTSC &Grayscale", options_video_palette_menu_ntsc_grayscale, NIL, 0, NIL },
+    {                "",                                       NIL, NIL, 0, NIL },
+    {         "gn&uboy",         options_video_palette_menu_gnuboy, NIL, 0, NIL },
+    {                "",                                       NIL, NIL, 0, NIL },
+    {         "&NESter",         options_video_palette_menu_nester, NIL, 0, NIL },
+    {                "",                                       NIL, NIL, 0, NIL },
+    {       "N&ESticle",       options_video_palette_menu_nesticle, NIL, 0, NIL },
+    {                "",                                       NIL, NIL, 0, NIL },
+    {         "&Custom",         options_video_palette_menu_custom, NIL, 0, NIL },
+    {               NIL,                                       NIL, NIL, 0, NIL }
 };
 
 
