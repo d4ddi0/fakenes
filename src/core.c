@@ -345,20 +345,18 @@ static byte opcode_trace[10];
 /*************************************************************/
 word Exec6502(M6502 *R)
 {
-  byte opcode;
+  byte opcode, cycles;
 
   opcode=Op6502(R->PC.W++);
-  R->Cycles+=Cycles[opcode];
-  R->ICount-=Cycles[opcode];
+  cycles=Cycles[opcode];
+  R->Cycles+=cycles;
+  R->ICount-=cycles;
 #ifdef DEBUG
   opcode_trace[opcode_count++]=opcode;
   if (opcode_count==10) opcode_count=0;
 #endif
   switch(opcode)
   {
-    pair J,K;
-    byte I;
-
 #include "core/codes.h"
   }
 
@@ -399,7 +397,7 @@ word Run6502(M6502 *R)
 {
   for(;;)
   {
-    byte opcode;
+    byte opcode, cycles;
 
 #ifdef M_DEBUG
     /* Turn tracing on when reached trap address */
@@ -410,13 +408,11 @@ word Run6502(M6502 *R)
 #endif
 
     opcode=Op6502(R->PC.W++);
-    R->Cycles+=Cycles[opcode];
-    R->ICount-=Cycles[opcode];
+    cycles=Cycles[opcode];
+    R->Cycles+=cycles;
+    R->ICount-=cycles;
     switch(opcode)
     {
-      pair J,K;
-      byte I;
-
 #include "core/codes.h"
     }
 
