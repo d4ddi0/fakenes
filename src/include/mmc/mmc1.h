@@ -388,17 +388,19 @@ static INLINE void mmc1_reset (void)
 
 static INLINE int mmc1_init (void)
 {
-    printf ("Using memory mapper #1 (MMC1) "
-        "(%d PRG, %d CHR).\n\n", ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
+    if (! gui_is_active)
+    {
+        printf ("Using memory mapper #1 (MMC1) "
+            "(%d PRG, %d CHR).\n\n", ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
 
 
-    printf ("Warning: This mapper is only partially supported.\n");
-    printf ("Press any key to continue...\n");
+        printf ("Warning: This mapper is only partially supported.\n");
+        printf ("Press any key to continue...\n");
 
 
-    while (!keypressed ());
-    readkey ();
-
+        while (!keypressed ());
+        readkey ();
+    }
 
     if ((ROM_PRG_ROM_PAGES) == 1) mmc1_prg_mask = 1;
     else if ((ROM_PRG_ROM_PAGES) == 2) mmc1_prg_mask = 2;
