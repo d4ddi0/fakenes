@@ -366,17 +366,11 @@ void cpu_interrupt (int type)
 }
 
 
-int cpu_execute (int cycles)
+void cpu_execute (int cycles)
 {
-    int count = 0;
-
-
     cpu_context.ICount += cycles;
 
     Run6502 (&cpu_context);
-
-
-    return (count);
 }
 
 

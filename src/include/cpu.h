@@ -50,7 +50,7 @@ void cpu_reset (void);
 
 void cpu_interrupt (int);
 
-int cpu_execute (int);
+void cpu_execute (int);
 
 
 UINT16 * cpu_active_pc;
