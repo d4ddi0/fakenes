@@ -36,9 +36,13 @@ All rights reserved.  See 'LICENSE' for details.
 
 /* VRAM and sprite RAM. */
 
-static UINT8 ppu_vram [16384];
+static UINT8 ppu_vram [12 * 1024];
 
 static UINT8 ppu_spr_ram [256];
+
+static UINT8 ppu_palette [32];
+#define ppu_background_palette ppu_palette
+#define ppu_sprite_palette (ppu_palette + 16)
 
 static void do_spr_ram_dma(UINT8 page);
 
@@ -318,12 +322,6 @@ UINT8 ppu_vram_read()
 
     if (address >= 0x2000)
     {
-        if (address >= 0x3F00)
-        /* palettes - not buffered */
-        {
-            temp = ppu_vram [address & 0x3F1F];
-        }
-        else
         /* name tables */
         {
             buffered_vram_read = name_tables[(address >> 10) & 3]
@@ -369,12 +367,12 @@ void ppu_vram_write(UINT8 value)
         {
             if ((address & 0x03) == 0)
             {
-                ppu_vram [0x3F00 + (address & 0x0F)] = value;
-                ppu_vram [0x3F10 + (address & 0x0F)] = value;
+                ppu_background_palette [(address & 0x0F)] = (value & 0x3F) + 1;
+                ppu_sprite_palette [(address & 0x0F)] = (value & 0x3F) + 1;
             }
             else
             {
-                ppu_vram [address & 0x3F1F] = value;
+                ppu_palette [address & 0x1F] = (value & 0x3F) + 1;
             }
         }
         else
@@ -696,7 +694,7 @@ void ppu_clear (void)
 
 void ppu_render_line (int line)
 {
-    hline (video_buffer, 0, line, 255, (ppu_vram [0x3f00] + 1));
+    hline (video_buffer, 0, line, 255, ppu_background_palette[0]);
 
     if (background_enabled)
     {
@@ -771,11 +769,11 @@ void ppu_render_line (int line)
                 {
                     color |= attribute;
         
-                    color = ppu_vram [0x3f00 + color];
+                    color = ppu_background_palette [color];
         
         
                     _putpixel (video_buffer,
-                        ((x * 8) + sub_x - x_offset), line, (color + 1));
+                        ((x * 8) + sub_x - x_offset), line, color);
                 }
 
 
@@ -973,7 +971,7 @@ static INLINE void ppu_render_sprite (int sprite)
             color |= attribute;
 
 
-            color = (ppu_vram [0x3f10 + color] + 1);
+            color = ppu_sprite_palette [color];
 
 
             if (flip_h)
