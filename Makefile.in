@@ -15,6 +15,16 @@ install :
 	cd src && ${MAKE} install
 
 
+uninstall :
+
+	cd src && ${MAKE} uninstall
+
+
+uninstallall :
+
+	cd src && ${MAKE} uninstallall
+
+
 clean :
 
 	cd src && ${MAKE} clean

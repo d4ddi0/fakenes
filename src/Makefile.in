@@ -10,9 +10,12 @@ RM = rm -f -v
 INSTALL = @INSTALL@
 
 
+SUPPORT = support
+
+
 BINARY = fakenes@EXEEXT@
 
-DATAFILE = support/fakenes.dat
+DATAFILE = fakenes.dat
 
 
 IFLAGS = -Iinclude `allegro-config --cflags`
@@ -30,7 +33,12 @@ OBJECTS = apu.o audio.o core.o cpu.o gui.o input.o papu.o ppu.o \
           rom.o main.o mmc.o video.o
 
 
-all : ${BINARY}
+all : bootstrap ${BINARY}
+
+
+bootstrap :
+
+	@echo Please wait while FakeNES builds...
 
 
 ${BINARY} : ${OBJECTS}
@@ -38,16 +46,47 @@ ${BINARY} : ${OBJECTS}
 	${CC} ${OBJECTS} -o ${BINARY} ${LIBRARIES}
 
 
-install : ${BINARY} ${DATAFILE}
+install : ${BINARY} ${SUPPORT}/${DATAFILE}
 
-	${MKDIR} ${HOME}/bin
+	@echo Creating directory \'${HOME}/.fakenes\'...
 
 	${MKDIR} ${HOME}/.fakenes
 
 
-	${INSTALL} -m 0755 ${BINARY} ${HOME}/bin
+	@echo Installing the FakeNES binaries...
 
-	${INSTALL} -m 0644 ${DATAFILE} ${HOME}/.fakenes
+	${INSTALL} -m 0755 ${BINARY} /usr/bin
+
+	${INSTALL} -m 0644 ${SUPPORT}/${DATAFILE} ${HOME}/.fakenes
+
+
+	@echo Run \'${BINARY}\' once to create the configuration file.
+
+	@echo It will be stored in \'${HOME}/.fakenes\'.
+
+
+uninstall :
+
+	@echo Removing FakeNES from your system...
+
+	@echo \(Configuration and SRAM files will NOT be removed.\)
+
+
+	${RM} /usr/bin/${BINARY}
+
+	${RM} ${HOME}/.fakenes/${DATAFILE}
+
+
+uninstallall :
+
+	@echo Removing FakeNES from your system...
+
+	@echo Configuration and SRAM files will be lost!
+
+
+	${RM} /usr/bin/${BINARY}
+
+	${RM} -r ${HOME}/.fakenes
 
 
 .SUFFIXES : .c
