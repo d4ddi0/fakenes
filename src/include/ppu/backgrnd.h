@@ -53,7 +53,7 @@ static void dummy_read_line(UINT8 *buffer)
 #define PBT_DISPLAY(OFFSET) \
     { \
         plot_buffer [plot_pixel + OFFSET] = \
-            ((ppu_background_palette [color] & palette_mask) + palette_adjust); \
+            ((ppu_background_palette [color] & palette_mask) + PALETTE_ADJUST); \
     }
 
 #define PLOT_BACKGROUND_TILE_PIXEL(OFFSET,MASK,DISPLAY) \
@@ -115,7 +115,7 @@ static void ppu_render_background (int line)
 
     dummy_read_line(background_pixels + 8);
 
-    memset (plot_buffer, ((ppu_background_palette [0] & palette_mask) + palette_adjust), 256);
+    memset (plot_buffer, ((ppu_background_palette [0] & palette_mask) + PALETTE_ADJUST), 256);
 
     if (PPU_SPRITES_ENABLED)
     {

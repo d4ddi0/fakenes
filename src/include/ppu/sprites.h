@@ -210,7 +210,7 @@ static INLINE void ppu_render_sprite (int sprite, int line)
                     background_pixels [8 + (x + sub_x)] = 16;
                 }
 
-                color = ((ppu_sprite_palette [color] & palette_mask) + palette_adjust);
+                color = ((ppu_sprite_palette [color] & palette_mask) + PALETTE_ADJUST);
 
 
                 PPU_PUTPIXEL (video_buffer,
@@ -254,7 +254,7 @@ static INLINE void ppu_render_sprite (int sprite, int line)
                 /* Sprite 0 will always get its pixels... */
                 background_pixels [8 + (x + sub_x)] = 16;
 
-                color = ((ppu_sprite_palette [color] & palette_mask) + palette_adjust);
+                color = ((ppu_sprite_palette [color] & palette_mask) + PALETTE_ADJUST);
 
 
                 PPU_PUTPIXEL (video_buffer,
@@ -302,7 +302,7 @@ static INLINE void ppu_render_sprite (int sprite, int line)
                         background_pixels [8 + (x + sub_x)] = 16;
                     }
 
-                   color = ((ppu_sprite_palette [color] & palette_mask) + palette_adjust);
+                   color = ((ppu_sprite_palette [color] & palette_mask) + PALETTE_ADJUST);
 
 
                     PPU_PUTPIXEL (video_buffer,
@@ -346,7 +346,7 @@ static INLINE void ppu_render_sprite (int sprite, int line)
                         background_pixels [8 + (x + sub_x)] = 16;
                     }
 
-                    color = ((ppu_sprite_palette [color] & palette_mask) + palette_adjust);
+                    color = ((ppu_sprite_palette [color] & palette_mask) + PALETTE_ADJUST);
 
 
                     PPU_PUTPIXEL (video_buffer,

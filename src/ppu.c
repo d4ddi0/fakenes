@@ -52,6 +52,11 @@ You must read and accept the license prior to use.
 /* should be <= SCANLINE_CLOCKS - 256 */
 #define DOTS_HBLANK_BEFORE_RENDER 0
 
+
+/* start of NES palette in 256-color palette */
+#define PALETTE_ADJUST 1
+
+
 /* VRAM and sprite RAM. */
 
 static UINT8 * ppu_vram_block_read_address [8];
@@ -144,8 +149,7 @@ static UINT8 attribute_table [4];
 
 static INT8 background_pixels [8 + 256 + 8];
 
-static int palette_mask = 0xff;
-static int palette_adjust = 0;
+static int palette_mask = 0x3f;
 
 UINT8 ppu_register_2001_cache [PPU_DISPLAY_LINES];
 
@@ -589,6 +593,19 @@ UINT8 ppu_vram_read()
 
     if (address >= 0x2000)
     {
+        if (address >= 0x3F00)
+        /* palettes */
+        {
+            if ((address & 0x03) == 0)
+            {
+                temp = ppu_palette [0] & palette_mask;
+            }
+            else
+            {
+                temp = ppu_palette [address & 0x1F] & palette_mask;
+            }
+        }
+        else
         /* name tables */
         {
             buffered_vram_read = name_tables_read[(address >> 10) & 3]
@@ -640,12 +657,12 @@ void ppu_vram_write(UINT8 value)
         {
             if ((address & 0x03) == 0)
             {
-                ppu_background_palette [(address & 0x0F)] = (value & 0x3F) + 1;
-                ppu_sprite_palette [(address & 0x0F)] = (value & 0x3F) + 1;
+                ppu_background_palette [(address & 0x0F)] = value;
+                ppu_sprite_palette [(address & 0x0F)] = value;
             }
             else
             {
-                ppu_palette [address & 0x1F] = (value & 0x3F) + 1;
+                ppu_palette [address & 0x1F] = value;
             }
         }
         else
@@ -1084,19 +1101,17 @@ void ppu_render_line (int line)
 
     if (ppu_register_2001 & PPU_MONOCHROME_DISPLAY_BIT)
     {
-        palette_mask = 0xf0;
-        palette_adjust = 1;
+        palette_mask = 0x30;
     }
     else
     {
-        palette_mask = 0xff;
-        palette_adjust = 0;
+        palette_mask = 0x3f;
     }
 
     if (!PPU_BACKGROUND_ENABLED)
     {
         memset (PPU_GET_LINE_ADDRESS (video_buffer, line),
-            ((ppu_background_palette [0] & palette_mask) + palette_adjust), 256);
+            ((ppu_background_palette [0] & palette_mask) + PALETTE_ADJUST), 256);
     }
 
     if (!PPU_BACKGROUND_ENABLED && !PPU_SPRITES_ENABLED)
