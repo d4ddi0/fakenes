@@ -24,13 +24,13 @@ You must read and accept the license prior to use.
 
 #define VERSION_MAJOR   0
 
-#define VERSION_MINOR   20
+#define VERSION_MINOR   30
 
 
-#define VERSION         0x020
+#define VERSION         0x030
 
 
-#define VERSION_STRING  "0.2.0 (CVS)"
+#define VERSION_STRING  "0.3.0 (final)"
 
 
 #endif /* ! VERSION_H_INCLUDED */
