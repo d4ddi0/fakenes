@@ -407,7 +407,7 @@ int main (int argc, char * argv [])
     {
         while (! input_process ())
         {
-            papu_update_length_counter ();
+            //papu_update_length_counter ();
 
 
             if (-- frame_count > 0)
