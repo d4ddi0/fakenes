@@ -63,6 +63,19 @@ int papu_linear_echo;
 int papu_surround_sound;
 
 
+enum
+{
+    PAPU_SURROUND_SOUND_NONE,
+
+
+    PAPU_SURROUND_SOUND_MONO,
+
+    PAPU_SURROUND_SOUND_STEREO_1,
+
+    PAPU_SURROUND_SOUND_STEREO_2
+};
+
+
 int papu_dithering;
 
 
