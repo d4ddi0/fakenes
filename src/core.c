@@ -81,22 +81,22 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 /** These macros calculate and return effective addresses.  **/
 /*************************************************************/
 #define MC_Ab(Rg)	M_LDWORD(Rg)
-#define MC_Zp(Rg)	Rg.B.l=Op6502(R->PC.W++);Rg.B.h=0
-#define MC_Zx(Rg)	Rg.B.l=Op6502(R->PC.W++)+R->X;Rg.B.h=0
-#define MC_Zy(Rg)	Rg.B.l=Op6502(R->PC.W++)+R->Y;Rg.B.h=0
+#define MC_Zp(Rg)       Rg.W=Op6502(R->PC.W);R->PC.W++;
+#define MC_Zx(Rg)       Rg.B.l=Op6502(R->PC.W)+R->X;R->PC.W++;Rg.B.h=0
+#define MC_Zy(Rg)       Rg.B.l=Op6502(R->PC.W)+R->Y;R->PC.W++;Rg.B.h=0
 #define MC_Ax(Rg)	M_LDWORD(Rg);Rg.W+=R->X
 #define MC_Ay(Rg)	M_LDWORD(Rg);Rg.W+=R->Y
-#define MC_Ix(Rg)	K.B.l=Op6502(R->PC.W++)+R->X;K.B.h=0; \
-            Rg.B.l=Rd6502(K.W);K.B.l++;Rg.B.h=Rd6502(K.W)
-#define MC_Iy(Rg)	K.B.l=Op6502(R->PC.W++);K.B.h=0; \
-            Rg.B.l=Rd6502(K.W);K.B.l++;Rg.B.h=Rd6502(K.W); \
-			Rg.W+=R->Y
+#define MC_Ix(Rg)       K.B.l=Op6502(R->PC.W)+R->X;R->PC.W++;K.B.h=0; \
+                        Rg.B.l=Rd6502(K.W);K.B.l++;Rg.B.h=Rd6502(K.W)
+#define MC_Iy(Rg)       K.B.l=Op6502(R->PC.W);R->PC.W++;K.B.h=0; \
+                        Rg.B.l=Rd6502(K.W);K.B.l++;Rg.B.h=Rd6502(K.W); \
+                        Rg.W+=R->Y
 
 /** Reading From Memory **************************************/
 /** These macros calculate address and read from it.        **/
 /*************************************************************/
 #define MR_Ab(Rg)	MC_Ab(J);Rg=Rd6502(J.W)
-#define MR_Im(Rg)	Rg=Op6502(R->PC.W++)
+#define MR_Im(Rg)       Rg=Op6502(R->PC.W);R->PC.W++
 #define	MR_Zp(Rg)	MC_Zp(J);Rg=Rd6502(J.W)
 #define MR_Zx(Rg)	MC_Zx(J);Rg=Rd6502(J.W)
 #define MR_Zy(Rg)	MC_Zy(J);Rg=Rd6502(J.W)
@@ -133,7 +133,7 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 #define M_UNFIX_P()     R->N=R->P&N_FLAG;R->V=R->P&V_FLAG;R->D=R->P&D_FLAG; \
                         R->I=R->P&I_FLAG;R->Z=R->P&Z_FLAG?0:1;R->C=R->P&C_FLAG;
 #define M_FL(Rg)        R->N=R->Z=Rg
-#define M_LDWORD(Rg)	Rg.B.l=Op6502(R->PC.W++);Rg.B.h=Op6502(R->PC.W++)
+#define M_LDWORD(Rg)    Rg.B.l=Op6502(R->PC.W);Rg.B.h=Op6502(R->PC.W+1);R->PC.W+=2
 
 #define M_PUSH(Rg)      Wr6502Stack(R->S,Rg);R->S--
 #define M_POP(Rg)       R->S++;Rg=Rd6502Stack(R->S)
@@ -142,25 +142,26 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 
 #define M_ADC(Rg) \
     K.W=R->A+Rg+(R->C?1:0); \
-    M_FL(K.B.l); \
-    R->V=(~(R->A^Rg)&(R->A^K.B.l)&0x80? V_FLAG:0); \
+    R->V=(~(R->A^Rg) & (R->A^K.B.l) & 0x80); \
     R->C=K.B.h; \
+    M_FL(K.B.l); \
     R->A=K.B.l;
 
 /* Warning! C_FLAG is inverted before SBC and after it */
 #define M_SBC(Rg) \
     K.W=R->A-Rg-(R->C?0:1); \
+    R->V=((R->A^Rg) & (R->A^K.B.l) & 0x80); \
+    R->C=K.B.h + 1; \
     M_FL(K.B.l); \
-    R->V=((R->A^Rg)&(R->A^K.B.l)&0x80? V_FLAG:0); \
-    R->C=(K.B.h? 0:C_FLAG); \
     R->A=K.B.l;
 
 #define M_CMP(Rg1,Rg2) \
   K.W=Rg1-Rg2; \
-  M_FL(K.B.l); \
-  R->C=K.B.h?0:C_FLAG;
+  R->C=K.B.h + 1; \
+  M_FL(K.B.l);
+
 #define M_BIT(Rg) \
-  R->N=Rg&N_FLAG; \
+  R->N=Rg; \
   R->V=Rg&V_FLAG; \
   R->Z=Rg&R->A;
 
@@ -171,13 +172,13 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 #define M_DEC(Rg)	Rg--;M_FL(Rg)
 
 #define M_SLO(Rg)       M_ASL(Rg);M_ORA(Rg)
-#define M_ASL(Rg)       R->C=Rg>>7;Rg<<=1;M_FL(Rg)
-#define M_LSR(Rg)       R->C=Rg&C_FLAG;;Rg>>=1;M_FL(Rg)
-#define M_ROL(Rg)       K.B.l=(Rg<<1)|(R->C?C_FLAG:0); \
-                        R->C=Rg>>7;;Rg=K.B.l; \
+#define M_ASL(Rg)       R->C=Rg&0x80;Rg<<=1;M_FL(Rg)
+#define M_LSR(Rg)       R->C=Rg&1;Rg>>=1;M_FL(Rg)
+#define M_ROL(Rg)       K.B.l=(Rg<<1)|(R->C?1:0); \
+                        R->C=Rg&0x80;Rg=K.B.l; \
 			M_FL(Rg)
 #define M_ROR(Rg)       K.B.l=(Rg>>1)|(R->C?0x80:0); \
-                        R->C=Rg&C_FLAG;Rg=K.B.l; \
+                        R->C=Rg&1;Rg=K.B.l; \
 			M_FL(Rg)
 
 /** Reset6502() **********************************************/
@@ -215,6 +216,18 @@ static int opcode_count=0;
 static byte opcode_trace[10];
 #endif
 
+#define OPCODE_PROLOG(x) \
+    case x: {       \
+        pair J,K;   \
+        byte I;
+#define OPCODE_EXIT      break;
+#define OPCODE_EPILOG    OPCODE_EXIT }
+
+#define OPCODE_PROLOG_DEFAULT \
+    default: {      \
+        pair J,K;   \
+        byte I;
+
 /** Exec6502() ***********************************************/
 /** This function will execute a single 6502 opcode. It     **/
 /** will then return next PC, and current register values   **/
@@ -222,18 +235,20 @@ static byte opcode_trace[10];
 /*************************************************************/
 word Exec6502(M6502 *R)
 {
-  register pair J,K;
-  register byte I;
+  byte opcode;
 
-  I=Op6502(R->PC.W++);
-  R->Cycles+=Cycles[I];
-  R->ICount-=Cycles[I];
+  opcode=Op6502(R->PC.W++);
+  R->Cycles+=Cycles[opcode];
+  R->ICount-=Cycles[opcode];
 #ifdef DEBUG
-  opcode_trace[opcode_count++]=I;
+  opcode_trace[opcode_count++]=opcode;
   if (opcode_count==10) opcode_count=0;
 #endif
-  switch(I)
+  switch(opcode)
   {
+    pair J,K;
+    byte I;
+
 #include "core/codes.h"
   }
 
@@ -248,7 +263,7 @@ word Exec6502(M6502 *R)
 /*************************************************************/
 void Int6502(M6502 *R,byte Type)
 {
-  register pair J;
+  pair J;
 
   if((Type==INT_NMI)||((Type==INT_IRQ)&&!(R->I)))
   {
@@ -272,11 +287,10 @@ void Int6502(M6502 *R,byte Type)
 /*************************************************************/
 word Run6502(M6502 *R)
 {
-  register pair J,K;
-  register byte I;
-
   for(;;)
   {
+    byte opcode;
+
 #ifdef M_DEBUG
     /* Turn tracing on when reached trap address */
     if(R->PC.W==R->Trap) R->Trace=1;
@@ -285,22 +299,27 @@ word Run6502(M6502 *R)
       if(!Debug6502(R)) return(R->PC.W);
 #endif
 
-    I=Op6502(R->PC.W++);
-    R->Cycles+=Cycles[I];
-    R->ICount-=Cycles[I];
-    switch(I)
+    opcode=Op6502(R->PC.W++);
+    R->Cycles+=Cycles[opcode];
+    R->ICount-=Cycles[opcode];
+    switch(opcode)
     {
+      pair J,K;
+      byte I;
+
 #include "core/codes.h"
     }
 
     /* If cycle counter expired... */
     if(R->ICount<=0)
     {
+      int interrupt;
+
       /* If we have come after CLI, get INT_? from IRequest */
       /* Otherwise, get it from the loop handler            */
       if(R->AfterCLI)
       {
-        I=R->IRequest;            /* Get pending interrupt     */
+        interrupt=R->IRequest;    /* Get pending interrupt     */
         R->ICount+=R->IBackup-1;  /* Restore the ICount        */
         R->AfterCLI=0;            /* Done with AfterCLI state  */
       }
@@ -309,13 +328,13 @@ word Run6502(M6502 *R)
 #ifdef RETURN_ON_TRIP
         return(R->PC.W);
 #else
-        I=Loop6502(R);            /* Call the periodic handler */
+        interrupt=Loop6502(R);    /* Call the periodic handler */
         R->ICount+=R->IPeriod;    /* Reset the cycle counter   */
 #endif
       }
 
-      if(I==INT_QUIT) return(R->PC.W); /* Exit if INT_QUIT     */
-      if(I) Int6502(R,I);              /* Interrupt if needed  */ 
+      if(interrupt==INT_QUIT) return(R->PC.W); /* Exit if INT_QUIT     */
+      if(interrupt) Int6502(R,interrupt);      /* Interrupt if needed  */ 
     }
   }
 
