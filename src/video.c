@@ -60,9 +60,6 @@ static int screen_width = 0;
 static int force_window = FALSE;
 
 
-static int stretched_mode = FALSE;
-
-
 static int stretch_width = 0;
 
 static int stretch_height = 0;
@@ -255,6 +252,97 @@ static INLINE void display_status (BITMAP * bitmap, int color)
 }
 
 
+static INLINE void blit_2xsoe (BITMAP * source, BITMAP * target, int x, int y)
+{
+    int x_base;
+
+    int y_base;
+
+
+    int x_offset;
+
+    int y_offset;
+
+
+    int center_pixel;
+
+
+    int north_pixel;
+
+    int south_pixel;
+
+
+    int east_pixel;
+
+    int west_pixel;
+
+
+    for (y_offset = 0; y_offset < source -> h; y_offset ++)
+    {
+        y_base = (y + (y_offset * 2));
+
+
+        for (x_offset = 0; x_offset < source -> w; x_offset ++)
+        {
+            x_base = (x + (x_offset * 2));
+
+
+            center_pixel = getpixel (source, x_offset, y_offset);
+
+
+            north_pixel = getpixel (source, x_offset, (y_offset - 1));
+
+            east_pixel = getpixel (source, (x_offset - 1), y_offset);
+
+
+            south_pixel = getpixel (source, x_offset, (y_offset + 1));
+
+            west_pixel = getpixel (source, (x_offset + 1), y_offset);
+
+
+            if (north_pixel != west_pixel)
+            {
+                putpixel (target, (x_base + 1), y_base, center_pixel);
+            }
+            else
+            {
+                putpixel (target, (x_base + 1), y_base, west_pixel);
+            }    
+
+
+            if (north_pixel != east_pixel)
+            {
+                putpixel (target, x_base, y_base, center_pixel);
+            }
+            else
+            {
+                putpixel (target, x_base, y_base, east_pixel);
+            }    
+
+
+            if (south_pixel != west_pixel)
+            {
+                putpixel (target, (x_base + 1), (y_base + 1), center_pixel);
+            }
+            else
+            {
+                putpixel (target, (x_base + 1), (y_base + 1), west_pixel);
+            }    
+
+
+            if (south_pixel != east_pixel)
+            {
+                putpixel (target, x_base, (y_base + 1), center_pixel);
+            }
+            else
+            {
+                putpixel (target, x_base, (y_base + 1), east_pixel);
+            }    
+        }
+    }
+}
+
+
 void video_blit (BITMAP * bitmap)
 {
     BITMAP * source_buffer;
@@ -287,14 +375,31 @@ void video_blit (BITMAP * bitmap)
     }
 
 
-    if (stretched_mode)
+    switch (blitter_type)
     {
-        stretch_blit (source_buffer, screen_buffer, 0, 0, 256, 240,
-            blit_x_offset, blit_y_offset, stretch_width, stretch_height);
-    }
-    else
-    {
-        blit (source_buffer, screen_buffer, 0, 0, blit_x_offset, blit_y_offset, 256, 240);
+        case VIDEO_BLITTER_NORMAL:
+
+            blit (source_buffer, screen_buffer, 0, 0, blit_x_offset, blit_y_offset, 256, 240);
+
+
+            break;
+
+
+        case VIDEO_BLITTER_STRETCHED:
+
+            stretch_blit (source_buffer, screen_buffer, 0, 0, 256, 240,
+                blit_x_offset, blit_y_offset, stretch_width, stretch_height);
+
+
+            break;
+
+
+        case VIDEO_BLITTER_2XSOE:
+
+            blit_2xsoe (source_buffer, screen_buffer, blit_x_offset, blit_y_offset);
+
+
+            break;
     }
 
 
@@ -335,7 +440,13 @@ static INLINE int fix (int value, int base, int limit)
 
 void video_zoom (int x_factor, int y_factor)
 {
-    if (! stretched_mode)
+    if (blitter_type == VIDEO_BLITTER_2XSOE)
+    {
+        return;
+    }
+
+
+    if (! (blitter_type == VIDEO_BLITTER_STRETCHED))
     {
         stretch_width = 256;
 
@@ -405,9 +516,6 @@ void video_set_blitter (int blitter)
     {
         case VIDEO_BLITTER_NORMAL:
 
-            stretched_mode = FALSE;
-
-
             blit_x_offset = ((SCREEN_W / 2) - (256 / 2));
         
             blit_y_offset = ((SCREEN_H / 2) - (240 / 2));
@@ -418,12 +526,19 @@ void video_set_blitter (int blitter)
 
         case VIDEO_BLITTER_STRETCHED:
 
-            stretched_mode = TRUE;
-
-
             blit_x_offset = ((SCREEN_W / 2) - (stretch_width / 2));
         
             blit_y_offset = ((SCREEN_H / 2) - (stretch_height / 2));
+
+
+            break;
+
+
+        case VIDEO_BLITTER_2XSOE:
+
+            blit_x_offset = ((SCREEN_W / 2) - 256);
+
+            blit_y_offset = ((SCREEN_H / 2) - 240);
 
 
             break;

@@ -27,6 +27,8 @@ extern "C" {
 
 #define VIDEO_BLITTER_STRETCHED     1
 
+#define VIDEO_BLITTER_2XSOE         2
+
 
 int video_display_status;
 

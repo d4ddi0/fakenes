@@ -302,6 +302,8 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_video_blitter_menu, 2, (video_get_blitter () == VIDEO_BLITTER_STRETCHED));
 
+    TOGGLE_MENU (options_video_blitter_menu, 4, (video_get_blitter () == VIDEO_BLITTER_2XSOE));
+
 
     TOGGLE_MENU (options_video_menu, 4, video_enable_vsync);
 
@@ -1034,6 +1036,17 @@ static int options_video_blitter_menu_normal (void)
 static int options_video_blitter_menu_stretched (void)
 {
     video_set_blitter (VIDEO_BLITTER_STRETCHED);
+
+    update_menus ();
+
+
+    return (D_O_K);
+}
+
+
+static int options_video_blitter_menu_2xsoe (void)
+{
+    video_set_blitter (VIDEO_BLITTER_2XSOE);
 
     update_menus ();
 
