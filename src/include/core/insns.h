@@ -20,12 +20,12 @@ behavior, for the Ricoh RP2A03G CPU.
     PC.word += 2; \
     if (condition) \
     { \
-        R->ICount -= CYCLE_LENGTH; R->Cycles += CYCLE_LENGTH; \
+        R->Cycles += CYCLE_LENGTH; \
         PC.bytes.low += data; \
         if ((data & 0x80) ? (PC.bytes.low >= data) : (PC.bytes.low < data)) \
         { \
             Fetch(PC.word); \
-            R->ICount -= CYCLE_LENGTH; R->Cycles += CYCLE_LENGTH; \
+            R->Cycles += CYCLE_LENGTH; \
             if (data & 0x80) PC.word -= 0x100; \
             else PC.word += 0x100; \
         } \
