@@ -13,6 +13,7 @@
 /**     commercially. Please, notify me, if you make any    **/   
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 15.January  2002 TRAC      Added FAST_STACK.              */
 /* 13.January  2002 TRAC      Fixed bugs where additive      */
 /*                            cycle counting lost cycles.    */
 /* 13.January  2002 TRAC      Added option to allow CPU      */
@@ -61,10 +62,19 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 
 /** FAST_RDOP ************************************************/
 /** With this #define not present, Rd6502() should perform  **/
-/** the functions of Rd6502().                              **/
+/** the functions of Op6502().                              **/
 /*************************************************************/
 #ifndef FAST_RDOP
 #define Op6502(A) Rd6502(A)
+#endif
+
+/** FAST_STACK ***********************************************/
+/** With this #define not present, Rd/Wr6502() should       **/
+/** handle stack accesses.                                  **/
+/*************************************************************/
+#ifndef FAST_STACK
+#define Rd6502Stack(A)   Rd6502(0x100+(A))
+#define Wr6502Stack(A,D) Wr6502(0x100+(A),D)
 #endif
 
 /** Addressing Methods ***************************************/

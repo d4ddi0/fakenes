@@ -30,6 +30,8 @@ extern "C" {
 #define CPU_INTERRUPT_NMI   1
 
 
+UINT8 cpu_ram [65536];
+
 void sram_load (const char *rom_filename);
 void sram_save (const char *rom_filename);
 
@@ -46,11 +48,6 @@ void cpu_reset (void);
 void cpu_interrupt (int);
 
 int cpu_execute (int);
-
-
-UINT8 cpu_read (UINT16 address);
-
-void cpu_write (UINT16 address, UINT8 value);
 
 
 UINT16 * cpu_active_pc;
@@ -313,6 +310,30 @@ static INLINE void Wr6502 (word Addr, byte Value)
     {
         cpu_block_2k_write_handler [Addr >> 11] (Addr, Value);
     }
+}
+
+
+static INLINE byte Rd6502Stack (word S)
+{
+    return (cpu_ram [S]);
+}
+
+
+static INLINE void Wr6502Stack (word S, byte Value)
+{
+    cpu_ram [S] = Value;
+}
+
+
+static INLINE UINT8 cpu_read (UINT16 address)
+{
+    return (Rd6502 (address));
+}
+
+
+static INLINE void cpu_write (UINT16 address, UINT8 value)
+{
+    Wr6502 (address, value);
 }
 
 

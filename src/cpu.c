@@ -47,8 +47,6 @@ extern char * sramdir;
 #endif
 
 
-static UINT8 cpu_ram [65536];
-
 static UINT8 cpu_sram [8192];
 
 
@@ -373,18 +371,6 @@ int cpu_get_cycles (int reset)
 
 
     return (cycles / CYCLE_LENGTH);
-}
-
-
-UINT8 cpu_read (UINT16 address)
-{
-    return (Rd6502 (address));
-}
-
-
-void cpu_write (UINT16 address, UINT8 value)
-{
-    Wr6502 (address, value);
 }
 
 

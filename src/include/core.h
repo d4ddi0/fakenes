@@ -11,6 +11,7 @@
 /**     commercially. Please, notify me, if you make any    **/   
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 15.January  2002 TRAC      Added FAST_STACK.              */
 /* 13.January  2002 TRAC      Added option to allow CPU      */
 /*                            cycles to take more than one   */
 /*                            cycle-counter cycle.           */
@@ -34,6 +35,8 @@
                                /*  #include'd from cpu.h     */
 #define RETURN_ON_TRIP         /* Run6502 returns on trip    */
 #define FAST_RDOP              /* Separate Op6502()/Rd6502() */
+#define FAST_STACK             /* Seperate stack handlers    */
+
 /* #define M_DEBUG */          /* Compile debugging version  */
 /* #define LSB_FIRST */        /* Compile for low-endian CPU */
 
@@ -136,6 +139,10 @@ word Run6502(register M6502 *R);
 void Wr6502(register word Addr,register byte Value);
 byte Rd6502(register word Addr);
 byte Op6502(register word Addr);
+#ifdef FAST_STACK
+byte Rd6502Stack(register word S);
+void Wr6502Stack(register word S,register byte Value);
+#endif
 #else
 #include "cpu.h"
 #endif
