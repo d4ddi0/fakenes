@@ -755,9 +755,10 @@ static INT32 apu_dmc(dmc_t *chan)
                if (chan->irq_gen)
                {
                   chan->irq_occurred = TRUE;
-#ifndef NSF_PLAYER
+//#ifndef NSF_PLAYER
 //DCR                  nes_irq();
-#endif /* !NSF_PLAYER */
+//#endif /* !NSF_PLAYER */
+                  cpu_interrupt (CPU_INTERRUPT_IRQ);
                }
 
                /* bodge for timestamp queue */
@@ -2027,6 +2028,9 @@ boolean sync_dmc_register(UINT32 cpu_cycles)
 
 /*
 ** $Log$
+** Revision 1.6  2002/04/27 03:24:53  stainless
+** Enabled generation of DMC IRQ.
+**
 ** Revision 1.5  2002/04/05 04:39:56  stainless
 ** Overhauled audio base, new features added.
 **
