@@ -11,6 +11,9 @@
 /**     commercially. Please, notify me, if you make any    **/   
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 13.June     2002 TRAC      Improved alignment of M6502    */
+/*                            struct and eliminated obsolete */
+/*                            variables.                     */
 /* 11.June     2002 stainless Added emulation of JAM/HLT.    */
 /* 15.January  2002 TRAC      Added FAST_STACK.              */
 /* 13.January  2002 TRAC      Added option to allow CPU      */
@@ -85,19 +88,19 @@ typedef union
 
 typedef struct
 {
-  byte A,P,X,Y,S;     /* CPU registers and program counter   */
+  /* CPU registers and program counter   */
   pair PC;
+  byte A,X,Y,S;
   byte N,V,D,I,Z,C;   /* CPU status flags - Z flag set when Z == 0 */
 
   int IPeriod,ICount; /* Set IPeriod to number of CPU cycles */
                       /* between calls to Loop6502()         */
   int Cycles;         /* Elapsed cycles since last cleared   */
-  byte IRequest;      /* Set to the INT_IRQ when pending IRQ */
-  byte AfterCLI;      /* Private, don't touch                */
   int IBackup;        /* Private, don't touch                */
-  void *User;         /* Arbitrary user data (ID,RAM*,etc.)  */
-  byte TrapBadOps;    /* Set to 1 to warn of illegal opcodes */
   word Trap;          /* Set Trap to address to trace from   */
+  byte AfterCLI;      /* Private, don't touch                */
+  byte IRequest;      /* Set to the INT_IRQ when pending IRQ */
+  byte TrapBadOps;    /* Set to 1 to warn of illegal opcodes */
   byte Trace;         /* Set Trace=1 to start tracing        */
   byte Jammed;        /* Private, don't touch                */
 } M6502;

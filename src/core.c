@@ -13,6 +13,8 @@
 /**     commercially. Please, notify me, if you make any    **/   
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 13.June     2002 TRAC      Altered M_FIX_P()/M_UNFIX_P(). */
+/*                            Added clear of jam on reset.   */
 /* 11.June     2002 stainless Added emulation of JAM/HLT.    */
 /* 11.June     2002 stainless Commented out unused Exec6502. */
 /* 15.January  2002 TRAC      Added FAST_STACK.              */
@@ -226,10 +228,10 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 /** Other Macros *********************************************/
 /** Calculating flags, stack, jumps, arithmetics, etc.      **/
 /*************************************************************/
-#define M_FIX_P()       R->P=(R->N&N_FLAG)|(R->V?V_FLAG:0)|(R->D?D_FLAG:0)| \
-                        (R->I?I_FLAG:0)|(R->Z?0:Z_FLAG)|(R->C?C_FLAG:0)|R_FLAG|B_FLAG
-#define M_UNFIX_P()     R->N=R->P&N_FLAG;R->V=R->P&V_FLAG;R->D=R->P&D_FLAG; \
-                        R->I=R->P&I_FLAG;R->Z=R->P&Z_FLAG?0:1;R->C=R->P&C_FLAG;
+#define M_FIX_P()       ((R->N&N_FLAG)|(R->V?V_FLAG:0)|(R->D?D_FLAG:0)| \
+                        (R->I?I_FLAG:0)|(R->Z?0:Z_FLAG)|(R->C?C_FLAG:0)|R_FLAG|B_FLAG)
+#define M_UNFIX_P(P)    R->N=P&N_FLAG;R->V=P&V_FLAG;R->D=P&D_FLAG; \
+                        R->I=P&I_FLAG;R->Z=P&Z_FLAG?0:1;R->C=P&C_FLAG;
 #define M_FL(Rg)        R->N=R->Z=Rg
 #define M_LDWORD(Rg)    Rg.B.l=Op6502(R->PC.W);Rg.B.h=Op6502(R->PC.W+1);R->PC.W+=2
 
@@ -310,8 +312,6 @@ void Reset6502(M6502 *R)
 
   R->A=R->X=R->Y=0x00;
 
-  R->P=Z_FLAG|R_FLAG;
-
   R->N=R->V=R->D=R->I=R->C=0;
   R->Z=0;       /* 0 == set */
 
@@ -321,6 +321,7 @@ void Reset6502(M6502 *R)
   R->ICount=R->IPeriod;
   R->IRequest=INT_NONE;
   R->AfterCLI=0;
+  R->Jammed=0;
 }
 
 #ifdef DEBUG
@@ -379,12 +380,13 @@ void Int6502(M6502 *R,byte Type)
 
   if((Type==INT_NMI)||((Type==INT_IRQ)&&!(R->I)))
   {
+    byte P;
     R->ICount-=7*CYCLE_LENGTH;
     R->Cycles+=7*CYCLE_LENGTH;
     M_PUSH(R->PC.B.h);
     M_PUSH(R->PC.B.l);
-    M_FIX_P();
-    M_PUSH(R->P&~B_FLAG);
+    P = M_FIX_P() & ~B_FLAG;
+    M_PUSH(P);
     /* R->D=0; */
     if(Type==INT_NMI) J.W=0xFFFA;
     else

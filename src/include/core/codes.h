@@ -59,14 +59,15 @@ OPCODE_EPILOG
 
 
 OPCODE_PROLOG(0x40) /* RTI */
-    M_POP(R->P);
-    if((R->IRequest!=INT_NONE)&&(!(R->P&I_FLAG) && R->I))
+    byte P;
+    M_POP(P);
+    if((R->IRequest!=INT_NONE)&&(!(P&I_FLAG) && R->I))
     {
       R->AfterCLI=1;
       R->IBackup=R->ICount;
       R->ICount=1;
     }
-    R->P|=R_FLAG;M_UNFIX_P();M_POP(R->PC.B.l);M_POP(R->PC.B.h);
+    M_UNFIX_P(P);M_POP(R->PC.B.l);M_POP(R->PC.B.h);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x60) /* RTS */
@@ -95,11 +96,12 @@ OPCODE_EPILOG
 
 
 OPCODE_PROLOG(0x00) /* BRK */
+  byte P;
   R->PC.W++;
   M_PUSH(R->PC.B.h);M_PUSH(R->PC.B.l);
-  M_FIX_P();
-  M_PUSH(R->P|B_FLAG);
-  R->I=1;R->D=0;
+  P = M_FIX_P() | B_FLAG;
+  M_PUSH(P);
+  R->I=1;
   R->PC.B.l=Rd6502(0xFFFE);
   R->PC.B.h=Rd6502(0xFFFF);
 OPCODE_EPILOG
@@ -116,19 +118,20 @@ OPCODE_PROLOG(0x58) /* CLI */
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x28) /* PLP */
-    M_POP(R->P);
-    if((R->IRequest!=INT_NONE)&&(!(R->P&I_FLAG) && R->I))
+    byte P;
+    M_POP(P);
+    if((R->IRequest!=INT_NONE)&&(!(P&I_FLAG) && R->I))
     {
       R->AfterCLI=1;
       R->IBackup=R->ICount;
       R->ICount=1;
     }
-    R->P|=R_FLAG;
-    M_UNFIX_P();
+    M_UNFIX_P(P);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x08) /* PHP */
-    M_FIX_P(); M_PUSH(R->P);
+    byte P;
+    P = M_FIX_P(); M_PUSH(P);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x18) /* CLC */
@@ -719,8 +722,8 @@ OPCODE_PROLOG_DEFAULT
     if(R->TrapBadOps)
         printf
         (
-            "[M6502 %lX] Unrecognized instruction: $%02X at PC=$%04X\n",
-            ((UINT32)R->User),Op6502(R->PC.W-1),(word)(R->PC.W-1)
+            "[M6502] Unrecognized instruction: $%02X at PC=$%04X\n",
+            Op6502(R->PC.W-1),(word)(R->PC.W-1)
         );
 #ifdef DEBUG
         printf("\nOpcode fallback trace:\n\n");
