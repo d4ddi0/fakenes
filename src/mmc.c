@@ -6,7 +6,7 @@ FakeNES - A portable, open-source NES emulator.
 
 mmc.c: Implementation of the MMC emulation.
 
-Copyright (c) 2001, Randy McDowell and Ian Smith.
+Copyright (c) 2002, Randy McDowell and Ian Smith.
 All rights reserved.  See 'LICENSE' for details.
 
 */
@@ -44,6 +44,8 @@ All rights reserved.  See 'LICENSE' for details.
     (ROM_PRG_ROM + (index) * 0x2000)
 
 
+#define FIRST_ROM_PAGE  ROM_PRG_ROM
+
 #define LAST_ROM_PAGE       \
     (ROM_PAGE_16K (ROM_PRG_ROM_PAGES - 1))
 
@@ -78,6 +80,8 @@ UINT8 * mmc_rom_banks [4];
 
 
 #include "mmc/dreams.h"
+
+#include "mmc/sunsoft.h"
 
 
 int mmc_init (void)
@@ -236,6 +240,16 @@ int mmc_init (void)
             break;
 
 
+        /* Sunsoft. */
+
+        case 68:
+
+            return (sunsoft_init ());
+
+
+            break;
+
+
         default:
 
             return (1);
@@ -337,6 +351,16 @@ void mmc_reset (void)
         case 66:
 
             gnrom_reset ();
+
+
+            break;
+
+
+        /* Sunsoft. */
+
+        case 68:
+
+            sunsoft_reset ();
 
 
             break;
