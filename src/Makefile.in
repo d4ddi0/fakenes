@@ -33,7 +33,7 @@ endif
 CFLAGS = `allegro-config --cflags` ${IFLAGS} @CFLAGS@ ${DFLAGS}
 
 
-NASMDFLAGS = -DC_LABEL_PREFIX
+NASMDFLAGS = -DC_LABELS_PREFIX
 
 ifdef DEBUG
     NASMFLAGS = ${IFLAGS} -g -f elf ${NASMDFLAGS}
