@@ -8,7 +8,7 @@
 static int mmc3_command = 0;
 
 
-static int mmc3_prg_address = 0;
+static int mmc3_prg_address = 0x8000;
 
 static int mmc3_chr_address = 0;
 
@@ -59,9 +59,9 @@ static void mmc3_write (UINT16 address, UINT8 value)
 
             /* Bits 6 and 7 (latches). */
 
-            mmc3_chr_address = (value & MMC3_CHR_ADDRESS_BIT);
+            mmc3_chr_address = (value & MMC3_CHR_ADDRESS_BIT) ? 4 : 0;
 
-            scrap = (value & MMC3_PRG_ADDRESS_BIT);
+            scrap = (value & MMC3_PRG_ADDRESS_BIT) ? 0xC000 : 0x8000;
             if (mmc3_prg_address == scrap) break;
 
             mmc3_prg_address = scrap;
@@ -83,13 +83,13 @@ static void mmc3_write (UINT16 address, UINT8 value)
             /* A000,C000 swappable */
             {
                 /* set address for non-swappable page */
-                cpu_set_read_address_8k (0x8000, ROM_PAGE_8K(0));
+                cpu_set_read_address_8k (0x8000, LAST_ROM_PAGE);
 
                 /* set addresses for swappable pages */
                 cpu_set_read_address_8k (0xA000,
-                    ROM_PAGE_8K(mmc3_cpu_bank[0]));
-                cpu_set_read_address_8k (0xC000,
                     ROM_PAGE_8K(mmc3_cpu_bank[1]));
+                cpu_set_read_address_8k (0xC000,
+                    ROM_PAGE_8K(mmc3_cpu_bank[0]));
                 
             }
 
@@ -109,16 +109,14 @@ static void mmc3_write (UINT16 address, UINT8 value)
 
                     /* 2 1k pages at $0000 or $0800. */
 
-                    scrap = (mmc3_command * 2);
-
-                    scrap ^= (mmc3_chr_address ? 4 : 0);
+                    scrap = (mmc3_command * 2) ^ mmc3_chr_address;
 
 
                     mmc_vrom_banks [scrap] =
-                        VROM_PAGE_1K (value & mmc3_chr_mask);
+                        VROM_PAGE_1K ((value & ~1) & mmc3_chr_mask);
 
                     mmc_vrom_banks [++ scrap] =
-                        VROM_PAGE_1K (++value & mmc3_chr_mask);
+                        VROM_PAGE_1K ((value | 1) & mmc3_chr_mask);
 
 
                     break;
@@ -134,9 +132,7 @@ static void mmc3_write (UINT16 address, UINT8 value)
 
                     /* 1 1k page at $1000 to $1c00. */
 
-                    scrap = (mmc3_command + 2);
-
-                    scrap ^= (mmc3_chr_address ? 4 : 0);
+                    scrap = (mmc3_command + 2) ^ mmc3_chr_address;
 
 
                     mmc_vrom_banks [scrap] =
@@ -150,14 +146,11 @@ static void mmc3_write (UINT16 address, UINT8 value)
 
                 case 6:
 
-                    /* 1 8k page at $8000 or $a000. */
-
-                    scrap = (mmc3_prg_address ? 0xA000 : 0x8000);
-
+                    /* 1 8k page at $8000 or $C000. */
 
                     mmc3_cpu_bank[0] = value & mmc3_prg_mask;
 
-                    cpu_set_read_address_8k (scrap,
+                    cpu_set_read_address_8k (mmc3_prg_address,
                         ROM_PAGE_8K(value & mmc3_prg_mask));
 
 
@@ -166,14 +159,11 @@ static void mmc3_write (UINT16 address, UINT8 value)
 
                 case 7:
 
-                    /* 1 8k page at $a000 or $c000. */
-
-                    scrap = (mmc3_prg_address ? 0xC000 : 0xA000);
-
+                    /* 1 8k page at $A000. */
 
                     mmc3_cpu_bank[1] = value & mmc3_prg_mask;
 
-                    cpu_set_read_address_8k (scrap,
+                    cpu_set_read_address_8k (0xA000,
                         ROM_PAGE_8K(value & mmc3_prg_mask));
 
 
@@ -263,6 +253,10 @@ static INLINE void mmc3_reset (void)
 {
     int index;
 
+
+    /* Reset address latches */
+    mmc3_prg_address = 0x8000;
+    mmc3_chr_address = 0;
 
     /* Select first 16k page in lower 16k. */
 
