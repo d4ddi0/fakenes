@@ -21,17 +21,33 @@ static MENU file_menu [6] =
 };
 
 
+static int machine_type_menu_ntsc (void);
+
+static int machine_type_menu_pal (void);
+
+
+static MENU machine_type_menu [4] =
+{
+    { "&NTSC", machine_type_menu_ntsc, NULL, 0, NULL },
+    {      "",                   NULL, NULL, 0, NULL },
+    {  "&PAL",  machine_type_menu_pal, NULL, 0, NULL },
+    {    NULL,                   NULL, NULL, 0, NULL }
+};
+
+
 static int machine_menu_reset (void);
 
 static int machine_menu_status (void);
 
 
-static MENU machine_menu [4] =
+static MENU machine_menu [6] =
 {
-    {  "&Reset",  machine_menu_reset, NULL, 0, NULL },
-    {        "",                NULL, NULL, 0, NULL },
-    { "&Status", machine_menu_status, NULL, 0, NULL },
-    {      NULL,                NULL, NULL, 0, NULL }
+    {  "&Reset",  machine_menu_reset,              NULL, 0, NULL },
+    {        "",                NULL,              NULL, 0, NULL },
+    { "&Status", machine_menu_status,              NULL, 0, NULL },
+    {        "",                NULL,              NULL, 0, NULL },
+    {   "&Type",                NULL, machine_type_menu, 0, NULL },
+    {      NULL,                NULL,              NULL, 0, NULL }
 };
 
 

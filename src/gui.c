@@ -135,6 +135,13 @@ static int gui_redraw_callback (int msg, DIALOG * d, int c)
 
 static void restore_state (void)
 {
+    CHECK_MENU (machine_type_menu,
+        0, (machine_type == MACHINE_TYPE_NTSC));
+
+    CHECK_MENU (machine_type_menu,
+        2, (machine_type == MACHINE_TYPE_PAL));
+
+
     CHECK_MENU (machine_menu, 2, video_display_status);
 
     CHECK_MENU (options_video_menu, 0, video_enable_vsync);
@@ -331,6 +338,34 @@ static int machine_menu_reset (void)
     machine_reset ();
 
     return (D_CLOSE);
+}
+
+
+static int machine_type_menu_ntsc (void)
+{
+    machine_type = MACHINE_TYPE_NTSC;
+
+
+    machine_type_menu [0].flags |= D_SELECTED;
+
+    machine_type_menu [2].flags &= ~D_SELECTED;
+
+
+    return (D_O_K);
+}
+
+
+static int machine_type_menu_pal (void)
+{
+    machine_type = MACHINE_TYPE_PAL;
+
+
+    machine_type_menu [2].flags |= D_SELECTED;
+
+    machine_type_menu [0].flags &= ~D_SELECTED;
+
+
+    return (D_O_K);
 }
 
 

@@ -159,9 +159,15 @@ void suspend_timing (void)
 
 void resume_timing (void)
 {
-    install_int_ex (fps_interrupt, BPS_TO_TIMER(1));
+    int speed;
 
-    install_int_ex (throttle_interrupt, BPS_TO_TIMER(60));
+
+    speed = ((machine_type == MACHINE_TYPE_NTSC) ? 60 : 50);
+
+
+    install_int_ex (fps_interrupt, BPS_TO_TIMER (1));
+
+    install_int_ex (throttle_interrupt, BPS_TO_TIMER (speed));
 }
 
 
@@ -305,6 +311,9 @@ int main (int argc, char * argv [])
     frame_skip_min = get_config_int ("timing", "frame_skip_min", 0);
 
     frame_skip_max = get_config_int ("timing", "frame_skip_max", 8);
+
+
+    machine_type = get_config_int ("timing", "machine_type", MACHINE_TYPE_NTSC);
 
 
     install_timer ();
@@ -716,6 +725,9 @@ int main (int argc, char * argv [])
     set_config_int ("timing", "frame_skip_min", frame_skip_min);
 
     set_config_int ("timing", "frame_skip_max", frame_skip_max);
+
+
+    set_config_int ("timing", "machine_type", machine_type);
 
 
     papu_exit ();
