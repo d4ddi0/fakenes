@@ -686,9 +686,12 @@ int main (int argc, char * argv [])
     ppu_exit ();
 
 
-    cpu_exit ();
+    if (rom_is_loaded)
+    {
+        cpu_exit ();
 
-    mmc_exit ();
+        mmc_exit ();
+    }
 
 
     input_exit ();

@@ -128,6 +128,12 @@ int show_gui (void)
     gui_is_active = TRUE;
 
 
+    if (! rom_is_loaded)
+    {
+        machine_menu [0].flags |= D_DISABLED;
+    }
+
+
     gui_message (33, "Emulation suspended.");
 
 
@@ -194,6 +200,9 @@ static int file_menu_load_rom (void)
             rom_is_loaded = TRUE;
     
             machine_init ();
+
+
+            machine_menu [0].flags &= ~D_DISABLED;
 
 
             return (D_CLOSE);
