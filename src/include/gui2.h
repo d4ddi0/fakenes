@@ -69,12 +69,16 @@ static int options_audio_filter_low_pass_menu_simple (void);
 
 static int options_audio_filter_low_pass_menu_weighted (void);
 
+static int options_audio_filter_low_pass_menu_dynamic (void);
 
-static MENU options_audio_filter_low_pass_menu [4] =
+
+static MENU options_audio_filter_low_pass_menu [6] =
 {
     {   "&Simple",   options_audio_filter_low_pass_menu_simple, NULL, 0, NULL },
     {          "",                                        NULL, NULL, 0, NULL },
     { "&Weighted", options_audio_filter_low_pass_menu_weighted, NULL, 0, NULL },
+    {          "",                                        NULL, NULL, 0, NULL },
+    {  "&Dynamic",  options_audio_filter_low_pass_menu_dynamic, NULL, 0, NULL },
     {        NULL,                                        NULL, NULL, 0, NULL }
 };
 
@@ -83,11 +87,11 @@ static int options_audio_filter_menu_none (void);
 
 
 static MENU options_audio_filter_menu [4] =
-{
-    {     "&None", options_audio_filter_menu_none,                               NULL, 0, NULL },
-    {          "",                           NULL,                               NULL, 0, NULL },
-    { "&Low Pass",                           NULL, options_audio_filter_low_pass_menu, 0, NULL },
-    {        NULL,                           NULL,                               NULL, 0, NULL }
+{     
+    {      "&None", options_audio_filter_menu_none,                               NULL, 0, NULL },
+    {           "",                           NULL,                               NULL, 0, NULL },
+    {  "&Low Pass",                           NULL, options_audio_filter_low_pass_menu, 0, NULL },
+    {         NULL,                           NULL,                               NULL, 0, NULL }
 };
 
 

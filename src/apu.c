@@ -981,8 +981,14 @@ void apu_process(void *buffer, int num_samples)
                accum += prev_sample;
                accum >>= 1;
             }
-            else
+            else if (APU_FILTER_WEIGHTED == apu->filter_type)
                accum = (accum + accum + accum + prev_sample) >> 2;
+            else
+            {
+                /* dynamic */
+                accum += (prev_sample * 3);
+                accum >>= 2;
+            }
 
             prev_sample = next_sample;
          }
@@ -1080,7 +1086,7 @@ void apu_process_stereo(void *buffer, int num_samples, int reverse)
                accum_right += prev_sample_right;
                accum_right >>= 1;
             }
-            else
+            else if (APU_FILTER_WEIGHTED == apu->filter_type)
             {
                accum_left = (accum_left +
                 accum_left + accum_left + prev_sample_left) >> 2;
@@ -1088,7 +1094,15 @@ void apu_process_stereo(void *buffer, int num_samples, int reverse)
                accum_right = (accum_right +
                 accum_right + accum_right + prev_sample_right) >> 2;
             }
+            else
+            {
+                /* dynamic */
+                accum_left += (prev_sample_left * 3);
+                accum_left >>= 2;
 
+                accum_right += (prev_sample_right * 3);
+                accum_right >>= 2;
+            }
 
             prev_sample_left = next_sample_left;
             prev_sample_right = next_sample_right;
@@ -1279,6 +1293,9 @@ void apu_setext(apu_t *src_apu, apuext_t *ext)
 
 /*
 ** $Log$
+** Revision 1.2  2001/12/29 15:59:49  stainless
+** Added dynamic low pass audio filter.
+**
 ** Revision 1.1  2001/12/28 11:23:25  stainless
 ** Adding latest audio patch to CVS.
 **

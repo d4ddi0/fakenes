@@ -308,6 +308,8 @@ static int options_audio_filter_menu_none (void)
 
     options_audio_filter_low_pass_menu [2].flags &= ~D_SELECTED;
 
+    options_audio_filter_low_pass_menu [4].flags &= ~D_SELECTED;
+
 
     options_audio_filter_menu [0].flags |= D_SELECTED;
 
@@ -328,6 +330,9 @@ static int options_audio_filter_low_pass_menu_simple (void)
 
     options_audio_filter_low_pass_menu [2].flags &= ~D_SELECTED;
 
+    options_audio_filter_low_pass_menu [4].flags &= ~D_SELECTED;
+
+
     options_audio_filter_low_pass_menu [0].flags |= D_SELECTED;
 
 
@@ -347,12 +352,37 @@ static int options_audio_filter_low_pass_menu_weighted (void)
 
     options_audio_filter_low_pass_menu [0].flags &= ~D_SELECTED;
 
+    options_audio_filter_low_pass_menu [4].flags &= ~D_SELECTED;
+
+
     options_audio_filter_low_pass_menu [2].flags |= D_SELECTED;
 
 
     papu_filter_type = APU_FILTER_WEIGHTED;
 
     apu_setfilter (APU_FILTER_WEIGHTED);
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_filter_low_pass_menu_dynamic (void)
+{
+    options_audio_filter_menu [0].flags &= ~D_SELECTED;
+
+
+    options_audio_filter_low_pass_menu [0].flags &= ~D_SELECTED;
+
+    options_audio_filter_low_pass_menu [2].flags &= ~D_SELECTED;
+
+
+    options_audio_filter_low_pass_menu [4].flags |= D_SELECTED;
+
+
+    papu_filter_type = APU_FILTER_DYNAMIC;
+
+    apu_setfilter (APU_FILTER_DYNAMIC);
 
 
     return (D_O_K);

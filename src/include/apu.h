@@ -206,7 +206,8 @@ enum
 {
    APU_FILTER_NONE,
    APU_FILTER_LOWPASS,
-   APU_FILTER_WEIGHTED
+   APU_FILTER_WEIGHTED,
+   APU_FILTER_DYNAMIC
 };
 
 typedef struct
@@ -312,6 +313,9 @@ extern void apu_write(UINT32 address, UINT8 value);
 
 /*
 ** $Log$
+** Revision 1.3  2001/12/29 15:59:49  stainless
+** Added dynamic low pass audio filter.
+**
 ** Revision 1.2  2001/12/28 21:58:45  stainless
 ** Improved the GUI and several features.
 **
