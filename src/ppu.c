@@ -1193,6 +1193,10 @@ void ppu_save_state (PACKFILE * file, int version)
     pack_putc(mmc_uses_pattern_vram(), file_chunk);
 
 
+    /* save palette RAM */
+    pack_fwrite(ppu_palette, 32, file_chunk);
+
+
     /* save sprite RAM */
     pack_fwrite(ppu_spr_ram, 256, file_chunk);
 
@@ -1257,6 +1261,10 @@ void ppu_load_state (PACKFILE * file, int version)
 
     state_name_table_count = pack_getc(file_chunk);
     state_contains_pattern_vram = pack_getc(file_chunk);
+
+
+    /* load palette RAM */
+    pack_fread(ppu_palette, 32, file_chunk);
 
 
     /* load sprite RAM */
