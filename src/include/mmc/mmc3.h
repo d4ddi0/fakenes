@@ -20,6 +20,7 @@ static int mmc3_irq_counter = 0;
 static int mmc3_irq_latch = 0;
 
 static int mmc3_disable_irqs = TRUE;
+static int mmc3_counter_latched = FALSE;
 
 
 #define MMC3_PRG_ADDRESS_BIT 0x40
@@ -34,12 +35,17 @@ static int mmc3_irq_tick (int line)
             (line == ppu_frame_last_line)) &&
         (PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED))
     {
+        mmc3_counter_latched = TRUE;
+
         if (mmc3_irq_counter --) return 0;
 
         /* Load next counter position */
         mmc3_irq_counter = mmc3_irq_latch;
 
         if (mmc3_disable_irqs) return 0;
+
+        mmc3_counter_latched = FALSE;
+
         return 1;
     }
 
@@ -195,7 +201,8 @@ static void mmc3_write (UINT16 address, UINT8 value)
 
             /* Set IRQ counter. */
 
-            mmc3_irq_counter = value;
+            mmc3_irq_latch = value;
+            if (!mmc3_counter_latched) mmc3_irq_counter = mmc3_irq_latch;
 
 
             break;
@@ -205,7 +212,8 @@ static void mmc3_write (UINT16 address, UINT8 value)
 
             /* Set IRQ latch. */
 
-            mmc3_irq_latch = value;
+            mmc3_counter_latched = FALSE;
+            mmc3_irq_counter = mmc3_irq_latch;
 
 
             break;
@@ -216,6 +224,7 @@ static void mmc3_write (UINT16 address, UINT8 value)
             /* Disable IRQs. */
 
             mmc3_disable_irqs = TRUE;
+            if (!mmc3_counter_latched) mmc3_irq_counter = mmc3_irq_latch;
 
 
             break;
@@ -226,6 +235,7 @@ static void mmc3_write (UINT16 address, UINT8 value)
             /* Enable IRQs. */
 
             mmc3_disable_irqs = FALSE;
+            if (!mmc3_counter_latched) mmc3_irq_counter = mmc3_irq_latch;
 
 
             break;
