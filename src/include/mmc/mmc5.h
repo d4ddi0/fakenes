@@ -10,6 +10,11 @@ static int mmc5_init (void);
 static void mmc5_reset (void);
 
 
+static void mmc5_save_state (PACKFILE *, int);
+
+static void mmc5_load_state (PACKFILE *, int);
+
+
 const MMC mmc_mmc5 =
 {
     5, "MMC5 + ExSound",
@@ -19,7 +24,7 @@ const MMC mmc_mmc5 =
 
     "MMC5\0\0\0\0",
 
-    null_save_state, null_load_state
+    mmc5_save_state, mmc5_load_state
 };
 
 
@@ -44,6 +49,7 @@ static UINT8 mmc5_wram[64 << 10];
 static UINT8 mmc5_exram[1 << 10];
 static UINT8 mmc5_filled_name_table[1 << 10];
 
+static UINT8 mmc5_wram_size;
 static INT8 mmc5_wram_lut[8];
 static INT8 background_patterns_last_mapped;
 
@@ -52,6 +58,9 @@ static INT8 background_patterns_last_mapped;
 static void mmc5_set_wram_size (int size)
 {
  int i;
+
+ mmc5_wram_size = size;
+
  switch (size)
  {
   case 64:
@@ -395,12 +404,39 @@ static void mmc5_update_chr_banking(void)
 }
 
 
+static void mmc5_update_name_table(int table)            
+{
+    switch ((mmc5_5100[5] >> (table * 2)) & 3)
+    {
+        case 0: /* PPU $2000 */
+            ppu_set_name_table_internal (table, 0);
+            break;
+                        
+        case 1: /* PPU $2400 */
+            ppu_set_name_table_internal (table, 1);
+            break;
+                        
+        case 2: /* EXRAM */
+            ppu_set_name_table_address (table, mmc5_exram);
+            break;
+                        
+        case 3: /* filled, special */
+            ppu_set_name_table_address_rom (table,
+                mmc5_filled_name_table);
+/*          mmc5_update_filled_name_table ();*/
+            break;
+
+    }
+}
+
+
 static int mmc5_irq_line_counter = 0;
 static UINT8 mmc5_irq_line_requested = 0;
 
 static UINT8 mmc5_irq_status = 0;
 
 static UINT8 mmc5_disable_irqs = TRUE;
+
 
 
 static int mmc5_irq_tick (int line)
@@ -610,37 +646,19 @@ static void mmc5_write (UINT16 address, UINT8 value)
 
             /* name table selection */
 
-            if (!(mmc5_5100[5] ^ value)) break;
+            value ^= mmc5_5100[5];
+
+            if (!value) break;
+
+            mmc5_5100[5] ^= value;
 
             for (scrap = 0; scrap < 4; scrap++)
             {
-                if (!(((mmc5_5100[5] ^ value) >> (scrap * 2)) & 3))
+                if (!((value >> (scrap * 2)) & 3))
                     continue;
 
-                switch ((value >> (scrap * 2)) & 3)
-                {
-                    case 0: /* PPU $2000 */
-                        ppu_set_name_table_internal (scrap, 0);
-                        break;
-                        
-                    case 1: /* PPU $2400 */
-                        ppu_set_name_table_internal (scrap, 1);
-                        break;
-                        
-                    case 2: /* EXRAM */
-                        ppu_set_name_table_address (scrap, mmc5_exram);
-                        break;
-                        
-                    case 3: /* filled, special */
-                        ppu_set_name_table_address_rom (scrap,
-                            mmc5_filled_name_table);
-/*                      mmc5_update_filled_name_table ();*/
-                        break;
-                        
-                }
+                mmc5_update_name_table (scrap);
             }
-
-            mmc5_5100[5] = value;
 
             break;
 
@@ -967,6 +985,7 @@ static void mmc5_reset (void)
 {
     int index;
 
+
     /* Set everything up. */
     mmc5_5100[0x00] = mmc5_5100[0x01] = mmc5_5100[0x02] = mmc5_5100[0x03] =
     mmc5_5100[0x05] = mmc5_5100[0x06] = mmc5_5100[0x07] = mmc5_5100[0x13] =
@@ -983,7 +1002,7 @@ static void mmc5_reset (void)
 
     for (index = 0; index < 4; index++)
     {
-        ppu_set_name_table_address_rom (index, mmc5_filled_name_table);
+        mmc5_update_name_table (index);
     }
 
 
@@ -1027,3 +1046,100 @@ static int mmc5_init (void)
 
     return (0);
 }
+
+
+static void mmc5_save_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    /* Save registers */
+    pack_fwrite (mmc5_5100, 0x2C, file_chunk);
+    pack_fwrite (mmc5_5200, 7, file_chunk);
+    pack_putc (background_patterns_last_mapped, file_chunk);
+
+
+    /* Save IRQ state */
+    pack_iputl (mmc5_irq_line_counter, file_chunk);
+    pack_putc (mmc5_irq_line_requested, file_chunk);
+    pack_putc (mmc5_irq_status, file_chunk);
+    pack_putc (mmc5_disable_irqs, file_chunk);
+
+
+    /* Restore WRAM */
+    pack_putc (mmc5_wram_size, file_chunk);
+    if (mmc5_wram_size)
+    {
+        pack_fwrite (mmc5_wram, (mmc5_wram_size << 10), file_chunk);
+    }
+
+
+    /* Restore EXRAM */
+    pack_fwrite (mmc5_exram, (1 << 10), file_chunk);
+
+
+    pack_fclose_chunk (file_chunk);
+}
+
+
+static void mmc5_load_state (PACKFILE * file, int version)
+{
+    int index;
+
+    UINT8 saved_wram_size;
+
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    /* Restore registers */
+    pack_fread (mmc5_5100, 0x2C, file_chunk);
+    pack_fread (mmc5_5200, 7, file_chunk);
+    background_patterns_last_mapped = pack_getc (file_chunk);
+
+    mmc5_multiply_needs_update = TRUE;
+
+
+    /* Restore banking */
+    mmc5_filled_name_table_needs_update =
+        MMC5_UPDATE_FILL_NAME | MMC5_UPDATE_FILL_ATTRIBUTE;
+    mmc5_update_filled_name_table ();
+
+    for (index = 0; index < 4; index++)
+    {
+        mmc5_update_name_table (index);
+    }
+
+
+    mmc5_set_wram_banking_8k (0x6000, mmc5_5100[0x13]);
+    mmc5_update_prg_banking ();
+    mmc5_update_chr_banking ();
+
+
+    /* Restore IRQ state */
+    mmc5_irq_line_counter = pack_igetl (file_chunk);
+    mmc5_irq_line_requested = pack_getc (file_chunk);
+    mmc5_irq_status = pack_getc (file_chunk);
+    mmc5_disable_irqs = pack_getc (file_chunk);
+
+
+    /* Restore WRAM */
+    saved_wram_size = pack_getc (file_chunk);
+    if (saved_wram_size)
+    {
+        pack_fread (mmc5_wram, (saved_wram_size << 10), file_chunk);
+    }
+
+
+    /* Restore EXRAM */
+    pack_fread (mmc5_exram, (1 << 10), file_chunk);
+
+
+    pack_fclose_chunk (file_chunk);
+}
+

@@ -10,6 +10,11 @@ static int sunsoft4_init (void);
 static void sunsoft4_reset (void);
 
 
+static void sunsoft4_save_state (PACKFILE *, int);
+
+static void sunsoft4_load_state (PACKFILE *, int);
+
+
 const MMC mmc_sunsoft4 =
 {
     68, "Sunsoft mapper #4",
@@ -19,13 +24,17 @@ const MMC mmc_sunsoft4 =
 
     "SUNSOFT4",
 
-    null_save_state, null_load_state
+    sunsoft4_save_state, sunsoft4_load_state
 };
 
 
 static UINT8 sunsoft4_name_table_banks [2];
 
 static UINT8 sunsoft4_name_table_control = 0;
+
+
+static UINT8 sunsoft4_prg_bank;
+static UINT8 sunsoft4_chr_bank [4];
 
 
 static void sunsoft4_fixup_name_tables (void)
@@ -102,6 +111,34 @@ static void sunsoft4_fixup_name_tables (void)
 }
 
 
+static void sunsoft4_update_prg_bank (void)
+{
+    /* Select 16k page in lower 16k. */
+
+    cpu_set_read_address_16k_rom_block (0x8000, sunsoft4_prg_bank);
+}
+
+
+static void sunsoft4_update_chr_bank (int bank)
+{
+    /* Calculate PPU address. */
+
+    int address = (bank * 0x800);
+
+
+    /* Convert 2k page # to 1k. */
+
+    int value = sunsoft4_chr_bank [bank] << 1;
+
+
+    /* Select 2k page at PPU address. */
+
+    ppu_set_ram_1k_pattern_vrom_block (address, value);
+
+    ppu_set_ram_1k_pattern_vrom_block ((address + 0x400), (value + 1));
+}
+
+
 static void sunsoft4_write (UINT16 address, UINT8 value)
 {
     address >>= 12;
@@ -117,22 +154,12 @@ static void sunsoft4_write (UINT16 address, UINT8 value)
 
         case (0xb000 >> 12):
 
-            /* Calculate PPU address. */
-
-            address = ((address - 8) * 0x800);
-
-
-            /* Convert 2k page # to 1k. */
-
-            value <<= 1;
-
 
             /* Select 2k page at PPU address. */
 
-            ppu_set_ram_1k_pattern_vrom_block (address, value);
+            sunsoft4_chr_bank [address - 8] = value;
 
-            ppu_set_ram_1k_pattern_vrom_block ((address + 0x400), (value + 1));
-
+            sunsoft4_update_chr_bank (address - 8);
 
             break;
 
@@ -168,7 +195,9 @@ static void sunsoft4_write (UINT16 address, UINT8 value)
 
             /* Select 16k page in lower 16k. */
 
-            cpu_set_read_address_16k_rom_block (0x8000, value);
+            sunsoft4_prg_bank = value;
+
+            sunsoft4_update_prg_bank ();
 
 
             break;
@@ -180,7 +209,9 @@ static void sunsoft4_reset (void)
 {
     /* Select first 16k page in lower 16k. */
 
-    cpu_set_read_address_16k (0x8000, FIRST_ROM_PAGE);
+    sunsoft4_prg_bank = 0;
+
+    sunsoft4_update_prg_bank ();
 
 
     /* Select last 16k page in upper 16k. */
@@ -191,6 +222,8 @@ static void sunsoft4_reset (void)
 
 static int sunsoft4_init (void)
 {
+    int index;
+
     /* Mapper requires some CHR ROM */
     if (mmc_pattern_vram_in_use)
     {
@@ -198,9 +231,21 @@ static int sunsoft4_init (void)
     }
 
 
+    /* Set initial name table mappings. */
+
     sunsoft4_name_table_banks [0] = sunsoft4_name_table_banks [1] = 0;
 
     sunsoft4_name_table_control = ((ppu_get_mirroring () == MIRRORING_VERTICAL) ? 0 : 1);
+
+
+    /* Set initial pattern table mappings. */
+
+    for (index = 0; index < 4; index++)
+    {
+        sunsoft4_chr_bank [index] = index;
+
+        sunsoft4_update_chr_bank (index);
+    }
 
 
     /* Set initial mappings. */
@@ -215,3 +260,66 @@ static int sunsoft4_init (void)
 
     return (0);
 }
+
+
+static void sunsoft4_save_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    /* Save PRG banking */
+    pack_putc (sunsoft4_prg_bank, file_chunk);
+
+    /* Save CHR banking */
+    pack_fwrite (sunsoft4_chr_bank, 4, file_chunk);
+
+    /* Save name table banking */
+    pack_putc (sunsoft4_name_table_control, file_chunk);
+    pack_fwrite (sunsoft4_name_table_banks, 2, file_chunk);
+
+
+    pack_fclose_chunk (file_chunk);
+}
+
+
+static void sunsoft4_load_state (PACKFILE * file, int version)
+{
+    int index;
+
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    /* Restore PRG banking */
+    sunsoft4_prg_bank = pack_getc (file_chunk);
+
+    sunsoft4_update_prg_bank ();
+
+
+    /* Restore CHR banking */
+    pack_fread (sunsoft4_chr_bank, 4, file_chunk);
+
+    for (index = 0; index < 4; index++)
+    {
+        sunsoft4_chr_bank [index] = index;
+
+        sunsoft4_update_chr_bank (index);
+    }
+
+
+    /* Restore name table banking */
+    sunsoft4_name_table_control = pack_getc (file_chunk);
+    pack_fread (sunsoft4_name_table_banks, 2, file_chunk);
+
+    sunsoft4_fixup_name_tables ();
+
+
+
+    pack_fclose_chunk (file_chunk);
+}
+
