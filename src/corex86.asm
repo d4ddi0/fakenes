@@ -16,6 +16,7 @@ Computer) and NES (Nintendo Entertainment System).
 %endif
 
 
+;%define BINARY_DEBUG
 %ifndef NO_ASM_CORE
 
 ;register allocation;
@@ -78,7 +79,24 @@ section .text
 %define C_LABELS_SUFFIX
 %endif
 
+%ifnidn _ %+ C_LABELS_PREFIX %+ _,__
+
+%ifnidn _ %+ C_LABELS_SUFFIX %+ _,__
 %define C_LABEL(x) C_LABELS_PREFIX %+ x %+ C_LABELS_SUFFIX
+%else
+%define C_LABEL(x) C_LABELS_PREFIX %+ x
+%endif
+
+%else
+
+%ifnidn _ %+ C_LABELS_SUFFIX %+ _,__
+%define C_LABEL(x) x %+ C_LABELS_SUFFIX
+%else
+%define C_LABEL(x) x
+%endif
+
+%endif
+
 
 %define EXTERN_C(x) extern C_LABEL(x)
 
@@ -100,10 +118,6 @@ C_LABEL(%1):
 
 EXTERN_C(cpu_block_2k_read_address)
 EXTERN_C(cpu_block_2k_read_handler)
-EXTERN_C(cpu_block_2k_write_address)
-EXTERN_C(cpu_block_2k_write_handler)
-EXTERN_C(cpu_patch_table)
-EXTERN_C(Cyread_handler)
 EXTERN_C(cpu_block_2k_write_address)
 EXTERN_C(cpu_block_2k_write_handler)
 EXTERN_C(cpu_patch_table)

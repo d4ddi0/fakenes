@@ -20,6 +20,7 @@ CPU, as used in the Nintendo Famicom (Family Computer) and NES
 
 #include "core.h"
 #include "core/tables.h"
+#include "core/memory.h"
 
 
 /* define some macros to help improve readability */
@@ -67,6 +68,11 @@ CPU, as used in the Nintendo Famicom (Family Computer) and NES
 #include "core/insns.h"
 
 
+//#define BINARY_DUMP
+#ifdef BINARY_DUMP
+FILE *ops_dmp;
+#endif
+
 /*
  FN2A03_Init()
 
@@ -81,6 +87,10 @@ void FN2A03_Init(void)
   {
       Cycles[i] = BaseCycles[i] * CYCLE_LENGTH;
   }
+
+#ifdef BINARY_DUMP
+  ops_dmp = fopen("ops.dmp", "wb");
+#endif
 }
 
 /*
@@ -113,6 +123,28 @@ void FN2A03_Reset(FN2A03 *R)
 static int opcode_count=0;
 static UINT8 opcode_trace[10];
 #endif
+
+void FN2A03_report_bad_opcode(UINT8 opcode, UINT16 address)
+{
+    printf ("[FN2A03] Unrecognized instruction: $%02X at PC=$%04X\n",
+        opcode, address);
+}
+
+
+#ifdef DEBUG
+void FN2A03_opcode_fallback_trace(void)
+{
+    printf("\nOpcode fallback trace:\n\n");
+    for (opcode_count = 0; opcode_count < 10; opcode_count++)
+    {
+        printf("$%02X ",opcode_trace[opcode_count]);
+        opcode_trace[opcode_count] = 0;
+    }
+    printf("\n\n");
+    opcode_count = 0;
+}
+#endif
+
 
 #define OPCODE_PROLOG(x) \
     case x: {
@@ -226,6 +258,8 @@ void FN2A03_Interrupt(FN2A03 *R,UINT8 Type)
   This function will execute RP2A03G code until the cycle
  counter expires.
 */
+#define NO_C_CORE
+#ifndef NO_C_CORE
 void FN2A03_Run(FN2A03 *R)
 {
   if (R->Jammed) return;
@@ -244,10 +278,30 @@ void FN2A03_Run(FN2A03 *R)
       if(PC.word==R->Trap) R->Trace=1;
       /* Call single-step debugger, exit if requested */
       if(R->Trace)
+      {
+        R->PC.word=PC.word;
         if(!FN2A03_Debug(R)) return;
+      }
 #endif
 
       opcode=Fetch(PC.word);
+#ifdef BINARY_DUMP
+  R->PC.word=PC.word;
+  if (ops_dmp)
+  {
+   fputc(R->PC.bytes.high, ops_dmp);
+   fputc(R->PC.bytes.low, ops_dmp);
+   fputc(R->A, ops_dmp);
+   fputc(R->X, ops_dmp);
+   fputc(R->Y, ops_dmp);
+   fputc(R->S, ops_dmp);
+   fputc(Pack_Flags(), ops_dmp);
+   fputc(opcode, ops_dmp);
+   fwrite(&R->Cycles, 1, 4, ops_dmp);
+   fwrite(&R->ICount, 1, 4, ops_dmp);
+  }
+#endif
+
       cycles=Cycles[opcode];
       R->Cycles+=cycles;
 #ifdef DEBUG
@@ -278,3 +332,4 @@ void FN2A03_Run(FN2A03 *R)
   /* Execution stopped */
   return;
 }
+#endif
