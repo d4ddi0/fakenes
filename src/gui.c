@@ -1137,7 +1137,7 @@ static int machine_state_menu_select (void)
     
             int version;
     
-    
+
             /* Probably don't need to verify these... */
     
             pack_fread (signature, 4, file);
@@ -1145,7 +1145,7 @@ static int machine_state_menu_select (void)
         
             version = pack_igetw (file);
         
-        
+
             pack_fread (buffer2, sizeof (buffer2), file);
 
 
@@ -1266,6 +1266,14 @@ static int machine_state_menu_save (void)
         pack_fwrite (buffer2, sizeof (buffer2), file);
 
 
+        pack_iputl (global_rom.trainer_crc32, file);
+
+
+        pack_iputl (global_rom.prg_rom_crc32, file);
+
+        pack_iputl (global_rom.chr_rom_crc32, file);
+
+
         pack_fwrite ("CPU\0", 4, file);
 
         cpu_save_state (file, version);
@@ -1352,6 +1360,14 @@ static int machine_state_menu_restore (void)
         int version;
 
 
+        UINT32 trainer_crc;
+
+
+        UINT32 prg_rom_crc;
+
+        UINT32 chr_rom_crc;
+
+
         pack_fread (signature, 4, file);
     
     
@@ -1383,6 +1399,27 @@ static int machine_state_menu_restore (void)
     
 
         pack_fread (buffer2, sizeof (buffer2), file);
+
+
+        trainer_crc = pack_igetl (file);
+
+
+        prg_rom_crc = pack_igetl (file);
+
+        chr_rom_crc = pack_igetl (file);
+
+
+        if ((trainer_crc != global_rom.trainer_crc32) ||
+           ((prg_rom_crc != global_rom.prg_rom_crc32) || (chr_rom_crc != global_rom.chr_rom_crc32)))
+        {
+            gui_message (error_color, "Machine state file is for a different ROM.");
+    
+    
+            pack_fclose (file);
+    
+    
+            return (D_O_K);
+        }
 
 
         machine_reset ();
