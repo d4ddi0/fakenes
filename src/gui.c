@@ -8,9 +8,13 @@
 #include <string.h>
 
 
+#include "apu.h"
+
 #include "audio.h"
 
 #include "gui.h"
+
+#include "papu.h"
 
 #include "rom.h"
 
@@ -174,7 +178,7 @@ static int file_menu_load_rom (void)
 
 #ifdef USE_ZLIB
 
-    if (file_select_ex ("iNES ROMs (*.NES)",
+    if (file_select_ex ("iNES ROMs (*.NES, *.GZ)",
         buffer, "NES;nes;GZ;gz", sizeof (buffer), 0, 0) != 0)
     {
 
@@ -244,7 +248,7 @@ static int file_menu_snapshot (void)
                 count = 1000;
     
                 save_bitmap (filename,
-                    video_buffer, DATA_NES_PALETTE);
+                    video_buffer, DATA_DEFAULT_PALETTE);
 
 
                 gui_message (33,
@@ -298,6 +302,63 @@ static int machine_menu_status (void)
 }
 
 
+static int options_audio_filter_menu_none (void)
+{
+    options_audio_filter_low_pass_menu [0].flags &= ~D_SELECTED;
+
+    options_audio_filter_low_pass_menu [2].flags &= ~D_SELECTED;
+
+
+    options_audio_filter_menu [0].flags |= D_SELECTED;
+
+
+    papu_filter_type = APU_FILTER_NONE;
+
+    apu_setfilter (APU_FILTER_NONE);
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_filter_low_pass_menu_simple (void)
+{
+    options_audio_filter_menu [0].flags &= ~D_SELECTED;
+
+
+    options_audio_filter_low_pass_menu [2].flags &= ~D_SELECTED;
+
+    options_audio_filter_low_pass_menu [0].flags |= D_SELECTED;
+
+
+    papu_filter_type = APU_FILTER_LOWPASS;
+
+    apu_setfilter (APU_FILTER_LOWPASS);
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_filter_low_pass_menu_weighted (void)
+{
+    options_audio_filter_menu [0].flags &= ~D_SELECTED;
+
+
+    options_audio_filter_low_pass_menu [0].flags &= ~D_SELECTED;
+
+    options_audio_filter_low_pass_menu [2].flags |= D_SELECTED;
+
+
+    papu_filter_type = APU_FILTER_WEIGHTED;
+
+    apu_setfilter (APU_FILTER_WEIGHTED);
+
+
+    return (D_O_K);
+}
+
+
 static int options_video_menu_vsync (void)
 {
     if (options_video_menu [0].flags & D_SELECTED)
@@ -324,20 +385,51 @@ static int options_video_menu_vsync (void)
 }
 
 
-static int options_menu_gb_mode (void)
+static int options_video_palette_menu_default (void)
 {
-    if (options_menu [2].flags & D_SELECTED)
-    {
-        options_menu [2].flags &= ~D_SELECTED;
+    options_video_palette_menu [2].flags &= ~D_SELECTED;
 
-        set_palette (DATA_NES_PALETTE);
-    }
-    else
-    {
-        options_menu [2].flags |= D_SELECTED;
+    options_video_palette_menu [4].flags &= ~D_SELECTED;
 
-        set_palette (DATA_GB_PALETTE);
-    }
+
+    options_video_palette_menu [0].flags |= D_SELECTED;
+
+
+    set_palette (DATA_DEFAULT_PALETTE);
+
+
+    return (D_O_K);
+}
+
+
+static int options_video_palette_menu_gnuboy (void)
+{
+    options_video_palette_menu [0].flags &= ~D_SELECTED;
+
+    options_video_palette_menu [4].flags &= ~D_SELECTED;
+
+
+    options_video_palette_menu [2].flags |= D_SELECTED;
+
+
+    set_palette (DATA_GNUBOY_PALETTE);
+
+
+    return (D_O_K);
+}
+
+
+static int options_video_palette_menu_nester (void)
+{
+    options_video_palette_menu [0].flags &= ~D_SELECTED;
+
+    options_video_palette_menu [2].flags &= ~D_SELECTED;
+
+
+    options_video_palette_menu [4].flags |= D_SELECTED;
+
+
+    set_palette (DATA_NESTER_PALETTE);
 
 
     return (D_O_K);

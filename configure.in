@@ -5,11 +5,6 @@ dnl Checks for programs.
 AC_PROG_CC
 
 dnl Checks for libraries.
-dnl AC_CHECK_LIB(alleg, allegro_init)
-
-dnl Exit here if the library is not found.
-dnl Tell them which Allegro packages they need.
-
 AC_CHECK_LIB(z, gzopen)
 
 AC_MSG_CHECKING(whether to enable gzip support)

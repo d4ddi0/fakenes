@@ -1,12 +1,13 @@
-/* Allegro datafile object indexes, produced by grabber v4.0.0, djgpp */
+/* Allegro datafile object indexes, produced by grabber v3.9.34 (WIP), djgpp */
 /* Datafile: j:\fakenes\src\support\fakenes.dat */
-/* Date: Fri Dec 14 01:36:47 2001 */
+/* Date: Fri Dec 28 14:52:44 2001 */
 /* Do not hand edit! */
 
 #define ARROW_SPRITE                     0        /* BMP  */
-#define GB_PALETTE                       1        /* PAL  */
-#define GUN_SPRITE                       2        /* BMP  */
-#define LARGE_FONT                       3        /* FONT */
-#define NES_PALETTE                      4        /* PAL  */
-#define SMALL_FONT                       5        /* FONT */
+#define DEFAULT_PALETTE                  1        /* PAL  */
+#define GNUBOY_PALETTE                   2        /* PAL  */
+#define GUN_SPRITE                       3        /* BMP  */
+#define LARGE_FONT                       4        /* FONT */
+#define NESTER_PALETTE                   5        /* PAL  */
+#define SMALL_FONT                       6        /* FONT */
 

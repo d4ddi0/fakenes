@@ -163,5 +163,5 @@ void audio_stop (void)
     free_audio_stream_buffer (audio_stream);
 
 
-    audio_fps ++;
+    audio_fps += audio_buffer_length;
 }

@@ -26,6 +26,8 @@
 #ifndef _NES_APU_H_
 #define _NES_APU_H_
 
+#include "misc.h"
+
 #define boolean INT8
 
 /* HACK to get Win32 SDL to compile */
@@ -310,6 +312,9 @@ extern void apu_write(UINT32 address, UINT8 value);
 
 /*
 ** $Log$
+** Revision 1.2  2001/12/28 21:58:45  stainless
+** Improved the GUI and several features.
+**
 ** Revision 1.1  2001/12/28 11:23:25  stainless
 ** Adding latest audio patch to CVS.
 **

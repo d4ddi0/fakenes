@@ -138,7 +138,7 @@ int video_init (void)
     scare_mouse ();
 
 
-    set_palette (DATA_NES_PALETTE);
+    set_palette (DATA_DEFAULT_PALETTE);
 
 
     text_mode (-1);

@@ -17,11 +17,14 @@ DATAFILE * data;
     ((BITMAP *) data [GUN_SPRITE].dat)
 
 
-#define DATA_GB_PALETTE     \
-    ((RGB *) data [GB_PALETTE].dat)
+#define DATA_DEFAULT_PALETTE    \
+    ((RGB *) data [DEFAULT_PALETTE].dat)
 
-#define DATA_NES_PALETTE    \
-    ((RGB *) data [NES_PALETTE].dat)
+#define DATA_GNUBOY_PALETTE     \
+    ((RGB *) data [GNUBOY_PALETTE].dat)
+
+#define DATA_NESTER_PALETTE     \
+    ((RGB *) data [NESTER_PALETTE].dat)
 
 
 #define DATA_LARGE_FONT     \
