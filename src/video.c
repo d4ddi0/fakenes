@@ -456,9 +456,24 @@ static INLINE void display_status (BITMAP * bitmap, int color)
 }
 
 
-#define FAST_GETPIXEL(bitmap, x, y)         bitmap -> line [y] [x]
+#define FAST_GETPIXEL(bitmap, x, y)             bitmap -> line [y] [x]
 
-#define FAST_PUTPIXEL(bitmap, x, y, color)  (bitmap -> line [y] [x] = color)
+
+#define SAFE_GETPIXEL(bitmap, x, y, default)                                  \
+    ((((x >= 0) && (y >= 0)) && ((x < bitmap -> w) && (y < bitmap -> h))) ?   \
+    FAST_GETPIXEL (bitmap, x, y) : default)
+
+
+#define FAST_PUTPIXEL(bitmap, x, y, color)      (bitmap -> line [y] [x] = color)
+
+#define FAST_PUTPIXEL16(bitmap, x, y, color)    (((UINT16 *) bitmap -> line [y]) [x] = color)
+
+#define FAST_PUTPIXEL32(bitmap, x, y, color)    (((UINT32 *) bitmap -> line [y]) [x] = color)
+
+
+#define MAGIC_PUTPIXEL(bitmap, x, y, color)     \
+    ((color_depth == 32) ?                      \
+    FAST_PUTPIXEL32 (bitmap, x, y, color) : FAST_PUTPIXEL16 (bitmap, x, y, color))
 
 
 #define BLITTER_SIZE_CHECK(width, height)                                                                         \
@@ -819,12 +834,6 @@ static INLINE void blit_2xscl (BITMAP * source, BITMAP * target, int x, int y)
 }
 
 
-#define FAST_PUTPIXEL16(bitmap, x, y, color)    (((UINT16 *) bitmap -> line [y]) [x] = color)
-
-
-#define FAST_PUTPIXEL32(bitmap, x, y, color)    (((UINT32 *) bitmap -> line [y]) [x] = color)
-
-
 static INLINE int mix (int color_a, int color_b)
 {
     int r;
@@ -862,7 +871,44 @@ static INLINE int mix (int color_a, int color_b)
 }
 
 
-static INLINE void blit_interpolated (BITMAP * source, BITMAP * target, int x, int y)
+static INLINE int mix_half (int color_a, int color_b)
+{
+    int r;
+
+    int g;
+
+    int b;
+
+
+    /* 0 - 63 --> 0 - 127. */
+
+    r = ((internal_palette [color_a].r * 2) + (internal_palette [color_b].r * 2));
+
+    g = ((internal_palette [color_a].g * 2) + (internal_palette [color_b].g * 2));
+
+    b = ((internal_palette [color_a].b * 2) + (internal_palette [color_b].b * 2));
+
+
+    if (color_depth == 32)
+    {
+        return (makecol32 (r, g, b));
+    }
+    else if (color_depth == 16)
+    {
+        return (makecol16 (r, g, b));
+    }
+    else if (color_depth == 15)
+    {
+        return (makecol15 (r, g, b));
+    }
+    else
+    {
+        return (makecol (r, g, b));
+    }
+}
+
+
+static INLINE void blit_interpolated_2x (BITMAP * source, BITMAP * target, int x, int y)
 {
     int x_base;
 
@@ -934,18 +980,18 @@ static INLINE void blit_interpolated (BITMAP * source, BITMAP * target, int x, i
             FAST_PUTPIXEL16 (target, x_base, y_base, palette_color [center_pixel]);
 
 
-            FAST_PUTPIXEL16 (target, (x_base + 1), y_base, mix (center_pixel, east_pixel));
+            FAST_PUTPIXEL16 (target, (x_base + 1), y_base, mix_half (center_pixel, east_pixel));
 
-            FAST_PUTPIXEL16 (target, x_base, (y_base + 1), mix (center_pixel, south_pixel));
+            FAST_PUTPIXEL16 (target, x_base, (y_base + 1), mix_half (center_pixel, south_pixel));
 
 
-            FAST_PUTPIXEL16 (target, (x_base + 1), (y_base + 1), mix (center_pixel, south_east_pixel));
+            FAST_PUTPIXEL16 (target, (x_base + 1), (y_base + 1), mix_half (center_pixel, south_east_pixel));
         }
     }
 }
 
 
-static INLINE void blit_interpolated_32 (BITMAP * source, BITMAP * target, int x, int y)
+static INLINE void blit_interpolated_2x_32 (BITMAP * source, BITMAP * target, int x, int y)
 {
     int x_base;
 
@@ -1017,12 +1063,83 @@ static INLINE void blit_interpolated_32 (BITMAP * source, BITMAP * target, int x
             FAST_PUTPIXEL32 (target, x_base, y_base, palette_color [center_pixel]);
 
 
-            FAST_PUTPIXEL32 (target, (x_base + 1), y_base, mix (center_pixel, east_pixel));
+            FAST_PUTPIXEL32 (target, (x_base + 1), y_base, mix_half (center_pixel, east_pixel));
 
-            FAST_PUTPIXEL32 (target, x_base, (y_base + 1), mix (center_pixel, south_pixel));
+            FAST_PUTPIXEL32 (target, x_base, (y_base + 1), mix_half (center_pixel, south_pixel));
 
 
-            FAST_PUTPIXEL32 (target, (x_base + 1), (y_base + 1), mix (center_pixel, south_east_pixel));
+            FAST_PUTPIXEL32 (target, (x_base + 1), (y_base + 1), mix_half (center_pixel, south_east_pixel));
+        }
+    }
+}
+
+
+static INLINE void blit_interpolated_3x (BITMAP * source, BITMAP * target, int x, int y)
+{
+    int x_base;
+
+    int y_base;
+
+
+    int x_offset;
+
+    int y_offset;
+
+
+    int pixels [9];
+
+
+    BLITTER_SIZE_CHECK (768, 720);
+
+
+    for (y_offset = 0; y_offset < source -> h; y_offset ++)
+    {
+        y_base = (y + (y_offset * 3));
+
+
+        for (x_offset = 0; x_offset < source -> w; x_offset ++)
+        {
+            x_base = (x + (x_offset * 3));
+
+
+            pixels [0] = FAST_GETPIXEL (source, x_offset, y_offset);
+
+
+            pixels [1] = SAFE_GETPIXEL (source, (x_offset - 1), (y_offset - 1), pixels [0]);
+
+            pixels [2] = SAFE_GETPIXEL (source, x_offset, (y_offset - 1), pixels [0]);
+
+            pixels [3] = SAFE_GETPIXEL (source, (x_offset + 1), (y_offset - 1), pixels [0]);
+
+            pixels [4] = SAFE_GETPIXEL (source, (x_offset + 1), y_offset, pixels [0]);
+
+            pixels [5] = SAFE_GETPIXEL (source, (x_offset + 1), (y_offset + 1), pixels [0]);
+
+            pixels [6] = SAFE_GETPIXEL (source, x_offset, (y_offset + 1), pixels [0]);
+
+            pixels [7] = SAFE_GETPIXEL (source, (x_offset - 1), (y_offset + 1), pixels [0]);
+
+            pixels [8] = SAFE_GETPIXEL (source, (x_offset - 1), y_offset, pixels [0]);
+
+
+            MAGIC_PUTPIXEL (target, (x_base + 1), (y_base + 1), palette_color [pixels [0]]);
+
+
+            MAGIC_PUTPIXEL (target, x_base, y_base, mix_half (pixels [0], pixels [1]));
+
+            MAGIC_PUTPIXEL (target, (x_base + 1), y_base, mix_half (pixels [0], pixels [2]));
+                                                              
+            MAGIC_PUTPIXEL (target, (x_base + 2), y_base, mix_half (pixels [0], pixels [3]));
+
+            MAGIC_PUTPIXEL (target, (x_base + 2), (y_base + 1), mix_half (pixels [0], pixels [4]));
+
+            MAGIC_PUTPIXEL (target, (x_base + 2), (y_base + 2), mix_half (pixels [0], pixels [5]));
+                                                                    
+            MAGIC_PUTPIXEL (target, (x_base + 1), (y_base + 2), mix_half (pixels [0], pixels [6]));
+                 
+            MAGIC_PUTPIXEL (target, x_base, (y_base + 2), mix_half (pixels [0], pixels [7]));
+
+            MAGIC_PUTPIXEL (target, x_base, (y_base + 1), mix_half (pixels [0], pixels [8]));
         }
     }
 }
@@ -1750,16 +1867,24 @@ void video_blit (BITMAP * bitmap)
             break;
 
 
-        case VIDEO_BLITTER_INTERPOLATED:
+        case VIDEO_BLITTER_INTERPOLATED_2X:
 
             if (color_depth == 32)
             {
-                blit_interpolated_32 (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
+                blit_interpolated_2x_32 (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
             }
             else
             {
-                blit_interpolated (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
+                blit_interpolated_2x (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
             }
+
+
+            break;
+
+
+        case VIDEO_BLITTER_INTERPOLATED_3X:
+
+            blit_interpolated_3x (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
 
 
             break;
@@ -1881,7 +2006,7 @@ void video_zoom (int x_factor, int y_factor)
 {
     if (((blitter_type == VIDEO_BLITTER_2XSOE) || (blitter_type == VIDEO_BLITTER_SUPER_2XSOE)) ||
         ((blitter_type == VIDEO_BLITTER_2XSCL) || (blitter_type == VIDEO_BLITTER_SUPER_2XSCL)) ||
-         (blitter_type == VIDEO_BLITTER_INTERPOLATED))
+         ((blitter_type == VIDEO_BLITTER_INTERPOLATED_2X) || (blitter_type == VIDEO_BLITTER_INTERPOLATED_3X)))
     {
         return;
     }
@@ -2090,7 +2215,7 @@ void video_set_blitter (int blitter)
             break;
 
 
-        case VIDEO_BLITTER_INTERPOLATED:
+        case VIDEO_BLITTER_INTERPOLATED_2X:
 
         case VIDEO_BLITTER_2XSOE:
 
@@ -2111,6 +2236,25 @@ void video_set_blitter (int blitter)
                 blit_x_offset = ((SCREEN_W / 2) - (256 / 2));
             
                 blit_y_offset = ((SCREEN_H / 2) - (240 / 2));
+            }
+
+
+            break;
+
+
+        case VIDEO_BLITTER_INTERPOLATED_3X:
+
+            if (! ((SCREEN_W < 768) || (SCREEN_H < 720)))
+            {
+                blit_x_offset = ((SCREEN_W / 2) - 384);
+    
+                blit_y_offset = ((SCREEN_H / 2) - 360);
+            }
+            else
+            {
+                blit_x_offset = ((SCREEN_W / 2) - (384 / 2));
+            
+                blit_y_offset = ((SCREEN_H / 2) - (360 / 2));
             }
 
 
