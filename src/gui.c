@@ -758,11 +758,11 @@ int show_gui (int first_run)
         CHECK_MENU (options_video_palette_menu, 0);
     
 
-        update_menus ();
-
-
         gui_initialized = TRUE;
     }
+
+
+    update_menus ();
 
 
     if (! rom_is_loaded)
