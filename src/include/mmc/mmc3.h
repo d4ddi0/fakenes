@@ -10,6 +10,11 @@ static int mmc3_init (void);
 static void mmc3_reset (void);
 
 
+static void mmc3_save_state (PACKFILE *, int);
+
+static void mmc3_load_state (PACKFILE *, int);
+
+
 const MMC mmc_mmc3 =
 {
     4, "MMC3",
@@ -19,7 +24,7 @@ const MMC mmc_mmc3 =
 
     "MMC3\0\0\0\0",
 
-    null_save_state, null_load_state
+    mmc3_save_state, mmc3_load_state
 };
 
 
@@ -39,6 +44,10 @@ static int mmc3_irq_latch = 0;
 
 static int mmc3_disable_irqs = TRUE;
 static int mmc3_counter_latched = FALSE;
+
+
+static UINT8 mmc3_register_8000;
+static UINT8 mmc3_sram_enable;
 
 
 #define MMC3_PRG_ADDRESS_BIT 0x40
@@ -72,6 +81,47 @@ static int mmc3_irq_tick (int line)
 }
 
 
+static INLINE void mmc3_cpu_bank_sort (void)
+{
+    /* set address for non-swappable page */
+    cpu_set_read_address_8k (
+        (mmc3_prg_address == 0x8000) ? 0xC000 : 0x8000,
+        LAST_ROM_PAGE);
+
+    /* set addresses for swappable pages */
+    cpu_set_read_address_8k_rom_block (mmc3_prg_address,
+        mmc3_prg_bank[0]);
+    cpu_set_read_address_8k_rom_block (0xA000,
+        mmc3_prg_bank[1]);
+}
+
+
+static INLINE void mmc3_ppu_bank_sort (void)
+{
+    ppu_set_ram_1k_pattern_vrom_block (
+        (mmc3_chr_address << 10), mmc3_chr_bank [0] & ~1);
+    ppu_set_ram_1k_pattern_vrom_block (
+        ((1 + mmc3_chr_address) << 10), mmc3_chr_bank [0] | 1);
+
+    ppu_set_ram_1k_pattern_vrom_block (
+        ((2 + mmc3_chr_address) << 10), mmc3_chr_bank [1] & ~1);
+    ppu_set_ram_1k_pattern_vrom_block (
+        ((3 + mmc3_chr_address) << 10), mmc3_chr_bank [1] | 1);
+
+    ppu_set_ram_1k_pattern_vrom_block (
+        ((4 - mmc3_chr_address) << 10), mmc3_chr_bank [2]);
+
+    ppu_set_ram_1k_pattern_vrom_block (
+        ((5 - mmc3_chr_address) << 10), mmc3_chr_bank [3]);
+
+    ppu_set_ram_1k_pattern_vrom_block (
+        ((6 - mmc3_chr_address) << 10), mmc3_chr_bank [4]);
+
+    ppu_set_ram_1k_pattern_vrom_block (
+        ((7 - mmc3_chr_address) << 10), mmc3_chr_bank [5]);
+}
+
+
 static void mmc3_write (UINT16 address, UINT8 value)
 {
     int scrap;
@@ -83,6 +133,8 @@ static void mmc3_write (UINT16 address, UINT8 value)
 
             /* Bits 0 to 2 (command). */
 
+            mmc3_register_8000 = value;
+
             mmc3_command = (value & 0x07);
 
 
@@ -93,27 +145,7 @@ static void mmc3_write (UINT16 address, UINT8 value)
             {
                 mmc3_chr_address = scrap;
 
-                ppu_set_ram_1k_pattern_vrom_block (
-                    (mmc3_chr_address << 10), mmc3_chr_bank [0] & ~1);
-                ppu_set_ram_1k_pattern_vrom_block (
-                    ((1 + mmc3_chr_address) << 10), mmc3_chr_bank [0] | 1);
-
-                ppu_set_ram_1k_pattern_vrom_block (
-                    ((2 + mmc3_chr_address) << 10), mmc3_chr_bank [1] & ~1);
-                ppu_set_ram_1k_pattern_vrom_block (
-                    ((3 + mmc3_chr_address) << 10), mmc3_chr_bank [1] | 1);
-
-                ppu_set_ram_1k_pattern_vrom_block (
-                    ((4 - mmc3_chr_address) << 10), mmc3_chr_bank [2]);
-
-                ppu_set_ram_1k_pattern_vrom_block (
-                    ((5 - mmc3_chr_address) << 10), mmc3_chr_bank [3]);
-
-                ppu_set_ram_1k_pattern_vrom_block (
-                    ((6 - mmc3_chr_address) << 10), mmc3_chr_bank [4]);
-
-                ppu_set_ram_1k_pattern_vrom_block (
-                    ((7 - mmc3_chr_address) << 10), mmc3_chr_bank [5]);
+                mmc3_ppu_bank_sort ();
             }
 
 
@@ -122,16 +154,7 @@ static void mmc3_write (UINT16 address, UINT8 value)
             {
                 mmc3_prg_address = scrap;
 
-                /* set address for non-swappable page */
-                cpu_set_read_address_8k (
-                    (mmc3_prg_address == 0x8000) ? 0xC000 : 0x8000,
-                    LAST_ROM_PAGE);
-
-                /* set addresses for swappable pages */
-                cpu_set_read_address_8k_rom_block (mmc3_prg_address,
-                    mmc3_prg_bank[0]);
-                cpu_set_read_address_8k_rom_block (0xA000,
-                    mmc3_prg_bank[1]);
+                mmc3_cpu_bank_sort ();
             }
 
             break;
@@ -239,7 +262,8 @@ static void mmc3_write (UINT16 address, UINT8 value)
 
             /* Disabled for Star Tropics. */
 
-            //if (value & 0x80) enable_sram();
+            mmc3_sram_enable = (value & 0x80);
+            //if (mmc3_sram_enable) enable_sram();
             //else disable_sram();
 
 
@@ -305,15 +329,10 @@ static void mmc3_reset (void)
 
 
     /* Reset address latches */
-    mmc3_prg_address = 0x8000;
-    mmc3_chr_address = 0;
+    mmc3_write(0x8000, 0);
 
-    /* Select first 16k page in lower 16k. */
-
-    mmc3_prg_bank [0] = 0;
-    mmc3_prg_bank [1] = 1;
-    cpu_set_read_address_8k_rom_block (0x8000, mmc3_prg_bank [0]);
-    cpu_set_read_address_8k_rom_block (0xA000, mmc3_prg_bank [1]);
+    /* Enable SRAM */
+    mmc3_write(0xA001, 0x80);
 
 
     /* Select last 16k page in upper 16k. */
@@ -321,14 +340,26 @@ static void mmc3_reset (void)
     cpu_set_read_address_16k (0xC000, LAST_ROM_PAGE);
 
 
+    /* Select first 16k page in lower 16k. */
+
+    mmc3_prg_bank [0] = 0;
+    mmc3_prg_bank [1] = 1;
+
+    mmc3_cpu_bank_sort ();
+
+
     if (ROM_CHR_ROM_PAGES > 0)
     {
         /* Select first 8k page. */
 
-        for (index = 0; index < 8; index ++)
-        {
-            ppu_set_ram_1k_pattern_vrom_block (index << 10, index);
-        }
+        mmc3_chr_bank [0] = 0;
+        mmc3_chr_bank [1] = 2;
+        mmc3_chr_bank [2] = 4;
+        mmc3_chr_bank [3] = 5;
+        mmc3_chr_bank [4] = 6;
+        mmc3_chr_bank [5] = 7;
+
+        mmc3_ppu_bank_sort ();
     }    
 }
 
@@ -354,3 +385,66 @@ static int mmc3_init (void)
 
     return (0);
 }
+
+
+static void mmc3_save_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    pack_putc (mmc3_register_8000, file_chunk);
+
+    pack_putc (mmc3_sram_enable, file_chunk);
+
+    pack_putc (mmc3_irq_counter, file_chunk);
+    pack_putc (mmc3_irq_latch, file_chunk);
+
+    pack_putc (mmc3_disable_irqs, file_chunk);
+    pack_putc (mmc3_counter_latched, file_chunk);
+
+
+    pack_fwrite (mmc3_prg_bank, 2, file_chunk);
+    pack_fwrite (mmc3_chr_bank, 6, file_chunk);
+
+
+    pack_fclose_chunk (file_chunk);
+}
+
+
+static void mmc3_load_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    /* Restore address latches */
+    mmc3_write(0x8000, pack_getc (file_chunk));
+
+    /* Restore SRAM status */
+    mmc3_write(0xA001, pack_getc (file_chunk));
+
+    /* Restore IRQ registers */
+    mmc3_irq_counter = pack_getc (file_chunk);
+    mmc3_irq_latch = pack_getc (file_chunk);
+
+    mmc3_disable_irqs = pack_getc (file_chunk);
+    mmc3_counter_latched = pack_getc (file_chunk);
+
+
+    /* Restore banking */
+    pack_fread (mmc3_prg_bank, 2, file_chunk);
+    pack_fread (mmc3_chr_bank, 6, file_chunk);
+
+
+    mmc3_cpu_bank_sort ();
+    mmc3_ppu_bank_sort ();
+
+
+    pack_fclose_chunk (file_chunk);
+}
+
