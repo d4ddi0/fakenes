@@ -55,7 +55,7 @@ fakenesd.exe : ${OBJECTS}
 	${CC} -c $< -o $@ ${CFLAGS}
 
 
-apu.o: apu.c include/misc.h include/apu.h include/cpu.h
+apu.o: apu.c include/apu.h include/apu_ex.h include/cpu.h include/misc.h
 
 audio.o: audio.c include/audio.h include/misc.h include/timing.h
 
