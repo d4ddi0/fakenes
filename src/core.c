@@ -386,6 +386,10 @@ void Int6502(M6502 *R,byte Type)
     R->PC.B.l=Rd6502(J.W++);
     R->PC.B.h=Rd6502(J.W);
   }
+  else if ((Type==INT_IRQ)&&(R->I))
+  {
+    R->IRequest=INT_IRQ;
+  }
 }
 
 /** Run6502() ************************************************/
