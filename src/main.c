@@ -222,6 +222,11 @@ int main (int argc, char * argv [])
     int result;
 
 
+    UINT8 buffer [256];
+
+    UINT8 buffer2 [256];
+
+
     printf ("\nFakeNES version " VERSION_STRING ", by stainless and TRAC.\n"
             "Assistance provided by amit and Lord_Nightmare.\n");
 
@@ -447,19 +452,55 @@ int main (int argc, char * argv [])
             closedir (tmpdir);
         }
     }
+
+
+    /* Overwrite if >= 64k. */
+
+    if (file_size (logfile) >= 65536)
+    {
+        log_file = fopen (logfile, "w");
+    }
+    else
+    {
+        log_file = fopen (logfile, "a");
+    }
+
 #else
+
+
+    memset (buffer, NULL, sizeof (buffer));
+
+    memset (buffer2, NULL, sizeof (buffer2));
+
+
+    get_executable_name (buffer, sizeof (buffer));
 
 
 #ifdef ALLEGRO_WINDOWS
 
-    set_config_file ("fakenesw.cfg");
+   replace_filename (buffer2, buffer, "fakenesw.cfg", sizeof (buffer2));
 
 #else
 
-    set_config_file ("fakenes.cfg");
+   replace_filename (buffer2, buffer, "fakenes.cfg", sizeof (buffer2));
 
 #endif
 
+
+    set_config_file (buffer2);
+
+
+    replace_filename (buffer2, buffer, "messages.log", sizeof (buffer2));
+
+
+    if (file_size (buffer2) >= 65536)
+    {
+        log_file = fopen (buffer2, "w");
+    }
+    else
+    {
+        log_file = fopen (buffer2, "a");
+    }
 
 #endif
 
@@ -473,6 +514,18 @@ int main (int argc, char * argv [])
 
 
     first_run = get_config_int ("gui", "first_run", TRUE);
+
+
+    if (log_file)
+    {
+        time_t start;
+
+
+        time (&start);
+
+
+        fprintf (log_file, "\n--- %s", asctime (localtime (&start)));
+    }
 
 
     install_timer ();
@@ -507,45 +560,6 @@ int main (int argc, char * argv [])
         return (1);
     }
     */
-
-
-#ifdef POSIX
-
-    /* Overwrite if >= 64k. */
-
-    if (file_size (logfile) >= 65536)
-    {
-        log_file = fopen (logfile, "w");
-    }
-    else
-    {
-        log_file = fopen (logfile, "a");
-    }
-
-#else
-
-    if (file_size ("messages.log") >= 65536)
-    {
-        log_file = fopen ("messages.log", "w");
-    }
-    else
-    {
-        log_file = fopen ("messages.log", "a");
-    }
-
-#endif
-
-
-    if (log_file)
-    {
-        time_t start;
-
-
-        time (&start);
-
-
-        fprintf (log_file, "\n--- %s", asctime (localtime (&start)));
-    }
 
 
     if (input_init () != 0)
