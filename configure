@@ -753,38 +753,12 @@ else
 fi
 
 
-echo $ac_n "checking for executable file suffix""... $ac_c" 1>&6
-echo "configure:758: checking for executable file suffix" >&5
-
-EXEEXT="$ac_exeext"
-
-if [ "x$EXEEXT" = "x" ]; then
-    echo "$ac_t""none" 1>&6
-else
-    echo "$ac_t"""$EXEEXT"" 1>&6
-
-    EXEEXT=".$EXEEXT"
-fi
-
-echo $ac_n "checking for object file suffix""... $ac_c" 1>&6
-echo "configure:771: checking for object file suffix" >&5
-
-OBJEXT="$ac_objext"
-
-if [ "x$OBJEXT" = "x" ]; then
-    echo "$ac_t""none" 1>&6
-else
-    echo "$ac_t"""$OBJEXT"" 1>&6
-
-    OBJEXT=".$OBJEXT"
-fi
-
 for ac_prog in make gmake
 do
 # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:788: checking for $ac_word" >&5
+echo "configure:762: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_MAKE'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -823,7 +797,7 @@ test -n "$MAKE" || MAKE="make"
 # Extract the first word of "nasm", so it can be a program name with args.
 set dummy nasm; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:827: checking for $ac_word" >&5
+echo "configure:801: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_NASM'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -856,10 +830,82 @@ else
   echo "$ac_t""no" 1>&6
 fi
 
+# Extract the first word of "mkdir", so it can be a program name with args.
+set dummy mkdir; ac_word=$2
+echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
+echo "configure:837: checking for $ac_word" >&5
+if eval "test \"`echo '$''{'ac_cv_path_MKDIR'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  case "$MKDIR" in
+  /*)
+  ac_cv_path_MKDIR="$MKDIR" # Let the user override the test with a path.
+  ;;
+  ?:/*)			 
+  ac_cv_path_MKDIR="$MKDIR" # Let the user override the test with a dos path.
+  ;;
+  *)
+  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
+  ac_dummy="$PATH"
+  for ac_dir in $ac_dummy; do 
+    test -z "$ac_dir" && ac_dir=.
+    if test -f $ac_dir/$ac_word; then
+      ac_cv_path_MKDIR="$ac_dir/$ac_word"
+      break
+    fi
+  done
+  IFS="$ac_save_ifs"
+  test -z "$ac_cv_path_MKDIR" && ac_cv_path_MKDIR="mkdir"
+  ;;
+esac
+fi
+MKDIR="$ac_cv_path_MKDIR"
+if test -n "$MKDIR"; then
+  echo "$ac_t""$MKDIR" 1>&6
+else
+  echo "$ac_t""no" 1>&6
+fi
+
+# Extract the first word of "rmdir", so it can be a program name with args.
+set dummy rmdir; ac_word=$2
+echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
+echo "configure:873: checking for $ac_word" >&5
+if eval "test \"`echo '$''{'ac_cv_path_RMDIR'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  case "$RMDIR" in
+  /*)
+  ac_cv_path_RMDIR="$RMDIR" # Let the user override the test with a path.
+  ;;
+  ?:/*)			 
+  ac_cv_path_RMDIR="$RMDIR" # Let the user override the test with a dos path.
+  ;;
+  *)
+  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
+  ac_dummy="$PATH"
+  for ac_dir in $ac_dummy; do 
+    test -z "$ac_dir" && ac_dir=.
+    if test -f $ac_dir/$ac_word; then
+      ac_cv_path_RMDIR="$ac_dir/$ac_word"
+      break
+    fi
+  done
+  IFS="$ac_save_ifs"
+  test -z "$ac_cv_path_RMDIR" && ac_cv_path_RMDIR="rmdir"
+  ;;
+esac
+fi
+RMDIR="$ac_cv_path_RMDIR"
+if test -n "$RMDIR"; then
+  echo "$ac_t""$RMDIR" 1>&6
+else
+  echo "$ac_t""no" 1>&6
+fi
+
 # Extract the first word of "rm", so it can be a program name with args.
 set dummy rm; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:863: checking for $ac_word" >&5
+echo "configure:909: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_RM'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -892,173 +938,51 @@ else
   echo "$ac_t""no" 1>&6
 fi
 
-
-# Check whether --with-zlib or --without-zlib was given.
-if test "${with_zlib+set}" = set; then
-  withval="$with_zlib"
-  USE_ZLIB=$enableval
-else
-  USE_ZLIB=yes
-fi
-
-# Check whether --with-hawknl or --without-hawknl was given.
-if test "${with_hawknl+set}" = set; then
-  withval="$with_hawknl"
-  USE_HAWKNL=$enableval
-else
-  USE_HAWKNL=yes
-fi
-
-
-echo $ac_n "checking whether to use x86 optimized core""... $ac_c" 1>&6
-echo "configure:915: checking whether to use x86 optimized core" >&5
-
-cat > conftest.$ac_ext <<EOF
-#line 918 "configure"
-#include "confdefs.h"
-
-int main() {
-#ifndef __i386__
-        #error __i386__ not defined.
-      #endif
-; return 0; }
-EOF
-if { (eval echo configure:927: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
-  rm -rf conftest*
-  ASM_CORE=1
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  ASM_CORE=0
-fi
-rm -f conftest*
-
-if [ "x$ASM_CORE" = "x1" ]; then
-    echo "$ac_t""yes" 1>&6
-else
-    echo "$ac_t""no" 1>&6
-fi
-
-echo $ac_n "checking whether to enable ZIP and gzip support""... $ac_c" 1>&6
-echo "configure:945: checking whether to enable ZIP and gzip support" >&5
-
-if [ "x$USE_ZLIB" = "xyes" ]; then
-    DFLAGS="$DFLAGS -DUSE_ZLIB"
-	echo "$ac_t""yes" 1>&6
-
-    LIBRARIES="$LIBRARIES -lz"
-
-    echo if this is not what you want, use --without-zlib
-else
-	echo "$ac_t""no" 1>&6
-
-    echo if this is not what you want, use --with-zlib
-fi
-
-echo $ac_n "checking whether to enable NetPlay support""... $ac_c" 1>&6
-echo "configure:961: checking whether to enable NetPlay support" >&5
-
-if [ "x$USE_HAWKNL" = "xyes" ]; then
-    DFLAGS="$DFLAGS -DUSE_HAWKNL"
-	echo "$ac_t""yes" 1>&6
-
-    LIBRARIES="$LIBRARIES -lNL"
-
-    echo if this is not what you want, use --without-hawknl
-else
-	echo "$ac_t""no" 1>&6
-
-    echo if this is not what you want, use --with-hawknl
-fi
-
-ac_aux_dir=
-for ac_dir in $srcdir $srcdir/.. $srcdir/../..; do
-  if test -f $ac_dir/install-sh; then
-    ac_aux_dir=$ac_dir
-    ac_install_sh="$ac_aux_dir/install-sh -c"
-    break
-  elif test -f $ac_dir/install.sh; then
-    ac_aux_dir=$ac_dir
-    ac_install_sh="$ac_aux_dir/install.sh -c"
-    break
-  fi
-done
-if test -z "$ac_aux_dir"; then
-  { echo "configure: error: can not find install-sh or install.sh in $srcdir $srcdir/.. $srcdir/../.." 1>&2; exit 1; }
-fi
-ac_config_guess=$ac_aux_dir/config.guess
-ac_config_sub=$ac_aux_dir/config.sub
-ac_configure=$ac_aux_dir/configure # This should be Cygnus configure.
-
-# Find a good install program.  We prefer a C program (faster),
-# so one script is as good as another.  But avoid the broken or
-# incompatible versions:
-# SysV /etc/install, /usr/sbin/install
-# SunOS /usr/etc/install
-# IRIX /sbin/install
-# AIX /bin/install
-# AIX 4 /usr/bin/installbsd, which doesn't work without a -g flag
-# AFS /usr/afsws/bin/install, which mishandles nonexistent args
-# SVR4 /usr/ucb/install, which tries to use the nonexistent group "staff"
-# ./install, which can be erroneously created by make from ./install.sh.
-echo $ac_n "checking for a BSD compatible install""... $ac_c" 1>&6
-echo "configure:1007: checking for a BSD compatible install" >&5
-if test -z "$INSTALL"; then
-if eval "test \"`echo '$''{'ac_cv_path_install'+set}'`\" = set"; then
+for ac_prog in install ginstall
+do
+# Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
+echo "configure:947: checking for $ac_word" >&5
+if eval "test \"`echo '$''{'ac_cv_path_INSTALL'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
-    IFS="${IFS= 	}"; ac_save_IFS="$IFS"; IFS=":"
-  for ac_dir in $PATH; do
-    # Account for people who put trailing slashes in PATH elements.
-    case "$ac_dir/" in
-    /|./|.//|/etc/*|/usr/sbin/*|/usr/etc/*|/sbin/*|/usr/afsws/bin/*|/usr/ucb/*) ;;
-    *)
-      # OSF1 and SCO ODT 3.0 have their own names for install.
-      # Don't use installbsd from OSF since it installs stuff as root
-      # by default.
-      for ac_prog in ginstall scoinst install; do
-        if test -f $ac_dir/$ac_prog; then
-	  if test $ac_prog = install &&
-            grep dspmsg $ac_dir/$ac_prog >/dev/null 2>&1; then
-	    # AIX install.  It has an incompatible calling convention.
-	    :
-	  else
-	    ac_cv_path_install="$ac_dir/$ac_prog -c"
-	    break 2
-	  fi
-	fi
-      done
-      ;;
-    esac
+  case "$INSTALL" in
+  /*)
+  ac_cv_path_INSTALL="$INSTALL" # Let the user override the test with a path.
+  ;;
+  ?:/*)			 
+  ac_cv_path_INSTALL="$INSTALL" # Let the user override the test with a dos path.
+  ;;
+  *)
+  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
+  ac_dummy="$PATH"
+  for ac_dir in $ac_dummy; do 
+    test -z "$ac_dir" && ac_dir=.
+    if test -f $ac_dir/$ac_word; then
+      ac_cv_path_INSTALL="$ac_dir/$ac_word"
+      break
+    fi
   done
-  IFS="$ac_save_IFS"
-
+  IFS="$ac_save_ifs"
+  ;;
+esac
 fi
-  if test "${ac_cv_path_install+set}" = set; then
-    INSTALL="$ac_cv_path_install"
-  else
-    # As a last resort, use the slow shell script.  We don't cache a
-    # path for INSTALL within a source directory, because that will
-    # break other packages using the cache if that directory is
-    # removed, or if the path is relative.
-    INSTALL="$ac_install_sh"
-  fi
+INSTALL="$ac_cv_path_INSTALL"
+if test -n "$INSTALL"; then
+  echo "$ac_t""$INSTALL" 1>&6
+else
+  echo "$ac_t""no" 1>&6
 fi
-echo "$ac_t""$INSTALL" 1>&6
 
-# Use test -z because SunOS4 sh mishandles braces in ${var-val}.
-# It thinks the first close brace ends the variable substitution.
-test -z "$INSTALL_PROGRAM" && INSTALL_PROGRAM='${INSTALL}'
-
-test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL_PROGRAM}'
-
-test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
+test -n "$INSTALL" && break
+done
+test -n "$INSTALL" || INSTALL="install"
 
 # Extract the first word of "chmod", so it can be a program name with args.
 set dummy chmod; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:1062: checking for $ac_word" >&5
+echo "configure:986: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_CHMOD'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -1092,16 +1016,104 @@ else
 fi
 
 
+echo $ac_n "checking for executable file suffix""... $ac_c" 1>&6
+echo "configure:1021: checking for executable file suffix" >&5
+EXEEXT="$ac_exeext"
+if [ "x$EXEEXT" = "x" ]; then
+    echo "$ac_t""none" 1>&6
+else
+    echo "$ac_t"""$EXEEXT"" 1>&6
+    EXEEXT=".$EXEEXT"
+fi
+
+echo $ac_n "checking for object file suffix""... $ac_c" 1>&6
+echo "configure:1031: checking for object file suffix" >&5
+OBJEXT="$ac_objext"
+if [ "x$OBJEXT" = "x" ]; then
+    echo "$ac_t""none" 1>&6
+else
+    echo "$ac_t"""$OBJEXT"" 1>&6
+    OBJEXT=".$OBJEXT"
+fi
+
+# Check whether --with-zlib or --without-zlib was given.
+if test "${with_zlib+set}" = set; then
+  withval="$with_zlib"
+  USE_ZLIB=$enableval
+else
+  USE_ZLIB=yes
+fi
+
+# Check whether --with-hawknl or --without-hawknl was given.
+if test "${with_hawknl+set}" = set; then
+  withval="$with_hawknl"
+  USE_HAWKNL=$enableval
+else
+  USE_HAWKNL=yes
+fi
+
+
+echo $ac_n "checking whether to use x86 optimized core""... $ac_c" 1>&6
+echo "configure:1058: checking whether to use x86 optimized core" >&5
+cat > conftest.$ac_ext <<EOF
+#line 1060 "configure"
+#include "confdefs.h"
+
+int main() {
+#ifndef __i386__
+        #error __i386__ not defined.
+      #endif
+; return 0; }
+EOF
+if { (eval echo configure:1069: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  ASM_CORE=1
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  ASM_CORE=0
+fi
+rm -f conftest*
+if [ "x$ASM_CORE" = "x1" ]; then
+    echo "$ac_t""yes" 1>&6
+else
+    echo "$ac_t""no" 1>&6
+fi
+
+echo $ac_n "checking whether to enable ZIP and gzip support""... $ac_c" 1>&6
+echo "configure:1086: checking whether to enable ZIP and gzip support" >&5
+if [ "x$USE_ZLIB" = "xyes" ]; then
+    DFLAGS="$DFLAGS -DUSE_ZLIB"
+	echo "$ac_t""yes" 1>&6
+    LIBRARIES="$LIBRARIES -lz"
+    echo if this is not what you want, use --without-zlib
+else
+	echo "$ac_t""no" 1>&6
+    echo if this is not what you want, use --with-zlib
+fi
+
+echo $ac_n "checking whether to enable NetPlay support""... $ac_c" 1>&6
+echo "configure:1098: checking whether to enable NetPlay support" >&5
+if [ "x$USE_HAWKNL" = "xyes" ]; then
+    DFLAGS="$DFLAGS -DUSE_HAWKNL"
+	echo "$ac_t""yes" 1>&6
+    LIBRARIES="$LIBRARIES -lNL"
+    echo if this is not what you want, use --without-hawknl
+else
+	echo "$ac_t""no" 1>&6
+    echo if this is not what you want, use --with-hawknl
+fi
 
 echo $ac_n "checking whether byte ordering is bigendian""... $ac_c" 1>&6
-echo "configure:1098: checking whether byte ordering is bigendian" >&5
+echo "configure:1110: checking whether byte ordering is bigendian" >&5
 if eval "test \"`echo '$''{'ac_cv_c_bigendian'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   ac_cv_c_bigendian=unknown
 # See if sys/param.h defines the BYTE_ORDER macro.
 cat > conftest.$ac_ext <<EOF
-#line 1105 "configure"
+#line 1117 "configure"
 #include "confdefs.h"
 #include <sys/types.h>
 #include <sys/param.h>
@@ -1112,11 +1124,11 @@ int main() {
 #endif
 ; return 0; }
 EOF
-if { (eval echo configure:1116: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:1128: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   # It does; now see whether it defined to BIG_ENDIAN or not.
 cat > conftest.$ac_ext <<EOF
-#line 1120 "configure"
+#line 1132 "configure"
 #include "confdefs.h"
 #include <sys/types.h>
 #include <sys/param.h>
@@ -1127,7 +1139,7 @@ int main() {
 #endif
 ; return 0; }
 EOF
-if { (eval echo configure:1131: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:1143: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   ac_cv_c_bigendian=yes
 else
@@ -1147,7 +1159,7 @@ if test "$cross_compiling" = yes; then
     { echo "configure: error: can not run test program while cross compiling" 1>&2; exit 1; }
 else
   cat > conftest.$ac_ext <<EOF
-#line 1151 "configure"
+#line 1163 "configure"
 #include "confdefs.h"
 main () {
   /* Are we little or big endian?  From Harbison&Steele.  */
@@ -1160,7 +1172,7 @@ main () {
   exit (u.c[sizeof (long) - 1] == 1);
 }
 EOF
-if { (eval echo configure:1164: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:1176: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
   ac_cv_c_bigendian=no
 else
@@ -1183,14 +1195,12 @@ EOF
 
 fi
 
-
-
 if test "$ac_cv_c_bigendian" != yes; then
     DFLAGS="$DFLAGS -DLSB_FIRST"
 fi
 
 echo $ac_n "checking size of short int""... $ac_c" 1>&6
-echo "configure:1194: checking size of short int" >&5
+echo "configure:1204: checking size of short int" >&5
 if eval "test \"`echo '$''{'ac_cv_sizeof_short_int'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -1198,7 +1208,7 @@ else
     { echo "configure: error: can not run test program while cross compiling" 1>&2; exit 1; }
 else
   cat > conftest.$ac_ext <<EOF
-#line 1202 "configure"
+#line 1212 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 main()
@@ -1209,7 +1219,7 @@ main()
   exit(0);
 }
 EOF
-if { (eval echo configure:1213: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:1223: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
   ac_cv_sizeof_short_int=`cat conftestval`
 else
@@ -1229,7 +1239,7 @@ EOF
 
 
 echo $ac_n "checking size of int""... $ac_c" 1>&6
-echo "configure:1233: checking size of int" >&5
+echo "configure:1243: checking size of int" >&5
 if eval "test \"`echo '$''{'ac_cv_sizeof_int'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -1237,7 +1247,7 @@ else
     { echo "configure: error: can not run test program while cross compiling" 1>&2; exit 1; }
 else
   cat > conftest.$ac_ext <<EOF
-#line 1241 "configure"
+#line 1251 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 main()
@@ -1248,7 +1258,7 @@ main()
   exit(0);
 }
 EOF
-if { (eval echo configure:1252: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:1262: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
   ac_cv_sizeof_int=`cat conftestval`
 else
@@ -1268,7 +1278,7 @@ EOF
 
 
 echo $ac_n "checking size of long int""... $ac_c" 1>&6
-echo "configure:1272: checking size of long int" >&5
+echo "configure:1282: checking size of long int" >&5
 if eval "test \"`echo '$''{'ac_cv_sizeof_long_int'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -1276,7 +1286,7 @@ else
     { echo "configure: error: can not run test program while cross compiling" 1>&2; exit 1; }
 else
   cat > conftest.$ac_ext <<EOF
-#line 1280 "configure"
+#line 1290 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 main()
@@ -1287,7 +1297,7 @@ main()
   exit(0);
 }
 EOF
-if { (eval echo configure:1291: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:1301: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
   ac_cv_sizeof_long_int=`cat conftestval`
 else
@@ -1304,7 +1314,6 @@ echo "$ac_t""$ac_cv_sizeof_long_int" 1>&6
 cat >> confdefs.h <<EOF
 #define SIZEOF_LONG_INT $ac_cv_sizeof_long_int
 EOF
-
 
 
 
@@ -1420,7 +1429,6 @@ do
 done
 
 ac_given_srcdir=$srcdir
-ac_given_INSTALL="$INSTALL"
 
 trap 'rm -fr `echo "Makefile src/Makefile src/include/config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
@@ -1457,10 +1465,10 @@ s%@mandir@%$mandir%g
 s%@CC@%$CC%g
 s%@MAKE@%$MAKE%g
 s%@NASM@%$NASM%g
+s%@MKDIR@%$MKDIR%g
+s%@RMDIR@%$RMDIR%g
 s%@RM@%$RM%g
-s%@INSTALL_PROGRAM@%$INSTALL_PROGRAM%g
-s%@INSTALL_SCRIPT@%$INSTALL_SCRIPT%g
-s%@INSTALL_DATA@%$INSTALL_DATA%g
+s%@INSTALL@%$INSTALL%g
 s%@CHMOD@%$CHMOD%g
 s%@ASM_CORE@%$ASM_CORE%g
 s%@EXEEXT@%$EXEEXT%g
@@ -1543,10 +1551,6 @@ for ac_file in .. $CONFIG_FILES; do if test "x$ac_file" != x..; then
     top_srcdir="$ac_dots$ac_given_srcdir" ;;
   esac
 
-  case "$ac_given_INSTALL" in
-  [/$]*) INSTALL="$ac_given_INSTALL" ;;
-  *) INSTALL="$ac_dots$ac_given_INSTALL" ;;
-  esac
 
   echo creating "$ac_file"
   rm -f "$ac_file"
@@ -1562,7 +1566,6 @@ for ac_file in .. $CONFIG_FILES; do if test "x$ac_file" != x..; then
 s%@configure_input@%$configure_input%g
 s%@srcdir@%$srcdir%g
 s%@top_srcdir@%$top_srcdir%g
-s%@INSTALL@%$INSTALL%g
 " $ac_file_inputs | (eval "$ac_sed_cmds") > $ac_file
 fi; done
 rm -f conftest.s*
@@ -1687,4 +1690,5 @@ rm -fr confdefs* $ac_clean_files
 test "$no_create" = yes || ${CONFIG_SHELL-/bin/sh} $CONFIG_STATUS || exit 1
 
 
-echo type \'make install\' to build and install FakeNES
+echo type \'make all\' to just build FakeNES
+echo type \'make all install\' to build and install FakeNES
