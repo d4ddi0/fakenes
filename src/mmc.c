@@ -42,6 +42,22 @@ You must read and accept the license prior to use.
 #include "timing.h"
 
 
+static int mmc_name_table_count;
+static int mmc_pattern_vram_in_use;
+
+
+int mmc_get_name_table_count(void)
+{
+    return mmc_name_table_count;
+}
+
+
+int mmc_uses_pattern_vram(void)
+{
+    return mmc_pattern_vram_in_use;
+}
+
+
 static void null_save_state (PACKFILE *, int);
 
 static void null_load_state (PACKFILE *, int);
@@ -121,7 +137,7 @@ int none_init (void)
     /* Select first 32k page. */
 
     cpu_set_read_address_32k_rom_block (0x8000, 0);
-            
+
 
     if (ROM_CHR_ROM_PAGES > 0)
     {
@@ -225,6 +241,12 @@ int mmc_init (void)
 
 
     mmc_check_latches = NULL;
+
+
+    mmc_name_table_count =
+        (global_rom.control_byte_1 & ROM_CTRL_FOUR_SCREEN) ? 4 : 2;
+
+    mmc_pattern_vram_in_use = !(ROM_CHR_ROM_PAGES > 0);
 
 
     papu_clear_exsound ();

@@ -68,6 +68,11 @@ int (* mmc_scanline_end) (int);
 void (* mmc_check_latches) (UINT16);
 
 
+int mmc_get_name_table_count(void);
+
+int mmc_uses_pattern_vram(void);
+
+
 void mmc_save_state (PACKFILE *, int);
 
 void mmc_load_state (PACKFILE *, int);

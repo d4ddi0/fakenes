@@ -1156,8 +1156,6 @@ void ppu_vblank_nmi (void)
 }
 
 
-#define mmc_get_name_table_count() 4
-#define mmc_uses_pattern_vram() 1
 void ppu_save_state (PACKFILE * file, int version)
 {
     PACKFILE * file_chunk;
