@@ -15,7 +15,7 @@ You must read and accept the license prior to use.
 */
 
 
-#define USE_CONSOLE
+#define ALLEGRO_USE_CONSOLE
 
 
 #include <allegro.h>
