@@ -40,7 +40,9 @@ void resume_timing (void);
 
 
 #define SCANLINE_CLOCKS         341
-
+#define RENDER_CLOCKS           256
+#define HBLANK_CLOCKS           (SCANLINE_CLOCKS - RENDER_CLOCKS)
+#define HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP    (320 - 256)
 
 #define TOTAL_LINES_NTSC        262
 

@@ -593,6 +593,38 @@ int main (int argc, char * argv [])
                 {
                     cpu_start_new_scanline ();
 
+                    if ((ppu_scanline >= FIRST_DISPLAYED_LINE) &&
+                        (ppu_scanline <= LAST_DISPLAYED_LINE))
+                    {
+                        ppu_start_line ();
+
+                        ppu_render_line (ppu_scanline);
+
+                        cpu_execute (RENDER_CLOCKS);
+                    }
+                    else if (ppu_scanline == FIRST_VBLANK_LINE)
+                    {
+                        ppu_end_render ();
+
+                        cpu_execute (RENDER_CLOCKS);
+                    }
+                    else if (ppu_scanline == FIRST_VBLANK_LINE + 1)
+                    {
+                        ppu_vblank_nmi ();
+
+                        cpu_execute (RENDER_CLOCKS);
+                    }
+                    else if (ppu_scanline == ppu_frame_last_line)
+                    {
+                        ppu_clear ();
+
+                        cpu_execute (RENDER_CLOCKS);
+                    }
+                    else
+                    {
+                        cpu_execute (RENDER_CLOCKS);
+                    }
+            
                     if (mmc_scanline_start)
                     {
                         if (mmc_scanline_start (ppu_scanline))
@@ -601,41 +633,21 @@ int main (int argc, char * argv [])
                         }
                     }
 
-
                     if ((ppu_scanline >= FIRST_DISPLAYED_LINE) &&
                         (ppu_scanline <= LAST_DISPLAYED_LINE))
                     {
-                        ppu_start_line ();
-
-                        ppu_render_line (ppu_scanline);
+                        cpu_execute (HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP);
 
                         ppu_end_line ();
 
-                        cpu_execute (SCANLINE_CLOCKS);
-                    }
-                    else if (ppu_scanline == FIRST_VBLANK_LINE)
-                    {
-                        ppu_end_render ();
-
-                        cpu_execute (SCANLINE_CLOCKS);
-                    }
-                    else if (ppu_scanline == FIRST_VBLANK_LINE + 1)
-                    {
-                        ppu_vblank_nmi ();
-
-                        cpu_execute (SCANLINE_CLOCKS);
-                    }
-                    else if (ppu_scanline == ppu_frame_last_line)
-                    {
-                        ppu_clear ();
-
-                        cpu_execute (SCANLINE_CLOCKS);
+                        cpu_execute (HBLANK_CLOCKS - HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP);
                     }
                     else
                     {
-                        cpu_execute (SCANLINE_CLOCKS);
+                        cpu_execute (HBLANK_CLOCKS);
                     }
-            
+
+
                 }
             }
             else
@@ -648,15 +660,6 @@ int main (int argc, char * argv [])
                 {
                     cpu_start_new_scanline ();
 
-                    if (mmc_scanline_start)
-                    {
-                       if (mmc_scanline_start (ppu_scanline))
-                       {
-                           cpu_interrupt (CPU_INTERRUPT_IRQ);
-                       }
-                    }
-    
-
                     if ((ppu_scanline >= FIRST_DISPLAYED_LINE) &&
                         (ppu_scanline <= LAST_DISPLAYED_LINE))
                     {
@@ -664,32 +667,54 @@ int main (int argc, char * argv [])
 
                         ppu_stub_render_line (ppu_scanline);
 
-                        ppu_end_line ();
-
-                        cpu_execute (SCANLINE_CLOCKS);
+                        cpu_execute (RENDER_CLOCKS);
                     }
                     else if (ppu_scanline == FIRST_VBLANK_LINE)
                     {
                         ppu_vblank ();
 
-                        cpu_execute (SCANLINE_CLOCKS);
+                        cpu_execute (RENDER_CLOCKS);
                     }
                     else if (ppu_scanline == FIRST_VBLANK_LINE + 1)
                     {
                         ppu_vblank_nmi ();
 
-                        cpu_execute (SCANLINE_CLOCKS);
+                        cpu_execute (RENDER_CLOCKS);
                     }
                     else if (ppu_scanline == ppu_frame_last_line)
                     {
                         ppu_clear ();
 
-                        cpu_execute (SCANLINE_CLOCKS);
+                        cpu_execute (RENDER_CLOCKS);
                     }
                     else
                     {
-                        cpu_execute (SCANLINE_CLOCKS);
+                        cpu_execute (RENDER_CLOCKS);
                     }
+
+                    if (mmc_scanline_start)
+                    {
+                        if (mmc_scanline_start (ppu_scanline))
+                        {
+                            cpu_interrupt (CPU_INTERRUPT_IRQ);
+                        }
+                    }
+
+                    if ((ppu_scanline >= FIRST_DISPLAYED_LINE) &&
+                        (ppu_scanline <= LAST_DISPLAYED_LINE))
+                    {
+                        cpu_execute (HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP);
+
+                        ppu_end_line ();
+
+                        cpu_execute (HBLANK_CLOCKS - HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP);
+                    }
+                    else
+                    {
+                        cpu_execute (HBLANK_CLOCKS);
+                    }
+
+
                 }
             }
         }

@@ -42,7 +42,7 @@ All rights reserved.  See 'LICENSE' for details.
 
 /* delay for sprite 0 collision detection in PPU clocks */
 /* should be <= SCANLINE_CLOCKS - 256 */
-#define DOTS_HBLANK_BEFORE_RENDER 22
+#define DOTS_HBLANK_BEFORE_RENDER 0
 
 /* VRAM and sprite RAM. */
 
