@@ -298,6 +298,11 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (options_audio_advanced_menu, 4, papu_smooth_sweep);
 
 
+    TOGGLE_MENU (options_video_blitter_menu, 0, (video_get_blitter () == VIDEO_BLITTER_NORMAL));
+
+    TOGGLE_MENU (options_video_blitter_menu, 2, (video_get_blitter () == VIDEO_BLITTER_STRETCHED));
+
+
     TOGGLE_MENU (options_video_menu, 0, video_enable_vsync);
 
 
@@ -987,6 +992,29 @@ static int options_audio_record_menu_stop (void)
 
     return (D_O_K);
 }
+
+
+static int options_video_blitter_menu_normal (void)
+{
+    video_set_blitter (VIDEO_BLITTER_NORMAL);
+
+    update_menus ();
+
+
+    return (0);
+}
+
+
+static int options_video_blitter_menu_stretched (void)
+{
+    video_set_blitter (VIDEO_BLITTER_STRETCHED);
+
+    update_menus ();
+
+
+    return (0);
+}
+
 
 static int options_video_menu_vsync (void)
 {

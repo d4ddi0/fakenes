@@ -242,6 +242,20 @@ static MENU options_audio_menu [] =
 };
 
 
+static int options_video_blitter_menu_normal (void);
+
+static int options_video_blitter_menu_stretched (void);
+
+
+static MENU options_video_blitter_menu [] =
+{
+    {    "&Normal",    options_video_blitter_menu_normal, NULL, 0, NULL },
+    {           "",                                 NULL, NULL, 0, NULL },
+    { "&Stretched", options_video_blitter_menu_stretched, NULL, 0, NULL },
+    {         NULL,                                 NULL, NULL, 0, NULL }
+};
+
+
 static int options_video_layers_menu_sprites_a (void);
 
 static int options_video_layers_menu_sprites_b (void);
@@ -295,6 +309,8 @@ static int options_video_menu_vsync (void);
 
 static MENU options_video_menu [] =
 {
+    { "&Blitter",                       NULL, options_video_blitter_menu, 0, NULL },
+    {         "",                       NULL,                       NULL, 0, NULL },
     {   "&VSync",   options_video_menu_vsync,                       NULL, 0, NULL },
     {         "",                       NULL,                       NULL, 0, NULL },
     {  "&Layers",                       NULL,  options_video_layers_menu, 0, NULL },

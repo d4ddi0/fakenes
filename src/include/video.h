@@ -2,12 +2,15 @@
 
 /*
 
-FakeNES - A portable, open-source NES emulator.
+FakeNES - A portable, Open Source NES emulator.
 
 video.h: Declarations for the video interface.
 
-Copyright (c) 2001, Randy McDowell and Ian Smith.
-All rights reserved.  See 'LICENSE' for details.
+Copyright (c) 2002, Randy McDowell and Ian Smith.
+Portions copyright (c) 2002, Charles Bilyue'.
+
+This is free software.  See 'LICENSE' for details.
+You must read and accept the license prior to use.
 
 */
 
@@ -18,6 +21,11 @@ All rights reserved.  See 'LICENSE' for details.
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+
+#define VIDEO_BLITTER_NORMAL        0
+
+#define VIDEO_BLITTER_STRETCHED     1
 
 
 int video_display_status;
@@ -44,6 +52,11 @@ void video_zoom_out (void);
 
 
 void video_set_palette (RGB *);
+
+
+void video_set_blitter (int);
+
+int video_get_blitter (void);
 
 
 #ifdef __cplusplus
