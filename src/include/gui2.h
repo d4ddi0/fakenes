@@ -5,17 +5,19 @@
 
 static int file_menu_load_rom (void);
 
+static int file_menu_snapshot (void);
+
 static int file_menu_exit (void);
 
 
 static MENU file_menu [6] =
 {
-    { "&Load ROM...", file_menu_load_rom, NULL,          0, NULL },
-    {             "",               NULL, NULL,          0, NULL },
-    {    "&Snapshot",               NULL, NULL, D_DISABLED, NULL },
-    {             "",               NULL, NULL,          0, NULL },
-    {        "E&xit",     file_menu_exit, NULL,          0, NULL },
-    {           NULL,               NULL, NULL,          0, NULL }
+    { "&Load ROM...", file_menu_load_rom, NULL, 0, NULL },
+    {             "",               NULL, NULL, 0, NULL },
+    {    "&Snapshot", file_menu_snapshot, NULL, 0, NULL },
+    {             "",               NULL, NULL, 0, NULL },
+    {        "E&xit",     file_menu_exit, NULL, 0, NULL },
+    {           NULL,               NULL, NULL, 0, NULL }
 };
 
 

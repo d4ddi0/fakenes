@@ -3,6 +3,8 @@
 #include <allegro.h>
 
 
+#include <stdio.h>
+
 #include <string.h>
 
 
@@ -101,6 +103,37 @@ static int file_menu_load_rom (void)
     {
         return (D_O_K);
     }
+}
+
+
+static int file_menu_snapshot (void)
+{
+    int count;
+
+    UINT8 filename [12];
+
+
+    if (rom_is_loaded)
+    {
+        for (count = 0; count < 999; count ++)
+        {
+            sprintf (filename, "snap%03d.pcx", count);
+    
+            filename [11] = NULL;
+
+
+            if (! exists (filename))
+            {
+                count = 1000;
+    
+                save_bitmap (filename,
+                    video_buffer, DATA_NES_PALETTE);
+            }
+        }
+    }
+
+
+    return (D_O_K);
 }
 
 
