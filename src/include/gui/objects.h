@@ -507,6 +507,13 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
 
 static void sl_draw_menu (int x, int y, int width, int height)
 {
+    /* Bug fix (Allegro 4.1.1+). */
+
+    width --;
+
+    height --;
+
+
     /* 0 = shadow color. */
 
     vline (screen, (x + width), (y + 1), (y + height), 0);
