@@ -242,12 +242,7 @@ int papu_init (void)
     }
 
     
-    filter_list = get_config_int ("audio", "filter_list", 0);
-
-    if (filter_list == 0)
-    {
-        filter_list |= PAPU_FILTER_LOW_PASS_MODE_2;
-    }
+    filter_list = get_config_int ("audio", "filter_list", PAPU_FILTER_LOW_PASS_MODE_2);
 
     papu_set_filter_list (filter_list);
 
