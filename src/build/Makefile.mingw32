@@ -16,6 +16,8 @@ RM = rm -f -v
 
 EXEEXT = w.exe
 
+OBJEXT = w.o
+
 
 BINARY = fakenes${EXEEXT}
 
@@ -60,11 +62,13 @@ endif
 LIBRARIES = support/resource.o -lalleg -lz -lHawkNL
 
 
-OBJECTS := apu.o audio.o core.o cpu.o data.o gui.o input.o papu.o ppu.o \
-    rom.o main.o mmc.o netplay.o video.o crc32.o support/unzip.o
+OBJECTS := apu${OBJEXT} audio${OBJEXT} core${OBJEXT} cpu${OBJEXT} \
+    data${OBJEXT} gui${OBJEXT} input${OBJEXT} papu${OBJEXT} ppu${OBJEXT} \
+    rom${OBJEXT} main${OBJEXT} mmc${OBJEXT} netplay${OBJEXT} \
+    video${OBJEXT} crc32${OBJEXT} support/unzip${OBJEXT}
 
 ifneq (${ASM_CORE}, 0)
-    OBJECTS := ${OBJECTS} corex86.o
+    OBJECTS := ${OBJECTS} corex86${OBJEXT}
 endif
 
 
@@ -87,12 +91,12 @@ ${BINARY_DEBUG} : ${OBJECTS}
 
 .SUFFIXES : .asm .c
 
-%.o : %.asm
+%${OBJEXT} : %.asm
 
 	${NASM} $< -o $@ ${NASMFLAGS}
 
 
-%.o : %.c
+%${OBJEXT} : %.c
 
 	${CC} -c $< -o $@ ${CFLAGS}
 
@@ -101,7 +105,7 @@ support/coreoff.inc: support/coreoff.c include/core.h include/misc.h
 
 	${CC} $< -o support/coreoff${EXEEXT} ${CFLAGS} -s
 
-	./support/coreoff${EXEEXT} > support/coreoff.inc
+	support/coreoff${EXEEXT} > support/coreoff.inc
 
 
 include build/common.mk

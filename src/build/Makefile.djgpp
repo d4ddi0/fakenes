@@ -16,6 +16,8 @@ RM = rm -f -v
 
 EXEEXT = .exe
 
+OBJEXT = .o
+
 
 BINARY = fakenes${EXEEXT}
 
@@ -25,11 +27,11 @@ BINARY_DEBUG = fakenesd${EXEEXT}
 IFLAGS = -Iinclude/ -Isupport/
 
 ifdef DEBUG
-    OFLAGS = -O0 -g -ggdb3
+    OFLAGS := -O0 -g -ggdb3
 
     DFLAGS := -DDEBUG -DUSE_ZLIB -DLSB_FIRST
 else
-    OFLAGS = -march=i486 -mcpu=pentiumpro -O3 -fomit-frame-pointer \
+    OFLAGS := -march=i486 -mcpu=pentium2 -O3 -fomit-frame-pointer \
     -fno-rtti -fno-exceptions -funroll-loops -ffast-math -fforce-addr \
     -fforce-mem -fstrength-reduce -fthread-jumps -fexpensive-optimizations \
     -foptimize-sibling-calls -fstrict-aliasing -maccumulate-outgoing-args \
@@ -60,11 +62,13 @@ endif
 LIBRARIES = -lalleg -lz
 
 
-OBJECTS := apu.o audio.o core.o cpu.o data.o gui.o input.o papu.o ppu.o \
-    rom.o main.o mmc.o netplay.o video.o crc32.o support/unzip.o
+OBJECTS := apu${OBJEXT} audio${OBJEXT} core${OBJEXT} cpu${OBJEXT} \
+    data${OBJEXT} gui${OBJEXT} input${OBJEXT} papu${OBJEXT} ppu${OBJEXT} \
+    rom${OBJEXT} main${OBJEXT} mmc${OBJEXT} netplay${OBJEXT} \
+    video${OBJEXT} crc32${OBJEXT} support/unzip${OBJEXT}
 
 ifneq (${ASM_CORE}, 0)
-    OBJECTS := ${OBJECTS} corex86.o
+    OBJECTS := ${OBJECTS} corex86${OBJEXT}
 endif
 
 
@@ -87,12 +91,12 @@ ${BINARY_DEBUG} : ${OBJECTS}
 
 .SUFFIXES : .asm .c
 
-%.o : %.asm
+%${OBJEXT} : %.asm
 
 	${NASM} $< -o $@ ${NASMFLAGS}
 
 
-%.o : %.c
+%${OBJEXT} : %.c
 
 	${CC} -c $< -o $@ ${CFLAGS}
 
@@ -101,7 +105,7 @@ support/coreoff.inc: support/coreoff.c include/core.h include/misc.h
 
 	${CC} $< -o support/coreoff${EXEEXT} ${CFLAGS} -s
 
-	./support/coreoff${EXEEXT} > support/coreoff.inc
+	support/coreoff${EXEEXT} > support/coreoff.inc
 
 
 include build/common.mk
