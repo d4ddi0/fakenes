@@ -240,12 +240,12 @@ int papu_init (void)
     papu_enable_dmc = get_config_int ("papu", "enable_dmc", TRUE);
 
 
-    papu_ideal_triangle = get_config_int ("papu", "ideal_triangle", FALSE);
+    papu_ideal_triangle = get_config_int ("papu", "ideal_triangle", TRUE);
 
 
-    papu_smooth_envelope = get_config_int ("papu", "smooth_envelope", TRUE);
+    papu_smooth_envelope = get_config_int ("papu", "smooth_envelope", FALSE);
 
-    papu_smooth_sweep = get_config_int ("papu", "smooth_sweep", TRUE);
+    papu_smooth_sweep = get_config_int ("papu", "smooth_sweep", FALSE);
 
 
     papu_update ();
