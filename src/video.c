@@ -158,6 +158,8 @@ int video_init (void)
 
     last_blit_line = get_config_int ("video", "last_blit_line", 239);
 
+    if (last_blit_line < first_blit_line) last_blit_line = first_blit_line;
+
 
     image_offset_x = get_config_int ("video", "image_offset_x", 0);
 
@@ -989,7 +991,7 @@ void video_blit (BITMAP * bitmap)
     {
         case VIDEO_BLITTER_NORMAL:
 
-            blit (video_buffer, screen_buffer, 0, first_blit_line, blit_x_offset, blit_y_offset, 256, (last_blit_line + 1));
+            blit (video_buffer, screen_buffer, 0, first_blit_line, blit_x_offset, blit_y_offset, 256, (last_blit_line - first_blit_line + 1));
 
 
             break;
@@ -1003,12 +1005,12 @@ void video_blit (BITMAP * bitmap)
             {
                 blit (video_buffer, stretch_buffer, 0, 0, 0, 0, 256, 240);
 
-                stretch_blit (stretch_buffer, screen_buffer, 0, first_blit_line, 256, (last_blit_line + 1),
+                stretch_blit (stretch_buffer, screen_buffer, 0, first_blit_line, 256, (last_blit_line - first_blit_line + 1),
                     blit_x_offset, blit_y_offset, stretch_width, stretch_height);
             }
             else
             {
-                stretch_blit (video_buffer, screen_buffer, 0, first_blit_line, 256, (last_blit_line + 1),
+                stretch_blit (video_buffer, screen_buffer, 0, first_blit_line, 256, (last_blit_line - first_blit_line + 1),
                     blit_x_offset, blit_y_offset, stretch_width, stretch_height);
             }
 
