@@ -11,6 +11,8 @@
 /**     commercially. Please, notify me, if you make any    **/
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 13.August   2002 TRAC      Reduced unmovable global       */
+/*                            references to PC.              */
 /* 11.June     2002 stainless $f2 JAM/HLT opcode added.      */
 /* 16.January  2002 TRAC      Added flag emulation to TSX.   */
 /* 09.January  2002 TRAC      Added opcodes 04, 0F, 80.      */
@@ -26,35 +28,35 @@
 /*************************************************************/
 
 OPCODE_PROLOG(0x10) /* BPL * REL */
-    if (R->N&N_FLAG) R->PC.W++; else { M_JR; } OPCODE_EXIT
+    if (R->N&N_FLAG) R->PC.W+=2; else { M_JR; } OPCODE_EXIT
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x30) /* BMI * REL */
-    if (R->N&N_FLAG) { M_JR; } else R->PC.W++; OPCODE_EXIT
+    if (R->N&N_FLAG) { M_JR; } else R->PC.W+=2; OPCODE_EXIT
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xD0) /* BNE * REL */
-    if (!R->Z) R->PC.W++; else { M_JR; } OPCODE_EXIT
+    if (!R->Z) R->PC.W+=2; else { M_JR; } OPCODE_EXIT
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xF0) /* BEQ * REL */
-    if (!R->Z) { M_JR; } else R->PC.W++; OPCODE_EXIT
+    if (!R->Z) { M_JR; } else R->PC.W+=2; OPCODE_EXIT
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x90) /* BCC * REL */
-    if (R->C) R->PC.W++; else { M_JR; } OPCODE_EXIT
+    if (R->C) R->PC.W+=2; else { M_JR; } OPCODE_EXIT
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xB0) /* BCS * REL */
-    if (R->C) { M_JR; } else R->PC.W++; OPCODE_EXIT
+    if (R->C) { M_JR; } else R->PC.W+=2; OPCODE_EXIT
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x50) /* BVC * REL */
-    if (R->V) R->PC.W++; else { M_JR; } OPCODE_EXIT
+    if (R->V) R->PC.W+=2; else { M_JR; } OPCODE_EXIT
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x70) /* BVS * REL */
-    if (R->V) { M_JR; } else R->PC.W++; OPCODE_EXIT
+    if (R->V) { M_JR; } else R->PC.W+=2; OPCODE_EXIT
 OPCODE_EPILOG
 
 
@@ -67,19 +69,20 @@ OPCODE_PROLOG(0x40) /* RTI */
       R->IBackup=R->ICount;
       R->ICount=1;
     }
-    M_UNFIX_P(P);M_POP(R->PC.B.l);M_POP(R->PC.B.h);
+    M_UNFIX_P(P);M_POP(J.B.l);M_POP(J.B.h);R->PC.W=J.W;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x60) /* RTS */
-    M_POP(R->PC.B.l);M_POP(R->PC.B.h);R->PC.W++;
+    M_POP(J.B.l);M_POP(J.B.h);R->PC.W=J.W+1;
 OPCODE_EPILOG
 
 
 OPCODE_PROLOG(0x20) /* JSR $ssss ABS */
-    K.B.l=Op6502(R->PC.W++);
-    K.B.h=Op6502(R->PC.W);
-    M_PUSH(R->PC.B.h);
-    M_PUSH(R->PC.B.l);
+    K.B.l=Op6502(R->PC.W+1);
+    K.B.h=Op6502(R->PC.W+2);
+    J.W=R->PC.W+2;
+    M_PUSH(J.B.h);
+    M_PUSH(J.B.l);
     R->PC=K;
 OPCODE_EPILOG
 
@@ -89,21 +92,23 @@ OPCODE_EPILOG
 
 OPCODE_PROLOG(0x6C) /* JMP ($ssss) ABDINDIR */
     M_LDWORD(K);
-    R->PC.B.l=Rd6502(K.W);
+    J.B.l=Rd6502(K.W);
     K.B.l++;
-    R->PC.B.h=Rd6502(K.W);
+    J.B.h=Rd6502(K.W);
+    R->PC.W=J.W;
 OPCODE_EPILOG
 
 
 OPCODE_PROLOG(0x00) /* BRK */
   byte P;
-  R->PC.W++;
-  M_PUSH(R->PC.B.h);M_PUSH(R->PC.B.l);
+  J.W=R->PC.W+2;
+  M_PUSH(J.B.h);M_PUSH(J.B.l);
   P = M_FIX_P() | B_FLAG;
   M_PUSH(P);
   R->I=1;
-  R->PC.B.l=Rd6502(0xFFFE);
-  R->PC.B.h=Rd6502(0xFFFF);
+  J.B.l=Rd6502(0xFFFE);
+  J.B.h=Rd6502(0xFFFF);
+  R->PC.W=J.W;
 OPCODE_EPILOG
 
 
@@ -115,6 +120,7 @@ OPCODE_PROLOG(0x58) /* CLI */
       R->ICount=1;
     }
     R->I=0;
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x28) /* PLP */
@@ -127,87 +133,108 @@ OPCODE_PROLOG(0x28) /* PLP */
       R->ICount=1;
     }
     M_UNFIX_P(P);
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x08) /* PHP */
     byte P;
     P = M_FIX_P(); M_PUSH(P);
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x18) /* CLC */
     R->C=0;
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xB8) /* CLV */
     R->V=0;
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xD8) /* CLD */
     R->D=0;
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x38) /* SEC */
     R->C=1;
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xF8) /* SED */
     R->D=1;
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x78) /* SEI */
     R->I=1;
+    R->PC.W++;
 OPCODE_EPILOG
 
 
 OPCODE_PROLOG(0x48) /* PHA */
     M_PUSH(R->A);
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x68) /* PLA */
     M_POP(R->A); M_FL(R->A);
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x98) /* TYA */
     R->A=R->Y; M_FL(R->A);
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xA8) /* TAY */
     R->Y=R->A; M_FL(R->Y);
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xC8) /* INY */
     R->Y++; M_FL(R->Y);
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x88) /* DEY */
     R->Y--; M_FL(R->Y);
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x8A) /* TXA */
     R->A=R->X; M_FL(R->A);
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xAA) /* TAX */
     R->X=R->A; M_FL(R->X);
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xE8) /* INX */
     R->X++; M_FL(R->X);
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xCA) /* DEX */
     R->X--; M_FL(R->X);
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xEA) /* NOP */
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x9A) /* TXS */
     R->S=R->X;
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xBA) /* TSX */
     R->X=R->S; M_FL(R->X);
+    R->PC.W++;
 OPCODE_EPILOG
 
 
@@ -684,30 +711,34 @@ OPCODE_EPILOG
 
 OPCODE_PROLOG(0x0A) /* ASL a ACC */
     M_ASL(R->A);
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x2A) /* ROL a ACC */
     M_ROL(R->A);
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x4A) /* LSR a ACC */
     M_LSR(R->A);
+    R->PC.W++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x6A) /* ROR a ACC */
     M_ROR(R->A);
+    R->PC.W++;
 OPCODE_EPILOG
 
 
 OPCODE_PROLOG(0xEF) /* INS abcd */
-    M_LDWORD(K);
+    MC_Ab(K);
     I=Rd6502(K.W);
     Wr6502(K.W,++I);
     M_SBC(I);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xFF) /* INS abcd,X */
-    M_LDWORD(K);
+    MC_Ab(K);
     K.W+=R->X;
     I=Rd6502(K.W);
     Wr6502(K.W,++I);
@@ -720,11 +751,13 @@ OPCODE_EPILOG
 
 OPCODE_PROLOG_DEFAULT
     if(R->TrapBadOps)
+    {
         printf
         (
             "[M6502] Unrecognized instruction: $%02X at PC=$%04X\n",
-            Op6502(R->PC.W-1),(word)(R->PC.W-1)
+            Op6502(R->PC.W),(word)(R->PC.W)
         );
+    }
 #ifdef DEBUG
         printf("\nOpcode fallback trace:\n\n");
         for (opcode_count=0;opcode_count<10;opcode_count++) {

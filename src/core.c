@@ -13,6 +13,8 @@
 /**     commercially. Please, notify me, if you make any    **/   
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 13.August   2002 TRAC      Reduced unmovable global       */
+/*                            references to PC.              */
 /* 16.July     2002 stainless Added FAST_ZP.                 */
 /* 08.July     2002 TRAC      Eliminated unused Run6502      */
 /*                            return value.                  */
@@ -96,15 +98,15 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 /** Addressing Methods ***************************************/
 /** These macros calculate and return effective addresses.  **/
 /*************************************************************/
-#define MC_Ab(Rg)	M_LDWORD(Rg)
-#define MC_Zp(Rg)       Rg.W=Op6502(R->PC.W);R->PC.W++;
-#define MC_Zx(Rg)       Rg.B.l=Op6502(R->PC.W)+R->X;R->PC.W++;Rg.B.h=0
-#define MC_Zy(Rg)       Rg.B.l=Op6502(R->PC.W)+R->Y;R->PC.W++;Rg.B.h=0
-#define MC_Ax(Rg)	M_LDWORD(Rg);Rg.W+=R->X
-#define MC_Ay(Rg)	M_LDWORD(Rg);Rg.W+=R->Y
-#define MC_Ix(Rg)       K.B.l=Op6502(R->PC.W)+R->X;R->PC.W++;K.B.h=0; \
+#define MC_Ab(Rg)       M_LDWORD(Rg);R->PC.W+=3
+#define MC_Zp(Rg)       Rg.W=Op6502(R->PC.W+1);R->PC.W+=2;
+#define MC_Zx(Rg)       Rg.B.l=Op6502(R->PC.W+1)+R->X;R->PC.W+=2;Rg.B.h=0
+#define MC_Zy(Rg)       Rg.B.l=Op6502(R->PC.W+1)+R->Y;R->PC.W+=2;Rg.B.h=0
+#define MC_Ax(Rg)       MC_Ab(Rg);Rg.W+=R->X
+#define MC_Ay(Rg)       MC_Ab(Rg);Rg.W+=R->Y
+#define MC_Ix(Rg)       K.B.l=Op6502(R->PC.W+1)+R->X;R->PC.W+=2;K.B.h=0; \
                         Rg.B.l=Rd6502zp(K.W);K.B.l++;Rg.B.h=Rd6502zp(K.W)
-#define MC_Iy(Rg)       K.W=Op6502(R->PC.W);R->PC.W++; \
+#define MC_Iy(Rg)       K.W=Op6502(R->PC.W+1);R->PC.W+=2; \
                         Rg.B.l=Rd6502zp(K.W);K.B.l++;Rg.B.h=Rd6502zp(K.W); \
                         Rg.W+=R->Y
 
@@ -112,11 +114,11 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 /** These macros calculate address and read from it.        **/
 /*************************************************************/
 #define MR_Ab(Rg)	MC_Ab(J);Rg=Rd6502(J.W)
-#define MR_Im(Rg)       Rg=Op6502(R->PC.W);R->PC.W++
+#define MR_Im(Rg)       Rg=Op6502(R->PC.W+1);R->PC.W+=2
 #define MR_Zp(Rg)   MC_Zp(J);Rg=Rd6502zp(J.W)
 #define MR_Zx(Rg)   MC_Zx(J);Rg=Rd6502zp(J.W)
 #define MR_Zy(Rg)   MC_Zy(J);Rg=Rd6502zp(J.W)
-#define MR_Ax(Rg)       M_LDWORD(J); \
+#define MR_Ax(Rg)       MC_Ab(J); \
                         if (((int) J.B.l + R->X) > 0xFF) \
                         { \
                           J.B.l += R->X; \
@@ -130,7 +132,7 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
                           J.B.l += R->X; \
                           Rg=Rd6502(J.W); \
                         }
-#define MR_Ay(Rg)       M_LDWORD(J); \
+#define MR_Ay(Rg)       MC_Ab(J); \
                         if (((int) J.B.l + R->Y) > 0xFF) \
                         { \
                           J.B.l += R->Y; \
@@ -145,7 +147,7 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
                           Rg=Rd6502(J.W); \
                         }
 #define MR_Ix(Rg)	MC_Ix(J);Rg=Rd6502(J.W)
-#define MR_Iy(Rg)       K.W=Op6502(R->PC.W);R->PC.W++; \
+#define MR_Iy(Rg)       K.W=Op6502(R->PC.W+1);R->PC.W+=2; \
                         J.B.l=Rd6502zp(K.W);K.B.l++; \
                         J.B.h=Rd6502zp(K.W); \
                         if (((int) J.B.l + R->Y) > 0xFF) \
@@ -169,7 +171,7 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 #define MW_Zp(Rg)   MC_Zp(J);Wr6502zp(J.W,Rg)
 #define MW_Zx(Rg)   MC_Zx(J);Wr6502zp(J.W,Rg)
 #define MW_Zy(Rg)   MC_Zy(J);Wr6502zp(J.W,Rg)
-#define MW_Ax(Rg)       M_LDWORD(J); \
+#define MW_Ax(Rg)       MC_Ab(J); \
                         if (((int) J.B.l + R->X) > 0xFF) \
                         { \
                           J.B.l += R->X; \
@@ -183,7 +185,7 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
                           Rd6502(J.W); \
                           Wr6502(J.W,Rg); \
                         }
-#define MW_Ay(Rg)       M_LDWORD(J); \
+#define MW_Ay(Rg)       MC_Ab(J); \
                         if (((int) J.B.l + R->Y) > 0xFF) \
                         { \
                           J.B.l += R->Y; \
@@ -198,7 +200,7 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
                           Wr6502(J.W,Rg); \
                         }
 #define MW_Ix(Rg)	MC_Ix(J);Wr6502(J.W,Rg)
-#define MW_Iy(Rg)       K.W=Op6502(R->PC.W);R->PC.W++; \
+#define MW_Iy(Rg)       K.W=Op6502(R->PC.W+1);R->PC.W+=2; \
                         J.B.l=Rd6502zp(K.W);K.B.l++; \
                         J.B.h=Rd6502zp(K.W); \
                         if (((int) J.B.l + R->Y) > 0xFF) \
@@ -220,7 +222,7 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 #define MM_Ab(Cmd)      MC_Ab(J);I=Rd6502(J.W);Wr6502(J.W,I);Cmd(I);Wr6502(J.W,I)
 #define MM_Zp(Cmd)      MC_Zp(J);I=Rd6502zp(J.W);Wr6502zp(J.W,I);Cmd(I);Wr6502zp(J.W,I)
 #define MM_Zx(Cmd)      MC_Zx(J);I=Rd6502zp(J.W);Wr6502zp(J.W,I);Cmd(I);Wr6502zp(J.W,I)
-#define MM_Ax(Cmd)      M_LDWORD(J); \
+#define MM_Ax(Cmd)      MC_Ab(J); \
                         if (((int) J.B.l + R->X) > 0xFF) \
                         { \
                           J.B.l += R->X; \
@@ -245,26 +247,27 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 #define M_UNFIX_P(P)    R->N=P&N_FLAG;R->V=P&V_FLAG;R->D=P&D_FLAG; \
                         R->I=P&I_FLAG;R->Z=P&Z_FLAG?0:1;R->C=P&C_FLAG;
 #define M_FL(Rg)        R->N=R->Z=Rg
-#define M_LDWORD(Rg)    Rg.B.l=Op6502(R->PC.W);Rg.B.h=Op6502(R->PC.W+1);R->PC.W+=2
+#define M_LDWORD(Rg)    Rg.B.l=Op6502(R->PC.W+1);Rg.B.h=Op6502(R->PC.W+2)
 
 #define M_PUSH(Rg)      Wr6502Stack(R->S,Rg);R->S--
 #define M_POP(Rg)       R->S++;Rg=Rd6502Stack(R->S)
-#define M_JR            I=Op6502(R->PC.W); \
-                        R->PC.W++; \
+#define M_JR            I=Op6502(R->PC.W+1); \
+                        J.W=R->PC.W+2; \
                         R->ICount-=CYCLE_LENGTH;R->Cycles+=CYCLE_LENGTH; \
                         if ((I & 0x80) != \
-                            ((((int) R->PC.B.l + I) > 0xFF) ? 0x80 : 0)) \
+                            ((((int) J.B.l + I) > 0xFF) ? 0x80 : 0)) \
                         { \
-                          R->PC.B.l += I; \
-                          Op6502(R->PC.W); \
+                          J.B.l += I; \
+                          Op6502(J.W); \
                           R->ICount-=CYCLE_LENGTH;R->Cycles+=CYCLE_LENGTH; \
-                          if (I & 0x80) R->PC.B.h--; \
-                          else R->PC.B.h++; \
+                          if (I & 0x80) J.B.h--; \
+                          else J.B.h++; \
                         } \
                         else \
                         { \
-                          R->PC.B.l += I; \
-                        }
+                          J.B.l += I; \
+                        } \
+                        R->PC.W = J.W;
 
 #define M_ADC(Rg) \
     K.W=R->A+Rg+(R->C?1:0); \
@@ -359,7 +362,7 @@ word Exec6502(M6502 *R)
 {
   byte opcode, cycles;
 
-  opcode=Op6502(R->PC.W++);
+  opcode=Op6502(R->PC.W);
   cycles=Cycles[opcode];
   R->Cycles+=cycles;
   R->ICount-=cycles;
@@ -439,7 +442,7 @@ void Run6502(M6502 *R)
         if(!Debug6502(R)) return;
 #endif
 
-      opcode=Op6502(R->PC.W++);
+      opcode=Op6502(R->PC.W);
       cycles=Cycles[opcode];
       R->Cycles+=cycles;
       R->ICount-=cycles;
