@@ -45,6 +45,20 @@ You must read and accept the license prior to use.
 int input_enable_zapper = FALSE;
 
 
+int input_mode = INPUT_MODE_PLAY;
+
+
+UINT8 input_chat_name [256];
+
+UINT8 input_chat_text [256];
+
+
+int input_chat_offset = 0;
+
+
+static int wait_frames = 0;
+
+
 static int buttons [4] [8];
 
 
@@ -272,6 +286,11 @@ int input_init (void)
     load_keyboard_layouts ();
 
     load_joystick_layouts ();
+
+
+    memset (input_chat_name, NIL, sizeof (input_chat_name));
+
+    memset (input_chat_text, NIL, sizeof (input_chat_text));
 
 
     return (0);
@@ -636,12 +655,11 @@ int input_process (void)
     int want_poll = TRUE;
 
 
+    int speed;
+
 
     if (input_autosave_interval > 0)
     {
-        int speed;
-    
-    
         speed = ((machine_type == MACHINE_TYPE_NTSC) ? 60 : 50);
 
 
@@ -669,66 +687,183 @@ int input_process (void)
     }
 
 
+    if (wait_frames > 0)
+    {
+        wait_frames --;
+
+
+        return (FALSE);
+    }
+
+
     while (keypressed ())
     {
         int index;
 
 
+        UINT8 code [2];
+
+
         index = readkey ();
 
 
-        switch ((index >> 8))
+        if (input_mode == INPUT_MODE_CHAT)
         {
-            case KEY_ESC:
+            switch ((index >> 8))
+            {
+                case KEY_BACKSPACE:
 
-                suspend_timing ();
-
-
-                show:
-
-                  want_exit = show_gui (FALSE);
-
-
-                if (gui_needs_restart)
-                {
-                    /* Ugh. */
-
-                    goto show;
-                }
+                    if (strlen (input_chat_text) > 0)
+                    {
+                        input_chat_text [(strlen (input_chat_text) - 1)] = NIL;
 
 
-                resume_timing ();
+                        if (input_chat_offset > 0)
+                        {
+                            input_chat_offset --;
+                        }
+                    }
 
 
-                break;
+                    break;
 
 
-            case KEY_F5:
+                case KEY_ENTER:
 
-                ppu_invert_mirroring ();
-
-
-                break;
-
-
-            case KEY_F6:
-
-                input_enable_zapper = (! input_enable_zapper);
-
-
-                break;
+                    if (strlen (input_chat_text) > 0)
+                    {
+                        if (strlen (input_chat_name) > 0)
+                        {
+                            video_message ("%s: %s", input_chat_name, input_chat_text);
+                        }
+                        else
+                        {
+                            video_message (input_chat_text);
+                        }
 
 
-            default:
+                        video_message_duration = 5000;
 
-                break;
+    
+                        memset (input_chat_text, NIL, sizeof (input_chat_text));
+                    }
+
+
+                    input_chat_offset = 0;
+
+
+                    input_mode = INPUT_MODE_PLAY;
+
+
+                    speed = ((machine_type == MACHINE_TYPE_NTSC) ? 60 : 50);
+            
+            
+                    if (timing_half_speed)
+                    {
+                        speed /= 2;
+                    }
+
+
+                    wait_frames = (speed / 2);
+
+
+                    return (FALSE);
+
+
+                    break;
+
+
+                default:
+
+                    code [0] = (index & 0xff);
+
+                    code [1] = NIL;
+
+
+                    if (strlen (input_chat_text) < ((sizeof (input_chat_text) - 1) - 1))
+                    {
+                        strcat (input_chat_text, code);
+
+
+                        if (((text_length (font, input_chat_text) + 5) + 1) > ((SCREEN_W - 4) - 1))
+                        {
+                            input_chat_offset ++;
+                        }
+                    }
+
+
+                    break;
+            }
         }
+        else
+        {
+            switch ((index >> 8))
+            {
+                case KEY_ESC:
+    
+                    suspend_timing ();
+    
+    
+                    show:
+    
+                      want_exit = show_gui (FALSE);
+    
+    
+                    if (gui_needs_restart)
+                    {
+                        /* Ugh. */
+    
+                        goto show;
+                    }
+    
+    
+                    resume_timing ();
+    
+    
+                    break;
+    
+    
+                case KEY_F5:
+    
+                    ppu_invert_mirroring ();
+    
+    
+                    break;
+    
+    
+                case KEY_F6:
+    
+                    input_enable_zapper = (! input_enable_zapper);
+    
+    
+                    break;
+    
+    
+                case KEY_BACKSPACE:
+    
+                    input_mode = INPUT_MODE_CHAT;
+    
+    
+                    break;
+    
+    
+                default:
+    
+                    break;
+            }
+    
+    
+            video_handle_keypress (index);
+    
+    
+            gui_handle_keypress (index);
+        }
+    }
 
 
-        video_handle_keypress (index);
-
-
-        gui_handle_keypress (index);
+    if (input_mode == INPUT_MODE_CHAT)
+    {
+        return (FALSE);
     }
 
 

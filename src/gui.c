@@ -155,26 +155,6 @@ static void gui_message_border (void)
 }
 
 
-static volatile int need_remove_message = FALSE;
-
-
-static void remove_message (void)
-{
-    if (need_remove_message)
-    {
-        remove_int (remove_message);
-
-
-        need_remove_message = FALSE;
-    }
-
-
-    video_show_overlay = FALSE;
-}
-
-END_OF_STATIC_FUNCTION (remove_message);
-
-
 void gui_message (int color, AL_CONST UINT8 * message, ...)
 {
     va_list format;
@@ -204,27 +184,10 @@ void gui_message (int color, AL_CONST UINT8 * message, ...)
     }
     else
     {
-        if (need_remove_message)
-        {
-            remove_int (remove_message);
-        }
+        video_message (message_buffer);
 
 
-        install_int_ex (remove_message, MSEC_TO_TIMER (3000));
-
-
-        need_remove_message = TRUE;
-
-
-        video_overlay_text = message_buffer;
-
-        video_show_overlay = TRUE;
-
-
-        if (log_file)
-        {
-            fprintf (log_file, "Engine: %s\n", message_buffer);
-        }
+        video_message_duration = 3000;
     }
 }
 
@@ -781,12 +744,6 @@ int show_gui (int first_run)
         gui_menu_draw_menu_item = sl_draw_menu_item;
     
     
-        LOCK_VARIABLE (need_remove_message);
-    
-    
-        LOCK_FUNCTION (remove_message);
-    
-
 #ifdef ALLEGRO_DOS
 
         DISABLE_MENU (options_video_advanced_menu, 0);

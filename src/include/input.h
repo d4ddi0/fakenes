@@ -47,6 +47,26 @@ int input_autosave_interval;
 int input_autosave_triggered;
 
 
+int input_mode;
+
+
+enum
+{
+    INPUT_MODE_PLAY,
+
+
+    INPUT_MODE_CHAT
+};
+
+
+UINT8 input_chat_name [256];
+
+UINT8 input_chat_text [256];
+
+
+int input_chat_offset;
+
+
 int input_init (void);
 
 void input_exit (void);

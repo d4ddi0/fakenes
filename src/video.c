@@ -20,6 +20,8 @@ You must read and accept the license prior to use.
 #include <allegro.h>
 
 
+#include <stdlib.h>
+
 #include <string.h>
 
 
@@ -57,9 +59,21 @@ static BITMAP * mouse_sprite_remove_buffer = NIL;
 static BITMAP * stretch_buffer = NIL;
 
 
-UINT8 * video_overlay_text = NIL;
+UINT8 video_messages [MAX_MESSAGES] [(MAX_MESSAGE_LENGTH + 1)];
 
-volatile int video_show_overlay = FALSE;
+
+volatile int video_message_duration = 0;
+
+
+static void video_message_timer (void)
+{
+    if (video_message_duration > 0)
+    {
+        video_message_duration -= 1000;
+    }
+}
+
+END_OF_STATIC_FUNCTION (video_message_timer);
 
 
 int video_display_status = FALSE;
@@ -135,7 +149,13 @@ int video_init (void)
     int driver;
 
 
-    LOCK_VARIABLE (video_show_overlay);
+    LOCK_VARIABLE (video_message_duration);
+
+
+    LOCK_FUNCTION (video_message_timer);
+
+
+    install_int_ex (video_message_timer, BPS_TO_TIMER (1));
 
 
     screen_width = get_config_int ("video", "screen_width", 320);
@@ -301,6 +321,9 @@ int video_reinit (void)
 
 void video_exit (void)
 {
+    remove_int (video_message_timer);
+
+
     set_gfx_mode (GFX_TEXT, 0, 0, 0, 0);
 
 
@@ -1298,12 +1321,14 @@ static INLINE int select_blitter (void)
 }
 
 
+static void draw_messages (void);
+
+static void erase_messages (void);
+
+
 void video_blit (BITMAP * bitmap)
 {
     BITMAP * source_buffer;
-
-
-    int show_overlay;
 
 
     if (! rom_is_loaded)
@@ -1423,25 +1448,13 @@ void video_blit (BITMAP * bitmap)
 
     if ((video_display_status) && (! gui_is_active))
     {
-        display_status (status_buffer, VIDEO_COLOR_WHITE);
+        display_status (screen_buffer, VIDEO_COLOR_WHITE);
     }
 
 
-    /* Avoid a possible interrupt before erase. */
-
-    show_overlay = video_show_overlay;
-
-
-    if (show_overlay && video_overlay_text && (! gui_is_active))
+    if (((video_message_duration > 0) || (input_mode == INPUT_MODE_CHAT)) && (! gui_is_active))
     {
-        xor_mode (TRUE);
-
-        shadow_textout (screen_buffer, font, video_overlay_text, ((SCREEN_W / 2) -
-            (text_length (font, video_overlay_text) / 2)), 32, VIDEO_COLOR_WHITE);
-    }
-    else if ((! show_overlay) && video_overlay_text && (! gui_is_active))
-    {
-        video_overlay_text = NIL;
+        draw_messages ();
     }
 
 
@@ -1452,18 +1465,14 @@ void video_blit (BITMAP * bitmap)
     release_bitmap (bitmap);
 
 
-    /* Now erase it... */
-
-    if (video_show_overlay && video_overlay_text && (! gui_is_active))
+    if (((video_message_duration > 0) || (input_mode == INPUT_MODE_CHAT)) && (! gui_is_active))
     {
-        shadow_textout (screen_buffer, font, video_overlay_text, ((SCREEN_W / 2) -
-            (text_length (font, video_overlay_text) / 2)), 32, VIDEO_COLOR_WHITE);
-
-        xor_mode (FALSE);
+        erase_messages ();
     }
 
 
     clear (status_buffer);
+
 
     /* clear (screen_buffer); */
 }
@@ -1586,6 +1595,9 @@ void video_handle_keypress (int index)
 #define GUI_PALETTE_END         (GUI_PALETTE_START + 64)
 
 
+static COLOR_MAP half_transparency_map;
+
+
 void video_set_palette (RGB * palette)
 {
     int index;
@@ -1618,6 +1630,15 @@ void video_set_palette (RGB * palette)
 
 
     set_palette (internal_palette);
+
+
+    set_trans_blender (0, 0, 0, 127);
+
+
+    create_blender_table (&half_transparency_map, internal_palette, NIL);
+
+
+    color_map = &half_transparency_map;
 }
 
 
@@ -1905,4 +1926,281 @@ void video_filter (void)
 
         solid_mode ();
     }
+}
+
+
+void video_message (const UINT8 * message, ...)
+{
+    va_list format;
+
+
+    int index;
+
+
+    UINT8 buffer [256];
+
+
+    va_start (format, message);
+
+    vsprintf (buffer, message, format);
+
+    va_end (format);
+
+
+    for (index = 0; index < (MAX_MESSAGES - 1); index ++)
+    {
+        strncpy (&video_messages [index] [0], &video_messages [(index + 1)] [0], MAX_MESSAGE_LENGTH);
+    }
+
+
+    strncpy (&video_messages [(MAX_MESSAGES - 1)] [0], buffer, MAX_MESSAGE_LENGTH);
+
+
+    if (video_messages [(MAX_MESSAGES - 1)] [(MAX_MESSAGE_LENGTH - 1)])
+    {
+        video_messages [(MAX_MESSAGES - 1)] [(MAX_MESSAGE_LENGTH - 1)] = NIL;
+    }
+
+
+    if (log_file)
+    {
+        fprintf (log_file, "%s\n", buffer);
+    }
+}
+
+
+static INLINE int get_messages_height (void)
+{
+    int index;
+
+
+    int height = 0;
+
+
+    for (index = 0; index < MAX_MESSAGES; index ++)
+    {
+        int length;
+
+
+        length = text_length (font, &video_messages [index] [0]);
+
+
+        if (length > (SCREEN_W - 8))
+        {
+            height += ((text_height (font) + 1) * 2);
+        }
+        else
+        {
+            height += (text_height (font) + 1);
+        }
+    }
+
+
+    return (height);
+}
+
+
+static void draw_messages (void)
+{
+    int index;
+
+
+    int x;
+
+    int y;
+
+
+    int x2;
+
+    int y2;
+
+
+    int height;
+
+
+    int height_text;
+
+
+    int gray;
+
+    int silver;
+
+
+    height = get_messages_height ();
+
+
+    height_text = text_height (font);
+
+
+    gray = makecol (127, 127, 127);
+
+    silver = makecol (191, 191, 191);
+
+
+    x = 0;
+
+    y = ((SCREEN_H - (((height_text + 6) + height) + 3)) - 1);
+
+
+    x2 = (SCREEN_W - 1);
+
+    y2 = (SCREEN_H - 1);
+
+
+    drawing_mode (DRAW_MODE_TRANS, NIL, 0, 0);
+
+    rectfill (screen_buffer, x, y, x2, y2, gray);
+
+
+    solid_mode ();
+
+    rect (screen_buffer, x, y, x2, y2, VIDEO_COLOR_WHITE);
+
+
+    x = 3;
+
+    y ++;
+
+
+    x2 = ((SCREEN_W - 1) - 1);
+
+
+    hline (screen_buffer, x, y, x2, VIDEO_COLOR_BLACK);
+
+
+    x = 0;
+
+    y = ((SCREEN_H - (height_text + 5)) - 1);
+
+
+    hline (screen_buffer, x, y, x2, VIDEO_COLOR_WHITE);
+
+
+    x = 3;
+
+    y ++;
+
+
+    hline (screen_buffer, x, y, x2, VIDEO_COLOR_BLACK);
+
+
+    x = 4;
+
+    y = ((SCREEN_H - ((height_text + 6) + height)) - 1);
+
+
+    x2 = ((SCREEN_W - 4) - 1);
+
+
+    for (index = 0; index < MAX_MESSAGES; index ++)
+    {
+        UINT8 * token;
+
+
+        UINT8 buffer [(MAX_MESSAGE_LENGTH + 1)];
+
+
+        memcpy (buffer, &video_messages [index] [0], MAX_MESSAGE_LENGTH);
+
+
+        for (token = strtok (&video_messages [index] [0], " "); token; token = strtok (NIL, " "))
+        {
+            int length;
+
+
+            length = text_length (font, token);
+
+
+            if ((x + length) > x2)
+            {
+                x = 9;
+
+                y += (height_text + 1);
+            }
+
+            
+            if (index == (MAX_MESSAGES - 1))
+            {
+                shadow_textout (screen_buffer, font, token, x, y, VIDEO_COLOR_WHITE);
+            }
+            else
+            {
+                shadow_textout (screen_buffer, font, token, x, y, silver);
+            }
+
+
+            x += (length + (text_length (font, " ") + 1));
+        }
+
+
+        memcpy (&video_messages [index] [0], buffer, MAX_MESSAGE_LENGTH);
+
+
+        x = 4;
+
+        y += (height_text + 1);
+    }
+
+
+    y = ((SCREEN_H - (height_text + 2)) - 1);
+
+
+    if (input_mode == INPUT_MODE_CHAT)
+    {
+        int length;
+
+
+        length = text_length (font, &input_chat_text [input_chat_offset]);
+
+
+        shadow_textout (screen_buffer, font, &input_chat_text [input_chat_offset], x, y, VIDEO_COLOR_WHITE);
+
+
+        x += (length + 1);
+
+        y += (height_text - 1);
+
+
+        hline (screen_buffer, (x + 1), (y + 1), ((x + 5) + 1), VIDEO_COLOR_BLACK);
+
+        hline (screen_buffer, x, y, (x + 5), VIDEO_COLOR_WHITE);
+    }
+}
+
+
+static void erase_messages (void)
+{
+    int x;
+
+    int y;
+
+
+    int x2;
+
+    int y2;
+
+
+    int height;
+
+
+    int height_text;
+
+
+    height = get_messages_height ();
+
+
+    height_text = text_height (font);
+
+
+    x = 0;
+
+    y = ((SCREEN_H - (((height_text + 6) + height) + 3)) - 1);
+
+
+    x2 = (SCREEN_W - 1);
+
+    y2 = (SCREEN_H - 1);
+
+
+    rectfill (screen_buffer, x, y, x2, y2, VIDEO_COLOR_BLACK);
 }

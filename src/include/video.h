@@ -22,6 +22,21 @@ You must read and accept the license prior to use.
 #define VIDEO_H_INCLUDED
 
 
+#include "misc.h"
+
+
+#define MAX_MESSAGES        4
+
+
+#define MAX_MESSAGE_LENGTH  100
+
+
+UINT8 video_messages [MAX_MESSAGES] [(MAX_MESSAGE_LENGTH + 1)];
+
+
+volatile int video_message_duration;
+
+
 enum
 {
     VIDEO_BLITTER_AUTOMATIC,
@@ -50,11 +65,6 @@ enum
 #define VIDEO_FILTER_SCANLINES_MEDIUM   2
 
 #define VIDEO_FILTER_SCANLINES_HIGH     4
-
-
-UINT8 * video_overlay_text;
-
-volatile int video_show_overlay;
 
 
 int video_display_status;
@@ -104,6 +114,9 @@ void video_set_resolution (int, int);
 int video_get_color_depth (void);
 
 void video_set_color_depth (int);
+
+
+void video_message (const UINT8 *, ...);
 
 
 #endif /* ! VIDEO_H_INCLUDED */
