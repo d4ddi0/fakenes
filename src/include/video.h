@@ -106,6 +106,8 @@ void video_set_palette (RGB *);
 
 int video_create_color (int, int, int);
 
+int video_create_color_dither (int, int, int, int, int);
+
 
 void video_set_blitter (int);
 

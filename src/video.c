@@ -878,6 +878,47 @@ int video_create_color (int r, int g, int b)
 }
 
 
+static int dither_table [4] [4] =
+{
+    {  0,  2,  0, -2 },
+    {  2,  0, -2,  0 },
+    {  0, -2,  0,  2 },
+    { -2,  0,  2,  0 }
+};
+
+
+/*
+static int dither_table [4] [4] =
+{
+    { -8,  0, -6,  2 },
+    {  4, -4,  6, -2 },
+    { -5,  3, -7,  1 },
+    {  7, -1,  5, -3 }
+};
+*/
+
+
+int video_create_color_dither (int r, int g, int b, int x, int y)
+{
+    if (color_depth < 32)
+    {
+        x &= 3;
+    
+        y &= 3;
+    
+    
+        r = fix ((r + dither_table [y] [x]), 0, 255);
+    
+        g = fix ((g + dither_table [y] [x]), 0, 255);
+    
+        b = fix ((b + dither_table [y] [x]), 0, 255);
+    }
+
+
+    return (video_create_color (r, g, b));
+}
+
+
 void video_set_blitter (int blitter)
 {
     blitter_type = blitter;

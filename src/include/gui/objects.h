@@ -139,65 +139,20 @@ int sl_frame (int message, DIALOG * dialog, int key)
                     int shade;
 
 
+                    int x_offset;
+
                     int y_offset;
     
-    
+
+                    shade = (191 - ((pixel * 128) / dialog -> w));
+
+
+                    x_offset = (x + pixel);
+
+
                     for (y_offset = y; y_offset <= y2; y_offset ++)
                     {
-                        if (video_get_color_depth () == 8)
-                        {
-                            if (((pixel % 2) && (y_offset % 2)) && ((pixel + 1) < dialog -> w))
-                            {
-                                shade = (191 - (((pixel + 1) * 128) / dialog -> w));
-                            }
-                            else if (((! (pixel % 2)) && (y_offset % 2)) && ((pixel - 1) >= 0))
-                            {
-                                shade = (191 - (((pixel - 1) * 128) / dialog -> w));
-                            }
-                            else
-                            {
-                                shade = (191 - ((pixel * 128) / dialog -> w));
-                            }
-
-
-                            putpixel (screen, (x + pixel), y_offset, video_create_color (shade, shade, shade));
-                        }
-                        else
-                        {
-                            shade = (191 - ((pixel * 128) / dialog -> w));
-
-
-                            switch (video_get_color_depth ())
-                            {
-                                case 15:
-    
-                                    putpixel (screen, (x + pixel), y_offset, makecol15_dither (shade, shade, shade, (x + pixel), y_offset));
-    
-    
-                                    break;
-    
-    
-                                case 16:
-    
-                                    putpixel (screen, (x + pixel), y_offset, makecol16_dither (shade, shade, shade, (x + pixel), y_offset));
-    
-    
-                                    break;
-    
-
-                                case 32:
-    
-                                    putpixel (screen, (x + pixel), y_offset, makecol32 (shade, shade, shade));
-    
-    
-                                    break;
-
-
-                                default:
-    
-                                    break;
-                            }
-                        }
+                        putpixel (screen, x_offset, y_offset, video_create_color_dither (shade, shade, shade, x_offset, y_offset));
                     }
                 }
 
@@ -371,65 +326,20 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
                 int shade;
 
 
+                int x_offset;
+
                 int y_offset;
+
+
+                shade = (191 - (((pixel + 1) * 128) / width));
+
+
+                x_offset = (x + pixel);
 
 
                 for (y_offset = y; y_offset <= (y + (text_height (font) + 3)); y_offset ++)
                 {
-                    if (video_get_color_depth () == 8)
-                    {
-                        if (((pixel % 2) && (y_offset % 2)) && ((pixel + 1) < width))
-                        {
-                            shade = (191 - (((pixel + 1) * 128) / width));
-                        }
-                        else if (((! (pixel % 2)) && (y_offset % 2)) && ((pixel - 1) >= 0))
-                        {
-                            shade = (191 - (((pixel - 1) * 128) / width));
-                        }
-                        else
-                        {
-                            shade = (191 - ((pixel * 128) / width));
-                        }
-    
-    
-                        putpixel (screen, (x + pixel), y_offset, video_create_color (shade, shade, shade));
-                    }
-                    else
-                    {
-                        shade = (191 - ((pixel * 128) / width));
-
-
-                        switch (video_get_color_depth ())
-                        {
-                            case 15:
-
-                                putpixel (screen, (x + pixel), y_offset, makecol15_dither (shade, shade, shade, (x + pixel), y_offset));
-
-
-                                break;
-
-
-                            case 16:
-
-                                putpixel (screen, (x + pixel), y_offset, makecol16_dither (shade, shade, shade, (x + pixel), y_offset));
-
-
-                                break;
-
-
-                            case 32:
-
-                                putpixel (screen, (x + pixel), y_offset, makecol32 (shade, shade, shade));
-
-
-                                break;
-
-
-                            default:
-
-                                break;
-                        }
-                    } 
+                    putpixel (screen, x_offset, y_offset, video_create_color_dither (shade, shade, shade, x_offset, y_offset));
                 }
             }
         }
@@ -483,65 +393,20 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
                 int shade;
 
 
+                int x_offset;
+
                 int y_offset;
+
+
+                shade = (191 - ((pixel * 128) / width));
+
+
+                x_offset = (x + pixel);
 
 
                 for (y_offset = y; y_offset <= (y + (text_height (font) + 3)); y_offset ++)
                 {
-                    if (video_get_color_depth () == 8)
-                    {
-                        if (((pixel % 2) && (y_offset % 2)) && ((pixel + 1) < width))
-                        {
-                            shade = (191 - (((pixel + 1) * 128) / width));
-                        }
-                        else if (((! (pixel % 2)) && (y_offset % 2)) && ((pixel - 1) >= 0))
-                        {
-                            shade = (191 - (((pixel - 1) * 128) / width));
-                        }
-                        else
-                        {
-                            shade = (191 - ((pixel * 128) / width));
-                        }
-    
-    
-                        putpixel (screen, (x + pixel), y_offset, video_create_color (shade, shade, shade));
-                    }
-                    else
-                    {
-                        shade = (191 - ((pixel * 128) / width));
-
-
-                        switch (video_get_color_depth ())
-                        {
-                            case 15:
-
-                                putpixel (screen, (x + pixel), y_offset, makecol15_dither (shade, shade, shade, (x + pixel), y_offset));
-
-
-                                break;
-
-
-                            case 16:
-
-                                putpixel (screen, (x + pixel), y_offset, makecol16_dither (shade, shade, shade, (x + pixel), y_offset));
-
-
-                                break;
-
-
-                            case 32:
-
-                                putpixel (screen, (x + pixel), y_offset, makecol32 (shade, shade, shade));
-
-
-                                break;
-
-
-                            default:
-
-                                break;
-                        }
-                    } 
+                    putpixel (screen, x_offset, y_offset, video_create_color_dither (shade, shade, shade, x_offset, y_offset));
                 }
             }
         }
