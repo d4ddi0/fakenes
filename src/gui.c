@@ -62,7 +62,7 @@ static void reset_timer (void)
 END_OF_STATIC_FUNCTION (reset_timer);
 
 
-void gui_message (int color, CONST UINT8 * message, ...)
+void gui_message (int color, AL_CONST UINT8 * message, ...)
 {
     va_list format;
 

@@ -172,7 +172,7 @@ for the alt+letter to bring up a menu.
 */
 
 
-static CONST UINT8 alt_table [26] =
+static AL_CONST UINT8 alt_table [26] =
 {
     KEY_A, KEY_B, KEY_C, KEY_D, KEY_E, KEY_F, KEY_G,
     KEY_H, KEY_I, KEY_J, KEY_K, KEY_L, KEY_M, KEY_N,

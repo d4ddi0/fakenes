@@ -37,6 +37,7 @@
 ** - Darren Ranalli
 */
 
+#include <allegro.h>
 #include <string.h>
 #include <stdlib.h> //DCR
 #include "misc.h"
@@ -50,7 +51,7 @@
 #endif /* !NSF_PLAYER */
 
 // DCR
-#define ASSERT(CONDITION)
+//#define ASSERT(CONDITION)
 #define log_printf(STR)
 
 
@@ -75,7 +76,7 @@ static INT8 noise_short_lut[APU_NOISE_93];
 
 
 /* vblank length table used for rectangles, triangle, noise */
-static CONST UINT8 vbl_length[32] =
+static AL_CONST UINT8 vbl_length[32] =
 {
     5, 127,
    10,   1,
@@ -96,27 +97,27 @@ static CONST UINT8 vbl_length[32] =
 };
 
 /* frequency limit of rectangle channels */
-static CONST int freq_limit[8] =
+static AL_CONST int freq_limit[8] =
 {
    0x3FF, 0x555, 0x666, 0x71C, 0x787, 0x7C1, 0x7E0, 0x7F0
 };
 
 /* noise frequency lookup table */
-static CONST int noise_freq[16] =
+static AL_CONST int noise_freq[16] =
 {
      4,    8,   16,   32,   64,   96,  128,  160,
    202,  254,  380,  508,  762, 1016, 2034, 4068
 };
 
 /* DMC transfer freqs */
-CONST int dmc_clocks[16] =
+AL_CONST int dmc_clocks[16] =
 {
    428, 380, 340, 320, 286, 254, 226, 214,
    190, 160, 142, 128, 106,  85,  72,  54
 };
 
 /* ratios of pos/neg pulse for rectangle waves */
-static CONST int duty_lut[4] = { 2, 4, 8, 12 };
+static AL_CONST int duty_lut[4] = { 2, 4, 8, 12 };
 
 
 void apu_setcontext(apu_t *src_apu)
@@ -1293,6 +1294,9 @@ void apu_setext(apu_t *src_apu, apuext_t *ext)
 
 /*
 ** $Log$
+** Revision 1.4  2002/01/21 23:51:51  stainless
+** Removed the CONST and INLINE macros.
+**
 ** Revision 1.3  2002/01/15 09:29:50  esaelon
 ** APU DMC disruption of NES timing fix.
 **

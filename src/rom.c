@@ -39,7 +39,7 @@ int rom_is_loaded = FALSE;
 #include "zlib.h"
 
 
-int load_rom (CONST UINT8 * filename, ROM * rom)
+int load_rom (AL_CONST UINT8 * filename, ROM * rom)
 {
     gzFile rom_file;
 
@@ -198,7 +198,7 @@ int load_rom (CONST UINT8 * filename, ROM * rom)
 #else
 
 
-int load_rom (CONST UINT8 * filename, ROM * rom)
+int load_rom (AL_CONST UINT8 * filename, ROM * rom)
 {
     FILE * rom_file;
 

@@ -6,7 +6,7 @@ FakeNES - A portable, open-source NES emulator.
 
 rom.h: Declarations for ROM file handling.
 
-Copyright 2001(C) Randy McDowell and Ian Smith.
+Copyright (c) 2002, Randy McDowell and Ian Smith.
 All rights reserved, see 'LICENSE' for details.
 
 */
@@ -18,6 +18,9 @@ All rights reserved, see 'LICENSE' for details.
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+
+#include <allegro.h>
 
 
 #include "misc.h"
@@ -70,7 +73,7 @@ typedef struct _NES_HEADER
 } NES_HEADER;
 
 
-int load_rom (CONST UINT8 *, ROM *);
+int load_rom (AL_CONST UINT8 *, ROM *);
 
 void free_rom (ROM *);
 

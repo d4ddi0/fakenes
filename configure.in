@@ -30,9 +30,6 @@ else
     DFLAGS="$DFLAGS"
 fi
 
-dnl Need to handle CONST being set in include/misc.h,
-dnl dunno how to do this yet.  Same for INLINE.
-
 dnl There is also the data type definitions that need to be
 dnl handled by using configure to detect size.
 

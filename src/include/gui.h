@@ -20,13 +20,16 @@ extern "C" {
 #endif
 
 
+#include <allegro.h>
+
+
 #include "misc.h"
 
 
 int show_gui (void);
 
 
-void gui_message (int, CONST UINT8 *, ...);
+void gui_message (int, AL_CONST UINT8 *, ...);
 
 
 int gui_is_active;
