@@ -84,7 +84,7 @@ int video_enable_vsync = FALSE;
 int video_force_window = FALSE;
 
 
-int video_driver = GFX_AUTODETECT;
+int video_driver = 0;
 
 
 static int screen_height = 0;
@@ -172,6 +172,9 @@ int video_init (void)
 
 
     install_int_ex (video_message_timer, BPS_TO_TIMER (1));
+
+
+    video_driver = get_config_id ("video", "driver", GFX_AUTODETECT);
 
 
     screen_width = get_config_int ("video", "screen_width", 320);
@@ -368,6 +371,9 @@ void video_exit (void)
     
         destroy_bitmap (base_video_buffer);
     }
+
+
+    set_config_id ("video", "driver", video_driver);
 
 
     set_config_int ("video", "screen_width", screen_width);
