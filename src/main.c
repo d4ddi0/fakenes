@@ -766,7 +766,15 @@ int main (int argc, char * argv [])
                     {
                         while (throttle_counter == 0)
                         {
+#ifdef USE_USLEEP
+
+                            usleep (0);
+
+#else
+
                             yield_timeslice ();
+
+#endif
                         }
                     }
     
