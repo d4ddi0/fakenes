@@ -198,7 +198,7 @@ int main (int argc, char * argv [])
 #else
 
     printf ("\nThis is free software.  See 'LICENSE.TXT' for details.\n"
-            "You must read and accept the license prior to use.\n");
+            "You must read and accept the license prior to use.\n\n");
 
 #endif
 
