@@ -727,13 +727,11 @@ int machine_init (void)
 
 void machine_reset (void)
 {
-    input_reset ();
-
-
     mmc_reset ();
 
-
     ppu_reset ();
+
+    input_reset ();
 
     cpu_reset ();
 }
