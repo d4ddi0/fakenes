@@ -74,7 +74,7 @@ install : ${BINARY}
 
 	@echo Installing the FakeNES binary...
 
-	${INSTALL} -m 0755 ${BINARY} /usr/bin
+	${INSTALL} -m 0755 ${BINARY} /usr/local/bin
 
 
 	@echo Run \'${BINARY}\' once to create the configuration file.
@@ -89,7 +89,7 @@ uninstall :
 	@echo User specific generated files will NOT be removed.
 
 
-	${RM} /usr/bin/${BINARY}
+	${RM} /usr/local/bin/${BINARY}
 
 
 .SUFFIXES : .asm .c
