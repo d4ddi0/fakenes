@@ -3055,7 +3055,7 @@ static int options_audio_filters_menu_high_pass (void)
 }
 
 
-static int options_audio_channels_menu_rectangle_wave_a (void)
+static int options_audio_channels_menu_square_wave_a (void)
 {
     papu_enable_square_1 = (! papu_enable_square_1);
 
@@ -3067,11 +3067,11 @@ static int options_audio_channels_menu_rectangle_wave_a (void)
 
     if (! papu_enable_square_1)
     {
-        gui_message (GUI_TEXT_COLOR, "Audio rectangle wave channel A disabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio square wave channel A disabled.");
     }
     else
     {
-        gui_message (GUI_TEXT_COLOR, "Audio rectangle wave channel A enabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio square wave channel A enabled.");
     }
 
 
@@ -3079,7 +3079,7 @@ static int options_audio_channels_menu_rectangle_wave_a (void)
 }
 
 
-static int options_audio_channels_menu_rectangle_wave_b (void)
+static int options_audio_channels_menu_square_wave_b (void)
 {
     papu_enable_square_2 = (! papu_enable_square_2);
 
@@ -3091,11 +3091,11 @@ static int options_audio_channels_menu_rectangle_wave_b (void)
 
     if (! papu_enable_square_2)
     {
-        gui_message (GUI_TEXT_COLOR, "Audio rectangle wave channel B disabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio square wave channel B disabled.");
     }
     else
     {
-        gui_message (GUI_TEXT_COLOR, "Audio rectangle wave channel B enabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio square wave channel B enabled.");
     }
 
 
