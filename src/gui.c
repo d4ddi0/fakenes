@@ -1057,6 +1057,11 @@ STATE_SELECT_MENU_HANDLER (5);
 STATE_SELECT_MENU_HANDLER (6);
 
 
+static UINT8 machine_state_menu_texts [6] [20];
+
+static UINT8 machine_state_titles [6] [16];
+
+
 static int machine_state_menu_select (void)
 {
     UINT8 buffer [256];
@@ -1108,24 +1113,27 @@ static int machine_state_menu_select (void)
             pack_fread (buffer2, sizeof (buffer2), file);
 
 
-            memset (machine_state_select_menu [index * 2].dp, NULL, 16);
+            memset (machine_state_titles [index], NULL, 16);
 
-            strcat (machine_state_select_menu [index * 2].dp, buffer2);
+            strcat (machine_state_titles [index], buffer2);
 
 
             pack_fclose (file);
         }
         else
         {
-            memset (machine_state_select_menu [index * 2].dp, NULL, 16);
+            memset (machine_state_titles [index], NULL, 16);
 
-            strcat (machine_state_select_menu [index * 2].dp, "Untitled");
+            strcat (machine_state_titles [index], "Untitled");
         }
 
 
-        memset (machine_state_select_menu [index * 2].text, NULL, 20);
+        memset (machine_state_menu_texts [index], NULL, 20);
 
-        sprintf (machine_state_select_menu [index * 2].text, "&%d: %s", (index + 1), (char *) machine_state_select_menu [index * 2].dp);
+        sprintf (machine_state_menu_texts [index], "&%d: %s", (index + 1), machine_state_titles [index]);
+
+
+        machine_state_select_menu [index * 2].text = machine_state_menu_texts [index];
     }
 
 
@@ -1159,7 +1167,7 @@ static int machine_state_menu_save (void)
         machine_state_save_dialog [4].dp = buffer2;
         
         
-        strcat (buffer2, machine_state_select_menu [machine_state_index * 2].dp);
+        strcat (buffer2, machine_state_titles [machine_state_index]);
         
         
         if (gui_show_dialog (machine_state_save_dialog) != 5)
