@@ -16,53 +16,63 @@ Entertainment System).
 
 */
 
-/* Not really needed. */
-#ifndef INLINE
-#define INLINE
-#endif
-
+#define ALLEGRO_USE_CONSOLE
+#include <allegro.h>
 #include <stdio.h>
 #include "core.h"
 #include "misc.h"
 
+#ifndef OUTPUT
+#error OUTPUT not defined.
+#endif
+static FILE *output;
+
 #define generate_offset(label) \
-    printf("%%define O_" #label " %d\n",\
+    fprintf(output, "%%define O_" #label " %d\n", \
         (int) &((FN2A03 *) NULL)->label); \
-    printf("%%define B_" #label " [R_Base + O_" #label "]\n")
+    fprintf(output, "%%define B_" #label " [R_Base + O_" #label "]\n")
 
-int main()
+int main (void)
 {
- printf("%%ifndef CORE_I\n");
- printf("%%define CORE_I\n");
- printf("\n");
- printf("\n");
- generate_offset(PC);
- printf("\n");
- generate_offset(A);
- generate_offset(X);
- generate_offset(Y);
- generate_offset(S);
- printf("\n");
- generate_offset(N);
- generate_offset(V);
- generate_offset(D);
- generate_offset(I);
- generate_offset(Z);
- generate_offset(C);
- printf("\n");
- generate_offset(ICount);
- generate_offset(Cycles);
- generate_offset(IBackup);
- generate_offset(IRequest);
- generate_offset(Trap);
- generate_offset(AfterCLI);
- generate_offset(TrapBadOps);
- generate_offset(Trace);
- generate_offset(Jammed);
- printf("\n");
- printf("\n");
- printf("%%endif ;!defined(CORE_I)\n");
- printf("\n");
+    allegro_init ();
 
- return 0;
+    output = fopen (OUTPUT, "w");
+    if (!output) {
+        printf ("Could not open output: %s.\n", OUTPUT);
+        return (1);
+    }
+
+    fprintf (output, "%%ifndef CORE_I\n");
+    fprintf (output, "%%define CORE_I\n");
+    fprintf (output, "\n\n");
+    generate_offset (PC);
+    fprintf (output, "\n");
+    generate_offset (A);
+    generate_offset (X);
+    generate_offset (Y);
+    generate_offset (S);
+    fprintf (output, "\n");
+    generate_offset (N);
+    generate_offset (V);
+    generate_offset (D);
+    generate_offset (I);
+    generate_offset (Z);
+    generate_offset (C);
+    fprintf (output, "\n");
+    generate_offset (ICount);
+    generate_offset (Cycles);
+    generate_offset (IBackup);
+    generate_offset (IRequest);
+    generate_offset (Trap);
+    generate_offset (AfterCLI);
+    generate_offset (TrapBadOps);
+    generate_offset (Trace);
+    generate_offset (Jammed);
+    fprintf (output, "\n\n");
+    fprintf (output, "%%endif ;!defined(CORE_I)\n");
+    fprintf (output, "\n");
+    fclose (output);
+
+    return (0);
 }
+END_OF_MAIN ()

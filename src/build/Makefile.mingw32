@@ -9,9 +9,9 @@ RMDIR = rmdir
 RM = rm -f
 
 # Paths.
-INCLUDE_PATH = include
-SUPPORT_PATH = support
-OBJECT_PATH = build/mingw32
+SOURCE_PATH = .
+INCLUDE_PATH = ${SOURCE_PATH}/include
+OBJECT_PATH = ${SOURCE_PATH}/build/mingw32
 BINARY_PATH ?= .
 
 # Extensions.
@@ -21,15 +21,8 @@ OBJEXT ?= .o
 # Binaries.
 BINARY := ${BINARY_PATH}/fakenes${EXEEXT}
 BINARY_DEBUG := ${BINARY_PATH}/fakenesd${EXEEXT}
-
-# Special (don't touch).
-ifndef DOS_PATHS
-    COREOFF := ${BINARY_PATH}/coreoff${EXEEXT}
-    COREOFF_INC := ${INCLUDE_PATH}/core/x86/offsets.inc
-else
-    COREOFF := ${BINARY_PATH}/coreoff${EXEEXT}
-    COREOFF_INC := ${INCLUDE_PATH}/core/x86/offsets.inc
-endif
+COREOFF = ${BINARY_PATH}/coreoff${EXEEXT}
+OFFSETS_INC = ${INCLUDE_PATH}/core/x86/offsets.inc
 
 # GCC flags.
 TARGET_ARCH ?= i486
@@ -87,12 +80,15 @@ ifneq (${ASM_CORE}, 0)
 endif
 
 # Libraries.
-LIBRARIES = -lalleg
+LIBALLEG ?= -lalleg
+LIBRARIES := ${LIBALLEG}
 ifndef NO_ZLIB
-    LIBRARIES += -lz
+    LIBZ ?= -lz
+    LIBRARIES += ${LIBZ}
 endif
 ifndef NO_HAWKNL
-    LIBRARIES += -lnl
+    LIBNL ?= -lNL
+    LIBRARIES += ${LIBNL}
 endif
 
 # Targets.
@@ -106,17 +102,17 @@ bootstrap:
 	@echo Building.
 	${MKDIR} ${OBJECT_PATH}
 ${BINARY}: bootstrap \
-	${OBJECTS}
-	${CC} ${OBJECTS} ${SUPPORT_PATH}/resource.o -o ${BINARY}  -s ${LIBRARIES}
+    ${OBJECTS}
+	${CC} ${OBJECTS} -o ${BINARY} -s ${LIBRARIES}
 ${BINARY_DEBUG}: bootstrap \
     ${OBJECTS}
-	${CC} ${OBJECTS} ${SUPPORT_PATH}/resource.o -o ${BINARY_DEBUG} -g -ggdb3 ${LIBRARIES}
-${COREOFF_INC}: \
-    coreoff.c \
+	${CC} ${OBJECTS} -o ${BINARY_DEBUG} -g -ggdb3 ${LIBRARIES}
+${OFFSETS_INC}: \
+    ${SOURCE_PATH}/coreoff.c \
     ${INCLUDE_PATH}/core.h \
     ${INCLUDE_PATH}/misc.h
-	${CC} $< -o ${COREOFF} -I${INCLUDE_PATH}
-	${COREOFF} > ${COREOFF_INC}
+	${CC} $< -o ${COREOFF} -I${INCLUDE_PATH} -DOUTPUT=\"${OFFSETS_INC}\" ${LIBALLEG}
+	${COREOFF}
 	${RM} ${COREOFF}
 .SUFFIXES: .asm .c
 ${OBJECT_PATH}/%${OBJEXT}: \
@@ -133,4 +129,4 @@ clean:
 
 distclean: clean
 	-${RMDIR} ${OBJECT_PATH}
-	${RM} ${COREOFF} ${COREOFF_INC}
+	${RM} ${COREOFF} ${OFFSETS_INC}

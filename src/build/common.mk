@@ -1,6 +1,6 @@
 # Dependancies.
 ${OBJECT_PATH}/apu${OBJEXT}: \
-    apu.c \
+    ${SOURCE_PATH}/apu.c \
     ${INCLUDE_PATH}/apu.h \
     ${INCLUDE_PATH}/misc.h \
     ${INCLUDE_PATH}/cpu.h \
@@ -17,7 +17,7 @@ ${OBJECT_PATH}/apu${OBJEXT}: \
     ${INCLUDE_PATH}/apu/fme7.h
 
 ${OBJECT_PATH}/audio${OBJEXT}: \
-    audio.c \
+    ${SOURCE_PATH}/audio.c \
     ${INCLUDE_PATH}/audio.h \
     ${INCLUDE_PATH}/gui.h \
     ${INCLUDE_PATH}/misc.h \
@@ -25,7 +25,7 @@ ${OBJECT_PATH}/audio${OBJEXT}: \
 
 ifndef ASM_CORE
     ${OBJECT_PATH}/core${OBJEXT}: \
-        core.c \
+        ${SOURCE_PATH}/core.c \
         ${INCLUDE_PATH}/core.h \
         ${INCLUDE_PATH}/misc.h \
         ${INCLUDE_PATH}/core/tables.h \
@@ -39,7 +39,7 @@ ifndef ASM_CORE
         ${INCLUDE_PATH}/core/codes.h
 else
     ${OBJECT_PATH}/core${OBJEXT}: \
-        core.c \
+        ${SOURCE_PATH}/core.c \
         ${INCLUDE_PATH}/core.h \
         ${INCLUDE_PATH}/misc.h \
         ${INCLUDE_PATH}/core/tables.h \
@@ -52,7 +52,7 @@ else
         ${INCLUDE_PATH}/core/insns.h
 
     ${OBJECT_PATH}/corex86${OBJEXT}: \
-        corex86.asm \
+        ${SOURCE_PATH}/corex86.asm \
         ${INCLUDE_PATH}/core/x86/offsets.inc \
         ${INCLUDE_PATH}/core/x86/addr.inc \
         ${INCLUDE_PATH}/core/x86/codes.inc \
@@ -60,7 +60,7 @@ else
 endif
 
 ${OBJECT_PATH}/cpu${OBJEXT}: \
-    cpu.c \
+    ${SOURCE_PATH}/cpu.c \
     ${INCLUDE_PATH}/cpu.h \
     ${INCLUDE_PATH}/core.h \
     ${INCLUDE_PATH}/misc.h \
@@ -73,15 +73,15 @@ ${OBJECT_PATH}/cpu${OBJEXT}: \
     ${INCLUDE_PATH}/crc32.h
 
 ${OBJECT_PATH}/crc32${OBJEXT}: \
-    crc32.c \
+    ${SOURCE_PATH}/crc32.c \
     ${INCLUDE_PATH}/misc.h \
     ${INCLUDE_PATH}/crc32.h
 
 ${OBJECT_PATH}/data${OBJEXT}: \
-    data.c
+    ${SOURCE_PATH}/data.c
 
 ${OBJECT_PATH}/gui${OBJEXT}: \
-    gui.c \
+    ${SOURCE_PATH}/gui.c \
     ${INCLUDE_PATH}/apu.h \
     ${INCLUDE_PATH}/misc.h \
     ${INCLUDE_PATH}/audio.h \
@@ -107,7 +107,7 @@ ${OBJECT_PATH}/gui${OBJEXT}: \
     ${INCLUDE_PATH}/gui/themes.h
 
 ${OBJECT_PATH}/input${OBJEXT}: \
-    input.c \
+    ${SOURCE_PATH}/input.c \
     ${INCLUDE_PATH}/audio.h \
     ${INCLUDE_PATH}/gui.h \
     ${INCLUDE_PATH}/misc.h \
@@ -119,7 +119,7 @@ ${OBJECT_PATH}/input${OBJEXT}: \
     ${INCLUDE_PATH}/timing.h
 
 ${OBJECT_PATH}/main${OBJEXT}: \
-    main.c \
+    ${SOURCE_PATH}/main.c \
     ${INCLUDE_PATH}/build.h \
     ${INCLUDE_PATH}/audio.h \
     ${INCLUDE_PATH}/cpu.h \
@@ -140,7 +140,7 @@ ${OBJECT_PATH}/main${OBJEXT}: \
     ${INCLUDE_PATH}/timing.h
 
 ${OBJECT_PATH}/mmc${OBJEXT}: \
-    mmc.c \
+    ${SOURCE_PATH}/mmc.c \
     ${INCLUDE_PATH}/cpu.h \
     ${INCLUDE_PATH}/core.h \
     ${INCLUDE_PATH}/misc.h \
@@ -168,12 +168,12 @@ ${OBJECT_PATH}/mmc${OBJEXT}: \
     ${INCLUDE_PATH}/mmc/ffe_f3.h
 
 ${OBJECT_PATH}/netplay${OBJEXT}: \
-    netplay.c \
+    ${SOURCE_PATH}/netplay.c \
     ${INCLUDE_PATH}/misc.h \
     ${INCLUDE_PATH}/netplay.h
 
 ${OBJECT_PATH}/papu${OBJEXT}: \
-    papu.c \
+    ${SOURCE_PATH}/papu.c \
     ${INCLUDE_PATH}/audio.h \
     ${INCLUDE_PATH}/apu.h \
     ${INCLUDE_PATH}/misc.h \
@@ -182,7 +182,7 @@ ${OBJECT_PATH}/papu${OBJEXT}: \
     ${INCLUDE_PATH}/timing.h
 
 ${OBJECT_PATH}/ppu${OBJEXT}: \
-    ppu.c \
+    ${SOURCE_PATH}/ppu.c \
     ${INCLUDE_PATH}/cpu.h \
     ${INCLUDE_PATH}/core.h \
     ${INCLUDE_PATH}/misc.h \
@@ -199,7 +199,7 @@ ${OBJECT_PATH}/ppu${OBJEXT}: \
     ${INCLUDE_PATH}/ppu/sprites.h
 
 ${OBJECT_PATH}/rom${OBJEXT}: \
-    rom.c \
+    ${SOURCE_PATH}/rom.c \
     ${INCLUDE_PATH}/ppu.h \
     ${INCLUDE_PATH}/rom.h \
     ${INCLUDE_PATH}/misc.h \
@@ -209,7 +209,7 @@ ${OBJECT_PATH}/rom${OBJEXT}: \
     ${INCLUDE_PATH}/cpu_in.h
 
 ${OBJECT_PATH}/video${OBJEXT}: \
-    video.c \
+    ${SOURCE_PATH}/video.c \
     ${INCLUDE_PATH}/audio.h \
     ${INCLUDE_PATH}/cpu.h \
     ${INCLUDE_PATH}/core.h \
@@ -233,5 +233,5 @@ ${OBJECT_PATH}/video${OBJEXT}: \
     ${INCLUDE_PATH}/blit/s2xscl.h
 
 ${OBJECT_PATH}/unzip${OBJEXT}: \
-    unzip.c \
+    ${SOURCE_PATH}/unzip.c \
     ${INCLUDE_PATH}/unzip.h

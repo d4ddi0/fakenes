@@ -11,8 +11,9 @@ CHMOD = @CHMOD@
 INSTALL = @INSTALL@
 
 # Paths.
-INCLUDE_PATH = include
-OBJECT_PATH = build/posix
+SOURCE_PATH = .
+INCLUDE_PATH = ${SOURCE_PATH}/include
+OBJECT_PATH = ${SOURCE_PATH}/build/posix
 BINARY_PATH ?= .
 
 # Extensions.
@@ -21,10 +22,8 @@ OBJEXT = @OBJEXT@
 
 # Binaries.
 BINARY := ${BINARY_PATH}/fakenes${EXEEXT}
-
-# Special (don't touch).
 COREOFF := ${BINARY_PATH}/coreoff${EXEEXT}
-COREOFF_INC := ${INCLUDE_PATH}/core/x86/offsets.inc
+OFFSETS_INC = ${INCLUDE_PATH}/core/x86/offsets.inc
 
 # C compiler flags.
 DFLAGS = @DFLAGS@ -DPOSIX
@@ -63,7 +62,8 @@ ifneq (${ASM_CORE}, 0)
 endif
 
 # Libraries.
-LIBRARIES = `allegro-config --libs` @LIBRARIES@
+LIBALLEG = `allegro-config --libs`
+LIBRARIES = ${LIBALLEG} @LIBRARIES@
 
 .PHONY: all bootstrap install uninstall clean distclean
 all: bootstrap ${BINARY}
@@ -74,12 +74,12 @@ ${BINARY}: bootstrap \
     ${OBJECTS}
 	${CC} ${OBJECTS} -o ${BINARY} ${LIBRARIES}
 ${COREOFF_INC}: \
-    coreoff.c \
+    ${SOURCE_PATH}/coreoff.c \
     ${INCLUDE_PATH}/core.h \
     ${INCLUDE_PATH}/misc.h
-	${CC} $< -o ${COREOFF} -I${INCLUDE_PATH}
+	${CC} $< -o ${COREOFF} -I${INCLUDE_PATH} -DOUTPUT=\"${OFFSETS_INC}\" ${LIBALLEG}
 	${CHMOD} +x ${COREOFF}
-	${COREOFF} > ${COREOFF_INC}
+	${COREOFF}
 	${RM} ${COREOFF}
 .SUFFIXES: .asm .c
 ${OBJECT_PATH}/%${OBJEXT}: \
@@ -107,5 +107,5 @@ clean:
 
 distclean: clean
 	-${RMDIR} ${OBJECT_PATH}
-	${RM} ${COREOFF} ${COREOFF_INC}
+	${RM} ${COREOFF} ${OFFSETS_INC}
 	${RM} Makefile
