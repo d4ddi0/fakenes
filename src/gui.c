@@ -488,7 +488,7 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (options_video_filters_scanlines_menu, 4, (video_get_filter_list () & VIDEO_FILTER_SCANLINES_LOW));
 
 
-    TOGGLE_MENU (options_video_menu, 6, video_enable_vsync);
+    TOGGLE_MENU (options_video_menu, 8, video_enable_vsync);
 
 
     TOGGLE_MENU (options_video_advanced_menu, 0, video_force_window);
