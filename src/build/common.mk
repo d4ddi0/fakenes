@@ -28,7 +28,7 @@ mmc.o :  mmc.c include/cpu.h include/gui.h include/misc.h include/mmc.h \
          include/mmc/shared.h include/mmc/aorom.h include/mmc/bandai.h \
          include/mmc/cnrom.h include/mmc/dreams.h include/mmc/ffe_f3.h \
          include/mmc/gnrom.h include/mmc/mmc1.h include/mmc/mmc2and4.h \
-         include/mmc/mmc3.h include/mmc5.h include/mmc/nina.h \
+         include/mmc/mmc3.h include/mmc/mmc5.h include/mmc/nina.h \
          include/mmc/sunsoft4.h include/mmc/unrom.h include/mmc/vrc6.h
 
 papu.o : papu.c include/audio.h include/apu.h include/misc.h \
