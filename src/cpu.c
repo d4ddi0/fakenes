@@ -135,7 +135,7 @@ void sram_save (const char *rom_filename)
 int cpu_init (void)
 {
 
-    memset (cpu_ram, NULL, sizeof (cpu_ram));
+    memset (cpu_ram, 0xFF, sizeof (cpu_ram));
 
     memset (cpu_sram, NULL, sizeof (cpu_sram));
 
