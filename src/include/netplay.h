@@ -17,12 +17,9 @@ You must read and accept the license prior to use.
 */
 
 
-#ifndef __NETPLAY_H__
-#define __NETPLAY_H__
+#ifndef NETPLAY_H_INCLUDED
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define NETPLAY_H_INCLUDED
 
 
 #include "misc.h"
@@ -65,8 +62,4 @@ int netplay_open_client (const UINT8 *);
 void netplay_close_client (void);
 
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* ! __NETPLAY_H__ */
+#endif /* ! NETPLAY_H_INCLUDED */

@@ -25,12 +25,16 @@ You must read and accept the license prior to use.
 #include "datafile.h"
 
 
-#define DATA_TO_FONT(id)        ((FONT *) datafile_data [DATAFILE_ ##id].dat)
-
-#define DATA_TO_BITMAP(id)      ((BITMAP *) datafile_data [DATAFILE_ ##id].dat)
+#define DATA(id)                (datafile_data [DATAFILE_ ##id].dat)
 
 
-#define DATA_TO_RGB(id)         ((RGB *) datafile_data [DATAFILE_ ##id].dat)
+#define DATA_TO_BITMAP(id)      ((BITMAP *) DATA (id))
+
+
+#define DATA_TO_FONT(id)        ((FONT *) DATA (id))
+
+
+#define DATA_TO_RGB(id)         ((RGB *) DATA (id))
 
 
 #endif /* ! DATA_H_INCLUDED */

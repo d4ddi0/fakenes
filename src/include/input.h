@@ -17,12 +17,9 @@ You must read and accept the license prior to use.
 */
 
 
-#ifndef __INPUT_H__
-#define __INPUT_H__
+#ifndef INPUT_H_INCLUDED
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define INPUT_H_INCLUDED
 
 
 #include <allegro.h>
@@ -76,8 +73,4 @@ void input_save_state (PACKFILE *, int);
 void input_load_state (PACKFILE *, int);
 
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* ! __INPUT_H__ */
+#endif /* ! INPUT_H_INCLUDED */

@@ -17,19 +17,19 @@ You must read and accept the license prior to use.
 */
 
 
-#ifndef __AUDIO_H__
-#define __AUDIO_H__
+#ifndef AUDIO_H_INCLUDED
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define AUDIO_H_INCLUDED
 
 
-#define AUDIO_CLASSIC_STEREO_MIXING     1
+enum
+{
+    AUDIO_CLASSIC_STEREO_MIXING,
 
-#define AUDIO_ENHANCED_STEREO_MIXING    2
+    AUDIO_ENHANCED_STEREO_MIXING,
 
-#define AUDIO_ACCURATE_STEREO_MIXING    3
+    AUDIO_ACCURATE_STEREO_MIXING
+};
 
 
 int audio_enable_output;
@@ -70,8 +70,4 @@ void audio_resume (void);
 void * audio_buffer;
 
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* ! __AUDIO_H__ */
+#endif /* ! AUDIO_H_INCLUDED */

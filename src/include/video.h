@@ -17,12 +17,9 @@ You must read and accept the license prior to use.
 */
 
 
-#ifndef __VIDEO_H__
-#define __VIDEO_H__
+#ifndef VIDEO_H_INCLUDED
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define VIDEO_H_INCLUDED
 
 
 enum
@@ -109,8 +106,4 @@ int video_get_color_depth (void);
 void video_set_color_depth (int);
 
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* ! __VIDEO_H__ */
+#endif /* ! VIDEO_H_INCLUDED */

@@ -17,12 +17,9 @@ You must read and accept the license prior to use.
 */
 
 
-#ifndef __GUI_H__
-#define __GUI_H__
+#ifndef GUI_H_INCLUDED
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define GUI_H_INCLUDED
 
 
 #include <allegro.h>
@@ -45,8 +42,4 @@ int gui_is_active;
 void gui_handle_keypress (int);
 
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* ! __GUI_H__ */
+#endif /* ! GUI_H_INCLUDED */

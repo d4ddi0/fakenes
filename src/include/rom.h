@@ -17,18 +17,15 @@ You must read and accept the license prior to use.
 */
 
 
-#ifndef __ROM_H__
-#define __ROM_H__
+#ifndef ROM_H_INCLUDED
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define ROM_H_INCLUDED
 
 
 #include "misc.h"
 
 
-typedef struct _ROM     ROM;
+typedef struct _ROM ROM;
 
 
 #include "mmc.h"
@@ -58,15 +55,18 @@ struct _ROM
 
 
     UINT8 * trainer;
-    UINT32 trainer_crc32;       /* checksum for trainer */
+
+    UINT32 trainer_crc32;               /* Checksum for trainer. */
 
 
     UINT8 * prg_rom;
-    UINT32 prg_rom_crc32;       /* checksum for PRG ROM */
+
+    UINT32 prg_rom_crc32;               /* Checksum for PRG ROM. */
 
 
     UINT8 * chr_rom;
-    UINT32 chr_rom_crc32;       /* checksum for CHR ROM */
+
+    UINT32 chr_rom_crc32;                /* Checksum for CHR ROM. */
 
 
     UINT8 * chr_rom_cache;              /* CHR-ROM cache buffer. */
@@ -172,8 +172,4 @@ void free_rom (const ROM *);
 #define LAST_ROM_PAGE   (ROM_PAGE_16K (ROM_PRG_ROM_PAGES - 1))
 
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* ! __ROM_H__ */
+#endif /* ! ROM_H_INCLUDED */

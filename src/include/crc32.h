@@ -17,22 +17,15 @@ You must read and accept the license prior to use.
 */
 
 
-#ifndef __CRC32_H__
-#define __CRC32_H__
+#ifndef CRC32_H_INCLUDED
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define CRC32_H_INCLUDED
 
 
 #include "misc.h"
 
 
-UINT32 crc32_calculate (const UINT8 *buffer, unsigned len);
+UINT32 crc32_calculate (const UINT8 *, unsigned);
 
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* ! __CRC32_H__ */
+#endif /* ! CRC32_H_INCLUDED */

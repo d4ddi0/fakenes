@@ -17,12 +17,9 @@ You must read and accept the license prior to use.
 */
 
 
-#ifndef __PAPU_H__
-#define __PAPU_H__
+#ifndef PAPU_H_INCLUDED
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define PAPU_H_INCLUDED
 
 
 #include <allegro.h>
@@ -106,8 +103,4 @@ void papu_save_state (PACKFILE *, int);
 void papu_load_state (PACKFILE *, int);
 
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* ! __PAPU_H__ */
+#endif /* ! PPU_H_INCLUDED */

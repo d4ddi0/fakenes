@@ -17,12 +17,9 @@ You must read and accept the license prior to use.
 */
 
 
-#ifndef __TIMING_H__
-#define __TIMING_H__
+#ifndef TIMING_H_INCLUDED
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define TIMING_H_INCLUDED
 
 
 int machine_type;
@@ -58,9 +55,15 @@ void resume_timing (void);
 
 
 #define SCANLINE_CLOCKS         341
+
+
 #define RENDER_CLOCKS           256
+
+
 #define HBLANK_CLOCKS           (SCANLINE_CLOCKS - RENDER_CLOCKS)
+
 #define HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP    (320 - 256)
+
 
 #define TOTAL_LINES_NTSC        262
 
@@ -75,9 +78,5 @@ void resume_timing (void);
 #define FIRST_VBLANK_LINE       240
 
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* ! __TIMING_H__ */
+#endif /* ! TIMING_H_INCLUDED */
 

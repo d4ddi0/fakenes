@@ -17,12 +17,9 @@ You must read and accept the license prior to use.
 */
 
 
-#ifndef __MMC_H__
-#define __MMC_H__
+#ifndef MMC_H_INCLUDED
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define MMC_H_INCLUDED
 
 
 #include <allegro.h>
@@ -31,18 +28,10 @@ extern "C" {
 #include "misc.h"
 
 
-int mmc_init (void);
-
-
-void mmc_reset (void);
-
-
-void mmc_request (ROM * rom);
-
-
 typedef struct _MMC
 {
     int number;
+
 
     const UINT8 * name;
 
@@ -62,6 +51,16 @@ typedef struct _MMC
 } MMC;
 
 
+
+int mmc_init (void);
+
+
+void mmc_reset (void);
+
+
+void mmc_request (ROM *);
+
+
 int (* mmc_hblank_start) (int);
 
 int (* mmc_scanline_end) (int);
@@ -70,9 +69,9 @@ int (* mmc_scanline_end) (int);
 void (* mmc_check_latches) (UINT16);
 
 
-int mmc_get_name_table_count(void);
+int mmc_get_name_table_count (void);
 
-int mmc_uses_pattern_vram(void);
+int mmc_uses_pattern_vram (void);
 
 
 void mmc_save_state (PACKFILE *, int);
@@ -80,8 +79,4 @@ void mmc_save_state (PACKFILE *, int);
 void mmc_load_state (PACKFILE *, int);
 
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* ! __MMC_H__ */
+#endif /* ! MMC_H_INCLUDED */
