@@ -120,44 +120,54 @@ static int gui_redraw_callback (int msg, DIALOG * d, int c)
 #define GUI_COLOR_RED       palette_color [6]
 
 
-#define CHECK_MENU(menu, item, condition)       \
-    {                                           \
-        if (condition)                          \
-        {                                       \
-            menu [item].flags |= D_SELECTED;    \
-        }                                       \
-        else                                    \
-        {                                       \
-            menu [item].flags &= ~D_SELECTED;   \
-        }                                       \
+#define CHECK_MENU(menu, item)   \
+    (menu [item].flags |= D_SELECTED)
+
+#define UNCHECK_MENU(menu, item) \
+    (menu [item].flags &= ~D_SELECTED)
+
+
+#define ENABLE_MENU(menu, item)  \
+    (menu [item].flags &= ~D_DISABLED)
+
+#define DISABLE_MENU(menu, item) \
+    (menu [item].flags |= D_DISABLED)
+
+
+#define TOGGLE_MENU(menu, item, condition) \
+    {                                      \
+        if (condition)                     \
+            CHECK_MENU (menu, item);       \
+        else                               \
+            UNCHECK_MENU (menu, item);     \
     }
 
 
-static void restore_state (void)
+static INLINE void update_menus (void)
 {
-    CHECK_MENU (machine_type_menu,
+    TOGGLE_MENU (machine_type_menu,
         0, (machine_type == MACHINE_TYPE_NTSC));
 
-    CHECK_MENU (machine_type_menu,
+    TOGGLE_MENU (machine_type_menu,
         2, (machine_type == MACHINE_TYPE_PAL));
 
 
-    CHECK_MENU (machine_menu, 2, video_display_status);
+    TOGGLE_MENU (machine_menu, 2, video_display_status);
 
-    CHECK_MENU (options_video_menu, 0, video_enable_vsync);
+    TOGGLE_MENU (options_video_menu, 0, video_enable_vsync);
 
 
-    CHECK_MENU (options_audio_filter_menu,
+    TOGGLE_MENU (options_audio_filter_menu,
         0, (papu_filter_type == APU_FILTER_NONE));
 
 
-    CHECK_MENU (options_audio_filter_low_pass_menu,
+    TOGGLE_MENU (options_audio_filter_low_pass_menu,
         0, (papu_filter_type == APU_FILTER_LOWPASS));
 
-    CHECK_MENU (options_audio_filter_low_pass_menu,
+    TOGGLE_MENU (options_audio_filter_low_pass_menu,
         2, (papu_filter_type == APU_FILTER_WEIGHTED));
 
-    CHECK_MENU (options_audio_filter_low_pass_menu,
+    TOGGLE_MENU (options_audio_filter_low_pass_menu,
         4, (papu_filter_type == APU_FILTER_DYNAMIC));
 }
 
@@ -188,12 +198,14 @@ int show_gui (void)
     gui_is_active = TRUE;
 
 
-    restore_state ();
+    update_menus ();
 
 
     if (! rom_is_loaded)
     {
-        machine_menu [0].flags |= D_DISABLED;
+        DISABLE_MENU (file_menu, 2);
+
+        DISABLE_MENU (machine_menu, 0);
     }
 
 
@@ -273,7 +285,9 @@ static int file_menu_load_rom (void)
             machine_init ();
 
 
-            machine_menu [0].flags &= ~D_DISABLED;
+            ENABLE_MENU (file_menu, 2);
+
+            ENABLE_MENU (machine_menu, 0);
 
 
             return (D_CLOSE);
@@ -293,31 +307,24 @@ static int file_menu_snapshot (void)
     UINT8 filename [12];
 
 
-    if (rom_is_loaded)
+    for (count = 0; count < 999; count ++)
     {
-        for (count = 0; count < 999; count ++)
+        sprintf (filename, "snap%03d.pcx", count);
+
+        filename [11] = NULL;
+
+
+        if (! exists (filename))
         {
-            sprintf (filename, "snap%03d.pcx", count);
-    
-            filename [11] = NULL;
+            count = 1000;
+
+            save_bitmap (filename,
+                video_buffer, DATA_DEFAULT_PALETTE);
 
 
-            if (! exists (filename))
-            {
-                count = 1000;
-    
-                save_bitmap (filename,
-                    video_buffer, DATA_DEFAULT_PALETTE);
-
-
-                gui_message (GUI_COLOR_WHITE,
-                    "Snapshot saved to %s.", filename);
-            }
+            gui_message (GUI_COLOR_WHITE,
+                "Snapshot saved to %s.", filename);
         }
-    }
-    else
-    {
-        gui_message (GUI_COLOR_RED, "No ROM loaded!");
     }
 
 
@@ -329,6 +336,7 @@ static int file_menu_exit (void)
 {
     want_exit = TRUE;
 
+
     return (D_CLOSE);
 }
 
@@ -336,6 +344,7 @@ static int file_menu_exit (void)
 static int machine_menu_reset (void)
 {
     machine_reset ();
+
 
     return (D_CLOSE);
 }
@@ -345,10 +354,7 @@ static int machine_type_menu_ntsc (void)
 {
     machine_type = MACHINE_TYPE_NTSC;
 
-
-    machine_type_menu [0].flags |= D_SELECTED;
-
-    machine_type_menu [2].flags &= ~D_SELECTED;
+    update_menus ();
 
 
     return (D_O_K);
@@ -359,10 +365,7 @@ static int machine_type_menu_pal (void)
 {
     machine_type = MACHINE_TYPE_PAL;
 
-
-    machine_type_menu [2].flags |= D_SELECTED;
-
-    machine_type_menu [0].flags &= ~D_SELECTED;
+    update_menus ();
 
 
     return (D_O_K);
@@ -371,18 +374,9 @@ static int machine_type_menu_pal (void)
 
 static int machine_menu_status (void)
 {
-    if (machine_menu [2].flags & D_SELECTED)
-    {
-        machine_menu [2].flags &= ~D_SELECTED;
+    video_display_status = (! video_display_status);
 
-        video_display_status = FALSE;
-    }
-    else
-    {
-        machine_menu [2].flags |= D_SELECTED;
-
-        video_display_status = TRUE;
-    }
+    update_menus ();
 
 
     return (D_O_K);
@@ -391,17 +385,10 @@ static int machine_menu_status (void)
 
 static int options_audio_filter_menu_none (void)
 {
-    options_audio_filter_low_pass_menu [0].flags &= ~D_SELECTED;
-
-    options_audio_filter_low_pass_menu [2].flags &= ~D_SELECTED;
-
-    options_audio_filter_low_pass_menu [4].flags &= ~D_SELECTED;
-
-
-    options_audio_filter_menu [0].flags |= D_SELECTED;
-
-
     papu_filter_type = APU_FILTER_NONE;
+
+    update_menus ();
+
 
     apu_setfilter (APU_FILTER_NONE);
 
@@ -412,18 +399,10 @@ static int options_audio_filter_menu_none (void)
 
 static int options_audio_filter_low_pass_menu_simple (void)
 {
-    options_audio_filter_menu [0].flags &= ~D_SELECTED;
-
-
-    options_audio_filter_low_pass_menu [2].flags &= ~D_SELECTED;
-
-    options_audio_filter_low_pass_menu [4].flags &= ~D_SELECTED;
-
-
-    options_audio_filter_low_pass_menu [0].flags |= D_SELECTED;
-
-
     papu_filter_type = APU_FILTER_LOWPASS;
+
+    update_menus ();
+
 
     apu_setfilter (APU_FILTER_LOWPASS);
 
@@ -434,18 +413,10 @@ static int options_audio_filter_low_pass_menu_simple (void)
 
 static int options_audio_filter_low_pass_menu_weighted (void)
 {
-    options_audio_filter_menu [0].flags &= ~D_SELECTED;
-
-
-    options_audio_filter_low_pass_menu [0].flags &= ~D_SELECTED;
-
-    options_audio_filter_low_pass_menu [4].flags &= ~D_SELECTED;
-
-
-    options_audio_filter_low_pass_menu [2].flags |= D_SELECTED;
-
-
     papu_filter_type = APU_FILTER_WEIGHTED;
+
+    update_menus ();
+
 
     apu_setfilter (APU_FILTER_WEIGHTED);
 
@@ -456,18 +427,10 @@ static int options_audio_filter_low_pass_menu_weighted (void)
 
 static int options_audio_filter_low_pass_menu_dynamic (void)
 {
-    options_audio_filter_menu [0].flags &= ~D_SELECTED;
-
-
-    options_audio_filter_low_pass_menu [0].flags &= ~D_SELECTED;
-
-    options_audio_filter_low_pass_menu [2].flags &= ~D_SELECTED;
-
-
-    options_audio_filter_low_pass_menu [4].flags |= D_SELECTED;
-
-
     papu_filter_type = APU_FILTER_DYNAMIC;
+
+    update_menus ();
+
 
     apu_setfilter (APU_FILTER_DYNAMIC);
 
@@ -478,24 +441,9 @@ static int options_audio_filter_low_pass_menu_dynamic (void)
 
 static int options_video_menu_vsync (void)
 {
-    if (options_video_menu [0].flags & D_SELECTED)
-    {
-        options_video_menu [0].flags &= ~D_SELECTED;
+    video_enable_vsync = (! video_enable_vsync);
 
-        video_enable_vsync = FALSE;
-
-
-        gui_message (GUI_COLOR_WHITE, "VSync disabled.");
-    }
-    else
-    {
-        options_video_menu [0].flags |= D_SELECTED;
-
-        video_enable_vsync = TRUE;
-
-
-        gui_message (GUI_COLOR_WHITE, "VSync enabled.");
-    }
+    update_menus ();
 
 
     return (D_O_K);
@@ -504,12 +452,12 @@ static int options_video_menu_vsync (void)
 
 static int options_video_palette_menu_default (void)
 {
-    options_video_palette_menu [2].flags &= ~D_SELECTED;
+    UNCHECK_MENU (options_video_palette_menu, 2);
 
-    options_video_palette_menu [4].flags &= ~D_SELECTED;
+    UNCHECK_MENU (options_video_palette_menu, 4);
 
 
-    options_video_palette_menu [0].flags |= D_SELECTED;
+    CHECK_MENU (options_video_palette_menu, 0);
 
 
     set_palette (DATA_DEFAULT_PALETTE);
@@ -521,12 +469,12 @@ static int options_video_palette_menu_default (void)
 
 static int options_video_palette_menu_gnuboy (void)
 {
-    options_video_palette_menu [0].flags &= ~D_SELECTED;
+    UNCHECK_MENU (options_video_palette_menu, 0);
 
-    options_video_palette_menu [4].flags &= ~D_SELECTED;
+    UNCHECK_MENU (options_video_palette_menu, 4);
 
 
-    options_video_palette_menu [2].flags |= D_SELECTED;
+    CHECK_MENU (options_video_palette_menu, 2);
 
 
     set_palette (DATA_GNUBOY_PALETTE);
@@ -538,12 +486,12 @@ static int options_video_palette_menu_gnuboy (void)
 
 static int options_video_palette_menu_nester (void)
 {
-    options_video_palette_menu [0].flags &= ~D_SELECTED;
+    UNCHECK_MENU (options_video_palette_menu, 0);
 
-    options_video_palette_menu [2].flags &= ~D_SELECTED;
+    UNCHECK_MENU (options_video_palette_menu, 2);
 
 
-    options_video_palette_menu [4].flags |= D_SELECTED;
+    CHECK_MENU (options_video_palette_menu, 4);
 
 
     set_palette (DATA_NESTER_PALETTE);
