@@ -203,14 +203,14 @@ static INLINE int mmc4_init (void)
         return -1;
     }
 
-    if ((ROM_PRG_ROM_PAGES) == 1) mmc4_prg_mask = 1;
-    else if ((ROM_PRG_ROM_PAGES) == 2) mmc4_prg_mask = 2;
-    else if ((ROM_PRG_ROM_PAGES) <= 4) mmc4_prg_mask = 4;
-    else if ((ROM_PRG_ROM_PAGES) <= 8) mmc4_prg_mask = 8;
-    else if ((ROM_PRG_ROM_PAGES) <= 16) mmc4_prg_mask = 16;
-    else if ((ROM_PRG_ROM_PAGES) <= 32) mmc4_prg_mask = 32;
-    else if ((ROM_PRG_ROM_PAGES) <= 64) mmc4_prg_mask = 64;
-    else if ((ROM_PRG_ROM_PAGES) <= 128) mmc4_prg_mask = 128;
+    if (ROM_PRG_ROM_PAGES == 1) mmc4_prg_mask = 1;
+    else if (ROM_PRG_ROM_PAGES == 2) mmc4_prg_mask = 2;
+    else if (ROM_PRG_ROM_PAGES <= 4) mmc4_prg_mask = 4;
+    else if (ROM_PRG_ROM_PAGES <= 8) mmc4_prg_mask = 8;
+    else if (ROM_PRG_ROM_PAGES <= 16) mmc4_prg_mask = 16;
+    else if (ROM_PRG_ROM_PAGES <= 32) mmc4_prg_mask = 32;
+    else if (ROM_PRG_ROM_PAGES <= 64) mmc4_prg_mask = 64;
+    else if (ROM_PRG_ROM_PAGES <= 128) mmc4_prg_mask = 128;
     else mmc4_prg_mask = 256;
 
 
@@ -226,12 +226,12 @@ static INLINE int mmc4_init (void)
     mmc4_prg_mask = (mmc4_prg_mask - 1);
 
 
-    if ((ROM_CHR_ROM_PAGES) == 1) mmc4_chr_mask = 1;
-    else if ((ROM_CHR_ROM_PAGES) == 2) mmc4_chr_mask = 2;
-    else if ((ROM_CHR_ROM_PAGES) <= 4) mmc4_chr_mask = 4;
-    else if ((ROM_CHR_ROM_PAGES) <= 8) mmc4_chr_mask = 8;
-    else if ((ROM_CHR_ROM_PAGES) <= 16) mmc4_chr_mask = 16;
-    else if ((ROM_CHR_ROM_PAGES) <= 32) mmc4_chr_mask = 32;
+    if (ROM_CHR_ROM_PAGES == 1) mmc4_chr_mask = 1;
+    else if (ROM_CHR_ROM_PAGES == 2) mmc4_chr_mask = 2;
+    else if (ROM_CHR_ROM_PAGES <= 4) mmc4_chr_mask = 4;
+    else if (ROM_CHR_ROM_PAGES <= 8) mmc4_chr_mask = 8;
+    else if (ROM_CHR_ROM_PAGES <= 16) mmc4_chr_mask = 16;
+    else if (ROM_CHR_ROM_PAGES <= 32) mmc4_chr_mask = 32;
     else mmc4_chr_mask = 256;
 
 

@@ -261,14 +261,14 @@ static INLINE int mmc3_init (void)
     }
 
 
-    if ((ROM_PRG_ROM_PAGES) == 1) mmc3_prg_mask = 1;
-    else if ((ROM_PRG_ROM_PAGES) == 2) mmc3_prg_mask = 2;
-    else if ((ROM_PRG_ROM_PAGES) <= 4) mmc3_prg_mask = 4;
-    else if ((ROM_PRG_ROM_PAGES) <= 8) mmc3_prg_mask = 8;
-    else if ((ROM_PRG_ROM_PAGES) <= 16) mmc3_prg_mask = 16;
-    else if ((ROM_PRG_ROM_PAGES) <= 32) mmc3_prg_mask = 32;
-    else if ((ROM_PRG_ROM_PAGES) <= 64) mmc3_prg_mask = 64;
-    else if ((ROM_PRG_ROM_PAGES) <= 128) mmc3_prg_mask = 128;
+    if (ROM_PRG_ROM_PAGES == 1) mmc3_prg_mask = 1;
+    else if (ROM_PRG_ROM_PAGES == 2) mmc3_prg_mask = 2;
+    else if (ROM_PRG_ROM_PAGES <= 4) mmc3_prg_mask = 4;
+    else if (ROM_PRG_ROM_PAGES <= 8) mmc3_prg_mask = 8;
+    else if (ROM_PRG_ROM_PAGES <= 16) mmc3_prg_mask = 16;
+    else if (ROM_PRG_ROM_PAGES <= 32) mmc3_prg_mask = 32;
+    else if (ROM_PRG_ROM_PAGES <= 64) mmc3_prg_mask = 64;
+    else if (ROM_PRG_ROM_PAGES <= 128) mmc3_prg_mask = 128;
     else mmc3_prg_mask = 256;
 
 
@@ -284,7 +284,7 @@ static INLINE int mmc3_init (void)
     mmc3_prg_mask = ((mmc3_prg_mask * 2) - 1);
 
 
-    if (! ROM_CHR_ROM_PAGES > 0)
+    if (ROM_CHR_ROM_PAGES == 0)
     {
         /* No VROM is present. */
 
@@ -296,18 +296,18 @@ static INLINE int mmc3_init (void)
     }
 
 
-    if ((ROM_CHR_ROM_PAGES) == 0)
+    if (ROM_CHR_ROM_PAGES == 0)
     {
         mmc3_chr_mask = 1;
     }
     else
     {
-        if ((ROM_CHR_ROM_PAGES) == 1) mmc3_chr_mask = 1;
-        else if ((ROM_CHR_ROM_PAGES) == 2) mmc3_chr_mask = 2;
-        else if ((ROM_CHR_ROM_PAGES) <= 4) mmc3_chr_mask = 4;
-        else if ((ROM_CHR_ROM_PAGES) <= 8) mmc3_chr_mask = 8;
-        else if ((ROM_CHR_ROM_PAGES) <= 16) mmc3_chr_mask = 16;
-        else if ((ROM_CHR_ROM_PAGES) <= 32) mmc3_chr_mask = 32;
+        if (ROM_CHR_ROM_PAGES == 1) mmc3_chr_mask = 1;
+        else if (ROM_CHR_ROM_PAGES == 2) mmc3_chr_mask = 2;
+        else if (ROM_CHR_ROM_PAGES <= 4) mmc3_chr_mask = 4;
+        else if (ROM_CHR_ROM_PAGES <= 8) mmc3_chr_mask = 8;
+        else if (ROM_CHR_ROM_PAGES <= 16) mmc3_chr_mask = 16;
+        else if (ROM_CHR_ROM_PAGES <= 32) mmc3_chr_mask = 32;
         else mmc3_chr_mask = 256;
 
 

@@ -78,14 +78,14 @@ static INLINE int cnrom_init (void)
 
     /* Ugh. :) */
 
-    if ((ROM_CHR_ROM_PAGES) == 1) cnrom_chr_mask = 1;
-    else if ((ROM_CHR_ROM_PAGES) == 2) cnrom_chr_mask = 2;
-    else if ((ROM_CHR_ROM_PAGES) <= 4) cnrom_chr_mask = 4;
-    else if ((ROM_CHR_ROM_PAGES) <= 8) cnrom_chr_mask = 8;
-    else if ((ROM_CHR_ROM_PAGES) <= 16) cnrom_chr_mask = 16;
-    else if ((ROM_CHR_ROM_PAGES) <= 32) cnrom_chr_mask = 32;
-    else if ((ROM_CHR_ROM_PAGES) <= 64) cnrom_chr_mask = 64;
-    else if ((ROM_CHR_ROM_PAGES) <= 128) cnrom_chr_mask = 128;
+    if (ROM_CHR_ROM_PAGES == 1) cnrom_chr_mask = 1;
+    else if (ROM_CHR_ROM_PAGES == 2) cnrom_chr_mask = 2;
+    else if (ROM_CHR_ROM_PAGES <= 4) cnrom_chr_mask = 4;
+    else if (ROM_CHR_ROM_PAGES <= 8) cnrom_chr_mask = 8;
+    else if (ROM_CHR_ROM_PAGES <= 16) cnrom_chr_mask = 16;
+    else if (ROM_CHR_ROM_PAGES <= 32) cnrom_chr_mask = 32;
+    else if (ROM_CHR_ROM_PAGES <= 64) cnrom_chr_mask = 64;
+    else if (ROM_CHR_ROM_PAGES <= 128) cnrom_chr_mask = 128;
     else cnrom_chr_mask = 256;
 
 

@@ -58,13 +58,13 @@ void free_rom (ROM *);
 ROM global_rom;
 
 
-#define ROM_PRG_ROM_PAGES   global_rom.prg_rom_pages
-#define ROM_CHR_ROM_PAGES   global_rom.chr_rom_pages
+#define ROM_PRG_ROM_PAGES   (global_rom.prg_rom_pages)
+#define ROM_CHR_ROM_PAGES   (global_rom.chr_rom_pages)
 
-#define ROM_MAPPER_NUMBER   global_rom.mapper_number
+#define ROM_MAPPER_NUMBER   (global_rom.mapper_number)
 
-#define ROM_PRG_ROM         global_rom.prg_rom
-#define ROM_CHR_ROM         global_rom.chr_rom
+#define ROM_PRG_ROM         (global_rom.prg_rom)
+#define ROM_CHR_ROM         (global_rom.chr_rom)
 
 
 int rom_is_loaded;

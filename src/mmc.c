@@ -46,21 +46,21 @@ int mmc_disable_irqs = FALSE;
 /* These macros calculate offsets. */
 
 #define ROM_PAGE_16K(index) \
-    (ROM_PRG_ROM + ((index) * 0x4000))
+    (ROM_PRG_ROM + (index) * 0x4000)
 
 #define ROM_PAGE_8K(index)  \
-    (ROM_PRG_ROM + ((index) * 0x2000))
+    (ROM_PRG_ROM + (index) * 0x2000)
 
 
 #define LAST_ROM_PAGE       \
-    (ROM_PAGE_16K (ROM_PRG_ROM_PAGES) - 0x4000)
+    (ROM_PAGE_16K (ROM_PRG_ROM_PAGES - 1))
 
 
 #define VROM_PAGE_8K(index) \
-    (ROM_CHR_ROM + ((index) * 0x2000))
+    (ROM_CHR_ROM + (index) * 0x2000)
 
 #define VROM_PAGE_1K(index) \
-    (ROM_CHR_ROM + ((index) * 0x400))
+    (ROM_CHR_ROM + (index) * 0x400)
 
 
 /* 8k ROM banks, 1k VROM banks. */
