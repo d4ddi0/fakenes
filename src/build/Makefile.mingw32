@@ -86,7 +86,7 @@ ifneq (${ASM_CORE}, 0)
 endif
 
 # Libraries.
-LIBRARIES = -lalleg -lnl -lz
+LIBRARIES = -lalleg
 ifndef NO_ZLIB
     LIBRARIES += -lz
 endif
