@@ -1217,7 +1217,7 @@ void ppu_start_frame (void)
 {
     vram_address_start_new_frame();
 
-    if (input_zapper_enable)
+    if (input_enable_zapper)
     {
         input_zapper_get_position ();
     }
@@ -1463,10 +1463,10 @@ void ppu_render_line (int line)
     }
 
     /* handle zapper emulation */
-    if (input_zapper_enable && (input_zapper_y == line) &&
+    if (input_enable_zapper && (input_zapper_y_offset == line) &&
         input_zapper_on_screen)
     {
-        input_zapper_update ();
+        input_update_zapper ();
     }
 }
 
@@ -1476,7 +1476,7 @@ void ppu_stub_render_line (int line)
 
     /* draw lines for zapper emulation */
 
-    if (input_zapper_enable && (input_zapper_y == line) &&
+    if (input_enable_zapper && (input_zapper_y_offset == line) &&
         input_zapper_on_screen)
     {
         ppu_render_line (line);
