@@ -114,6 +114,19 @@ int papu_reinit (void)
     apu_setparams (audio_sample_rate, speed, 0, audio_sample_size);
 
 
+    echo_buffer_size = ((audio_sample_rate / speed) * audio_buffer_length);
+
+    if (audio_sample_size == 16)
+    {
+        echo_buffer_size *= 2;
+    }
+
+    if (audio_pseudo_stereo)
+    {
+        echo_buffer_size *= 2;
+    }
+
+
     if ((! papu_linear_echo) || (! audio_enable_output))
     {
         return (0);
@@ -128,20 +141,6 @@ int papu_reinit (void)
     if (echo_buffer_b)
     {
         free (echo_buffer_b);
-    }
-
-
-    echo_buffer_size = ((audio_sample_rate / speed) * audio_buffer_length);
-
-
-    if (audio_sample_size == 16)
-    {
-        echo_buffer_size *= 2;
-    }
-
-    if (audio_pseudo_stereo)
-    {
-        echo_buffer_size *= 2;
     }
 
 
