@@ -498,8 +498,6 @@ int main (int argc, char * argv [])
                     }
                 }
     
-    
-                emulated_frames ++;
             }
     
     
