@@ -556,11 +556,11 @@ static INLINE void color_deemphasis_overlay (void)
         int bits;
 
 
-        int red = 255;
+        int red;
 
-        int green = 255;
+        int green;
 
-        int blue = 255;
+        int blue;
 
 
         int line;
@@ -574,29 +574,12 @@ static INLINE void color_deemphasis_overlay (void)
         }
 
 
-        if (bits & 4)   /* Blue. */
-        {
-            green = 191;
+        red = ((bits & 0x06) ? 191 : 255);
 
-            red = 191;
-        }
+        green = ((bits & 0x05) ? 191 : 255);
 
+        blue = ((bits & 0x03) ? 191 : 255);
 
-        if (bits & 2)   /* Green. */
-        {
-            blue = 191;
-
-            red = 191;
-        }
-
-
-        if (bits & 1)   /* Red. */
-        {
-            blue = 191;
-
-            green = 191;
-        }
-            
 
         for (line = 0; line < height; line ++)
         {
