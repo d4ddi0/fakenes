@@ -1219,6 +1219,7 @@ static void ppu_render_background (int line)
         hline (video_buffer, 0, line, 255, ppu_background_palette [0]);
     }
 
+    /* dummy reads for write-back cache line loading */
     ppu_vram_dummy_write [0] =
         PPU_GETPIXEL(video_buffer, 0, line) |
         PPU_GETPIXEL(video_buffer, 16, line) |
@@ -1236,6 +1237,7 @@ static void ppu_render_background (int line)
         PPU_GETPIXEL(video_buffer, 208, line) |
         PPU_GETPIXEL(video_buffer, 224, line) |
         PPU_GETPIXEL(video_buffer, 240, line);
+
     name_table = (vram_address >> 10) & 3;
     name_table_address = name_tables_read[name_table];
 
@@ -1609,13 +1611,18 @@ static INLINE void ppu_render_sprite (int sprite, int line)
                 /* Background transparency & sprite 0 collision. */
                 if (background_pixels [8 + (x + sub_x)])
                 {
-                    background_pixels [8 + (x + sub_x)] = color + 16;
-                    first_sprite_this_line = (x + sub_x) + 1 + DOTS_HBLANK_BEFORE_RENDER;
+                    background_pixels [8 + (x + sub_x)] = 16;
+
+                    if (!first_sprite_this_line)
+                    {
+                        first_sprite_this_line =
+                            (x + sub_x) + 1 + DOTS_HBLANK_BEFORE_RENDER;
+                    }
                     continue;
                 }
                 else
                 {
-                    background_pixels [8 + (x + sub_x)] = color + 16;
+                    background_pixels [8 + (x + sub_x)] = 16;
                 }
 
                 color = ppu_sprite_palette [color];
@@ -1652,11 +1659,15 @@ static INLINE void ppu_render_sprite (int sprite, int line)
                 /* Sprite 0 collision. */
                 if (background_pixels [8 + (x + sub_x)])
                 {
-                    first_sprite_this_line = (x + sub_x) + 1 + DOTS_HBLANK_BEFORE_RENDER;
+                    if (!first_sprite_this_line)
+                    {
+                        first_sprite_this_line =
+                            (x + sub_x) + 1 + DOTS_HBLANK_BEFORE_RENDER;
+                    }
                 }
 
                 /* Sprite 0 will always get its pixels... */
-                background_pixels [8 + (x + sub_x)] = color + 16;
+                background_pixels [8 + (x + sub_x)] = 16;
 
                 color = ppu_sprite_palette [color];
 
@@ -1696,12 +1707,12 @@ static INLINE void ppu_render_sprite (int sprite, int line)
                 /* Transparency. */
                 if (background_pixels [8 + (x + sub_x)])
                 {
-                    background_pixels [8 + (x + sub_x)] = color + 16;
+                    background_pixels [8 + (x + sub_x)] = 16;
                     continue;
                 }
                 else
                 {
-                    background_pixels [8 + (x + sub_x)] = color + 16;
+                    background_pixels [8 + (x + sub_x)] = 16;
                 }
 
                 color = ppu_sprite_palette [color];
@@ -1742,7 +1753,7 @@ static INLINE void ppu_render_sprite (int sprite, int line)
                 }
                 else
                 {
-                    background_pixels [8 + (x + sub_x)] = color + 16;
+                    background_pixels [8 + (x + sub_x)] = 16;
                 }
 
                 color = ppu_sprite_palette [color];
