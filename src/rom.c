@@ -156,9 +156,7 @@ int load_rom (CONST UINT8 * filename, ROM * rom)
 
     /* Allocate and load CHR-ROM. */
 
-    rom -> chr_rom = ppu_get_chr_rom_pages (rom -> chr_rom_pages);
-
-    if (! rom -> chr_rom)
+    if (! ppu_get_chr_rom_pages (rom))
     {
         if (rom -> trainer)
         {
@@ -315,9 +313,7 @@ int load_rom (CONST UINT8 * filename, ROM * rom)
 
     /* Allocate and load CHR-ROM. */
 
-    rom -> chr_rom = ppu_get_chr_rom_pages (rom -> chr_rom_pages);
-
-    if (! rom -> chr_rom)
+    if (! ppu_get_chr_rom_pages (rom))
     {
         if (rom -> trainer)
         {
@@ -369,5 +365,5 @@ void free_rom (ROM * rom)
 
     free (rom -> prg_rom);
 
-    ppu_free_chr_rom ();
+    ppu_free_chr_rom (rom);
 }

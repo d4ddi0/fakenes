@@ -20,11 +20,13 @@ extern "C" {
 #endif
 
 
+#include "rom.h"
+
 #include "misc.h"
 
 
-void ppu_free_chr_rom (void);
-UINT8 * ppu_get_chr_rom_pages (int num_pages);
+void ppu_free_chr_rom (ROM *rom);
+UINT8 * ppu_get_chr_rom_pages (ROM *rom);
 void ppu_cache_chr_rom_pages (void);
 
 void ppu_set_ram_1k_pattern_vram_block (UINT16 block_address, int vram_block);

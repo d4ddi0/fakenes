@@ -32,6 +32,8 @@ All rights reserved.  See 'LICENSE' for details.
 
 #include "video.h"
 
+#include "rom.h"
+
 
 #include "misc.h"
 
@@ -155,25 +157,19 @@ static INLINE UINT8 vram_read (UINT16 address)
 }
 
 
-static UINT8 ppu_chr_rom_pages;
-static UINT8 ppu_chr_rom_page_overflow_mask;
-static UINT8 * ppu_chr_rom = NULL;
-static UINT8 * ppu_chr_rom_cache = NULL;
-
-
-void ppu_free_chr_rom (void)
+void ppu_free_chr_rom (ROM *rom)
 {
-    if (ppu_chr_rom) free (ppu_chr_rom);
-    if (ppu_chr_rom_cache) free (ppu_chr_rom_cache);
+    if (rom -> chr_rom) free (rom -> chr_rom);
+    if (rom -> chr_rom_cache) free (rom -> chr_rom_cache);
 
-    ppu_chr_rom = NULL;
-    ppu_chr_rom_cache = NULL;
+    rom -> chr_rom = NULL;
+    rom -> chr_rom_cache = NULL;
 }
 
 
-UINT8 * ppu_get_chr_rom_pages (int num_pages)
+UINT8 * ppu_get_chr_rom_pages (ROM *rom)
 {
-    ppu_chr_rom_pages = num_pages;
+    int num_pages = rom -> chr_rom_pages;
 
     /* Compute a mask used to wrap invalid CHR ROM page numbers.
      *  As CHR ROM banking uses a 1k page size, this mask is based
@@ -183,7 +179,7 @@ UINT8 * ppu_get_chr_rom_pages (int num_pages)
         (num_pages == 1))
     /* compute mask for even power of two */
     {
-        ppu_chr_rom_page_overflow_mask = (num_pages * 8) - 1;
+        rom -> chr_rom_page_overflow_mask = (num_pages * 8) - 1;
     }
     else
     /* compute mask */
@@ -192,25 +188,27 @@ UINT8 * ppu_get_chr_rom_pages (int num_pages)
 
         /* compute the largest even power of 2 less than
            CHR ROM page count, and use that to compute the mask */
-        for (i = 0; (ppu_chr_rom_pages >> (i + 1)) > 0; i++);
+        for (i = 0; (num_pages >> (i + 1)) > 0; i++);
 
-        ppu_chr_rom_page_overflow_mask = ((1 << i) * 8) - 1;
+        rom -> chr_rom_page_overflow_mask = ((1 << i) * 8) - 1;
     }
 
     /* 8k CHR ROM page size */
-    ppu_chr_rom = malloc (num_pages * 0x2000);
+    rom -> chr_rom = malloc (num_pages * 0x2000);
 
     /* 2-bit planar tiles converted to 8-bit chunky */
-    ppu_chr_rom_cache = malloc ((num_pages * 0x2000) / 2 * 8);
+    rom -> chr_rom_cache = malloc ((num_pages * 0x2000) / 2 * 8);
 
-    if (ppu_chr_rom == 0 || ppu_chr_rom_cache == 0)
+    if (rom -> chr_rom == 0 || rom -> chr_rom_cache == 0)
     {
-        ppu_free_chr_rom ();
+        if (rom -> chr_rom) free (rom -> chr_rom);
+        if (rom -> chr_rom_cache) free (rom -> chr_rom_cache);
 
-        return NULL;
+        rom -> chr_rom = NULL;
+        rom -> chr_rom_cache = NULL;
     }
 
-    return ppu_chr_rom;
+    return rom -> chr_rom;
 }
 
 
@@ -224,7 +222,7 @@ void ppu_cache_chr_rom_pages (void)
     int tile, num_tiles;
 
     /* 8k CHR ROM page size, 2-bitplane 8x8 tiles */
-    num_tiles = (ppu_chr_rom_pages * 0x2000) / (8 * 2);
+    num_tiles = (ROM_CHR_ROM_PAGES * 0x2000) / (8 * 2);
 
     for (tile = 0; tile < num_tiles; tile++)
     {
@@ -235,19 +233,19 @@ void ppu_cache_chr_rom_pages (void)
             UINT32 pixels0_3, pixels4_7;
 
             pixels0_3 = tile_decode_table_plane_0
-                [(ppu_chr_rom [tile * 16 + y]) >> 4];
+                [(ROM_CHR_ROM [tile * 16 + y]) >> 4];
             pixels4_7 = tile_decode_table_plane_0
-                [(ppu_chr_rom [tile * 16 + y]) & 0x0F];
+                [(ROM_CHR_ROM [tile * 16 + y]) & 0x0F];
 
             pixels0_3 |= tile_decode_table_plane_1
-                [(ppu_chr_rom [tile * 16 + y + 8]) >> 4];
+                [(ROM_CHR_ROM [tile * 16 + y + 8]) >> 4];
             pixels4_7 |= tile_decode_table_plane_1
-                [(ppu_chr_rom [tile * 16 + y + 8]) & 0x0F];
+                [(ROM_CHR_ROM [tile * 16 + y + 8]) & 0x0F];
             
 
-            *(UINT32 *) (&ppu_chr_rom_cache [((tile * 8 + y) * 8)]) =
+            *(UINT32 *) (&ROM_CHR_ROM_CACHE [((tile * 8 + y) * 8)]) =
                 pixels0_3;
-            *(UINT32 *) (&ppu_chr_rom_cache [((tile * 8 + y) * 8) + 4]) =
+            *(UINT32 *) (&ROM_CHR_ROM_CACHE [((tile * 8 + y) * 8) + 4]) =
                 pixels4_7;
         }
     }
@@ -304,21 +302,21 @@ void ppu_set_ram_1k_pattern_vram_block (UINT16 block_address, int vram_block)
 
 void ppu_set_ram_1k_pattern_vrom_block (UINT16 block_address, int vrom_block)
 {
-    if (vrom_block >= (ppu_chr_rom_pages * 8))
+    if (vrom_block >= (ROM_CHR_ROM_PAGES * 8))
     {
-        vrom_block &= ppu_chr_rom_page_overflow_mask;
+        vrom_block &= ROM_CHR_ROM_PAGE_OVERFLOW_MASK;
     }
 
     ppu_vram_block [block_address >> 10] =
         FIRST_VROM_BLOCK + vrom_block;
 
     ppu_vram_block_read_address [block_address >> 10] =
-        ppu_chr_rom + (vrom_block << 10);
+        ROM_CHR_ROM + (vrom_block << 10);
     ppu_vram_block_write_address [block_address >> 10] =
         ppu_vram_dummy_write;
 
     ppu_vram_block_cache_address [block_address >> 10] =
-        ppu_chr_rom_cache + ((vrom_block << 10) / 2 * 8);
+        ROM_CHR_ROM_CACHE + ((vrom_block << 10) / 2 * 8);
 }
 
 
@@ -1191,6 +1189,23 @@ void ppu_render_background (int line)
         hline (video_buffer, 0, line, 255, ppu_background_palette [0]);
     }
 
+    ppu_vram_dummy_write [0] =
+        PPU_GETPIXEL(video_buffer, 0, line) |
+        PPU_GETPIXEL(video_buffer, 16, line) |
+        PPU_GETPIXEL(video_buffer, 32, line) |
+        PPU_GETPIXEL(video_buffer, 48, line) |
+        PPU_GETPIXEL(video_buffer, 64, line) |
+        PPU_GETPIXEL(video_buffer, 80, line) |
+        PPU_GETPIXEL(video_buffer, 96, line) |
+        PPU_GETPIXEL(video_buffer, 112, line) |
+        PPU_GETPIXEL(video_buffer, 128, line) |
+        PPU_GETPIXEL(video_buffer, 144, line) |
+        PPU_GETPIXEL(video_buffer, 160, line) |
+        PPU_GETPIXEL(video_buffer, 176, line) |
+        PPU_GETPIXEL(video_buffer, 192, line) |
+        PPU_GETPIXEL(video_buffer, 208, line) |
+        PPU_GETPIXEL(video_buffer, 224, line) |
+        PPU_GETPIXEL(video_buffer, 240, line);
     name_table = (vram_address >> 10) & 3;
     name_table_address = name_tables_read[name_table];
 
