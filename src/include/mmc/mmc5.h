@@ -905,7 +905,7 @@ static void mmc5_write (UINT16 address, UINT8 value)
 /* 5203: IRQ scanline select */
         case 0x5203:
 
-            mmc5_irq_line_counter = value;
+            mmc5_irq_line_requested = value;
 
             break;
 
