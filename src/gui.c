@@ -48,6 +48,14 @@ You must read and accept the license prior to use.
 #include "timing.h"
 
 
+static int dialog_x = 0;
+
+static int dialog_y = 0;
+
+
+static int restart_dialog = FALSE;
+
+
 /* Keep these in order! */
 
 #include "gui/objects.h"
@@ -96,8 +104,6 @@ static void update_colors (void)
 
     error_color  = makecol (255, 63, 0);
 }
-
-
 
 
 static void gui_message_border (void)
@@ -228,9 +234,22 @@ void gui_spawn_options_video_layers_menu_background (void)
 }
 
 
-void gui_show_dialog (DIALOG * dialog, int items)
+void gui_show_dialog (DIALOG * dialog)
 {
-    int index;
+    BITMAP * saved;
+
+
+    int index = 0;
+
+
+    saved = create_bitmap (SCREEN_W, SCREEN_H);
+
+
+    scare_mouse ();
+
+    blit (screen, saved, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
+
+    unscare_mouse ();
 
 
     centre_dialog (dialog);
@@ -239,13 +258,48 @@ void gui_show_dialog (DIALOG * dialog, int items)
     dialog [0].dp3 = DATA_LARGE_FONT;
 
 
-    for (index = 0; index < (items - 1); index ++)
+    while (dialog [index].d1 != SL_FRAME_END)
     {
-        dialog [index].dp = screen;
+        if ((dialog [index].proc == sl_text) || (dialog [index].proc == sl_frame))
+        {
+            dialog [index].dp = screen;
+        }
+
+
+        dialog [index].fg = gui_fg_color;
+
+        dialog [index].bg = gui_bg_color;
+
+
+        index ++;
     }
 
 
-    popup_dialog (dialog, -1);
+  again:
+
+    do_dialog (dialog, -1);
+
+
+    scare_mouse ();
+
+    blit (saved, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
+
+    unscare_mouse ();
+
+
+    if (restart_dialog)
+    {
+        restart_dialog = FALSE;
+
+
+        position_dialog (dialog, dialog_x, dialog_y);
+
+
+        goto again;
+    }
+
+
+    destroy_bitmap (saved);
 }
 
 
@@ -726,6 +780,23 @@ static int netplay_server_menu_stop (void)
 
 static int netplay_client_menu_connect (void)
 {
+    UINT8 buffer [16];
+
+
+    memset (buffer, NULL, sizeof (buffer));
+
+
+    netplay_client_connect_dialog [4].d1 = (sizeof (buffer) - 1);
+
+    netplay_client_connect_dialog [4].dp = buffer;
+
+
+    gui_show_dialog (netplay_client_connect_dialog);
+
+
+    alert ("- Error -", "", "Could not connect to the specified address.", "&OK", NULL, 0, 0);
+
+
     return (D_O_K);
 }
 
@@ -1614,7 +1685,7 @@ static int options_video_advanced_menu_force_window (void)
 
 static int help_menu_shortcuts (void)
 {
-    gui_show_dialog (help_shortcuts_dialog, 11);
+    gui_show_dialog (help_shortcuts_dialog);
 
 
     return (D_O_K);
@@ -1623,7 +1694,7 @@ static int help_menu_shortcuts (void)
 
 static int help_menu_about (void)
 {
-    gui_show_dialog (help_about_dialog, 10);
+    gui_show_dialog (help_about_dialog);
 
 
     return (D_O_K);

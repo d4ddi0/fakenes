@@ -38,7 +38,15 @@ int sl_text (int message, DIALOG * dialog, int key)
 
                 gui_textout (dialog -> dp, dialog -> dp2, (x + 1), (y + 1), dialog -> d1, FALSE);
 
-                gui_textout (dialog -> dp, dialog -> dp2, x, y, gui_fg_color, FALSE);
+
+                if (dialog -> flags & D_DISABLED)
+                {
+                    gui_textout (dialog -> dp, dialog -> dp2, x, y, gui_mg_color, FALSE);
+                }
+                else
+                {
+                    gui_textout (dialog -> dp, dialog -> dp2, x, y, gui_fg_color, FALSE);
+                }
             }
 
 
@@ -54,6 +62,9 @@ int sl_text (int message, DIALOG * dialog, int key)
 
     return (D_O_K);
 }
+
+
+#define SL_FRAME_END    0xf0
 
 
 int sl_frame (int message, DIALOG * dialog, int key)
@@ -73,6 +84,11 @@ int sl_frame (int message, DIALOG * dialog, int key)
     int text_y;
 
 
+    int move_x = 0;
+
+    int move_y = 0;
+
+
     FONT * old_font = NULL;
 
 
@@ -87,6 +103,16 @@ int sl_frame (int message, DIALOG * dialog, int key)
     }
 
 
+    x = dialog -> x;
+
+    y = dialog -> y;
+
+
+    x2 = ((dialog -> x + dialog -> w) - 1);
+
+    y2 = ((dialog -> y + dialog -> h) - 1);
+
+
     switch (message)
     {
         case MSG_DRAW:
@@ -96,16 +122,6 @@ int sl_frame (int message, DIALOG * dialog, int key)
             if (dialog -> dp)
             {
                 int pixel;
-
-
-                x = dialog -> x;
-
-                y = dialog -> y;
-
-
-                x2 = ((dialog -> x + dialog -> w) - 1);
-
-                y2 = ((dialog -> y + dialog -> h) - 1);
 
 
                 text_x = (dialog -> x + 6);
@@ -175,6 +191,64 @@ int sl_frame (int message, DIALOG * dialog, int key)
 
                 hline (dialog -> dp, ((x + 1) - 1), (((text_height (font) + text_y) + 4) + 2), ((x2 - 1) + 1), gui_fg_color);
             }
+
+
+            break;
+
+
+        case MSG_CLICK:
+
+            move_x = mouse_x;
+
+            move_y = mouse_y;
+
+
+            while (mouse_b & 1)
+            {
+                xor_mode (TRUE);
+
+
+                if (dialog -> dp)
+                {
+                    if ((move_x != mouse_x) || (move_y != mouse_y))
+                    {
+                        scare_mouse ();
+
+
+                        rect (dialog -> dp, move_x, move_y, (move_x + dialog -> w), (move_y + dialog -> h), gui_fg_color);
+
+                        rect (dialog -> dp, mouse_x, mouse_y, (mouse_x + dialog -> w), (mouse_y + dialog -> h), gui_fg_color);
+
+
+                        unscare_mouse ();
+                    }
+
+
+                    move_x = mouse_x;
+
+                    move_y = mouse_y;
+                }
+
+
+                solid_mode ();
+            }
+
+
+            dialog_x = move_x;
+
+            dialog_y = move_y;
+
+
+            restart_dialog = TRUE;
+
+
+            if (old_font)
+            {
+                font = old_font;
+            }
+
+
+            return (D_CLOSE);
 
 
             break;

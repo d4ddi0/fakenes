@@ -98,9 +98,10 @@ static int netplay_client_menu_connect (void);
 static int netplay_client_menu_disconnect (void);
 
 
+
 static MENU netplay_client_menu [] =
 {
-    { "&Connect...",    netplay_client_menu_connect, NULL, D_DISABLED, NULL },
+    { "&Connect...",    netplay_client_menu_connect, NULL,          0, NULL },
     {            "",                           NULL, NULL,          0, NULL },
     { "&Disconnect", netplay_client_menu_disconnect, NULL, D_DISABLED, NULL },
     {          NULL,                           NULL, NULL,          0, NULL }
@@ -263,10 +264,10 @@ static int options_audio_record_menu_stop (void);
 
 static MENU options_audio_record_menu [] =
 {
-    { "&Start",  options_audio_record_menu_start, NULL,          0, NULL },
-    {       "",                             NULL, NULL,          0, NULL },
-    {  "S&top",   options_audio_record_menu_stop, NULL, D_DISABLED, NULL },
-    {     NULL,                             NULL, NULL,          0, NULL }
+    { "&Start", options_audio_record_menu_start, NULL,          0, NULL },
+    {       "",                            NULL, NULL,          0, NULL },
+    {  "S&top",  options_audio_record_menu_stop, NULL, D_DISABLED, NULL },
+    {     NULL,                            NULL, NULL,          0, NULL }
 };
 
 
