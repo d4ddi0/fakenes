@@ -1150,52 +1150,6 @@ void recache_sprite_list (void)
 }
 
 
-void ppu_sprite_priority_0_check (int line)
-{
-    int first_y, last_y, y;
-    int address;
-
-    if (hit_first_sprite) return;
-
-    if (!background_enabled || !sprites_enabled) return;
-
-    first_y = ppu_spr_ram [0] + 2;
-    last_y = first_y + sprite_height - 1;
-
-    if (line < first_y || line > last_y) return;
-
-    if (ppu_spr_ram [2] & 0x80) y = last_y - line;
-    else y = line - first_y;
-
-    address = ppu_spr_ram [1];
-
-    if (sprite_height == 8)
-    {
-        address = address * 16 + sprite_tileset + y;
-
-    }
-    else /* sprite_height == 16 */
-    {
-        if (address & 1) address = (address - 1) * 16 + 0x1000 + y;
-        else address = address * 16 + y;
-
-        if (y & 8) address += 8;
-    }
-
-    if (vram_read (address + y) | vram_read (address + y + 8))
-    {
-        hit_first_sprite = ppu_spr_ram[3] + 1;
-    }
-}
-
-
-void ppu_stub_render_line (int line)
-{
-    recache_vram_sets ();
-    ppu_sprite_priority_0_check(line);
-}
-
-
 /* VRAM address bit layout          */
 /* -YYY VHyy yyyx xxxx              */
 /* x = x tile offset in name table  */
@@ -1349,6 +1303,23 @@ void ppu_render_line (int line)
         ppu_render_sprites (line);
     }
 }
+
+void ppu_stub_render_line (int line)
+{
+    int first_y, last_y;
+
+    if (!background_enabled || !sprites_enabled) return;
+
+    if (hit_first_sprite) return;
+
+    first_y = ppu_spr_ram [0] + 1;
+    last_y = first_y + sprite_height - 1;
+
+    if (line < first_y || line > last_y) return;
+
+    ppu_render_line (line);
+}
+
 
 void ppu_vblank (void)
 {
