@@ -39,6 +39,9 @@ extern "C" {
 
 UINT8 cpu_ram [65536];
 
+M6502 cpu_context;
+
+
 void sram_load (const char *rom_filename);
 void sram_save (const char *rom_filename);
 
@@ -54,7 +57,12 @@ void cpu_reset (void);
 
 void cpu_interrupt (int);
 
-void cpu_execute (int);
+static INLINE void cpu_execute (int cycles)
+{
+    cpu_context.ICount += cycles;
+
+    Run6502 (&cpu_context);
+}
 
 
 UINT16 * cpu_active_pc;

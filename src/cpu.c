@@ -50,9 +50,6 @@ extern char * sramdir;
 static UINT8 cpu_sram [8192];
 
 
-static M6502 cpu_context;
-
-
 static char *get_sram_filename (char *buffer, const char *rom_filename, int buffer_size)
 {
 #ifdef POSIX
@@ -366,14 +363,6 @@ void cpu_interrupt (int type)
 
             break;
     }
-}
-
-
-void cpu_execute (int cycles)
-{
-    cpu_context.ICount += cycles;
-
-    Run6502 (&cpu_context);
 }
 
 
