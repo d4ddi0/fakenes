@@ -20,7 +20,9 @@ extern "C" {
 #endif
 
 
-int video_status_display;
+int video_display_status;
+
+int video_enable_vsync;
 
 
 BITMAP * base_video_buffer;

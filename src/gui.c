@@ -159,13 +159,13 @@ static int machine_menu_status (void)
     {
         machine_menu [2].flags = 0;
 
-        video_status_display = FALSE;
+        video_display_status = FALSE;
     }
     else
     {
         machine_menu [2].flags |= D_SELECTED;
 
-        video_status_display = TRUE;
+        video_display_status = TRUE;
     }
 
 
@@ -173,17 +173,37 @@ static int machine_menu_status (void)
 }
 
 
-static int options_menu_gameboy_mode (void)
+static int options_video_menu_vsync (void)
 {
-    if (options_menu [0].flags & D_SELECTED)
+    if (options_video_menu [0].flags & D_SELECTED)
     {
-        options_menu [0].flags = 0;
+        options_video_menu [0].flags = 0;
+
+        video_enable_vsync = FALSE;
+    }
+    else
+    {
+        options_video_menu [0].flags |= D_SELECTED;
+
+        video_enable_vsync = TRUE;
+    }
+
+
+    return (D_O_K);
+}
+
+
+static int options_menu_gb_mode (void)
+{
+    if (options_menu [2].flags & D_SELECTED)
+    {
+        options_menu [2].flags = 0;
 
         set_palette (DATA_NES_PALETTE);
     }
     else
     {
-        options_menu [0].flags |= D_SELECTED;
+        options_menu [2].flags |= D_SELECTED;
 
         set_palette (DATA_GB_PALETTE);
     }

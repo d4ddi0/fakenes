@@ -28,7 +28,9 @@ All rights reserved.  See 'LICENSE' for details.
 #include "timing.h"
 
 
-int video_status_display = FALSE;
+int video_display_status = FALSE;
+
+int video_enable_vsync = FALSE;
 
 
 static int screen_height = 0;
@@ -80,6 +82,13 @@ int video_init (void)
 
     scale_height =
         get_config_int ("video", "scale_height", 480);
+
+
+    video_display_status =
+        get_config_int ("video", "display_status", FALSE);
+
+    video_enable_vsync =
+        get_config_int ("video", "enable_vsync", FALSE);
 
 
     driver = (force_window ?
@@ -164,12 +173,17 @@ void video_exit (void)
     set_config_int ("video", "scale_width", scale_width);
 
     set_config_int ("video", "scale_height", scale_height);
+
+
+    set_config_int ("video", "display_status", video_display_status);
+
+    set_config_int ("video", "enable_vsync", video_enable_vsync);
 }
 
 
 void video_blit (void)
 {
-    if (video_status_display)
+    if (video_display_status)
     {
         textprintf (video_buffer,
             font, 16, 216, 33, "PC: $%04X", * cpu_active_pc);
@@ -184,6 +198,12 @@ void video_blit (void)
 
 
     acquire_screen ();
+
+
+    if (video_enable_vsync)
+    {
+        vsync ();
+    }
 
 
     if (scaled_mode)

@@ -35,13 +35,25 @@ static MENU machine_menu [4] =
 };
 
 
-static int options_menu_gameboy_mode (void);
+static int options_video_menu_vsync (void);
 
 
-static MENU options_menu [2] =
+static MENU options_video_menu [2] =
 {
-    { "&GameBoy Mode", options_menu_gameboy_mode, NULL, 0, NULL },
-    {            NULL,                      NULL, NULL, 0, NULL }
+    { "&VSync", options_video_menu_vsync, NULL, 0, NULL },
+    {     NULL,                     NULL, NULL, 0, NULL }
+};
+
+
+static int options_menu_gb_mode (void);
+
+
+static MENU options_menu [4] =
+{
+    {   "&Video",                 NULL, options_video_menu, 0, NULL },
+    {         "",                 NULL,               NULL, 0, NULL },
+    { "&GB Mode", options_menu_gb_mode,               NULL, 0, NULL },
+    {       NULL,                 NULL,               NULL, 0, NULL }
 };
 
 
