@@ -8,9 +8,11 @@ static int file_menu_load_rom (void);
 static int file_menu_exit (void);
 
 
-static MENU file_menu [4] =
+static MENU file_menu [6] =
 {
     { "&Load ROM...", file_menu_load_rom, NULL,          0, NULL },
+    {             "",               NULL, NULL,          0, NULL },
+    {    "&Snapshot",               NULL, NULL, D_DISABLED, NULL },
     {             "",               NULL, NULL,          0, NULL },
     {        "E&xit",     file_menu_exit, NULL,          0, NULL },
     {           NULL,               NULL, NULL,          0, NULL }
@@ -41,19 +43,21 @@ static MENU help_menu [2] =
 };
 
 
-static MENU menu_bar [5] =
+static MENU menu_bar [6] =
 { 
-    {    "&File", NULL,    file_menu, 0, NULL },
-    { "&Machine", NULL, machine_menu, 0, NULL },
-    {    "&Help", NULL,    help_menu, 0, NULL },
-    {       NULL, NULL,         NULL, 0, NULL }
+    {    "&File", NULL,    file_menu,          0, NULL },
+    { "&Machine", NULL, machine_menu,          0, NULL },
+    {     "&CPU", NULL,         NULL, D_DISABLED, NULL },
+    { "&Options", NULL,         NULL, D_DISABLED, NULL },
+    {    "&Help", NULL,    help_menu,          0, NULL },
+    {       NULL, NULL,         NULL,          0, NULL }
 };
 
 
 static DIALOG main_dialog [2] =
 {
-    { d_menu_proc, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, menu_bar, NULL, NULL },
-    {        NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,     NULL, NULL, NULL }
+    { gui_menu_object, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, menu_bar, NULL, NULL },
+    {            NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,     NULL, NULL, NULL }
 };
 
 
