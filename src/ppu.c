@@ -102,7 +102,7 @@ static int ppu_mirroring;
 
 
 static int vram_address = 0;
-static int buffered_vram_read = 0;
+static UINT8 buffered_vram_read = 0;
 
 static int address_write = 0;
 static int address_temp = 0;
@@ -774,8 +774,6 @@ void ppu_vram_write(UINT8 value)
                 ppu_vram_block_write_address [address >> 10]
                     [address & 0x3FF] = value;
 
-                ppu_vram_needs_cache_update = TRUE;
-
                 this_tile = (address & 0x3FF) / 16;
 
                 if (ppu_vram_set_end [vram_block] != this_tile)
@@ -793,6 +791,8 @@ void ppu_vram_write(UINT8 value)
 
                         ppu_vram_set_end [vram_block] =
                             ppu_vram_set_begin [vram_block] = this_tile;
+
+                        ppu_vram_needs_cache_update = TRUE;
                     }
                 }
             }
