@@ -128,17 +128,21 @@ static int machine_menu_reset (void);
 
 static int machine_menu_status (void);
 
+static int machine_menu_patches (void);
+
 
 static MENU machine_menu [] =
 {
-    {  "&Reset",  machine_menu_reset,               NULL, 0, NULL },
-    {        "",                NULL,               NULL, 0, NULL },
-    { "&Status", machine_menu_status,               NULL, 0, NULL },
-    {        "",                NULL,               NULL, 0, NULL },
-    {  "S&peed",                NULL, machine_speed_menu, 0, NULL },
-    {        "",                NULL,               NULL, 0, NULL },
-    {  "St&ate",                NULL, machine_state_menu, 0, NULL },
-    {      NULL,                NULL,               NULL, 0, NULL }
+    {      "&Reset",   machine_menu_reset,               NULL, 0, NULL },
+    {            "",                 NULL,               NULL, 0, NULL },
+    {     "&Status",  machine_menu_status,               NULL, 0, NULL },
+    {            "",                 NULL,               NULL, 0, NULL },
+    {      "S&peed",                 NULL, machine_speed_menu, 0, NULL },
+    {            "",                 NULL,               NULL, 0, NULL },
+    { "&Patches...", machine_menu_patches,               NULL, 0, NULL },
+    {            "",                 NULL,               NULL, 0, NULL },
+    {      "St&ate",                 NULL, machine_state_menu, 0, NULL },
+    {          NULL,                 NULL,               NULL, 0, NULL }
 };
 
 

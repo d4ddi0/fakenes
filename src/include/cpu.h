@@ -79,6 +79,9 @@ typedef struct _CPU_PATCH
     int active;
 
 
+    UINT8 * title;
+
+
     UINT16 address;
 
 
@@ -92,9 +95,9 @@ typedef struct _CPU_PATCH
 } CPU_PATCH;
 
 
-/* Try to keep it fast - 16 patches limit. */
+/* Try to keep it fast - 15 patches limit. */
 
-#define MAX_PATCHES     16
+#define MAX_PATCHES     15
 
 
 CPU_PATCH cpu_patch_info [MAX_PATCHES];

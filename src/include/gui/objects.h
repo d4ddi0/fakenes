@@ -523,3 +523,144 @@ static void sl_draw_menu (int x, int y, int width, int height)
 
     rect (screen, x, y, (x + (width - 1)), (y + (height - 1)), gui_fg_color);
 }
+
+
+int sl_button (int message, DIALOG * dialog, int key)
+{
+    int (* handler) (DIALOG *);
+
+
+    int result;
+
+
+    handler = dialog -> dp2;
+
+
+    switch (message)
+    {
+        case MSG_CLICK:
+
+        case MSG_KEY:
+
+            if (handler)
+            {
+                dialog -> flags |= D_SELECTED;
+
+
+                scare_mouse ();
+
+                object_message (dialog, MSG_DRAW, 0);
+
+                unscare_mouse ();
+
+
+                result = handler (dialog);
+
+
+                dialog -> flags &= ~D_SELECTED;
+
+
+                scare_mouse ();
+
+                object_message (dialog, MSG_DRAW, 0);
+
+                unscare_mouse ();
+
+
+                return (result);
+            }
+
+
+            break;
+
+
+        default:
+
+            break;
+    }
+
+
+    return (d_button_proc (message, dialog, key));
+}
+
+
+int sl_checkbox (int message, DIALOG * dialog, int key)
+{
+    int (* handler) (DIALOG *);
+
+
+    handler = dialog -> dp2;
+
+
+    switch (message)
+    {
+        case MSG_CLICK:
+
+        case MSG_KEY:
+
+            dialog -> flags ^= D_SELECTED;
+
+
+            scare_mouse ();
+
+            object_message (dialog, MSG_DRAW, 0);
+
+            unscare_mouse ();
+
+
+            if (handler)
+            {
+                return (handler (dialog));
+            }
+
+
+            break;
+
+
+        default:
+
+            break;
+    }
+
+
+    return (d_check_proc (message, dialog, key));
+}
+
+
+int sl_listbox (int message, DIALOG * dialog, int key)
+{
+    int (* handler) (DIALOG *);
+
+
+    int result;
+
+
+    handler = dialog -> dp3;
+
+
+    result = d_list_proc (message, dialog, key);
+
+
+    switch (message)
+    {
+        case MSG_CLICK:
+
+        case MSG_KEY:
+
+            if (handler)
+            {
+                handler (dialog);
+            }
+
+
+            break;
+
+
+        default:
+
+            break;
+    }
+
+
+    return (result);
+}

@@ -63,9 +63,24 @@ static UINT8 * get_patches_filename (UINT8 * buffer, const UINT8 * rom_filename,
 }
 
 
+static UINT8 cpu_patch_titles [MAX_PATCHES] [16];
+
+
 void patches_load (const char * rom_filename)
 {
     UINT8 buffer [256];
+
+
+    int index;
+
+
+    memset (cpu_patch_titles, NULL, sizeof (cpu_patch_titles));
+
+
+    for (index = 0; index < MAX_PATCHES; index ++)
+    {
+        cpu_patch_info [index].title = cpu_patch_titles [index];
+    }
 
 
     get_patches_filename (buffer, rom_filename, sizeof (buffer));
@@ -73,9 +88,6 @@ void patches_load (const char * rom_filename)
 
     if (exists (buffer))
     {
-        int index;
-
-
         int version;
 
 
@@ -91,6 +103,7 @@ void patches_load (const char * rom_filename)
         if (version > 0x100)
         {
             pop_config_state ();
+
 
             return;
         }
@@ -111,10 +124,16 @@ void patches_load (const char * rom_filename)
 
         for (index = 0; index < cpu_patch_count; index ++)
         {
+            char * title;
+
+
             memset (buffer, NULL, sizeof (buffer));
 
 
             sprintf (buffer, "patch%02d", index);
+
+
+            strncat (cpu_patch_info [index].title, get_config_string (buffer, "title", "?"), 15);
 
 
             cpu_patch_info [index].address = get_config_hex (buffer, "address", 0xffff);
@@ -145,13 +164,18 @@ void patches_save (const char * rom_filename)
     UINT8 buffer [256];
 
 
+    get_patches_filename (buffer, rom_filename, sizeof (buffer));
+
+
+    /* Delete old records. */
+
+    remove (buffer);
+
+
     if (cpu_patch_count == 0)
     {
         return;
     }
-
-
-    get_patches_filename (buffer, rom_filename, sizeof (buffer));
 
 
     push_config_state ();
@@ -172,6 +196,12 @@ void patches_save (const char * rom_filename)
 
 
         sprintf (buffer, "patch%02d", index);
+
+
+        if (cpu_patch_info [index].title)
+        {
+            set_config_string (buffer, "title", cpu_patch_info [index].title);
+        }
 
 
         set_config_hex (buffer, "address", cpu_patch_info [index].address);

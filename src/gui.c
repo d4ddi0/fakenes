@@ -1,5 +1,6 @@
 
 
+
 /*
 
 FakeNES - A portable, Open Source NES emulator.
@@ -50,6 +51,8 @@ You must read and accept the license prior to use.
 
 #include "version.h"
 
+
+#include "genie.h"
 
 #include "netplay.h"
 
@@ -695,6 +698,8 @@ int show_gui (int first_run)
 
         DISABLE_MENU (machine_menu, 0);
 
+        DISABLE_MENU (machine_menu, 6);
+
 
         DISABLE_MENU (machine_state_menu, 0);
 
@@ -734,7 +739,7 @@ int show_gui (int first_run)
     if (first_run)
     {
         alert ("FakeNES version " VERSION_STRING " " ALLEGRO_PLATFORM_STR, "", "Get "
-            "the latest from http://fakenes.sourceforge.net/.", "&OK", NULL, 0, 0);
+            "the latest from http://fakenes.sourceforge.net/.", "&OK", NULL, 'o', 0);
     }
 
 
@@ -820,6 +825,9 @@ static int netplay_handler (int message, DIALOG * dialog, int key)
 
     return (D_O_K);
 }
+
+
+/* ---- Menu handlers. ---- */
 
 
 static int main_menu_load_rom (void)
@@ -916,6 +924,8 @@ static int main_menu_load_rom (void)
     
     
                 ENABLE_MENU (machine_menu, 0);
+
+                ENABLE_MENU (machine_menu, 6);
     
     
                 ENABLE_MENU (machine_state_menu, 0);
@@ -1553,6 +1563,18 @@ static int machine_state_autosave_menu_60_seconds (void)
 }
 
 
+static int machine_menu_patches (void)
+{
+    if (gui_show_dialog (machine_patches_dialog) == 6)
+    {
+        patches_save (global_rom.filename);
+    }
+
+
+    return (D_O_K);
+}
+
+
 static int netplay_protocol_menu_tcpip (void)
 {
     netplay_protocol = NETPLAY_PROTOCOL_TCPIP;
@@ -1977,7 +1999,7 @@ static int options_audio_effects_menu_surround_sound (void)
 
     if (papu_surround_sound)
     {
-        alert ("- Warning -", "", "Surround sound may have odd side effects.", "&OK", NULL, 0, 0);
+        alert ("- Warning -", "", "Surround sound may have odd side effects.", "&OK", NULL, 'o', 0);
     }
 
 
@@ -2875,4 +2897,326 @@ static int help_menu_about (void)
 
 
     return (D_O_K);
+}
+
+
+/* ---- Dialog handlers. ---- */
+
+
+static int machine_patches_dialog_list (DIALOG * dialog)
+{
+    CPU_PATCH * patch;
+
+
+    if (cpu_patch_count == 0)
+    {
+        return (D_O_K);
+    }
+
+
+    patch = &cpu_patch_info [dialog -> d1];
+
+
+    if (patch -> enabled)
+    {
+        machine_patches_dialog [5].flags |= D_SELECTED;
+    }
+    else
+    {
+        machine_patches_dialog [5].flags &= ~D_SELECTED;
+    }
+
+
+    scare_mouse ();
+
+    object_message (&machine_patches_dialog [5], MSG_DRAW, 0);
+
+    unscare_mouse ();
+
+
+    return (D_O_K);
+}
+
+
+static int machine_patches_dialog_add (DIALOG * dialog)
+{
+    UINT8 buffer [16];
+
+    UINT8 buffer2 [9];
+
+
+    CPU_PATCH * patch;
+
+
+    UINT8 value;
+
+
+    if (cpu_patch_count >= MAX_PATCHES)
+    {
+        alert ("Error", NULL, "The patch list is already full.", "&OK", NULL, 'o', 0);
+
+
+        return (D_O_K);
+    }
+
+
+    memset (buffer, NULL, sizeof (buffer));
+
+    memset (buffer2, NULL, sizeof (buffer2));
+
+
+    machine_patches_add_dialog [4].d1 = (sizeof (buffer) - 1);
+
+    machine_patches_add_dialog [4].dp = buffer;
+
+
+    machine_patches_add_dialog [7].d1 = (sizeof (buffer2) - 1);
+
+    machine_patches_add_dialog [7].dp = buffer2;
+
+
+    if (gui_show_dialog (machine_patches_add_dialog) != 8)
+    {
+        return (D_O_K);
+    }
+
+
+    patch = &cpu_patch_info [cpu_patch_count];
+
+
+    if (genie_decode (buffer2, &patch -> address, &patch -> value, &patch -> match_value) != 0)
+    {
+        alert ("Error", NULL, "You must enter a 6 or 8 digit Game Genie code.", "&OK", NULL, 'o', 0);
+
+
+        return (D_O_K);
+    }
+
+
+    if (patch -> title)
+    {
+        sprintf (patch -> title, "%s", buffer);
+    }
+
+
+    patch -> enabled = TRUE;
+
+
+    cpu_patch_count ++;
+
+
+    value = cpu_read (patch -> address);
+
+
+    if (value == patch -> match_value)
+    {
+        /* Enable patch. */
+
+        patch -> active = TRUE;
+
+
+        cpu_patch_table [patch -> address] = (patch -> value - value);
+    }
+
+
+    return (D_REDRAW);
+}
+
+
+static int machine_patches_dialog_remove (DIALOG * dialog)
+{
+    int index;
+
+
+    CPU_PATCH * source;
+
+    CPU_PATCH * target;
+
+
+    int start;
+
+
+    if (cpu_patch_count == 0)
+    {
+        return (D_O_K);
+    }
+
+
+    start = machine_patches_dialog [2].d1;
+
+
+    source = &cpu_patch_info [start];
+
+
+    /* Disable patch. */
+
+    if (source -> active)
+    {
+        if (alert ("Confirmation", NULL, "Really deactivate and remove this patch?", "&OK", "&Cancel", 'o', 'c') == 2)
+        {
+            return (D_O_K);
+        }
+
+
+        cpu_patch_table [source -> address] = 0;
+    }
+
+
+    for (index = (start + 1); index < cpu_patch_count; index ++)
+    {
+        source = &cpu_patch_info [index];
+
+        target = &cpu_patch_info [index - 1];
+
+
+        target -> active = source -> active;
+
+
+        target -> address = source -> address;
+
+
+        target -> value = source -> value;
+
+        target -> match_value = source -> value;
+
+
+        target -> enabled = source -> enabled;
+
+
+        sprintf (target -> title, "%s", source -> title);
+    }
+
+
+    source = &cpu_patch_info [cpu_patch_count - 1];
+
+
+    source -> active = FALSE;
+
+
+    source -> address = 0x0000;
+
+
+    source -> value = 0x00;
+
+    source -> match_value = 0x00;
+
+
+    source -> enabled = FALSE;
+
+
+    sprintf (source -> title, "?");
+
+
+    cpu_patch_count --;
+
+
+    if (cpu_patch_count == 0)
+    {
+        machine_patches_dialog [5].flags &= ~D_SELECTED;
+    }
+
+
+    return (D_REDRAW);
+}
+
+
+static int machine_patches_dialog_enabled (DIALOG * dialog)
+{
+    CPU_PATCH * patch;
+
+
+    if (cpu_patch_count == 0)
+    {
+        dialog -> flags &= ~D_SELECTED;
+
+
+        return (D_O_K);
+    }
+
+
+    patch = &cpu_patch_info [machine_patches_dialog [2].d1];
+
+
+    patch -> enabled = (dialog -> flags & D_SELECTED);
+
+
+    /* Toggle patch. */
+
+    if ((! patch -> enabled) && (patch -> active))
+    {
+        patch -> active = FALSE;
+
+
+        cpu_patch_table [patch -> address] = 0;
+    }
+    else if ((patch -> enabled) && (! patch -> active))
+    {
+        UINT8 value;
+
+
+        value = cpu_read (patch -> address);
+    
+    
+        if (value == patch -> match_value)
+        {
+            /* Enable patch. */
+    
+            patch -> active = TRUE;
+    
+    
+            cpu_patch_table [patch -> address] = (patch -> value - value);
+        }
+    }
+
+
+    scare_mouse ();
+
+    object_message (&machine_patches_dialog [2], MSG_DRAW, 0);
+
+    unscare_mouse ();
+
+
+    return (D_O_K);
+}
+
+
+static UINT8 machine_patches_dialog_list_texts [MAX_PATCHES] [38];
+
+
+static char * machine_patches_dialog_list_filler (int index, int * list_size)
+{
+    if (index >= 0)
+    {
+        CPU_PATCH * patch;
+
+
+        memset (machine_patches_dialog_list_texts [index], NULL, 38);
+
+
+        patch = &cpu_patch_info [index];
+
+
+        sprintf (machine_patches_dialog_list_texts [index], "$%04x -$%02x +$%02x %s ", patch -> address,
+            patch -> match_value, patch -> value, (patch -> active ? "Active" : " Idle "));
+
+
+        if (patch -> title)
+        {
+            strncat (machine_patches_dialog_list_texts [index], patch -> title, 37);
+        }
+        else
+        {
+            strcat (machine_patches_dialog_list_texts [index], "No title");
+        }
+
+
+        return (machine_patches_dialog_list_texts [index]);
+    }
+    else
+    {
+        *list_size = cpu_patch_count;
+
+
+        return (NULL);
+    }
 }
