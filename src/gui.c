@@ -635,11 +635,35 @@ int show_gui (int first_run)
 }
 
 
+static int client_connected = FALSE;
+
+
 static int netplay_handler (int message, DIALOG * dialog, int key)
 {
-    if (netplay_server_active)
+    if (netplay_server_active && (! client_connected))
     {
-        netplay_poll_server ();
+        client_connected = netplay_poll_server ();
+
+
+        if (client_connected)
+        {
+            int result;
+
+
+            gui_message (gui_fg_color, "Accepted connection from client.");
+
+
+            result = main_menu_load_rom ();
+
+            if (result == D_CLOSE)
+            {
+                return (D_CLOSE);
+            }
+            else
+            {
+                gui_message (gui_fg_color, "NetPlay session canceled.");
+            }
+        }
     }
 
 
@@ -689,6 +713,18 @@ static int main_menu_load_rom (void)
             gui_message (error_color, "Failed to load ROM!");
 
 
+            if (netplay_server_active)
+            {
+                netplay_close_server ();
+            }
+
+
+            if (netplay_client_active)
+            {
+                netplay_close_client ();
+            }
+
+
             return (D_O_K);
         }
         else
@@ -713,17 +749,20 @@ static int main_menu_load_rom (void)
             machine_init ();
 
 
-            ENABLE_MENU (main_menu, 2);
-
-            ENABLE_MENU (main_menu, 4);
-
-
-            ENABLE_MENU (machine_menu, 0);
-
-
-            // ENABLE_MENU (machine_state_menu, 2);
-
-            // ENABLE_MENU (machine_state_menu, 4);
+            if ((! netplay_server_active) && (! netplay_client_active))
+            {
+                ENABLE_MENU (main_menu, 2);
+    
+                ENABLE_MENU (main_menu, 4);
+    
+    
+                ENABLE_MENU (machine_menu, 0);
+    
+    
+                // ENABLE_MENU (machine_state_menu, 2);
+    
+                // ENABLE_MENU (machine_state_menu, 4);
+            }
 
 
             sprintf (buffer2, "FakeNES - %s", get_filename (global_rom.filename));
@@ -737,6 +776,18 @@ static int main_menu_load_rom (void)
     else
     {
         set_config_string ("gui", "load_rom_path", replace_filename (buffer3, buffer, "", sizeof (buffer3)));
+
+
+        if (netplay_server_active)
+        {
+            netplay_close_server ();
+        }
+
+
+        if (netplay_client_active)
+        {
+            netplay_close_client ();
+        }
 
 
         return (D_O_K);

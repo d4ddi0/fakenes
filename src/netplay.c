@@ -62,11 +62,22 @@ static void net_close (void);
 
 static int net_open (void)
 {
+    nlEnable (NL_BLOCKING_IO);
+
+
+    /* FakeNES sends data in little-endian format. */
+
+    nlEnable (NL_LITTLE_ENDIAN_DATA);
+
+
     switch (netplay_protocol)
     {
         case NETPLAY_PROTOCOL_TCPIP:
 
             nlSelectNetwork (NL_IP);
+
+
+            nlHint (NL_REUSE_ADDRESS, NL_TRUE);
 
 
             break;
@@ -205,7 +216,10 @@ int netplay_open_client (const UINT8 * address)
     nlStringToAddr (address, &nl_address);
 
 
-    if (nlConnect (NETPLAY_PORT, &nl_address) != NL_TRUE)
+    nlSetAddrPort (&nl_address, NETPLAY_PORT);
+
+
+    if (nlConnect (current_socket, &nl_address) != NL_TRUE)
     {
         net_close ();
 
