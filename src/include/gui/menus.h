@@ -918,6 +918,10 @@ static int options_video_palette_menu_nester (void);
 
 static int options_video_palette_menu_nesticle (void);
 
+static int options_video_palette_menu_modern_ntsc (void);
+
+static int options_video_palette_menu_modern_pal (void);
+
 static int options_video_palette_menu_custom (void);
 
 
@@ -933,7 +937,11 @@ static MENU options_video_palette_menu [] =
     {                "",                                       NIL, NIL, 0, NIL },
     {       "N&ESticle",       options_video_palette_menu_nesticle, NIL, 0, NIL },
     {                "",                                       NIL, NIL, 0, NIL },
-    {         "&Custom",         options_video_palette_menu_custom, NIL, 0, NIL },
+    {    "&Modern NTSC",    options_video_palette_menu_modern_ntsc, NIL, 0, NIL },
+    {                "",                                       NIL, NIL, 0, NIL },
+    {     "Modern &PAL",     options_video_palette_menu_modern_pal, NIL, 0, NIL },
+    {                "",                                       NIL, NIL, 0, NIL },
+    {         "Cu&stom",         options_video_palette_menu_custom, NIL, 0, NIL },
     {               NIL,                                       NIL, NIL, 0, NIL }
 };
 

@@ -1,6 +1,6 @@
-/* include\datafile.h
+/* include/datafile.h
  * 
- *  Converted datafile header for support\fakenes.dat .
+ *  Converted datafile header for support/fakenes.dat .
  *  See data.c for definitions.
  *  Do not hand edit.
  */
@@ -33,10 +33,12 @@ extern DATAFILE datafile_data[];
 #define DATAFILE_GUI_ZERO_4_THEME_PALETTE 10
 #define DATAFILE_GUN_SPRITE 11
 #define DATAFILE_LARGE_FONT 12
-#define DATAFILE_NESTER_PALETTE 13
-#define DATAFILE_NESTICLE_PALETTE 14
-#define DATAFILE_SMALL_FONT 15
-#define DATAFILE_COUNT 16
+#define DATAFILE_MODERN_NTSC_PALETTE 13
+#define DATAFILE_MODERN_PAL_PALETTE 14
+#define DATAFILE_NESTER_PALETTE 15
+#define DATAFILE_NESTICLE_PALETTE 16
+#define DATAFILE_SMALL_FONT 17
+#define DATAFILE_COUNT 18
 
 
 
@@ -46,7 +48,7 @@ extern DATAFILE datafile_data[];
 
 #endif /* include guard */
 
-/* end of include\datafile.h */
+/* end of include/datafile.h */
 
 
 
