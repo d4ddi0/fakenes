@@ -836,9 +836,12 @@ void ppu_render_line (int line)
 void ppu_vblank (void)
 {
     vblank_occured = TRUE;
+
     vram_writable = TRUE;
 
+
     cpu_execute (1);
+
 
     if (want_vblank_nmi)
     {
@@ -881,11 +884,13 @@ static INLINE void ppu_fetch_tile (int address, UINT8 * buffer)
 
     if (mmc_check_latches)
     {
-        if ((address & 0xFFF) >= 0xFD0 && (address & 0xFFF) <= 0xFEF)
+        if (((address & 0xfff) >= 0xfd0) &&
+            ((address & 0xfff) <= 0xfef))
         {
-            mmc_check_latches(address);
+            mmc_check_latches (address);
         }
     }
+
 
     for (y = 0; y < 8; y ++)
     {
@@ -932,16 +937,22 @@ static INLINE void ppu_render_sprite (int sprite)
     int flip_h, flip_v;
 
 
+    /* Offset. */
+
     sprite *= 4;
 
 
-    y = ppu_spr_ram [sprite] + 1;
-    if (y >= 240 && y <= 256 - sprite_height) return;
+    y = (ppu_spr_ram [sprite] + 1);
 
     x = ppu_spr_ram [sprite + 3];
 
 
-    memset (sprite_buffer, NULL, (8 * 16));
+    /*
+    if ((y >= 240) && (y <= (256 - sprite_height)))
+    {
+        return;
+    }
+    */
 
 
     tile = ppu_spr_ram [sprite + 1];
@@ -959,16 +970,19 @@ static INLINE void ppu_render_sprite (int sprite)
     {
         /* Draw 8x16 sprites. */
 
-        if (!(tile & 1))
+        if (! (tile & 1))
         {
-            address1 = ((tile) * 16);
-            address2 = (((tile + 1)) * 16);
+            address1 = (tile * 16);
+
+            address2 = ((tile + 1) * 16);
         }
         else
         {
-            address1 = ((tile - 1 ) * 16) + 0x1000;
-            address2 = (((tile)) * 16) + 0x1000;
+            address1 = (((tile - 1) * 16) + 0x1000);
+
+            address2 = ((tile * 16) + 0x1000);
         }
+
 
         ppu_fetch_tile (address1, sprite_buffer);
 
@@ -976,10 +990,10 @@ static INLINE void ppu_render_sprite (int sprite)
     }
 
 
-    attribute = (ppu_spr_ram [sprite + 2] & 0x03);
+    attribute = ((ppu_spr_ram [sprite + 2] & 0x03) << 2);
 
-    attribute <<= 2;
 
+    /* Flipping. */
 
     flip_h = (ppu_spr_ram [sprite + 2] & SPRITE_H_FLIP_BIT);
 
@@ -990,11 +1004,26 @@ static INLINE void ppu_render_sprite (int sprite)
     {
         for (sub_x = 0; sub_x < 8; sub_x ++)
         {
+            /* Clipping. */
+
+            if (((x + sub_x) >= 256) || ((y + sub_y) >= 240))
+            {
+                continue;
+            }
+
+
             color = sprite_buffer [(sub_y * 8) + sub_x];
-            if (color == 0) continue;
+
+
+            /* Transparency. */
+
+            if (color == 0)
+            {
+                continue;
+            }
+
 
             color |= attribute;
-
 
             color = ppu_sprite_palette [color];
 
@@ -1003,12 +1032,12 @@ static INLINE void ppu_render_sprite (int sprite)
             {
                 if (flip_v)
                 {
-                    putpixel (video_buffer, ((x + 7) - sub_x),
+                    _putpixel (video_buffer, ((x + 7) - sub_x),
                         ((y + (sprite_height - 1)) - sub_y), color);
                 }
                 else
                 {
-                    putpixel (video_buffer,
+                    _putpixel (video_buffer,
                         ((x + 7) - sub_x), (y + sub_y), color);
                 }
             }
@@ -1016,12 +1045,12 @@ static INLINE void ppu_render_sprite (int sprite)
             {
                 if (flip_v)
                 {
-                    putpixel (video_buffer, (x + sub_x),
+                    _putpixel (video_buffer, (x + sub_x),
                         ((y + (sprite_height - 1)) - sub_y), color);
                 }
                 else
                 {
-                    putpixel (video_buffer,
+                    _putpixel (video_buffer,
                         (x + sub_x), (y + sub_y), color);
                 }
             }
@@ -1035,7 +1064,11 @@ static void ppu_render_sprites (void)
     int sprite, priority;
 
 
-    if (!sprites_enabled) return;
+    if (! sprites_enabled)
+    {
+        return;
+    }
+
 
     for (sprite = 63; sprite >= 0; sprite --)
     {
