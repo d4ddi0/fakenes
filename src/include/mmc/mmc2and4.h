@@ -44,7 +44,7 @@ static int mmc2and4_latch[2] = { 1, 1 };
 static char mmc2and4_rom_bank_size;
 
 
-#define mmc2and4_MIRRORING_BIT   1
+#define MMC2AND4_MIRRORING_BIT   1
 
 
 static void mmc2and4_check_latches (UINT16 address)
@@ -175,7 +175,7 @@ static void mmc2and4_write (UINT16 address, UINT8 value)
     {
         /* Mirroring select. */
 
-        ppu_set_mirroring ((value & mmc2and4_MIRRORING_BIT) ?
+        ppu_set_mirroring ((value & MMC2AND4_MIRRORING_BIT) ?
              MIRRORING_HORIZONTAL : MIRRORING_VERTICAL);
     }
 }
