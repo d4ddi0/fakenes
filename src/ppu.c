@@ -144,7 +144,8 @@ static UINT8 attribute_table [4];
 
 static INT8 background_pixels [8 + 256 + 8];
 
-static int palette_shifts = 0;
+static int palette_mask = 0xff;
+static int palette_adjust = 0;
 
 UINT8 ppu_register_2001_cache [PPU_DISPLAY_LINES];
 
@@ -871,7 +872,16 @@ void ppu_write (UINT16 address, UINT8 value)
                 ppu_register_2001_cache [ppu_scanline] = value;
             }
 
-            palette_shifts = ((value & PPU_MONOCHROME_DISPLAY_BIT) ? 4 : 0);
+            if (value & PPU_MONOCHROME_DISPLAY_BIT)
+            {
+                palette_mask = 0xf0;
+                palette_adjust = 1;
+            }
+            else
+            {
+                palette_mask = 0xff;
+                palette_adjust = 0;
+            }
 
             break;
 

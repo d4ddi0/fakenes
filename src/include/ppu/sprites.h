@@ -214,7 +214,7 @@ static INLINE void ppu_render_sprite (int sprite, int line)
 
 
                 PPU_PUTPIXEL (video_buffer,
-                    (x + sub_x), line, (color >> palette_shifts));
+                    (x + sub_x), line, ((color & palette_mask) + palette_adjust));
 
             }
         }
@@ -258,7 +258,7 @@ static INLINE void ppu_render_sprite (int sprite, int line)
 
 
                 PPU_PUTPIXEL (video_buffer,
-                    (x + sub_x), line, (color >> palette_shifts));
+                    (x + sub_x), line, ((color & palette_mask) + palette_adjust));
 
             }
         }
@@ -306,7 +306,7 @@ static INLINE void ppu_render_sprite (int sprite, int line)
 
 
                     PPU_PUTPIXEL (video_buffer,
-                        (x + sub_x), line, (color >> palette_shifts));
+                        (x + sub_x), line, ((color & palette_mask) + palette_adjust));
                 }
 
             }
@@ -350,7 +350,7 @@ static INLINE void ppu_render_sprite (int sprite, int line)
 
 
                     PPU_PUTPIXEL (video_buffer,
-                        (x + sub_x), line, color >> (palette_shifts));
+                        (x + sub_x), line, ((color & palette_mask) + palette_adjust));
                 }
 
             }

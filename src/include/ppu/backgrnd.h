@@ -53,7 +53,7 @@ static void dummy_read_line(UINT8 *buffer)
 #define PBT_DISPLAY(OFFSET) \
     { \
         plot_buffer [plot_pixel + OFFSET] = \
-            (ppu_background_palette [color] >> palette_shifts); \
+            ((ppu_background_palette [color] & palette_mask) + palette_adjust); \
     }
 
 #define PLOT_BACKGROUND_TILE_PIXEL(OFFSET,MASK,DISPLAY) \
