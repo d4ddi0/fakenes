@@ -28,6 +28,8 @@ int papu_filter_type;
 
 int papu_init (void);
 
+void papu_reinit (void);
+
 void papu_exit (void);
 
 
