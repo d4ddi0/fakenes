@@ -59,47 +59,53 @@ fakenesw-debug.exe : ${OBJECTS}
 	${CC} -c $< -o $@ ${CFLAGS}
 
 
-apu.o : apu.c include/apu.h include/cpu.h include/misc.h
+apu.o: apu.c include/misc.h include/apu.h include/cpu.h include/core.h
 
-audio.o : audio.c include/audio.h
+audio.o: audio.c include/audio.h include/misc.h
 
-core.o : core.c include/core.h include/core/codes.h \
-         include/core/tables.h
+core.o : core.c include/core.h include/misc.h include/cpu.h \
+         include/core/tables.h include/core/codes.h
 
-cpu.o : cpu.c include/core.h include/cpu.h include/input.h \
-        include/misc.h include/mmc.h include/papu.h include/ppu.h \
-        include/rom.h
+cpu.o : cpu.c include/cpu.h include/misc.h include/core.h \
+        include/input.h include/mmc.h include/papu.h \
+        include/ppu.h include/rom.h
 
-gui.o : gui.c include/apu.h include/audio.h include/cpu.h \
-        include/data.h include/gui/dialogs.h include/gui.h \
-        include/gui/menus.h include/misc.h include/gui/objects.h \
-        include/papu.h include/rom.h include/video.h include/timing.h
+gui.o : gui.c include/apu.h include/misc.h include/audio.h \
+        include/cpu.h include/core.h include/gui.h include/papu.h \
+        include/rom.h include/video.h include/data.h include/data2.h \
+        include/timing.h include/gui/objects.h include/gui/menus.h \
+        include/gui/dialogs.h
 
-input.o : input.c include/gui.h include/input.h include/misc.h \
-          include/ppu.h include/rom.h include/video.h include/timing.h
+input.o : input.c include/gui.h include/misc.h include/input.h \
+          include/ppu.h include/rom.h include/video.h \
+          include/timing.h
 
-main.o : main.c include/audio.h include/build.h include/cpu.h \
-         include/data.h include/gui.h include/input.h include/misc.h \
+main.o : main.c include/build.h include/audio.h include/misc.h \
+         include/cpu.h include/core.h include/gui.h include/input.h \
          include/mmc.h include/papu.h include/ppu.h include/rom.h \
-         include/video.h include/timing.h
-         
-mmc.o : mmc.c include/mmc/aorom.h include/mmc/cnrom.h include/cpu.h \
-        include/mmc/dreams.h include/mmc/gnrom.h include/gui.h \
-        include/misc.h include/mmc.h include/mmc/mmc1.h \
-        include/mmc/mmc2.h include/mmc/mmc3.h include/mmc/mmc4.h \
-        include/ppu.h include/rom.h include/timing.h include/mmc/unrom.h
+         include/video.h include/data.h include/data2.h \
+         include/timing.h
 
-papu.o : papu.c include/apu.h include/audio.h include/misc.h \
+mmc.o : mmc.c include/cpu.h include/misc.h include/core.h \
+        include/gui.h include/mmc.h include/ppu.h include/rom.h \
+        include/timing.h include/mmc/mmc1.h include/mmc/mmc2.h \
+        include/mmc/mmc3.h include/mmc/mmc4.h include/mmc/unrom.h \
+        include/mmc/cnrom.h include/mmc/aorom.h include/mmc/gnrom.h \
+        include/mmc/dreams.h include/mmc/sunsoft.h
+
+papu.o : papu.c include/audio.h include/misc.h include/apu.h \
          include/papu.h
 
-ppu.o : ppu.c include/cpu.h include/input.h include/misc.h include/mmc.h \
-        include/ppu.h include/rom.h include/timing.h include/video.h
+ppu.o : ppu.c include/cpu.h include/misc.h include/core.h \
+        include/input.h include/mmc.h include/ppu.h \
+        include/rom.h include/video.h include/timing.h
 
-rom.o : rom.c include/misc.h include/ppu.h include/rom.h
+rom.o : rom.c include/ppu.h include/rom.h include/misc.h
 
-video.o : video.c include/cpu.h include/data.h include/input.h \
-          include/misc.h include/ppu.h include/video.h include/timing.h \
-          include/rom.h
+video.o : video.c include/cpu.h include/misc.h include/core.h \
+          include/input.h include/ppu.h include/rom.h \
+          include/video.h include/data.h include/data2.h \
+          include/timing.h
 
 
 clean :
