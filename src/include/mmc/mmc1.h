@@ -450,10 +450,7 @@ static void mmc1_save_state (PACKFILE * file, int version)
     pack_putc (mmc1_bit_stream, file_chunk);
     pack_putc (mmc1_bit_counter, file_chunk);
 
-    pack_putc (mmc1_register[0], file_chunk);
-    pack_putc (mmc1_register[1], file_chunk);
-    pack_putc (mmc1_register[2], file_chunk);
-    pack_putc (mmc1_register[3], file_chunk);
+    pack_fwrite (mmc1_register, 4, file_chunk);
 
 
     pack_fclose_chunk (file_chunk);
