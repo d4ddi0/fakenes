@@ -16,6 +16,8 @@ Entertainment System).
 
 */
 
+#define ALLEGRO_NO_MAGIC_MAIN
+#include <allegro.h>            /* INLINE */
 
 #include <stdio.h>
 #include "core.h"
