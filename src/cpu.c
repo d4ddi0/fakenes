@@ -139,6 +139,12 @@ int cpu_init (void)
 
     memset (cpu_sram, NULL, sizeof (cpu_sram));
 
+    /* Trainer support - copy the trainer into the memory map */
+    if ((global_rom.control_byte_1 & ROM_CTRL_TRAINER))
+    {
+        memcpy (cpu_sram + 0x1000, global_rom.trainer, 512);
+    }
+
 
     cpu_active_pc = &cpu_context.PC.W;
 
