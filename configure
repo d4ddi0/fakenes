@@ -755,18 +755,36 @@ fi
 
 echo $ac_n "checking for executable file suffix""... $ac_c" 1>&6
 echo "configure:758: checking for executable file suffix" >&5
-echo "$ac_t"""$EXEEXT"" 1>&6
+
+EXEEXT="$ac_exeext"
+
+if [ "x$EXEEXT" = "x" ]; then
+    echo "$ac_t""none" 1>&6
+else
+    echo "$ac_t"""$EXEEXT"" 1>&6
+
+    EXEEXT=".$EXEEXT"
+fi
 
 echo $ac_n "checking for object file suffix""... $ac_c" 1>&6
-echo "configure:762: checking for object file suffix" >&5
-echo "$ac_t"""$OBJEXT"" 1>&6
+echo "configure:771: checking for object file suffix" >&5
+
+OBJEXT="$ac_objext"
+
+if [ "x$OBJEXT" = "x" ]; then
+    echo "$ac_t""none" 1>&6
+else
+    echo "$ac_t"""$OBJEXT"" 1>&6
+
+    OBJEXT=".$OBJEXT"
+fi
 
 for ac_prog in make gmake
 do
 # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:770: checking for $ac_word" >&5
+echo "configure:788: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_MAKE'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -805,7 +823,7 @@ test -n "$MAKE" || MAKE="make"
 # Extract the first word of "nasm", so it can be a program name with args.
 set dummy nasm; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:809: checking for $ac_word" >&5
+echo "configure:827: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_NASM'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -841,7 +859,7 @@ fi
 # Extract the first word of "rm", so it can be a program name with args.
 set dummy rm; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:845: checking for $ac_word" >&5
+echo "configure:863: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_RM'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -893,10 +911,10 @@ fi
 
 
 echo $ac_n "checking whether to use x86 optimized core""... $ac_c" 1>&6
-echo "configure:897: checking whether to use x86 optimized core" >&5
+echo "configure:915: checking whether to use x86 optimized core" >&5
 
 cat > conftest.$ac_ext <<EOF
-#line 900 "configure"
+#line 918 "configure"
 #include "confdefs.h"
 
 int main() {
@@ -905,7 +923,7 @@ int main() {
       #endif
 ; return 0; }
 EOF
-if { (eval echo configure:909: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:927: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   ASM_CORE=1
 else
@@ -923,7 +941,7 @@ else
 fi
 
 echo $ac_n "checking whether to enable ZIP and gzip support""... $ac_c" 1>&6
-echo "configure:927: checking whether to enable ZIP and gzip support" >&5
+echo "configure:945: checking whether to enable ZIP and gzip support" >&5
 
 if [ "x$USE_ZLIB" = "xyes" ]; then
     DFLAGS="$DFLAGS -DUSE_ZLIB"
@@ -939,7 +957,7 @@ else
 fi
 
 echo $ac_n "checking whether to enable NetPlay support""... $ac_c" 1>&6
-echo "configure:943: checking whether to enable NetPlay support" >&5
+echo "configure:961: checking whether to enable NetPlay support" >&5
 
 if [ "x$USE_HAWKNL" = "xyes" ]; then
     DFLAGS="$DFLAGS -DUSE_HAWKNL"
@@ -985,7 +1003,7 @@ ac_configure=$ac_aux_dir/configure # This should be Cygnus configure.
 # SVR4 /usr/ucb/install, which tries to use the nonexistent group "staff"
 # ./install, which can be erroneously created by make from ./install.sh.
 echo $ac_n "checking for a BSD compatible install""... $ac_c" 1>&6
-echo "configure:989: checking for a BSD compatible install" >&5
+echo "configure:1007: checking for a BSD compatible install" >&5
 if test -z "$INSTALL"; then
 if eval "test \"`echo '$''{'ac_cv_path_install'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1040,7 +1058,7 @@ test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
 # Extract the first word of "chmod", so it can be a program name with args.
 set dummy chmod; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:1044: checking for $ac_word" >&5
+echo "configure:1062: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_CHMOD'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -1076,14 +1094,14 @@ fi
 
 
 echo $ac_n "checking whether byte ordering is bigendian""... $ac_c" 1>&6
-echo "configure:1080: checking whether byte ordering is bigendian" >&5
+echo "configure:1098: checking whether byte ordering is bigendian" >&5
 if eval "test \"`echo '$''{'ac_cv_c_bigendian'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   ac_cv_c_bigendian=unknown
 # See if sys/param.h defines the BYTE_ORDER macro.
 cat > conftest.$ac_ext <<EOF
-#line 1087 "configure"
+#line 1105 "configure"
 #include "confdefs.h"
 #include <sys/types.h>
 #include <sys/param.h>
@@ -1094,11 +1112,11 @@ int main() {
 #endif
 ; return 0; }
 EOF
-if { (eval echo configure:1098: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:1116: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   # It does; now see whether it defined to BIG_ENDIAN or not.
 cat > conftest.$ac_ext <<EOF
-#line 1102 "configure"
+#line 1120 "configure"
 #include "confdefs.h"
 #include <sys/types.h>
 #include <sys/param.h>
@@ -1109,7 +1127,7 @@ int main() {
 #endif
 ; return 0; }
 EOF
-if { (eval echo configure:1113: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:1131: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   ac_cv_c_bigendian=yes
 else
@@ -1129,7 +1147,7 @@ if test "$cross_compiling" = yes; then
     { echo "configure: error: can not run test program while cross compiling" 1>&2; exit 1; }
 else
   cat > conftest.$ac_ext <<EOF
-#line 1133 "configure"
+#line 1151 "configure"
 #include "confdefs.h"
 main () {
   /* Are we little or big endian?  From Harbison&Steele.  */
@@ -1142,7 +1160,7 @@ main () {
   exit (u.c[sizeof (long) - 1] == 1);
 }
 EOF
-if { (eval echo configure:1146: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:1164: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
   ac_cv_c_bigendian=no
 else
@@ -1172,7 +1190,7 @@ if test "$ac_cv_c_bigendian" != yes; then
 fi
 
 echo $ac_n "checking size of short int""... $ac_c" 1>&6
-echo "configure:1176: checking size of short int" >&5
+echo "configure:1194: checking size of short int" >&5
 if eval "test \"`echo '$''{'ac_cv_sizeof_short_int'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -1180,7 +1198,7 @@ else
     { echo "configure: error: can not run test program while cross compiling" 1>&2; exit 1; }
 else
   cat > conftest.$ac_ext <<EOF
-#line 1184 "configure"
+#line 1202 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 main()
@@ -1191,7 +1209,7 @@ main()
   exit(0);
 }
 EOF
-if { (eval echo configure:1195: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:1213: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
   ac_cv_sizeof_short_int=`cat conftestval`
 else
@@ -1211,7 +1229,7 @@ EOF
 
 
 echo $ac_n "checking size of int""... $ac_c" 1>&6
-echo "configure:1215: checking size of int" >&5
+echo "configure:1233: checking size of int" >&5
 if eval "test \"`echo '$''{'ac_cv_sizeof_int'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -1219,7 +1237,7 @@ else
     { echo "configure: error: can not run test program while cross compiling" 1>&2; exit 1; }
 else
   cat > conftest.$ac_ext <<EOF
-#line 1223 "configure"
+#line 1241 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 main()
@@ -1230,7 +1248,7 @@ main()
   exit(0);
 }
 EOF
-if { (eval echo configure:1234: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:1252: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
   ac_cv_sizeof_int=`cat conftestval`
 else
@@ -1250,7 +1268,7 @@ EOF
 
 
 echo $ac_n "checking size of long int""... $ac_c" 1>&6
-echo "configure:1254: checking size of long int" >&5
+echo "configure:1272: checking size of long int" >&5
 if eval "test \"`echo '$''{'ac_cv_sizeof_long_int'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -1258,7 +1276,7 @@ else
     { echo "configure: error: can not run test program while cross compiling" 1>&2; exit 1; }
 else
   cat > conftest.$ac_ext <<EOF
-#line 1262 "configure"
+#line 1280 "configure"
 #include "confdefs.h"
 #include <stdio.h>
 main()
@@ -1269,7 +1287,7 @@ main()
   exit(0);
 }
 EOF
-if { (eval echo configure:1273: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
+if { (eval echo configure:1291: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext} && (./conftest; exit) 2>/dev/null
 then
   ac_cv_sizeof_long_int=`cat conftestval`
 else

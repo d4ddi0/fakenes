@@ -8,11 +8,30 @@ AC_MSG_WARN(ignoring --prefix if it is present)
 dnl Checks for programs.
 AC_PROG_CC
 
+dnl Docs say autoconf defines these, I say otherwise.
 AC_MSG_CHECKING(for executable file suffix)
-AC_MSG_RESULT("$EXEEXT")
+
+EXEEXT="$ac_exeext"
+
+if [[ "x$EXEEXT" = "x" ]]; then
+    AC_MSG_RESULT(none)
+else
+    AC_MSG_RESULT("$EXEEXT")
+
+    EXEEXT=".$EXEEXT"
+fi
 
 AC_MSG_CHECKING(for object file suffix)
-AC_MSG_RESULT("$OBJEXT")
+
+OBJEXT="$ac_objext"
+
+if [[ "x$OBJEXT" = "x" ]]; then
+    AC_MSG_RESULT(none)
+else
+    AC_MSG_RESULT("$OBJEXT")
+
+    OBJEXT=".$OBJEXT"
+fi
 
 AC_PATH_PROGS(MAKE, make gmake, make)
 AC_PATH_PROG(NASM, nasm, nasm)
