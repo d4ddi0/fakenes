@@ -642,12 +642,6 @@ void ppu_start_line(void)
 {
     if (background_enabled || sprites_enabled)
     {
-/*  if (first_line_this_frame)
-    {
-        first_line_this_frame = FALSE;
-        vram_address_start_new_frame();
-    }*/
-
         vram_address = (vram_address & (~0x1F & ~(1 << 10)))
          | (address_temp & (0x1F | (1 << 10)));
     }
@@ -691,6 +685,14 @@ void ppu_clear (void)
     vram_address_start_new_frame();
 }
 
+
+/* VRAM address bit layout          */
+/* -YYY VHyy yyyx xxxx              */
+/* x = x tile offset in name table  */
+/* y = y tile offset in name table  */
+/* H = horizontal name table        */
+/* V = vertical name table          */
+/* Y = y line offset in tile        */
 
 void ppu_render_line (int line)
 {
@@ -743,9 +745,6 @@ void ppu_render_line (int line)
                     ( (y & 2) * 2);
             }
 
-            attribute = (attribute_byte & 3) << 2;
-
-
             tile = name_table_address [vram_address & 0x3FF];
 
             tile = ((tile * 16) + background_tileset);
@@ -760,25 +759,28 @@ void ppu_render_line (int line)
             pattern2 = vram_read ((tile + 8) + sub_y);
 
 
-            for (sub_x = 0; sub_x < 8; sub_x ++)
+            if ((pattern1 | pattern2) != 0)
             {
-                color = ((pattern2 & 128) >> 6);
-                color += ((pattern1 & 128) >> 7);
+                attribute = (attribute_byte & 3) << 2;
 
-                if (color != 0)
+                for (sub_x = 0; sub_x < 8; sub_x ++)
                 {
-                    color |= attribute;
+                    color = ((pattern2 & 128) >> 6);
+                    color += ((pattern1 & 128) >> 7);
+
+                    if (color != 0)
+                    {
+                        color = ppu_background_palette [attribute + color];
         
-                    color = ppu_background_palette [color];
         
-        
-                    _putpixel (video_buffer,
-                        ((x * 8) + sub_x - x_offset), line, color);
+                        _putpixel (video_buffer,
+                            ((x * 8) + sub_x - x_offset), line, color);
+                    }
+
+
+                    pattern1 <<= 1;
+                    pattern2 <<= 1;
                 }
-
-
-                pattern1 <<= 1;
-                pattern2 <<= 1;
             }
 
             ++vram_address;
@@ -794,10 +796,12 @@ void ppu_render_line (int line)
                     if ((vram_address & 0x1F) == 0)
                     /* horizontal name table toggle */
                     {
-                        vram_address = (vram_address - (1 << 5)) ^ (1 << 10);
-                        attribute_address = (attribute_address - (1 << 3));
                         name_table ^= 1;
                         name_table_address = name_tables[name_table];
+
+                        /* handle address wrap */
+                        vram_address = (vram_address - (1 << 5)) ^ (1 << 10);
+                        attribute_address = (attribute_address - (1 << 3));
                     }
                 }
                 else
