@@ -79,7 +79,7 @@ int machine_type = MACHINE_TYPE_NTSC;
 
 int frame_skip_min = 0;
 
-int frame_skip_max = 8;
+int frame_skip_max = 0;
 
 
 volatile int timing_fps = 0;
@@ -94,15 +94,17 @@ volatile int timing_audio_hertz = 0;
 
 #ifdef POSIX
 
-char * homedir = NULL;
+UINT8 * homedir = NULL;
 
-char * datfile = NULL;
+UINT8 * sramdir = NULL;
 
-char * sramdir = NULL;
+UINT8 * confdir = NULL;
 
-char * confdir = NULL;
 
-static DIR *tmpdir = NULL;
+UINT8 * datfile = NULL;
+
+
+static DIR * tmpdir = NULL;
 
 #endif
 
@@ -113,9 +115,9 @@ static int redraw_flag = TRUE;
 static int frame_count = 1;
 
 
-static int emulated_frames = 0;
+static int executed_frames = 0;
 
-static int displayed_frames = 0;
+static int rendered_frames = 0;
 
 
 static volatile int actual_fps_count = 0;
@@ -210,144 +212,170 @@ int main (int argc, char * argv [])
 
     set_window_title ("FakeNES");
 
+
 #ifdef POSIX
 
     /* by amit */
 
+
     /* Configuration directory checking */
-    homedir = getenv("HOME");
-    if(homedir != NULL)
+
+    homedir = getenv ("HOME");
+
+
+    if (homedir)
     {
-        const char confdir_base[] = "/.fakenes";
-        const char sramdir_base[] = "/sram";
+        const UINT8 confdir_base [] = "/.fakenes";
 
-        confdir = (char *) malloc(strlen(homedir) +
-            sizeof(confdir_base));
-        if (confdir != NULL)
+        const UINT8 sramdir_base [] = "/sram";
+
+
+        confdir = ((UINT8 *) malloc (strlen (homedir) + sizeof (confdir_base)));
+
+
+        if (confdir)
         {
-            strcpy(confdir, homedir);
-            strcat(confdir, confdir_base);
+            strcpy (confdir, homedir);
 
-            sramdir = (char *) malloc(strlen(confdir) + sizeof(sramdir_base));
-            if (sramdir != NULL)
+            strcat (confdir, confdir_base);
+
+
+            sramdir = ((UINT8 *) malloc (strlen (confdir) + sizeof (sramdir_base)));
+
+
+            if (sramdir)
             {
-                strcpy(sramdir, confdir);
-                strcat(sramdir, sramdir_base);
+                strcpy (sramdir, confdir);
+
+                strcat (sramdir, sramdir_base);
             }
         }
         else
         {
-            sramdir=NULL;
+            sramdir = NULL;
         }
 
-        if (confdir == NULL)
+
+        if (! confdir)
         {
-            fprintf(stderr, "Allocation error when generating configuration path. Configuration will not be saved.\n");
+            fprintf (stderr, "Error when generating configuration path.\nConfiguration will not be saved.\n");
         }
         else
         {
-            /* Just see if we can open the dir */
-            if((tmpdir = opendir(confdir)) == NULL)
+            /* Just see if we can open the directory. */
+              
+            if (! (tmpdir = opendir (confdir)))
             {
-                /* Directory doesn't exist, create it */
-                if(errno == ENOENT)
+                /* Directory doesn't exist, create it. */
+
+                if (errno == ENOENT)
                 {
-                    if(mkdir(confdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) == -1)
+                    if (mkdir (confdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) == -1)
                     {
-                        fprintf(stderr, "Error creating \"%s\". Configuration will not be saved.\n", confdir);
-                        free(confdir);
-                        confdir=NULL;
-                    } else /* mkdir was successful, go on and make the sram dir */
-                    {
-                        /* Error checking for sramdir happens later */
-                        mkdir(sramdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH));
+                        fprintf (stderr, "Error creating \"%s\".\nConfiguration will not be saved.\n", confdir);
+
+
+                        free (confdir);
+
+                        confdir = NULL;
                     }
-                } else if(errno == ENOTDIR) /* Not a directory */
+                    else    /* mkdir was successful, make the sram dir. */
+                    {
+                        /* Error checking for sramdir happens later. */
+
+                        mkdir (sramdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH));
+                    }
+                }
+                else
                 {
-                    fprintf(stderr, "Warning: \"%s\" is not a directory, configuration will not be saved.\n", confdir);
-                    free(confdir);
-                    confdir=NULL;
-                } else if(errno == EACCES) /* Permission denied */
-                {
-                    fprintf(stderr, "Warning: Permission denied when opening \"%s\". Configuration will not be saved.\n", confdir);
-                    free(confdir);
-                    confdir=NULL;
-                } else /* Something else */
-                {
-                    fprintf(stderr, "Warning: an error occured when opening \"%s\". Configuration will not be saved.\n", confdir);
-                    free(confdir);
-                    confdir=NULL;
+                    fprintf (stderr, "%s.\nConfiguration will not be saved.\n", perror (confdir));
+
+
+                    free (confdir);
+
+                    confdir = NULL;
                 }
             }
             else
             {
-                /* Close the dir we just opened */
-                closedir(tmpdir);
+                /* Close the directory we just opened. */
+
+                closedir (tmpdir);
             }
         }
 
     }
     else
     {
-	fprintf(stderr, "$HOME is not set, configuration will not be saved.\n");
+        fprintf (stderr, "$HOME appears to not be set.\nConfiguration will not be saved.\n");
     }
 
-    /* Load up the config file */
-    if(confdir != NULL)
-    {
-        const char conffile_base[] = "/config";
 
-        char *conffile = malloc(strlen(confdir) + sizeof(conffile_base));
-	strcpy(conffile, confdir);
-        strcat(conffile, conffile_base);
-	set_config_file (conffile);
-    } else
+    /* Load up the configuration file. */
+
+    if (confdir)
     {
-	set_config_file ("/dev/null");
+        const UINT8 conffile_base [] = "/config";
+
+
+        UINT8 * conffile = malloc (strlen (confdir) + sizeof (conffile_base));
+
+
+        strcpy (conffile, confdir);
+
+        strcat (conffile, conffile_base);
+
+
+        set_config_file (conffile);
+    }
+    else
+    {
+        set_config_file ("/dev/null");
     }
 
-    /* Check the sram dir */
-    if(sramdir == NULL)
+
+    /* Check the sram directory. */
+
+    if (! sramdir)
     {
-        /* if we have a valid home dir, there was an allocation error */
-        if (homedir != NULL)
+        /* If we have a valid home directory, there was an error. */
+
+        if (homedir)
         {
-            fprintf(stderr, "Allocation error when generating save path. SRAM files will not be saved.\n");
+            fprintf (stderr, "Error when generating save path.\nSRAM files will not be saved.\n");
         }
     }
     else
     {
-        if((tmpdir = opendir(sramdir)) == NULL)
+        if (! (tmpdir = opendir (sramdir)))
         {
-            if(errno == ENOENT)
+            if (errno == ENOENT)
             {
-                if(mkdir(sramdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) == -1)
+                if (mkdir (sramdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) == -1)
                 {
-                    fprintf(stderr, "Error creating sram directory \"%s\"", sramdir);
-                    free(sramdir);
-                    sramdir=NULL;
+                    fprintf (stderr, "Error creating \"%s\"", sramdir);
+
+
+                    free (sramdir);
+
+                    sramdir = NULL;
                 }
-            } else if(errno == ENOTDIR) /* Not a directory */
+            }
+            else
             {
-                fprintf(stderr, "Warning: \"%s\" is not a directory, configuration will not be saved.\n", confdir);
-                free(confdir);
-                sramdir=NULL;
-            } else if(errno == EACCES) /* Permission denied */
-            {
-                fprintf(stderr, "Warning: Permission denied when opening \"%s\". SRAM files will not be saved.\n", sramdir);
-                free(sramdir);
-                sramdir=NULL;
-            } else /* Something else */
-            {
-                fprintf(stderr, "Warning: an error occured when opening \"%s\". SRAM files will not be saved.\n", sramdir);
-                free(sramdir);
-                sramdir=NULL;
+                fprintf (stderr, "%s.\nConfiguration will not be saved.\n", perror (confdir));
+
+
+                free (confdir);
+
+                sramdir = NULL;
             }
         }
         else
         {
-            /* Close the dir we just opened */
-            closedir(tmpdir);
+            /* Close the directory we just opened. */
+
+            closedir (tmpdir);
         }
     }
 #else
@@ -359,7 +387,7 @@ int main (int argc, char * argv [])
 
     frame_skip_min = get_config_int ("timing", "frame_skip_min", 0);
 
-    frame_skip_max = get_config_int ("timing", "frame_skip_max", 8);
+    frame_skip_max = get_config_int ("timing", "frame_skip_max", 9);
 
 
     machine_type = get_config_int ("timing", "machine_type", MACHINE_TYPE_NTSC);
@@ -370,32 +398,47 @@ int main (int argc, char * argv [])
 
 #ifdef POSIX
 
-    if(confdir != NULL)
+    if (confdir)
     {
-        const char datfile_base[] = "/fakenes.dat";
+        const UINT8 datfile_base [] = "/fakenes.dat";
 
-        datfile = malloc(strlen(confdir) + sizeof(datfile_base));
-        if (datfile == NULL)
+
+        datfile = malloc (strlen (confdir) + sizeof (datfile_base));
+
+        if (! datfile)
         {
-            fprintf(stderr, "Allocation error when generating datafile path, trying cwd.\n");
+            fprintf (stderr, "Error when generating datafile path, trying cwd.\n");
+
+
             datfile = "fakenes.dat";
+
             data = load_datafile ("fakenes.dat");
         }
         else
         {
-            strcpy(datfile, confdir);
-            strcat(datfile, datfile_base);
+            strcpy (datfile, confdir);
+
+            strcat (datfile, datfile_base);
+
+
             data = load_datafile (datfile);
-            if (data == NULL)
+
+
+            if (! data)
             {
-                fprintf(stderr, "Datafile not found in configuration path, trying cwd.\n");
+                fprintf (stderr, "Datafile not found in configuration path, trying cwd.\n");
+
+
                 datfile = "fakenes.dat";
+
                 data = load_datafile (datfile);
             }
         }
-    } else /* confdir unset, try cwd */
+    }
+    else    /* confdir unset, try cwd. */
     {
         datfile = "fakenes.dat";
+
         data = load_datafile (datfile);
     }
 
@@ -405,14 +448,17 @@ int main (int argc, char * argv [])
 
 #endif
 
+
     if (! data)
     {
-        fprintf (stderr,
 #ifdef POSIX
-            "PANIC: Failed to load datafile: \"%s\".\n", datfile);
+
+        fprintf (stderr, "PANIC: Failed to load datafile: \"%s\".\n", datfile);
 #else
-            "PANIC: Failed to load datafile: fakenes.dat.\n");
+
+        fprintf (stderr, "PANIC: Failed to load datafile: fakenes.dat.\n");
 #endif
+
 
         return (1);
     }
@@ -420,8 +466,8 @@ int main (int argc, char * argv [])
 
     if (input_init () != 0)
     {
-        fprintf (stderr,
-            "PANIC: Failed to initialize input interface!\n");
+        fprintf (stderr, "PANIC: Failed to initialize input interface!\n");
+
 
         return (1);
     }
@@ -434,9 +480,9 @@ int main (int argc, char * argv [])
     {
         if (load_rom (argv [1], &global_rom) != 0)
         {
-            fprintf (stderr,
-                "PANIC: Failed to load ROM file (bad format?).\n");
-    
+            fprintf (stderr, "PANIC: Failed to load ROM file (bad format?).\n");
+
+
             return (1);
         }
 
@@ -459,8 +505,7 @@ int main (int argc, char * argv [])
 
     if (audio_init () != 0)
     {
-        fprintf (stderr,
-            "PANIC: Failed to initialize audio interface!\n");
+        fprintf (stderr, "PANIC: Failed to initialize audio interface!\n");
 
 
         free_rom (&global_rom);
@@ -476,32 +521,13 @@ int main (int argc, char * argv [])
 
     if (video_init () != 0)
     {
-        fprintf (stderr,
-            "PANIC: Failed to initialize video interface!\n");
+        fprintf (stderr, "PANIC: Failed to initialize video interface!\n");
 
 
         free_rom (&global_rom);
 
         return (1);
     }
-
-
-    LOCK_VARIABLE (timing_fps);
-
-    LOCK_VARIABLE (timing_hertz);
-
-
-    LOCK_VARIABLE (audio_fps);
-
-    LOCK_VARIABLE (timing_audio_fps);
-
-
-    LOCK_VARIABLE (actual_fps_count);
-
-    LOCK_VARIABLE (virtual_fps_count);
-  
-
-    LOCK_VARIABLE (throttle_counter);
 
 
     LOCK_FUNCTION (fps_interrupt);
@@ -533,15 +559,17 @@ int main (int argc, char * argv [])
             if (-- frame_count > 0)
             {
                 redraw_flag = FALSE;
+
+                executed_frames ++;
             }
             else
             {
                 redraw_flag = TRUE;
     
-    
+                rendered_frames ++;
+
+
                 actual_fps_count ++;
-    
-                displayed_frames ++;
     
     
                 if (key [KEY_TILDE])
@@ -574,26 +602,32 @@ int main (int argc, char * argv [])
                         frame_count = frame_skip_min;
                     }
                 }
-    
             }
     
     
             virtual_fps_count ++;
     
-            emulated_frames ++;
-    
     
             switch (machine_type)
             {
                 case MACHINE_TYPE_PAL:
-                    ppu_frame_last_line = TOTAL_LINES_PAL - 1;
+
+                    ppu_frame_last_line = (TOTAL_LINES_PAL - 1);
+
+
                     break;
 
+
                 case MACHINE_TYPE_NTSC:
+
                 default:
-                    ppu_frame_last_line = TOTAL_LINES_NTSC - 1;
+
+                    ppu_frame_last_line = (TOTAL_LINES_NTSC - 1);
+
+
                     break;
             }
+
 
             if (redraw_flag)
             {
@@ -606,12 +640,15 @@ int main (int argc, char * argv [])
                 {
                     cpu_start_new_scanline ();
 
+
                     if ((ppu_scanline >= FIRST_DISPLAYED_LINE) &&
                         (ppu_scanline <= LAST_DISPLAYED_LINE))
                     {
                         ppu_start_line ();
 
+
                         ppu_render_line (ppu_scanline);
+
 
                         cpu_execute (RENDER_CLOCKS);
                     }
@@ -619,17 +656,20 @@ int main (int argc, char * argv [])
                     {
                         ppu_end_render ();
 
+
                         cpu_execute (RENDER_CLOCKS);
                     }
                     else if (ppu_scanline == FIRST_VBLANK_LINE + 1)
                     {
                         ppu_vblank_nmi ();
 
+
                         cpu_execute (RENDER_CLOCKS);
                     }
                     else if (ppu_scanline == ppu_frame_last_line)
                     {
                         ppu_clear ();
+
 
                         cpu_execute (RENDER_CLOCKS);
                     }
@@ -638,6 +678,7 @@ int main (int argc, char * argv [])
                         cpu_execute (RENDER_CLOCKS);
                     }
             
+
                     if (mmc_scanline_start)
                     {
                         if (mmc_scanline_start (ppu_scanline))
@@ -646,19 +687,23 @@ int main (int argc, char * argv [])
                         }
                     }
 
+
                     if ((ppu_scanline >= FIRST_DISPLAYED_LINE) &&
                         (ppu_scanline <= LAST_DISPLAYED_LINE))
                     {
                         cpu_execute (HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP);
 
+
                         ppu_end_line ();
 
-                        cpu_execute (HBLANK_CLOCKS - HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP);
+
+                        cpu_execute ((HBLANK_CLOCKS - HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP));
                     }
                     else
                     {
                         cpu_execute (HBLANK_CLOCKS);
                     }
+
 
                     if (mmc_scanline_end)
                     {
@@ -667,7 +712,6 @@ int main (int argc, char * argv [])
                             cpu_interrupt (CPU_INTERRUPT_IRQ);
                         }
                     }
-
                 }
 
 
@@ -679,16 +723,20 @@ int main (int argc, char * argv [])
 
                 ppu_start_frame ();
 
+
                 for (ppu_scanline = 0; ppu_scanline <= ppu_frame_last_line; ppu_scanline ++)
                 {
                     cpu_start_new_scanline ();
+
 
                     if ((ppu_scanline >= FIRST_DISPLAYED_LINE) &&
                         (ppu_scanline <= LAST_DISPLAYED_LINE))
                     {
                         ppu_start_line ();
 
+
                         ppu_stub_render_line (ppu_scanline);
+
 
                         cpu_execute (RENDER_CLOCKS);
                     }
@@ -696,11 +744,13 @@ int main (int argc, char * argv [])
                     {
                         ppu_vblank ();
 
+
                         cpu_execute (RENDER_CLOCKS);
                     }
                     else if (ppu_scanline == FIRST_VBLANK_LINE + 1)
                     {
                         ppu_vblank_nmi ();
+
 
                         cpu_execute (RENDER_CLOCKS);
                     }
@@ -708,12 +758,14 @@ int main (int argc, char * argv [])
                     {
                         ppu_clear ();
 
+
                         cpu_execute (RENDER_CLOCKS);
                     }
                     else
                     {
                         cpu_execute (RENDER_CLOCKS);
                     }
+
 
                     if (mmc_scanline_start)
                     {
@@ -723,19 +775,23 @@ int main (int argc, char * argv [])
                         }
                     }
 
+
                     if ((ppu_scanline >= FIRST_DISPLAYED_LINE) &&
                         (ppu_scanline <= LAST_DISPLAYED_LINE))
                     {
                         cpu_execute (HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP);
 
+
                         ppu_end_line ();
 
-                        cpu_execute (HBLANK_CLOCKS - HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP);
+
+                        cpu_execute ((HBLANK_CLOCKS - HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP));
                     }
                     else
                     {
                         cpu_execute (HBLANK_CLOCKS);
                     }
+
 
                     if (mmc_scanline_end)
                     {
@@ -744,7 +800,6 @@ int main (int argc, char * argv [])
                             cpu_interrupt (CPU_INTERRUPT_IRQ);
                         }
                     }
-
                 }
 
 
@@ -783,8 +838,8 @@ int main (int argc, char * argv [])
 
     if (rom_is_loaded)
     {
-        printf ("Emulated frames: %d (%d "
-            "displayed).\n", emulated_frames, displayed_frames);
+        printf ("Executed frames: %d (%d rendered).\n", executed_frames, rendered_frames);
+
 
         free_rom (&global_rom);
     }
@@ -796,7 +851,7 @@ int main (int argc, char * argv [])
     return (0);
 }
 
-END_OF_MAIN ();
+END_OF_MAIN ()
 
 
 int machine_init (void)
@@ -805,10 +860,10 @@ int machine_init (void)
     {
         cpu_memmap_init ();
 
+
         if (mmc_init () != 0)
         {
-            fprintf (stderr,
-                "PANIC: mmc_init() failed (unsupported mapper?).\n");
+            fprintf (stderr, "PANIC: mmc_init() failed (unsupported mapper?).\n");
     
     
             free_rom (&global_rom);
@@ -819,8 +874,7 @@ int machine_init (void)
 
         if (cpu_init () != 0)
         {
-            fprintf (stderr,
-                "PANIC: Failed to initialize the CPU core!\n");
+            fprintf (stderr, "PANIC: Failed to initialize the CPU core!\n");
     
     
             free_rom (&global_rom);
@@ -831,8 +885,7 @@ int machine_init (void)
         
         if (ppu_init () != 0)
         {
-            fprintf (stderr,
-                "PANIC: Failed to initialize the PPU core!\n");
+            fprintf (stderr, "PANIC: Failed to initialize the PPU core!\n");
     
     
             free_rom (&global_rom);
@@ -844,8 +897,6 @@ int machine_init (void)
         input_reset ();
 
         cpu_reset ();
-    
-
     }
 
 
