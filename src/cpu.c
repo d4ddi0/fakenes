@@ -427,6 +427,10 @@ void cpu_memmap_init (void)
         global_rom.trainer_crc32 =
             crc32_calculate (global_rom.trainer, ROM_TRAINER_SIZE);
     }
+    else
+    {
+        global_rom.trainer_crc32 = 0;
+    }
 
 
     /* compute CRC32 for PRG ROM */
