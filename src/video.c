@@ -55,6 +55,11 @@ static BITMAP * mouse_sprite_remove_buffer = NULL;
 static BITMAP * stretch_buffer = NULL;
 
 
+UINT8 * video_overlay_text = NULL;
+
+volatile int video_show_overlay = FALSE;
+
+
 int video_display_status = FALSE;
 
 int video_enable_vsync = FALSE;
@@ -104,9 +109,9 @@ static int blitter_type = 0;
 static int filter_list = 0;
 
 
-#define VIDEO_COLOR_WHITE   palette_color [33]
+#define VIDEO_COLOR_BLACK   palette_color [0]
 
-#define VIDEO_COLOR_RED     palette_color [6]
+#define VIDEO_COLOR_WHITE   palette_color [33]
 
 
 static int preserve_video_buffer = FALSE;
@@ -123,6 +128,9 @@ static RGB * last_palette = NULL;
 int video_init (void)
 {
     int driver;
+
+
+    LOCK_VARIABLE (video_show_overlay);
 
 
     screen_width = get_config_int ("video", "screen_width", 320);
@@ -360,32 +368,51 @@ void video_exit (void)
 }
 
 
-/* Todo: Find a better way to do this. */
+static INLINE void shadow_textout (BITMAP * bitmap, FONT * font, const UINT8 * text, int x, int y, int color)
+{
+    /* This is a pain to do for printf, so we just do that manually. */
+
+    textout (bitmap, font, text, (x + 1), (y + 1), VIDEO_COLOR_BLACK);
+
+    textout (bitmap, font, text, x, y, color);
+}
+
+
+/* Todo: Find a better way to do all this. */
 
 static INLINE void display_status (BITMAP * bitmap, int color)
 {
-    textout (bitmap, font, "Video:", 16, (bitmap -> h - 114), color);
+    shadow_textout (bitmap, font, "Video:", 16, (bitmap -> h - 114), color);
 
-    textout (bitmap, font, "Audio:", 16, (bitmap -> h - 82), color);
+    shadow_textout (bitmap, font, "Audio:", 16, (bitmap -> h - 82), color);
 
 
-    textout (bitmap, font, "Core:", 16, (bitmap -> h - 50), color);
+    shadow_textout (bitmap, font, "Core:", 16, (bitmap -> h - 50), color);
 
+
+    textprintf (bitmap, font, (20 + 1), ((bitmap -> h - 100) + 1), VIDEO_COLOR_BLACK, "%02d FPS", timing_fps);
 
     textprintf (bitmap, font, 20, (bitmap -> h - 100), color, "%02d FPS", timing_fps);
 
 
     if (audio_enable_output)
     {
+        textprintf (bitmap, font, (20 + 1), ((bitmap -> h - 68) + 1), VIDEO_COLOR_BLACK, "%02d FPS", timing_audio_fps);
+
         textprintf (bitmap, font, 20, (bitmap -> h - 68), color, "%02d FPS", timing_audio_fps);
     }
     else
     {
-        textout (bitmap, font, "Disabled", 20, (bitmap -> h - 68), color);
+        shadow_textout (bitmap, font, "Disabled", 20, (bitmap -> h - 68), color);
     }
 
 
+    textprintf (bitmap, font, (20 + 1), ((bitmap -> h - 36) + 1), VIDEO_COLOR_BLACK, "%02d Hz", timing_hertz);
+
     textprintf (bitmap, font, 20, (bitmap -> h - 36), color, "%02d Hz", timing_hertz);
+
+
+    textprintf (bitmap, font, (20 + 1), ((bitmap -> h - 22) + 1), VIDEO_COLOR_BLACK, "PC: $%04X", * cpu_active_pc);
 
     textprintf (bitmap, font, 20, (bitmap -> h - 22), color, "PC: $%04X", * cpu_active_pc);
 }
@@ -428,11 +455,11 @@ static INLINE void blit_2xsoe (BITMAP * source, BITMAP * target, int x, int y)
         y += ((source -> h / 2) - (((text_height (font) * 2) + (text_height (font) / 2)) / 2));
 
 
-        textout (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_RED);
+        textout (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_WHITE);
 
 
         textprintf (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),
-            VIDEO_COLOR_RED, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
+            VIDEO_COLOR_WHITE, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
 
 
         return;
@@ -658,11 +685,11 @@ static INLINE void blit_2xscl (BITMAP * source, BITMAP * target, int x, int y)
         y += ((source -> h / 2) - (((text_height (font) * 2) + (text_height (font) / 2)) / 2));
 
 
-        textout (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_RED);
+        textout (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_WHITE);
 
 
         textprintf (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),
-            VIDEO_COLOR_RED, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
+            VIDEO_COLOR_WHITE, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
 
 
         return;
@@ -829,11 +856,11 @@ static INLINE void blit_super_2xscl (BITMAP * source, BITMAP * target, int x, in
         y += ((source -> h / 2) - (((text_height (font) * 2) + (text_height (font) / 2)) / 2));
 
 
-        textout (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_RED);
+        textout (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_WHITE);
 
 
         textprintf (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),
-            VIDEO_COLOR_RED, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
+            VIDEO_COLOR_WHITE, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
 
 
         return;
@@ -941,6 +968,9 @@ void video_blit (BITMAP * bitmap)
     BITMAP * source_buffer;
 
 
+    int show_overlay;
+
+
     if (! rom_is_loaded)
     {
         return;
@@ -1026,11 +1056,40 @@ void video_blit (BITMAP * bitmap)
     }
 
 
+    /* Avoid a possible interrupt before erase. */
+
+    show_overlay = video_show_overlay;
+
+
+    if (show_overlay && video_overlay_text)
+    {
+        xor_mode (TRUE);
+
+        shadow_textout (screen_buffer, font, video_overlay_text, ((SCREEN_W / 2) -
+            (text_length (font, video_overlay_text) / 2)), 32, VIDEO_COLOR_WHITE);
+    }
+    else if ((! show_overlay) && video_overlay_text)
+    {
+        video_overlay_text = NULL;
+    }
+
+
     acquire_bitmap (bitmap);
 
     blit (screen_buffer, bitmap, 0, 0, image_offset_x, image_offset_y, SCREEN_W, SCREEN_H);
 
     release_bitmap (bitmap);
+
+
+    /* Now erase it... */
+
+    if (video_show_overlay && video_overlay_text)
+    {
+        shadow_textout (screen_buffer, font, video_overlay_text, ((SCREEN_W / 2) -
+            (text_length (font, video_overlay_text) / 2)), 32, VIDEO_COLOR_WHITE);
+
+        xor_mode (FALSE);
+    }
 
 
     clear (status_buffer);

@@ -46,6 +46,11 @@ enum
 #define VIDEO_FILTER_SCANLINES_HIGH     4
 
 
+UINT8 * video_overlay_text;
+
+volatile int video_show_overlay;
+
+
 int video_display_status;
 
 int video_enable_vsync;

@@ -149,6 +149,26 @@ static void gui_message_border (void)
 }
 
 
+static volatile int need_remove_message = FALSE;
+
+
+static void remove_message (void)
+{
+    if (need_remove_message)
+    {
+        remove_int (remove_message);
+
+
+        need_remove_message = FALSE;
+    }
+
+
+    video_show_overlay = FALSE;
+}
+
+END_OF_STATIC_FUNCTION (remove_message);
+
+
 void gui_message (int color, AL_CONST UINT8 * message, ...)
 {
     va_list format;
@@ -161,17 +181,44 @@ void gui_message (int color, AL_CONST UINT8 * message, ...)
     va_end (format);
 
 
-    gui_message_border ();
-
-
-    textout_centre (screen, font, message_buffer, (SCREEN_W / 2), ((SCREEN_H - 19) - text_height (font)), 0);
-
-    textout_centre (screen, font, message_buffer, ((SCREEN_W / 2) - 1), (((SCREEN_H - 19) - text_height (font)) - 1), color);
-
-
-    if (log_file)
+    if (gui_is_active)
     {
-        fprintf (log_file, "GUI: %s\n", message_buffer);
+        gui_message_border ();
+    
+    
+        textout_centre (screen, font, message_buffer, (SCREEN_W / 2), ((SCREEN_H - 19) - text_height (font)), 0);
+    
+        textout_centre (screen, font, message_buffer, ((SCREEN_W / 2) - 1), (((SCREEN_H - 19) - text_height (font)) - 1), color);
+
+
+        if (log_file)
+        {
+            fprintf (log_file, "GUI: %s\n", message_buffer);
+        }
+    }
+    else
+    {
+        if (need_remove_message)
+        {
+            remove_int (remove_message);
+        }
+
+
+        install_int_ex (remove_message, MSEC_TO_TIMER (3000));
+
+
+        need_remove_message = TRUE;
+
+
+        video_overlay_text = message_buffer;
+
+        video_show_overlay = TRUE;
+
+
+        if (log_file)
+        {
+            fprintf (log_file, "Engine: %s\n", message_buffer);
+        }
     }
 }
 
@@ -199,45 +246,91 @@ void gui_message (int color, AL_CONST UINT8 * message, ...)
     }
 
 
-void gui_spawn_file_menu_snapshot (void)
+
+/* For save states... */
+
+static int machine_state_index = 0;
+
+
+void gui_handle_keypress (int index)
 {
-    main_menu_snapshot ();
-}
+    switch ((index >> 8))
+    {
+        case KEY_F1:
+
+            main_menu_snapshot ();
 
 
-void gui_spawn_machine_menu_status (void)
-{
-    machine_menu_status ();
-}
+            break;
 
 
-void gui_spawn_machine_state_menu_save (void)
-{
-    machine_state_menu_save ();
-}
+        case KEY_F2:
+
+            machine_menu_status ();
 
 
-void gui_spawn_machine_state_menu_restore (void)
-{
-    machine_state_menu_restore ();
-}
+            break;
 
 
-void gui_spawn_options_video_layers_menu_sprites_a (void)
-{
-    options_video_layers_menu_sprites_a ();
-}
+        case KEY_F3:
+
+            machine_state_menu_save ();
 
 
-void gui_spawn_options_video_layers_menu_sprites_b (void)
-{
-    options_video_layers_menu_sprites_b ();
-}
+            break;
 
 
-void gui_spawn_options_video_layers_menu_background (void)
-{
-    options_video_layers_menu_background ();
+        case KEY_F4:
+
+            machine_state_menu_restore ();
+
+
+            break;
+
+
+        case KEY_F7:
+
+            options_video_layers_menu_sprites_a ();
+
+            options_video_layers_menu_sprites_b ();
+
+
+            break;
+
+
+        case KEY_F8:
+
+            options_video_layers_menu_background ();
+
+
+            break;
+
+
+        case KEY_1:
+
+        case KEY_2:
+
+        case KEY_3:
+
+        case KEY_4:
+
+        case KEY_5:
+
+        case KEY_6:
+
+          machine_state_index = ((index >> 8) - KEY_1);
+
+
+          gui_message (gui_fg_color, "Current machine state slot set to %d.", (machine_state_index + 1)); \
+
+
+          break;
+
+
+        default:
+
+          break;
+    }
 }
 
 
@@ -311,11 +404,6 @@ int gui_show_dialog (DIALOG * dialog)
 
     return (index);
 }
-
-
-/* For save states... */
-
-static int machine_state_index = 0;
 
 
 static INLINE void update_menus (void)
@@ -551,12 +639,15 @@ int show_gui (int first_run)
     gui_is_active = TRUE;
 
 
-    // gui_menu_opening_delay = 500;
-
-
     gui_menu_draw_menu = sl_draw_menu;
 
     gui_menu_draw_menu_item = sl_draw_menu_item;
+
+
+    LOCK_VARIABLE (need_remove_message);
+
+
+    LOCK_FUNCTION (remove_message);
 
 
 #ifdef POSIX
@@ -636,6 +727,11 @@ int show_gui (int first_run)
 
 
     gui_is_active = FALSE;
+
+
+    clear (screen);
+
+    video_blit (screen);
 
 
     audio_resume ();
@@ -938,6 +1034,10 @@ static int machine_speed_menu_pal_50_hz (void)
         machine_state_index = (slot - 1);       \
                                                 \
         update_menus ();                        \
+                                                \
+                                                \
+        gui_message (gui_fg_color, "Current machine state slot set to %d.", \
+            (machine_state_index + 1)); \
                                                 \
                                                 \
         return (D_O_K);                         \

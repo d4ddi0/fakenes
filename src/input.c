@@ -671,38 +671,6 @@ int input_process (void)
                 break;
 
 
-            case KEY_F1:
-
-                gui_spawn_file_menu_snapshot ();
-
-
-                break;
-
-
-            case KEY_F2:
-
-                gui_spawn_machine_menu_status ();
-
-
-                break;
-
-
-            case KEY_F3:
-
-                gui_spawn_machine_state_menu_save ();
-
-
-                break;
-
-
-            case KEY_F4:
-
-                gui_spawn_machine_state_menu_restore ();
-
-
-                break;
-
-
             case KEY_F5:
 
                 ppu_invert_mirroring ();
@@ -719,24 +687,6 @@ int input_process (void)
                 break;
 
 
-            case KEY_F7:
-
-                gui_spawn_options_video_layers_menu_sprites_a ();
-
-                gui_spawn_options_video_layers_menu_sprites_b ();
-
-
-                break;
-
-
-            case KEY_F8:
-
-                gui_spawn_options_video_layers_menu_background ();
-
-
-                break;
-
-
             default:
 
                 break;
@@ -744,6 +694,9 @@ int input_process (void)
 
 
         video_handle_keypress (index);
+
+
+        gui_handle_keypress (index);
     }
 
 

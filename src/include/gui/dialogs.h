@@ -37,7 +37,7 @@ static DIALOG netplay_client_connect_dialog [] =
 
 static DIALOG help_shortcuts_dialog [] =
 {
-    {      sl_frame,   0,   0, 134, 149, 0, 0, 0,      0,            0, 0, NULL,               "Shortcuts", NULL },
+    {      sl_frame,   0,   0, 134, 165, 0, 0, 0,      0,            0, 0, NULL,               "Shortcuts", NULL },
     { d_button_proc, 114,   4,  16,  12, 0, 0, 0, D_EXIT,            0, 0,  "X",                      NULL, NULL },
     {       sl_text,   9,  29,   0,   0, 0, 0, 0,      0,            0, 0, NULL,     "F1  - Save Snapshot", NULL },
     {       sl_text,   9,  41,   0,   0, 0, 0, 0,      0,            0, 0, NULL,     "F2  - Toggle Status", NULL },
@@ -47,7 +47,8 @@ static DIALOG help_shortcuts_dialog [] =
     {       sl_text,   9,  93,   0,   0, 0, 0, 0,      0,            0, 0, NULL,     "F6  - Toggle Zapper", NULL },
     {       sl_text,   9, 105,   0,   0, 0, 0, 0,      0,            0, 0, NULL,    "F7  - Toggle Sprites", NULL },
     {       sl_text,   9, 117,   0,   0, 0, 0, 0,      0,            0, 0, NULL, "F8  - Toggle Background", NULL },
-    {       sl_text,   9, 133,   0,   0, 0, 0, 0,      0,            0, 0, NULL,    "ESC - Enter/Exit GUI", NULL },
+    {       sl_text,   9, 133,   0,   0, 0, 0, 0,      0,            0, 0, NULL, "1-6 - Select State Slot", NULL },
+    {       sl_text,   9, 149,   0,   0, 0, 0, 0,      0,            0, 0, NULL,    "ESC - Enter/Exit GUI", NULL },
     {          NULL,   0,   0,   0,   0, 0, 0, 0,      0, SL_FRAME_END, 0, NULL,                      NULL, NULL }
 };
 
