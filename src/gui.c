@@ -742,6 +742,18 @@ int show_gui (int first_run)
     scare_mouse ();
 
 
+    /* Cheap hack to make it appear in the file... */
+
+    set_config_string ("gui", "save_path", get_config_string ("gui", "save_path", "./"));
+
+    set_config_string ("netplay", "ip_address", get_config_string ("netplay", "ip_address", "0.0.0.0"));
+
+
+    /* Is this needed for Zapper? */
+
+    set_mouse_sprite_focus (0, 0);
+
+
     gui_is_active = FALSE;
 
 
@@ -1112,9 +1124,17 @@ static int machine_state_menu_select (void)
 
         sprintf (buffer3, "fn%d", index);
     
+
+        strcat (buffer, get_config_string ("gui", "save_path", "./"));
     
-        replace_extension (buffer, global_rom.filename, buffer3, sizeof (buffer));
+        put_backslash (buffer);
     
+    
+        strcat (buffer, get_filename (global_rom.filename));
+    
+    
+        replace_extension (buffer, buffer, buffer3, sizeof (buffer));
+        
     
         file = pack_fopen (buffer, "r");
     
@@ -1210,7 +1230,15 @@ static int machine_state_menu_save (void)
     sprintf (buffer3, "fn%d", machine_state_index);
 
 
-    replace_extension (buffer, global_rom.filename, buffer3, sizeof (buffer));
+    strcat (buffer, get_config_string ("gui", "save_path", "./"));
+
+    put_backslash (buffer);
+
+
+    strcat (buffer, get_filename (global_rom.filename));
+
+
+    replace_extension (buffer, buffer, buffer3, sizeof (buffer));
 
 
     file = pack_fopen (buffer, "w");
@@ -1297,7 +1325,15 @@ static int machine_state_menu_restore (void)
     sprintf (buffer3, "fn%d", machine_state_index);
 
 
-    replace_extension (buffer, global_rom.filename, buffer3, sizeof (buffer));
+    strcat (buffer, get_config_string ("gui", "save_path", "./"));
+
+    put_backslash (buffer);
+
+
+    strcat (buffer, get_filename (global_rom.filename));
+
+
+    replace_extension (buffer, buffer, buffer3, sizeof (buffer));
 
 
     file = pack_fopen (buffer, "r");

@@ -102,8 +102,6 @@ int timing_audio_hertz = 0;
 
 UINT8 * homedir = NULL;
 
-UINT8 * sramdir = NULL;
-
 UINT8 * logdir = NULL;
 
 UINT8 * confdir = NULL;
@@ -265,8 +263,6 @@ int main (int argc, char * argv [])
         const UINT8 confdir_base [] = "/.fakenes";
 
 
-        const UINT8 sramdir_base [] = "/sram";
-
         const UINT8 logdir_base [] = "/logs";
 
 
@@ -278,17 +274,6 @@ int main (int argc, char * argv [])
             strcpy (confdir, homedir);
 
             strcat (confdir, confdir_base);
-
-
-            sramdir = ((UINT8 *) malloc (strlen (confdir) + sizeof (sramdir_base)));
-
-
-            if (sramdir)
-            {
-                strcpy (sramdir, confdir);
-
-                strcat (sramdir, sramdir_base);
-            }
 
 
             logdir = ((UINT8 *) malloc (strlen (confdir) + sizeof (logdir_base)));
@@ -311,8 +296,6 @@ int main (int argc, char * argv [])
         }
         else
         {
-            sramdir = NULL;
-
             logdir = NULL;
         }
 
@@ -340,14 +323,9 @@ int main (int argc, char * argv [])
 
                         confdir = NULL;
                     }
-                    else    /* mkdir was successful, make the sram dir. */
+                    else    /* mkdir was successful, make the log dir. */
                     {
-                        /* Error checking for sramdir happens later. */
-
-                        mkdir (sramdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH));
-
-
-                        /* And likesie for logdir. */
+                        /* Error checking for logdir happens later. */
 
                         mkdir (logdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH));
                     }
@@ -408,60 +386,6 @@ int main (int argc, char * argv [])
     }
 
 
-    /* Check the sram directory. */
-
-    if (! sramdir)
-    {
-        /* If we have a valid home directory, there was an error. */
-
-        if (homedir)
-        {
-            fprintf (stderr, "Error when generating save path.\nSRAM files will not be saved.\n\n");
-        }
-    }
-    else
-    {
-        if (! (tmpdir = opendir (sramdir)))
-        {
-            if (errno == ENOENT)
-            {
-                if (mkdir (sramdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) == -1)
-                {
-                    fprintf (stderr, "Error creating \"%s\"\n\n", sramdir);
-
-
-                    free (sramdir);
-
-                    sramdir = NULL;
-                }
-            }
-            else
-            {
-                UINT8 errorbuf [300] = { NULL };
-
-
-                strcat (errorbuf, confdir);
-
-                perror (errorbuf);
-
-
-                fprintf (stderr, "%s.\nConfiguration will not be saved.\n\n", errorbuf);
-
-
-                free (confdir);
-
-                sramdir = NULL;
-            }
-        }
-        else
-        {
-            /* Close the directory we just opened. */
-
-            closedir (tmpdir);
-        }
-    }
-
-
     /* Check the logs directory. */
 
     if (! logdir)
@@ -479,7 +403,7 @@ int main (int argc, char * argv [])
         {
             if (errno == ENOENT)
             {
-                if (mkdir (sramdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) == -1)
+                if (mkdir (logdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) == -1)
                 {
                     fprintf (stderr, "Error creating \"%s\"\n\n", logdir);
 

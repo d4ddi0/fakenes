@@ -38,49 +38,26 @@ All rights reserved.  See 'LICENSE' for details.
 #include "misc.h"
 
 
-#ifdef POSIX
-
-extern char * confdir;
-
-extern char * sramdir;
-
-#endif
-
-
 static UINT8 cpu_sram [8192];
 
 
-static char *get_sram_filename (char *buffer, const char *rom_filename, int buffer_size)
+static UINT8 * get_sram_filename (UINT8 * buffer, const UINT8 * rom_filename, int buffer_size)
 {
-#ifdef POSIX
+    memset (buffer, NULL, buffer_size);
 
-    if (sramdir != NULL)
-    {
-        strcpy (buffer, sramdir);
-    
-        strcat (buffer, "/");
 
-        strcat (buffer, get_filename (rom_filename));
-    
-    
-        replace_extension
-            (buffer, buffer, "sav", buffer_size);
-    }
-    else
-    {
-        replace_extension (buffer,
-            rom_filename, "sav", buffer_size);
-    }
-	
-#else
+    strcat (buffer, get_config_string ("gui", "save_path", "./"));
 
-    replace_extension (buffer,
-        rom_filename, "sav", buffer_size);
+    put_backslash (buffer);
 
-#endif
 
-    return buffer;
+    strcat (buffer, get_filename (rom_filename));
 
+
+    replace_extension (buffer, buffer, "sav", buffer_size);
+
+
+    return (buffer);
 }
 
 
