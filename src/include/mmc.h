@@ -34,9 +34,6 @@ void mmc_exit (void);
 void mmc_reset (void);
 
 
-int mmc_disable_irqs;
-
-
 void (* mmc_write) (UINT16, UINT8);
 
 

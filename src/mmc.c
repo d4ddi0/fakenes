@@ -35,9 +35,6 @@ All rights reserved.  See 'LICENSE' for details.
 #include "timing.h"
 
 
-int mmc_disable_irqs = FALSE;
-
-
 /* These macros calculate offsets. */
 
 #define ROM_PAGE_16K(index) \

@@ -19,6 +19,8 @@ static int mmc3_irq_counter = 0;
 
 static int mmc3_irq_latch = 0;
 
+static int mmc3_disable_irqs = TRUE;
+
 
 static unsigned int mmc3_prg_mask;
 
@@ -38,6 +40,8 @@ static int mmc3_irq_tick (int line)
 
         /* Load next counter position */
         mmc3_irq_counter = mmc3_irq_latch;
+
+        if (mmc3_disable_irqs) return 0;
         return 1;
     }
 
@@ -225,7 +229,7 @@ static void mmc3_write (UINT16 address, UINT8 value)
 
             /* Disable IRQs. */
 
-            mmc_disable_irqs = TRUE;
+            mmc3_disable_irqs = TRUE;
 
 
             break;
@@ -235,7 +239,7 @@ static void mmc3_write (UINT16 address, UINT8 value)
 
             /* Enable IRQs. */
 
-            mmc_disable_irqs = FALSE;
+            mmc3_disable_irqs = FALSE;
 
 
             break;
@@ -329,6 +333,7 @@ static INLINE int mmc3_init (void)
 
 
     mmc_scanline_start = mmc3_irq_tick;
+    mmc3_disable_irqs = TRUE;
 
 
     return (0);

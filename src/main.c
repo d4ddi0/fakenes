@@ -595,12 +595,9 @@ int main (int argc, char * argv [])
 
                     if (mmc_scanline_start)
                     {
-                        if (! mmc_disable_irqs)
+                        if (mmc_scanline_start (ppu_scanline))
                         {
-                            if (mmc_scanline_start (ppu_scanline))
-                            {
-                                cpu_interrupt (CPU_INTERRUPT_IRQ);
-                            }
+                            cpu_interrupt (CPU_INTERRUPT_IRQ);
                         }
                     }
 
@@ -653,13 +650,10 @@ int main (int argc, char * argv [])
 
                     if (mmc_scanline_start)
                     {
-                        if (! mmc_disable_irqs)
-                        {
-                            if (mmc_scanline_start (ppu_scanline))
-                            {
-                                cpu_interrupt (CPU_INTERRUPT_IRQ);
-                            }
-                        }
+                       if (mmc_scanline_start (ppu_scanline))
+                       {
+                           cpu_interrupt (CPU_INTERRUPT_IRQ);
+                       }
                     }
     
 
