@@ -194,8 +194,7 @@ static void mmc3_write (UINT16 address, UINT8 value)
 
             /* SRAM disable & enable. */
 
-/*          mmc_disable_sram = (! (value >> 7));*/
-            if (value >> 7) enable_sram();
+            if (value & 0x80) enable_sram();
             else disable_sram();
 
 

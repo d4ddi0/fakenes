@@ -34,8 +34,6 @@ void mmc_exit (void);
 void mmc_reset (void);
 
 
-int mmc_disable_sram;
-
 int mmc_disable_irqs;
 
 

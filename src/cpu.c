@@ -268,7 +268,6 @@ void cpu_exit (void)
 
 void enable_sram(void)
 {
-    mmc_disable_sram = 0;
     cpu_set_read_address_8k (0x6000, cpu_sram);
     cpu_set_write_address_8k (0x6000, cpu_sram);
 }
@@ -276,7 +275,6 @@ void enable_sram(void)
 
 void disable_sram(void)
 {
-    mmc_disable_sram = 1;
     cpu_set_read_address_8k (0x6000, dummy_read);
     cpu_set_write_address_8k (0x6000, dummy_write);
 }

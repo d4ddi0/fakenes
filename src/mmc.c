@@ -35,8 +35,6 @@ All rights reserved.  See 'LICENSE' for details.
 #include "timing.h"
 
 
-int mmc_disable_sram = FALSE;
-
 int mmc_disable_irqs = FALSE;
 
 
