@@ -3444,7 +3444,7 @@ RESOLUTION_MENU_HANDLER_EX (extended, 1280, 960)
 RESOLUTION_MENU_HANDLER_EX (extended, 1024, 1024)
 
 
-static int options_video_colors_menu_few_8_bit (void)
+static int options_video_colors_menu_paletted_8_bit (void)
 {
     video_set_color_depth (8);
 
@@ -3455,7 +3455,7 @@ static int options_video_colors_menu_few_8_bit (void)
 }
 
 
-static int options_video_colors_menu_many_15_bit (void)
+static int options_video_colors_menu_true_color_15_bit (void)
 {
     video_set_color_depth (15);
 
@@ -3466,7 +3466,7 @@ static int options_video_colors_menu_many_15_bit (void)
 }
 
 
-static int options_video_colors_menu_lots_16_bit (void)
+static int options_video_colors_menu_true_color_16_bit (void)
 {
     video_set_color_depth (16);
 
@@ -3477,7 +3477,7 @@ static int options_video_colors_menu_lots_16_bit (void)
 }
 
 
-static int options_video_colors_menu_all_32_bit (void)
+static int options_video_colors_menu_true_color_32_bit (void)
 {
     video_set_color_depth (32);
 

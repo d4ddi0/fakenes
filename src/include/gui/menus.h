@@ -811,25 +811,25 @@ static MENU options_video_resolution_menu [] =
 };
 
 
-static int options_video_colors_menu_few_8_bit (void);
+static int options_video_colors_menu_paletted_8_bit (void);
 
-static int options_video_colors_menu_many_15_bit (void);
+static int options_video_colors_menu_true_color_15_bit (void);
 
-static int options_video_colors_menu_lots_16_bit (void);
+static int options_video_colors_menu_true_color_16_bit (void);
 
-static int options_video_colors_menu_all_32_bit (void);
+static int options_video_colors_menu_true_color_32_bit (void);
 
 
 static MENU options_video_colors_menu [] =
 {
-    {   "&Few (8-bit)",   options_video_colors_menu_few_8_bit, NIL, 0, NIL },
-    {               "",                                   NIL, NIL, 0, NIL },
-    { "&Many (15-bit)", options_video_colors_menu_many_15_bit, NIL, 0, NIL },
-    {               "",                                   NIL, NIL, 0, NIL },
-    { "&Lots (16-bit)", options_video_colors_menu_lots_16_bit, NIL, 0, NIL },
-    {               "",                                   NIL, NIL, 0, NIL },
-    {  "&All (32-bit)",  options_video_colors_menu_all_32_bit, NIL, 0, NIL },
-    {              NIL,                                   NIL, NIL, 0, NIL }
+    {    "&Paletted (8-bit)",    options_video_colors_menu_paletted_8_bit, NIL, 0, NIL },
+    {                     "",                                         NIL, NIL, 0, NIL },
+    { "&True Color (15-bit)", options_video_colors_menu_true_color_15_bit, NIL, 0, NIL },
+    {                     "",                                         NIL, NIL, 0, NIL },
+    { "T&rue Color (16-bit)", options_video_colors_menu_true_color_16_bit, NIL, 0, NIL },
+    {                     "",                                         NIL, NIL, 0, NIL },
+    { "Tr&ue Color (32-bit)", options_video_colors_menu_true_color_32_bit, NIL, 0, NIL },
+    {                    NIL,                                         NIL, NIL, 0, NIL }
 };
 
 
