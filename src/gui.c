@@ -830,6 +830,9 @@ int show_gui (int first_run)
     gui_is_active = TRUE;
 
 
+    want_exit = FALSE;
+
+
     if (! gui_initialized)
     {
         gui_menu_draw_menu = sl_draw_menu;
