@@ -9,10 +9,10 @@ Miscellaneous changes:
   Fixed a bug which caused executed-frames counter to only count unrendered frames.
   Improved POSIX base support and the autoconf-based build system.
   Implemented loading of ROMs from ZIP files, must be the first file.
-  Fixed a serious bug in video mode initialization (??).
+  Fixed a serious bug in video mode initialization.
 
 Video output changes:
-  Added the ability to specify blit region, to hidding vertical scrolling.
+  Added the ability to specify blit region, to hide vertical scrolling.
   Added a toggle to the Options > Video menu in the GUI for 'force_window'.
   Added 2xSCL blitter (similar to 2xSOE, only better and slower).
   Improved the overall performance of basic blitting routines.
@@ -137,98 +137,6 @@ Memory mapper support changes
 Sunsoft mapper 4 (iNES mapper 68) support added.
 MMC3 SRAM disable bit ignored (to fix Star Tropics).
 
-
-0.1.0
-Miscellaneous changes
-CPU core optimizations, bug fixes, and timing corrections.
-PPU register read behavior corrected.
-Keyboard shortcut list dialog added.
-Emulated frame counter fixed.
-Zoom feature with definable zoom factor added.
-Crash-on-exit fix for ROMs without trainers.
-Zapper target sprite changed.
-
-Timing changes
-PAL/NTSC emulation select added.
-Sprite #0 collision detection added with fairly accurate timing.
-Sprite overflow detection added.
-Sprite DMA timing added.
-Sprite #0 collisions and zapper handled during skipped frames.
-Vblank NMI state on power-on changed to disabled.
-Zapper emulation corrected with fairly accurate timing.
-Overall timing fixes and corrections.
-
-PPU rendering changes
-Tile caching added.
-Line-based sprite emulation.
-Background left-edge clipping support added.
-Sprite left-edge clipping support corrected.
-
-Memory mapper support changes
-Color Dreams PRG banking fixed.
-GNROM (iNES mapper 66) support added.
-MMC2 CHR banking fixed.
-MMC3 four-screen mirroring fixed.
-0.1.3
-Miscellaneous changes
-PRG allocation, banking, and masking centralized.
-Eliminated 0-byte allocations when no CHR ROM was present.
-ROM loading code merged.
-
-Timing changes
-Minor CPU core IRQ fixes.
-
-Memory mapper support changes
-MMC interface overhauled.
-MMC3 IRQ improvements.
-MMC3 PRG banking fixed.
-
-Audio rendering & output changes
-Default sampling rate changed to 44.1 kHz.
-Default buffer length (in frames) changed to 4.
-Various recording bugs fixed.
-Linear echo effect tweaked and intensified.
-Default filter changed to weighted low pass.
-
-0.1.2
-Miscellaneous changes
-PPU source split into multiple files.
-PPU source cleanup.
-Audio base completely overhauled.
-Audio interface completely overhauled.
-NESticle palette added.
-Custom palette feature added.
-Snapshot now saves with the active palette.
-ROM filename displayed in the titlebar.
-MMC source cleanup.
-
-GUI input changes
-Toggle sprites shortcut key (F7) added.
-Toggle background shortcut key (F8) added.
-Most Fx shortcut keys remapped.
-
-PPU rendering changes
-Sprites split into two separate layers.
-
-Memory mapper support changes
-Nina-1 (iNES mapper 34) support added.
-
-Audio rendering & output changes
-Surround sound effect added.
-Linear echo effect added.
-High pass filter added.
-Dynamic low pass filter rewritten.
-
-0.1.1
-Miscellaneous changes
-Four-screen mirroring support added.
-
-PPU rendering changes
-Tile cache memory leak fixed.
-
-Memory mapper support changes
-Sunsoft mapper 4 (iNES mapper 68) support added.
-MMC3 SRAM disable bit ignored (to fix Star Tropics).
 
 0.1.0
 Miscellaneous changes
