@@ -49,6 +49,9 @@ static UINT8 message_buffer [256];
 static int redraw_flag = FALSE;
 
 
+static RGB * current_palette = NULL;
+
+
 static void reset_timer (void)
 {
     remove_int (reset_timer);
@@ -382,7 +385,7 @@ static int file_menu_snapshot (void)
             count = 1000;
 
             save_bitmap (filename,
-                video_buffer, DATA_DEFAULT_PALETTE);
+                video_buffer, current_palette);
 
 
             gui_message (GUI_COLOR_WHITE,
@@ -561,6 +564,8 @@ static int options_video_palette_menu_default (void)
 
     set_palette (DATA_DEFAULT_PALETTE);
 
+    current_palette = DATA_DEFAULT_PALETTE;
+
 
     return (D_O_K);
 }
@@ -578,6 +583,8 @@ static int options_video_palette_menu_gnuboy (void)
 
     set_palette (DATA_GNUBOY_PALETTE);
 
+    current_palette = DATA_GNUBOY_PALETTE;
+
 
     return (D_O_K);
 }
@@ -594,6 +601,8 @@ static int options_video_palette_menu_nester (void)
 
 
     set_palette (DATA_NESTER_PALETTE);
+
+    current_palette = DATA_NESTER_PALETTE;
 
 
     return (D_O_K);
