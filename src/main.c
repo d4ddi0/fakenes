@@ -82,6 +82,9 @@ int frame_skip_min = 0;
 int frame_skip_max = 0;
 
 
+static int first_run = FALSE;
+
+
 volatile int timing_fps = 0;
 
 volatile int timing_hertz = 0;
@@ -214,6 +217,10 @@ int main (int argc, char * argv [])
 
 
     allegro_init ();
+
+
+    install_keyboard ();
+
 
     set_window_title ("FakeNES");
 
@@ -497,6 +504,23 @@ int main (int argc, char * argv [])
     machine_type = get_config_int ("timing", "machine_type", MACHINE_TYPE_NTSC);
 
 
+    first_run = get_config_int ("gui", "first_run", TRUE);
+
+
+    if (first_run)
+    {
+        printf ("Press any key to continue...\n\n");
+
+
+        while (! keypressed ());
+
+        clear_keybuf ();
+
+
+        first_run = FALSE;
+    }
+
+
     install_timer ();
 
 
@@ -623,8 +647,14 @@ int main (int argc, char * argv [])
     }
 
 
+    fade_out (4);
+
+
     if (video_init () != 0)
     {
+        set_gfx_mode (GFX_TEXT, 0, 0, 0, 0);
+
+
         fprintf (stderr, "PANIC: Failed to initialize video interface!\n");
 
 
@@ -921,9 +951,15 @@ int main (int argc, char * argv [])
     set_config_int ("timing", "machine_type", machine_type);
 
 
+    set_config_int ("gui", "first_run", first_run);
+
+
     papu_exit ();
 
     audio_exit ();
+
+
+    fade_out (4);
 
 
     video_exit ();
