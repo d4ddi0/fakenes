@@ -73,7 +73,7 @@ bootstrap:
 ${BINARY}: bootstrap \
     ${OBJECTS}
 	${CC} ${OBJECTS} -o ${BINARY} ${LIBRARIES}
-${COREOFF_INC}: \
+${OFFSETS_INC}: \
     ${SOURCE_PATH}/coreoff.c \
     ${INCLUDE_PATH}/core.h \
     ${INCLUDE_PATH}/misc.h
