@@ -34,7 +34,7 @@ static int mmc3_irq_tick (int line)
 {
     if (((line >= FIRST_DISPLAYED_LINE) &&
         (line <= LAST_DISPLAYED_LINE)) &&
-        (background_enabled || sprites_enabled))
+        (PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED))
     {
         if (mmc3_irq_counter --) return 0;
 

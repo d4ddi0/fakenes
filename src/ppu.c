@@ -94,31 +94,6 @@ static void do_spr_ram_dma(UINT8 page);
 static int ppu_mirroring;
 
 
-/* register $2000 */
-#define VBLANK_NMI_FLAG_BIT     (1 << 7)
-#define PPU_SLAVE_BIT           (1 << 6)
-#define SPRITE_SIZE_BIT         (1 << 5)
-#define BACKGROUND_TILESET_BIT  (1 << 4)
-#define SPRITE_TILESET_BIT      (1 << 3)
-#define ADDRESS_INCREMENT_BIT   (1 << 2)
-#define NAME_TABLE_SELECT       (3 << 0)
-
-
-/* register $2001 */
-#define COLOR_INTENSITY         (7 << 5)
-#define SPRITES_ENABLE_BIT      (1 << 4)
-#define BACKGROUND_ENABLE_BIT   (1 << 3)
-#define SPRITES_CLIP_LEFT_EDGE_BIT      (1 << 2)
-#define BACKGROUND_CLIP_LEFT_EDGE_BIT   (1 << 1)
-#define MONOCHROME_DISPLAY_BIT  (1 << 0)
-
-
-/* register $2002 */
-#define VBLANK_FLAG_BIT         (1 << 7)
-#define SPRITE_0_COLLISION_BIT  (1 << 6)
-#define SPRITE_OVERFLOW_BIT     (1 << 5)
-
-
 #define PPU_PUTPIXEL(bitmap, x, y, color) \
     (bitmap -> line [y] [x] = color)
 
@@ -141,14 +116,10 @@ static int sprite_height = 8;
 
 static int want_vblank_nmi = FALSE;
 
-static int vblank_occured = FALSE;
-static int vram_writable = FALSE;
+static int vblank_occurred = FALSE;
 
 static UINT8 hit_first_sprite = 0;
 static int first_sprite_this_line = 0;
-
-static int background_clip_enabled = FALSE;
-static int sprites_clip_enabled = FALSE;
 
 static int first_line_this_frame = TRUE;
 
@@ -653,7 +624,6 @@ void ppu_invert_mirroring (void)   /* '/' key. */
     }
 }
 
-static int old_sprites_enabled = FALSE;
 static INT8 sprite_list_needs_recache;
 
 void ppu_reset (void)
@@ -687,7 +657,7 @@ void ppu_reset (void)
 
     want_vblank_nmi = FALSE;
 
-    vblank_occured = FALSE;
+    vblank_occurred = FALSE;
 
 
     sprite_height = 8;
@@ -695,8 +665,10 @@ void ppu_reset (void)
 
     buffered_vram_read = 0;
 
-    background_enabled = FALSE;
-    sprites_enabled = FALSE;
+    ppu_register_2001 =
+     PPU_BACKGROUND_SHOW_LEFT_EDGE_BIT |
+     PPU_SPRITES_SHOW_LEFT_EDGE_BIT |
+     PPU_BACKGROUND_ENABLE_BIT | PPU_SPRITES_ENABLE_BIT;
 
     background_tileset = 0;
 
@@ -869,7 +841,7 @@ static void recache_sprite_list (void)
         {
             if (sprite_count_on_line [line] == 8)
             {
-                sprite_overflow_on_line [line] = SPRITE_OVERFLOW_BIT;
+                sprite_overflow_on_line [line] = PPU_SPRITE_OVERFLOW_BIT;
                 continue;
             }
 
@@ -909,13 +881,13 @@ UINT8 ppu_read (UINT16 address)
 
             /* PPU status register. */
 
-            if (vblank_occured)
+            if (vblank_occurred)
             {
-                data |= VBLANK_FLAG_BIT;
-                vblank_occured = FALSE;
+                data |= PPU_VBLANK_FLAG_BIT;
+                vblank_occurred = FALSE;
             }
 
-            if (sprites_enabled && (ppu_scanline <= LAST_DISPLAYED_LINE))
+            if (PPU_SPRITES_ENABLED && (ppu_scanline <= LAST_DISPLAYED_LINE))
             {
                 if (sprite_list_needs_recache)
                 {
@@ -929,7 +901,7 @@ UINT8 ppu_read (UINT16 address)
             {
                 if (cpu_get_cycles_line() > ((first_sprite_this_line - 1) / 3))
                 {
-                    hit_first_sprite = SPRITE_0_COLLISION_BIT;
+                    hit_first_sprite = PPU_SPRITE_0_COLLISION_BIT;
                 }
             }
 
@@ -999,7 +971,8 @@ void ppu_write (UINT16 address, UINT8 value)
             /* Control register #1. */
 
             {
-                int new_sprite_height = ((value & SPRITE_SIZE_BIT) ? 16 : 8);
+                int new_sprite_height =
+                 ((value & PPU_SPRITE_SIZE_BIT) ? 16 : 8);
 
                 if (sprite_height != new_sprite_height)
                 {
@@ -1009,17 +982,17 @@ void ppu_write (UINT16 address, UINT8 value)
             }
 
 
-            want_vblank_nmi = (value & VBLANK_NMI_FLAG_BIT);
+            want_vblank_nmi = (value & PPU_VBLANK_NMI_FLAG_BIT);
 
             address_increment =
-                ((value & ADDRESS_INCREMENT_BIT) ? 32 : 1);
+                ((value & PPU_ADDRESS_INCREMENT_BIT) ? 32 : 1);
 
 
             background_tileset =
-                ((value & BACKGROUND_TILESET_BIT) ? 0x1000 : 0x0000);
+                ((value & PPU_BACKGROUND_TILESET_BIT) ? 0x1000 : 0x0000);
 
             sprite_tileset =
-                ((value & SPRITE_TILESET_BIT) ? 0x1000 : 0x0000);
+                ((value & PPU_SPRITE_TILESET_BIT) ? 0x1000 : 0x0000);
 
 
             address_temp = (address_temp & ~(3 << 10)) | ((value & 3) << 10);
@@ -1031,17 +1004,7 @@ void ppu_write (UINT16 address, UINT8 value)
 
             /* Control register #2. */
 
-            background_enabled =
-                (value & BACKGROUND_ENABLE_BIT);
-
-            sprites_enabled =
-                (value & SPRITES_ENABLE_BIT);
-
-            background_clip_enabled =
-                !(value & BACKGROUND_CLIP_LEFT_EDGE_BIT);
-
-            sprites_clip_enabled =
-                !(value & SPRITES_CLIP_LEFT_EDGE_BIT);
+            ppu_register_2001 = value;
 
             break;
 
@@ -1169,7 +1132,7 @@ static void do_spr_ram_dma(UINT8 page)
 
 static void vram_address_start_new_frame(void)
 {
-    if (background_enabled || sprites_enabled)
+    if (PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED)
     {
         vram_address = address_temp;
     }
@@ -1178,7 +1141,7 @@ static void vram_address_start_new_frame(void)
 
 void ppu_start_line(void)
 {
-    if (background_enabled || sprites_enabled)
+    if (PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED)
     {
         vram_address = (vram_address & (~0x1F & ~(1 << 10)))
          | (address_temp & (0x1F | (1 << 10)));
@@ -1186,14 +1149,14 @@ void ppu_start_line(void)
 
     if (first_sprite_this_line)
     {
-        hit_first_sprite = SPRITE_0_COLLISION_BIT;
+        hit_first_sprite = PPU_SPRITE_0_COLLISION_BIT;
         first_sprite_this_line = 0;
     }
 }
 
 void ppu_end_line(void)
 {
-    if (background_enabled || sprites_enabled)
+    if (PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED)
     {
         vram_address += 0x1000;
 
@@ -1222,8 +1185,7 @@ void ppu_end_line(void)
 
 void ppu_clear (void)
 {
-    vblank_occured = FALSE;
-    vram_writable = FALSE;
+    vblank_occurred = FALSE;
 
     first_line_this_frame = TRUE;
 
@@ -1271,7 +1233,7 @@ static void ppu_render_background (int line)
     int x, sub_x;
     int y, sub_y;
 
-    if (background_clip_enabled)
+    if (PPU_BACKGROUND_CLIP_ENABLED)
     {
         hline (video_buffer, 0, line, 7, 0);
         hline (video_buffer, 8, line, 255, ppu_background_palette [0]);
@@ -1366,7 +1328,7 @@ static void ppu_render_background (int line)
 
             attribute = attribute_table [attribute_byte & 3];
 
-            if (background_clip_enabled && (x <= 1))
+            if (PPU_BACKGROUND_CLIP_ENABLED && (x <= 1))
             {
                 if (x == 0) sub_x = 8;
                 else /* (x == 1) */ sub_x = x_offset;
@@ -1456,13 +1418,13 @@ void ppu_render_line (int line)
 {
     int i;
 
-    if (!background_enabled && !sprites_enabled)
+    if (!PPU_BACKGROUND_ENABLED && !PPU_SPRITES_ENABLED)
     {
         hline (video_buffer, 0, line, 255, 0);
         return;
     }
 
-    if (sprites_enabled)
+    if (PPU_SPRITES_ENABLED)
     {
         /* used for sprite pixel allocation and collision detection */
         memset (background_pixels + 8, 0, 256);
@@ -1473,7 +1435,7 @@ void ppu_render_line (int line)
         recache_vram_sets ();
     }
 
-    if (background_enabled)
+    if (PPU_BACKGROUND_ENABLED)
     {
         ppu_render_background (line);
     }
@@ -1482,7 +1444,7 @@ void ppu_render_line (int line)
         hline (video_buffer, 0, line, 255, 0);
     }
 
-    if (sprites_enabled)
+    if (PPU_SPRITES_ENABLED)
     {
         ppu_render_sprites (line);
     }
@@ -1513,7 +1475,7 @@ void ppu_stub_render_line (int line)
 
     /* if sprites or background are disabled, */
     /* sprite 0 can't collide with background */
-    if (!background_enabled || !sprites_enabled) return;
+    if (!PPU_BACKGROUND_ENABLED || !PPU_SPRITES_ENABLED) return;
 
     /* if sprite 0 already collided, nothing to detect */
     if (hit_first_sprite) return;
@@ -1530,9 +1492,7 @@ void ppu_stub_render_line (int line)
 
 void ppu_vblank (void)
 {
-    vblank_occured = TRUE;
-
-    vram_writable = TRUE;
+    vblank_occurred = TRUE;
 }
 
 
@@ -1591,7 +1551,7 @@ static INLINE void ppu_render_sprite (int sprite, int line)
     {
         last_x = 7;
 
-        if (sprites_clip_enabled && x < 8)
+        if (PPU_SPRITES_CLIP_ENABLED && x < 8)
         /* is sprite clipped on left-edge? */
         {
          if (x == 0)
@@ -1680,7 +1640,7 @@ static INLINE void ppu_render_sprite (int sprite, int line)
 
     priority = (ppu_spr_ram [sprite + 2] & SPRITE_PRIORITY_BIT);
 
-    if (sprite == 0 && background_enabled)
+    if (sprite == 0 && PPU_BACKGROUND_ENABLED)
     /* sprite 0 collision detection */
     {
         if (priority)
