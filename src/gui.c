@@ -2901,7 +2901,7 @@ static int options_audio_filters_menu_high_pass (void)
 }
 
 
-static int options_audio_channels_menu_square_1 (void)
+static int options_audio_channels_menu_square_wave_a (void)
 {
     papu_enable_square_1 = (! papu_enable_square_1);
 
@@ -2918,7 +2918,7 @@ static int options_audio_channels_menu_square_1 (void)
 }
 
 
-static int options_audio_channels_menu_square_2 (void)
+static int options_audio_channels_menu_square_wave_b (void)
 {
     papu_enable_square_2 = (! papu_enable_square_2);
 
@@ -2935,7 +2935,7 @@ static int options_audio_channels_menu_square_2 (void)
 }
 
 
-static int options_audio_channels_menu_triangle (void)
+static int options_audio_channels_menu_triangle_wave (void)
 {
     papu_enable_triangle = (! papu_enable_triangle);
 
@@ -2952,7 +2952,7 @@ static int options_audio_channels_menu_triangle (void)
 }
 
 
-static int options_audio_channels_menu_noise (void)
+static int options_audio_channels_menu_white_noise (void)
 {
     papu_enable_noise = (! papu_enable_noise);
 
@@ -2969,7 +2969,7 @@ static int options_audio_channels_menu_noise (void)
 }
 
 
-static int options_audio_channels_menu_dmc (void)
+static int options_audio_channels_menu_digital_dm (void)
 {
     papu_enable_dmc = (! papu_enable_dmc);
 
@@ -2986,7 +2986,7 @@ static int options_audio_channels_menu_dmc (void)
 }
 
 
-static int options_audio_channels_menu_exsound (void)
+static int options_audio_channels_menu_extended (void)
 {
     papu_enable_exsound = (! papu_enable_exsound);
 
