@@ -1314,16 +1314,14 @@ void ppu_render_line (int line)
 
     if (!background_enabled && !sprites_enabled)
     {
+        hline (video_buffer, 0, line, 255, 0);
         return;
     }
 
     if (sprites_enabled)
     {
         /* used for sprite pixel allocation and collision detection */
-        for (i = 0; i < 256; i++)
-        {
-            background_pixels [8 + i] = 0;
-        }
+        memset (background_pixels + 8, 0, 256);
     }
 
     recache_vram_sets ();
@@ -1432,10 +1430,7 @@ static INLINE void ppu_render_sprite (int sprite, int line)
     sprite *= 4;
 
 
-    y = line - (ppu_spr_ram [sprite] + 1);
-
     x = ppu_spr_ram [sprite + 3];
-
 
     /* perform horizontal clipping */
 
@@ -1496,6 +1491,18 @@ static INLINE void ppu_render_sprite (int sprite, int line)
 
     }
 
+    /* Line in sprite to draw. */
+    y = line - (ppu_spr_ram [sprite] + 1);
+
+    /* Vertical flipping. */
+    flip_v = (ppu_spr_ram [sprite + 2] & SPRITE_V_FLIP_BIT);
+
+    if (flip_v)
+    {
+        y = sprite_height - 1 - y;
+    }
+
+
     if (mmc_check_latches)
     {
         int address2 = address + y;
@@ -1510,16 +1517,13 @@ static INLINE void ppu_render_sprite (int sprite, int line)
     }
 
     cache_address = ppu_vram_block_cache_address [address >> 10] +
-        ((address & 0x3FF) / 2 * 8);
+        ((address & 0x3FF) / 2 * 8) + (y * 8);
 
     attribute = attribute_table [ppu_spr_ram [sprite + 2] & 3];
 
 
-    /* Flipping. */
-
+    /* Horizontal flipping. */
     flip_h = (ppu_spr_ram [sprite + 2] & SPRITE_H_FLIP_BIT);
-
-    flip_v = (ppu_spr_ram [sprite + 2] & SPRITE_V_FLIP_BIT);
 
 
     priority = (ppu_spr_ram [sprite + 2] & SPRITE_PRIORITY_BIT);
@@ -1536,29 +1540,11 @@ static INLINE void ppu_render_sprite (int sprite, int line)
 
                 if (flip_h)
                 {
-                    if (flip_v)
-                    {
-                        color = cache_address
-                            [( (sprite_height - 1 - y) * 8) + (7 - sub_x)];
-                    }
-                    else
-                    {
-                        color = cache_address
-                            [(y * 8) + (7 - sub_x)];
-                    }
+                    color = cache_address [(7 - sub_x)];
                 }
                 else
                 {
-                    if (flip_v)
-                    {
-                        color = cache_address
-                            [( (sprite_height - 1 - y) * 8) + sub_x];
-                    }
-                    else
-                    {
-                        color = cache_address
-                            [(y * 8) + sub_x];
-                    }
+                    color = cache_address [sub_x];
                 }
 
                 /* Transparency. */
@@ -1597,29 +1583,11 @@ static INLINE void ppu_render_sprite (int sprite, int line)
 
                 if (flip_h)
                 {
-                    if (flip_v)
-                    {
-                        color = cache_address
-                            [( (sprite_height - 1 - y) * 8) + (7 - sub_x)];
-                    }
-                    else
-                    {
-                        color = cache_address
-                            [(y * 8) + (7 - sub_x)];
-                    }
+                    color = cache_address [(7 - sub_x)];
                 }
                 else
                 {
-                    if (flip_v)
-                    {
-                        color = cache_address
-                            [( (sprite_height - 1 - y) * 8) + sub_x];
-                    }
-                    else
-                    {
-                        color = cache_address
-                            [(y * 8) + sub_x];
-                    }
+                    color = cache_address [sub_x];
                 }
 
                 /* Transparency. */
@@ -1659,29 +1627,11 @@ static INLINE void ppu_render_sprite (int sprite, int line)
 
                 if (flip_h)
                 {
-                    if (flip_v)
-                    {
-                        color = cache_address
-                            [( (sprite_height - 1 - y) * 8) + (7 - sub_x)];
-                    }
-                    else
-                    {
-                        color = cache_address
-                            [(y * 8) + (7 - sub_x)];
-                    }
+                    color = cache_address [(7 - sub_x)];
                 }
                 else
                 {
-                    if (flip_v)
-                    {
-                        color = cache_address
-                            [( (sprite_height - 1 - y) * 8) + sub_x];
-                    }
-                    else
-                    {
-                        color = cache_address
-                            [(y * 8) + sub_x];
-                    }
+                    color = cache_address [sub_x];
                 }
 
                 /* Transparency. */
@@ -1719,29 +1669,11 @@ static INLINE void ppu_render_sprite (int sprite, int line)
 
                 if (flip_h)
                 {
-                    if (flip_v)
-                    {
-                        color = cache_address
-                            [( (sprite_height - 1 - y) * 8) + (7 - sub_x)];
-                    }
-                    else
-                    {
-                        color = cache_address
-                            [(y * 8) + (7 - sub_x)];
-                    }
+                    color = cache_address [(7 - sub_x)];
                 }
                 else
                 {
-                    if (flip_v)
-                    {
-                        color = cache_address
-                            [( (sprite_height - 1 - y) * 8) + sub_x];
-                    }
-                    else
-                    {
-                        color = cache_address
-                            [(y * 8) + sub_x];
-                    }
+                    color = cache_address [sub_x];
                 }
 
                 /* Transparency. */
