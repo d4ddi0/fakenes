@@ -397,27 +397,29 @@ word Run6502(M6502 *R)
 {
   for(;;)
   {
-    byte opcode, cycles;
+    while (R->ICount>0)
+    {
+      byte opcode, cycles;
 
 #ifdef M_DEBUG
-    /* Turn tracing on when reached trap address */
-    if(R->PC.W==R->Trap) R->Trace=1;
-    /* Call single-step debugger, exit if requested */
-    if(R->Trace)
-      if(!Debug6502(R)) return(R->PC.W);
+      /* Turn tracing on when reached trap address */
+      if(R->PC.W==R->Trap) R->Trace=1;
+      /* Call single-step debugger, exit if requested */
+      if(R->Trace)
+        if(!Debug6502(R)) return(R->PC.W);
 #endif
 
-    opcode=Op6502(R->PC.W++);
-    cycles=Cycles[opcode];
-    R->Cycles+=cycles;
-    R->ICount-=cycles;
-    switch(opcode)
-    {
+      opcode=Op6502(R->PC.W++);
+      cycles=Cycles[opcode];
+      R->Cycles+=cycles;
+      R->ICount-=cycles;
+      switch(opcode)
+      {
 #include "core/codes.h"
+      }
     }
 
-    /* If cycle counter expired... */
-    if(R->ICount<=0)
+    /* cycle counter expired, or we wouldn't be here */
     {
       int interrupt;
 
