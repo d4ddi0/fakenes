@@ -1061,14 +1061,14 @@ void video_blit (BITMAP * bitmap)
     show_overlay = video_show_overlay;
 
 
-    if (show_overlay && video_overlay_text)
+    if (show_overlay && video_overlay_text && (! gui_is_active))
     {
         xor_mode (TRUE);
 
         shadow_textout (screen_buffer, font, video_overlay_text, ((SCREEN_W / 2) -
             (text_length (font, video_overlay_text) / 2)), 32, VIDEO_COLOR_WHITE);
     }
-    else if ((! show_overlay) && video_overlay_text)
+    else if ((! show_overlay) && video_overlay_text && (! gui_is_active))
     {
         video_overlay_text = NULL;
     }
@@ -1083,7 +1083,7 @@ void video_blit (BITMAP * bitmap)
 
     /* Now erase it... */
 
-    if (video_show_overlay && video_overlay_text)
+    if (video_show_overlay && video_overlay_text && (! gui_is_active))
     {
         shadow_textout (screen_buffer, font, video_overlay_text, ((SCREEN_W / 2) -
             (text_length (font, video_overlay_text) / 2)), 32, VIDEO_COLOR_WHITE);
