@@ -167,13 +167,35 @@ int sl_frame (int message, DIALOG * dialog, int key)
                             shade = (191 - ((pixel * 128) / dialog -> w));
 
 
-                            if (video_get_color_depth () == 16)
+                            switch (video_get_color_depth ())
                             {
-                                putpixel (screen, (x + pixel), y_offset, makecol16_dither (shade, shade, shade, (x + pixel), y_offset));
-                            }
-                            else
-                            {
-                                putpixel (screen, (x + pixel), y_offset, makecol15_dither (shade, shade, shade, (x + pixel), y_offset));
+                                case 15:
+    
+                                    putpixel (screen, (x + pixel), y_offset, makecol15_dither (shade, shade, shade, (x + pixel), y_offset));
+    
+    
+                                    break;
+    
+    
+                                case 16:
+    
+                                    putpixel (screen, (x + pixel), y_offset, makecol16_dither (shade, shade, shade, (x + pixel), y_offset));
+    
+    
+                                    break;
+    
+    
+                                case 32:
+    
+                                    putpixel (screen, (x + pixel), y_offset, makecol32 (shade, shade, shade));
+    
+    
+                                    break;
+    
+    
+                                default:
+    
+                                    break;
                             }
                         }
                     }
@@ -377,13 +399,35 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
                         shade = (191 - ((pixel * 128) / width));
 
 
-                        if (video_get_color_depth () == 16)
+                        switch (video_get_color_depth ())
                         {
-                            putpixel (screen, (x + pixel), y_offset, makecol16_dither (shade, shade, shade, (x + pixel), y_offset));
-                        }
-                        else
-                        {
-                            putpixel (screen, (x + pixel), y_offset, makecol15_dither (shade, shade, shade, (x + pixel), y_offset));
+                            case 15:
+
+                                putpixel (screen, (x + pixel), y_offset, makecol15_dither (shade, shade, shade, (x + pixel), y_offset));
+
+
+                                break;
+
+
+                            case 16:
+
+                                putpixel (screen, (x + pixel), y_offset, makecol16_dither (shade, shade, shade, (x + pixel), y_offset));
+
+
+                                break;
+
+
+                            case 32:
+
+                                putpixel (screen, (x + pixel), y_offset, makecol32 (shade, shade, shade));
+
+
+                                break;
+
+
+                            default:
+
+                                break;
                         }
                     } 
                 }
@@ -467,13 +511,35 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
                         shade = (191 - ((pixel * 128) / width));
 
 
-                        if (video_get_color_depth () == 16)
+                        switch (video_get_color_depth ())
                         {
-                            putpixel (screen, (x + pixel), y_offset, makecol16_dither (shade, shade, shade, (x + pixel), y_offset));
-                        }
-                        else
-                        {
-                            putpixel (screen, (x + pixel), y_offset, makecol15_dither (shade, shade, shade, (x + pixel), y_offset));
+                            case 15:
+
+                                putpixel (screen, (x + pixel), y_offset, makecol15_dither (shade, shade, shade, (x + pixel), y_offset));
+
+
+                                break;
+
+
+                            case 16:
+
+                                putpixel (screen, (x + pixel), y_offset, makecol16_dither (shade, shade, shade, (x + pixel), y_offset));
+
+
+                                break;
+
+
+                            case 32:
+
+                                putpixel (screen, (x + pixel), y_offset, makecol32 (shade, shade, shade));
+
+
+                                break;
+
+
+                            default:
+
+                                break;
                         }
                     } 
                 }

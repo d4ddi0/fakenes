@@ -725,6 +725,8 @@ static int options_video_colors_menu_many_15_bit (void);
 
 static int options_video_colors_menu_lots_16_bit (void);
 
+static int options_video_colors_menu_all_32_bit (void);
+
 
 static MENU options_video_colors_menu [] =
 {
@@ -733,6 +735,8 @@ static MENU options_video_colors_menu [] =
     { "&Many (15-bit)", options_video_colors_menu_many_15_bit, NIL, 0, NIL },
     {               "",                                   NIL, NIL, 0, NIL },
     { "&Lots (16-bit)", options_video_colors_menu_lots_16_bit, NIL, 0, NIL },
+    {               "",                                   NIL, NIL, 0, NIL },
+    {  "&All (32-bit)",  options_video_colors_menu_all_32_bit, NIL, 0, NIL },
     {              NIL,                                   NIL, NIL, 0, NIL }
 };
 

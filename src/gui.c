@@ -763,6 +763,8 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_video_colors_menu, 4, (video_get_color_depth () == 16));
 
+    TOGGLE_MENU (options_video_colors_menu, 6, (video_get_color_depth () == 32));
+
 
     TOGGLE_MENU (options_video_blitter_menu, 0, (video_get_blitter () == VIDEO_BLITTER_AUTOMATIC));
 
@@ -925,8 +927,44 @@ int show_gui (int first_run)
     draw_logo ();
 
 
-    gui_message (gui_fg_color, "GUI initialized (%dx%dx%s, %s).", SCREEN_W, SCREEN_H,
-        ((video_get_color_depth () == 8) ? "256" : ((video_get_color_depth () == 15) ? "32K" : "64K")), gfx_driver -> name);
+    switch (video_get_color_depth ())
+    {
+        case 8:
+
+            gui_message (gui_fg_color, "GUI initialized (%dx%dx256, %s).", SCREEN_W, SCREEN_H, gfx_driver -> name);
+
+
+            break;
+
+
+        case 15:
+
+            gui_message (gui_fg_color, "GUI initialized (%dx%dx32K, %s).", SCREEN_W, SCREEN_H, gfx_driver -> name);
+
+
+            break;
+
+
+        case 16:
+
+            gui_message (gui_fg_color, "GUI initialized (%dx%dx64K, %s).", SCREEN_W, SCREEN_H, gfx_driver -> name);
+
+
+            break;
+
+
+        case 32:
+
+            gui_message (gui_fg_color, "GUI initialized (%dx%dx16M, %s).", SCREEN_W, SCREEN_H, gfx_driver -> name);
+
+
+            break;
+
+
+        default:
+
+            break;
+    }
 
 
     set_mouse_sprite_focus (8, 8);
@@ -3327,6 +3365,17 @@ static int options_video_colors_menu_many_15_bit (void)
 static int options_video_colors_menu_lots_16_bit (void)
 {
     video_set_color_depth (16);
+
+    gui_needs_restart = TRUE;
+
+
+    return (D_CLOSE);
+}
+
+
+static int options_video_colors_menu_all_32_bit (void)
+{
+    video_set_color_depth (32);
 
     gui_needs_restart = TRUE;
 
