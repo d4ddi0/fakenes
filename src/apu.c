@@ -1459,8 +1459,12 @@ void apu_process(void *buffer, int num_samples, int dither)
             *((UINT16 *) buffer)++ = accum ^ 0x8000;
          else
          {
+            /* Important: Don't use + 1 on this or it will actually
+            be 512, we want it to be 0-511, so that there is a 50/50
+            chance of the value being > 255 and causing a bit
+            transition in the quantized result. */
             if (dither)
-                accum += ((drand48 () - 0.5f) * 256.0f);
+                accum += (rand () % 512);
 
             *((UINT8 *) buffer)++ = (accum >> 8) ^ 0x80;
          }
@@ -1797,8 +1801,8 @@ void apu_process_stereo(void *buffer, int num_samples, int dither, int style, in
             *((UINT16 *) buffer)++ = accum_right ^ 0x8000;
          } else {
             if (dither) {
-                accum_left += ((drand48 () - 0.5f) * 128.0f);
-                accum_right += ((drand48 () - 0.5f) * 128.0f);
+                accum_left += (rand () % 512);
+                accum_right += (rand () % 512);
             }
 
             *((UINT8 *) buffer)++ = (accum_left >> 8) ^ 0x80;
@@ -1841,7 +1845,7 @@ void apu_reset_apus(APUSOUND *apus)
    memset(&apus->noise, 0, sizeof(apus->noise));
    memset(&apus->dmc, 0, sizeof(apus->dmc));
 
-   srand48 (time (0));  // for 8-bit dither
+   srand (time (0));    // for 8-bit dither
 }
 
 void apu_reset(void)
@@ -2085,6 +2089,9 @@ boolean sync_dmc_register(UINT32 cpu_cycles)
 
 /*
 ** $Log$
+** Revision 1.11  2002/07/18 20:34:19  stainless
+** Mingw32 compile fix.
+**
 ** Revision 1.10  2002/07/17 10:46:39  stainless
 ** Added random noise dithering for 8-bit audio.
 **
