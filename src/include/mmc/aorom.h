@@ -5,7 +5,7 @@
 /* This mapper is fully supported. */
 
 
-#define AOROM_MIRRORING_BIT   0xf
+#define AOROM_MIRRORING_BIT (1 << 4)
 
 
 static int aorom_prg_mask = 0;
