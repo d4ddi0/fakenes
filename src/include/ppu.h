@@ -2,12 +2,15 @@
 
 /*
 
-FakeNES - A portable, open-source NES emulator.
+FakeNES - A portable, Open Source NES emulator.
 
-ppu.h: Declarations for the PPU emulation.
+ppu.c: Declarations for the PPU emulation.
 
-Copyright (c) 2001, Randy McDowell and Ian Smith.
-All rights reserved.  See 'LICENSE' for details.
+Copyright (c) 2002, Randy McDowell and Ian Smith.
+Portions copyright (c) 2002, Charles Bilyue'.
+
+This is free software.  See 'LICENSE' for details.
+You must read and accept the license prior to use.
 
 */
 

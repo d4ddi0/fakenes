@@ -2,12 +2,15 @@
 
 /*
 
-FakeNES - A portable, open-source NES emulator.
+FakeNES - A portable, Open Source NES emulator.
 
 ppu.c: Implementation of the PPU emulation.
 
-Copyright (c) 2001, Randy McDowell and Ian Smith.
-All rights reserved.  See 'LICENSE' for details.
+Copyright (c) 2002, Randy McDowell and Ian Smith.
+Portions copyright (c) 2002, Charles Bilyue'.
+
+This is free software.  See 'LICENSE' for details.
+You must read and accept the license prior to use.
 
 */
 
@@ -60,9 +63,9 @@ static UINT8 * ppu_vram_block_write_address [8];
 #define FIRST_VROM_BLOCK 8
 static UINT32 ppu_vram_block [8];
 
-static INT32 ppu_vram_set_begin [8];
-static INT32 ppu_vram_set_end [8];
-static INT8 ppu_vram_needs_cache_update;
+static INT32 ppu_vram_dirty_set_begin [8];
+static INT32 ppu_vram_dirty_set_end [8];
+static INT8 ppu_vram_cache_needs_update;
 
 
 static UINT8 ppu_vram_dummy_write [1024];
@@ -125,6 +128,16 @@ static int first_line_this_frame = TRUE;
 
 static int background_tileset = 0;
 static int sprite_tileset = 0;
+
+static UINT8 attribute_table [4];
+
+static INT8 background_pixels [8 + 256 + 8];
+
+#include "ppu/tiles.h"
+
+#include "ppu/backgrnd.h"
+#include "ppu/sprites.h"
+
 
 static INLINE UINT8 vram_read (UINT16 address)
 {
@@ -201,88 +214,6 @@ UINT8 * ppu_get_chr_rom_pages (ROM *rom)
 }
 
 
-static UINT32 tile_decode_table_plane_0[16];
-static UINT32 tile_decode_table_plane_1[16];
-static UINT8 attribute_table [4];
-
-
-void ppu_cache_chr_rom_pages (void)
-{
-    int tile, num_tiles;
-
-    /* 8k CHR ROM page size, 2-bitplane 8x8 tiles */
-    num_tiles = (ROM_CHR_ROM_PAGES * 0x2000) / (8 * 2);
-
-    for (tile = 0; tile < num_tiles; tile++)
-    {
-        int y;
-
-        for (y = 0; y < 8; y++)
-        {
-            UINT32 pixels0_3, pixels4_7;
-
-            pixels0_3 = tile_decode_table_plane_0
-                [(ROM_CHR_ROM [tile * 16 + y]) >> 4];
-            pixels4_7 = tile_decode_table_plane_0
-                [(ROM_CHR_ROM [tile * 16 + y]) & 0x0F];
-
-            pixels0_3 |= tile_decode_table_plane_1
-                [(ROM_CHR_ROM [tile * 16 + y + 8]) >> 4];
-            pixels4_7 |= tile_decode_table_plane_1
-                [(ROM_CHR_ROM [tile * 16 + y + 8]) & 0x0F];
-            
-
-            *(UINT32 *) (&ROM_CHR_ROM_CACHE [((tile * 8 + y) * 8)]) =
-                pixels0_3;
-            *(UINT32 *) (&ROM_CHR_ROM_CACHE [((tile * 8 + y) * 8) + 4]) =
-                pixels4_7;
-
-            ROM_CHR_ROM_CACHE_TAG [tile * 8 + y] =
-                ROM_CHR_ROM [tile * 16 + y] |
-                ROM_CHR_ROM [tile * 16 + y + 8];
-        }
-    }
-}
-
-
-void ppu_cache_all_vram (void)
-{
-    int tile, num_tiles;
-
-    num_tiles = sizeof(ppu_pattern_vram) / (8 * 2);
-
-    for (tile = 0; tile < num_tiles; tile++)
-    {
-        int y;
-
-        for (y = 0; y < 8; y++)
-        {
-            UINT32 pixels0_3, pixels4_7;
-
-            pixels0_3 = tile_decode_table_plane_0
-                [(ppu_pattern_vram [tile * 16 + y]) >> 4];
-            pixels4_7 = tile_decode_table_plane_0
-                [(ppu_pattern_vram [tile * 16 + y]) & 0x0F];
-
-            pixels0_3 |= tile_decode_table_plane_1
-                [(ppu_pattern_vram [tile * 16 + y + 8]) >> 4];
-            pixels4_7 |= tile_decode_table_plane_1
-                [(ppu_pattern_vram [tile * 16 + y + 8]) & 0x0F];
-            
-
-            *(UINT32 *) (&ppu_pattern_vram_cache [((tile * 8 + y) * 8)]) =
-                pixels0_3;
-            *(UINT32 *) (&ppu_pattern_vram_cache [((tile * 8 + y) * 8) + 4]) =
-                pixels4_7;
-
-            ppu_pattern_vram_cache_tag [tile * 8 + y] =
-                ppu_pattern_vram [tile * 16 + y] |
-                ppu_pattern_vram [tile * 16 + y + 8];
-        }
-    }
-}
-
-
 void ppu_set_ram_1k_pattern_vram_block (UINT16 block_address, int vram_block)
 {
     ppu_vram_block [block_address >> 10] = vram_block;
@@ -346,128 +277,13 @@ int ppu_init (void)
         attribute_table [i] = (i << 2) | 3;
     }
 
-    /* calculate the tile decoding lookup tables */
-    for (i = 0; i < 16; i++)
-    {
-        int pixels0 = 0, pixels1 = 0;
-
-#ifdef LSB_FIRST
-        if (i & 8)
-        {
-            pixels0 |= (0xFC | 1);
-            pixels1 |= (0xFC | 2);
-        }
-        if (i & 4)
-        {
-            pixels0 |= (0xFC | 1) << 8;
-            pixels1 |= (0xFC | 2) << 8;
-        }
-        if (i & 2)
-        {
-            pixels0 |= (0xFC | 1) << 16;
-            pixels1 |= (0xFC | 2) << 16;
-        }
-        if (i & 1)
-        {
-            pixels0 |= (0xFC | 1) << 24;
-            pixels1 |= (0xFC | 2) << 24;
-        }
-#else
-        if (i & 8)
-        {
-            pixels0 |= (0xFC | 1) << 24;
-            pixels1 |= (0xFC | 2) << 24;
-        }
-        if (i & 4)
-        {
-            pixels0 |= (0xFC | 1) << 16;
-            pixels1 |= (0xFC | 2) << 16;
-        }
-        if (i & 2)
-        {
-            pixels0 |= (0xFC | 1) << 8;
-            pixels1 |= (0xFC | 2) << 8;
-        }
-        if (i & 1)
-        {
-            pixels0 |= (0xFC | 1);
-            pixels1 |= (0xFC | 2);
-        }
-#endif
-        tile_decode_table_plane_0 [i] = pixels0;
-        tile_decode_table_plane_1 [i] = pixels1;
-    }
-
+    ppu_cache_init ();
     ppu_cache_chr_rom_pages ();
 
     ppu_reset ();
 
 
     return (0);
-}
-
-
-static void clear_vram_set (int vram_block)
-{
-    ppu_vram_set_begin [vram_block] = -2;
-    ppu_vram_set_end [vram_block] = -2;
-}
-
-
-static void recache_vram_set (int vram_block)
-{
-    int tile, begin, end;
-
-    begin = ppu_vram_set_begin [vram_block] + (vram_block * 0x400) / (8 * 2);
-    end = ppu_vram_set_end [vram_block] + (vram_block * 0x400) / (8 * 2);
-
-    for (tile = begin; tile <= end; tile++)
-    {
-        int y;
-
-        for (y = 0; y < 8; y++)
-        {
-            UINT32 pixels0_3, pixels4_7;
-
-            pixels0_3 = tile_decode_table_plane_0
-                [(ppu_pattern_vram [tile * 16 + y]) >> 4];
-            pixels4_7 = tile_decode_table_plane_0
-                [(ppu_pattern_vram [tile * 16 + y]) & 0x0F];
-
-            pixels0_3 |= tile_decode_table_plane_1
-                [(ppu_pattern_vram [tile * 16 + y + 8]) >> 4];
-            pixels4_7 |= tile_decode_table_plane_1
-                [(ppu_pattern_vram [tile * 16 + y + 8]) & 0x0F];
-            
-
-            *(UINT32 *) (&ppu_pattern_vram_cache [((tile * 8 + y) * 8)]) =
-                pixels0_3;
-            *(UINT32 *) (&ppu_pattern_vram_cache [((tile * 8 + y) * 8) + 4]) =
-                pixels4_7;
-
-            ppu_pattern_vram_cache_tag [tile * 8 + y] =
-                ppu_pattern_vram [tile * 16 + y] |
-                ppu_pattern_vram [tile * 16 + y + 8];
-        }
-    }
-}
-
-
-#define vram_set_needs_recache(set) (ppu_vram_set_end [set] >= 0)
-
-static void recache_vram_sets (void)
-{
-    int i;
-
-    for (i = 0; i < FIRST_VROM_BLOCK; i++)
-    {
-        if (vram_set_needs_recache(i))
-        {
-            recache_vram_set (i);
-            clear_vram_set (i);
-        }
-    }
-    ppu_vram_needs_cache_update = FALSE;
 }
 
 
@@ -624,8 +440,6 @@ void ppu_invert_mirroring (void)   /* '/' key. */
     }
 }
 
-static INT8 sprite_list_needs_recache;
-
 void ppu_reset (void)
 {
     int i;
@@ -636,12 +450,6 @@ void ppu_reset (void)
 
 
     ppu_cache_all_vram ();
-
-    for (i = 0; i < FIRST_VROM_BLOCK; i++)
-    {
-        clear_vram_set (i);
-    }
-    ppu_vram_needs_cache_update = FALSE;
 
 
     ppu_write (0x2000, 0);
@@ -776,11 +584,11 @@ void ppu_vram_write(UINT8 value)
 
                 this_tile = (address & 0x3FF) / 16;
 
-                if (ppu_vram_set_end [vram_block] != this_tile)
+                if (ppu_vram_dirty_set_begin [vram_block] != this_tile)
                 {
-                    if (ppu_vram_set_end [vram_block] == this_tile - 1)
+                    if (ppu_vram_dirty_set_begin [vram_block] == this_tile - 1)
                     {
-                        ppu_vram_set_end [vram_block] ++;
+                        ppu_vram_dirty_set_begin [vram_block] ++;
                     }
                     else
                     {
@@ -789,10 +597,10 @@ void ppu_vram_write(UINT8 value)
                             recache_vram_set (vram_block);
                         }
 
-                        ppu_vram_set_end [vram_block] =
-                            ppu_vram_set_begin [vram_block] = this_tile;
+                        ppu_vram_dirty_set_begin [vram_block] =
+                            ppu_vram_dirty_set_begin [vram_block] = this_tile;
 
-                        ppu_vram_needs_cache_update = TRUE;
+                        ppu_vram_cache_needs_update = TRUE;
                     }
                 }
             }
@@ -801,47 +609,6 @@ void ppu_vram_write(UINT8 value)
 
     vram_address += address_increment;
 
-}
-
-
-static UINT8 sprites_on_line [LAST_DISPLAYED_LINE + 1] [8];
-static UINT8 sprite_count_on_line [LAST_DISPLAYED_LINE + 1];
-static INT8 sprite_overflow_on_line [LAST_DISPLAYED_LINE + 1];
-
-
-static void recache_sprite_list (void)
-{
-    int line, sprite;
-
-    for (line = 0; line <= LAST_DISPLAYED_LINE; line++)
-    {
-        sprite_overflow_on_line [line] = 0;
-        sprite_count_on_line [line] = 0;
-    }
-
-    for (sprite = 0; sprite < 64; sprite++)
-    {
-        int first_y, last_y;
-
-        first_y = ppu_spr_ram [(sprite * 4) + 0] + 1;
-        last_y = first_y + sprite_height - 1;
-
-        /* vertical clipping */
-        if (last_y >= 239) last_y = 239;
-
-        for (line = first_y; line <= last_y; line++)
-        {
-            if (sprite_count_on_line [line] == 8)
-            {
-                sprite_overflow_on_line [line] = PPU_SPRITE_OVERFLOW_BIT;
-                continue;
-            }
-
-            sprites_on_line [line] [sprite_count_on_line [line]++] = sprite;
-        }
-    }
-
-    sprite_list_needs_recache = FALSE;
 }
 
 
@@ -1206,208 +973,6 @@ void ppu_start_render (void)
 
 
 
-/* VRAM address bit layout          */
-/* -YYY VHyy yyyx xxxx              */
-/* x = x tile offset in name table  */
-/* y = y tile offset in name table  */
-/* H = horizontal name table        */
-/* V = vertical name table          */
-/* Y = y line offset in tile        */
-
-
-static INT8 background_pixels [8 + 256 + 8];
-
-static void ppu_render_background (int line)
-{
-    int attribute_address;
-    int name_table;
-    UINT8 *name_table_address;
-    UINT8 attribute_byte = 0;
-
-    int x, sub_x;
-    int y, sub_y;
-
-    if (PPU_BACKGROUND_CLIP_ENABLED)
-    {
-        hline (video_buffer, 0, line, 7, 0);
-        hline (video_buffer, 8, line, 255, ppu_background_palette [0]);
-    }
-    else
-    {
-        hline (video_buffer, 0, line, 255, ppu_background_palette [0]);
-    }
-
-    /* dummy reads for write-back cache line loading */
-    ppu_vram_dummy_write [0] =
-        PPU_GETPIXEL(video_buffer, 0, line) |
-        PPU_GETPIXEL(video_buffer, 16, line) |
-        PPU_GETPIXEL(video_buffer, 16*2, line) |
-        PPU_GETPIXEL(video_buffer, 16*3, line) |
-        PPU_GETPIXEL(video_buffer, 16*4, line) |
-        PPU_GETPIXEL(video_buffer, 16*5, line) |
-        PPU_GETPIXEL(video_buffer, 16*6, line) |
-        PPU_GETPIXEL(video_buffer, 16*7, line) |
-        PPU_GETPIXEL(video_buffer, 16*8, line) |
-        PPU_GETPIXEL(video_buffer, 16*9, line) |
-        PPU_GETPIXEL(video_buffer, 16*10, line) |
-        PPU_GETPIXEL(video_buffer, 16*11, line) |
-        PPU_GETPIXEL(video_buffer, 16*12, line) |
-        PPU_GETPIXEL(video_buffer, 16*13, line) |
-        PPU_GETPIXEL(video_buffer, 16*14, line) |
-        PPU_GETPIXEL(video_buffer, 16*15, line);
-
-    name_table = (vram_address >> 10) & 3;
-    name_table_address = name_tables_read[name_table];
-
-    y = (vram_address >> 5) & 0x1F;
-    sub_y = (vram_address >> 12) & 7;
-
-    attribute_address =
-     /* Y position */
-     ((y >> 2) * 8) +
-     /* X position */
-     ((vram_address & 0x1F) >> 2);
-
-    if (vram_address & 3)
-    /* fetch and shift first attribute byte */
-    {
-        attribute_byte =
-            name_table_address [0x3C0 + attribute_address] >>
-            ( ( (y & 2) * 2 + (vram_address & 2)));
-    }
-
-
-    /* If background clip left edge is enabled, then skip the entirety
-     * of the first tile
-     */
-    /* Draw the background. */
-    for (x = 0; x < (256 / 8) + 1; x ++)
-    {
-        UINT8 attribute, cache_tag;
-        int tile_name, tile_address;
-        UINT8 *cache_address;
-        int cache_bank, cache_index;
-
-        if (!(vram_address & 3))
-        /* fetch and shift attribute byte */
-        {
-            attribute_byte =
-            name_table_address [0x3C0 + attribute_address] >>
-                ( (y & 2) * 2);
-        }
-
-        tile_name = name_table_address [vram_address & 0x3FF];
-        tile_address = ((tile_name * 16) + background_tileset);
-
-        if (mmc_check_latches)
-        {
-            if ((tile_name >= 0xFD) && (tile_name <= 0xFE))
-            {
-                mmc_check_latches(tile_address);
-            }
-        }
-   
-    
-        cache_bank = tile_address >> 10;
-        cache_index = ((tile_address & 0x3FF) / 2) + sub_y;
-
-        cache_tag = ppu_vram_block_cache_tag_address [cache_bank]
-            [cache_index];
-
-        if (cache_tag)
-        /* some non-transparent pixels */
-        {
-            cache_address = ppu_vram_block_cache_address [cache_bank] +
-                cache_index * 8;
-
-            attribute = attribute_table [attribute_byte & 3];
-
-            if (PPU_BACKGROUND_CLIP_ENABLED && (x <= 1))
-            {
-                if (x == 0) sub_x = 8;
-                else /* (x == 1) */ sub_x = x_offset;
-            }
-            else
-            {
-                sub_x = 0;
-            }
-
-            if (cache_tag != 0xFF)
-            /* some transparent pixels */
-            {
-                for (; sub_x < 8; sub_x ++)
-                {
-                    UINT8 color = cache_address[sub_x] & attribute;
-
-                    if (color == 0) continue;
-
-                    background_pixels [8 + ((x * 8) + sub_x - x_offset)] = color;
-
-                    color = ppu_background_palette [color];
-
-
-                    if (ppu_enable_background_layer)
-                    {
-                        PPU_PUTPIXEL (video_buffer,
-                            ((x * 8) + sub_x - x_offset), line, color);
-                    }
-                }
-            }
-            else
-            /* no transparent pixels */
-            {
-                for (; sub_x < 8; sub_x ++)
-                {
-                    UINT8 color = cache_address[sub_x] & attribute;
-
-                    background_pixels [8 + ((x * 8) + sub_x - x_offset)] = color;
-
-                    color = ppu_background_palette [color];
-
-
-                    if (ppu_enable_background_layer)
-                    {
-                        PPU_PUTPIXEL (video_buffer,
-                            ((x * 8) + sub_x - x_offset), line, color);
-                    }
-                }
-            }
-        }
-
-        ++vram_address;
-
-        /* next name byte */
-        if (!(vram_address & 1))
-        /* new attribute */
-        {
-            if (!(vram_address & 2))
-            /* new attribute byte */
-            {
-                ++attribute_address;
-
-                if ((vram_address & 0x1F) == 0)
-                /* horizontal name table toggle */
-                {
-                    name_table ^= 1;
-                    name_table_address = name_tables_read[name_table];
-
-                    /* handle address wrap */
-                    vram_address = (vram_address - (1 << 5)) ^ (1 << 10);
-                    attribute_address -= (1 << 3);
-                }
-            }
-            else
-            /* same attribute byte */
-            {
-                attribute_byte >>= 2;
-            }
-        }
-    }
-}
-
-
-static void ppu_render_sprites (int line);
-
 void ppu_render_line (int line)
 {
     int i;
@@ -1424,7 +989,7 @@ void ppu_render_line (int line)
         memset (background_pixels + 8, 0, 256);
     }
 
-    if (ppu_vram_needs_cache_update)
+    if (ppu_vram_cache_needs_update)
     {
         recache_vram_sets ();
     }
@@ -1503,344 +1068,5 @@ void ppu_vblank_nmi (void)
     if (want_vblank_nmi)
     {
         cpu_interrupt (CPU_INTERRUPT_NMI);
-    }
-}
-
-
-/* ----- Sprite rendering routines. ----- */
-
-#define SPRITE_V_FLIP_BIT       0x80
-#define SPRITE_H_FLIP_BIT       0x40
-#define SPRITE_PRIORITY_BIT     0x20
-
-
-static INLINE void ppu_render_sprite (int sprite, int line)
-{
-    int x, y, sub_x, sub_y;
-
-    int first_x, last_x, last_y;
-
-    int tile;
-
-    UINT8 attribute;
-
-    int address, priority;
-
-    int flip_h, flip_v;
-
-    UINT8 *cache_address;
-
-
-    /* Offset. */
-
-    sprite *= 4;
-
-
-    x = ppu_spr_ram [sprite + 3];
-
-    /* perform horizontal clipping */
-
-    if (x <= 256 - 8)
-    /* sprite not partially off right edge */
-    {
-        last_x = 7;
-
-        if (PPU_SPRITES_CLIP_ENABLED && x < 8)
-        /* is sprite clipped on left-edge? */
-        {
-         if (x == 0)
-         /* sprite fully clipped? */
-         {
-          return;
-         }
-
-         /* sprite partially clipped */
-         first_x = 8 - x;
-
-        }
-        else
-        /* sprite not clipped on left edge */
-        {
-            first_x = 0;
-        }
-    }
-    else
-    /* sprite clipped on right edge */
-    {
-        first_x = 0;
-        last_x = 256 - x - 1;
-    }
-
-
-    tile = ppu_spr_ram [sprite + 1];
-
-
-    if (sprite_height == 8)
-    {
-        /* Draw 8x8 sprites. */
-
-        address = ((tile * 16) + sprite_tileset);
-    
-    }
-    else
-    {
-        /* Draw 8x16 sprites. */
-
-        if (! (tile & 1))
-        {
-            address = (tile * 16);
-        }
-        else
-        {
-            address = (((tile - 1) * 16) + 0x1000);
-        }
-
-    }
-
-    /* Line in sprite to draw. */
-    y = line - (ppu_spr_ram [sprite] + 1);
-
-    /* Vertical flipping. */
-    flip_v = (ppu_spr_ram [sprite + 2] & SPRITE_V_FLIP_BIT);
-
-    if (flip_v)
-    {
-        y = sprite_height - 1 - y;
-    }
-
-
-    if (mmc_check_latches)
-    {
-        int address2 = address + y;
-
-        if (y >= 8) address2 += 8;
-
-        if (((address2 & 0xfff) >= 0xfd0) &&
-            ((address2 & 0xfff) <= 0xfef))
-        {
-            mmc_check_latches (address2);
-        }
-    }
-
-    cache_address = ppu_vram_block_cache_address [address >> 10] +
-        ((address & 0x3FF) / 2 * 8) + (y * 8);
-
-    attribute = attribute_table [ppu_spr_ram [sprite + 2] & 3];
-
-
-    /* Horizontal flipping. */
-    flip_h = (ppu_spr_ram [sprite + 2] & SPRITE_H_FLIP_BIT);
-
-
-    priority = (ppu_spr_ram [sprite + 2] & SPRITE_PRIORITY_BIT);
-
-    if (sprite == 0 && PPU_BACKGROUND_ENABLED)
-    /* sprite 0 collision detection */
-    {
-        if (priority)
-        /* low priority, plot under background */
-        {
-            for (sub_x = first_x; sub_x <= last_x; sub_x ++)
-            {
-                UINT8 color;
-
-                if (flip_h)
-                {
-                    color = cache_address [(7 - sub_x)];
-                }
-                else
-                {
-                    color = cache_address [sub_x];
-                }
-
-                /* Transparency. */
-                if ((color &= attribute) == 0)
-                {
-                    continue;
-                }
-
-
-                /* Background transparency & sprite 0 collision. */
-                if (background_pixels [8 + (x + sub_x)])
-                {
-                    background_pixels [8 + (x + sub_x)] = 16;
-
-                    if (!first_sprite_this_line)
-                    {
-                        first_sprite_this_line =
-                            (x + sub_x) + 1 + DOTS_HBLANK_BEFORE_RENDER;
-                    }
-                    continue;
-                }
-                else
-                {
-                    background_pixels [8 + (x + sub_x)] = 16;
-                }
-
-                color = ppu_sprite_palette [color];
-
-
-                PPU_PUTPIXEL (video_buffer,
-                    (x + sub_x), line, color);
-
-            }
-        }
-        else
-        /* high priority, plot over background */
-        {
-            for (sub_x = first_x; sub_x <= last_x; sub_x ++)
-            {
-                UINT8 color;
-
-                if (flip_h)
-                {
-                    color = cache_address [(7 - sub_x)];
-                }
-                else
-                {
-                    color = cache_address [sub_x];
-                }
-
-                /* Transparency. */
-                if ((color &= attribute) == 0)
-                {
-                    continue;
-                }
-
-
-                /* Sprite 0 collision. */
-                if (background_pixels [8 + (x + sub_x)])
-                {
-                    if (!first_sprite_this_line)
-                    {
-                        first_sprite_this_line =
-                            (x + sub_x) + 1 + DOTS_HBLANK_BEFORE_RENDER;
-                    }
-                }
-
-                /* Sprite 0 will always get its pixels... */
-                background_pixels [8 + (x + sub_x)] = 16;
-
-                color = ppu_sprite_palette [color];
-
-
-                PPU_PUTPIXEL (video_buffer,
-                    (x + sub_x), line, color);
-
-            }
-        }
-    }
-    else
-    /* normal plot */
-    {
-        if (priority)
-        /* low priority, plot under background */
-        {
-            for (sub_x = first_x; sub_x <= last_x; sub_x ++)
-            {
-                UINT8 color;
-
-                if (flip_h)
-                {
-                    color = cache_address [(7 - sub_x)];
-                }
-                else
-                {
-                    color = cache_address [sub_x];
-                }
-
-                /* Transparency. */
-                if ((color &= attribute) == 0)
-                {
-                    continue;
-                }
-
-
-                /* Transparency. */
-                if (background_pixels [8 + (x + sub_x)])
-                {
-                    background_pixels [8 + (x + sub_x)] = 16;
-                    continue;
-                }
-                else
-                {
-                    background_pixels [8 + (x + sub_x)] = 16;
-                }
-
-                color = ppu_sprite_palette [color];
-
-
-                if (ppu_enable_sprite_layer_a)
-                {
-                    PPU_PUTPIXEL (video_buffer,
-                        (x + sub_x), line, color);
-                }
-
-            }
-        }
-        else
-        /* high priority, plot over background */
-        {
-            for (sub_x = first_x; sub_x <= last_x; sub_x ++)
-            {
-                UINT8 color;
-
-                if (flip_h)
-                {
-                    color = cache_address [(7 - sub_x)];
-                }
-                else
-                {
-                    color = cache_address [sub_x];
-                }
-
-                /* Transparency. */
-                if ((color &= attribute) == 0)
-                {
-                    continue;
-                }
-
-
-                /* Transparency. */
-                if (background_pixels [8 + (x + sub_x)] >= 16)
-                {
-                    continue;
-                }
-                else
-                {
-                    background_pixels [8 + (x + sub_x)] = 16;
-                }
-
-                color = ppu_sprite_palette [color];
-
-
-                if (ppu_enable_sprite_layer_b)
-                {
-                    PPU_PUTPIXEL (video_buffer,
-                        (x + sub_x), line, color);
-                }
-            }
-        }
-    }
-}
-
-
-static void ppu_render_sprites (int line)
-{
-    int i, priority;
-
-
-    if (sprite_list_needs_recache)
-    {
-        recache_sprite_list ();
-    }
-
-    if (sprite_count_on_line [line] == 0) return;
-
-    for (i = 0; i < sprite_count_on_line [line]; i++)
-    {
-        int sprite = sprites_on_line [line] [i];
-
-        ppu_render_sprite (sprite, line);
     }
 }
