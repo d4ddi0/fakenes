@@ -1,3 +1,86 @@
+Version 0.3.0
+====--
+
+This release is dedicated to those who fell in the 9/11 attacks.
+
+Note: NetPlay is incomplete and replays are semi-broken in this release.
+Trying to use NetPlay in this will get you nothing!
+
+Mac OS X is officially supported by this release, in addition to Windows
+9x/NT/Me/2k/XP, 32-bit DOS, Linux, FreeBSD, QNX, and BeOS.
+
+Miscellaneous changes:
+  Infamous ROM load memory protection crash bug fix.
+  Overhauled CPU emulation core.
+  Added x86 assembly optimized CPU core components.
+  Fixed branch wrap detection bug.
+  Added CRC calculation for PRG ROM, CHR ROM, and ROM trainers.
+  Added support for CPU memory space patching (raw or Game Genie w/ GUI).
+  Added slow (half FPS) mode.
+  Corrected mirroring of uneven size ROMs.
+  Added save state support (may not work for all supported games).
+  Added automatic machine state saving accurate up to every frame.
+  Added support for replays (currently buggy).
+  Altered memory map for performance.
+  Added exit confirmation when ROM loaded.
+  Significant improvements to the timing system.
+
+Configuration changes:
+  Added configurable save state and Save RAM (SRAM) output path.
+  Configuration file and log file are now stored with the executable.
+  Changed Win32 configuration file to 'fakenesw.cfg'
+  Fixed several input configuration bugs.
+
+Build system & code changes:
+  Updated and added copyright messages.
+  USE_CONSOLE changed to ALLEGRO_USE_CONSOLE to solve compilation problems (Mac OS X).
+  Encapsulated datafile 'fakenes.dat' into build.
+  Replaced all references to `NULL' with `NIL' to avoid compiler conflicts.
+  Added object file suffixes to the build system (all platforms).
+  Changed binary installation location from '/usr/bin' to /'usr/local/bin' (POSIX)
+  Allegro compatibility fixes.
+  Cleaned-up, overhauled, and optimized most GUI-related code.
+  Added code to prevent registering conflicting digital directions in input.
+  Added ability to use `usleep' instead of `yield_timeslice' in speed throttling.
+
+GUI changes:
+  Repaired all key mappings.
+  Various GUI dialog enhancements and fixes.
+  Added GUI patch manager with Game Genie support only.
+  Added platform-specific video driver selection menus.
+  Added multiple message system and input chat capabilities.
+  Added input configuration dialog.
+  Fixed various bugs related to repeated initialization of the GUI.
+  Added GUI messages (log file) viewer.
+  Added GUI toggle for the 'swap_channels' configuration file setting.
+  Added GUI audio mixing speed selection menu.
+  Added fast (passive) automatic blitter selection.
+  Fixed default palette not being selected at startup.
+  Improved operation of Video > Palette menu items.
+
+Video output changes:
+  Added 15- and 16-bit color depth support.
+  Added 25% and 50% scanlines (currently very slow).
+  Added several new resolutions, including 512x480 (for windowed mode).
+  Added Super 2xSOE and Super 2xSCL anti-aliasing blitters.
+  Added simple interpolated blitter.
+  Fixed behavior of the 'last_blit_line' configuration file setting.
+  Added keys to adjust light (palette intensity) from inside the emulation.
+
+PPU rendering changes:
+  Minor optimizations to background rendering.
+
+Memory mapper support changes:
+  Cleaned up and extended IRQ interface.
+  Improved IRQ support in MMC3, MMC5, and Bandai mappers.
+  Fixed MMC5 IRQ generation (greatly improves many games).
+  Added MMC5 WRAM automatic size detection.
+  Minor corrections of MMC3 behavior when no CHR-ROM is present.
+
+Audio rendering & output changes:
+  Changed default sampling rate to 96 kHz and buffer length to 6.
+
+
 Version 0.2.0
 ====--
 
