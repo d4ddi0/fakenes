@@ -221,7 +221,7 @@ int papu_init (void)
     }
 
     
-    papu_filter_type = get_config_int ("audio", "filter_type", APU_FILTER_DYNAMIC);
+    papu_filter_type = get_config_int ("audio", "filter_type", APU_FILTER_WEIGHTED);
 
     apu_setfilter (papu_filter_type);
 
