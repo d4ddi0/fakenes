@@ -627,11 +627,30 @@ void cpu_save_state (PACKFILE * file, int version)
     file_chunk = pack_fopen_chunk (file, FALSE);
 
 
-    pack_fwrite (&cpu_context, sizeof (FN2A03), file_chunk);
+    /* Save CPU registers */
+    pack_iputw (cpu_context.PC.word, file_chunk);
+
+    pack_putc (cpu_context.A, file_chunk);
+    pack_putc (cpu_context.X, file_chunk);
+    pack_putc (cpu_context.Y, file_chunk);
+    pack_putc (cpu_context.S, file_chunk);
+    pack_putc (FN2A03_Pack_Flags(&cpu_context), file_chunk);
+
+    /* Save cycle counters */
+    pack_iputl (cpu_context.ICount, file_chunk);
+    pack_iputl (cpu_context.Cycles, file_chunk);
+
+    /* Save IRQ state */
+    pack_iputl (cpu_context.IRequest, file_chunk);
+
+    /* Save execution state */
+    pack_putc (cpu_context.Jammed, file_chunk);
 
 
+    /* Save NES internal RAM */
     pack_fwrite (cpu_ram, 0x800, file_chunk);
 
+    /* Save cartridge expansion RAM */
     pack_fwrite (cpu_sram, 0x2000, file_chunk);
 
 
@@ -643,15 +662,37 @@ void cpu_load_state (PACKFILE * file, int version)
 {
     PACKFILE * file_chunk;
 
+    UINT8 P;
+
 
     file_chunk = pack_fopen_chunk (file, FALSE);
 
 
-    pack_fread (&cpu_context, sizeof (FN2A03), file_chunk);
+    /* Restore CPU registers */
+    cpu_context.PC.word = pack_igetw (file_chunk);
+
+    cpu_context.A = pack_getc (file_chunk);
+    cpu_context.X = pack_getc (file_chunk);
+    cpu_context.Y = pack_getc (file_chunk);
+    cpu_context.S = pack_getc (file_chunk);
+    P = pack_getc (file_chunk);
+    FN2A03_Unpack_Flags(&cpu_context, P);
+
+    /* Restore cycle counters */
+    cpu_context.ICount = pack_igetl (file_chunk);
+    cpu_context.Cycles = pack_igetl (file_chunk);
+
+    /* Restore IRQ state */
+    cpu_context.IRequest = pack_igetl (file_chunk);
+
+    /* Restore execution state */
+    cpu_context.Jammed = pack_getc (file_chunk);
 
 
+    /* Restore NES internal RAM */
     pack_fread (cpu_ram, 0x800, file_chunk);
 
+    /* Restore cartridge expansion RAM */
     pack_fread (cpu_sram, 0x2000, file_chunk);
 
 

@@ -54,6 +54,21 @@ the emulation core.
 #define	V_FLAG	  0x40         /* 1: Overflow occured        */
 #define	N_FLAG	  0x80         /* 1: Result is negative      */
 
+
+/* These macros pack flags into the CPU's own format (for push */
+/* to the stack or display in a debugger) or unpack flags from */
+/* the CPU's format (for pop from the stack). */
+
+#define FN2A03_Pack_Flags(R) \
+    (((R)->N & N_FLAG) | ((R)->V ? V_FLAG : 0) | ((R)->D ? D_FLAG : 0) | \
+    ((R)->I ? I_FLAG : 0) | ((R)->Z ? 0 : Z_FLAG) | ((R)->C ? C_FLAG : 0) | \
+    R_FLAG | B_FLAG)
+#define FN2A03_Unpack_Flags(R,P) \
+    (R)->N = (P) & N_FLAG; (R)->V = (P) & V_FLAG; (R)->D = (P) & D_FLAG; \
+    (R)->I = (P) & I_FLAG; (R)->Z = (P) & Z_FLAG ? 0 : 1; \
+    (R)->C = (P) & C_FLAG;
+
+
 /*
  The following data types must be defined.
   UINT8     unsigned    sizeof(UINT8) == 1

@@ -53,10 +53,8 @@ CPU, as used in the Nintendo Famicom (Family Computer) and NES
 /* to the stack or display in a debugger) or unpack flags from */
 /* the CPU's format (for pop from the stack). */
 
-#define Pack_Flags()    ((R->N&N_FLAG)|(R->V?V_FLAG:0)|(R->D?D_FLAG:0)| \
-                        (R->I?I_FLAG:0)|(R->Z?0:Z_FLAG)|(R->C?C_FLAG:0)|R_FLAG|B_FLAG)
-#define Unpack_Flags(P) R->N=P&N_FLAG;R->V=P&V_FLAG;R->D=P&D_FLAG; \
-                        R->I=P&I_FLAG;R->Z=P&Z_FLAG?0:1;R->C=P&C_FLAG;
+#define Pack_Flags()    FN2A03_Pack_Flags(R)
+#define Unpack_Flags(P) FN2A03_Unpack_Flags((R),(P))
 
 /* This macro is used to set the Negative and Zero flags based */
 /* on a result. */
