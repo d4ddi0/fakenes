@@ -808,12 +808,6 @@ UINT8 ppu_read (UINT16 address)
             {
                 data |= SPRITE_0_COLLISION_BIT;
             }
-            /*
-            else
-            {
-                data |= SPRITE_0_COLLISION_BIT;
-            }
-            */
 
 
             address_write = FALSE;
@@ -1119,8 +1113,6 @@ void recache_sprite_list (void)
 {
     int line, sprite;
 
-    FILE *spr_dmp = fopen("spr.dmp", "wb");
-
     for (line = 0; line < 240; line++)
     {
         sprite_overflow_on_line [line] = FALSE;
@@ -1145,20 +1137,11 @@ void recache_sprite_list (void)
                 continue;
             }
 
-            sprites_on_line [line] [8 - 1 - sprite_count_on_line [line]++] = sprite;
+            sprites_on_line [line] [sprite_count_on_line [line]++] = sprite;
         }
     }
 
     sprite_list_needs_recache = FALSE;
-
-    if (spr_dmp)
-    {
-        fwrite(ppu_spr_ram, 1, sizeof(ppu_spr_ram), spr_dmp);
-        fwrite(sprite_count_on_line, 1, sizeof(sprite_count_on_line), spr_dmp);
-        fwrite(sprite_overflow_on_line, 1, sizeof(sprite_overflow_on_line), spr_dmp);
-        fwrite(sprites_on_line, 1, sizeof(sprites_on_line), spr_dmp);
-        fclose (spr_dmp);
-    }
 }
 
 
@@ -1636,7 +1619,7 @@ static void ppu_render_sprites (int line)
 
     if (sprite_count_on_line [line] == 0) return;
 
-    if (sprites_on_line [line] [sprite_count_on_line [line] - 1] == 0)
+    if (sprites_on_line [line] [0] == 0)
     /* sprite 0 collision detection */
     {
         if (background_enabled)
@@ -1645,7 +1628,7 @@ static void ppu_render_sprites (int line)
         }
     }
 
-    for (i = 8 - sprite_count_on_line [line]; i < 8; i++)
+    for (i = sprite_count_on_line [line] - 1; i >= 0; i--)
     {
         int sprite = sprites_on_line [line] [i];
 
