@@ -115,7 +115,7 @@ static void ppu_render_background (int line)
 
     dummy_read_line(background_pixels + 8);
 
-    memset (plot_buffer, ppu_background_palette [0], 256);
+    memset (plot_buffer, ((ppu_background_palette [0] & palette_mask) + palette_adjust), 256);
 
     if (PPU_SPRITES_ENABLED)
     {
