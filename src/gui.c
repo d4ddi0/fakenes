@@ -3696,7 +3696,7 @@ static int options_video_filters_menu_scanlines_25_percent (void)
     draw_logo ();
 
 
-    gui_message (gui_fg_color, "Toggled scanlines video filter (25% opacity).");
+    gui_message (gui_fg_color, "Toggled scanlines video filter (25%% opacity).");
 
 
     return (D_REDRAW);
@@ -3737,7 +3737,7 @@ static int options_video_filters_menu_scanlines_50_percent (void)
     draw_logo ();
 
 
-    gui_message (gui_fg_color, "Toggled scanlines video filter (50% opacity).");
+    gui_message (gui_fg_color, "Toggled scanlines video filter (50%% opacity).");
 
 
     return (D_REDRAW);
@@ -3778,7 +3778,7 @@ static int options_video_filters_menu_scanlines_100_percent (void)
     draw_logo ();
 
 
-    gui_message (gui_fg_color, "Toggled scanlines video filter (100% opacity).");
+    gui_message (gui_fg_color, "Toggled scanlines video filter (100%% opacity).");
 
 
     return (D_REDRAW);
