@@ -5,7 +5,7 @@ CC = gcc
 RM = rm -f -v
 
 
-IFLAGS = -Iinclude
+IFLAGS = -Iinclude -Isupport
 
 ifdef DEBUG
     OFLAGS = -O0 -ggdb3
@@ -30,7 +30,7 @@ LIBRARIES = support/resource.o -lalleg -lz
 
 
 OBJECTS = apu.o audio.o core.o cpu.o gui.o input.o papu.o ppu.o rom.o \
-          main.o mmc.o video.o
+          main.o mmc.o video.o support/unzip.o
 
 
 ifdef DEBUG

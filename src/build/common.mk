@@ -39,7 +39,7 @@ ppu.o : ppu.c include/cpu.h include/input.h include/misc.h include/mmc.h \
         include/ppu/tiles.h include/ppu/backgrnd.h include/ppu/sprites.h
 
 rom.o : rom.c include/cpu.h include/rom.h include/misc.h include/mmc.h \
-        include/ppu.h
+        include/ppu.h support/unzip.h
 
 video.o : video.c include/cpu.h include/data.h include/gui.h \
           include/input.h include/misc.h include/ppu.h include/rom.h \

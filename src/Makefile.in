@@ -18,7 +18,7 @@ BINARY = fakenes@EXEEXT@
 DATAFILE = fakenes.dat
 
 
-IFLAGS = -Iinclude `allegro-config --cflags`
+IFLAGS = -Iinclude -I${SUPPORT} `allegro-config --cflags`
 
 DFLAGS = @DFLAGS@ -DPOSIX
 
@@ -30,7 +30,7 @@ LIBRARIES = `allegro-config --libs` @LIBS@
 
 
 OBJECTS = apu.o audio.o core.o cpu.o gui.o input.o papu.o ppu.o \
-          rom.o main.o mmc.o video.o
+          rom.o main.o mmc.o video.o support/unzip.o
 
 
 all : bootstrap ${BINARY}

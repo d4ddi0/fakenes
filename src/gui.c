@@ -510,8 +510,8 @@ static int file_menu_load_rom (void)
 
 #ifdef USE_ZLIB
 
-    if (file_select_ex ("iNES ROMs (*.NES, *.GZ)",
-        buffer, "NES;nes;GZ;gz", sizeof (buffer), 0, 0) != 0)
+    if (file_select_ex ("iNES ROMs (*.NES, *.GZ, *.ZIP)",
+        buffer, "NES;nes;GZ;gz;ZIP;zip", sizeof (buffer), 0, 0) != 0)
     {
 #else
     if (file_select_ex ("iNES ROMs (*.NES)",

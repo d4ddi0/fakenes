@@ -912,8 +912,8 @@ else
 fi
 
 
-echo $ac_n "checking whether to enable gzip support""... $ac_c" 1>&6
-echo "configure:917: checking whether to enable gzip support" >&5
+echo $ac_n "checking whether to enable zip/gzip support""... $ac_c" 1>&6
+echo "configure:917: checking whether to enable zip/gzip support" >&5
 
 if test x$HAVE_LIBZ != xno; then
     DFLAGS="$DFLAGS -DUSE_ZLIB"
