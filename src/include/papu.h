@@ -53,11 +53,6 @@ int papu_enable_exsound;
 int papu_ideal_triangle;
 
 
-int papu_smooth_envelope;
-
-int papu_smooth_sweep;
-
-
 int papu_linear_echo;
 
 int papu_surround_sound;

@@ -311,10 +311,6 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_audio_advanced_menu, 0, papu_ideal_triangle);
 
-    TOGGLE_MENU (options_audio_advanced_menu, 2, papu_smooth_envelope);
-
-    TOGGLE_MENU (options_audio_advanced_menu, 4, papu_smooth_sweep);
-
 
     TOGGLE_MENU (options_video_blitter_menu, 0, (video_get_blitter () == VIDEO_BLITTER_NORMAL));
 
@@ -1171,40 +1167,6 @@ static int options_audio_advanced_menu_ideal_triangle (void)
 
 
     gui_message (gui_fg_color, "Toggled emulation of ideal triangle.");
-
-
-    return (D_O_K);
-}
-
-
-static int options_audio_advanced_menu_smooth_envelope (void)
-{
-    papu_smooth_envelope = (! papu_smooth_envelope);
-
-    papu_update ();
-
-
-    update_menus ();
-
-
-    gui_message (error_color, "Smooth envelope is not implemented.");
-
-
-    return (D_O_K);
-}
-
-
-static int options_audio_advanced_menu_smooth_sweep (void)
-{
-    papu_smooth_sweep = (! papu_smooth_sweep);
-
-    papu_update ();
-
-
-    update_menus ();
-
-
-    gui_message (error_color, "Smooth sweep is not implemented.");
 
 
     return (D_O_K);

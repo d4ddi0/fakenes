@@ -64,11 +64,6 @@ int papu_swap_channels = 0;
 int papu_ideal_triangle = TRUE;
 
 
-int papu_smooth_envelope = TRUE;
-
-int papu_smooth_sweep = TRUE;
-
-
 int papu_linear_echo = TRUE;
 
 int papu_surround_sound = FALSE;
@@ -104,11 +99,6 @@ void papu_update (void)
 
 
     apu_setmode (APUMODE_IDEAL_TRIANGLE, papu_ideal_triangle);
-
-
-    apu_setmode (APUMODE_SMOOTH_ENVELOPE, papu_smooth_envelope);
-
-    apu_setmode (APUMODE_SMOOTH_SWEEP, papu_smooth_sweep);
 }
 
 
@@ -254,11 +244,6 @@ int papu_init (void)
     papu_ideal_triangle = get_config_int ("papu", "ideal_triangle", TRUE);
 
 
-    papu_smooth_envelope = get_config_int ("papu", "smooth_envelope", FALSE);
-
-    papu_smooth_sweep = get_config_int ("papu", "smooth_sweep", FALSE);
-
-
     papu_dithering = get_config_int ("audio", "dithering", FALSE);
 
 
@@ -304,11 +289,6 @@ void papu_exit (void)
 
 
     set_config_int ("papu", "ideal_triangle", papu_ideal_triangle);
-
-
-    set_config_int ("papu", "smooth_envelope", papu_smooth_envelope);
-
-    set_config_int ("papu", "smooth_sweep", papu_smooth_sweep);
 
 
     set_config_int ("papu", "linear_echo", papu_linear_echo);

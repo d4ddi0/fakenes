@@ -67,7 +67,7 @@ static MENU machine_menu [] =
     {        "",                NULL,               NULL, 0, NULL },
     {   "&Type",                NULL,  machine_type_menu, 0, NULL },
     {        "",                NULL,               NULL, 0, NULL },
-    {  "&State",                NULL, machine_state_menu, 0, NULL },
+    {  "St&ate",                NULL, machine_state_menu, 0, NULL },
     {      NULL,                NULL,               NULL, 0, NULL }
 };
 
@@ -248,18 +248,10 @@ static MENU options_audio_channels_menu [] =
 
 static int options_audio_advanced_menu_ideal_triangle (void);
 
-static int options_audio_advanced_menu_smooth_envelope (void);
-
-static int options_audio_advanced_menu_smooth_sweep (void);
-
 
 static MENU options_audio_advanced_menu [] =
 {
     {  "&Ideal Triangle",  options_audio_advanced_menu_ideal_triangle, NULL, 0, NULL },
-    {                 "",                                        NULL, NULL, 0, NULL },
-    { "&Smooth Envelope", options_audio_advanced_menu_smooth_envelope, NULL, 0, NULL },
-    {                 "",                                        NULL, NULL, 0, NULL },
-    {    "S&mooth Sweep",    options_audio_advanced_menu_smooth_sweep, NULL, 0, NULL },
     {               NULL,                                        NULL, NULL, 0, NULL }
 };
 
@@ -287,7 +279,7 @@ static MENU options_audio_menu [] =
     {          "",                       NULL,                        NULL, 0, NULL },
     {   "&Mixing",                       NULL,   options_audio_mixing_menu, 0, NULL },
     {          "",                       NULL,                        NULL, 0, NULL },
-    {  "&Effects",                       NULL,  options_audio_effects_menu, 0, NULL },
+    {  "Effec&ts",                       NULL,  options_audio_effects_menu, 0, NULL },
     {          "",                       NULL,                        NULL, 0, NULL },
     {   "&Filter",                       NULL,   options_audio_filter_menu, 0, NULL },
     {          "",                       NULL,                        NULL, 0, NULL },
@@ -373,7 +365,7 @@ static MENU options_video_layers_menu [] =
 {
     {  "&Sprites A",  options_video_layers_menu_sprites_a, NULL, 0, NULL },
     {            "",                                 NULL, NULL, 0, NULL },
-    {  "&Sprites B",  options_video_layers_menu_sprites_b, NULL, 0, NULL },
+    {  "S&prites B",  options_video_layers_menu_sprites_b, NULL, 0, NULL },
     {            "",                                 NULL, NULL, 0, NULL },
     { "&Background", options_video_layers_menu_background, NULL, 0, NULL },
     {          NULL,                                 NULL, NULL, 0, NULL }
@@ -399,11 +391,11 @@ static MENU options_video_palette_menu [] =
     {           "",                                 NULL, NULL, 0, NULL },
     { "&Grayscale", options_video_palette_menu_grayscale, NULL, 0, NULL },
     {           "",                                 NULL, NULL, 0, NULL },
-    {    "&gnuboy",    options_video_palette_menu_gnuboy, NULL, 0, NULL },
+    {    "gn&uboy",    options_video_palette_menu_gnuboy, NULL, 0, NULL },
     {           "",                                 NULL, NULL, 0, NULL },
     {    "&NESter",    options_video_palette_menu_nester, NULL, 0, NULL },
     {           "",                                 NULL, NULL, 0, NULL },
-    {  "&NESticle",  options_video_palette_menu_nesticle, NULL, 0, NULL },
+    {  "N&ESticle",  options_video_palette_menu_nesticle, NULL, 0, NULL },
     {           "",                                 NULL, NULL, 0, NULL },
     {    "&Custom",    options_video_palette_menu_custom, NULL, 0, NULL },
     {         NULL,                                 NULL, NULL, 0, NULL }
@@ -468,7 +460,7 @@ static MENU help_menu [] =
 static MENU top_menu [] =
 { 
     {    "&Main",          NULL,    main_menu, 0, NULL },
-    { "&Machine",          NULL, machine_menu, 0, NULL },
+    { "M&achine",          NULL, machine_menu, 0, NULL },
     { "&Options",          NULL, options_menu, 0, NULL },
     { "&NetPlay",          NULL, netplay_menu, 0, NULL },
     {    "&Help",          NULL,    help_menu, 0, NULL },
