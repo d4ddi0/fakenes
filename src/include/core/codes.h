@@ -11,11 +11,12 @@
 /**     commercially. Please, notify me, if you make any    **/
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 10.December 2001 TRAC      Added opcodes 07 and 74.       */
 /* 04.December 2001 stainless $ff INS word,X opcode added.   */
 /* 04.December 2001 stainless $ef INS word opcode added.     */
 /* 02.December 2001 stainless Opcode fallback trace.         */
 /* 27.November 2001 stainless Fixed GCC compiler warning.    */
-/* 27.November 2001 stainless Added N6502 $6c opcode bug.   */
+/* 27.November 2001 stainless Added N6502 $6c opcode bug.    */
 /* 26.November 2001 stainless Integrated into FakeNES.       */
 /*************************************************************/
 
@@ -115,6 +116,7 @@ case 0x2C: MR_Ab(I);M_BIT(I);break;       /* BIT $ssss ABS */
 
 case 0x05: MR_Zp(I);M_ORA(I);break;       /* ORA $ss ZP */
 case 0x06: MM_Zp(M_ASL);break;            /* ASL $ss ZP */
+case 0x07: MM_Zp(M_SLO);break;            /* SLO $ss ZP */
 case 0x25: MR_Zp(I);M_AND(I);break;       /* AND $ss ZP */
 case 0x26: MM_Zp(M_ROL);break;            /* ROL $ss ZP */
 case 0x45: MR_Zp(I);M_EOR(I);break;       /* EOR $ss ZP */
@@ -173,6 +175,7 @@ case 0x35: MR_Zx(I);M_AND(I);break;       /* AND $ss,x ZP,x */
 case 0x36: MM_Zx(M_ROL);break;            /* ROL $ss,x ZP,x */
 case 0x55: MR_Zx(I);M_EOR(I);break;       /* EOR $ss,x ZP,x */
 case 0x56: MM_Zx(M_LSR);break;            /* LSR $ss,x ZP,x */
+case 0x74: MR_Zx(I);break;                /* SKB $ss,x ZP,x */
 case 0x75: MR_Zx(I);M_ADC(I);break;       /* ADC $ss,x ZP,x */
 case 0x76: MM_Zx(M_ROR);break;            /* ROR $ss,x ZP,x */
 case 0x94: MW_Zx(R->Y);break;             /* STY $ss,x ZP,x */

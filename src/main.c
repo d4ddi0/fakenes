@@ -716,6 +716,8 @@ int machine_init (void)
 {
     if (rom_is_loaded)
     {
+        cpu_memmap_init ();
+
         if (mmc_init () != 0)
         {
             fprintf (stderr,

@@ -13,6 +13,7 @@
 /**     commercially. Please, notify me, if you make any    **/   
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 10.December 2001 TRAC      Added M_SLO.                   */
 /* 08.December 2001 stainless Replaced unnecessary Op6502s.  */
 /* 05.December 2001 TRAC      Added RETURN_ON_TRIP timing.   */
 /* 04.December 2001 TRAC      Fixed Run6502 cycle loss bug.  */
@@ -144,6 +145,7 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 #define M_INC(Rg)	Rg++;M_FL(Rg)
 #define M_DEC(Rg)	Rg--;M_FL(Rg)
 
+#define M_SLO(Rg)       M_ASL(Rg);M_ORA(Rg)
 #define M_ASL(Rg)	R->P&=~C_FLAG;R->P|=Rg>>7;Rg<<=1;M_FL(Rg)
 #define M_LSR(Rg)	R->P&=~C_FLAG;R->P|=Rg&C_FLAG;Rg>>=1;M_FL(Rg)
 #define M_ROL(Rg)	K.B.l=(Rg<<1)|(R->P&C_FLAG); \

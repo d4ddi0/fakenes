@@ -114,7 +114,83 @@ int cpu_init (void)
     cpu_context.TrapBadOps = TRUE;
 
 
+    memset(dummy_read, 0, sizeof(dummy_read));
+    memset(dummy_write, 0, sizeof(dummy_write));
+
+
     return (0);
+}
+
+
+UINT8 ppu_read_2000_3FFF (UINT16 address)
+{
+    return ppu_read(address);
+}
+
+UINT8 ppu_read_4000_47FF (UINT16 address)
+{
+    if (address == 0x4014)
+        return (ppu_read(address));
+    else if (address <= 0x4015)
+    {
+        return (papu_read (address));
+    }
+    else if ((address == 0x4016) || (address == 0x4017))
+    {
+        return (input_read (address));
+    }
+
+    return (0);
+}
+
+void ppu_write_2000_3FFF (UINT16 address, UINT8 value)
+{
+    ppu_write(address, value);
+}
+
+void ppu_write_4000_47FF (UINT16 address, UINT8 value)
+{
+    if (address == 0x4014)
+    {
+        ppu_write (address, value);
+    }
+    else if (address <= 0x4015)
+    {
+        papu_write (address, value);
+    }
+    else if ((address == 0x4016) || (address == 0x4017))
+    {
+        input_write (address, value);
+    }
+}
+
+void cpu_memmap_init (void)
+{
+    int index;
+
+    /* Start with a clean memory map */
+    for (index = 0; index < (64 << 10); index += (2 << 10))
+    {
+        cpu_set_read_address_2k (index, dummy_read);
+        cpu_set_write_address_2k (index, dummy_write);
+    }
+
+    /* Map in RAM */
+    for (index = 0; index < (8 << 10); index += (2 << 10))
+    {
+        cpu_set_read_address_2k (index, cpu_ram);
+        cpu_set_write_address_2k (index, cpu_ram);
+    }
+
+    /* Map in SRAM */
+    enable_sram();
+
+    /* Map in registers */
+    cpu_set_read_handler_8k (0x2000, ppu_read_2000_3FFF);
+    cpu_set_write_handler_8k (0x2000, ppu_write_2000_3FFF);
+
+    cpu_set_read_handler_2k (0x4000, ppu_read_4000_47FF);
+    cpu_set_write_handler_2k (0x4000, ppu_write_4000_47FF);
 }
 
 
@@ -187,6 +263,22 @@ void cpu_exit (void)
 }
 
 
+void enable_sram(void)
+{
+    mmc_disable_sram = 0;
+    cpu_set_read_address_8k (0x6000, cpu_sram);
+    cpu_set_write_address_8k (0x6000, cpu_sram);
+}
+
+
+void disable_sram(void)
+{
+    mmc_disable_sram = 1;
+    cpu_set_read_address_8k (0x6000, dummy_read);
+    cpu_set_write_address_8k (0x6000, dummy_write);
+}
+
+
 void cpu_reset (void)
 {
     Reset6502 (&cpu_context);
@@ -244,122 +336,6 @@ UINT8 cpu_read (UINT16 address)
 void cpu_write (UINT16 address, UINT8 value)
 {
     Wr6502 (address, value);
-}
-
-
-/* ----- M6502 Routines ----- */
-
-
-byte Op6502 (word Addr)
-{
-    // printf ("Op6502 at $%04x.\n", Addr);
-
-    if (Addr >= 0x8000)
-    {
-        return (READ_ROM ((Addr - 0x8000)));
-    }
-    else if (Addr < 0x2000)
-    {
-        return (cpu_ram [Addr & 0x7ff]);
-    }
-    else if ((Addr >= 0x6000) && (Addr < 0x8000))
-    {
-        if (! mmc_disable_sram)
-        {
-            return (cpu_sram [Addr - 0x6000]);
-        }
-        else
-        {
-            return (0);
-        }
-    }
-    else /* if (Addr < 0x6000) */
-    {
-        return (cpu_ram [Addr]);
-    }
-}
-
-
-byte Rd6502 (word Addr)
-{
-    // printf ("Rd6502 at $%04x.\n", Addr);
-
-    if (Addr < 0x2000)
-    {
-        return (cpu_ram [Addr & 0x7ff]);
-    }
-    else if (Addr >= 0x8000)
-    {
-        return (READ_ROM ((Addr - 0x8000)));
-    }
-    else if ((Addr < 0x4000) || (Addr == 0x4014))
-    {
-        return (ppu_read (Addr));
-    }
-    else if (Addr <= 0x4015)
-    {
-        return (papu_read (Addr));
-    }
-    else if ((Addr == 0x4016) || (Addr == 0x4017))
-    {
-        return (input_read (Addr));
-    }
-    else if ((Addr >= 0x6000) && (Addr < 0x8000))
-    {
-        if (! mmc_disable_sram)
-        {
-            return (cpu_sram [Addr - 0x6000]);
-        }
-        else
-        {
-            return (0);
-        }
-    }
-    else
-    {
-        return (cpu_ram [Addr]);
-    }
-}
-
-
-void Wr6502 (word Addr, byte Value)
-{
-    // printf ("Wr6502 at $%04x ($%02x).\n", Addr, Value);
-
-    if (Addr < 0x2000)
-    {
-        cpu_ram [Addr & 0x7ff] = Value;
-    }
-    else if ((Addr < 0x4000) || (Addr == 0x4014))
-    {
-        ppu_write (Addr, Value);
-    }
-    else if (Addr <= 4015)
-    {
-        papu_write (Addr, Value);
-    }
-    else if ((Addr == 0x4016) || (Addr == 0x4017))
-    {
-        input_write (Addr, Value);
-    }
-    else if (Addr >= 0x8000)
-    {
-        if (mmc_write)
-        {
-            mmc_write (Addr, Value);
-        }
-    }
-    else if ((Addr >= 0x6000) && (Addr < 0x8000))
-    {
-        if (! mmc_disable_sram)
-        {
-            cpu_sram [Addr - 0x6000] = Value;
-        }
-    }
-    else
-    {
-        cpu_ram [Addr] = Value;
-    }
 }
 
 

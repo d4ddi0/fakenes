@@ -65,8 +65,7 @@ static void mmc4_write (UINT16 address, UINT8 value)
     {
         /* 16k ROM page select (unlatched). */
 
-        mmc_rom_banks [0] = ROM_PAGE_8K ((value & mmc4_prg_mask) * 2);
-        mmc_rom_banks [1] = ROM_PAGE_8K ((value & mmc4_prg_mask) * 2) + 1;
+        cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(value & mmc4_prg_mask));
     }
     else if (address == (0xb000 >> 12))
     {
@@ -152,16 +151,12 @@ static INLINE void mmc4_reset (void)
 
     /* Select first 16k page in first 16k. */
 
-    mmc_rom_banks [0] = ROM_PAGE_8K (0);
-
-    mmc_rom_banks [1] = ROM_PAGE_8K (1);
+    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(0));
 
 
     /* Select last 16k page in remaining 16k. */
 
-    mmc_rom_banks [2] = LAST_ROM_PAGE;
-
-    mmc_rom_banks [3] = (LAST_ROM_PAGE + 0x2000);
+    cpu_set_read_address_16k (0xC000, LAST_ROM_PAGE);
 
     /* Setup VROM banking and latches */
     mmc4_latch[0] = 1;
@@ -253,6 +248,7 @@ static INLINE int mmc4_init (void)
     mmc4_reset ();
 
     mmc_write = mmc4_write;
+    cpu_set_write_handler_32k (0x8000, mmc4_write);
 
 
     mmc_check_latches = mmc4_check_latches;

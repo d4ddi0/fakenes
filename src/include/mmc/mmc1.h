@@ -43,10 +43,8 @@ static unsigned int mmc1_chr_mask;
 
 static INLINE void mmc1_cpu_bank_sort (void)
 {
-  mmc_rom_banks[0] = ROM_PAGE_16K (((mmc1_256k_bank_num * (256 / 16)) + mmc1_cpu_bank[0]) & mmc1_prg_mask);
-  mmc_rom_banks[1] = ROM_PAGE_16K (((mmc1_256k_bank_num * (256 / 16)) + mmc1_cpu_bank[0]) & mmc1_prg_mask) + 0x2000;
-  mmc_rom_banks[2] = ROM_PAGE_16K (((mmc1_256k_bank_num * (256 / 16)) + mmc1_cpu_bank[1]) & mmc1_prg_mask);
-  mmc_rom_banks[3] = ROM_PAGE_16K (((mmc1_256k_bank_num * (256 / 16)) + mmc1_cpu_bank[1]) & mmc1_prg_mask) + 0x2000;
+  cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(((mmc1_256k_bank_num * (256 / 16)) + mmc1_cpu_bank[0]) & mmc1_prg_mask));
+  cpu_set_read_address_16k (0xC000, ROM_PAGE_16K(((mmc1_256k_bank_num * (256 / 16)) + mmc1_cpu_bank[1]) & mmc1_prg_mask));
 }
 
 static void mmc1_write (UINT16 address, UINT8 value)
@@ -481,5 +479,7 @@ static INLINE int mmc1_init (void)
     mmc1_reset ();
 
     mmc_write = mmc1_write;
+    cpu_set_write_handler_32k (0x8000, mmc1_write);
+
     return 0;
 }

@@ -94,6 +94,10 @@ int mmc_init (void)
     int index;
 
 
+    for (index = 0x8000; index < (64 << 10); index += 0x2000)
+    {
+        cpu_set_write_address_8k (index, dummy_read);
+    }
     mmc_write = NULL;
 
     mmc_scanline_start = NULL;
@@ -110,20 +114,15 @@ int mmc_init (void)
             {
                 /* Select first 16k page (mirrored). */
 
-                mmc_rom_banks [0] =
-                    mmc_rom_banks [2] = ROM_PAGE_8K (0);
-
-                mmc_rom_banks [1] =
-                    mmc_rom_banks [3] = ROM_PAGE_8K (1);
+                cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(0));
+                cpu_set_read_address_16k (0xC000, ROM_PAGE_16K(0));
             }
             else
             {
                 /* Select first 32k page. */
 
-                for (index = 0; index < 4; index ++)
-                {
-                    mmc_rom_banks [index] = ROM_PAGE_8K (index);
-                }
+                cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(0));
+                cpu_set_read_address_16k (0xC000, ROM_PAGE_16K(1));
             }
             
 

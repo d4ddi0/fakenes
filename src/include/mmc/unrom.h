@@ -9,14 +9,12 @@ static int unrom_prg_mask;
 
 static void unrom_write (UINT16 address, UINT8 value)
 {
-    /* Convert 16k page # to 8k. */
+    /* Convert 16k page # to 16k. */
 
-    value = (value & unrom_prg_mask) * 2;
+    value = (value & unrom_prg_mask);
 
 
-    mmc_rom_banks [0] = ROM_PAGE_8K (value);
-
-    mmc_rom_banks [1] = ROM_PAGE_8K (value + 1);
+    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(value));
 }
 
 
@@ -24,16 +22,12 @@ static INLINE void unrom_reset (void)
 {
     /* Select first 16k page in lower 16k. */
 
-    mmc_rom_banks [0] = ROM_PAGE_8K (0);
-
-    mmc_rom_banks [1] = ROM_PAGE_8K (1);
+    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(0));
 
 
     /* Select last 16k page in upper 16k. */
 
-    mmc_rom_banks [2] = LAST_ROM_PAGE;
-
-    mmc_rom_banks [3] = (LAST_ROM_PAGE + 0x2000);
+    cpu_set_read_address_16k (0xC000, LAST_ROM_PAGE);
 }
 
 
@@ -77,6 +71,7 @@ static INLINE int unrom_init (void)
     unrom_reset ();
 
     mmc_write = unrom_write;
+    cpu_set_write_handler_32k (0x8000, unrom_write);
 
 
     return (0);

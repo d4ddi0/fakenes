@@ -11,6 +11,7 @@
 /**     commercially. Please, notify me, if you make any    **/   
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 11.December 2001 TRAC      Added INLINE_MEMORY_HANDLERS.  */
 /* 05.December 2001 TRAC      Added RETURN_ON_TRIP timing.   */
 /* 27.November 2001 stainless Additive cycle counting.       */
 /* 27.November 2001 stainless Added 'misc.h' datatypes.      */
@@ -20,7 +21,10 @@
 #ifndef M6502_H
 #define M6502_H
 
+
                                /* Compilation options:       */
+#define INLINE_MEMORY_HANDLERS /* Uses Rd6502/Wr6502/Op6502  */
+                               /*  #include'd from cpu.h     */
 #define RETURN_ON_TRIP         /* Run6502 returns on trip    */
 #define FAST_RDOP              /* Separate Op6502()/Rd6502() */
 /* #define M_DEBUG */          /* Compile debugging version  */
@@ -120,9 +124,13 @@ word Run6502(register M6502 *R);
 /** checks can be skipped to make it fast. It is only       **/
 /** required if there is a #define FAST_RDOP.               **/
 /************************************ TO BE WRITTEN BY USER **/
+#ifndef INLINE_MEMORY_HANDLERS
 void Wr6502(register word Addr,register byte Value);
 byte Rd6502(register word Addr);
 byte Op6502(register word Addr);
+#else
+#include "cpu.h"
+#endif
 
 /** Debug6502() **********************************************/
 /** This function should exist if DEBUG is #defined. When   **/

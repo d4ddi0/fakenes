@@ -52,7 +52,7 @@ void (* mmc_check_latches) (UINT16);
 /* These macros handle banking. */
 
 #define READ_ROM(offset)   \
-    (mmc_rom_banks [offset >> 13] [offset & 0x1fff])
+    (cpu_block_2k_read_address [(offset >> 11)] [offset & 0x7ff])
 
 #define READ_VROM(offset)   \
     (mmc_vrom_banks [offset >> 10] [offset & 0x3ff])

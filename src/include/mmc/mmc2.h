@@ -69,7 +69,7 @@ static void mmc2_write (UINT16 address, UINT8 value)
     {
         /* 8k ROM page select (unlatched). */
 
-        mmc_rom_banks [0] = ROM_PAGE_8K (value & mmc2_prg_mask);
+        cpu_set_read_address_8k (0x8000, ROM_PAGE_8K(value & mmc2_prg_mask));
     }
 #ifdef MMC2_LIKE_MMC4
     else if (address == (0xb000 >> 12))
@@ -172,19 +172,17 @@ static INLINE void mmc2_reset (void)
 
     /* Select first 8k page in first 8k. */
 
-    mmc_rom_banks [0] = ROM_PAGE_8K (0);
+    cpu_set_read_address_8k (0x8000, ROM_PAGE_8K(0));
 
 
     /* Select 3rd to last 8k page in second 8k. */
 
-    mmc_rom_banks [1] = (LAST_ROM_PAGE - 0x2000);
+    cpu_set_read_address_8k (0xA000, LAST_ROM_PAGE - 0x2000);
 
 
     /* Select last 16k page in remaining 16k. */
 
-    mmc_rom_banks [2] = LAST_ROM_PAGE;
-
-    mmc_rom_banks [3] = (LAST_ROM_PAGE + 0x2000);
+    cpu_set_read_address_16k (0xC000, LAST_ROM_PAGE);
 
     /* Setup VROM banking and latches */
     mmc2_latch[0] = 1;
@@ -275,6 +273,7 @@ static INLINE int mmc2_init (void)
     mmc2_reset ();
 
     mmc_write = mmc2_write;
+    cpu_set_write_handler_32k (0x8000, mmc2_write);
 
 
     mmc_check_latches = mmc2_check_latches;

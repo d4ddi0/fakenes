@@ -38,20 +38,15 @@ static INLINE void cnrom_reset (void)
     {
         /* Select first 16k page (mirrored). */
 
-        mmc_rom_banks [0] =
-            mmc_rom_banks [2] = ROM_PAGE_8K (0);
-
-        mmc_rom_banks [1] =
-            mmc_rom_banks [3] = ROM_PAGE_8K (1);
+        cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(0));
+        cpu_set_read_address_16k (0xC000, ROM_PAGE_16K(0));
     }
     else
     {
         /* Select first 32k page. */
 
-        for (index = 0; index < 4; index ++)
-        {
-            mmc_rom_banks [index] = ROM_PAGE_8K (index);
-        }
+        cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(0));
+        cpu_set_read_address_16k (0xC000, ROM_PAGE_16K(1));
     }
 
 
@@ -103,6 +98,7 @@ static INLINE int cnrom_init (void)
     cnrom_reset ();
 
     mmc_write = cnrom_write;
+    cpu_set_write_handler_32k (0x8000, cnrom_write);
 
 
     return (0);

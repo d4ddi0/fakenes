@@ -24,17 +24,15 @@ static void aorom_write (UINT16 address, UINT8 value)
     value &= 0x0f;
 
 
-    /* Convert 32k page # to 8k. */
+    /* Convert 32k page # to 16k. */
 
-    value *= 4;
+    value *= 2;
 
 
     /* Select requested 32k page. */
 
-    for (index = 0; index < 4; index ++)
-    {
-        mmc_rom_banks [index] = ROM_PAGE_8K ((value + index));
-    }
+    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(value));
+    cpu_set_read_address_16k (0xC000, ROM_PAGE_16K(value + 1));
 }
 
 
@@ -45,10 +43,8 @@ static INLINE void aorom_reset (void)
 
     /* Select first 32k page. */
 
-    for (index = 0; index < 4; index ++)
-    {
-        mmc_rom_banks [index] = ROM_PAGE_8K (index);
-    }
+    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(0));
+    cpu_set_read_address_16k (0xC000, ROM_PAGE_16K(1));
 }
 
 
@@ -74,6 +70,7 @@ static INLINE int aorom_init (void)
     aorom_reset ();
 
     mmc_write = aorom_write;
+    cpu_set_write_handler_32k (0x8000, aorom_write);
 
 
     return (0);

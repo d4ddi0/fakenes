@@ -19,9 +19,9 @@ static void dreams_write (UINT16 address, UINT8 value)
     vrom_page = ((value >> 4) & 0x07);
 
 
-    /* Convert 32k page # to 8k. */
+    /* Convert 32k page # to 16k. */
 
-    rom_page *= 4;
+    rom_page *= 2;
 
 
     /* Convert 8k page # to 1k. */
@@ -31,10 +31,8 @@ static void dreams_write (UINT16 address, UINT8 value)
 
     /* Select requested 32k page. */
 
-    for (index = 0; index < 4; index ++)
-    {
-        mmc_rom_banks [index] = ROM_PAGE_8K ((rom_page + index));
-    }
+    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(rom_page));
+    cpu_set_read_address_16k (0xC000, ROM_PAGE_16K(rom_page + 1));
 
 
     /* Select requested 8k page. */
@@ -53,10 +51,8 @@ static INLINE void dreams_reset (void)
 
     /* Select first 32k page. */
 
-    for (index = 0; index < 4; index ++)
-    {
-        mmc_rom_banks [index] = ROM_PAGE_8K (index);
-    }
+    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(0));
+    cpu_set_read_address_16k (0xC000, ROM_PAGE_16K(1));
 
 
     /* Select first 8k page. */
@@ -85,6 +81,7 @@ static INLINE int dreams_init (void)
     dreams_reset ();
 
     mmc_write = dreams_write;
+    cpu_set_write_handler_32k (0x8000, dreams_write);
 
 
     return (0);
