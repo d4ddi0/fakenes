@@ -308,7 +308,7 @@ int main (int argc, char * argv [])
     }
     else
     {
-        if(tmpdir = opendir(sramdir)) == NULL)
+        if((tmpdir = opendir(sramdir)) == NULL)
         {
             if(errno == ENOENT)
             {
