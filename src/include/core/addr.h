@@ -8,8 +8,8 @@ Distributed under the Clarified Artistic License.
 
 addr.h: CPU addressing mode emulation macros.
 
-Copyright (c) 2003, Randy McDowell.
-Copyright (c) 2003, Charles Bilyue'.
+Copyright (c) 2004, Randy McDowell.
+Copyright (c) 2004, Charles Bilyue'.
 
 This is free software.  See 'LICENSE' for details.
 You must read and accept the license prior to use.

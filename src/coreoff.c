@@ -4,7 +4,7 @@ FakeNES - A portable, Open Source NES emulator.
 
 coreoff.c: FN2A03 structure offsets generator tool.
 
-Copyright (c) 2002, Charles Bilyue' and Randy McDowell.
+Copyright (c) 2004, Charles Bilyue' and Randy McDowell.
 
 This is free software.  See 'LICENSE' for details.
 You must read and accept the license prior to use.
