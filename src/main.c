@@ -244,12 +244,12 @@ int main (int argc, char * argv [])
     }
 
 
-    printf ("\nFakeNES version " VERSION_STRING ", by stainless and TRAC.\n"
-            "Assistance provided by amit and Lord_Nightmare.\n");
+    printf ("\nFakeNES version " VERSION_STRING ", by Siloh and TRAC.\n"
+            "Assistance provided by amit, KCat, and Lord_Nightmare.\n");
 
     printf ("\nUsing Allegro version " ALLEGRO_VERSION_STR " (" ALLEGRO_PLATFORM_STR ").\n");
 
-    printf ("\nOriginal concept by stainless and RobotBebop.\n"
+    printf ("\nOriginal concept by stainless (Siloh) and RobotBebop.\n"
             "Uses the Nofrendo NES APU core by Matthew Conte.\n");
 
     printf ("\nBe sure to visit http://fakenes.sourceforge.net/.\n"
