@@ -90,7 +90,7 @@
             the Allegro multimedia library.
 
             The order in which the scancodes are applied is very
-            important, and cooresponds to the associated NES standard
+            important, and corresponds to the associated NES standard
             controller buttons: A, B, Select, Start, Up, Down, Left,
             and Right.  If a complete sequence of 8 scancodes cannot
             be found, then the defaults will be used.
