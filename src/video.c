@@ -461,8 +461,8 @@ static INLINE void display_status (BITMAP * bitmap, int color)
 #define FAST_PUTPIXEL(bitmap, x, y, color)  (bitmap -> line [y] [x] = color)
 
 
-#define BLITTER_SIZE_CHECK()                                                                                      \
-    if ((target -> w < (source -> w * 2)) || (target -> h < (source -> h * 2)))                                   \
+#define BLITTER_SIZE_CHECK(width, height)                                                                         \
+    if ((target -> w < width) || (target -> h < height))                                                          \
     {                                                                                                             \
         /* Center error message on target. */                                                                     \
                                                                                                                   \
@@ -473,7 +473,7 @@ static INLINE void display_status (BITMAP * bitmap, int color)
                                                                                                                   \
                                                                                                                   \
         textprintf_ex (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),                   \
-            VIDEO_COLOR_WHITE, -1, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));  \
+            VIDEO_COLOR_WHITE, -1, "At least %dx%d pixels are required.", width, height);                         \
                                                                                                                   \
                                                                                                                   \
         return;                                                                                                   \
@@ -505,7 +505,7 @@ static INLINE void blit_2xsoe (BITMAP * source, BITMAP * target, int x, int y)
     int west_pixel;
 
 
-    BLITTER_SIZE_CHECK ();
+    BLITTER_SIZE_CHECK (512, 480);
 
 
     for (y_offset = 0; y_offset < source -> h; y_offset ++)
@@ -720,7 +720,7 @@ static INLINE void blit_2xscl (BITMAP * source, BITMAP * target, int x, int y)
     int west_pixel;
 
 
-    BLITTER_SIZE_CHECK ();
+    BLITTER_SIZE_CHECK (512, 480);
 
 
     for (y_offset = 0; y_offset < source -> h; y_offset ++)
@@ -885,7 +885,7 @@ static INLINE void blit_interpolated (BITMAP * source, BITMAP * target, int x, i
     int south_east_pixel;
 
 
-    BLITTER_SIZE_CHECK ();
+    BLITTER_SIZE_CHECK (512, 480);
 
 
     for (y_offset = 0; y_offset < source -> h; y_offset ++)
@@ -968,7 +968,7 @@ static INLINE void blit_interpolated_32 (BITMAP * source, BITMAP * target, int x
     int south_east_pixel;
 
 
-    BLITTER_SIZE_CHECK ();
+    BLITTER_SIZE_CHECK (512, 480);
 
 
     for (y_offset = 0; y_offset < source -> h; y_offset ++)
@@ -1053,7 +1053,7 @@ static INLINE void blit_super_2xsoe (BITMAP * source, BITMAP * target, int x, in
     int west_pixel;
 
 
-    BLITTER_SIZE_CHECK ();
+    BLITTER_SIZE_CHECK (512, 480);
 
 
     for (y_offset = 0; y_offset < source -> h; y_offset ++)
@@ -1244,7 +1244,7 @@ static INLINE void blit_super_2xsoe_32 (BITMAP * source, BITMAP * target, int x,
     int west_pixel;
 
 
-    BLITTER_SIZE_CHECK ();
+    BLITTER_SIZE_CHECK (512, 480);
 
 
     for (y_offset = 0; y_offset < source -> h; y_offset ++)
@@ -1435,7 +1435,7 @@ static INLINE void blit_super_2xscl (BITMAP * source, BITMAP * target, int x, in
     int west_pixel;
 
 
-    BLITTER_SIZE_CHECK ();
+    BLITTER_SIZE_CHECK (512, 480);
 
 
     for (y_offset = 0; y_offset < source -> h; y_offset ++)
@@ -1559,7 +1559,7 @@ static INLINE void blit_super_2xscl_32 (BITMAP * source, BITMAP * target, int x,
     int west_pixel;
 
 
-    BLITTER_SIZE_CHECK ();
+    BLITTER_SIZE_CHECK (512, 480);
 
 
     for (y_offset = 0; y_offset < source -> h; y_offset ++)
