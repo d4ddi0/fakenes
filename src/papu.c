@@ -221,7 +221,7 @@ int papu_init (void)
 
     papu_linear_echo = get_config_int ("papu", "linear_echo", TRUE);
 
-    papu_surround_sound = get_config_int ("papu", "surround_sound", FALSE);
+    papu_surround_sound = get_config_int ("audio", "surround_sound", FALSE);
 
 
     if ((result = papu_reinit ()) != 0)
@@ -259,7 +259,7 @@ int papu_init (void)
     papu_smooth_sweep = get_config_int ("papu", "smooth_sweep", FALSE);
 
 
-    papu_dithering = get_config_int ("papu", "dithering", FALSE);
+    papu_dithering = get_config_int ("audio", "dithering", FALSE);
 
 
     papu_update ();
@@ -313,10 +313,10 @@ void papu_exit (void)
 
     set_config_int ("papu", "linear_echo", papu_linear_echo);
 
-    set_config_int ("papu", "surround_sound", papu_surround_sound);
+    set_config_int ("audio", "surround_sound", papu_surround_sound);
 
 
-    set_config_int ("papu", "dithering", papu_dithering);
+    set_config_int ("audio", "dithering", papu_dithering);
 }
 
 
@@ -529,4 +529,7 @@ void papu_process (void)
             audio_update ();
         }
     }
+
+
+    sync_apu_register ();
 }
