@@ -52,7 +52,7 @@ install : ${BINARY} ${DATAFILE}
 
 apu.o: apu.c include/misc.h include/apu.h include/cpu.h
 
-audio.o: audio.c include/audio.h
+audio.o: audio.c include/audio.h include/timing.h
 
 core.o : core.c include/core.h include/core/tables.h
 
@@ -78,7 +78,8 @@ mmc.o :  mmc.c include/cpu.h include/gui.h include/misc.h include/mmc.h \
          include/mmc/mmc1.h include/mmc/mmc2.h include/mmc/mmc3.h \
          include/mmc/mmc4.h include/mmc/sunsoft.h include/mmc/unrom.h
 
-papu.o : papu.c include/audio.h include/apu.h include/misc.h include/papu.h 
+papu.o : papu.c include/audio.h include/apu.h include/misc.h \
+         include/papu.h include/timing.h
 
 ppu.o : ppu.c include/cpu.h include/input.h include/misc.h include/mmc.h \
         include/ppu.h include/rom.h include/timing.h include/video.h

@@ -431,6 +431,14 @@ static int machine_type_menu_ntsc (void)
     update_menus ();
 
 
+    audio_exit ();
+
+    audio_init ();
+
+
+    papu_reinit ();
+
+
     return (D_O_K);
 }
 
@@ -440,6 +448,16 @@ static int machine_type_menu_pal (void)
     machine_type = MACHINE_TYPE_PAL;
 
     update_menus ();
+
+
+    audio_exit ();
+
+    papu_exit ();
+
+
+    audio_init ();
+
+    papu_init ();
 
 
     return (D_O_K);

@@ -6,7 +6,7 @@ FakeNES - A portable, open-source NES emulator.
 
 audio.c: Implementation of the audio interface.
 
-Copyright (c) 2001, Randy McDowell and Ian Smith.
+Copyright (c) 2002, Randy McDowell and Ian Smith.
 All rights reserved.  See 'LICENSE' for details.
 
 */
@@ -18,7 +18,12 @@ All rights reserved.  See 'LICENSE' for details.
 #include "audio.h"
 
 
-AUDIOSTREAM * audio_stream;
+#include "timing.h"
+
+
+SAMPLE * audio_sample = NULL;
+
+int audio_voice = 0;
 
 
 int audio_enable_output = FALSE;
@@ -40,57 +45,57 @@ volatile int audio_fps = 0;
 
 int audio_init (void)
 {
-    audio_enable_output =
-        get_config_int ("audio", "enable_output", TRUE);
+    int speed;
+
+
+    audio_enable_output = get_config_int ("audio", "enable_output", TRUE);
+
+
+    audio_sample_rate = get_config_int ("audio", "sample_rate", 22050);
+
+    audio_sample_size = get_config_int ("audio", "sample_size", 16);
+
+
+    audio_buffer_length = get_config_int ("audio", "buffer_length", 10);
+
+
+    audio_pseudo_stereo = get_config_int ("audio", "pseudo_stereo", TRUE);
 
 
     if (audio_enable_output)
     {
         reserve_voices (1, 0);
-    
+
+
         if (install_sound (DIGI_AUTODETECT, MIDI_NONE, NULL) != 0)
         {
+            audio_enable_output = FALSE;
+
             return (1);
         }
-    }
 
 
-    /* Sampling rate & size. */
-
-    audio_sample_rate =
-        get_config_int ("audio", "sample_rate", 22050);
-
-    audio_sample_size =
-        get_config_int ("audio", "sample_size", 16);
+        speed = (machine_type == MACHINE_TYPE_NTSC ? 60 : 50);
 
 
-    /* Buffer length in frames. */
-
-    audio_buffer_length =
-        get_config_int ("audio", "buffer_length", 10);
+        audio_sample = create_sample (audio_sample_size, audio_pseudo_stereo,
+            audio_sample_rate, ((audio_sample_rate / speed) * audio_buffer_length));
 
 
-    audio_pseudo_stereo =
-        get_config_int ("audio", "pseudo_stereo", TRUE);
-
-
-    if (audio_enable_output)
-    {
-        if (audio_pseudo_stereo)
+        if (! audio_sample)
         {
-            audio_stream = play_audio_stream (AUDIO_BUFFER_SIZE,
-                audio_sample_size, TRUE, audio_sample_rate, 255, 128);
-        }
-        else
-        {
-            audio_stream = play_audio_stream (AUDIO_BUFFER_SIZE,
-                audio_sample_size, FALSE, audio_sample_rate, 255, 128);
-        }
-    
-        if (! audio_stream)
-        {
+            remove_sound ();
+
+
+            audio_enable_output = FALSE;
+
             return (1);
         }
+
+        audio_voice = allocate_voice (audio_sample);
+
+
+        audio_buffer = audio_sample -> data;
     }
 
 
@@ -103,6 +108,14 @@ void audio_exit (void)
     if (audio_enable_output)
     {
         remove_sound ();
+
+
+        if (audio_sample)
+        {
+            destroy_sample (audio_sample);
+
+            deallocate_voice (audio_voice);
+        }
     }
 
 
@@ -121,14 +134,28 @@ void audio_exit (void)
 }
 
 
-void audio_update (void)
+void audio_start (void)
 {
-    audio_buffer = get_audio_stream_buffer (audio_stream);
+    voice_start (audio_voice);
+}
 
-    if (audio_buffer)
+
+void audio_stop (void)
+{
+    int offset;
+
+
+    do
     {
-        voice_stop (audio_stream -> voice);
+        offset = voice_get_position (audio_voice);
     }
+    while (offset != -1);
+
+
+    voice_stop (audio_voice);
+
+
+    audio_fps += audio_buffer_length;
 }
 
 
@@ -136,7 +163,7 @@ void audio_suspend (void)
 {
     if (audio_enable_output)
     {
-        voice_stop (audio_stream -> voice);
+        voice_stop (audio_voice);
     }
 }
 
@@ -145,23 +172,6 @@ void audio_resume (void)
 {
     if (audio_enable_output)
     {
-        voice_start (audio_stream -> voice);
+        voice_start (audio_voice);
     }
-}
-
-
-void audio_start (void)
-{
-    audio_buffer = get_audio_stream_buffer (audio_stream);
-}
-
-
-void audio_stop (void)
-{
-    voice_start (audio_stream -> voice);
-
-    free_audio_stream_buffer (audio_stream);
-
-
-    audio_fps += audio_buffer_length;
 }

@@ -6,7 +6,7 @@ FakeNES - A portable, open-source NES emulator.
 
 audio.h: Declarations for the audio interface.
 
-Copyright (c) 2001, Randy McDowell and Ian Smith.
+Copyright (c) 2002, Randy McDowell and Ian Smith.
 All rights reserved.  See 'LICENSE' for details.
 
 */
@@ -18,9 +18,6 @@ All rights reserved.  See 'LICENSE' for details.
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-
-#include "misc.h"
 
 
 int audio_enable_output;
@@ -40,21 +37,9 @@ int audio_pseudo_stereo;
 volatile int audio_fps;
 
 
-#define AUDIO_BUFFER_SIZE   \
-    ((audio_sample_rate / 60) * audio_buffer_length)
-
-
 int audio_init (void);
 
 void audio_exit (void);
-
-
-void audio_update (void);
-
-
-void audio_suspend (void);
-
-void audio_resume (void);
 
 
 void audio_start (void);
@@ -62,7 +47,12 @@ void audio_start (void);
 void audio_stop (void);
 
 
-UINT8 * audio_buffer;
+void audio_suspend (void);
+
+void audio_resume (void);
+
+
+void * audio_buffer;
 
 
 #ifdef __cplusplus

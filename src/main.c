@@ -518,11 +518,9 @@ int main (int argc, char * argv [])
     {
         resume_timing ();
 
+
         while (! input_process ())
         {
-            papu_process_frame ();
-
-
             if (-- frame_count > 0)
             {
                 redraw_flag = FALSE;
@@ -722,6 +720,9 @@ int main (int argc, char * argv [])
 
 
                 }
+
+
+                papu_update ();
             }
         }
     }
