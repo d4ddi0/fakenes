@@ -35,4 +35,4 @@ static UINT8 BaseCycles[256] =
   2,5,2,8,4,4,6,6,2,4,2,7,5,5,7,7
 };
 
-static UINT8 Cycles[256];
+UINT8 Cycles[256];
