@@ -10,6 +10,17 @@ dnl AC_CHECK_LIB(alleg, allegro_init)
 dnl Exit here if the library is not found.
 dnl Tell them which Allegro packages they need.
 
+AC_CHECK_LIB(z, gzopen)
+
+AC_MSG_CHECKING(whether to enable gzip support)
+
+if test x$HAVE_LIBZ != xno; then
+    DFLAGS="$DFLAGS -DUSE_ZLIB"
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
+
 dnl Checks for header files.
 
 dnl Checks for typedefs, structures, and compiler characteristics.
@@ -19,12 +30,10 @@ dnl Set DFLAGS to -DLSB_FIRST if on a little endian platform,
 dnl otherwise set it to nothing.
 
 if test x$WORDS_BIGENDIAN != xyes; then
-    DFLAGS="-DLSB_FIRST"
+    DFLAGS="$DFLAGS -DLSB_FIRST"
 else
-    DFLAGS=""
+    DFLAGS="$DFLAGS"
 fi
-
-AC_SUBST(DFLAGS)
 
 dnl Need to handle CONST being set in include/misc.h,
 dnl dunno how to do this yet.  Same for INLINE.
@@ -33,5 +42,8 @@ dnl There is also the data type definitions that need to be
 dnl handled by using configure to detect size.
 
 dnl Checks for library functions.
+
+AC_SUBST(LIBS)
+AC_SUBST(DFLAGS)
 
 AC_OUTPUT(src/Makefile)

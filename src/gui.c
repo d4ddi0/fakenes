@@ -58,9 +58,20 @@ static int file_menu_load_rom (void)
     memset (buffer, NULL, sizeof (buffer));
 
 
+#ifdef USE_ZLIB
+
+    if (file_select_ex ("iNES ROMs (*.NES)",
+        buffer, "NES;nes;GZ;gz", sizeof (buffer), 0, 0) != 0)
+    {
+
+#else
+
     if (file_select_ex ("iNES ROMs (*.NES)",
         buffer, "NES;nes", sizeof (buffer), 0, 0) != 0)
     {
+
+#endif
+
         if (rom_is_loaded)
         {
             free_rom (&global_rom);

@@ -27,3 +27,10 @@
 #define CONST   const
 
 #define INLINE  inline
+
+
+#ifndef UNIX
+
+#define USE_ZLIB
+
+#endif

@@ -15,7 +15,7 @@ DFLAGS = @DFLAGS@ -DUNIX
 CFLAGS = ${IFLAGS} ${OFLAGS} ${DFLAGS}
 
 
-LIBRARIES = -lalleg
+LIBRARIES = -lalleg @LIBS@
 
 
 OBJECTS = core.o cpu.o gui.o input.o ppu.o rom.o main.o mmc.o video.o
