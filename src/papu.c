@@ -444,7 +444,8 @@ void papu_process (void)
 
             if (audio_pseudo_stereo)
             {
-                apu_process_stereo (audio_buffer, PAPU_BUFFER_SIZE, papu_swap_channels, papu_surround_sound);
+                apu_process_stereo (audio_buffer, PAPU_BUFFER_SIZE,
+                    audio_pseudo_stereo, papu_swap_channels, papu_surround_sound);
             }
             else
             {

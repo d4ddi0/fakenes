@@ -250,7 +250,12 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_audio_mixing_menu, 0, (! audio_pseudo_stereo));
 
-    TOGGLE_MENU (options_audio_mixing_menu, 2, audio_pseudo_stereo);
+
+    TOGGLE_MENU (options_audio_mixing_stereo_menu, 0, (audio_pseudo_stereo == 1));
+
+    TOGGLE_MENU (options_audio_mixing_stereo_menu, 2, (audio_pseudo_stereo == 2));
+
+    TOGGLE_MENU (options_audio_mixing_stereo_menu, 4, (audio_pseudo_stereo == 3));
 
 
     TOGGLE_MENU (options_audio_mixing_quality_menu, 0, (audio_sample_size == 8));
@@ -625,22 +630,83 @@ static int options_audio_mixing_menu_normal (void)
 }
 
 
-static int options_audio_mixing_menu_pseudo_stereo (void)
+static int options_audio_mixing_stereo_menu_classic (void)
 {
-    audio_pseudo_stereo = TRUE;
+    if (! audio_pseudo_stereo)
+    {
+        audio_pseudo_stereo = AUDIO_CLASSIC_STEREO_MIXING;
 
 
-    audio_exit ();
-
-    audio_init ();
-
-
-    papu_reinit ();
-
+        audio_exit ();
+    
+        audio_init ();
+    
+    
+        papu_reinit ();
+    }
+    else
+    {
+        audio_pseudo_stereo = AUDIO_CLASSIC_STEREO_MIXING;
+    }
+    
 
     update_menus ();
+    
+    
+    return (D_O_K);
+}
 
 
+static int options_audio_mixing_stereo_menu_enhanced (void)
+{
+    if (! audio_pseudo_stereo)
+    {
+        audio_pseudo_stereo = AUDIO_ENHANCED_STEREO_MIXING;
+
+
+        audio_exit ();
+    
+        audio_init ();
+    
+    
+        papu_reinit ();
+    }
+    else
+    {
+        audio_pseudo_stereo = AUDIO_ENHANCED_STEREO_MIXING;
+    }
+    
+
+    update_menus ();
+    
+    
+    return (D_O_K);
+}
+
+
+static int options_audio_mixing_stereo_menu_accurate (void)
+{
+    if (! audio_pseudo_stereo)
+    {
+        audio_pseudo_stereo = AUDIO_ACCURATE_STEREO_MIXING;
+
+
+        audio_exit ();
+    
+        audio_init ();
+    
+    
+        papu_reinit ();
+    }
+    else
+    {
+        audio_pseudo_stereo = AUDIO_ACCURATE_STEREO_MIXING;
+    }
+    
+
+    update_menus ();
+    
+    
     return (D_O_K);
 }
 

@@ -140,6 +140,11 @@ typedef struct rectangle_s
    boolean enabled_cur;
    boolean holdnote_cur;
    int vbl_length_cur;
+
+#ifdef APU_YANO
+   boolean smooth_envelope;
+   boolean smooth_sweep;
+#endif
 } rectangle_t;
 
 typedef struct triangle_s
@@ -605,7 +610,7 @@ extern void apu_setparams(int sample_rate, int refresh_rate, int frag_size,
                           int sample_bits);
 
 extern void apu_process(void *buffer, int num_samples);
-extern void apu_process_stereo(void *buffer, int num_samples, int flip, int surround);
+extern void apu_process_stereo(void *buffer, int num_samples, int style, int flip, int surround);
 extern void apu_reset(void);
 
 extern void apu_setext(apu_t *apu, apuext_t *ext);
@@ -633,6 +638,9 @@ extern boolean sync_dmc_register(UINT32 cpu_cycles);
 
 /*
 ** $Log$
+** Revision 1.5  2002/05/02 16:48:43  stainless
+** Added 'enhanced' & 'accurate' variations of pseudo stereo.
+**
 ** Revision 1.4  2002/04/05 04:39:56  stainless
 ** Overhauled audio base, new features added.
 **

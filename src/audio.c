@@ -63,7 +63,7 @@ int audio_init (void)
     audio_buffer_length = get_config_int ("audio", "buffer_length", 4);
 
 
-    audio_pseudo_stereo = get_config_int ("audio", "pseudo_stereo", TRUE);
+    audio_pseudo_stereo = get_config_int ("audio", "pseudo_stereo", AUDIO_CLASSIC_STEREO_MIXING);
 
 
     if (audio_enable_output)

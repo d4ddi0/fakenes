@@ -23,6 +23,13 @@ extern "C" {
 #endif
 
 
+#define AUDIO_CLASSIC_STEREO_MIXING     1
+
+#define AUDIO_ENHANCED_STEREO_MIXING    2
+
+#define AUDIO_ACCURATE_STEREO_MIXING    3
+
+
 int audio_enable_output;
 
 

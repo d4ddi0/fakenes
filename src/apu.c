@@ -1465,7 +1465,7 @@ void apu_process(void *buffer, int num_samples)
    apu->elapsed_cycles = cpu_get_cycles(FALSE);
 }
 
-void apu_process_stereo(void *buffer, int num_samples, int flip, int surround)
+void apu_process_stereo(void *buffer, int num_samples, int style, int flip, int surround)
 {
    apudata_t *d;
    UINT32 elapsed_cycles;
@@ -1476,6 +1476,9 @@ void apu_process_stereo(void *buffer, int num_samples, int flip, int surround)
 
    INT32 next_sample_left, next_sample_right;
    INT32 prev_sample_left = 0, prev_sample_right = 0;
+
+   int cycle_triangle = FALSE;
+   int cycle_noise = TRUE;
 
    ASSERT(apu);
 
@@ -1584,11 +1587,47 @@ void apu_process_stereo(void *buffer, int num_samples, int flip, int surround)
          elapsed_cycles += APU_FROM_FIXED(apu->cycle_rate);
 
          accum_centre = accum_left = accum_right = 0;
-         if (apu->mix_enable[0]) accum_left += apu_rectangle(&apu->apus.rectangle[0]);
-         if (apu->mix_enable[1]) accum_right += apu_rectangle(&apu->apus.rectangle[1]);
-         if (apu->mix_enable[2]) accum_left += apu_triangle(&apu->apus.triangle);
-         if (apu->mix_enable[3]) accum_right += apu_noise(&apu->apus.noise);
-         if (apu->mix_enable[4]) accum_centre += apu_dmc(&apu->apus.dmc);
+
+         if (style == 1)
+         {
+             /* FakeNES classic. */
+             if (apu->mix_enable[0]) accum_left += apu_rectangle(&apu->apus.rectangle[0]);
+             if (apu->mix_enable[1]) accum_right += apu_rectangle(&apu->apus.rectangle[1]);
+             if (apu->mix_enable[2]) accum_left += apu_triangle(&apu->apus.triangle);
+             if (apu->mix_enable[3]) accum_right += apu_noise(&apu->apus.noise);
+             if (apu->mix_enable[4]) accum_centre += apu_dmc(&apu->apus.dmc);
+         }
+         else if (style == 2)
+         {
+             /* FakeNES enhanced. (may/2002) */
+             /* Cycles the noise/triangle channels against each other. */
+
+             if (apu->mix_enable[0]) accum_left += apu_rectangle(&apu->apus.rectangle[0]);
+             if (apu->mix_enable[1]) accum_right += apu_rectangle(&apu->apus.rectangle[1]);
+
+             if (apu->mix_enable[4]) accum_centre += apu_dmc(&apu->apus.dmc);
+
+             if (! cycle_triangle) {
+                if (apu->mix_enable[2]) accum_left += apu_triangle(&apu->apus.triangle);
+             } else {
+                if (apu->mix_enable[2]) accum_right += apu_triangle(&apu->apus.triangle);
+             }
+
+             if (! cycle_noise) {
+                if (apu->mix_enable[3]) accum_left += apu_noise(&apu->apus.noise);
+             } else {
+                if (apu->mix_enable[3]) accum_right += apu_noise(&apu->apus.noise);
+             }
+         }
+         else
+         {
+            /* Real NES. */
+             if (apu->mix_enable[0]) accum_left += apu_rectangle(&apu->apus.rectangle[0]);
+             if (apu->mix_enable[1]) accum_left += apu_rectangle(&apu->apus.rectangle[1]);
+             if (apu->mix_enable[2]) accum_right += apu_triangle(&apu->apus.triangle);
+             if (apu->mix_enable[3]) accum_right += apu_noise(&apu->apus.noise);
+             if (apu->mix_enable[4]) accum_right += apu_dmc(&apu->apus.dmc);
+         }
 
          //if (apu->ext && apu->mix_enable[5]) accum += apu->ext->process();
 
@@ -1765,6 +1804,12 @@ void apu_process_stereo(void *buffer, int num_samples, int flip, int surround)
 
    /* resync cycle counter */
    apu->elapsed_cycles = cpu_get_cycles(FALSE);
+
+   if (style == 2)
+   {
+      cycle_triangle = (! cycle_triangle);
+      cycle_noise = (! cycle_noise);
+   }
 }
 
 /* set the filter type */
@@ -1908,7 +1953,13 @@ void apu_setmode(int item, int mode)
       if ( apu != NULL) apu->apus.triangle.ideal_triangle = mode;
       break;
    case APUMODE_SMOOTH_ENVELOPE:
+      if ( apu != NULL) apu->apus.rectangle[0].smooth_envelope = mode;
+      if ( apu != NULL) apu->apus.rectangle[1].smooth_envelope = mode;
+      break;
    case APUMODE_SMOOTH_SWEEP:
+      if ( apu != NULL) apu->apus.rectangle[0].smooth_sweep = mode;
+      if ( apu != NULL) apu->apus.rectangle[1].smooth_sweep = mode;
+      break;
    default:
       break;
    }
@@ -2028,6 +2079,9 @@ boolean sync_dmc_register(UINT32 cpu_cycles)
 
 /*
 ** $Log$
+** Revision 1.8  2002/05/02 16:48:42  stainless
+** Added 'enhanced' & 'accurate' variations of pseudo stereo.
+**
 ** Revision 1.7  2002/04/27 03:26:47  stainless
 ** Enabled generation of DMC IRQ.
 **

@@ -82,19 +82,35 @@ static MENU options_audio_mixing_quality_menu [] =
 };
 
 
-static int options_audio_mixing_menu_normal (void);
+static int options_audio_mixing_stereo_menu_classic (void);
 
-static int options_audio_mixing_menu_pseudo_stereo (void);
+static int options_audio_mixing_stereo_menu_enhanced (void);
+
+static int options_audio_mixing_stereo_menu_accurate (void);
+
+
+static MENU options_audio_mixing_stereo_menu [] =
+{
+    {  "&Classic",  options_audio_mixing_stereo_menu_classic, NULL, 0, NULL },
+    {          "",                                      NULL, NULL, 0, NULL },
+    { "&Enhanced", options_audio_mixing_stereo_menu_enhanced, NULL, 0, NULL },
+    {          "",                                      NULL, NULL, 0, NULL },
+    { "&Accurate", options_audio_mixing_stereo_menu_accurate, NULL, 0, NULL },
+    {        NULL,                                      NULL, NULL, 0, NULL }
+};
+
+
+static int options_audio_mixing_menu_normal (void);
 
 
 static MENU options_audio_mixing_menu [] =
 {
-    {        "&Normal",        options_audio_mixing_menu_normal,                              NULL, 0, NULL },
-    {               "",                                    NULL,                              NULL, 0, NULL },
-    { "&Pseudo Stereo", options_audio_mixing_menu_pseudo_stereo,                              NULL, 0, NULL },
-    {               "",                                    NULL,                              NULL, 0, NULL },
-    {       "&Quality",                                    NULL, options_audio_mixing_quality_menu, 0, NULL },
-    {             NULL,                                    NULL,                              NULL, 0, NULL }
+    {  "&Normal",  options_audio_mixing_menu_normal,                              NULL, 0, NULL },
+    {         "",                              NULL,                              NULL, 0, NULL },
+    {  "&Stereo",                              NULL,  options_audio_mixing_stereo_menu, 0, NULL },
+    {         "",                              NULL,                              NULL, 0, NULL },
+    { "&Quality",                              NULL, options_audio_mixing_quality_menu, 0, NULL },
+    {       NULL,                              NULL,                              NULL, 0, NULL }
 };
 
 
