@@ -147,7 +147,6 @@ static void mmc1_write (UINT16 address, UINT8 value)
                     }
 
                     mmc1_bank_number <<= 2;
-                    printf("VROM 4k low: %02X %02X\n", mmc1_register[1], mmc1_bank_number);
 
                     /* swap 4k of CHR-ROM */ //works!!!
                     mmc_vrom_banks[0] = VROM_PAGE_1K (mmc1_bank_number);
@@ -165,7 +164,6 @@ static void mmc1_write (UINT16 address, UINT8 value)
                     }
 
                     mmc1_bank_number <<= 2;
-                    printf("VROM 4k high: %02X %02X\n", mmc1_register[2], mmc1_bank_number);
 
                     /* swap other 4k of CHR-ROM */ //works!!!
                     mmc_vrom_banks[4] = VROM_PAGE_1K (mmc1_bank_number);
@@ -186,7 +184,6 @@ static void mmc1_write (UINT16 address, UINT8 value)
                     }
 
                     mmc1_bank_number <<= 2;
-                    printf("VROM 8k: %02X %02X\n", mmc1_register[1], mmc1_bank_number);
 
                     /* swap 8k of CHR-ROM */ //never called??
                     mmc_vrom_banks[0] = VROM_PAGE_1K (mmc1_bank_number);
@@ -234,7 +231,6 @@ static void mmc1_write (UINT16 address, UINT8 value)
                     }
 
                     mmc1_bank_number <<= 2;
-                    printf("VROM 4k low: %02X %02X\n", mmc1_register[1], mmc1_bank_number);
 
                     /* swap 4k of CHR-ROM */ //works!!!
                     mmc_vrom_banks[0] = VROM_PAGE_1K (mmc1_bank_number);
@@ -255,7 +251,6 @@ static void mmc1_write (UINT16 address, UINT8 value)
                     }
 
                     mmc1_bank_number <<= 2;
-                    printf("VROM 8k: %02X %02X\n", mmc1_register[1], mmc1_bank_number);
 
                     /* swap 8k of CHR-ROM */ //never called??
                     mmc_vrom_banks[0] = VROM_PAGE_1K (mmc1_bank_number);
@@ -310,7 +305,6 @@ static void mmc1_write (UINT16 address, UINT8 value)
                 }
 
                 mmc1_bank_number <<= 2;
-                printf("VROM 4k high: %02X %02X\n", mmc1_register[2], mmc1_bank_number);
 
                 /* swap other 4k of CHR-ROM */ //works!!!
                 mmc_vrom_banks[4] = VROM_PAGE_1K (mmc1_bank_number);
@@ -399,12 +393,12 @@ static INLINE int mmc1_init (void)
 
 
     printf ("Warning: This mapper is only partially supported.\n");
-
     printf ("Press any key to continue...\n");
 
 
     while (!keypressed ());
     readkey ();
+
 
     if ((ROM_PRG_ROM_PAGES) == 1) mmc1_prg_mask = 1;
     else if ((ROM_PRG_ROM_PAGES) == 2) mmc1_prg_mask = 2;
