@@ -71,6 +71,11 @@ static char *get_sram_filename (char *buffer, const char *rom_filename, int buff
         replace_extension
             (buffer, buffer, "sav", buffer_size);
     }
+    else
+    {
+        replace_extension (buffer,
+            rom_filename, "sav", buffer_size);
+    }
 	
 #else
 
