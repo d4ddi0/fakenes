@@ -181,7 +181,7 @@ int main (int argc, char * argv [])
     int result;
 
 
-    printf ("\nFakeNES version 0.1.1 (CVS), by stainless and TRAC.\n"
+    printf ("\nFakeNES version 0.1.2 (CVS), by stainless and TRAC.\n"
             "Assistance provided by amit and Lord_Nightmare.\n");
 
     printf ("\nOriginal concept by stainless and RobotBebop.\n"
