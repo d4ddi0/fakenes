@@ -1135,7 +1135,7 @@ static int machine_state_menu_select (void)
         {
             memset (machine_state_titles [index], NULL, 16);
 
-            strcat (machine_state_titles [index], "Untitled");
+            strcat (machine_state_titles [index], "Empty");
         }
 
 
@@ -1177,8 +1177,15 @@ static int machine_state_menu_save (void)
         
         machine_state_save_dialog [4].dp = buffer2;
         
-        
-        strcat (buffer2, machine_state_titles [machine_state_index]);
+
+        if (strcmp (machine_state_titles [machine_state_index], "Empty") == 0)
+        {
+            strcat (buffer2, "Untitled");
+        }
+        else
+        {
+            strcat (buffer2, machine_state_titles [machine_state_index]);
+        }
         
         
         if (gui_show_dialog (machine_state_save_dialog) != 5)
@@ -1190,7 +1197,14 @@ static int machine_state_menu_save (void)
     {
         /* Save using last title. */
 
-        strcat (buffer2, machine_state_titles [machine_state_index]);
+        if (strcmp (machine_state_titles [machine_state_index], "Empty") == 0)
+        {
+            strcat (buffer2, "Untitled");
+        }
+        else
+        {
+            strcat (buffer2, machine_state_titles [machine_state_index]);
+        }
     }
 
 
