@@ -10,6 +10,11 @@ static int mmc1_init (void);
 static void mmc1_reset (void);
 
 
+static void mmc1_save_state (PACKFILE *, int);
+
+static void mmc1_load_state (PACKFILE *, int);
+
+
 const MMC mmc_mmc1 =
 {
     1, "MMC1",
@@ -19,13 +24,8 @@ const MMC mmc_mmc1 =
 
     "MMC1\0\0\0\0",
 
-    null_save_state, null_load_state
+    mmc1_save_state, mmc1_load_state
 };
-
-
-static int mmc1_prg_address = 0;
-
-static int mmc1_chr_address = 0;
 
 
 static int mmc1_bit_stream;
@@ -35,11 +35,11 @@ static int mmc1_bit_counter;
 
 static int mmc1_register[4];
 
-static int mmc1_cpu_bank[2];
-
 static int mmc1_previous_register = 0x0000;
 
 static int mmc1_256k_bank_num;
+
+static int mmc1_cpu_bank[2];
 
 
 #define MMC1_MIRRORING_ADDRESS_BIT  1
@@ -435,3 +435,54 @@ static int mmc1_init (void)
 
     return 0;
 }
+
+
+static void mmc1_save_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    pack_putc (mmc1_previous_register, file_chunk);
+
+    pack_putc (mmc1_bit_stream, file_chunk);
+    pack_putc (mmc1_bit_counter, file_chunk);
+
+    pack_putc (mmc1_register[0], file_chunk);
+    pack_putc (mmc1_register[1], file_chunk);
+    pack_putc (mmc1_register[2], file_chunk);
+    pack_putc (mmc1_register[3], file_chunk);
+
+
+    pack_fclose_chunk (file_chunk);
+}
+
+
+static void mmc1_load_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    mmc1_previous_register = pack_getc (file_chunk);
+
+    mmc1_bit_stream = pack_getc (file_chunk);
+    mmc1_bit_counter = pack_getc (file_chunk);
+
+
+    mmc1_set_register_value (0, pack_getc (file_chunk));
+    mmc1_set_register_value (1, pack_getc (file_chunk));
+    mmc1_set_register_value (2, pack_getc (file_chunk));
+    mmc1_set_register_value (3, pack_getc (file_chunk));
+
+
+    mmc1_cpu_bank_sort();
+
+
+    pack_fclose_chunk (file_chunk);
+}
+
