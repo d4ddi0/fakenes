@@ -1,3 +1,39 @@
+Version 0.2.0
+====--
+
+Miscellaneous changes:
+  Added fast zero-page memory access to CPU emulation.
+  Eliminated some obsolete return values in CPU emulation.
+  Changed the CPU execution dispatcher to be inline to the main execution loop.
+  Fixed a serious bug in address wrapping of ROMs that weren't an even power of 2.
+  Fixed a bug which caused executed-frames counter to only count unrendered frames.
+  Improved POSIX base support and the autoconf-based build system.
+  Implemented loading of ROMs from ZIP files, must be the first file.
+  Fixed a serious bug in video mode initialization (??).
+
+Video output changes:
+  Added the ability to specify blit region, to hidding vertical scrolling.
+  Added a toggle to the Options > Video menu in the GUI for 'force_window'.
+  Added 2xSCL blitter (similar to 2xSOE, only better and slower).
+  Improved the overall performance of basic blitting routines.
+
+PPU rendering changes:
+  Moved checks for sprites/background enabled outside of drawing loops.
+  Altered cache-preloading in display rendering.
+
+Memory mapper support changes:
+  Fixed a serious addressing bug in Bandai mapper.
+  Fixed a serious IRQ timing structure bug in Bandai mapper.
+  Added FFE F3 series (iNES mapper 8) support.
+  Added Konami VRC6 and VRC6V (iNES mappers 24 and 26) support.
+  Added preliminary MMC5 (iNES mapper 5) support.
+  Implemented partial ExSound support for both VRC6 and MMC5 mappers.
+
+Audio rendering & output changes:
+  Fixed initialization accepting a null driver, causing the emulator to freeze.
+  Added random noise addition dithering for low quality output.
+
+
 0.1.5
 Miscellaneous changes
 Fixed a serious masking bug in PRG banking.

@@ -465,7 +465,7 @@ int show_gui (int first_run)
 
     if (first_run)
     {
-        alert ("FakeNES version 0.1.5 (CVS) " ALLEGRO_PLATFORM_STR, "", "Get "
+        alert ("FakeNES version 0.2.0 (final) " ALLEGRO_PLATFORM_STR, "", "Get "
             "the latest from http://fakenes.sourceforge.net/.", "&OK", NULL, 0, 0);
     }
 
