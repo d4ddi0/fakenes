@@ -38,12 +38,12 @@ static UINT8 mmc3_prg_bank[2];
 static UINT8 mmc3_chr_bank[6];
 
 
-static int mmc3_irq_counter = 0;
+static UINT8 mmc3_irq_counter = 0;
 
-static int mmc3_irq_latch = 0;
+static UINT8 mmc3_irq_latch = 0;
 
-static int mmc3_disable_irqs = TRUE;
-static int mmc3_counter_latched = FALSE;
+static INT8 mmc3_disable_irqs = TRUE;
+static INT8 mmc3_counter_latched = FALSE;
 
 
 static UINT8 mmc3_register_8000;
