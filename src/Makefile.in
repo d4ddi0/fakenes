@@ -77,7 +77,7 @@ ${COREOFF_INC}: \
     coreoff.c \
     ${INCLUDE_PATH}/core.h \
     ${INCLUDE_PATH}/misc.h
-    ${CC} $< -o ${COREOFF} -I${INCLUDE_PATH}
+	${CC} $< -o ${COREOFF} -I${INCLUDE_PATH}
 	${CHMOD} +x ${COREOFF}
     ${COREOFF} > ${COREOFF_INC}
 	${RM} ${COREOFF}
