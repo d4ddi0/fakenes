@@ -74,7 +74,7 @@ gui.o : gui.c include/data.h include/gui/dialogs.h include/gui.h \
         include/timing.h
 
 input.o : input.c include/gui.h include/input.h include/misc.h \
-          include/ppu.h include/timing.h
+          include/ppu.h include/video.h include/timing.h
 
 main.o : main.c include/build.h include/cpu.h include/data.h \
          include/input.h include/misc.h include/mmc.h include/ppu.h \
@@ -85,15 +85,15 @@ mmc.o : mmc.c include/mmc/aorom.h include/mmc/cnrom.h include/cpu.h \
         include/mmc/mmc1.h include/mmc/mmc2.h include/mmc/mmc3.h \
         include/mmc/mmc4.h include/ppu.h include/rom.h include/mmc/unrom.h
 
-papu.o  : papu.c include/misc.h include/papu.h
+papu.o : papu.c include/misc.h include/papu.h
 
-ppu.o : ppu.c include/cpu.h include/misc.h include/mmc.h include/ppu.h \
-        include/video.h
+ppu.o : ppu.c include/cpu.h include/input.h include/misc.h include/mmc.h \
+        include/ppu.h include/video.h
 
 rom.o : rom.c include/misc.h include/ppu.h include/rom.h
 
-video.o : video.c include/cpu.h include/data.h include/misc.h \
-          include/video.h include/timing.h
+video.o : video.c include/cpu.h include/data.h include/input.h \
+          include/misc.h include/video.h include/timing.h
 
 
 clean :

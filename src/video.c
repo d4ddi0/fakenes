@@ -17,6 +17,8 @@ All rights reserved.  See 'LICENSE' for details.
 
 #include "cpu.h"
 
+#include "input.h"
+
 #include "video.h"
 
 
@@ -194,6 +196,16 @@ void video_blit (void)
     
         textprintf (video_buffer,
             font, 16, 200, 33, "%02d Hz", timing_hertz);
+    }
+
+
+    if (input_enable_zapper)
+    {
+        if ((mouse_x < 256) && (mouse_y < 240))
+        {
+            masked_blit (DATA_GUN_SPRITE, base_video_buffer,
+                0, 0, (mouse_x + 1), (mouse_y + 9), 16, 16);
+        }
     }
 
 

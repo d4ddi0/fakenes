@@ -28,11 +28,16 @@ All rights reserved.  See 'LICENSE' for details.
 
 #include "rom.h"
 
+#include "video.h"
+
 
 #include "misc.h"
 
 
 #include "timing.h"
+
+
+int input_enable_zapper = FALSE;
 
 
 static int buttons [4] [8];
@@ -100,6 +105,39 @@ static int current_read_p2 = 0;
 
 
 static int input_devices [4];
+
+
+static int zapper_mask = 0x08;
+
+
+void input_update_zapper (void)
+{
+    int pixel;
+
+
+    zapper_mask = 0x08;
+
+
+    if ((mouse_x < 256) && (mouse_y < 240))
+    {
+        pixel = (_getpixel
+            (video_buffer, mouse_x, mouse_y) - 1);
+
+
+        if (mouse_b & 1)
+        {
+            /* Left button. */
+
+            zapper_mask |= 0x10;
+        }
+
+
+        if ((pixel == 32) || (pixel == 48))
+        {
+            zapper_mask &= ~0x08;
+        }
+    }
+}
 
 
 static INLINE void _load_keycodes (void)
@@ -332,7 +370,15 @@ UINT8 input_read (UINT16 address)
 
                 current_read_p2 ++;
 
-                return (1);
+
+                if (input_enable_zapper)
+                {
+                    return ((1 | zapper_mask));
+                }
+                else
+                {
+                    return (1);
+                }
             }
             else if ((current_read_p2 > 7) && (current_read_p2 < 16))
             {
@@ -343,7 +389,16 @@ UINT8 input_read (UINT16 address)
 
                 current_read_p2 ++;
 
-                return (buttons [INPUT_PLAYER_4] [index]);
+
+                if (input_enable_zapper)
+                {
+                    return ((buttons
+                        [INPUT_PLAYER_4] [index] | zapper_mask));
+                }
+                else
+                {
+                    return (buttons [INPUT_PLAYER_4] [index]);
+                }
             }
             else if ((current_read_p2 > 15) && (current_read_p2 < 23))
             {
@@ -351,7 +406,15 @@ UINT8 input_read (UINT16 address)
 
                 current_read_p2 ++;
 
-                return (0);
+
+                if (input_enable_zapper)
+                {
+                    return (zapper_mask);
+                }
+                else
+                {
+                    return (0);
+                }
             }
             else if (current_read_p2 == 23)
             {
@@ -359,13 +422,30 @@ UINT8 input_read (UINT16 address)
 
                 current_read_p2 = 0;
 
-                return (0);
+
+                if (input_enable_zapper)
+                {
+                    return (zapper_mask);
+                }
+                else
+                {
+                    return (0);
+                }
             }
             else
             {
                 /* Player 2 button status. */
 
-                return (buttons [INPUT_PLAYER_2] [current_read_p2 ++]);
+                if (input_enable_zapper)
+                {
+                    return ((buttons
+                        [INPUT_PLAYER_2] [current_read_p2 ++] | zapper_mask));
+                }
+                else
+                {
+                    return (buttons
+                        [INPUT_PLAYER_2] [current_read_p2 ++]);
+                }
             }
 
 
@@ -614,7 +694,22 @@ int input_process (void)
                 break;
 
 
-            case KEY_SLASH:
+            case KEY_F5:
+
+                if (input_enable_zapper)
+                {
+                    input_enable_zapper = FALSE;
+                }
+                else
+                {
+                    input_enable_zapper = TRUE;
+                }
+
+
+                break;
+
+
+            case KEY_F6:
 
                 invert_ppu_mirroring ();
 

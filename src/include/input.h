@@ -23,6 +23,9 @@ extern "C" {
 #include "misc.h"
 
 
+int input_enable_zapper;
+
+
 int input_init (void);
 
 void input_exit (void);
@@ -39,6 +42,9 @@ void input_write (UINT16, UINT8);
 
 
 int input_process (void);
+
+
+void input_update_zapper (void);
 
 
 #ifdef __cplusplus

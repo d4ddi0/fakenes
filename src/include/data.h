@@ -13,6 +13,9 @@ DATAFILE * data;
 #define DATA_ARROW_SPRITE   \
     ((BITMAP *) data [ARROW_SPRITE].dat)
 
+#define DATA_GUN_SPRITE   \
+    ((BITMAP *) data [GUN_SPRITE].dat)
+
 
 #define DATA_GB_PALETTE     \
     ((RGB *) data [GB_PALETTE].dat)
