@@ -46,14 +46,12 @@ int input_enable_zapper = FALSE;
 static int buttons [4] [8];
 
 
-#define INPUT_PLAYER_1      0
+enum
+{
+    INPUT_PLAYER_1, INPUT_PLAYER_2,
 
-#define INPUT_PLAYER_2      1
-
-
-#define INPUT_PLAYER_3      2
-
-#define INPUT_PLAYER_4      3
+    INPUT_PLAYER_3, INPUT_PLAYER_4
+};
 
 
 static UINT8 key1_defaults [25] = { "24 26 64 67 84 85 82 83\0" };
@@ -94,17 +92,15 @@ static int current_read_p1 = 0;
 static int current_read_p2 = 0;
 
 
-#define INPUT_DEVICE_NONE           0
+enum
+{
+    INPUT_DEVICE_NONE,
 
 
-#define INPUT_DEVICE_KEYBOARD_1     1
+    INPUT_DEVICE_KEYBOARD_1, INPUT_DEVICE_KEYBOARD_2,
 
-#define INPUT_DEVICE_KEYBOARD_2     2
-
-
-#define INPUT_DEVICE_JOYSTICK_1     3
-
-#define INPUT_DEVICE_JOYSTICK_2     4
+    INPUT_DEVICE_JOYSTICK_1, INPUT_DEVICE_JOYSTICK_2
+};
 
 
 static int input_devices [4];
@@ -120,11 +116,14 @@ void input_update_zapper_offsets (void)
     input_zapper_y_offset = mouse_y;
 
 
-    input_zapper_trigger = (mouse_b & 1);
+    input_zapper_trigger = (mouse_b & 0x01);
 
 
-    input_zapper_on_screen =
-        ((input_zapper_x_offset < 256) && (input_zapper_y_offset < 240));
+    if ((input_zapper_x_offset < 256) && (input_zapper_y_offset < 240))
+    {
+        input_zapper_on_screen = TRUE;
+    }
+
 
     if (! input_zapper_on_screen)
     {
@@ -151,8 +150,7 @@ void input_update_zapper (void)
 
     if (input_zapper_on_screen)
     {
-        pixel = (_getpixel (video_buffer,
-            input_zapper_x_offset, input_zapper_y_offset) - 1);
+        pixel = (_getpixel (video_buffer, input_zapper_x_offset, input_zapper_y_offset) - 1);
 
 
         if ((pixel == 32) || (pixel == 48))
@@ -170,11 +168,9 @@ static INLINE void load_keyboard_layouts (void)
     memset (key2_buffer, NULL, sizeof (key2_buffer));
 
 
-    sprintf (key1_buffer, "%s",
-        get_config_string ("input", "key1_scancodes", key1_defaults));
+    sprintf (key1_buffer, "%s", get_config_string ("input", "key1_scancodes", key1_defaults));
 
-    sprintf (key2_buffer, "%s",
-        get_config_string ("input", "key2_scancodes", key2_defaults));
+    sprintf (key2_buffer, "%s", get_config_string ("input", "key2_scancodes", key2_defaults));
 
 
     if (sscanf (key1_buffer, "%d%d%d%d%d%d%d%d",
@@ -209,11 +205,9 @@ static INLINE void load_joystick_layouts (void)
     memset (joy2_buffer, NULL, sizeof (joy2_buffer));
 
 
-    sprintf (joy1_buffer, "%s",
-        get_config_string ("input", "joy1_buttons", joy1_defaults));
+    sprintf (joy1_buffer, "%s", get_config_string ("input", "joy1_buttons", joy1_defaults));
 
-    sprintf (joy2_buffer, "%s",
-        get_config_string ("input", "joy2_buttons", joy2_defaults));
+    sprintf (joy2_buffer, "%s", get_config_string ("input", "joy2_buttons", joy2_defaults));
 
 
     if (sscanf (joy1_buffer, "%d%d%d%d", &joy1_buttons [0],
@@ -243,22 +237,17 @@ int input_init (void)
     install_joystick (JOY_TYPE_AUTODETECT);
 
 
-    input_devices [0] = get_config_int
-        ("input", "player_1_device", INPUT_DEVICE_KEYBOARD_1);
+    input_devices [0] = get_config_int ("input", "player_1_device", INPUT_DEVICE_KEYBOARD_1);
 
-    input_devices [1] = get_config_int
-        ("input", "player_2_device", INPUT_DEVICE_KEYBOARD_2);
+    input_devices [1] = get_config_int ("input", "player_2_device", INPUT_DEVICE_KEYBOARD_2);
 
 
-    input_devices [2] = get_config_int
-        ("input", "player_3_device", INPUT_DEVICE_NONE);
+    input_devices [2] = get_config_int ("input", "player_3_device", INPUT_DEVICE_NONE);
 
-    input_devices [3] = get_config_int
-        ("input", "player_4_device", INPUT_DEVICE_NONE);
+    input_devices [3] = get_config_int ("input", "player_4_device", INPUT_DEVICE_NONE);
 
 
-    input_enable_zapper =
-        get_config_int ("input", "enable_zapper", FALSE);
+    input_enable_zapper = get_config_int ("input", "enable_zapper", FALSE);
 
 
     load_keyboard_layouts ();
@@ -313,7 +302,7 @@ void input_reset (void)
     {
         for (index = 0; index < 8; index ++)
         {
-            buttons [player] [index] = 0;
+            buttons [player] [index] = 0x01;
         }
     }
 
@@ -334,7 +323,7 @@ UINT8 input_read (UINT16 address)
 
     if (! input_enable_zapper)
     {
-        zapper_mask = 0;
+        zapper_mask = 0x00;
     }
 
 
@@ -350,7 +339,7 @@ UINT8 input_read (UINT16 address)
 
                 current_read_p1 ++;
 
-                return (1);
+                return (0x01);
             }
             else if ((current_read_p1 > 7) && (current_read_p1 < 16))
             {
@@ -400,7 +389,7 @@ UINT8 input_read (UINT16 address)
 
                 current_read_p2 ++;
 
-                return ((1 | zapper_mask));
+                return ((0x01 | zapper_mask));
             }
             else if ((current_read_p2 > 7) && (current_read_p2 < 16))
             {
@@ -411,8 +400,7 @@ UINT8 input_read (UINT16 address)
 
                 current_read_p2 ++;
 
-                return ((buttons
-                    [INPUT_PLAYER_4] [index] | zapper_mask));
+                return ((buttons [INPUT_PLAYER_4] [index] | zapper_mask));
             }
             else if ((current_read_p2 > 15) && (current_read_p2 < 23))
             {
@@ -434,8 +422,7 @@ UINT8 input_read (UINT16 address)
             {
                 /* Player 2 button status. */
 
-                return ((buttons [INPUT_PLAYER_2]
-                    [current_read_p2 ++] | zapper_mask));
+                return ((buttons [INPUT_PLAYER_2] [current_read_p2 ++] | zapper_mask));
             }
 
 
@@ -460,7 +447,7 @@ void input_write (UINT16 address, UINT8 value)
 
              /* 1st and 3rd players. */
 
-            if (((value & 1) == 0) && ((last_write & 1) == 1))
+            if ((! (value & 0x01)) && (last_write & 0x01))
             {
                 /* Full strobe. */
 
@@ -517,8 +504,7 @@ static INLINE void do_keyboard_1 (int player)
 
     for (index = 0; index < 8; index ++)
     {
-        buttons [player] [index] =
-            (key [key1_scancodes [index]] ? 0x41 : 0);
+        buttons [player] [index] = (key [key1_scancodes [index]] ? 0x41 : 0);
     }
 }
 
@@ -530,8 +516,7 @@ static INLINE void do_keyboard_2 (int player)
 
     for (index = 0; index < 8; index ++)
     {
-        buttons [player] [index] =
-            (key [key2_scancodes [index]] ? 0x41 : 0);
+        buttons [player] [index] = (key [key2_scancodes [index]] ? 0x41 : 0);
     }
 }
 
@@ -636,6 +621,7 @@ int input_process (void)
                 {
                     poll_joystick ();
 
+
                     want_poll = FALSE;
                 }
 
@@ -651,6 +637,7 @@ int input_process (void)
                 if (want_poll)
                 {
                     poll_joystick ();
+
 
                     want_poll = FALSE;
                 }
@@ -791,6 +778,12 @@ int input_process (void)
             case KEY_F8:
 
                 gui_spawn_options_video_layers_menu_background ();
+
+
+                break;
+
+
+            default:
 
 
                 break;
