@@ -71,7 +71,10 @@ int papu_linear_echo = TRUE;
 int papu_surround_sound = TRUE;
 
 
-static void * echo_buffer = NULL;
+static void * echo_buffer_a = NULL;
+
+static void * echo_buffer_b = NULL;
+
 
 static int echo_buffer_size = 0;
 
@@ -117,9 +120,14 @@ int papu_reinit (void)
     }
 
 
-    if (echo_buffer)
+    if (echo_buffer_a)
     {
-        free (echo_buffer);
+        free (echo_buffer_a);
+    }
+
+    if (echo_buffer_b)
+    {
+        free (echo_buffer_b);
     }
 
 
@@ -137,9 +145,11 @@ int papu_reinit (void)
     }
 
 
-    echo_buffer = malloc (echo_buffer_size);
+    echo_buffer_a = malloc (echo_buffer_size);
 
-    if (! echo_buffer)
+    echo_buffer_b = malloc (echo_buffer_size);
+
+    if ((! echo_buffer_a) || (! echo_buffer_b))
     {
         return (2);
     }
@@ -149,24 +159,34 @@ int papu_reinit (void)
     {
         int index;
 
-        UINT16 * buffer = echo_buffer;
+
+        UINT16 * buffer_a = echo_buffer_a;
+
+        UINT16 * buffer_b = echo_buffer_b;
 
 
         for (index = 0; index < (echo_buffer_size / 2); index ++)
         {
-            buffer [index] = 0x8000;
+            buffer_a [index] = 0x8000;
+
+            buffer_b [index] = 0x8000;
         }
    }
    else
    {
         int index;
 
-        UINT8 * buffer = echo_buffer;
+
+        UINT8 * buffer_a = echo_buffer_a;
+
+        UINT8 * buffer_b = echo_buffer_b;
 
 
         for (index = 0; index < echo_buffer_size; index ++)
         {
-            buffer [index] = 0x80;
+            buffer_a [index] = 0x80;
+
+            buffer_b [index] = 0x80;
         }
    }
 
@@ -241,9 +261,14 @@ void papu_exit (void)
     apu_destroy (&default_apu);
 
 
-    if (echo_buffer)
+    if (echo_buffer_a)
     {
-        free (echo_buffer);
+        free (echo_buffer_a);
+    }
+
+    if (echo_buffer_b)
+    {
+        free (echo_buffer_b);
     }
 
 
@@ -297,21 +322,32 @@ void papu_write (UINT16 address, UINT8 value)
 }
 
 
-void papu_apply_echo (void)
+static INLINE void apply_echo (void)
 {
     int offset;
 
 
-    UINT8 * buffer1 = audio_buffer;
+    UINT8 * buffer = audio_buffer;
 
-    UINT8 * buffer2 = echo_buffer;
+
+    UINT8 * buffer_a = echo_buffer_a;
+
+    UINT8 * buffer_b = echo_buffer_b;
 
 
     for (offset = 0; offset < echo_buffer_size; offset ++)
     {
-        buffer1 [offset] -= (buffer1 [offset] / 2);
+        buffer_b [offset] /= 2;
 
-        buffer1 [offset] += (buffer2 [offset] / 3);
+        buffer_b [offset] += (buffer_a [offset] / 2);
+    }
+
+
+    for (offset = 0; offset < echo_buffer_size; offset ++)
+    {
+        buffer [offset] /= 2;
+
+        buffer [offset] += (buffer_b [offset] / 2);
     }
 }
 
@@ -356,6 +392,8 @@ static int frames = 0;
 
 
 static int fast_forward = FALSE;
+
+static int current_buffer = 0;
 
 
 void papu_process (void)
@@ -417,9 +455,21 @@ void papu_process (void)
 
             if (papu_linear_echo)
             {
-                papu_apply_echo ();
-    
-                memcpy (echo_buffer, audio_buffer, echo_buffer_size);
+                apply_echo ();
+
+
+                if (current_buffer == 1)
+                {
+                    memcpy (echo_buffer_a, audio_buffer, echo_buffer_size);
+  
+                    current_buffer = 0;
+                }
+                else
+                {
+                    memcpy (echo_buffer_b, audio_buffer, echo_buffer_size);
+  
+                    current_buffer = 1;
+                }
             }
 
 
