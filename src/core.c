@@ -332,42 +332,42 @@ static byte opcode_trace[10];
 #endif
 
 #define OPCODE_PROLOG(x) \
-    case x: {       \
-        pair J,K;   \
-        byte I;
+    case x: {
 #define OPCODE_EXIT      break;
 #define OPCODE_EPILOG    OPCODE_EXIT }
 
 #define OPCODE_PROLOG_DEFAULT \
-    default: {      \
-        pair J,K;   \
-        byte I;
+    default: {
 
+#if 0
 /** Exec6502() ***********************************************/
 /** This function will execute a single 6502 opcode. It     **/
 /** will then return next PC, and current register values   **/
 /** in R.                                                   **/
 /*************************************************************/
-//word Exec6502(M6502 *R)
-//{
-//  byte opcode, cycles;
-//
-//  opcode=Op6502(R->PC.W++);
-//  cycles=Cycles[opcode];
-//  R->Cycles+=cycles;
-//  R->ICount-=cycles;
-//#ifdef DEBUG
-//  opcode_trace[opcode_count++]=opcode;
-//  if (opcode_count==10) opcode_count=0;
-//#endif
-//  switch(opcode)
-//  {
-//#include "core/codes.h"
-//  }
-//
-//  /* We are done */
-//  return(R->PC.W);
-//}
+word Exec6502(M6502 *R)
+{
+  byte opcode, cycles;
+
+  opcode=Op6502(R->PC.W++);
+  cycles=Cycles[opcode];
+  R->Cycles+=cycles;
+  R->ICount-=cycles;
+#ifdef DEBUG
+  opcode_trace[opcode_count++]=opcode;
+  if (opcode_count==10) opcode_count=0;
+#endif
+  switch(opcode)
+  {
+    pair J,K;
+    byte I;
+#include "core/codes.h"
+  }
+
+  /* We are done */
+  return(R->PC.W);
+}
+#endif
 
 /** Int6502() ************************************************/
 /** This function will generate interrupt of a given type.  **/
@@ -439,6 +439,8 @@ void Run6502(M6502 *R)
 #endif
       switch(opcode)
       {
+        pair J,K;
+        byte I;
 #include "core/codes.h"
       }
     }
