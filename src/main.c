@@ -29,6 +29,8 @@ You must read and accept the license prior to use.
 
 #include <string.h>
 
+#include <time.h>
+
 
 #ifdef POSIX
 
@@ -77,6 +79,9 @@ extern int errno;
 #include "timing.h"
 
 
+FILE * log_file = NULL;
+
+
 int machine_type = MACHINE_TYPE_NTSC;
 
 
@@ -110,7 +115,7 @@ UINT8 * confdir = NULL;
 static DIR * tmpdir = NULL;
 
 
-UINT8 logfile [256];
+static UINT8 logfile [256];
 
 #endif
 
@@ -495,6 +500,45 @@ int main (int argc, char * argv [])
 
 
         return (1);
+    }
+
+
+#ifdef POSIX
+
+    /* Overwrite if >= 64k. */
+
+    if (file_size (logfile) >= 65536)
+    {
+        log_file = fopen (logfile, "w");
+    }
+    else
+    {
+        log_file = fopen (logfile, "a");
+    }
+
+#else
+
+    if (file_size ("messages.log") >= 65536)
+    {
+        log_file = fopen ("messages.log", "w");
+    }
+    else
+    {
+        log_file = fopen ("messages.log", "a");
+    }
+
+#endif
+
+
+    if (log_file)
+    {
+        time_t start;
+
+
+        time (&start);
+
+
+        fprintf (log_file, "\n--- %s", asctime (localtime (&start)));
     }
 
 
@@ -957,6 +1001,12 @@ int main (int argc, char * argv [])
 
 
     input_exit ();
+
+
+    if (log_file)
+    {
+        fclose (log_file);
+    }
 
 
     if (rom_is_loaded)

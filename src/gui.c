@@ -88,9 +88,6 @@ static RGB * current_palette = NULL;
 static PALETTE custom_palette;
 
 
-static FILE * log_file = NULL;
-
-
 static int shadow_color = 0;
 
 static int error_color = 0;
@@ -644,9 +641,6 @@ extern UINT8 logfile [256];
 
 int show_gui (int first_run)
 {
-    time_t start;
-
-
     update_colors ();
 
 
@@ -664,24 +658,6 @@ int show_gui (int first_run)
 
 
     LOCK_FUNCTION (remove_message);
-
-
-#ifdef POSIX
-
-    log_file = fopen (logfile, "w");
-#else
-
-    log_file = fopen ("messages.log", "w");
-#endif
-
-
-    if (log_file)
-    {
-        time (&start);
-
-
-        fprintf (log_file, "\n--- %s", asctime (localtime (&start)));
-    }
 
 
     update_menus ();
@@ -763,15 +739,6 @@ int show_gui (int first_run)
 
 
     audio_resume ();
-
-
-    if (log_file)
-    {
-        fclose (log_file);
-
-
-        log_file = NULL;
-    }
 
 
     return (want_exit);

@@ -5,6 +5,9 @@
 #define MISC_H_INCLUDED
 
 
+#include <stdio.h>
+
+
 typedef unsigned char UINT8;
 
 typedef signed char INT8;
@@ -107,6 +110,9 @@ typedef union
 #undef  NULL
 
 #define NULL    0
+
+
+FILE * log_file;
 
 
 #endif /* ! MISC_H_INCLUDED */
