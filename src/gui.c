@@ -306,6 +306,8 @@ void gui_handle_keypress (int index)
             break;
 
 
+        case KEY_0:
+
         case KEY_1:
 
         case KEY_2:
@@ -318,10 +320,16 @@ void gui_handle_keypress (int index)
 
         case KEY_6:
 
-          machine_state_index = ((index >> 8) - KEY_1);
+        case KEY_7:
+
+        case KEY_8:
+
+        case KEY_9:
+
+          machine_state_index = ((index >> 8) - KEY_0);
 
 
-          gui_message (gui_fg_color, "Current machine state slot set to %d.", (machine_state_index + 1)); \
+          gui_message (gui_fg_color, "Current machine state slot set to %d.", machine_state_index);
 
 
           break;
@@ -500,17 +508,25 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (machine_menu, 2, video_display_status);
 
 
-    TOGGLE_MENU (machine_state_select_menu, 0, ((machine_state_index * 2) == 0));
+    TOGGLE_MENU (machine_state_select_menu, 0, (machine_state_index == 0));
 
-    TOGGLE_MENU (machine_state_select_menu, 2, ((machine_state_index * 2) == 2));
+    TOGGLE_MENU (machine_state_select_menu, 2, (machine_state_index == 1));
 
-    TOGGLE_MENU (machine_state_select_menu, 4, ((machine_state_index * 2) == 4));
+    TOGGLE_MENU (machine_state_select_menu, 4, (machine_state_index == 2));
 
-    TOGGLE_MENU (machine_state_select_menu, 6, ((machine_state_index * 2) == 6));
+    TOGGLE_MENU (machine_state_select_menu, 6, (machine_state_index == 3));
 
-    TOGGLE_MENU (machine_state_select_menu, 8, ((machine_state_index * 2) == 8));
+    TOGGLE_MENU (machine_state_select_menu, 8, (machine_state_index == 4));
 
-    TOGGLE_MENU (machine_state_select_menu, 10, ((machine_state_index * 2) == 10));
+    TOGGLE_MENU (machine_state_select_menu, 10, (machine_state_index == 5));
+
+    TOGGLE_MENU (machine_state_select_menu, 12, (machine_state_index == 6));
+
+    TOGGLE_MENU (machine_state_select_menu, 14, (machine_state_index == 7));
+
+    TOGGLE_MENU (machine_state_select_menu, 16, (machine_state_index == 8));
+
+    TOGGLE_MENU (machine_state_select_menu, 18, (machine_state_index == 9));
 
 
     TOGGLE_MENU (netplay_protocol_menu, 0, (netplay_protocol == NETPLAY_PROTOCOL_TCPIP));
@@ -1029,20 +1045,22 @@ static int machine_speed_menu_pal_50_hz (void)
 
 
 #define STATE_SELECT_MENU_HANDLER(slot)         \
-    static int machine_state_select_menu_##slot (void)    \
+    static int machine_state_select_menu_##slot (void)          \
     {                                           \
-        machine_state_index = (slot - 1);       \
+        machine_state_index = slot;             \
                                                 \
         update_menus ();                        \
                                                 \
                                                 \
-        gui_message (gui_fg_color, "Current machine state slot set to %d.", \
-            (machine_state_index + 1)); \
+        gui_message (gui_fg_color, "Current machine"            \
+            " state slot set to %d.", machine_state_index);     \
                                                 \
                                                 \
         return (D_O_K);                         \
     }
 
+
+STATE_SELECT_MENU_HANDLER (0);
 
 STATE_SELECT_MENU_HANDLER (1);
 
@@ -1056,10 +1074,16 @@ STATE_SELECT_MENU_HANDLER (5);
 
 STATE_SELECT_MENU_HANDLER (6);
 
+STATE_SELECT_MENU_HANDLER (7);
 
-static UINT8 machine_state_menu_texts [6] [20];
+STATE_SELECT_MENU_HANDLER (8);
 
-static UINT8 machine_state_titles [6] [16];
+STATE_SELECT_MENU_HANDLER (9);
+
+
+static UINT8 machine_state_menu_texts [10] [20];
+
+static UINT8 machine_state_titles [10] [16];
 
 
 static int machine_state_menu_select (void)
@@ -1077,7 +1101,7 @@ static int machine_state_menu_select (void)
     PACKFILE * file;
 
 
-    for (index = 0; index < 6; index ++)
+    for (index = 0; index < 10; index ++)
     {
         memset (buffer, NULL, sizeof (buffer));
     
@@ -1130,7 +1154,7 @@ static int machine_state_menu_select (void)
 
         memset (machine_state_menu_texts [index], NULL, 20);
 
-        sprintf (machine_state_menu_texts [index], "&%d: %s", (index + 1), machine_state_titles [index]);
+        sprintf (machine_state_menu_texts [index], "&%d: %s", index, machine_state_titles [index]);
 
 
         machine_state_select_menu [index * 2].text = machine_state_menu_texts [index];
@@ -1179,7 +1203,7 @@ static int machine_state_menu_save (void)
     {
         /* Save using last title. */
 
-        strcat (buffer2, machine_state_select_menu [machine_state_index * 2].dp);
+        strcat (buffer2, machine_state_titles [machine_state_index]);
     }
 
 
@@ -1236,7 +1260,7 @@ static int machine_state_menu_save (void)
         pack_fclose (file);
     
     
-        gui_message (gui_fg_color, "Machine state saved in state slot %d.", (machine_state_index + 1));
+        gui_message (gui_fg_color, "Machine state saved in state slot %d.", machine_state_index);
 
 
         /* Update save state titles. */
@@ -1353,7 +1377,7 @@ static int machine_state_menu_restore (void)
         pack_fclose (file);
     
     
-        gui_message (gui_fg_color, "Machine state loaded from state slot %d.", (machine_state_index + 1));
+        gui_message (gui_fg_color, "Machine state loaded from state slot %d.", machine_state_index);
 
 
         return (D_CLOSE);

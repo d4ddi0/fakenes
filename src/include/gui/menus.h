@@ -36,6 +36,8 @@ static MENU machine_speed_menu [] =
 };
 
 
+static int machine_state_select_menu_0 (void);
+
 static int machine_state_select_menu_1 (void);
 
 static int machine_state_select_menu_2 (void);
@@ -48,9 +50,17 @@ static int machine_state_select_menu_5 (void);
 
 static int machine_state_select_menu_6 (void);
 
+static int machine_state_select_menu_7 (void);
+
+static int machine_state_select_menu_8 (void);
+
+static int machine_state_select_menu_9 (void);
+
 
 static MENU machine_state_select_menu [] =
 {
+    { NULL, machine_state_select_menu_0, NULL, 0, NULL },
+    {   "",                        NULL, NULL, 0, NULL },
     { NULL, machine_state_select_menu_1, NULL, 0, NULL },
     {   "",                        NULL, NULL, 0, NULL },
     { NULL, machine_state_select_menu_2, NULL, 0, NULL },
@@ -62,6 +72,12 @@ static MENU machine_state_select_menu [] =
     { NULL, machine_state_select_menu_5, NULL, 0, NULL },
     {   "",                        NULL, NULL, 0, NULL },
     { NULL, machine_state_select_menu_6, NULL, 0, NULL },
+    {   "",                        NULL, NULL, 0, NULL },
+    { NULL, machine_state_select_menu_7, NULL, 0, NULL },
+    {   "",                        NULL, NULL, 0, NULL },
+    { NULL, machine_state_select_menu_8, NULL, 0, NULL },
+    {   "",                        NULL, NULL, 0, NULL },
+    { NULL, machine_state_select_menu_9, NULL, 0, NULL },
     { NULL,                        NULL, NULL, 0, NULL }
 };
 
