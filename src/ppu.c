@@ -40,6 +40,10 @@ All rights reserved.  See 'LICENSE' for details.
 #include "misc.h"
 
 
+/* delay for sprite 0 collision detection in PPU clocks */
+/* should be <= SCANLINE_CLOCKS - 256 */
+#define DOTS_HBLANK_BEFORE_RENDER 22
+
 /* VRAM and sprite RAM. */
 
 static UINT8 * ppu_vram_block_read_address [8];
@@ -1604,7 +1608,7 @@ static INLINE void ppu_render_sprite (int sprite, int line)
                 if (background_pixels [8 + (x + sub_x)])
                 {
                     background_pixels [8 + (x + sub_x)] = color + 16;
-                    first_sprite_this_line = (x + sub_x) + 1 + 22;
+                    first_sprite_this_line = (x + sub_x) + 1 + DOTS_HBLANK_BEFORE_RENDER;
                     continue;
                 }
                 else
@@ -1646,7 +1650,7 @@ static INLINE void ppu_render_sprite (int sprite, int line)
                 /* Sprite 0 collision. */
                 if (background_pixels [8 + (x + sub_x)])
                 {
-                    first_sprite_this_line = (x + sub_x) + 1 + 22;
+                    first_sprite_this_line = (x + sub_x) + 1 + DOTS_HBLANK_BEFORE_RENDER;
                 }
 
                 /* Sprite 0 will always get its pixels... */
