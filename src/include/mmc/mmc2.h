@@ -1,4 +1,4 @@
-//#define MMC2_LIKE_MMC4
+#define MMC2_LIKE_MMC4
 
 
 /* Mapper #9 (MMC2). */

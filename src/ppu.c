@@ -806,7 +806,10 @@ UINT8 ppu_read (UINT16 address)
 
             if (hit_first_sprite)
             {
-                data |= SPRITE_0_COLLISION_BIT;
+                if (cpu_get_cycles_line() > (hit_first_sprite / 3))
+                {
+                    data |= SPRITE_0_COLLISION_BIT;
+                }
             }
 
 
@@ -1054,6 +1057,8 @@ void ppu_start_line(void)
         vram_address = (vram_address & (~0x1F & ~(1 << 10)))
          | (address_temp & (0x1F | (1 << 10)));
     }
+
+    if (hit_first_sprite) hit_first_sprite = 1;
 }
 
 void ppu_end_line(void)
@@ -1179,7 +1184,7 @@ void ppu_sprite_priority_0_check (int line)
 
     if (vram_read (address + y) | vram_read (address + y + 8))
     {
-        hit_first_sprite = TRUE;
+        hit_first_sprite = ppu_spr_ram[3] + 1;
     }
 }
 
@@ -1499,119 +1504,242 @@ static INLINE void ppu_render_sprite (int sprite, int line)
 
     priority = (ppu_spr_ram [sprite + 2] & SPRITE_PRIORITY_BIT);
 
-    if (priority)
-    /* low priority, plot under background */
+    if (sprite == 0 && background_enabled)
+    /* sprite 0 collision detection */
     {
-        for (sub_x = first_x; sub_x <= last_x; sub_x ++)
+        if (priority)
+        /* low priority, plot under background */
         {
-            if (flip_h)
+            for (sub_x = first_x; sub_x <= last_x; sub_x ++)
             {
-                if (flip_v)
+                if (flip_h)
                 {
-                    color = cache_address
-                        [( (sprite_height - 1 - y) * 8) + (7 - sub_x)];
+                    if (flip_v)
+                    {
+                        color = cache_address
+                            [( (sprite_height - 1 - y) * 8) + (7 - sub_x)];
+                    }
+                    else
+                    {
+                        color = cache_address
+                            [(y * 8) + (7 - sub_x)];
+                    }
                 }
                 else
                 {
-                    color = cache_address
-                        [(y * 8) + (7 - sub_x)];
+                    if (flip_v)
+                    {
+                        color = cache_address
+                            [( (sprite_height - 1 - y) * 8) + sub_x];
+                    }
+                    else
+                    {
+                        color = cache_address
+                            [(y * 8) + sub_x];
+                    }
                 }
-            }
-            else
-            {
-                if (flip_v)
+
+                /* Transparency. */
+                if ((color &= attribute) == 0)
                 {
-                    color = cache_address
-                        [( (sprite_height - 1 - y) * 8) + sub_x];
+                    continue;
+                }
+
+
+                /* Background transparency & sprite 0 collision. */
+                if (background_pixels [8 + (x + sub_x)])
+                {
+                    background_pixels [8 + (x + sub_x)] = color + 16;
+                    hit_first_sprite = (x + sub_x) + 1;
+                    continue;
                 }
                 else
                 {
-                    color = cache_address
-                        [(y * 8) + sub_x];
+                    background_pixels [8 + (x + sub_x)] = color + 16;
                 }
+
+                color = ppu_sprite_palette [color];
+
+
+                PPU_PUTPIXEL (video_buffer,
+                    (x + sub_x), line, color);
+
             }
-
-            /* Transparency. */
-            if ((color &= attribute) == 0)
+        }
+        else
+        /* high priority, plot over background */
+        {
+            for (sub_x = first_x; sub_x <= last_x; sub_x ++)
             {
-                continue;
-            }
+                if (flip_h)
+                {
+                    if (flip_v)
+                    {
+                        color = cache_address
+                            [( (sprite_height - 1 - y) * 8) + (7 - sub_x)];
+                    }
+                    else
+                    {
+                        color = cache_address
+                            [(y * 8) + (7 - sub_x)];
+                    }
+                }
+                else
+                {
+                    if (flip_v)
+                    {
+                        color = cache_address
+                            [( (sprite_height - 1 - y) * 8) + sub_x];
+                    }
+                    else
+                    {
+                        color = cache_address
+                            [(y * 8) + sub_x];
+                    }
+                }
+
+                /* Transparency. */
+                if ((color &= attribute) == 0)
+                {
+                    continue;
+                }
 
 
-            /* Transparency. */
-            if (background_pixels [8 + (x + sub_x)])
-            {
+                /* Sprite 0 collision. */
+                if (background_pixels [8 + (x + sub_x)])
+                {
+                    hit_first_sprite = (x + sub_x) + 1;
+                }
+
+                /* Sprite 0 will always get its pixels... */
                 background_pixels [8 + (x + sub_x)] = color + 16;
-                continue;
+
+                color = ppu_sprite_palette [color];
+
+
+                PPU_PUTPIXEL (video_buffer,
+                    (x + sub_x), line, color);
+
             }
-            else
-            {
-                background_pixels [8 + (x + sub_x)] = color + 16;
-            }
-
-            color = ppu_sprite_palette [color];
-
-
-            PPU_PUTPIXEL (video_buffer,
-                (x + sub_x), line, color);
-
         }
     }
     else
-    /* high priority, plot over background */
+    /* normal plot */
     {
-        for (sub_x = first_x; sub_x <= last_x; sub_x ++)
+        if (priority)
+        /* low priority, plot under background */
         {
-            if (flip_h)
+            for (sub_x = first_x; sub_x <= last_x; sub_x ++)
             {
-                if (flip_v)
+                if (flip_h)
                 {
-                    color = cache_address
-                        [( (sprite_height - 1 - y) * 8) + (7 - sub_x)];
+                    if (flip_v)
+                    {
+                        color = cache_address
+                            [( (sprite_height - 1 - y) * 8) + (7 - sub_x)];
+                    }
+                    else
+                    {
+                        color = cache_address
+                            [(y * 8) + (7 - sub_x)];
+                    }
                 }
                 else
                 {
-                    color = cache_address
-                        [(y * 8) + (7 - sub_x)];
+                    if (flip_v)
+                    {
+                        color = cache_address
+                            [( (sprite_height - 1 - y) * 8) + sub_x];
+                    }
+                    else
+                    {
+                        color = cache_address
+                            [(y * 8) + sub_x];
+                    }
                 }
-            }
-            else
-            {
-                if (flip_v)
+
+                /* Transparency. */
+                if ((color &= attribute) == 0)
                 {
-                    color = cache_address
-                        [( (sprite_height - 1 - y) * 8) + sub_x];
+                    continue;
+                }
+
+
+                /* Transparency. */
+                if (background_pixels [8 + (x + sub_x)])
+                {
+                    background_pixels [8 + (x + sub_x)] = color + 16;
+                    continue;
                 }
                 else
                 {
-                    color = cache_address
-                        [(y * 8) + sub_x];
+                    background_pixels [8 + (x + sub_x)] = color + 16;
                 }
-            }
 
-            /* Transparency. */
-            if ((color &= attribute) == 0)
+                color = ppu_sprite_palette [color];
+
+
+                PPU_PUTPIXEL (video_buffer,
+                    (x + sub_x), line, color);
+
+            }
+        }
+        else
+        /* high priority, plot over background */
+        {
+            for (sub_x = first_x; sub_x <= last_x; sub_x ++)
             {
-                continue;
+                if (flip_h)
+                {
+                    if (flip_v)
+                    {
+                        color = cache_address
+                            [( (sprite_height - 1 - y) * 8) + (7 - sub_x)];
+                    }
+                    else
+                    {
+                        color = cache_address
+                            [(y * 8) + (7 - sub_x)];
+                    }
+                }
+                else
+                {
+                    if (flip_v)
+                    {
+                        color = cache_address
+                            [( (sprite_height - 1 - y) * 8) + sub_x];
+                    }
+                    else
+                    {
+                        color = cache_address
+                            [(y * 8) + sub_x];
+                    }
+                }
+
+                /* Transparency. */
+                if ((color &= attribute) == 0)
+                {
+                    continue;
+                }
+
+
+                /* Transparency. */
+                if (background_pixels [8 + (x + sub_x)] >= 16)
+                {
+                    continue;
+                }
+                else
+                {
+                    background_pixels [8 + (x + sub_x)] = color + 16;
+                }
+
+                color = ppu_sprite_palette [color];
+
+
+                PPU_PUTPIXEL (video_buffer,
+                    (x + sub_x), line, color);
+
             }
-
-
-            /* Transparency. */
-            if (background_pixels [8 + (x + sub_x)] >= 16)
-            {
-                continue;
-            }
-            else
-            {
-                background_pixels [8 + (x + sub_x)] = color + 16;
-            }
-
-            color = ppu_sprite_palette [color];
-
-
-            PPU_PUTPIXEL (video_buffer,
-                (x + sub_x), line, color);
-
         }
     }
 }
@@ -1622,27 +1750,12 @@ static void ppu_render_sprites (int line)
     int i, priority;
 
 
-    if (! sprites_enabled)
-    {
-        return;
-    }
-
-
     if (sprite_list_needs_recache)
     {
         recache_sprite_list ();
     }
 
     if (sprite_count_on_line [line] == 0) return;
-
-    if (sprites_on_line [line] [0] == 0)
-    /* sprite 0 collision detection */
-    {
-        if (background_enabled)
-        {
-            ppu_sprite_priority_0_check (line);
-        }
-    }
 
     for (i = 0; i < sprite_count_on_line [line]; i++)
     {

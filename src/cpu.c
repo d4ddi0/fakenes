@@ -330,6 +330,7 @@ int cpu_execute (int cycles)
     int count = 0;
 
 
+    cpu_context.IPeriod = cycles;
     cpu_context.ICount += cycles;
 
     Run6502 (&cpu_context);
@@ -338,6 +339,11 @@ int cpu_execute (int cycles)
     return (count);
 }
 
+
+int cpu_get_cycles_line (void)
+{
+    return (cpu_context.IPeriod - cpu_context.ICount);
+}
 
 int cpu_get_cycles (int reset)
 {
