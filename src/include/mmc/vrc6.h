@@ -136,7 +136,7 @@ static void vrc6_write (UINT16 address, UINT8 value)
 
                 /* Set requested 1k CHR-ROM page. */
         
-                ppu_set_ram_1k_pattern_vrom_block (address, minor);
+                ppu_set_ram_1k_pattern_vrom_block (minor, value);
             }
 
 
@@ -156,7 +156,7 @@ static void vrc6_write (UINT16 address, UINT8 value)
 
                 /* Set requested 1k CHR-ROM page. */
         
-                ppu_set_ram_1k_pattern_vrom_block (address, minor);
+                ppu_set_ram_1k_pattern_vrom_block (minor, value);
             }
 
 
