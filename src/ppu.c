@@ -1173,9 +1173,10 @@ INT8 background_pixels [8 + 256 + 8];
 
 void ppu_render_background (int line)
 {
-    int attribute_address, attribute_byte = 0;
+    int attribute_address;
     int name_table;
     UINT8 *name_table_address;
+    UINT8 attribute_byte = 0;
 
     int x, sub_x;
     int y, sub_y;
