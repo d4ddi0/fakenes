@@ -12,11 +12,15 @@ All rights reserved.  See 'LICENSE' for details.
 */
 
 
-#include <stdio.h>
 #include <allegro.h>
 
 
+#include <stdio.h>
+
+
 #include "cpu.h"
+
+#include "gui.h"
 
 #include "mmc.h"
 
