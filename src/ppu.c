@@ -1158,7 +1158,7 @@ void ppu_start_frame (void)
 {
     if (input_zapper_enable)
     {
-        input_update_zapper_frame_start ();
+        input_zapper_get_position ();
     }
 }
 
@@ -1302,7 +1302,9 @@ static void ppu_render_background (int line)
                 ((x * 8) + sub_x - x_offset), line, color);
         }
 
+
         ++vram_address;
+
         /* next name byte */
         if (!(vram_address & 1))
         /* new attribute */
@@ -1371,7 +1373,7 @@ void ppu_render_line (int line)
     if (input_zapper_enable && (input_zapper_y == line) &&
         input_zapper_on_screen)
     {
-        input_update_zapper_frame_end ();
+        input_zapper_update ();
     }
 }
 
@@ -1380,6 +1382,7 @@ void ppu_stub_render_line (int line)
     int first_y, last_y;
 
     /* draw lines for zapper emulation */
+
     if (input_zapper_enable && (input_zapper_y == line) &&
         input_zapper_on_screen)
     {
@@ -1389,13 +1392,18 @@ void ppu_stub_render_line (int line)
 
 
     /* draw lines for sprite 0 collision emulation */
+
+    /* if sprites or background are disabled, */
+    /* sprite 0 can't collide with background */
     if (!background_enabled || !sprites_enabled) return;
 
+    /* if sprite 0 already collided, nothing to detect */
     if (hit_first_sprite) return;
 
     first_y = ppu_spr_ram [0] + 1;
     last_y = first_y + sprite_height - 1;
 
+    /* if sprite 0 not on this line, nothing to detect */
     if (line < first_y || line > last_y) return;
 
     ppu_render_line (line);
@@ -1429,13 +1437,9 @@ void ppu_end_render (void)
 
 /* ----- Sprite rendering routines. ----- */
 
-
-#define SPRITE_PRIORITY_BIT     0x20
-
-
-#define SPRITE_H_FLIP_BIT       0x40
-
 #define SPRITE_V_FLIP_BIT       0x80
+#define SPRITE_H_FLIP_BIT       0x40
+#define SPRITE_PRIORITY_BIT     0x20
 
 
 static INLINE void ppu_render_sprite (int sprite, int line)

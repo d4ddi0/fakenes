@@ -47,8 +47,8 @@ int input_process (void);
 int input_zapper_x, input_zapper_y, input_zapper_button;
 int input_zapper_on_screen;
 
-void input_update_zapper_frame_start (void);
-void input_update_zapper_frame_end (void);
+void input_zapper_get_position (void);
+void input_zapper_update (void);
 
 
 #ifdef __cplusplus

@@ -110,7 +110,7 @@ static int input_devices [4];
 static int zapper_mask = 0;
 
 
-void input_update_zapper_frame_start (void)
+void input_zapper_get_position (void)
 {
     input_zapper_x = mouse_x;
     input_zapper_y = mouse_y;
@@ -119,11 +119,11 @@ void input_update_zapper_frame_start (void)
 
     if (!input_zapper_on_screen)
     {
-        input_update_zapper_frame_end ();
+        input_zapper_update ();
     }
 }
 
-void input_update_zapper_frame_end (void)
+void input_zapper_update (void)
 {
     int pixel;
 
