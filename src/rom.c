@@ -83,7 +83,7 @@ int load_rom (const UINT8 * filename, ROM * rom)
 
     /* Initialize the ROM context. */
 
-    memset (rom, NULL, sizeof (ROM));
+    memset (rom, NIL, sizeof (ROM));
 
 
     /* Check if ROM is inside a ZIP file. */
@@ -412,7 +412,7 @@ int load_rom_from_zip (const UINT8 * filename, ROM * rom)
 
     /* Fill in extra stuff. */
 
-    unzGetCurrentFileInfo (zip_file, &unused, rom -> filename, sizeof (rom -> filename), NULL, NULL, NULL, NULL);
+    unzGetCurrentFileInfo (zip_file, &unused, rom -> filename, sizeof (rom -> filename), NIL, NIL, NIL, NIL);
 
     rom -> sram_flag = (rom -> control_byte_1 & ROM_CTRL_BATTERY);
 

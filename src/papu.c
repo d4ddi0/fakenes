@@ -36,7 +36,7 @@ You must read and accept the license prior to use.
 #include "timing.h"
 
 
-static apu_t * default_apu = NULL;
+static apu_t * default_apu = NIL;
 
 
 int papu_filter_type = 0;
@@ -72,9 +72,9 @@ int papu_surround_sound = FALSE;
 int papu_dithering = FALSE;
 
 
-static void * echo_buffer_a = NULL;
+static void * echo_buffer_a = NIL;
 
-static void * echo_buffer_b = NULL;
+static void * echo_buffer_b = NIL;
 
 
 static int echo_buffer_size = 0;
@@ -302,7 +302,7 @@ void papu_exit (void)
 
 void papu_reset (void)
 {
-    apu_setext (default_apu, NULL);
+    apu_setext (default_apu, NIL);
 
     apu_reset ();
 }
@@ -370,7 +370,7 @@ static INLINE void apply_echo (void)
 
 static int is_recording = FALSE;
 
-static FILE * dump_file = NULL;
+static FILE * dump_file = NIL;
 
 
 int papu_start_record (void)
@@ -430,7 +430,7 @@ void papu_process (void)
         }
 
 
-        apu_process (NULL, (audio_sample_rate / speed), papu_dithering);
+        apu_process (NIL, (audio_sample_rate / speed), papu_dithering);
 
         return;
     }

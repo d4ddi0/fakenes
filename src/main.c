@@ -81,7 +81,7 @@ extern int errno;
 #include "timing.h"
 
 
-FILE * log_file = NULL;
+FILE * log_file = NIL;
 
 
 int machine_type = MACHINE_TYPE_NTSC;
@@ -107,14 +107,14 @@ int timing_audio_hertz = 0;
 
 #ifdef POSIX
 
-UINT8 * homedir = NULL;
+UINT8 * homedir = NIL;
 
-UINT8 * logdir = NULL;
+UINT8 * logdir = NIL;
 
-UINT8 * confdir = NULL;
+UINT8 * confdir = NIL;
 
 
-static DIR * tmpdir = NULL;
+static DIR * tmpdir = NIL;
 
 
 static UINT8 logfile [256];
@@ -300,7 +300,7 @@ int main (int argc, char * argv [])
                 strcat (logdir, logdir_base);
 
 
-                memset (logfile, NULL, sizeof (logfile));
+                memset (logfile, NIL, sizeof (logfile));
 
 
                 strcat (logfile, logdir);
@@ -310,7 +310,7 @@ int main (int argc, char * argv [])
         }
         else
         {
-            logdir = NULL;
+            logdir = NIL;
         }
 
 
@@ -335,7 +335,7 @@ int main (int argc, char * argv [])
 
                         free (confdir);
 
-                        confdir = NULL;
+                        confdir = NIL;
                     }
                     else    /* mkdir was successful, make the log dir. */
                     {
@@ -346,7 +346,7 @@ int main (int argc, char * argv [])
                 }
                 else
                 {
-                    UINT8 errorbuf [300] = { NULL };
+                    UINT8 errorbuf [300] = { NIL };
 
 
                     strcat (errorbuf, confdir);
@@ -359,7 +359,7 @@ int main (int argc, char * argv [])
 
                     free (confdir);
 
-                    confdir = NULL;
+                    confdir = NIL;
                 }
             }
             else
@@ -424,12 +424,12 @@ int main (int argc, char * argv [])
 
                     free (logdir);
 
-                    logdir = NULL;
+                    logdir = NIL;
                 }
             }
             else
             {
-                UINT8 errorbuf [300] = { NULL };
+                UINT8 errorbuf [300] = { NIL };
 
 
                 strcat (errorbuf, confdir);
@@ -442,7 +442,7 @@ int main (int argc, char * argv [])
 
                 free (confdir);
 
-                logdir = NULL;
+                logdir = NIL;
             }
         }
         else
@@ -468,9 +468,9 @@ int main (int argc, char * argv [])
 #else
 
 
-    memset (buffer, NULL, sizeof (buffer));
+    memset (buffer, NIL, sizeof (buffer));
 
-    memset (buffer2, NULL, sizeof (buffer2));
+    memset (buffer2, NIL, sizeof (buffer2));
 
 
     get_executable_name (buffer, sizeof (buffer));

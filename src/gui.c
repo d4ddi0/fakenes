@@ -88,7 +88,7 @@ static int want_exit = FALSE;
 static UINT8 message_buffer [256];
 
 
-static RGB * current_palette = NULL;
+static RGB * current_palette = NIL;
 
 static PALETTE custom_palette;
 
@@ -739,7 +739,7 @@ int show_gui (int first_run)
     if (first_run)
     {
         alert ("FakeNES version " VERSION_STRING " " ALLEGRO_PLATFORM_STR, "", "Get "
-            "the latest from http://fakenes.sourceforge.net/.", "&OK", NULL, 'o', 0);
+            "the latest from http://fakenes.sourceforge.net/.", "&OK", NIL, 'o', 0);
     }
 
 
@@ -756,14 +756,14 @@ int show_gui (int first_run)
         char ip_address[256];
 
 
-        memset (save_path, NULL, sizeof (save_path));
+        memset (save_path, NIL, sizeof (save_path));
 
         strncpy(save_path, get_config_string ("gui", "save_path", "./"), sizeof (save_path) - 1);
 
         set_config_string ("gui", "save_path", save_path);
 
 
-        memset (ip_address, NULL, sizeof (ip_address));
+        memset (ip_address, NIL, sizeof (ip_address));
 
         strncpy(ip_address, get_config_string ("netplay", "ip_address", "0.0.0.0"), sizeof (ip_address) - 1);
 
@@ -842,11 +842,11 @@ static int main_menu_load_rom (void)
     UINT8 buffer3 [256];
 
 
-    memset (buffer, NULL, sizeof (buffer));
+    memset (buffer, NIL, sizeof (buffer));
 
-    memset (buffer2, NULL, sizeof (buffer2));
+    memset (buffer2, NIL, sizeof (buffer2));
 
-    memset (buffer3, NULL, sizeof (buffer3));
+    memset (buffer3, NIL, sizeof (buffer3));
 
 
     strcat (buffer, get_config_string ("gui", "load_rom_path", "/"));
@@ -983,7 +983,7 @@ static int main_menu_snapshot (void)
     {
         sprintf (filename, "snap%03d.pcx", count);
 
-        filename [11] = NULL;
+        filename [11] = NIL;
 
 
         if (! exists (filename))
@@ -1136,11 +1136,11 @@ static int machine_state_menu_select (void)
 
     for (index = 0; index < 10; index ++)
     {
-        memset (buffer, NULL, sizeof (buffer));
+        memset (buffer, NIL, sizeof (buffer));
     
-        memset (buffer2, NULL, sizeof (buffer2));
+        memset (buffer2, NIL, sizeof (buffer2));
     
-        memset (buffer3, NULL, sizeof (buffer3));
+        memset (buffer3, NIL, sizeof (buffer3));
 
 
         sprintf (buffer3, "fn%d", index);
@@ -1178,7 +1178,7 @@ static int machine_state_menu_select (void)
             pack_fread (buffer2, sizeof (buffer2), file);
 
 
-            memset (machine_state_titles [index], NULL, 16);
+            memset (machine_state_titles [index], NIL, 16);
 
             strcat (machine_state_titles [index], buffer2);
 
@@ -1187,13 +1187,13 @@ static int machine_state_menu_select (void)
         }
         else
         {
-            memset (machine_state_titles [index], NULL, 16);
+            memset (machine_state_titles [index], NIL, 16);
 
             strcat (machine_state_titles [index], "Empty");
         }
 
 
-        memset (machine_state_menu_texts [index], NULL, 20);
+        memset (machine_state_menu_texts [index], NIL, 20);
 
         sprintf (machine_state_menu_texts [index], "&%d: %s", index, machine_state_titles [index]);
 
@@ -1218,11 +1218,11 @@ static int machine_state_menu_save (void)
     PACKFILE * file;
 
 
-    memset (buffer, NULL, sizeof (buffer));
+    memset (buffer, NIL, sizeof (buffer));
 
-    memset (buffer2, NULL, sizeof (buffer2));
+    memset (buffer2, NIL, sizeof (buffer2));
 
-    memset (buffer3, NULL, sizeof (buffer3));
+    memset (buffer3, NIL, sizeof (buffer3));
 
 
     if (gui_is_active)
@@ -1367,9 +1367,9 @@ static int machine_state_menu_restore (void)
     PACKFILE * file;
 
 
-    memset (buffer, NULL, sizeof (buffer));
+    memset (buffer, NIL, sizeof (buffer));
 
-    memset (buffer3, NULL, sizeof (buffer3));
+    memset (buffer3, NIL, sizeof (buffer3));
 
 
     sprintf (buffer3, "fn%d", machine_state_index);
@@ -1677,7 +1677,7 @@ static int netplay_client_menu_connect (void)
         UINT8 buffer [16];
     
     
-        memset (buffer, NULL, sizeof (buffer));
+        memset (buffer, NIL, sizeof (buffer));
 
 
         netplay_client_connect_dialog [4].d1 = (sizeof (buffer) - 1);
@@ -1707,7 +1707,7 @@ static int netplay_client_menu_connect (void)
     }
     else
     {
-        if (netplay_open_client (NULL) != 0)
+        if (netplay_open_client (NIL) != 0)
         {
             gui_message (error_color, "Failed to connect to the server!");
 
@@ -1999,7 +1999,7 @@ static int options_audio_effects_menu_surround_sound (void)
 
     if (papu_surround_sound)
     {
-        alert ("- Warning -", "", "Surround sound may have odd side effects.", "&OK", NULL, 'o', 0);
+        alert ("- Warning -", "", "Surround sound may have odd side effects.", "&OK", NIL, 'o', 0);
     }
 
 
@@ -2953,16 +2953,16 @@ static int machine_patches_dialog_add (DIALOG * dialog)
 
     if (cpu_patch_count >= MAX_PATCHES)
     {
-        alert ("Error", NULL, "The patch list is already full.", "&OK", NULL, 'o', 0);
+        alert ("Error", NIL, "The patch list is already full.", "&OK", NIL, 'o', 0);
 
 
         return (D_O_K);
     }
 
 
-    memset (buffer, NULL, sizeof (buffer));
+    memset (buffer, NIL, sizeof (buffer));
 
-    memset (buffer2, NULL, sizeof (buffer2));
+    memset (buffer2, NIL, sizeof (buffer2));
 
 
     machine_patches_add_dialog [4].d1 = (sizeof (buffer) - 1);
@@ -2986,7 +2986,7 @@ static int machine_patches_dialog_add (DIALOG * dialog)
 
     if (genie_decode (buffer2, &patch -> address, &patch -> value, &patch -> match_value) != 0)
     {
-        alert ("Error", NULL, "You must enter a 6 or 8 digit Game Genie code.", "&OK", NULL, 'o', 0);
+        alert ("Error", NIL, "You must enter a 6 or 8 digit Game Genie code.", "&OK", NIL, 'o', 0);
 
 
         return (D_O_K);
@@ -3052,7 +3052,7 @@ static int machine_patches_dialog_remove (DIALOG * dialog)
 
     if (source -> active)
     {
-        if (alert ("Confirmation", NULL, "Really deactivate and remove this patch?", "&OK", "&Cancel", 'o', 'c') == 2)
+        if (alert ("Confirmation", NIL, "Really deactivate and remove this patch?", "&OK", "&Cancel", 'o', 'c') == 2)
         {
             return (D_O_K);
         }
@@ -3190,7 +3190,7 @@ static char * machine_patches_dialog_list_filler (int index, int * list_size)
         CPU_PATCH * patch;
 
 
-        memset (machine_patches_dialog_list_texts [index], NULL, 38);
+        memset (machine_patches_dialog_list_texts [index], NIL, 38);
 
 
         patch = &cpu_patch_info [index];
@@ -3217,6 +3217,6 @@ static char * machine_patches_dialog_list_filler (int index, int * list_size)
         *list_size = cpu_patch_count;
 
 
-        return (NULL);
+        return (NIL);
     }
 }

@@ -183,9 +183,9 @@ void input_update_zapper (void)
 
 static INLINE void load_keyboard_layouts (void)
 {
-    memset (key1_buffer, NULL, sizeof (key1_buffer));
+    memset (key1_buffer, NIL, sizeof (key1_buffer));
 
-    memset (key2_buffer, NULL, sizeof (key2_buffer));
+    memset (key2_buffer, NIL, sizeof (key2_buffer));
 
 
     sprintf (key1_buffer, "%s", get_config_string ("input", "key1_scancodes", key1_defaults));
@@ -220,9 +220,9 @@ static INLINE void load_keyboard_layouts (void)
 
 static INLINE void load_joystick_layouts (void)
 {
-    memset (joy1_buffer, NULL, sizeof (joy1_buffer));
+    memset (joy1_buffer, NIL, sizeof (joy1_buffer));
 
-    memset (joy2_buffer, NULL, sizeof (joy2_buffer));
+    memset (joy2_buffer, NIL, sizeof (joy2_buffer));
 
 
     sprintf (joy1_buffer, "%s", get_config_string ("input", "joy1_buttons", joy1_defaults));

@@ -105,7 +105,7 @@ static void null_load_state (PACKFILE *, int);
         rom -> current_mmc = &mmc_ ##id
 
 #define MMC_LAST_LIST_ITEM()        \
-    else rom -> current_mmc = NULL
+    else rom -> current_mmc = NIL
 
 
 static int none_init (void);
@@ -235,12 +235,12 @@ int mmc_init (void)
     }
 
 
-    mmc_hblank_start = NULL;
+    mmc_hblank_start = NIL;
 
-    mmc_scanline_end = NULL;
+    mmc_scanline_end = NIL;
 
 
-    mmc_check_latches = NULL;
+    mmc_check_latches = NIL;
 
 
     mmc_name_table_count =
@@ -271,7 +271,7 @@ int mmc_init (void)
     papu_clear_exsound ();
 
 
-    if (ROM_CURRENT_MMC == NULL)
+    if (ROM_CURRENT_MMC == NIL)
     {
         return (1);
     }

@@ -7,7 +7,7 @@ int sl_text (int message, DIALOG * dialog, int key)
     int y;
 
 
-    FONT * old_font = NULL;
+    FONT * old_font = NIL;
 
 
     /* dp3 = font. */
@@ -89,7 +89,7 @@ int sl_frame (int message, DIALOG * dialog, int key)
     int move_y = 0;
 
 
-    FONT * old_font = NULL;
+    FONT * old_font = NIL;
 
 
     /* dp3 = font. */

@@ -44,18 +44,18 @@ You must read and accept the license prior to use.
 #include "timing.h"
 
 
-static BITMAP * screen_buffer = NULL;
+static BITMAP * screen_buffer = NIL;
 
-static BITMAP * status_buffer = NULL;
-
-
-static BITMAP * mouse_sprite_remove_buffer = NULL;
+static BITMAP * status_buffer = NIL;
 
 
-static BITMAP * stretch_buffer = NULL;
+static BITMAP * mouse_sprite_remove_buffer = NIL;
 
 
-UINT8 * video_overlay_text = NULL;
+static BITMAP * stretch_buffer = NIL;
+
+
+UINT8 * video_overlay_text = NIL;
 
 volatile int video_show_overlay = FALSE;
 
@@ -125,7 +125,7 @@ static int preserve_palette = FALSE;
 static PALETTE internal_palette;
 
 
-static RGB * last_palette = NULL;
+static RGB * last_palette = NIL;
 
 
 int video_init (void)
@@ -315,7 +315,7 @@ void video_exit (void)
         destroy_bitmap (stretch_buffer);
 
 
-        stretch_buffer = NULL;
+        stretch_buffer = NIL;
     }
 
 
@@ -1333,7 +1333,7 @@ void video_blit (BITMAP * bitmap)
     }
     else if ((! show_overlay) && video_overlay_text && (! gui_is_active))
     {
-        video_overlay_text = NULL;
+        video_overlay_text = NIL;
     }
 
 
@@ -1778,6 +1778,16 @@ void video_set_filter_list (int filters)
     filter_list = filters;
 
 
+    if (filter_list & VIDEO_FILTER_SCANLINES_MEDIUM)
+    {
+        set_trans_blender (0, 0, 0, 127);
+    }
+    else if (filter_list & VIDEO_FILTER_SCANLINES_LOW)
+    {
+        set_trans_blender (0, 0, 0, 63);
+    }
+
+
     clear (screen_buffer);
 }
 
@@ -1802,9 +1812,7 @@ void video_filter (void)
     }
     else if (filter_list & VIDEO_FILTER_SCANLINES_MEDIUM)
     {
-        set_trans_blender (0, 0, 0, 127);
-
-        drawing_mode (DRAW_MODE_TRANS, NULL, 0, 0);
+        drawing_mode (DRAW_MODE_TRANS, NIL, 0, 0);
 
 
         for (y = 0; y < screen_buffer -> h; y += 2)
@@ -1817,9 +1825,7 @@ void video_filter (void)
     }
     else if (filter_list & VIDEO_FILTER_SCANLINES_LOW)
     {
-        set_trans_blender (0, 0, 0, 63);
-
-        drawing_mode (DRAW_MODE_TRANS, NULL, 0, 0);
+        drawing_mode (DRAW_MODE_TRANS, NIL, 0, 0);
 
 
         for (y = 0; y < screen_buffer -> h; y += 2)

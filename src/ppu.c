@@ -237,9 +237,9 @@ UINT8 * ppu_get_chr_rom_pages (ROM *rom)
         if (rom -> chr_rom_cache) free (rom -> chr_rom_cache);
         if (rom -> chr_rom_cache_tag) free (rom -> chr_rom_cache_tag);
 
-        rom -> chr_rom = NULL;
-        rom -> chr_rom_cache = NULL;
-        rom -> chr_rom_cache_tag = NULL;
+        rom -> chr_rom = NIL;
+        rom -> chr_rom_cache = NIL;
+        rom -> chr_rom_cache_tag = NIL;
     }
     else
     {
@@ -539,9 +539,9 @@ void ppu_reset (void)
 {
     int i;
 
-    memset (ppu_pattern_vram, NULL, sizeof (ppu_pattern_vram));
-    memset (ppu_name_table_vram, NULL, sizeof (ppu_name_table_vram));
-    memset (ppu_spr_ram, NULL, sizeof (ppu_spr_ram));
+    memset (ppu_pattern_vram, NIL, sizeof (ppu_pattern_vram));
+    memset (ppu_name_table_vram, NIL, sizeof (ppu_name_table_vram));
+    memset (ppu_spr_ram, NIL, sizeof (ppu_spr_ram));
 
 
     ppu_cache_all_vram ();

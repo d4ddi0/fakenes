@@ -1250,7 +1250,7 @@ void apu_process(void *buffer, int num_samples, int dither)
    /* grab it, keep it local for speed */
    elapsed_cycles = (UINT32) apu->elapsed_cycles;
 
-   if (NULL == buffer)
+   if (NIL == buffer)
    {
       /* just go through the motions... */
       while (num_samples--)
@@ -1494,7 +1494,7 @@ void apu_process_stereo(void *buffer, int num_samples, int dither, int style, in
    /* grab it, keep it local for speed */
    elapsed_cycles = (UINT32) apu->elapsed_cycles;
 
-   if (NULL == buffer)
+   if (NIL == buffer)
    {
       /* just go through the motions... */
       while (num_samples--)
@@ -1960,15 +1960,15 @@ void apu_setmode(int item, int mode)
 {
    switch (item) {
    case APUMODE_IDEAL_TRIANGLE:
-      if ( apu != NULL) apu->apus.triangle.ideal_triangle = mode;
+      if ( apu != NIL) apu->apus.triangle.ideal_triangle = mode;
       break;
    case APUMODE_SMOOTH_ENVELOPE:
-      if ( apu != NULL) apu->apus.rectangle[0].smooth_envelope = mode;
-      if ( apu != NULL) apu->apus.rectangle[1].smooth_envelope = mode;
+      if ( apu != NIL) apu->apus.rectangle[0].smooth_envelope = mode;
+      if ( apu != NIL) apu->apus.rectangle[1].smooth_envelope = mode;
       break;
    case APUMODE_SMOOTH_SWEEP:
-      if ( apu != NULL) apu->apus.rectangle[0].smooth_sweep = mode;
-      if ( apu != NULL) apu->apus.rectangle[1].smooth_sweep = mode;
+      if ( apu != NIL) apu->apus.rectangle[0].smooth_sweep = mode;
+      if ( apu != NIL) apu->apus.rectangle[1].smooth_sweep = mode;
       break;
    default:
       break;
@@ -1983,8 +1983,8 @@ apu_t *apu_create(int sample_rate, int refresh_rate, int frag_size, int sample_b
    int channel;
 
    temp_apu = malloc(sizeof(apu_t));
-   if (NULL == temp_apu)
-      return NULL;
+   if (NIL == temp_apu)
+      return NIL;
 
    /* set the stupid flag to tell difference between two rectangles */
    temp_apu->apus.rectangle[0].sweep_complement = TRUE;
@@ -1992,7 +1992,7 @@ apu_t *apu_create(int sample_rate, int refresh_rate, int frag_size, int sample_b
 
    /* set the update routine */
    temp_apu->process = apu_process;
-   temp_apu->ext = NULL;
+   temp_apu->ext = NIL;
 
    apu_setactive(temp_apu);
 
@@ -2089,6 +2089,9 @@ boolean sync_dmc_register(UINT32 cpu_cycles)
 
 /*
 ** $Log$
+** Revision 1.12  2003/03/04 05:32:52  stainless
+** Replaced all references to `NULL' with `NIL' to avoid compiler conflicts.
+**
 ** Revision 1.11  2002/07/18 20:34:19  stainless
 ** Mingw32 compile fix.
 **

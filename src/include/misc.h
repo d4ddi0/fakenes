@@ -105,11 +105,9 @@ typedef union
 #define FALSE   (! TRUE)
 
 
-/* Stupid Mingw32. */
+/* NIL has replaced NULL. */
 
-#undef  NULL
-
-#define NULL    0
+#define NIL     0
 
 
 FILE * log_file;
