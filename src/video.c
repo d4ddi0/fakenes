@@ -1647,7 +1647,7 @@ void video_set_palette (RGB * palette)
     }
 
 
-    for (index = GUI_PALETTE_START; index < (GUI_PALETTE_START + GUI_PALETTE_END); index ++)
+    for (index = GUI_PALETTE_START; index < GUI_PALETTE_END; index ++)
     {
         internal_palette [index].r = (index - GUI_PALETTE_START);
 
