@@ -26,6 +26,8 @@ All rights reserved.  See 'LICENSE' for details.
 
 #include "mmc.h"
 
+#include "papu.h"
+
 #include "ppu.h"
 
 #include "rom.h"
@@ -248,6 +250,10 @@ byte Rd6502 (word Addr)
     {
         return (ppu_read (Addr));
     }
+    else if (Addr <= 0x4015)
+    {
+        return (papu_read (Addr));
+    }
     else if ((Addr == 0x4016) || (Addr == 0x4017))
     {
         return (input_read (Addr));
@@ -281,6 +287,10 @@ void Wr6502 (word Addr, byte Value)
     else if ((Addr < 0x4000) || (Addr == 0x4014))
     {
         ppu_write (Addr, Value);
+    }
+    else if (Addr <= 4015)
+    {
+        papu_write (Addr, Value);
     }
     else if ((Addr == 0x4016) || (Addr == 0x4017))
     {

@@ -68,7 +68,7 @@ int machine_type = MACHINE_TYPE_NTSC;
 
 int frame_skip_min = 0;
 
-int frame_skip_max = 4;
+int frame_skip_max = 6;
 
 
 volatile int timing_fps = 0;
