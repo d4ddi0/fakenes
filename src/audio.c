@@ -78,6 +78,12 @@ int audio_init (void)
     }
 
 
+    if (digi_driver -> id == DIGI_NONE)
+    {
+        return (1);
+    }
+
+
     if (audio_enable_output)
     {
         speed = ((machine_type == MACHINE_TYPE_NTSC) ? 60 : 50);
