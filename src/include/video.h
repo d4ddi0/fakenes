@@ -29,6 +29,8 @@ extern "C" {
 
 #define VIDEO_BLITTER_2XSOE         2
 
+#define VIDEO_BLITTER_2XSCL         3
+
 
 #define VIDEO_FILTER_SCANLINES      1
 

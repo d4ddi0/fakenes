@@ -323,6 +323,8 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_video_blitter_menu, 4, (video_get_blitter () == VIDEO_BLITTER_2XSOE));
 
+    TOGGLE_MENU (options_video_blitter_menu, 6, (video_get_blitter () == VIDEO_BLITTER_2XSCL));
+
 
     TOGGLE_MENU (options_video_filters_menu, 0, (video_get_filter_list () & VIDEO_FILTER_SCANLINES));
 
@@ -1295,6 +1297,23 @@ static int options_video_blitter_menu_2xsoe (void)
 
 
     gui_message (GUI_COLOR_WHITE, "Video blitter set to 2xSOE engine.");
+
+
+    return (D_O_K);
+}
+
+
+static int options_video_blitter_menu_2xscl (void)
+{
+    video_set_blitter (VIDEO_BLITTER_2XSCL);
+
+
+    redraw_flag = TRUE;
+
+    update_menus ();
+
+
+    gui_message (GUI_COLOR_WHITE, "Video blitter set to 2xSCL engine.");
 
 
     return (D_O_K);

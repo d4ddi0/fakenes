@@ -286,6 +286,8 @@ static int options_video_blitter_menu_stretched (void);
 
 static int options_video_blitter_menu_2xsoe (void);
 
+static int options_video_blitter_menu_2xscl (void);
+
 
 static MENU options_video_blitter_menu [] =
 {
@@ -294,6 +296,8 @@ static MENU options_video_blitter_menu [] =
     { "&Stretched", options_video_blitter_menu_stretched, NULL, 0, NULL },
     {           "",                                 NULL, NULL, 0, NULL },
     {     "&2xSOE",     options_video_blitter_menu_2xsoe, NULL, 0, NULL },
+    {           "",                                 NULL, NULL, 0, NULL },
+    {     "2&xSCL",     options_video_blitter_menu_2xscl, NULL, 0, NULL },
     {         NULL,                                 NULL, NULL, 0, NULL }
 };
 
