@@ -88,9 +88,6 @@ int video_init (void)
         get_config_int ("video", "scale_height", 480);
 
 
-    video_display_status =
-        get_config_int ("video", "display_status", FALSE);
-
     video_enable_vsync =
         get_config_int ("video", "enable_vsync", FALSE);
 
@@ -178,8 +175,6 @@ void video_exit (void)
 
     set_config_int ("video", "scale_height", scale_height);
 
-
-    set_config_int ("video", "display_status", video_display_status);
 
     set_config_int ("video", "enable_vsync", video_enable_vsync);
 }
