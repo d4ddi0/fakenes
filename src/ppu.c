@@ -1504,12 +1504,6 @@ static INLINE void ppu_render_sprite (int sprite, int line)
     {
         for (sub_x = first_x; sub_x <= last_x; sub_x ++)
         {
-            /* Transparency. */
-            if (background_pixels [8 + (x + sub_x)])
-            {
-                continue;
-            }
-
             if (flip_h)
             {
                 if (flip_v)
@@ -1541,6 +1535,18 @@ static INLINE void ppu_render_sprite (int sprite, int line)
             if ((color &= attribute) == 0)
             {
                 continue;
+            }
+
+
+            /* Transparency. */
+            if (background_pixels [8 + (x + sub_x)])
+            {
+                background_pixels [8 + (x + sub_x)] = color + 16;
+                continue;
+            }
+            else
+            {
+                background_pixels [8 + (x + sub_x)] = color + 16;
             }
 
             color = ppu_sprite_palette [color];
@@ -1590,6 +1596,16 @@ static INLINE void ppu_render_sprite (int sprite, int line)
             }
 
 
+            /* Transparency. */
+            if (background_pixels [8 + (x + sub_x)] >= 16)
+            {
+                continue;
+            }
+            else
+            {
+                background_pixels [8 + (x + sub_x)] = color + 16;
+            }
+
             color = ppu_sprite_palette [color];
 
 
@@ -1628,7 +1644,7 @@ static void ppu_render_sprites (int line)
         }
     }
 
-    for (i = sprite_count_on_line [line] - 1; i >= 0; i--)
+    for (i = 0; i < sprite_count_on_line [line]; i++)
     {
         int sprite = sprites_on_line [line] [i];
 
