@@ -37,6 +37,8 @@ All rights reserved.  See 'LICENSE' for details.
 
 #include "misc.h"
 
+#include "crc32.h"
+
 
 static UINT8 cpu_sram [8192];
 
@@ -264,7 +266,16 @@ int cpu_init (void)
     if ((global_rom.control_byte_1 & ROM_CTRL_TRAINER))
     {
         memcpy (cpu_sram + 0x1000, global_rom.trainer, 512);
+
+        /* compute CRC32 for trainer */
+        global_rom.trainer_crc32 =
+            crc32_calculate (global_rom.trainer, ROM_TRAINER_SIZE);
     }
+
+
+    /* compute CRC32 for PRG ROM */
+    global_rom.prg_rom_crc32 = crc32_calculate (global_rom.prg_rom,
+        (global_rom.prg_rom_pages * 0x4000));
 
 
     cpu_active_pc = &cpu_context.PC.word;
@@ -487,6 +498,12 @@ UINT8 * cpu_get_prg_rom_pages (ROM *rom)
 
     /* 16k PRG ROM page size */
     rom -> prg_rom = malloc (num_pages * 0x4000);
+
+    if (rom -> prg_rom != NULL)
+    {
+        /* initialize to a known value for areas not present in image */
+        memset (rom -> prg_rom, 0xFF, (num_pages * 0x4000));
+    }
 
     return rom -> prg_rom;
 }

@@ -43,6 +43,8 @@ You must read and accept the license prior to use.
 
 #include "timing.h"
 
+#include "crc32.h"
+
 
 /* delay for sprite 0 collision detection in PPU clocks */
 /* should be <= SCANLINE_CLOCKS - 256 */
@@ -239,6 +241,11 @@ UINT8 * ppu_get_chr_rom_pages (ROM *rom)
         rom -> chr_rom_cache = NULL;
         rom -> chr_rom_cache_tag = NULL;
     }
+    else
+    {
+        /* initialize to a known value for areas not present in image */
+        memset (rom -> chr_rom, 0xFF, (num_pages * 0x2000));
+    }
 
     return rom -> chr_rom;
 }
@@ -340,6 +347,11 @@ void ppu_set_ram_8k_pattern_vram (void)
 int ppu_init (void)
 {
     int i;
+
+    /* compute CRC32 for CHR ROM */
+    global_rom.chr_rom_crc32 = crc32_calculate (global_rom.chr_rom,
+        (global_rom.chr_rom_pages * 0x2000));
+
 
     /* calculate the attribute lookup table */
     for (i = 0; i < 4; i++)

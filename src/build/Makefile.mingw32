@@ -36,7 +36,7 @@ LIBRARIES = support/resource.o -lalleg -lz -lHawkNL
 
 
 OBJECTS = apu.o audio.o core.o cpu.o data.o gui.o input.o papu.o ppu.o \
-    rom.o main.o mmc.o netplay.o video.o support/unzip.o
+    rom.o main.o mmc.o netplay.o video.o crc32.o support/unzip.o
 
 
 ifdef DEBUG

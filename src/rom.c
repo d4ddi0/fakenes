@@ -71,9 +71,6 @@ int rom_is_loaded = FALSE;
 #endif /* USE_ZLIB */
 
 
-#define ROM_TRAINER_SIZE    512
-
-
 int load_rom (const UINT8 * filename, ROM * rom)
 {
     INES_HEADER ines_header;
@@ -178,6 +175,10 @@ int load_rom (const UINT8 * filename, ROM * rom)
         }
 
 
+        /* initialize area not present in image to a known value */
+        memset (rom -> trainer, 0xFF, ROM_TRAINER_SIZE);
+
+        /* read in trainer */
         LR_READ (rom_file, rom -> trainer, ROM_TRAINER_SIZE);
     }
 
@@ -195,6 +196,7 @@ int load_rom (const UINT8 * filename, ROM * rom)
     }
 
 
+    /* read in PRG ROM */
     LR_READ (rom_file, rom -> prg_rom, (rom -> prg_rom_pages * 0x4000));
 
 
@@ -212,7 +214,7 @@ int load_rom (const UINT8 * filename, ROM * rom)
             return (1);
         }
 
-
+        /* read in CHR ROM */
         LR_READ (rom_file, rom -> chr_rom, (rom -> chr_rom_pages * 0x2000));
     }
 
@@ -357,6 +359,10 @@ int load_rom_from_zip (const UINT8 * filename, ROM * rom)
         }
 
 
+        /* initialize area not present in image to a known value */
+        memset (rom -> trainer, 0xFF, ROM_TRAINER_SIZE);
+
+        /* read in trainer */
         unzReadCurrentFile (zip_file, rom -> trainer, ROM_TRAINER_SIZE);
     }
 
@@ -377,6 +383,7 @@ int load_rom_from_zip (const UINT8 * filename, ROM * rom)
     }
 
 
+    /* read in PRG ROM */
     unzReadCurrentFile (zip_file, rom -> prg_rom, (rom -> prg_rom_pages * 0x4000));
 
 
@@ -398,6 +405,7 @@ int load_rom_from_zip (const UINT8 * filename, ROM * rom)
         }
 
 
+        /* read in CHR ROM */
         unzReadCurrentFile (zip_file, rom -> chr_rom, (rom -> chr_rom_pages * 0x2000));
     }
 

@@ -8,7 +8,8 @@ audio.o: audio.c include/audio.h include/gui.h include/misc.h \
 core.o : core.c include/core.h include/core/tables.h include/core/codes.h
 
 cpu.o : cpu.c include/cpu.h include/core.h include/input.h include/misc.h \
-    include/mmc.h include/papu.h include/ppu.h include/rom.h
+    include/mmc.h include/papu.h include/ppu.h include/rom.h \
+    include/crc32.h
 
 data.o : data.c include/datafile.h
 
@@ -41,10 +42,13 @@ papu.o : papu.c include/audio.h include/apu.h include/misc.h \
 
 ppu.o : ppu.c include/cpu.h include/input.h include/misc.h include/mmc.h \
     include/ppu.h include/rom.h include/timing.h include/video.h \
-    include/ppu/tiles.h include/ppu/backgrnd.h include/ppu/sprites.h
+    include/ppu/tiles.h include/ppu/backgrnd.h include/ppu/sprites.h \
+    include/crc32.h
 
 rom.o : rom.c include/cpu.h include/rom.h include/misc.h include/mmc.h \
     include/ppu.h support/unzip.h
+
+crc32.o : crc32.c include/misc.h include/crc32.h
 
 video.o : video.c include/audio.h include/cpu.h include/data.h \
     include/gui.h include/input.h include/misc.h include/ppu.h \

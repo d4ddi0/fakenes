@@ -38,6 +38,9 @@ ROM global_rom;
 int rom_is_loaded;
 
 
+#define ROM_TRAINER_SIZE    512
+
+
 #define ROM_CTRL_MIRRORING      0x01
 
 #define ROM_CTRL_BATTERY        0x02
@@ -53,11 +56,15 @@ struct _ROM
 
 
     UINT8 * trainer;
+    UINT32 trainer_crc32;       /* checksum for trainer */
 
 
     UINT8 * prg_rom;
+    UINT32 prg_rom_crc32;       /* checksum for PRG ROM */
+
 
     UINT8 * chr_rom;
+    UINT32 chr_rom_crc32;       /* checksum for CHR ROM */
 
 
     UINT8 * chr_rom_cache;              /* CHR-ROM cache buffer. */
