@@ -1219,7 +1219,7 @@ void ppu_start_frame (void)
 
     if (input_enable_zapper)
     {
-        input_zapper_get_position ();
+        input_update_zapper_offsets ();
     }
 }
 

@@ -34,7 +34,7 @@ int input_zapper_y_offset;
 int input_zapper_trigger;
 
 
-int input_zapper_is_visible;
+int input_zapper_on_screen;
 
 
 int input_init (void);

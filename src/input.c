@@ -120,10 +120,10 @@ void input_update_zapper_offsets (void)
     input_zapper_trigger = (mouse_b & 1);
 
 
-    input_zapper_is_visible =
+    input_zapper_on_screen =
         ((input_zapper_x_offset < 256) && (input_zapper_y_offset < 240));
 
-    if (! input_zapper_is_visible)
+    if (! input_zapper_on_screen)
     {
         input_update_zapper ();
     }
@@ -146,7 +146,7 @@ void input_update_zapper (void)
     }
 
 
-    if (input_zapper_is_visible)
+    if (input_zapper_on_screen)
     {
         pixel = (_getpixel (video_buffer,
             input_zapper_x_offset, input_zapper_y_offset) - 1);
