@@ -79,7 +79,7 @@ install : ${BINARY}
 
 	@echo Run \'${BINARY}\' once to create the configuration file.
 
-	@echo It will be stored in \'\$HOME/.fakenes\'.
+	@echo It will be stored in \'${HOME}/.fakenes\'.
 
 
 uninstall :
