@@ -46,8 +46,11 @@ int mmc_disable_irqs;
 
 void (* mmc_write) (UINT16, UINT8);
 
+
 int (* mmc_scanline_start) (int);
+
 void (* mmc_check_latches) (UINT16);
+
 
 /* These macros handle banking. */
 

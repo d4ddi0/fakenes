@@ -85,6 +85,8 @@ UINT8 * mmc_vrom_banks [8];
 
 #include "mmc/aorom.h"
 
+#include "mmc/gnrom.h"
+
 
 #include "mmc/dreams.h"
 
@@ -98,9 +100,13 @@ int mmc_init (void)
     {
         cpu_set_write_address_8k (index, dummy_read);
     }
+
+
     mmc_write = NULL;
 
+
     mmc_scanline_start = NULL;
+
     mmc_check_latches = NULL;
 
 
@@ -114,15 +120,17 @@ int mmc_init (void)
             {
                 /* Select first 16k page (mirrored). */
 
-                cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(0));
-                cpu_set_read_address_16k (0xC000, ROM_PAGE_16K(0));
+                cpu_set_read_address_16k (0x8000, ROM_PAGE_16K (0));
+
+                cpu_set_read_address_16k (0xc000, ROM_PAGE_16K (0));
             }
             else
             {
                 /* Select first 32k page. */
 
-                cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(0));
-                cpu_set_read_address_16k (0xC000, ROM_PAGE_16K(1));
+                cpu_set_read_address_16k (0x8000, ROM_PAGE_16K (0));
+
+                cpu_set_read_address_16k (0xc000, ROM_PAGE_16K (1));
             }
             
 
@@ -232,6 +240,16 @@ int mmc_init (void)
             break;
 
 
+        /* GNROM */
+	
+        case 66:
+
+            return (gnrom_init ());
+
+
+            break;
+
+
         default:
 
             return (1);
@@ -323,6 +341,16 @@ void mmc_reset (void)
         case 11:
 
             dreams_reset ();
+
+
+            break;
+
+
+        /* GNROM */
+	
+        case 66:
+
+            gnrom_reset ();
 
 
             break;
