@@ -236,24 +236,31 @@ void netplay_close_client (void)
 #else
 
 
-int net_open_server (void)
+int netplay_open_server (void)
 {
     return (1);
 }
 
 
-void net_close_server (void)
+void netplay_close_server (void)
 {
 }
 
 
-int net_open_client (int address)
+int netplay_open_client (const UINT8 * address)
+{
+    return (1);
+}
+
+
+void netplay_close_client (void)
 {
 }
 
 
-void net_close_client (void)
+int netplay_poll_server (void)
 {
+    return (FALSE);
 }
 
 
