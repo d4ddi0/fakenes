@@ -558,7 +558,7 @@ void ppu_write (UINT16 address, UINT8 value)
                 (value & SPRITES_ENABLE_BIT);
 
             background_clip_enabled =
-                (value & BACKGROUND_CLIP_LEFT_EDGE_BIT);
+                !(value & BACKGROUND_CLIP_LEFT_EDGE_BIT);
 
             ppu_clip_background = !background_clip_enabled;
                                   
@@ -835,8 +835,8 @@ void ppu_render_line (int line)
         for (x = 0; x < (256 / 8) + 1; x ++)
         {
             int attribute;
-            int tile, color;
-            int pattern1, pattern2;
+            int tile;
+            UINT8 pattern1, pattern2;
 
 
             if (!(vram_address & 3))
@@ -870,8 +870,13 @@ void ppu_render_line (int line)
 
                 for (sub_x = 0; sub_x < 8; sub_x ++)
                 {
+                    UINT8 color;
+
                     color = ((pattern2 & 128) >> 6);
                     color += ((pattern1 & 128) >> 7);
+
+                    pattern1 += pattern1;
+                    pattern2 += pattern2;
 
                     if (color != 0)
                     {
@@ -882,9 +887,6 @@ void ppu_render_line (int line)
                             ((x * 8) + sub_x - x_offset), line, color);
                     }
 
-
-                    pattern1 <<= 1;
-                    pattern2 <<= 1;
                 }
             }
 
@@ -906,7 +908,7 @@ void ppu_render_line (int line)
 
                         /* handle address wrap */
                         vram_address = (vram_address - (1 << 5)) ^ (1 << 10);
-                        attribute_address = (attribute_address - (1 << 3));
+                        attribute_address -= (1 << 3);
                     }
                 }
                 else
