@@ -11,6 +11,7 @@
 /**     commercially. Please, notify me, if you make any    **/   
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 16.July     2002 stainless Added FAST_ZP.                 */
 /* 08.July     2002 TRAC      Eliminated unused Run6502      */
 /*                            return value.                  */
 /* 13.June     2002 TRAC      Improved alignment of M6502    */
@@ -41,7 +42,8 @@
                                /*  #include'd from cpu.h     */
 #define RETURN_ON_TRIP         /* Run6502 returns on trip    */
 #define FAST_RDOP              /* Separate Op6502()/Rd6502() */
-#define FAST_STACK             /* Seperate stack handlers    */
+#define FAST_STACK             /* Separate stack handlers    */
+#define FAST_ZP                /* Separate zeropage handlers */
 
 /* #define M_DEBUG */          /* Compile debugging version  */
 /* #define LSB_FIRST */        /* Compile for low-endian CPU */
@@ -149,6 +151,10 @@ byte Op6502(register word Addr);
 #ifdef FAST_STACK
 byte Rd6502Stack(register byte S);
 void Wr6502Stack(register byte S,register byte Value);
+#endif
+#ifdef FAST_ZP
+byte Rd6502zp(register byte S);
+void Wr6502zp(register byte S,register byte Value);
 #endif
 #else
 #include "cpu.h"

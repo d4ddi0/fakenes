@@ -28,6 +28,10 @@ extern "C" {
 #include "core.h"
 
 
+#define INLINE_WITH_MACROS     /* Use macros instead of      */
+                               /* inline functions for stack */
+                               /* and zero page handlers     */
+
 #define CPU_INTERRUPT_IRQ   0
 
 #define CPU_INTERRUPT_NMI   1
@@ -363,6 +367,9 @@ static INLINE void Wr6502 (word Addr, byte Value)
 }
 
 
+#ifndef INLINE_WITH_MACROS
+
+
 static INLINE byte Rd6502Stack (byte S)
 {
     return (cpu_ram [0x100 + S]);
@@ -373,6 +380,35 @@ static INLINE void Wr6502Stack (byte S, byte Value)
 {
     cpu_ram [0x100 + S] = Value;
 }
+
+
+static INLINE byte Rd6502zp (byte S)
+{
+    return (cpu_ram [S]);
+}
+
+
+static INLINE void Wr6502zp (byte S, byte Value)
+{
+    cpu_ram [S] = Value;
+}
+
+
+#else   /* ! INLINE_WITH_MACROS */
+
+
+#define Rd6502Stack(S)          (cpu_ram [0x100 + S])
+
+#define Wr6502Stack(S,Value)    (cpu_ram [0x100 + S] = Value)
+
+
+#define Rd6502zp(S)             (cpu_ram [S])
+
+#define Wr6502zp(S,Value)       (cpu_ram [S] = Value)
+
+
+#endif
+
 
 
 static INLINE UINT8 cpu_read (UINT16 address)
