@@ -291,7 +291,7 @@ void papu_exit (void)
     set_config_int ("papu", "ideal_triangle", papu_ideal_triangle);
 
 
-    set_config_int ("papu", "smooth_evelope", papu_smooth_envelope);
+    set_config_int ("papu", "smooth_envelope", papu_smooth_envelope);
 
     set_config_int ("papu", "smooth_sweep", papu_smooth_sweep);
 
