@@ -20,9 +20,38 @@ extern "C" {
 #endif
 
 
+#include "misc.h"
+
+
+int audio_enable_output;
+
+
+int audio_sample_rate;
+
+int audio_sample_size;
+
+
+int audio_buffer_length;
+
+
+int audio_pseudo_stereo;
+
+
+#define AUDIO_BUFFER_SIZE   \
+    ((audio_sample_rate / 60) * audio_buffer_length)
+
+
 int audio_init (void);
 
 void audio_exit (void);
+
+
+void audio_start (void);
+
+void audio_stop (void);
+
+
+UINT8 * audio_buffer;
 
 
 #ifdef __cplusplus

@@ -170,12 +170,12 @@ int main (int argc, char * argv [])
 
 #ifdef UNIX
 
-    printf ("\nCopyright (c) 2002, Randy McDowell and Ian Smith.\n"
+    printf ("\nCopyright (c) 2001, Randy McDowell and Ian Smith.\n"
             "All rights reserved.  See 'LICENSE' for details.\n\n");
 
 #else
 
-    printf ("\nCopyright (c) 2002, Randy McDowell and Ian Smith.\n"
+    printf ("\nCopyright (c) 2001, Randy McDowell and Ian Smith.\n"
             "All rights reserved.  See 'LICENSE.TXT' for details.\n\n");
 
 #endif

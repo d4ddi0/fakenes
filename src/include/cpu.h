@@ -313,6 +313,8 @@ static INLINE void Wr6502 (word Addr, byte Value)
 }
 
 
+int cpu_get_cycles (int);
+
 #ifdef __cplusplus
 }
 #endif

@@ -23,6 +23,9 @@ extern "C" {
 #include "misc.h"
 
 
+int papu_filter_type;
+
+
 int papu_init (void);
 
 void papu_exit (void);
@@ -31,9 +34,9 @@ void papu_exit (void);
 void papu_reset (void);
 
 
-UINT8 papu_read (UINT16 address);
+UINT8 papu_read (UINT16);
 
-void papu_write (UINT16 address, UINT8 value);
+void papu_write (UINT16, UINT8);
 
 
 void papu_process_frame (void);

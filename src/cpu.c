@@ -369,6 +369,21 @@ int cpu_execute (int cycles)
 }
 
 
+int cpu_get_cycles (int reset)
+{
+    int cycles = cpu_context.Cycles;
+
+
+    if (reset)
+    {
+        cpu_context.Cycles = 0;
+    }
+
+
+    return (cycles);
+}
+
+
 UINT8 cpu_read (UINT16 address)
 {
     return (Rd6502 (address));

@@ -246,6 +246,7 @@ word Run6502(M6502 *R)
 #endif
 
     I=Op6502(R->PC.W++);
+    R->Cycles+=Cycles[I];
     R->ICount-=Cycles[I];
     switch(I)
     {
