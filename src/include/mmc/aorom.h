@@ -5,7 +5,7 @@
 /* This mapper is fully supported. */
 
 
-#define AOROM_MIRRORING_BIT   16
+#define AOROM_MIRRORING_BIT   0xf
 
 
 static void aorom_write (UINT16 address, UINT8 value)
@@ -31,8 +31,9 @@ static void aorom_write (UINT16 address, UINT8 value)
 
     /* Select requested 32k page. */
 
-    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(value));
-    cpu_set_read_address_16k (0xC000, ROM_PAGE_16K(value + 1));
+    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K (value));
+
+    cpu_set_read_address_16k (0xC000, ROM_PAGE_16K ((value + 1)));
 }
 
 
@@ -43,8 +44,9 @@ static INLINE void aorom_reset (void)
 
     /* Select first 32k page. */
 
-    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(0));
-    cpu_set_read_address_16k (0xC000, ROM_PAGE_16K(1));
+    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K (0));
+
+    cpu_set_read_address_16k (0xC000, ROM_PAGE_16K (1));
 }
 
 
@@ -52,8 +54,7 @@ static INLINE int aorom_init (void)
 {
     if (! gui_is_active)
     {
-        printf ("Using memory mapper #7 (AOROM) "
-            "(%d PRG, no CHR).\n\n", ROM_PRG_ROM_PAGES);
+        printf ("Using memory mapper #7 (AOROM) (%d PRG, no CHR).\n\n", ROM_PRG_ROM_PAGES);
     }
 
 
@@ -67,9 +68,13 @@ static INLINE int aorom_init (void)
     ppu_set_mirroring (MIRRORING_ONE_SCREEN_2000);
 
 
+    /* Set initial mappings. */
+
     aorom_reset ();
 
-    mmc_write = aorom_write;
+
+    /* Install write handler. */
+
     cpu_set_write_handler_32k (0x8000, aorom_write);
 
 

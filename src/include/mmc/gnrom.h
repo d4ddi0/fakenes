@@ -17,15 +17,17 @@ static void gnrom_write (UINT16 address, UINT8 value)
 
     chr_bank = (value & 0x0f);
 
+
     /* Convert 32k page # to 16k. */
+
     prg_bank = ((((value & 0xf0) >> 4) * 2));
 
 
     /* Select requested 32k page. */
 
-    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K (prg_bank & gnrom_prg_mask));
+    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K ((prg_bank & gnrom_prg_mask)));
 
-    cpu_set_read_address_16k (0xc000, ROM_PAGE_16K ((prg_bank + 1) & gnrom_prg_mask));
+    cpu_set_read_address_16k (0xc000, ROM_PAGE_16K (((prg_bank + 1) & gnrom_prg_mask)));
 
 
     /* Convert 8k page # to 1k. */
@@ -37,7 +39,7 @@ static void gnrom_write (UINT16 address, UINT8 value)
 
     for (index = 0; index < 8; index ++)
     {
-        ppu_set_ram_1k_pattern_vrom_block (index << 10, chr_bank + index);
+        ppu_set_ram_1k_pattern_vrom_block ((index << 10), (chr_bank + index));
     }
 }
 
@@ -54,14 +56,14 @@ static INLINE void gnrom_reset (void)
 
     /* Select second 16k page in upper 16k. */
 
-    cpu_set_read_address_16k (0xc000, ROM_PAGE_16K (1 & gnrom_prg_mask));
+    cpu_set_read_address_16k (0xc000, ROM_PAGE_16K ((1 & gnrom_prg_mask)));
 
 
     /* Select first 8k page. */
 
     for (index = 0; index < 8; index ++)
     {
-        ppu_set_ram_1k_pattern_vrom_block (index << 10, index);
+        ppu_set_ram_1k_pattern_vrom_block ((index << 10), index);
     }
 }
 
@@ -88,7 +90,7 @@ static INLINE int gnrom_init (void)
 
     if (ROM_PRG_ROM_PAGES != gnrom_prg_mask)
     {
-        /* Bank count not even power of 2, unhandled. */
+        /* Page count not an even power of 2. */
 
         return (1);
     }
@@ -99,10 +101,12 @@ static INLINE int gnrom_init (void)
     gnrom_prg_mask --;
 
 
+    /* Set initial mappings. */
+
     gnrom_reset ();
 
 
-    mmc_write = gnrom_write;
+    /* Install write handler. */
 
     cpu_set_write_handler_32k (0x8000, gnrom_write);
 

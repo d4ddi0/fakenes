@@ -2,12 +2,15 @@
 
 /*
 
-FakeNES - A portable, open-source NES emulator.
+FakeNES - A portable, Open Source NES emulator.
 
 audio.h: Declarations for the audio interface.
 
 Copyright (c) 2002, Randy McDowell and Ian Smith.
-All rights reserved.  See 'LICENSE' for details.
+Portions copyright (c) 2002, Charles Bilyue'.
+
+This is free software.  See 'LICENSE' for details.
+You must read and accept the license prior to use.
 
 */
 

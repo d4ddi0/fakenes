@@ -5,7 +5,8 @@
 /* This mapper is fully supported. */
 
 
-static int dreams_prg_mask;
+static int dreams_prg_mask = 0;
+
 
 static void dreams_write (UINT16 address, UINT8 value)
 {
@@ -33,17 +34,16 @@ static void dreams_write (UINT16 address, UINT8 value)
 
     /* Select requested 32k page. */
 
-    cpu_set_read_address_16k (0x8000,
-        ROM_PAGE_16K(rom_page & dreams_prg_mask));
-    cpu_set_read_address_16k (0xC000,
-        ROM_PAGE_16K((rom_page + 1) & dreams_prg_mask));
+    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K ((rom_page & dreams_prg_mask)));
+
+    cpu_set_read_address_16k (0xC000, ROM_PAGE_16K (((rom_page + 1) & dreams_prg_mask)));
 
 
     /* Select requested 8k page. */
 
     for (index = 0; index < 8; index ++)
     {
-        ppu_set_ram_1k_pattern_vrom_block (index << 10, vrom_page + index);
+        ppu_set_ram_1k_pattern_vrom_block ((index << 10), (vrom_page + index));
     }
 }
 
@@ -55,15 +55,16 @@ static INLINE void dreams_reset (void)
 
     /* Select first 32k page. */
 
-    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(0));
-    cpu_set_read_address_16k (0xC000, ROM_PAGE_16K(1));
+    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K (0));
+
+    cpu_set_read_address_16k (0xC000, ROM_PAGE_16K (1));
 
 
     /* Select first 8k page. */
 
     for (index = 0; index < 8; index ++)
     {
-        ppu_set_ram_1k_pattern_vrom_block (index << 10, index);
+        ppu_set_ram_1k_pattern_vrom_block ((index << 10), index);
     }
 }
 
@@ -90,19 +91,24 @@ static INLINE int dreams_init (void)
 
     if (ROM_PRG_ROM_PAGES != dreams_prg_mask)
     {
-        /* Bank count not even power of 2, unhandled. */
+        /* Page count not an even power of 2. */
 
         return (1);
     }
+
 
     /* Convert mask to 16k mask. */
 
     dreams_prg_mask = (dreams_prg_mask - 1);
 
 
+    /* Set initial mappings. */
+
     dreams_reset ();
 
-    mmc_write = dreams_write;
+
+    /* Install write handler. */
+
     cpu_set_write_handler_32k (0x8000, dreams_write);
 
 

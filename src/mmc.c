@@ -2,12 +2,15 @@
 
 /*
 
-FakeNES - A portable, open-source NES emulator.
+FakeNES - A portable, Open Source NES emulator.
 
 mmc.c: Implementation of the MMC emulation.
 
 Copyright (c) 2002, Randy McDowell and Ian Smith.
-All rights reserved.  See 'LICENSE' for details.
+Portions copyright (c) 2002, Charles Bilyue'.
+
+This is free software.  See 'LICENSE' for details.
+You must read and accept the license prior to use.
 
 */
 
@@ -61,6 +64,7 @@ All rights reserved.  See 'LICENSE' for details.
 
 UINT8 * mmc_rom_banks [4];
 
+
 #include "mmc/mmc1.h"
 
 #include "mmc/mmc2.h"
@@ -93,9 +97,6 @@ int mmc_init (void)
     {
         cpu_set_write_address_8k (index, dummy_read);
     }
-
-
-    mmc_write = NULL;
 
 
     mmc_scanline_start = NULL;
@@ -133,7 +134,7 @@ int mmc_init (void)
 
                 for (index = 0; index < 8; index ++)
                 {
-                    ppu_set_ram_1k_pattern_vrom_block (index << 10, index);
+                    ppu_set_ram_1k_pattern_vrom_block ((index << 10), index);
                 }
             }
             else
@@ -152,113 +153,61 @@ int mmc_init (void)
 
         /* MMC1. */
 
-        case 1:
-
-            return (mmc1_init ());
-
-
-            break;
+        case 1: return (mmc1_init ()); break;
 
 
         /* UNROM. */
 
-        case 2:
-
-            return (unrom_init ());
-
-
-            break;
+        case 2: return (unrom_init ()); break;
 
 
         /* CNROM. */
 
-        case 3:
-
-            return (cnrom_init ());
-
-
-            break;
+        case 3: return (cnrom_init ()); break;
 
 
         /* MMC3. */
 
-        case 4:
-
-            return (mmc3_init ());
-
-
-            break;
+        case 4: return (mmc3_init ()); break;
 
 
         /* AOROM. */
 
-        case 7:
-
-            return (aorom_init ());
-
-
-            break;
+        case 7: return (aorom_init ()); break;
 
 
         /* MMC2. */
 
-        case 9:
-
-            return (mmc2_init ());
-
-
-            break;
+        case 9: return (mmc2_init ()); break;
 
 
         /* MMC4. */
 
-        case 10:
-
-            return (mmc4_init ());
-
-
-            break;
+        case 10: return (mmc4_init ()); break;
 
 
         /* Color Dreams. */
 
-        case 11:
-
-            return (dreams_init ());
-
-
-            break;
+        case 11: return (dreams_init ()); break;
 
 
         /* GNROM */
 	
-        case 66:
-
-            return (gnrom_init ());
-
-
-            break;
+        case 66: return (gnrom_init ()); break;
 
 
         /* Sunsoft. */
 
-        case 68:
-
-            return (sunsoft_init ());
-
-
-            break;
+        case 68: return (sunsoft_init ()); break;
 
 
         default:
 
             return (1);
+
+
+            break;
     }
-}
-
-
-void mmc_exit (void)
-{
 }
 
 
@@ -268,102 +217,52 @@ void mmc_reset (void)
     {
         /* MMC1. */
 
-        case 1:
-
-            mmc1_reset ();
-
-
-            break;
+        case 1: mmc1_reset (); break;
 
 
         /* UNROM. */
 
-        case 2:
-
-            unrom_reset ();
-
-
-            break;
+        case 2: unrom_reset (); break;
 
 
         /* CNROM. */
 
-        case 3:
-
-            cnrom_reset ();
-
-
-            break;
+        case 3: cnrom_reset (); break;
 
 
         /* MMC3. */
 
-        case 4:
-
-            mmc3_reset ();
-
-
-            break;
+        case 4: mmc3_reset (); break;
 
 
         /* AOROM. */
 
-        case 7:
-
-            aorom_reset ();
-
-
-            break;
+        case 7: aorom_reset (); break;
 
 
         /* MMC2. */
 
-        case 9:
-
-            mmc2_reset ();
-
-
-            break;
+        case 9: mmc2_reset (); break;
 
 
         /* MMC4. */
 
-        case 10:
-
-            mmc4_reset ();
-
-
-            break;
+        case 10: mmc4_reset (); break;
 
 
         /* Color Dreams. */
 
-        case 11:
-
-            dreams_reset ();
-
-
-            break;
+        case 11: dreams_reset (); break;
 
 
         /* GNROM */
 	
-        case 66:
-
-            gnrom_reset ();
-
-
-            break;
+        case 66: gnrom_reset (); break;
 
 
         /* Sunsoft. */
 
-        case 68:
-
-            sunsoft_reset ();
-
-
-            break;
+        case 68: sunsoft_reset (); break;
 
 
         default:

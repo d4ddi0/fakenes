@@ -19,7 +19,7 @@ static void cnrom_write (UINT16 address, UINT8 value)
 
     for (index = 0; index < 8; index ++)
     {
-        ppu_set_ram_1k_pattern_vrom_block (index << 10, value + index);
+        ppu_set_ram_1k_pattern_vrom_block ((index << 10), (value + index));
     }
 }
 
@@ -33,15 +33,17 @@ static INLINE void cnrom_reset (void)
     {
         /* Select first 16k page (mirrored). */
 
-        cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(0));
-        cpu_set_read_address_16k (0xC000, ROM_PAGE_16K(0));
+        cpu_set_read_address_16k (0x8000, ROM_PAGE_16K (0));
+
+        cpu_set_read_address_16k (0xC000, ROM_PAGE_16K (0));
     }
     else
     {
         /* Select first 32k page. */
 
-        cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(0));
-        cpu_set_read_address_16k (0xC000, ROM_PAGE_16K(1));
+        cpu_set_read_address_16k (0x8000, ROM_PAGE_16K (0));
+
+        cpu_set_read_address_16k (0xC000, ROM_PAGE_16K (1));
     }
 
 
@@ -49,7 +51,7 @@ static INLINE void cnrom_reset (void)
 
     for (index = 0; index < 8; index ++)
     {
-        ppu_set_ram_1k_pattern_vrom_block (index << 10, index);
+        ppu_set_ram_1k_pattern_vrom_block ((index << 10), index);
     }
 }
 
@@ -63,9 +65,13 @@ static INLINE int cnrom_init (void)
     }
 
 
+    /* Set initial mappings. */
+
     cnrom_reset ();
 
-    mmc_write = cnrom_write;
+
+    /* Install write handler. */
+
     cpu_set_write_handler_32k (0x8000, cnrom_write);
 
 

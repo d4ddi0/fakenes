@@ -5,7 +5,8 @@
 /* This mapper is fully supported. */
 
 
-static int unrom_prg_mask;
+static int unrom_prg_mask = 0;
+
 
 static void unrom_write (UINT16 address, UINT8 value)
 {
@@ -14,7 +15,7 @@ static void unrom_write (UINT16 address, UINT8 value)
     value = (value & unrom_prg_mask);
 
 
-    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(value));
+    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K (value));
 }
 
 
@@ -22,7 +23,7 @@ static INLINE void unrom_reset (void)
 {
     /* Select first 16k page in lower 16k. */
 
-    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(0));
+    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K (0));
 
 
     /* Select last 16k page in upper 16k. */
@@ -53,7 +54,7 @@ static INLINE int unrom_init (void)
 
     if (ROM_PRG_ROM_PAGES != unrom_prg_mask)
     {
-        /* Bank count not even power of 2, unhandled. */
+        /* Page count not even power of 2. */
 
         return (1);
     }
@@ -68,9 +69,13 @@ static INLINE int unrom_init (void)
     ppu_set_ram_8k_pattern_vram ();
 
 
+    /* Set initial mappings. */
+
     unrom_reset ();
 
-    mmc_write = unrom_write;
+
+    /* Install write handler. */
+
     cpu_set_write_handler_32k (0x8000, unrom_write);
 
 

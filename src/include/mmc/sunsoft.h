@@ -5,94 +5,106 @@
 /* This mapper is fully supported. */
 
 
-static unsigned sunsoft_prg_mask;
+static unsigned int sunsoft_prg_mask = 0;
+
 
 static UINT8 sunsoft_name_table_banks [2];
-static UINT8 sunsoft_name_table_control;
+
+static UINT8 sunsoft_name_table_control = 0;
 
 
 static void sunsoft_fixup_name_tables (void)
 {
-    if (!(sunsoft_name_table_control & 0x10))
-    /* VRAM name tables */
+    if (! (sunsoft_name_table_control & 0x10))
     {
-        if (!(sunsoft_name_table_control & 2))
-        /* horizontal/vertical mirroring */
+        /* VRAM name tables */
+
+        if (! (sunsoft_name_table_control & 2))
         {
-            ppu_set_mirroring ((sunsoft_name_table_control & 1) ?
-                MIRRORING_HORIZONTAL : MIRRORING_VERTICAL);
+            /* Horizontal/vertical mirroring. */
+
+            ppu_set_mirroring (((sunsoft_name_table_control & 1) ?
+                MIRRORING_HORIZONTAL : MIRRORING_VERTICAL));
         }
         else
-        /* one-screen mirroring */
         {
-            ppu_set_mirroring ((sunsoft_name_table_control & 1) ?
-                MIRRORING_ONE_SCREEN_2400 :
-                MIRRORING_ONE_SCREEN_2000);
+            /* One-screen mirroring. */
+
+            ppu_set_mirroring (((sunsoft_name_table_control & 1) ?
+                MIRRORING_ONE_SCREEN_2400 : MIRRORING_ONE_SCREEN_2000));
         }
     }
     else
-    /* CHR ROM name tables */
     {
-        if (!(sunsoft_name_table_control & 2))
-        /* horizontal/vertical mirroring */
+        /* CHR-ROM name tables. */
+
+        if (! (sunsoft_name_table_control & 2))
         {
-            if (!(sunsoft_name_table_control & 1))
-            /* vertical mirroring */
+            /* Horizontal/vertical mirroring. */
+
+            if (! (sunsoft_name_table_control & 1))
             {
-                ppu_set_name_table_address_vrom (0,
-                    sunsoft_name_table_banks [0] | 0x80);
-                ppu_set_name_table_address_vrom (1,
-                    sunsoft_name_table_banks [1] | 0x80);
-                ppu_set_name_table_address_vrom (2,
-                    sunsoft_name_table_banks [0] | 0x80);
-                ppu_set_name_table_address_vrom (3,
-                    sunsoft_name_table_banks [1] | 0x80);
+                /* Vertical mirroring. */
+
+                ppu_set_name_table_address_vrom (0, (sunsoft_name_table_banks [0] | 0x80));
+
+                ppu_set_name_table_address_vrom (1, (sunsoft_name_table_banks [1] | 0x80));
+
+                ppu_set_name_table_address_vrom (2, (sunsoft_name_table_banks [0] | 0x80));
+
+                ppu_set_name_table_address_vrom (3, (sunsoft_name_table_banks [1] | 0x80));
             }
             else
-            /* horizontal mirroring */
             {
-                ppu_set_name_table_address_vrom (0,
-                    sunsoft_name_table_banks [0] | 0x80);
-                ppu_set_name_table_address_vrom (1,
-                    sunsoft_name_table_banks [0] | 0x80);
-                ppu_set_name_table_address_vrom (2,
-                    sunsoft_name_table_banks [1] | 0x80);
-                ppu_set_name_table_address_vrom (3,
-                    sunsoft_name_table_banks [1] | 0x80);
+                /* Horizontal mirroring. */
+
+                ppu_set_name_table_address_vrom (0, (sunsoft_name_table_banks [0] | 0x80));
+
+                ppu_set_name_table_address_vrom (1, (sunsoft_name_table_banks [0] | 0x80));
+
+                ppu_set_name_table_address_vrom (2, (sunsoft_name_table_banks [1] | 0x80));
+
+                ppu_set_name_table_address_vrom (3, (sunsoft_name_table_banks [1] | 0x80));
             }
         }
         else
-        /* one-screen mirroring */
         {
-            ppu_set_name_table_address_vrom (0,
-                sunsoft_name_table_banks [sunsoft_name_table_control & 1]
-                | 0x80);
-            ppu_set_name_table_address_vrom (1,
-                sunsoft_name_table_banks [sunsoft_name_table_control & 1]
-                | 0x80);
-            ppu_set_name_table_address_vrom (2,
-                sunsoft_name_table_banks [sunsoft_name_table_control & 1]
-                | 0x80);
-            ppu_set_name_table_address_vrom (3,
-                sunsoft_name_table_banks [sunsoft_name_table_control & 1]
-                | 0x80);
+            /* One-screen mirroring. */
+
+            ppu_set_name_table_address_vrom (0, (sunsoft_name_table_banks
+                [sunsoft_name_table_control & 1] | 0x80));
+
+            ppu_set_name_table_address_vrom (1, (sunsoft_name_table_banks
+                [sunsoft_name_table_control & 1] | 0x80));
+
+            ppu_set_name_table_address_vrom (2, (sunsoft_name_table_banks
+                [sunsoft_name_table_control & 1] | 0x80));
+
+            ppu_set_name_table_address_vrom (3, (sunsoft_name_table_banks
+               [sunsoft_name_table_control & 1] | 0x80));
         }
     }
 }
 
+
 static void sunsoft_write (UINT16 address, UINT8 value)
 {
-    address = address >> 12;
+    address >>= 12;
+
+
     switch (address)
     {
-        case 0x8000 >> 12:
-        case 0x9000 >> 12:
-        case 0xa000 >> 12:
-        case 0xb000 >> 12:
+        case (0x8000 >> 12):
+
+        case (0x9000 >> 12):
+
+        case (0xa000 >> 12):
+
+        case (0xb000 >> 12):
 
             /* Calculate PPU address. */
 
-            address = (address - 8) * 0x800;
+            address = ((address - 8) * 0x800);
 
 
             /* Convert 2k page # to 1k. */
@@ -104,39 +116,44 @@ static void sunsoft_write (UINT16 address, UINT8 value)
 
             ppu_set_ram_1k_pattern_vrom_block (address, value);
 
-            ppu_set_ram_1k_pattern_vrom_block ((address + 0x400), value + 1);
+            ppu_set_ram_1k_pattern_vrom_block ((address + 0x400), (value + 1));
 
 
             break;
 
 
-        case 0xc000 >> 12:
-        case 0xd000 >> 12:
+        case (0xc000 >> 12):
+
+        case (0xd000 >> 12):
 
             sunsoft_name_table_banks [address - (0xc000 >> 12)] = value;
 
-            sunsoft_fixup_name_tables();
+            sunsoft_fixup_name_tables ();
+
 
             break;
 
-        case 0xe000 >> 12:
+
+        case (0xe000 >> 12):
 
             if ((sunsoft_name_table_control & 0x13) != (value & 0x13))
-            /* name tables changed? */
             {
+                /* Name tables changed? */
+
                 sunsoft_name_table_control = value;
 
-                sunsoft_fixup_name_tables();
+                sunsoft_fixup_name_tables ();
             }
+
 
             break;
 
 
-        case 0xf000 >> 12:
+        case (0xf000 >> 12):
 
             /* Select 16k page in lower 16k. */
 
-            cpu_set_read_address_16k (0x8000, ROM_PAGE_16K (value & sunsoft_prg_mask));
+            cpu_set_read_address_16k (0x8000, ROM_PAGE_16K ((value & sunsoft_prg_mask)));
 
 
             break;
@@ -179,10 +196,11 @@ static INLINE int sunsoft_init (void)
 
     if (ROM_PRG_ROM_PAGES != sunsoft_prg_mask)
     {
-        /* Bank count not even power of 2, unhandled. */
+        /* Page count not an even power of 2. */
 
         return (1);
     }
+
 
     /* Generate 16k mask. */
 
@@ -190,15 +208,16 @@ static INLINE int sunsoft_init (void)
 
 
     sunsoft_name_table_banks [0] = sunsoft_name_table_banks [1] = 0;
-    sunsoft_name_table_control = (ppu_get_mirroring() == MIRRORING_VERTICAL)
-     ? 0 : 1;
 
-    /* Restore initial state. */
+    sunsoft_name_table_control = ((ppu_get_mirroring () == MIRRORING_VERTICAL) ? 0 : 1);
+
+
+    /* Set initial mappings. */
 
     sunsoft_reset ();
 
 
-    /* Install the handler. */
+    /* Install write handler. */
 
     cpu_set_write_handler_32k (0x8000, sunsoft_write);
 
