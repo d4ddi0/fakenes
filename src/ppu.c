@@ -30,14 +30,15 @@ All rights reserved.  See 'LICENSE' for details.
 
 #include "ppu.h"
 
-#include "video.h"
-
 #include "rom.h"
 
-#include "timing.h"
+#include "video.h"
 
 
 #include "misc.h"
+
+
+#include "timing.h"
 
 
 /* delay for sprite 0 collision detection in PPU clocks */

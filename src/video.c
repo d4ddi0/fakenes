@@ -21,9 +21,9 @@ All rights reserved.  See 'LICENSE' for details.
 
 #include "ppu.h"
 
-#include "video.h"
-
 #include "rom.h"
+
+#include "video.h"
 
 
 #include "data.h"

@@ -29,10 +29,3 @@
 #undef NULL
 
 #define NULL    0
-
-
-#ifndef POSIX
-
-#define USE_ZLIB
-
-#endif

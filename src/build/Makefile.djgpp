@@ -2,7 +2,7 @@
 
 CC = gcc
 
-RM = @rm -f -v
+RM = rm -f -v
 
 
 IFLAGS = -Iinclude
@@ -10,31 +10,27 @@ IFLAGS = -Iinclude
 ifdef DEBUG
     OFLAGS = -O2 -g3
 
-    DFLAGS = -DDEBUG -DLSB_FIRST
+    DFLAGS = -DDEBUG -DUSE_ZLIB -DLSB_FIRST
 else
     OFLAGS = -O3 -march=i486 -fomit-frame-pointer -fno-rtti \
-    -fno-exceptions -funroll-loops -ffast-math -g3 \
-    -fstrength-reduce -fthread-jumps -fexpensive-optimizations \
-    -fschedule-insns -fschedule-insns2
+    -fno-exceptions -funroll-loops -ffast-math  -fstrength-reduce \
+    -fthread-jumps -fexpensive-optimizations -fschedule-insns \
+    -fschedule-insns2 -foptimize-sibling-calls -s
 
-    DFLAGS = -DLSB_FIRST
+    DFLAGS = -DUSE_ZLIB -DLSB_FIRST
 endif
 
-WFLAGS = -Wall -Wno-unused
+WFLAGS = -Wall -Wdisabled-optimization -Wno-unused
 
 
 CFLAGS = ${IFLAGS} ${OFLAGS} ${WFLAGS} ${DFLAGS}
 
 
-ifdef DEBUG
-    LIBRARIES = -lalld -lz
-else
-    LIBRARIES = -lalleg -lz
-endif
+LIBRARIES = -lalleg -lz
 
 
-OBJECTS = apu.o audio.o core.o cpu.o gui.o input.o papu.o ppu.o \
-          rom.o main.o mmc.o video.o
+OBJECTS = apu.o audio.o core.o cpu.o gui.o input.o papu.o ppu.o rom.o \
+          main.o mmc.o video.o
 
 
 ifdef DEBUG
@@ -46,7 +42,7 @@ endif
 
 fakenes.exe : ${OBJECTS}
 
-	${CC} ${OBJECTS} -o fakenes.exe -g3 ${LIBRARIES}
+	${CC} ${OBJECTS} -o fakenes.exe -s ${LIBRARIES}
 
 
 fakenesd.exe : ${OBJECTS}
@@ -62,59 +58,48 @@ fakenesd.exe : ${OBJECTS}
 	${CC} -c $< -o $@ ${CFLAGS}
 
 
-apu.o: apu.c include/misc.h include/apu.h include/cpu.h include/core.h
+apu.o: apu.c include/misc.h include/apu.h include/cpu.h
 
-audio.o: audio.c include/audio.h include/misc.h
+audio.o: audio.c include/audio.h
 
-core.o : core.c include/core.h include/misc.h include/cpu.h \
-         include/core/tables.h include/core/codes.h
+core.o : core.c include/core.h include/core/tables.h
 
-cpu.o : cpu.c include/cpu.h include/misc.h include/core.h \
-        include/input.h include/mmc.h include/papu.h \
-        include/ppu.h include/rom.h
+cpu.o : cpu.c include/cpu.h include/core.h include/input.h include/misc.h \
+        include/mmc.h include/papu.h include/ppu.h include/rom.h
 
-gui.o : gui.c include/apu.h include/misc.h include/audio.h \
-        include/cpu.h include/core.h include/gui.h include/papu.h \
-        include/rom.h include/video.h include/data.h include/data2.h \
-        include/timing.h include/gui/objects.h include/gui/menus.h \
-        include/gui/dialogs.h
+gui.o : gui.c include/apu.h include/audio.h include/cpu.h include/data.h \
+        include/gui.h include/misc.h include/papu.h include/rom.h \
+        include/timing.h include/video.h include/gui/dialogs.h \
+        include/gui/menus.h include/gui/objects.h
 
-input.o : input.c include/gui.h include/misc.h include/input.h \
-          include/ppu.h include/rom.h include/video.h \
-          include/timing.h
+input.o : input.c include/gui.h include/input.h include/misc.h \
+          include/ppu.h include/rom.h include/timing.h include/video.h
 
-main.o : main.c include/build.h include/audio.h include/misc.h \
-         include/cpu.h include/core.h include/gui.h include/input.h \
+main.o : main.c include/audio.h include/build.h include/cpu.h \
+         include/data.h include/gui.h include/input.h include/misc.h \
          include/mmc.h include/papu.h include/ppu.h include/rom.h \
-         include/video.h include/data.h include/data2.h \
-         include/timing.h
+         include/timing.h include/video.h
 
-mmc.o : mmc.c include/cpu.h include/misc.h include/core.h \
-        include/gui.h include/mmc.h include/ppu.h include/rom.h \
-        include/timing.h include/mmc/mmc1.h include/mmc/mmc2.h \
-        include/mmc/mmc3.h include/mmc/mmc4.h include/mmc/unrom.h \
-        include/mmc/cnrom.h include/mmc/aorom.h include/mmc/gnrom.h \
-        include/mmc/dreams.h include/mmc/sunsoft.h
+mmc.o :  mmc.c include/cpu.h include/gui.h include/misc.h include/mmc.h \
+         include/ppu.h include/rom.h include/timing.h include/mmc/aorom.h \
+         include/mmc/cnrom.h include/mmc/dreams.h include/mmc/gnrom.h \
+         include/mmc/mmc1.h include/mmc/mmc2.h include/mmc/mmc3.h \
+         include/mmc/mmc4.h include/mmc/sunsoft.h include/mmc/unrom.h
 
-papu.o : papu.c include/audio.h include/misc.h include/apu.h \
-         include/papu.h
+papu.o : papu.c include/audio.h include/apu.h include/misc.h include/papu.h 
 
-ppu.o : ppu.c include/cpu.h include/misc.h include/core.h \
-        include/input.h include/mmc.h include/ppu.h \
-        include/rom.h include/video.h include/timing.h
+ppu.o : ppu.c include/cpu.h include/input.h include/misc.h include/mmc.h \
+        include/ppu.h include/rom.h include/timing.h include/video.h
 
 rom.o : rom.c include/ppu.h include/rom.h include/misc.h
 
-video.o : video.c include/cpu.h include/misc.h include/core.h \
-          include/input.h include/ppu.h include/rom.h \
-          include/video.h include/data.h include/data2.h \
-          include/timing.h
+video.o : video.c include/cpu.h include/data.h include/input.h \
+          include/misc.h include/ppu.h include/rom.h include/timing.h \
+          include/video.h
 
 
 clean :
 
 	${RM} ${OBJECTS}
 
-	${RM} fakenes.exe
-
-	${RM} fakenesd.exe
+	${RM} fakenes.exe fakenesd.exe
