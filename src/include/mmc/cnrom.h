@@ -69,7 +69,7 @@ static INLINE int cnrom_init (void)
     if (! gui_is_active)
     {
         printf ("Using memory mapper #3 (CNROM) "
-            "(no PRG, %d CHR).\n\n", ROM_CHR_ROM_PAGES);
+            "(%d PRG, %d CHR).\n\n", ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
     }
 
 
