@@ -6,7 +6,7 @@ FakeNES - A portable, open-source NES emulator.
 
 main.c: Implementation of the main emulation.
 
-Copyright (c) 2001, Randy McDowell and Ian Smith.
+Copyright (c) 2002, Randy McDowell and Ian Smith.
 All rights reserved.  See 'LICENSE' for details.
 
 */
@@ -172,7 +172,7 @@ int main (int argc, char * argv [])
     int result;
 
 
-    printf ("\nFakeNES 0.0.1 (pre0-5), by stainless and RobotBebop.\n");
+    printf ("\nFakeNES 0.0.1 (pre0-6), by stainless and RobotBebop.\n");
 
     printf ("\nBe sure to visit http://fakenes.sourceforge.net/.\n"
             "Report bugs to fakenes-bugs@lists.sourceforge.net.\n");
@@ -180,12 +180,12 @@ int main (int argc, char * argv [])
 
 #ifdef UNIX
 
-    printf ("\nCopyright (c) 2001, Randy McDowell and Ian Smith.\n"
+    printf ("\nCopyright (c) 2002, Randy McDowell and Ian Smith.\n"
             "All rights reserved.  See 'LICENSE' for details.\n\n");
 
 #else
 
-    printf ("\nCopyright (c) 2001, Randy McDowell and Ian Smith.\n"
+    printf ("\nCopyright (c) 2002, Randy McDowell and Ian Smith.\n"
             "All rights reserved.  See 'LICENSE.TXT' for details.\n\n");
 
 #endif
