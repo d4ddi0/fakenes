@@ -246,7 +246,26 @@ int mmc_init (void)
     mmc_name_table_count =
         (global_rom.control_byte_1 & ROM_CTRL_FOUR_SCREEN) ? 4 : 2;
 
-    mmc_pattern_vram_in_use = !(ROM_CHR_ROM_PAGES > 0);
+    mmc_pattern_vram_in_use = (ROM_CHR_ROM_PAGES == 0);
+
+
+    if (mmc_pattern_vram_in_use)
+    {
+        /* No VROM is present. */
+
+        ppu_set_ram_8k_pattern_vram ();
+    }
+    else
+    {
+        int index;
+
+        /* Select first 8k page. */
+
+        for (index = 0; index < 8; index ++)
+        {
+            ppu_set_ram_1k_pattern_vrom_block ((index << 10), index);
+        }
+    }
 
 
     papu_clear_exsound ();

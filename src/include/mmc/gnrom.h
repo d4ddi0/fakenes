@@ -104,6 +104,13 @@ static void gnrom_reset (void)
 
 static int gnrom_init (void)
 {
+    /* Mapper requires some CHR ROM */
+    if (mmc_pattern_vram_in_use)
+    {
+        return -1;
+    }
+
+
     /* Set initial mappings. */
 
     gnrom_reset ();

@@ -997,11 +997,13 @@ static int mmc5_init (void)
 {
     int index;
 
-    if (ROM_CHR_ROM_PAGES == 0)
+    if (mmc_pattern_vram_in_use)
     {
         /* No VROM is present. */
         return (1);
     }
+
+    mmc_name_table_count = 4;
 
 
     mmc5_set_wram_size (8);

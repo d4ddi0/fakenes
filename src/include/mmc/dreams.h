@@ -104,6 +104,13 @@ static void dreams_reset (void)
 
 static int dreams_init (void)
 {
+    /* Mapper requires some CHR ROM */
+    if (mmc_pattern_vram_in_use)
+    {
+        return -1;
+    }
+
+
     /* Set initial mappings. */
 
     dreams_reset ();

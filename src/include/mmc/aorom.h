@@ -78,9 +78,13 @@ static int aorom_init (void)
 
     ppu_set_ram_8k_pattern_vram ();
 
+    mmc_pattern_vram_in_use = TRUE;
+
+
 
     /* Set the default mirroring. */
 
+    mmc_name_table_count = 2;
     ppu_set_mirroring (MIRRORING_ONE_SCREEN_2000);
 
 

@@ -243,10 +243,11 @@ static void mmc2_reset (void)
 static int mmc2_init (void)
 {
     /* Mapper requires some CHR ROM */
-    if (ROM_CHR_ROM_PAGES < 1)
+    if (mmc_pattern_vram_in_use)
     {
         return -1;
     }
+
 
     mmc2and4_rom_bank_size = FALSE;
     mmc2_reset ();

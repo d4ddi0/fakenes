@@ -79,6 +79,13 @@ static void cnrom_reset (void)
 
 static int cnrom_init (void)
 {
+    /* Mapper requires some CHR ROM */
+    if (mmc_pattern_vram_in_use)
+    {
+        return -1;
+    }
+
+
     /* Set initial mappings. */
 
     cnrom_reset ();

@@ -106,6 +106,13 @@ static void ffe_f3_reset (void)
 
 static int ffe_f3_init (void)
 {
+    /* Mapper requires some CHR ROM */
+    if (mmc_pattern_vram_in_use)
+    {
+        return -1;
+    }
+
+
     /* Set initial mappings. */
 
     ffe_f3_reset ();

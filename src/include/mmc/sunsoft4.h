@@ -191,6 +191,13 @@ static void sunsoft4_reset (void)
 
 static int sunsoft4_init (void)
 {
+    /* Mapper requires some CHR ROM */
+    if (mmc_pattern_vram_in_use)
+    {
+        return -1;
+    }
+
+
     sunsoft4_name_table_banks [0] = sunsoft4_name_table_banks [1] = 0;
 
     sunsoft4_name_table_control = ((ppu_get_mirroring () == MIRRORING_VERTICAL) ? 0 : 1);
