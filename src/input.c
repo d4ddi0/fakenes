@@ -111,12 +111,32 @@ static int zapper_mask = 0;
 
 void input_update_zapper_offsets (void)
 {
+    int mouse_needs_range_fixup = FALSE;
+
     input_zapper_x_offset = mouse_x;
 
     input_zapper_y_offset = mouse_y;
 
-
     input_zapper_trigger = (mouse_b & 0x01);
+
+
+    /* Perform bounds checking */
+    if (input_zapper_x_offset >= 256)
+    {
+        mouse_needs_range_fixup = TRUE;
+        input_zapper_x_offset = 255;
+    }
+
+    if (input_zapper_y_offset >= 240)
+    {
+        mouse_needs_range_fixup = TRUE;
+        input_zapper_y_offset = 239;
+    }
+
+    if (mouse_needs_range_fixup)
+    {
+        position_mouse (input_zapper_x_offset, input_zapper_y_offset);
+    }
 
 
     if ((input_zapper_x_offset < 256) && (input_zapper_y_offset < 240))

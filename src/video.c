@@ -44,7 +44,7 @@ You must read and accept the license prior to use.
 
 static BITMAP * screen_buffer = NULL;
 
-static BITMAP * overlay_buffer = NULL;
+static BITMAP * mouse_sprite_remove_buffer = NULL;
 
 
 int video_display_status = FALSE;
@@ -141,10 +141,10 @@ int video_init (void)
 
     screen_buffer = create_bitmap (SCREEN_W, SCREEN_H);
 
+    mouse_sprite_remove_buffer = create_bitmap (16, 16);
+
     clear (screen_buffer);
 
-
-    overlay_buffer = create_bitmap (256, 240);
 
 
     /* Heh, recursive variable assignation. :( */
@@ -200,7 +200,7 @@ void video_exit (void)
 
     destroy_bitmap (screen_buffer);
 
-    destroy_bitmap (overlay_buffer);
+    destroy_bitmap (mouse_sprite_remove_buffer);
 
 
     if (! preserve_video_buffer)
@@ -490,28 +490,12 @@ void video_blit (BITMAP * bitmap)
 
     if ((input_enable_zapper) && (! gui_is_active))
     {
-        if (! (mouse_x < 256))
-        {
-            position_mouse (255, mouse_y);
-        }
+        blit (video_buffer, mouse_sprite_remove_buffer,
+            (input_zapper_x_offset - 7), (input_zapper_y_offset - 7), 0, 0,
+            16, 16);
 
-
-        if (! (mouse_y < 239))
-        {
-            position_mouse (mouse_x, 239);
-        }
-
-
-        blit (video_buffer, overlay_buffer, 0, 0, 0, 0, 256, 240);
-
-        masked_blit (DATA_GUN_SPRITE, overlay_buffer, 0, 0, (mouse_x - 7), (mouse_y - 7), 16, 16);
-
-
-        source_buffer = overlay_buffer;
-    }
-    else
-    {
-        source_buffer = video_buffer;
+        masked_blit (DATA_GUN_SPRITE, video_buffer, 0, 0,
+            (input_zapper_x_offset - 7), (input_zapper_y_offset - 7), 16, 16);
     }
 
 
@@ -519,7 +503,7 @@ void video_blit (BITMAP * bitmap)
     {
         case VIDEO_BLITTER_NORMAL:
 
-            blit (source_buffer, screen_buffer, 0, 0, blit_x_offset, blit_y_offset, 256, 240);
+            blit (video_buffer, screen_buffer, 0, 0, blit_x_offset, blit_y_offset, 256, 240);
 
 
             break;
@@ -527,7 +511,7 @@ void video_blit (BITMAP * bitmap)
 
         case VIDEO_BLITTER_STRETCHED:
 
-            stretch_blit (source_buffer, screen_buffer, 0, 0, 256, 240,
+            stretch_blit (video_buffer, screen_buffer, 0, 0, 256, 240,
                 blit_x_offset, blit_y_offset, stretch_width, stretch_height);
 
 
@@ -536,10 +520,17 @@ void video_blit (BITMAP * bitmap)
 
         case VIDEO_BLITTER_2XSOE:
 
-            blit_2xsoe (source_buffer, screen_buffer, blit_x_offset, blit_y_offset);
+            blit_2xsoe (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
 
 
             break;
+    }
+
+
+    if ((input_enable_zapper) && (! gui_is_active))
+    {
+        blit (mouse_sprite_remove_buffer, video_buffer, 0, 0,
+            (input_zapper_x_offset - 7), (input_zapper_y_offset - 7), 16, 16);
     }
 
 
