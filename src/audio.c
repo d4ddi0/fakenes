@@ -64,7 +64,7 @@ int audio_init (void)
 
     if (audio_enable_output)
     {
-        reserve_voices (1, 0);
+        set_volume_per_voice (0);
 
 
         if (install_sound (DIGI_AUTODETECT, MIDI_NONE, NULL) != 0)
