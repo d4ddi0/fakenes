@@ -780,7 +780,7 @@ UINT8 ppu_read (UINT16 address)
 
             /* Sprite RAM I/O. */
 
-            return ppu_spr_ram [spr_ram_address++];
+            return ppu_spr_ram [spr_ram_address];
 
 
             break;
