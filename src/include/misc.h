@@ -31,7 +31,7 @@
 #define NULL    0
 
 
-#ifndef UNIX
+#ifndef POSIX
 
 #define USE_ZLIB
 

@@ -38,7 +38,7 @@ All rights reserved.  See 'LICENSE' for details.
 #include "misc.h"
 
 
-#ifdef UNIX
+#ifdef POSIX
 
 extern char * confdir;
 
@@ -55,7 +55,7 @@ static M6502 cpu_context;
 
 static char *get_sram_filename (char *buffer, const char *rom_filename, int buffer_size)
 {
-#ifdef UNIX
+#ifdef POSIX
 
     if (sramdir != NULL)
     {

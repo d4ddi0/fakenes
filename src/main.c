@@ -27,7 +27,7 @@ All rights reserved.  See 'LICENSE' for details.
 #include <string.h>
 
 
-#ifdef UNIX
+#ifdef POSIX
 
 #include <sys/stat.h>
 
@@ -89,7 +89,7 @@ volatile int timing_audio_fps = 0;
 volatile int timing_audio_hertz = 0;
 
 
-#ifdef UNIX
+#ifdef POSIX
 
 char * homedir = NULL;
 
@@ -184,7 +184,7 @@ int main (int argc, char * argv [])
             "Report bugs to fakenes-bugs@lists.sourceforge.net.\n");
 
 
-#ifdef UNIX
+#ifdef POSIX
 
     printf ("\nCopyright (c) 2002, Randy McDowell and Ian Smith.\n"
             "All rights reserved.  See 'LICENSE' for details.\n\n");
@@ -200,7 +200,7 @@ int main (int argc, char * argv [])
     allegro_init ();
 
 
-#ifdef UNIX
+#ifdef POSIX
 
     /* by amit */
     set_window_title ("FakeNES");
@@ -361,7 +361,7 @@ int main (int argc, char * argv [])
     install_timer ();
 
 
-#ifdef UNIX
+#ifdef POSIX
 
     if(confdir != NULL)
     {
@@ -401,7 +401,7 @@ int main (int argc, char * argv [])
     if (! data)
     {
         fprintf (stderr,
-#ifdef UNIX
+#ifdef POSIX
             "PANIC: Failed to load datafile: \"%s\".\n", datfile);
 #else
             "PANIC: Failed to load datafile: fakenes.dat.\n");

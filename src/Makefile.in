@@ -2,17 +2,23 @@
 
 CC = @CC@
 
-RM = @rm -f -v
+
+REMOVE = @rm -f -v
+
+INSTALL = @INSTALL@
+
+
+BINARY = fakenes
+
+DATAFILE = support/fakenes.dat
 
 
 IFLAGS = -Iinclude
 
-OFLAGS = @CFLAGS@
-
-DFLAGS = @DFLAGS@ -DUNIX
+DFLAGS = @DFLAGS@ -DPOSIX
 
 
-CFLAGS = ${IFLAGS} ${OFLAGS} ${DFLAGS}
+CFLAGS = ${IFLAGS} @CFLAGS@ ${DFLAGS}
 
 
 LIBRARIES = `allegro-config --libs` @LIBS@
@@ -22,12 +28,19 @@ OBJECTS = apu.o audio.o core.o cpu.o gui.o input.o papu.o ppu.o \
           rom.o main.o mmc.o video.o
 
 
-all : fakenes
+all : ${BINARY}
 
 
-fakenes : ${OBJECTS}
+${BINARY} : ${OBJECTS}
 
-	${CC} ${OBJECTS} -o fakenes ${LIBRARIES}
+	${CC} ${OBJECTS} -o ${BINARY} ${LIBRARIES}
+
+
+install : ${BINARY} ${DATAFILE}
+
+	${INSTALL} -m 0755 ${BINARY} ${HOME}/bin
+
+	${INSTALL} -m 0644 ${DATAFILE} ${HOME}/.fakenes
 
 
 .SUFFIXES : .c
@@ -82,6 +95,17 @@ video.o : video.c include/cpu.h include/data.h include/input.h \
 
 clean :
 
-	${RM} ${OBJECTS}
+	${REMOVE} ${OBJECTS}
 
-	${RM} fakenes
+	${REMOVE} ${BINARY}
+
+
+distclean : clean
+
+	${REMOVE} ../config.log
+
+	${REMOVE} ../config.cache
+
+	${REMOVE} ../config.status
+
+	${REMOVE} Makefile
