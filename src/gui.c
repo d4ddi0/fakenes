@@ -198,15 +198,12 @@ static int file_menu_load_rom (void)
         }
         else
         {
-            free_rom (&test_rom);
-
-
             if (rom_is_loaded)
             {
                 free_rom (&global_rom);
             }
 
-            load_rom (buffer, &global_rom);
+            memcpy (&global_rom, &test_rom, sizeof(ROM));
 
 
             rom_is_loaded = TRUE;
