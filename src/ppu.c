@@ -278,6 +278,7 @@ void invert_ppu_mirroring (void)   /* '/' key. */
     }
 }
 
+static int old_sprites_enabled = FALSE;
 
 void ppu_reset (void)
 {
@@ -1203,6 +1204,8 @@ static void ppu_render_low_sprites (void)
     int sprite, priority;
 
 
+    old_sprites_enabled = sprites_enabled;
+
     if (! sprites_enabled)
     {
         return;
@@ -1228,7 +1231,7 @@ static void ppu_render_high_sprites (void)
     int sprite, priority;
 
 
-    if (! sprites_enabled)
+    if (! old_sprites_enabled)
     {
         return;
     }
