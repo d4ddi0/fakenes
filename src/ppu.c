@@ -1043,10 +1043,10 @@ static void ppu_render_sprites (void)
             [(sprite * 4) + 2] & SPRITE_PRIORITY_BIT);
 
 
-        //if (! priority)
-        //{
+        if (! priority)
+        {
             ppu_render_sprite (sprite);
-        //}
+        }
     }
 }
 
