@@ -1239,9 +1239,9 @@ void video_set_resolution (int width, int height)
 
     if (video_init () != 0)
     {
-        screen_width = old_width;
+        set_config_int ("video", "screen_width", old_width);
 
-        screen_height = old_height;
+        set_config_int ("video", "screen_height", old_height);
 
 
         video_init ();
@@ -1293,7 +1293,7 @@ void video_set_color_depth (int depth)
 
     if (video_init () != 0)
     {
-        color_depth = old_depth;
+        set_config_int ("video", "color_depth", old_depth);
 
 
         video_init ();
