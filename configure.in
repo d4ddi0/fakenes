@@ -1,0 +1,37 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(src/main.c)
+
+dnl Checks for programs.
+AC_PROG_CC
+
+dnl Checks for libraries.
+dnl AC_CHECK_LIB(alleg, allegro_init)
+
+dnl Exit here if the library is not found.
+dnl Tell them which Allegro packages they need.
+
+dnl Checks for header files.
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_WORDS_BIGENDIAN
+
+dnl Set DFLAGS to -DLSB_FIRST if on a little endian platform,
+dnl otherwise set it to nothing.
+
+if test x$WORDS_BIGENDIAN != xyes; then
+    DFLAGS="-DLSB_FIRST"
+else
+    DFLAGS=""
+fi
+
+AC_SUBST(DFLAGS)
+
+dnl Need to handle CONST being set in include/misc.h,
+dnl dunno how to do this yet.  Same for INLINE.
+
+dnl There is also the data type definitions that need to be
+dnl handled by using configure to detect size.
+
+dnl Checks for library functions.
+
+AC_OUTPUT(src/Makefile)

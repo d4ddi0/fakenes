@@ -1,0 +1,99 @@
+
+
+CC = gcc
+
+RM = @rm -f -v
+
+
+IFLAGS = -Iinclude
+
+ifdef DEBUG
+    OFLAGS = -O2 -g3
+
+    DFLAGS = -DDEBUG -DLSB_FIRST
+else
+    OFLAGS = -O3 -march=i486 -fomit-frame-pointer -fno-rtti \
+    -fno-exceptions -funroll-loops -ffast-math -s
+
+    DFLAGS = -DLSB_FIRST
+endif
+
+WFLAGS = -Wall -Wno-unused
+
+
+CFLAGS = ${IFLAGS} ${OFLAGS} ${WFLAGS} ${DFLAGS}
+
+
+ifdef DEBUG
+    LIBRARIES = -lalld
+else
+    LIBRARIES = -lalleg
+endif
+
+
+OBJECTS = core.o cpu.o gui.o input.o ppu.o rom.o main.o mmc.o video.o
+
+
+ifdef DEBUG
+    all : fakenesd.exe
+else
+    all : fakenes.exe
+endif
+
+
+fakenes.exe : ${OBJECTS}
+
+	${CC} ${OBJECTS} -o fakenes.exe -g ${LIBRARIES}
+
+
+fakenesd.exe : ${OBJECTS}
+
+	${CC} ${OBJECTS} -o fakenesd.exe -g3 ${LIBRARIES}
+
+
+
+.SUFFIXES : .c
+
+%.o : %.c
+
+	${CC} -c $< -o $@ ${CFLAGS}
+
+
+core.o : core.c include/core.h include/core/codes.h \
+         include/core/tables.h
+
+cpu.o : cpu.c include/core.h include/cpu.h include/input.h \
+        include/misc.h include/mmc.h include/ppu.h include/rom.h
+
+gui.o : gui.c include/data.h include/gui/dialogs.h include/gui.h \
+        include/gui2.h include/misc.h include/rom.h include/video.h \
+        include/timing.h
+
+input.o : input.c include/gui.h include/input.h include/misc.h \
+          include/ppu.h include/timing.h
+
+main.o : main.c include/build.h include/cpu.h include/data.h \
+         include/input.h include/misc.h include/mmc.h include/ppu.h \
+         include/rom.h include/video.h include/timing.h
+         
+mmc.o : mmc.c include/mmc/aorom.h include/mmc/cnrom.h include/cpu.h \
+        include/mmc/dreams.h include/misc.h include/mmc.h \
+        include/mmc/mmc1.h include/mmc/mmc2.h include/mmc/mmc3.h \
+        include/mmc/mmc4.h include/ppu.h include/rom.h include/mmc/unrom.h
+
+ppu.o : ppu.c include/cpu.h include/misc.h include/mmc.h include/ppu.h \
+        include/video.h
+
+rom.o : rom.c include/misc.h include/ppu.h include/rom.h
+
+video.o : video.c include/cpu.h include/data.h include/misc.h \
+          include/video.h include/timing.h
+
+
+clean :
+
+	${RM} ${OBJECTS}
+
+	${RM} fakenes.exe
+
+	${RM} fakenesd.exe

@@ -1,0 +1,84 @@
+
+
+  ==================
+   Building FakeNES
+  ==================
+
+    For the moment, the FakeNES source code is fairly easy to compile,
+    assuming that you have the proper tools to do so.
+
+    The FakeNES developers make no promises to whether or not you will
+    be able build or run any of this software on your system.
+
+
+  =============
+   DOS Version
+  =============
+
+    With the following tools I can build the complete DOS version of
+    FakeNES, I hope that it will also work for you.
+
+    - DJGPP v2 or higher.  As of this writing I am using DJGPP v2 with
+      GCC version 3.02.  Just go to 'http://www.delorie.com/djgpp' and
+      click on the 'Zip Picker' link.  The default options are fine as
+      long as you also select 'C++' and 'Assembler' under languages.
+      
+      If you plan on doing a 'make clean' then you will also need to
+      get the GNU fileutils package, available on your nearest DJGPP
+      mirror under the directory 'v2gnu'.
+
+    - Allegro version 3.9.34 or higher.  I recommend using at least
+      version 3.9.39.  As of this writing, I am using the latest,
+      version 3.9.40, which does not compile with GCC version 3.02.
+      I do not recommend using the pre-built development binaries,
+      you should build Allegro yourself to avoid problems.
+
+      The Allegro homepage is at http://alleg.sourceforge.net/.
+
+      You can get a preliminary build of GCC version 3.03 for DJGPP
+      that will compile Allegro version 3.9.xx from this page:
+
+      http://www.ltn.lv/~pavenis/gcctest.html
+
+   Once everything is installed and built, switch to the 'src' child
+   directory and execute 'make -f build/makefile.djgpp'.
+
+
+  =================
+   Windows Version 
+  =================
+
+    With the following tools I can build the complete Windows version
+    of FakeNES designed to run with the Microsoft DirectX 7.x runtime.
+
+    - Mingw32 version 1.0.1 or higher.  As of this writing I am using
+      version 1.1.  Just go to 'http://www.mingw.org' and get the
+      single distrobution archive and you will have everything you
+      need.  It is quite large, you should use a download manager when
+      downloading it.
+
+      If you plan on doing a 'make clean' then you will also need to
+      get the GNU fileutils package, you can get it from DJGPP (read
+      above) or Cygwin, which is what I use.
+
+      You will need to place the path to the GNU fileutils binaries
+      __after__ Mingw32 in your 'PATH' environment variable.
+
+    - Allegro version 3.9.34 or higher.  I recommend using at least
+      version 3.9.39.  As of this writing, I am using version 3.9.40.
+      I do not recommend using the pre-built development binaries,
+      you should build Allegro yourself to avoid problems.
+
+      The Allegro homepage is at http://alleg.sourceforge.net/.
+
+      NOTICE: The FakeNES developers will not support the DirectX 8.x
+      runtime at this time except through backwards compatibility with
+      the DirectX 7.x runtime.  The DirectX 8.x runtime removes all
+      support for non-Pentium systems.
+
+      Due to the nature of the FakeNES license, you are free to build
+      the Windows version of FakeNES yourself and link it against the
+      DirectX 8.x libraries, and distribute such copies freely.
+
+   Once everything is installed and built, switch to the 'src' child
+   directory and execute 'make -f build/makefile.mingw32'.

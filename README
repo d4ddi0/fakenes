@@ -1,0 +1,67 @@
+
+FakeNES is a portable, open-source NES emulator.
+
+YOU MUST READ 'LICENSE' BEFORE USING.
+
+
+'SOURCE' contains installation instructions.
+
+
+    =================
+     Input Interface
+    =================
+
+      Current FakeNES supports up to 4 players (only used in a select
+      few games such as Gauntlet 2) via both the keyboard and/or
+      a maximum of two joypads or other joystick-like devices.
+
+      The input device for each player is mappable separately but
+      an input device is not unique to that player.  For example,
+      keyboard layout #1 can be assigned to both players #1 and #2
+      without conflicts.
+
+      You can select the input device for each player in the FakeNES
+      configuration file under the "player_x_device" items (where 'x'
+      is the player #).  The following values are currently supported:
+
+      0: No input (disables ALL input for this player).
+
+      1: Keyboard layout #1
+      2: Keyboard layout #2
+
+        The keyboard layouts are defined by supplying a sequence of
+        8 integer scancodes separated by spaces in the "[input]"
+        section via the "key1_scancodes" and "key2_scancodes" items.
+        The order is A, B, Select, Start, Up, Down, Left, and Right.
+
+        If these items are not found, or are corrupt, then FakeNES
+        will use the built in defaults of X, Z, Tab, Enter, Up, Down
+        Left, and Right, respectively, for keyboard layout #1, and
+        number pad 1, 3, 7, 9, 8, 2, 4, 6, respectively, for keyboard
+        layout #2.
+
+      3: Joystick device #1
+      4: Joystick device #2
+
+        The joystick devices support mapping of 2 (A, B) or 4 (A, B,
+        Select, Start) buttons to the input interface, but you can
+        only use 4 buttons if your platform supports it.  FakeNES
+        will automatically detect this, and enable them if available.
+
+        Therefor, it is recommended that you preserve A and B as the
+        first 2 buttons (on the NES, the order would be B, A, though).
+        If no more than 2 buttons are available, then keyboard layout #1
+        (for joystick device #1) and keyboard layout #2 (for joystick
+        device #2) will be used to handle Select and Start buttons.
+
+        The joystick button mappings are defined by supplying a
+        sequence of integer button #s (up to 8) separated by spaces in
+        the "[input]" section via the "joy1_buttons" and "joy2_buttons"
+        items.  Please refer to your joystick device manual for
+        information about button #s and where each button is located
+        on your joypad or joystick-like device.  The order is A, B,
+        Select, Start.
+
+        If these items are not found, or are corrupt, then FakeNES
+        will use the built in defaults of 1, 0, 2, and 3, respectively,
+        for both joystick devices.
