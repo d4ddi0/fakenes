@@ -10,6 +10,7 @@ RM = rm -f
 
 # Paths.
 INCLUDE_PATH = include
+SUPPORT_PATH = support
 OBJECT_PATH = build/mingw32
 BINARY_PATH ?= .
 
@@ -105,11 +106,11 @@ bootstrap:
 	@echo Building.
 	${MKDIR} ${OBJECT_PATH}
 ${BINARY}: bootstrap \
-    ${OBJECTS}
-	${CC} ${OBJECTS} -o ${BINARY} -s ${LIBRARIES}
+	${OBJECTS}
+	${CC} ${OBJECTS} ${SUPPORT_PATH}/resource.o -o ${BINARY}  -s ${LIBRARIES}
 ${BINARY_DEBUG}: bootstrap \
     ${OBJECTS}
-	${CC} ${OBJECTS} -o ${BINARY_DEBUG} -g -ggdb3 ${LIBRARIES}
+	${CC} ${OBJECTS} ${SUPPORT_PATH}/resource.o -o ${BINARY_DEBUG} -g -ggdb3 ${LIBRARIES}
 ${COREOFF_INC}: \
     coreoff.c \
     ${INCLUDE_PATH}/core.h \
