@@ -57,6 +57,49 @@ UINT8 cpu_ram [65536];
 FN2A03 cpu_context;
 
 
+INT8 cpu_patch_table [65536];
+
+
+void patches_load (const char * rom_filename);
+
+void patches_save (const char * rom_filename);
+
+
+/* Number of used entries in cpu_patch_info. */
+
+int cpu_patch_count;
+
+
+/* Format of cpu_patch_info. */
+
+/* Designed primarily for use with Game Genie. */
+
+typedef struct _CPU_PATCH
+{
+    int active;
+
+
+    UINT16 address;
+
+
+    UINT8 value;
+
+    UINT8 match_value;
+
+
+    int enabled;
+
+} CPU_PATCH;
+
+
+/* Try to keep it fast - 16 patches limit. */
+
+#define MAX_PATCHES     16
+
+
+CPU_PATCH cpu_patch_info [MAX_PATCHES];
+
+
 void sram_load (const char *rom_filename);
 void sram_save (const char *rom_filename);
 
@@ -104,6 +147,9 @@ UINT8 cpu_read_direct_safeguard(UINT16 address);
 void cpu_write_direct_safeguard(UINT16 address, UINT8 value);
 
 
+static INLINE UINT8 FN2A03_Read (UINT16 Addr);
+
+
 static INLINE void cpu_set_read_address_2k (UINT16 block_start, UINT8 *address)
 {
     /* ignore low bits */
@@ -112,6 +158,49 @@ static INLINE void cpu_set_read_address_2k (UINT16 block_start, UINT8 *address)
     cpu_block_2k_read_address [block_start >> 11] = address - block_start;
     cpu_block_2k_read_handler [block_start >> 11] =
         cpu_read_direct_safeguard;
+
+
+    /* Check if we are using patches. */
+
+    if (cpu_patch_count > 0)
+    {
+        int index;
+
+
+        for (index = 0; index < cpu_patch_count; index ++)
+        {
+            if (cpu_patch_info [index].enabled &&
+               (cpu_patch_info [index].address < (block_start + 0x800)) && (cpu_patch_info [index].address >= block_start))
+            {
+                UINT8 value;
+
+
+                if (cpu_patch_info [index].active)
+                {
+                    /* Disable patch. */
+    
+                    cpu_patch_info [index].active = FALSE;
+    
+    
+                    cpu_patch_table [cpu_patch_info [index].address] = 0;
+                }
+
+
+                value = FN2A03_Read (cpu_patch_info [index].address);
+
+
+                if (value == cpu_patch_info [index].match_value)
+                {
+                    /* Enable patch. */
+
+                    cpu_patch_info [index].active = TRUE;
+
+
+                    cpu_patch_table [cpu_patch_info [index].address] = (cpu_patch_info [index].value - value);
+                }
+            }
+        }
+    }
 }
 
 
@@ -345,7 +434,7 @@ static INLINE UINT8 FN2A03_Fetch (UINT16 Addr)
 
     if (cpu_block_2k_read_address [Addr >> 11] != 0)
     {
-        return cpu_block_2k_read_address [Addr >> 11] [Addr];
+        return cpu_block_2k_read_address [Addr >> 11] [Addr] + cpu_patch_table [Addr];
     }
     else
     {
@@ -360,7 +449,7 @@ static INLINE UINT8 FN2A03_Read (UINT16 Addr)
 
     if (cpu_block_2k_read_address [Addr >> 11] != 0)
     {
-        return cpu_block_2k_read_address [Addr >> 11] [Addr];
+        return cpu_block_2k_read_address [Addr >> 11] [Addr] + cpu_patch_table [Addr];
     }
     else
     {

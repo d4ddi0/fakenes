@@ -41,6 +41,151 @@ All rights reserved.  See 'LICENSE' for details.
 static UINT8 cpu_sram [8192];
 
 
+static UINT8 * get_patches_filename (UINT8 * buffer, const UINT8 * rom_filename, int buffer_size)
+{
+    memset (buffer, NULL, buffer_size);
+
+
+    strcat (buffer, get_config_string ("gui", "save_path", "./"));
+
+    put_backslash (buffer);
+
+
+    strcat (buffer, get_filename (rom_filename));
+
+
+    replace_extension (buffer, buffer, "fpt", buffer_size);
+
+
+    return (buffer);
+}
+
+
+void patches_load (const char * rom_filename)
+{
+    UINT8 buffer [256];
+
+
+    get_patches_filename (buffer, rom_filename, sizeof (buffer));
+
+
+    if (exists (buffer))
+    {
+        int index;
+
+
+        int version;
+
+
+        push_config_state ();
+
+
+        set_config_file (buffer);
+
+
+        version = get_config_hex ("header", "version", 0x0100);
+
+
+        if (version > 0x100)
+        {
+            return;
+        }
+
+
+        cpu_patch_count = get_config_int ("header", "patch_count", 0);
+
+
+        if (cpu_patch_count > MAX_PATCHES)
+        {
+            cpu_patch_count = MAX_PATCHES;
+        }
+        else if (cpu_patch_count < 0)
+        {
+            cpu_patch_count = 0;
+        }
+
+
+        for (index = 0; index < cpu_patch_count; index ++)
+        {
+            memset (buffer, NULL, sizeof (buffer));
+
+
+            sprintf (buffer, "patch%02d", index);
+
+
+            cpu_patch_info [index].address = get_config_hex (buffer, "address", 0xffff);
+
+
+            cpu_patch_info [index].value = get_config_hex (buffer, "value", 0xff);
+
+            cpu_patch_info [index].match_value = get_config_hex (buffer, "match_value", 0xff);
+
+
+            cpu_patch_info [index].enabled = get_config_int (buffer, "enabled", FALSE);
+
+
+            cpu_patch_info [index].active = FALSE;
+        }
+
+
+        pop_config_state ();
+    }
+}
+
+
+void patches_save (const char * rom_filename)
+{
+    int index;
+
+
+    UINT8 buffer [256];
+
+
+    if (cpu_patch_count == 0)
+    {
+        return;
+    }
+
+
+    get_patches_filename (buffer, rom_filename, sizeof (buffer));
+
+
+    push_config_state ();
+
+
+    set_config_file (buffer);
+
+
+    set_config_hex ("header", "version", 0x0100);
+
+
+    set_config_int ("header", "patch_count", cpu_patch_count);
+
+
+    for (index = 0; index < cpu_patch_count; index ++)
+    {
+        memset (buffer, NULL, sizeof (buffer));
+
+
+        sprintf (buffer, "patch%02d", index);
+
+
+        set_config_hex (buffer, "address", cpu_patch_info [index].address);
+
+
+        set_config_hex (buffer, "value", cpu_patch_info [index].value);
+
+        set_config_hex (buffer, "match_value", cpu_patch_info [index].match_value);
+
+
+        set_config_int (buffer, "enabled", cpu_patch_info [index].enabled);
+    }
+
+
+    pop_config_state ();
+}
+
+
 static UINT8 * get_sram_filename (UINT8 * buffer, const UINT8 * rom_filename, int buffer_size)
 {
     memset (buffer, NULL, buffer_size);
@@ -142,7 +287,7 @@ int cpu_init (void)
 
 UINT8 cpu_read_direct_safeguard(UINT16 address)
 {
-    return cpu_block_2k_read_address [address >> 11] [address];
+    return cpu_block_2k_read_address [address >> 11] [address] + cpu_patch_table [address];
 }
 
 
@@ -197,6 +342,26 @@ void ppu_write_4000_47FF (UINT16 address, UINT8 value)
 void cpu_memmap_init (void)
 {
     int index;
+
+
+    /* Clear patch information. */
+
+    cpu_patch_count = 0;
+
+
+    memset (cpu_patch_info, NULL, sizeof (cpu_patch_info));
+
+
+    /* Load patches from patch table. */
+
+    if (rom_is_loaded)
+    {
+        patches_load (global_rom.filename);
+    }
+
+
+    memset (cpu_patch_table, 0, sizeof (cpu_patch_table));
+
 
     /* Start with a clean memory map */
     for (index = 0; index < (64 << 10); index += (2 << 10))
@@ -255,6 +420,9 @@ void cpu_exit (void)
     {
         sram_save (global_rom.filename);
     }
+
+
+    patches_save (global_rom.filename);
 }
 
 

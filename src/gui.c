@@ -847,6 +847,9 @@ static int main_menu_load_rom (void)
                 }
 
 
+                patches_save (global_rom.filename);
+
+
                 free_rom (&global_rom);
             }
 
