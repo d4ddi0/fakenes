@@ -34,6 +34,14 @@ extern "C" {
 
 typedef struct _ROM
 {
+    UINT8 * trainer;       /* Trainer buffer                       */
+
+    UINT8 * prg_rom;       /* PRG-ROM buffer                       */
+    UINT8 * chr_rom;       /* CHR-ROM buffer                       */
+    UINT8 * chr_rom_cache; /* CHR-ROM tile cache buffer            */
+                           /* CHR-ROM tile cache tag buffer        */
+    UINT8 * chr_rom_cache_tag;
+
     UINT8 prg_rom_pages;   /* # of 16k PRG-ROM pages               */
     UINT8 chr_rom_pages;   /* # of 8k CHR-ROM pages                */
 
@@ -42,13 +50,6 @@ typedef struct _ROM
 
     UINT8 mapper_number;   /* Mapper #, derived from control bytes */
 
-    UINT8 * trainer;       /* Trainer buffer                       */
-
-    UINT8 * prg_rom;       /* PRG-ROM buffer                       */
-    UINT8 * chr_rom;       /* CHR-ROM buffer                       */
-    UINT8 * chr_rom_cache; /* CHR-ROM tile cache buffer            */
-                           /* CHR-ROM tile cache tag buffer        */
-    UINT8 * chr_rom_cache_tag;
                            /* CHR-ROM bank # wrapping mask         */
     UINT8 chr_rom_page_overflow_mask;
                            /* PRG-ROM bank # wrapping mask         */
@@ -94,6 +95,21 @@ ROM global_rom;
 #define ROM_CHR_ROM_CACHE   (global_rom.chr_rom_cache)
 #define ROM_CHR_ROM_CACHE_TAG   (global_rom.chr_rom_cache_tag)
 #define ROM_CHR_ROM_PAGE_OVERFLOW_MASK (global_rom.chr_rom_page_overflow_mask)
+
+
+/* These macros calculate offsets. */
+
+#define ROM_PAGE_16K(index) \
+    (ROM_PRG_ROM + (index) * 0x4000)
+
+#define ROM_PAGE_8K(index)  \
+    (ROM_PRG_ROM + (index) * 0x2000)
+
+
+#define FIRST_ROM_PAGE  ROM_PRG_ROM
+
+#define LAST_ROM_PAGE       \
+    (ROM_PAGE_16K (ROM_PRG_ROM_PAGES - 1))
 
 
 int rom_is_loaded;

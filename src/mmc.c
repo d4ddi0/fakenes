@@ -38,33 +38,6 @@ You must read and accept the license prior to use.
 #include "timing.h"
 
 
-/* These macros calculate offsets. */
-
-#define ROM_PAGE_16K(index) \
-    (ROM_PRG_ROM + (index) * 0x4000)
-
-#define ROM_PAGE_8K(index)  \
-    (ROM_PRG_ROM + (index) * 0x2000)
-
-
-#define FIRST_ROM_PAGE  ROM_PRG_ROM
-
-#define LAST_ROM_PAGE       \
-    (ROM_PAGE_16K (ROM_PRG_ROM_PAGES - 1))
-
-
-#define VROM_PAGE_8K(index) \
-    (ROM_CHR_ROM + (index) * 0x2000)
-
-#define VROM_PAGE_1K(index) \
-    (ROM_CHR_ROM + (index) * 0x400)
-
-
-/* 8k ROM banks, 1k VROM banks. */
-
-UINT8 * mmc_rom_banks [4];
-
-
 #include "mmc/mmc1.h"
 
 #include "mmc/mmc2.h"
@@ -95,7 +68,7 @@ int mmc_init (void)
     int index;
 
 
-    for (index = 0x8000; index < (64 << 10); index += 0x2000)
+    for (index = 0x8000; index < (64 << 10); index += (8 << 10))
     {
         cpu_set_write_address_8k (index, dummy_read);
     }
@@ -108,26 +81,13 @@ int mmc_init (void)
 
     switch (ROM_MAPPER_NUMBER)
     {
+        /* No banking hardware. */
+
         case 0:
 
-            /* Plain 16k or 32k. */
+            /* Select first 32k page. */
 
-            if (ROM_PRG_ROM_PAGES == 1)
-            {
-                /* Select first 16k page (mirrored). */
-
-                cpu_set_read_address_16k (0x8000, ROM_PAGE_16K (0));
-
-                cpu_set_read_address_16k (0xc000, ROM_PAGE_16K (0));
-            }
-            else
-            {
-                /* Select first 32k page. */
-
-                cpu_set_read_address_16k (0x8000, ROM_PAGE_16K (0));
-
-                cpu_set_read_address_16k (0xc000, ROM_PAGE_16K (1));
-            }
+            cpu_set_read_address_32k_rom_block (0x8000, 0);
             
 
             if (ROM_CHR_ROM_PAGES > 0)

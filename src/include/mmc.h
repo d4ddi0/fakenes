@@ -26,9 +26,6 @@ extern "C" {
 #include "misc.h"
 
 
-UINT8 * mmc_rom_banks [4];
-
-
 int mmc_init (void);
 
 
