@@ -110,6 +110,51 @@ static int gui_redraw_callback (int msg, DIALOG * d, int c)
 }
 
 
+#define GUI_COLOR_GRAY      palette_color [17]
+
+#define GUI_COLOR_WHITE     palette_color [33]
+
+
+#define GUI_COLOR_BLUE      palette_color [3]
+
+#define GUI_COLOR_RED       palette_color [6]
+
+
+#define CHECK_MENU(menu, item, condition)       \
+    {                                           \
+        if (condition)                          \
+        {                                       \
+            menu [item].flags |= D_SELECTED;    \
+        }                                       \
+        else                                    \
+        {                                       \
+            menu [item].flags &= ~D_SELECTED;   \
+        }                                       \
+    }
+
+
+static void restore_state (void)
+{
+    CHECK_MENU (machine_menu, 2, video_display_status);
+
+    CHECK_MENU (options_video_menu, 0, video_enable_vsync);
+
+
+    CHECK_MENU (options_audio_filter_menu,
+        0, (papu_filter_type == APU_FILTER_NONE));
+
+
+    CHECK_MENU (options_audio_filter_low_pass_menu,
+        0, (papu_filter_type == APU_FILTER_LOWPASS));
+
+    CHECK_MENU (options_audio_filter_low_pass_menu,
+        2, (papu_filter_type == APU_FILTER_WEIGHTED));
+
+    CHECK_MENU (options_audio_filter_low_pass_menu,
+        4, (papu_filter_type == APU_FILTER_DYNAMIC));
+}
+
+
 int show_gui (void)
 {
     LOCK_VARIABLE (message_buffer);
@@ -125,15 +170,18 @@ int show_gui (void)
     main_dialog [1].dp2 = message_buffer;
 
 
-    gui_bg_color = 3;
+    gui_bg_color = GUI_COLOR_BLUE;
 
-    gui_fg_color = 33;
+    gui_fg_color = GUI_COLOR_WHITE;
 
 
-    gui_mg_color = 17;
+    gui_mg_color = GUI_COLOR_GRAY;
 
 
     gui_is_active = TRUE;
+
+
+    restore_state ();
 
 
     if (! rom_is_loaded)
@@ -145,7 +193,7 @@ int show_gui (void)
     audio_suspend ();
 
 
-    gui_message (33, "Emulation suspended.");
+    gui_message (GUI_COLOR_WHITE, "Emulation suspended.");
 
 
     unscare_mouse ();
@@ -183,9 +231,7 @@ static int file_menu_load_rom (void)
     if (file_select_ex ("iNES ROMs (*.NES, *.GZ)",
         buffer, "NES;nes;GZ;gz", sizeof (buffer), 0, 0) != 0)
     {
-
 #else
-
     if (file_select_ex ("iNES ROMs (*.NES)",
         buffer, "NES;nes", sizeof (buffer), 0, 0) != 0)
     {
@@ -194,7 +240,7 @@ static int file_menu_load_rom (void)
 
         if (load_rom (buffer, &test_rom) != 0)
         {
-            gui_message (6, "Failed to load ROM!");
+            gui_message (GUI_COLOR_RED, "Failed to load ROM!");
 
             return (D_O_K);
         }
@@ -207,10 +253,12 @@ static int file_menu_load_rom (void)
                     sram_save (global_rom.filename);
                 }
 
+
                 free_rom (&global_rom);
             }
 
-            memcpy (&global_rom, &test_rom, sizeof(ROM));
+
+            memcpy (&global_rom, &test_rom, sizeof (ROM));
 
 
             rom_is_loaded = TRUE;
@@ -255,14 +303,14 @@ static int file_menu_snapshot (void)
                     video_buffer, DATA_DEFAULT_PALETTE);
 
 
-                gui_message (33,
+                gui_message (GUI_COLOR_WHITE,
                     "Snapshot saved to %s.", filename);
             }
         }
     }
     else
     {
-        gui_message (6, "No ROM loaded!");
+        gui_message (GUI_COLOR_RED, "No ROM loaded!");
     }
 
 
@@ -402,7 +450,7 @@ static int options_video_menu_vsync (void)
         video_enable_vsync = FALSE;
 
 
-        gui_message (33, "VSync disabled.");
+        gui_message (GUI_COLOR_WHITE, "VSync disabled.");
     }
     else
     {
@@ -411,7 +459,7 @@ static int options_video_menu_vsync (void)
         video_enable_vsync = TRUE;
 
 
-        gui_message (33, "VSync enabled.");
+        gui_message (GUI_COLOR_WHITE, "VSync enabled.");
     }
 
 
