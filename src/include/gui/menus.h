@@ -270,34 +270,26 @@ static MENU netplay_menu [] =
 };
 
 
-static int options_audio_mixing_channels_stereo_menu_classic (void);
-
-static int options_audio_mixing_channels_stereo_menu_enhanced (void);
-
-static int options_audio_mixing_channels_stereo_menu_accurate (void);
-
-
-static MENU options_audio_mixing_channels_stereo_menu [] =
-{
-    {  "&Classic",  options_audio_mixing_channels_stereo_menu_classic, NIL, 0, NIL },
-    {          "",                                                NIL, NIL, 0, NIL },
-    { "&Enhanced", options_audio_mixing_channels_stereo_menu_enhanced, NIL, 0, NIL },
-    {          "",                                                NIL, NIL, 0, NIL },
-    { "&Accurate", options_audio_mixing_channels_stereo_menu_accurate, NIL, 0, NIL },
-    {         NIL,                                                NIL, NIL, 0, NIL }
-};
-
-
 static int options_audio_mixing_channels_menu_mono (void);
+
+static int options_audio_mixing_channels_menu_pseudo_stereo_mode_1 (void);
+
+static int options_audio_mixing_channels_menu_pseudo_stereo_mode_2 (void);
+
+static int options_audio_mixing_channels_menu_pseudo_stereo_mode_3 (void);
 
 
 static MENU options_audio_mixing_channels_menu [] =
 {
-    {   "&Mono", options_audio_mixing_channels_menu_mono,                                       NIL, 0, NIL },
-    {        "",                                     NIL,                                       NIL, 0, NIL },
-    { "&Stereo",                                     NIL, options_audio_mixing_channels_stereo_menu, 0, NIL },
-    {       NIL,                                     NIL,                                       NIL, 0, NIL }
-};
+    {                   "&Mono",                 options_audio_mixing_channels_menu_mono, NIL, 0, NIL },
+    {                        "",                                                     NIL, NIL, 0, NIL },
+    { "Pseudo &Stereo (Mode 1)", options_audio_mixing_channels_menu_pseudo_stereo_mode_1, NIL, 0, NIL },
+    {                        "",                                                     NIL, NIL, 0, NIL },
+    { "Pseudo S&tereo (Mode 2)", options_audio_mixing_channels_menu_pseudo_stereo_mode_2, NIL, 0, NIL },
+    {                        "",                                                     NIL, NIL, 0, NIL },
+    { "Pseudo St&ereo (Mode 3)", options_audio_mixing_channels_menu_pseudo_stereo_mode_3, NIL, 0, NIL },
+    {                       NIL,                                                     NIL, NIL, 0, NIL }
+};                                             
 
 
 static int options_audio_mixing_speed_menu_8000_hz (void);

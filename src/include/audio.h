@@ -24,11 +24,11 @@ You must read and accept the license prior to use.
 
 enum
 {
-    AUDIO_CLASSIC_STEREO_MIXING = 1,
+    AUDIO_PSEUDO_STEREO_MODE_1 = 1,
 
-    AUDIO_ENHANCED_STEREO_MIXING,
+    AUDIO_PSEUDO_STEREO_MODE_2,
 
-    AUDIO_ACCURATE_STEREO_MIXING
+    AUDIO_PSEUDO_STEREO_MODE_3
 };
 
 
