@@ -163,6 +163,18 @@ int cpu_init (void)
 }
 
 
+UINT8 cpu_read_direct_safeguard(UINT16 address)
+{
+    return cpu_block_2k_read_address [address >> 11] [address];
+}
+
+
+void cpu_write_direct_safeguard(UINT16 address, UINT8 value)
+{
+    cpu_block_2k_write_address [address >> 11] [address] = value;
+}
+
+
 UINT8 ppu_read_2000_3FFF (UINT16 address)
 {
     return ppu_read(address);

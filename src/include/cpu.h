@@ -84,13 +84,18 @@ UINT8 *cpu_block_2k_write_address [64 / 2];
 UINT8 (*cpu_block_2k_read_handler [64 / 2]) (UINT16 address);
 void (*cpu_block_2k_write_handler [64 / 2]) (UINT16 address, UINT8 data);
 
+UINT8 cpu_read_direct_safeguard(UINT16 address);
+void cpu_write_direct_safeguard(UINT16 address, UINT8 value);
+
 
 static INLINE void cpu_set_read_address_2k (UINT16 block_start, UINT8 *address)
 {
     /* ignore low bits */
     block_start &= ~((2 << 10) - 1);
 
-    cpu_block_2k_read_address [block_start >> 11] = address;
+    cpu_block_2k_read_address [block_start >> 11] = address - block_start;
+    cpu_block_2k_read_handler [block_start >> 11] =
+        cpu_read_direct_safeguard;
 }
 
 
@@ -139,7 +144,9 @@ static INLINE void cpu_set_write_address_2k (UINT16 block_start, UINT8 *address)
     /* ignore low bits */
     block_start &= ~((2 << 10) - 1);
 
-    cpu_block_2k_write_address [block_start >> 11] = address;
+    cpu_block_2k_write_address [block_start >> 11] = address - block_start;
+    cpu_block_2k_write_handler [block_start >> 11] =
+        cpu_write_direct_safeguard;
 }
 
 
@@ -336,7 +343,7 @@ static INLINE byte Op6502 (word Addr)
 
     if (cpu_block_2k_read_address [Addr >> 11] != 0)
     {
-        return cpu_block_2k_read_address [Addr >> 11] [Addr & 0x7FF];
+        return cpu_block_2k_read_address [Addr >> 11] [Addr];
     }
     else
     {
@@ -351,7 +358,7 @@ static INLINE byte Rd6502 (word Addr)
 
     if (cpu_block_2k_read_address [Addr >> 11] != 0)
     {
-        return cpu_block_2k_read_address [Addr >> 11] [Addr & 0x7FF];
+        return cpu_block_2k_read_address [Addr >> 11] [Addr];
     }
     else
     {
@@ -366,7 +373,7 @@ static INLINE void Wr6502 (word Addr, byte Value)
 
     if (cpu_block_2k_write_address [Addr >> 11] != 0)
     {
-        cpu_block_2k_write_address [Addr >> 11] [Addr & 0x7FF] = Value;
+        cpu_block_2k_write_address [Addr >> 11] [Addr] = Value;
     }
     else
     {
