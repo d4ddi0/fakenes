@@ -821,7 +821,6 @@ UINT8 ppu_read (UINT16 address)
     int data = 0;
 
 
-//  printf("%04Xr@%d,%d\n", address, cpu_get_cycles_line(), ppu_scanline);
     if (address == 0x4014)
     {
         return (0);
@@ -913,7 +912,6 @@ UINT8 ppu_read (UINT16 address)
 void ppu_write (UINT16 address, UINT8 value)
 {
 
-    printf("%04Xw@%d,%d,%02X\n", address, cpu_get_cycles_line(), ppu_scanline, value);
     if (address == 0x4014)
     {
         /* Sprite RAM DMA. */
