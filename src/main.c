@@ -116,10 +116,10 @@ UINT8 * confdir = NIL;
 
 static DIR * tmpdir = NIL;
 
-
-static UINT8 logfile [256];
-
 #endif
+
+
+UINT8 logfile [256];
 
 
 static int redraw_flag = TRUE;
@@ -501,6 +501,12 @@ int main (int argc, char * argv [])
     {
         log_file = fopen (buffer2, "a");
     }
+
+
+    memset (logfile, NIL, sizeof (logfile));
+
+
+    strcat (logfile, buffer2);
 
 #endif
 

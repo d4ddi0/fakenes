@@ -1062,6 +1062,67 @@ static int main_menu_snapshot (void)
 }
 
 
+static int main_menu_messages (void)
+{
+    PACKFILE * file;
+
+
+    UINT8 * buffer;
+
+
+    file = pack_fopen (logfile, "r");
+
+    if (! file)
+    {
+        buffer = malloc (strlen ("Failed to open (or bi-open) log file."));
+
+        if (! buffer)
+        {
+            /* Yuck. */
+
+            return (D_O_K);
+        }
+
+
+        sprintf (buffer, "Failed to open (or bi-open) log file.");
+    }
+    else
+    {
+        int size;
+
+
+        size = file_size (logfile);
+
+
+        buffer = malloc (size);
+
+        if (! buffer)
+        {
+            /* Log file has a maximum size of 64kB. */
+
+            /* Pretty sad if malloc failed to allocate that. */
+
+            return (D_O_K);
+        }
+
+
+        pack_fread (buffer, size, file);
+    }
+
+
+    pack_fclose (file);
+
+
+    main_messages_dialog [2].dp = buffer;
+
+
+    gui_show_dialog (main_messages_dialog);
+
+
+    return (D_O_K);
+}
+
+
 static int main_menu_exit (void)
 {
     want_exit = TRUE;

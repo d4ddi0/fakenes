@@ -664,3 +664,54 @@ int sl_listbox (int message, DIALOG * dialog, int key)
 
     return (result);
 }
+
+
+int sl_viewer (int message, DIALOG * dialog, int key)
+{
+    switch (message)
+    {
+        case MSG_CHAR:
+
+            switch ((key >> 8))
+            {
+                case KEY_UP:
+
+                case KEY_DOWN:
+
+                case KEY_LEFT:
+
+                case KEY_RIGHT:
+
+                case KEY_HOME:
+
+                case KEY_END:
+
+                case KEY_PGUP:
+
+                case KEY_PGDN:
+
+                    return (d_textbox_proc (message, dialog, key));
+
+
+                    break;
+
+
+                default:
+
+                    /* Prevent typing. */
+
+                    break;
+            }
+
+
+        default:
+
+            return (d_textbox_proc (message, dialog, key));
+
+
+            break;
+    }
+
+
+    return (D_O_K);
+}

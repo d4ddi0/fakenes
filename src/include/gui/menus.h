@@ -6,6 +6,8 @@ static int main_menu_resume (void);
 
 static int main_menu_snapshot (void);
 
+static int main_menu_messages (void);
+
 static int main_menu_exit (void);
 
 
@@ -16,6 +18,8 @@ static MENU main_menu [] =
     {      "&Resume",   main_menu_resume, NIL, 0, NIL },
     {             "",                NIL, NIL, 0, NIL },
     {    "&Snapshot", main_menu_snapshot, NIL, 0, NIL },
+    {             "",                NIL, NIL, 0, NIL },
+    { "&Messages...", main_menu_messages, NIL, 0, NIL },
     {             "",                NIL, NIL, 0, NIL },
     {        "E&xit",     main_menu_exit, NIL, 0, NIL },
     {            NIL,                NIL, NIL, 0, NIL }

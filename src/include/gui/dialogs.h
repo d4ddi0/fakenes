@@ -11,6 +11,15 @@ static DIALOG main_dialog [] =
 };
 
 
+static DIALOG main_messages_dialog [] =
+{
+   {      sl_frame,   0,  0, 276, 136, 0, 0, 0,      0,            0, 0, NIL, "Messages", NIL },
+   { d_button_proc, 256,  4,  16,  12, 0, 0, 0, D_EXIT,            0, 0, "X",        NIL, NIL },
+   {     sl_viewer,   9, 29, 257,  98, 0, 0, 0,      0,            0, 0, NIL,        NIL, NIL },
+   {           NIL,   0,  0,   0,   0, 0, 0, 0,      0, SL_FRAME_END, 0, NIL,        NIL, NIL }
+};
+
+
 static DIALOG machine_state_save_dialog [] =
 {
    {          sl_frame,   0,  0, 156, 84, 0, 0,   0,      0,            0, 0,   NIL, "Save State", NIL },
