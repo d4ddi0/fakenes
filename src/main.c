@@ -148,7 +148,7 @@ int main (int argc, char * argv [])
     int result;
 
 
-    printf ("\nFakeNES 0.0.1 (pre0-4), by stainless and RobotBebop.\n");
+    printf ("\nFakeNES 0.0.1 (pre0-5), by stainless and RobotBebop.\n");
 
     printf ("\nBe sure to visit http://fakenes.sourceforge.net/.\n"
             "Report bugs to fakenes-bugs@lists.sourceforge.net.\n");
