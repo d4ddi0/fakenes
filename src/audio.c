@@ -35,6 +35,9 @@ int audio_buffer_length = 0;
 int audio_pseudo_stereo = FALSE;
 
 
+volatile int audio_fps = 0;
+
+
 int audio_init (void)
 {
     audio_enable_output =
@@ -158,4 +161,7 @@ void audio_stop (void)
     voice_start (audio_stream -> voice);
 
     free_audio_stream_buffer (audio_stream);
+
+
+    audio_fps ++;
 }

@@ -189,15 +189,25 @@ void video_blit (void)
 {
     if (video_display_status)
     {
-        textprintf (video_buffer,
-            font, 16, 216, 33, "PC: $%04X", * cpu_active_pc);
-
+        textprintf (video_buffer, font, 16, 120, 33, "Video:");
 
         textprintf (video_buffer,
-            font, 16, 184, 33, "%02d FPS", timing_fps);
-    
+            font, 20, 136, 33, "%02d FPS", timing_fps);
+
+
+        textprintf (video_buffer, font, 16, 152, 33, "Audio:");
+
         textprintf (video_buffer,
-            font, 16, 200, 33, "%02d Hz", timing_hertz);
+            font, 20, 168, 33, "%02d FPS", timing_audio_fps);
+
+
+        textprintf (video_buffer, font, 16, 184, 33, "Core:");
+
+        textprintf (video_buffer,
+            font, 20, 200, 33, "%02d Hz", timing_hertz);
+
+        textprintf (video_buffer,
+            font, 20, 216, 33, "PC: $%04X", * cpu_active_pc);
     }
 
 

@@ -31,6 +31,9 @@ volatile int timing_fps;
 volatile int timing_hertz;
 
 
+volatile int timing_audio_fps;
+
+
 void suspend_timing (void);
 
 void resume_timing (void);

@@ -84,6 +84,11 @@ volatile int timing_fps = 0;
 volatile int timing_hertz = 0;
 
 
+volatile int timing_audio_fps = 0;
+
+volatile int timing_audio_hertz = 0;
+
+
 #ifdef UNIX
 
 char * datfile = NULL;
@@ -126,6 +131,11 @@ static void fps_interrupt (void)
     timing_hertz = virtual_fps_count;
 
     virtual_fps_count = 0;
+
+
+    timing_audio_fps = audio_fps;
+
+    audio_fps = 0;
 }
 
 END_OF_STATIC_FUNCTION (fps_interrupt);
@@ -403,10 +413,15 @@ int main (int argc, char * argv [])
     LOCK_VARIABLE (timing_hertz);
 
 
+    LOCK_VARIABLE (audio_fps);
+
+    LOCK_VARIABLE (timing_audio_fps);
+
+
     LOCK_VARIABLE (actual_fps_count);
 
     LOCK_VARIABLE (virtual_fps_count);
-
+  
 
     LOCK_VARIABLE (throttle_counter);
 

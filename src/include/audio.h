@@ -37,6 +37,9 @@ int audio_buffer_length;
 int audio_pseudo_stereo;
 
 
+volatile int audio_fps;
+
+
 #define AUDIO_BUFFER_SIZE   \
     ((audio_sample_rate / 60) * audio_buffer_length)
 
