@@ -1016,7 +1016,7 @@ void video_set_palette (RGB * palette)
             {
                 for (b = 0; b < 64; b ++)
                 {
-                    solid_map [r] [g] [b] = makecol ((r * 4), (g * 4), (b * 4));
+                    solid_map [r] [g] [b] = makecol (((r / 63.0) * 255), ((g / 63.0) * 255), ((b / 63.0) * 255));
                 }
             }
         }
