@@ -8,7 +8,7 @@
 /* Todo: Add EEPROM support. */
 
 
-#define PSEUDO_CLOCKS_PER_SCANLINE  114
+#include "mmc/shared.h"
 
 
 static int bandai_init (void);
@@ -16,7 +16,7 @@ static int bandai_init (void);
 static void bandai_reset (void);
 
 
-const MMC mmc_bandai =
+static const MMC mmc_bandai =
 {
     16, "Bandai",
 
@@ -24,52 +24,29 @@ const MMC mmc_bandai =
 };
 
 
-static const int bandai_mirroring_table [] =
+static const char bandai_mirroring_table [] =
 {
     MIRRORING_VERTICAL, MIRRORING_HORIZONTAL,
 
     MIRRORING_ONE_SCREEN_2000, MIRRORING_ONE_SCREEN_2400
 };
 
-
-static int bandai_enable_irqs = FALSE;
-
-
-/* Defined in core.h. */
-
-#undef byte
-
-#undef word
+static const UINT8 bandai_mirroring_mask = 0x03;
 
 
-struct
-{
-    struct
-    {
-#ifdef LSB_FIRST
-
-        UINT8 low, high;
-#else
-
-        UINT8 high, low;
-#endif
-    }
-    bytes;
-
-
-    UINT16 word;
-}
-bandai_irq_latch;
+static char bandai_enable_irqs = FALSE;
 
 
 static int bandai_irq_counter = 0;
+
+static MMC_COMBO16 bandai_irq_latch;
 
 
 static int bandai_irq_tick (int line)
 {
     if (bandai_enable_irqs)
     {
-        bandai_irq_counter -= PSEUDO_CLOCKS_PER_SCANLINE;
+        bandai_irq_counter -= MMC_PSEUDO_CLOCKS_PER_SCANLINE;
 
 
         if (bandai_irq_counter <= 0)
@@ -100,7 +77,11 @@ static void bandai_write (UINT16 address, UINT8 value)
     address &= 0x000f;
 
 
-    if (address > 0x000d) return;
+    if (address > 0x000d)
+    {
+        return;
+    }
+
 
     if (address <= 7)
     {
@@ -138,7 +119,7 @@ static void bandai_write (UINT16 address, UINT8 value)
 
                 /* Mask off upper 6 bits. */
 
-                value &= 0x03;
+                value &= bandai_mirroring_mask;
 
 
                 /* Use value from LUT. */
@@ -212,6 +193,7 @@ static int bandai_init (void)
     /* Install write handlers. */
 
     cpu_set_write_handler_8k (0x6000, bandai_write);
+
     cpu_set_write_handler_32k (0x8000, bandai_write);
 
 

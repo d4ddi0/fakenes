@@ -290,6 +290,8 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_audio_channels_menu, 8, papu_enable_dmc);
 
+    TOGGLE_MENU (options_audio_channels_menu, 10, papu_enable_exsound);
+
 
     TOGGLE_MENU (options_audio_advanced_menu, 0, papu_ideal_triangle);
 
@@ -934,6 +936,20 @@ static int options_audio_channels_menu_noise (void)
 static int options_audio_channels_menu_dmc (void)
 {
     papu_enable_dmc = (! papu_enable_dmc);
+
+    papu_update ();
+
+
+    update_menus ();
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_channels_menu_exsound (void)
+{
+    papu_enable_exsound = (! papu_enable_exsound);
 
     papu_update ();
 

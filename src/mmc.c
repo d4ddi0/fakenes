@@ -27,6 +27,8 @@ You must read and accept the license prior to use.
 
 #include "mmc.h"
 
+#include "papu.h"
+
 #include "ppu.h"
 
 #include "rom.h"
@@ -63,6 +65,9 @@ You must read and accept the license prior to use.
 #include "mmc/nina.h"
 
 #include "mmc/sunsoft.h"
+
+
+#include "mmc/vrc6.h"
 
 
 #define MMC_FIRST_LIST_ITEM(id)     \
@@ -162,6 +167,9 @@ void mmc_request (ROM * rom)
     MMC_NEXT_LIST_ITEM (sunsoft);   /* Sunsoft. */
 
 
+    MMC_NEXT_LIST_ITEM (vrc6);      /* VRC6. */
+
+
     MMC_LAST_LIST_ITEM ();          /* Unsupported mapper. */
 }
 
@@ -183,6 +191,9 @@ int mmc_init (void)
 
 
     mmc_check_latches = NULL;
+
+
+    papu_clear_exsound ();
 
 
     if (ROM_CURRENT_MMC == NULL)

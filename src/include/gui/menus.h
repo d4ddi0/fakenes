@@ -172,6 +172,8 @@ static int options_audio_channels_menu_noise (void);
 
 static int options_audio_channels_menu_dmc (void);
 
+static int options_audio_channels_menu_exsound (void);
+
 
 static MENU options_audio_channels_menu [] =
 {
@@ -184,6 +186,8 @@ static MENU options_audio_channels_menu [] =
     {    "&Noise",    options_audio_channels_menu_noise, NULL, 0, NULL },
     {          "",                                 NULL, NULL, 0, NULL },
     {      "&DMC",      options_audio_channels_menu_dmc, NULL, 0, NULL },
+    {          "",                                 NULL, NULL, 0, NULL },
+    {  "&ExSound",  options_audio_channels_menu_exsound, NULL, 0, NULL },
     {        NULL,                                 NULL, NULL, 0, NULL }
 };
 

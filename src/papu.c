@@ -55,6 +55,9 @@ int papu_enable_noise = TRUE;
 int papu_enable_dmc = TRUE;
 
 
+int papu_enable_exsound = TRUE;
+
+
 int papu_swap_channels = 0;
 
 
@@ -92,6 +95,9 @@ void papu_update (void)
 
 
     apu_setchan (4, papu_enable_dmc);
+
+
+    apu_setchan (5, papu_enable_exsound);
 
 
     apu_setmode (APUMODE_IDEAL_TRIANGLE, papu_ideal_triangle);
@@ -239,6 +245,8 @@ int papu_init (void)
 
     papu_enable_dmc = get_config_int ("papu", "enable_dmc", TRUE);
 
+    papu_enable_exsound = get_config_int ("papu", "enable_exsound", TRUE);
+
 
     papu_ideal_triangle = get_config_int ("papu", "ideal_triangle", TRUE);
 
@@ -286,6 +294,8 @@ void papu_exit (void)
 
     set_config_int ("papu", "enable_dmc", papu_enable_dmc);
 
+    set_config_int ("papu", "enable_exsound", papu_enable_exsound);
+
 
     set_config_int ("papu", "ideal_triangle", papu_ideal_triangle);
 
@@ -318,6 +328,24 @@ UINT8 papu_read (UINT16 address)
 void papu_write (UINT16 address, UINT8 value)
 {
     apu_write (address, value);
+}
+
+
+void papu_exwrite (UINT16 address, UINT8 value)
+{
+    ex_write (address, value);
+}
+
+
+void papu_set_exsound (int chip)
+{
+    default_apu -> ex_chip = chip;
+}
+
+
+void papu_clear_exsound (void)
+{
+    default_apu -> ex_chip = 0;
 }
 
 

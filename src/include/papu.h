@@ -26,6 +26,9 @@ extern "C" {
 #include "misc.h"
 
 
+#define PAPU_EXSOUND_VRC6   0x01
+
+
 int papu_filter_type;
 
 
@@ -40,6 +43,9 @@ int papu_enable_noise;
 
 
 int papu_enable_dmc;
+
+
+int papu_enable_exsound;
 
 
 int papu_ideal_triangle;
@@ -68,6 +74,13 @@ void papu_reset (void);
 UINT8 papu_read (UINT16);
 
 void papu_write (UINT16, UINT8);
+
+void papu_exwrite (UINT16, UINT8);
+
+
+void papu_set_exsound (int);
+
+void papu_clear_exsound (void);
 
 
 int papu_start_record (void);
