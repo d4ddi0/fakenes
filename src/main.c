@@ -288,7 +288,15 @@ int main (int argc, char * argv [])
                 }
                 else
                 {
-                    fprintf (stderr, "%s.\nConfiguration will not be saved.\n", perror (confdir));
+                    UINT8 errorbuf [300] = { NULL };
+
+
+                    strcat (errorbuf, confdir);
+
+                    perror (errorbuf);
+
+
+                    fprintf (stderr, "%s.\nConfiguration will not be saved.\n", errorbuf);
 
 
                     free (confdir);
@@ -363,7 +371,15 @@ int main (int argc, char * argv [])
             }
             else
             {
-                fprintf (stderr, "%s.\nConfiguration will not be saved.\n", perror (confdir));
+                UINT8 errorbuf [300] = { NULL };
+
+
+                strcat (errorbuf, confdir);
+
+                perror (errorbuf);
+
+
+                fprintf (stderr, "%s.\nConfiguration will not be saved.\n", errorbuf);
 
 
                 free (confdir);
@@ -607,7 +623,7 @@ int main (int argc, char * argv [])
     
             virtual_fps_count ++;
     
-    
+
             switch (machine_type)
             {
                 case MACHINE_TYPE_PAL:
