@@ -281,6 +281,48 @@ void disable_sram(void)
 
 void cpu_reset (void)
 {
+    FILE * sram_file;
+
+    UINT8 buffer [256];
+
+
+    if (global_rom.sram_flag)
+    {
+
+#ifdef UNIX
+
+        if (sramdir != NULL)
+        {
+            strcpy (buffer, sramdir);
+
+            strcat (buffer, "/");
+
+            strcat (buffer, get_filename (global_rom.filename));
+
+
+            replace_extension
+                (buffer, buffer, "sav", sizeof (buffer));
+        }
+	
+#else
+
+        replace_extension (buffer,
+            global_rom.filename, "sav", sizeof (buffer));
+
+#endif
+
+        sram_file = fopen (buffer, "wb");
+
+
+        if (sram_file)
+        {
+            fwrite (cpu_sram, 1, sizeof (cpu_sram), sram_file);
+
+            fclose (sram_file);
+        }
+    }
+
+
     Reset6502 (&cpu_context);
 }
 
