@@ -4037,6 +4037,10 @@ static int options_video_palette_menu_ntsc_color (void)
 
     UNCHECK_MENU (options_video_palette_menu, 14);
 
+    UNCHECK_MENU (options_video_palette_menu, 16);
+
+    UNCHECK_MENU (options_video_palette_menu, 18);
+
 
     CHECK_MENU (options_video_palette_menu, 0);
 
@@ -4080,6 +4084,10 @@ static int options_video_palette_menu_ntsc_grayscale (void)
 
     UNCHECK_MENU (options_video_palette_menu, 14);
 
+    UNCHECK_MENU (options_video_palette_menu, 16);
+
+    UNCHECK_MENU (options_video_palette_menu, 18);
+
 
     CHECK_MENU (options_video_palette_menu, 2);
 
@@ -4121,6 +4129,10 @@ static int options_video_palette_menu_gnuboy (void)
     UNCHECK_MENU (options_video_palette_menu, 12);
 
     UNCHECK_MENU (options_video_palette_menu, 14);
+
+    UNCHECK_MENU (options_video_palette_menu, 16);
+
+    UNCHECK_MENU (options_video_palette_menu, 18);
 
 
     CHECK_MENU (options_video_palette_menu, 4);
@@ -4165,6 +4177,11 @@ static int options_video_palette_menu_nester (void)
 
     UNCHECK_MENU (options_video_palette_menu, 14);
 
+    UNCHECK_MENU (options_video_palette_menu, 16);
+
+    UNCHECK_MENU (options_video_palette_menu, 18);
+
+
     CHECK_MENU (options_video_palette_menu, 6);
 
 
@@ -4206,6 +4223,10 @@ static int options_video_palette_menu_nesticle (void)
     UNCHECK_MENU (options_video_palette_menu, 12);
 
     UNCHECK_MENU (options_video_palette_menu, 14);
+
+    UNCHECK_MENU (options_video_palette_menu, 16);
+
+    UNCHECK_MENU (options_video_palette_menu, 18);
 
 
     CHECK_MENU (options_video_palette_menu, 8);
@@ -4250,6 +4271,10 @@ static int options_video_palette_menu_modern_ntsc (void)
 
     UNCHECK_MENU (options_video_palette_menu, 14);
 
+    UNCHECK_MENU (options_video_palette_menu, 16);
+
+    UNCHECK_MENU (options_video_palette_menu, 18);
+
 
     CHECK_MENU (options_video_palette_menu, 10);
 
@@ -4293,6 +4318,10 @@ static int options_video_palette_menu_modern_pal (void)
 
     UNCHECK_MENU (options_video_palette_menu, 14);
 
+    UNCHECK_MENU (options_video_palette_menu, 16);
+
+    UNCHECK_MENU (options_video_palette_menu, 18);
+
 
     CHECK_MENU (options_video_palette_menu, 12);
 
@@ -4314,6 +4343,100 @@ static int options_video_palette_menu_modern_pal (void)
 
 
     gui_message (GUI_TEXT_COLOR, "Video palette set to modern PAL.");
+
+
+    return (D_REDRAW);
+}
+
+
+static int options_video_palette_menu_ega_mode_1 (void)
+{
+    UNCHECK_MENU (options_video_palette_menu, 0);
+
+    UNCHECK_MENU (options_video_palette_menu, 2);
+
+    UNCHECK_MENU (options_video_palette_menu, 4);
+
+    UNCHECK_MENU (options_video_palette_menu, 6);
+
+    UNCHECK_MENU (options_video_palette_menu, 8);
+
+    UNCHECK_MENU (options_video_palette_menu, 10);
+
+    UNCHECK_MENU (options_video_palette_menu, 12);
+
+    UNCHECK_MENU (options_video_palette_menu, 16);
+
+    UNCHECK_MENU (options_video_palette_menu, 18);
+
+
+    CHECK_MENU (options_video_palette_menu, 14);
+
+
+    video_set_palette (DATA_TO_RGB (EGA_PALETTE_1));
+
+    current_palette = DATA_TO_RGB (EGA_PALETTE_1);
+
+
+    update_colors ();
+
+
+    clear (screen);
+
+    video_blit (screen);
+
+
+    draw_background ();
+
+
+    gui_message (GUI_TEXT_COLOR, "Video palette set to EGA (mode 1).");
+
+
+    return (D_REDRAW);
+}
+
+
+static int options_video_palette_menu_ega_mode_2 (void)
+{
+    UNCHECK_MENU (options_video_palette_menu, 0);
+
+    UNCHECK_MENU (options_video_palette_menu, 2);
+
+    UNCHECK_MENU (options_video_palette_menu, 4);
+
+    UNCHECK_MENU (options_video_palette_menu, 6);
+
+    UNCHECK_MENU (options_video_palette_menu, 8);
+
+    UNCHECK_MENU (options_video_palette_menu, 10);
+
+    UNCHECK_MENU (options_video_palette_menu, 12);
+
+    UNCHECK_MENU (options_video_palette_menu, 14);
+
+    UNCHECK_MENU (options_video_palette_menu, 18);
+
+
+    CHECK_MENU (options_video_palette_menu, 16);
+
+
+    video_set_palette (DATA_TO_RGB (EGA_PALETTE_2));
+
+    current_palette = DATA_TO_RGB (EGA_PALETTE_2);
+
+
+    update_colors ();
+
+
+    clear (screen);
+
+    video_blit (screen);
+
+
+    draw_background ();
+
+
+    gui_message (GUI_TEXT_COLOR, "Video palette set to EGA (mode 2).");
 
 
     return (D_REDRAW);
@@ -4361,8 +4484,12 @@ static int options_video_palette_menu_custom (void)
 
         UNCHECK_MENU (options_video_palette_menu, 12);
     
+        UNCHECK_MENU (options_video_palette_menu, 14);
+
+        UNCHECK_MENU (options_video_palette_menu, 16);
     
-        CHECK_MENU (options_video_palette_menu, 14);
+
+        CHECK_MENU (options_video_palette_menu, 18);
     
 
         video_set_palette (((RGB *) custom_palette));

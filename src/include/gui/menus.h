@@ -922,6 +922,10 @@ static int options_video_palette_menu_modern_ntsc (void);
 
 static int options_video_palette_menu_modern_pal (void);
 
+static int options_video_palette_menu_ega_mode_1 (void);
+
+static int options_video_palette_menu_ega_mode_2 (void);
+
 static int options_video_palette_menu_custom (void);
 
 
@@ -940,6 +944,10 @@ static MENU options_video_palette_menu [] =
     {    "&Modern NTSC",    options_video_palette_menu_modern_ntsc, NIL, 0, NIL },
     {                "",                                       NIL, NIL, 0, NIL },
     {     "Modern &PAL",     options_video_palette_menu_modern_pal, NIL, 0, NIL },
+    {                "",                                       NIL, NIL, 0, NIL },
+    {   "&EGA (Mode 1)",     options_video_palette_menu_ega_mode_1, NIL, 0, NIL },
+    {                "",                                       NIL, NIL, 0, NIL },
+    {   "EG&A (Mode 2)",     options_video_palette_menu_ega_mode_2, NIL, 0, NIL },
     {                "",                                       NIL, NIL, 0, NIL },
     {         "Cu&stom",         options_video_palette_menu_custom, NIL, 0, NIL },
     {               NIL,                                       NIL, NIL, 0, NIL }
