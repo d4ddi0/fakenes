@@ -385,15 +385,23 @@ static MENU options_audio_mixing_menu [] =
 
 static int options_audio_effects_menu_linear_echo (void);
 
-static int options_audio_effects_menu_surround_sound (void);
+static int options_audio_effects_menu_surround_sound_mono (void);
+
+static int options_audio_effects_menu_surround_sound_stereo_1 (void);
+
+static int options_audio_effects_menu_surround_sound_stereo_2 (void);
 
 
 static MENU options_audio_effects_menu [] =
 {
-    {    "&Linear Echo",    options_audio_effects_menu_linear_echo, NIL, 0, NIL },
-    {                "",                                       NIL, NIL, 0, NIL },
-    { "&Surround Sound", options_audio_effects_menu_surround_sound, NIL, 0, NIL },
-    {               NIL,                                       NIL, NIL, 0, NIL }
+    {               "&Linear Echo",        options_audio_effects_menu_linear_echo, NIL, 0, NIL },
+    {                           "",                                                NIL, NIL, 0, NIL },
+    {     "&Surround Sound (Mono)",     options_audio_effects_menu_surround_sound_mono, NIL, 0, NIL },
+    {                           "",                                                NIL, NIL, 0, NIL },
+    { "S&urround Sound (Stereo 1)", options_audio_effects_menu_surround_sound_stereo_1, NIL, 0, NIL },
+    {                           "",                                                NIL, NIL, 0, NIL },
+    { "Su&rround Sound (Stereo 2)", options_audio_effects_menu_surround_sound_stereo_2, NIL, 0, NIL },
+    {                          NIL,                                                NIL, NIL, 0, NIL }
 };
 
 

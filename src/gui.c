@@ -450,7 +450,7 @@ static INLINE void update_menus (void)
         papu_swap_channels = FALSE;
 
 
-        papu_surround_sound = FALSE;
+        papu_surround_sound = PAPU_SURROUND_SOUND_NONE;
         
 
         DISABLE_MENU (options_audio_mixing_advanced_menu, 0);
@@ -608,7 +608,11 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_audio_effects_menu, 0, papu_linear_echo);
 
-    TOGGLE_MENU (options_audio_effects_menu, 2, papu_surround_sound);
+    TOGGLE_MENU (options_audio_effects_menu, 2, (papu_surround_sound == PAPU_SURROUND_SOUND_MONO));
+
+    TOGGLE_MENU (options_audio_effects_menu, 4, (papu_surround_sound == PAPU_SURROUND_SOUND_STEREO_1));
+
+    TOGGLE_MENU (options_audio_effects_menu, 6, (papu_surround_sound == PAPU_SURROUND_SOUND_STEREO_2));
 
 
     TOGGLE_MENU (options_audio_filter_menu, 0, (papu_filter_type == APU_FILTER_NONE));
@@ -2928,23 +2932,75 @@ static int options_audio_effects_menu_linear_echo (void)
 }
 
 
-static int options_audio_effects_menu_surround_sound (void)
+static int options_audio_effects_menu_surround_sound_mono (void)
 {
-    papu_surround_sound = (! papu_surround_sound);
+    papu_surround_sound = ((papu_surround_sound == PAPU_SURROUND_SOUND_MONO) ? PAPU_SURROUND_SOUND_NONE : PAPU_SURROUND_SOUND_MONO);
+
 
     update_menus ();
-
-
-    if (papu_surround_sound)
-    {
-        alert ("- Warning -", "", "Surround sound may have odd side effects.", "&OK", NIL, 'o', 0);
-    }
 
 
     papu_reinit ();
 
 
-    gui_message (gui_fg_color, "Toggled surround sound audio effect.");
+    if (papu_surround_sound == PAPU_SURROUND_SOUND_NONE)
+    {
+        gui_message (gui_fg_color, "Disabled surround sound audio effect.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Enabled surround sound audio effect (mono mode).");
+    }
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_effects_menu_surround_sound_stereo_1 (void)
+{
+    papu_surround_sound = ((papu_surround_sound == PAPU_SURROUND_SOUND_STEREO_1) ? PAPU_SURROUND_SOUND_NONE : PAPU_SURROUND_SOUND_STEREO_1);
+
+
+    update_menus ();
+
+
+    papu_reinit ();
+
+
+    if (papu_surround_sound == PAPU_SURROUND_SOUND_NONE)
+    {
+        gui_message (gui_fg_color, "Disabled surround sound audio effect.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Enabled surround sound audio effect (stereo mode 1).");
+    }
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_effects_menu_surround_sound_stereo_2 (void)
+{
+    papu_surround_sound = ((papu_surround_sound == PAPU_SURROUND_SOUND_STEREO_2) ? PAPU_SURROUND_SOUND_NONE : PAPU_SURROUND_SOUND_STEREO_2);
+
+
+    update_menus ();
+
+
+    papu_reinit ();
+
+
+    if (papu_surround_sound == PAPU_SURROUND_SOUND_NONE)
+    {
+        gui_message (gui_fg_color, "Disabled surround sound audio effect.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Enabled surround sound audio effect (stereo mode 2).");
+    }
 
 
     return (D_O_K);

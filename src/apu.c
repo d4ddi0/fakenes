@@ -1715,13 +1715,6 @@ void apu_process_stereo(void *buffer, int num_samples, int dither, int style, in
             prev_sample_right = next_sample_right;
          }
 
-         /* stereo blending */
-         old_accum_left = accum_left;
-         old_accum_right = accum_right;
-
-         accum_left += (old_accum_right / 2);
-         accum_right += (old_accum_left / 2);
-
          /* little extra kick for the kids */
 //         accum <<= 1;
 /* Overflow fixed by T.Yano Dec.12.2000 */
@@ -1761,7 +1754,16 @@ void apu_process_stereo(void *buffer, int num_samples, int dither, int style, in
 #endif /* APU_YANO */
 
          /* surround sound */
-         if (surround)
+         if (surround == 1)
+         {
+            accum_left = ((accum_left + accum_right) >> 1);
+            accum_right = ~accum_left;
+         }
+         else if (surround == 2)
+         {
+            accum_right = ~accum_right;
+         }
+         else if (surround == 3)
          {
             /* thanks to kode54 */
             old_accum_left = accum_left;
@@ -1774,6 +1776,16 @@ void apu_process_stereo(void *buffer, int num_samples, int dither, int style, in
             accum_right -= (old_accum_left - scrap1);
          }
 
+         if (surround != 1)
+         {
+             /* stereo blending */
+             old_accum_left = accum_left;
+             old_accum_right = accum_right;
+    
+             accum_left += (old_accum_right / 2);
+             accum_right += (old_accum_left / 2);
+         }
+
          /* prevent clipping */
          if (accum_left > 0x7FFF)
             accum_left = 0x7FFF;
@@ -1784,7 +1796,7 @@ void apu_process_stereo(void *buffer, int num_samples, int dither, int style, in
             accum_right = 0x7FFF;
          else if (accum_right < -0x8000)
             accum_right = -0x8000;
-
+            
          /* reverse stereo */
          if (flip)
          {
@@ -2089,6 +2101,9 @@ boolean sync_dmc_register(UINT32 cpu_cycles)
 
 /*
 ** $Log$
+** Revision 1.13  2004/02/15 23:48:14  stainless
+** Rewrote 'Surround Sound' effect and added 2 new variants.
+**
 ** Revision 1.12  2003/03/04 05:32:52  stainless
 ** Replaced all references to `NULL' with `NIL' to avoid compiler conflicts.
 **

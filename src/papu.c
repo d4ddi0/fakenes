@@ -70,7 +70,7 @@ int papu_ideal_triangle = TRUE;
 
 int papu_linear_echo = TRUE;
 
-int papu_surround_sound = FALSE;
+int papu_surround_sound = PAPU_SURROUND_SOUND_NONE;
 
 
 int papu_dithering = FALSE;
@@ -231,7 +231,7 @@ int papu_init (void)
 
     papu_linear_echo = get_config_int ("papu", "linear_echo", TRUE);
 
-    papu_surround_sound = get_config_int ("audio", "surround_sound", FALSE);
+    papu_surround_sound = get_config_int ("audio", "surround_sound", PAPU_SURROUND_SOUND_NONE);
 
 
     if ((result = papu_reinit ()) != 0)
