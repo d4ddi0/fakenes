@@ -47,7 +47,7 @@ static DIALOG help_shortcuts_dialog [] =
     {       sl_text,   9,  93,   0,   0, 0, 0, 0,      0,            0, 0, NULL,     "F6  - Toggle Zapper", NULL },
     {       sl_text,   9, 105,   0,   0, 0, 0, 0,      0,            0, 0, NULL,    "F7  - Toggle Sprites", NULL },
     {       sl_text,   9, 117,   0,   0, 0, 0, 0,      0,            0, 0, NULL, "F8  - Toggle Background", NULL },
-    {       sl_text,   9, 133,   0,   0, 0, 0, 0,      0,            0, 0, NULL, "1-6 - Select State Slot", NULL },
+    {       sl_text,   9, 133,   0,   0, 0, 0, 0,      0,            0, 0, NULL, "0-9 - Select State Slot", NULL },
     {       sl_text,   9, 149,   0,   0, 0, 0, 0,      0,            0, 0, NULL,    "ESC - Enter/Exit GUI", NULL },
     {          NULL,   0,   0,   0,   0, 0, 0, 0,      0, SL_FRAME_END, 0, NULL,                      NULL, NULL }
 };
