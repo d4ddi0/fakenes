@@ -382,7 +382,13 @@ void Int6502(M6502 *R,byte Type)
     M_FIX_P();
     M_PUSH(R->P&~B_FLAG);
     /* R->D=0; */
-    if(Type==INT_NMI) J.W=0xFFFA; else { R->I=1;J.W=0xFFFE; }
+    if(Type==INT_NMI) J.W=0xFFFA;
+    else
+    {
+     R->I=1;
+     J.W=0xFFFE;
+     R->IRequest=INT_NONE;
+    }
     R->PC.B.l=Rd6502(J.W++);
     R->PC.B.h=Rd6502(J.W);
   }
