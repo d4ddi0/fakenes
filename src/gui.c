@@ -449,7 +449,10 @@ int show_gui (int first_run)
     gui_message (gui_fg_color, "GUI initialized (%dx%d, %s).", SCREEN_W, SCREEN_H, gfx_driver -> name);
 
 
+    set_mouse_sprite_focus (8, 8);
+
     unscare_mouse ();
+
 
     if (first_run)
     {
@@ -459,6 +462,7 @@ int show_gui (int first_run)
 
 
     do_dialog (main_dialog, -1);
+
 
     scare_mouse ();
 
