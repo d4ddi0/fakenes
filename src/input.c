@@ -712,6 +712,22 @@ int input_process (void)
                 break;
 
 
+            case KEY_F3:
+
+                gui_spawn_machine_state_menu_save ();
+
+
+                break;
+
+
+            case KEY_F4:
+
+                gui_spawn_machine_state_menu_restore ();
+
+
+                break;
+
+
             case KEY_F5:
 
                 input_zapper_enable = (! input_zapper_enable);
@@ -723,6 +739,22 @@ int input_process (void)
             case KEY_F6:
 
                 invert_ppu_mirroring ();
+
+
+                break;
+
+
+            case KEY_F7:
+
+                gui_spawn_machine_menu_status ();
+
+
+                break;
+
+
+            case KEY_F8:
+
+                gui_spawn_file_menu_snapshot ();
 
 
                 break;

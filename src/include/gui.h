@@ -32,6 +32,17 @@ void gui_message (int, CONST UINT8 *, ...);
 int gui_is_active;
 
 
+void gui_spawn_file_menu_snapshot (void);
+
+
+void gui_spawn_machine_menu_status (void);
+
+
+void gui_spawn_machine_state_menu_save (void);
+
+void gui_spawn_machine_state_menu_restore (void);
+
+
 #ifdef __cplusplus
 }
 #endif

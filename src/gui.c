@@ -148,6 +148,51 @@ static int gui_redraw_callback (int msg, DIALOG * d, int c)
     }
 
 
+void gui_spawn_file_menu_snapshot (void)
+{
+    file_menu_snapshot ();
+}
+
+
+void gui_spawn_machine_menu_status (void)
+{
+    machine_menu_status ();
+}
+
+
+void gui_spawn_machine_state_menu_save (void)
+{
+    machine_state_menu_save ();
+}
+
+
+void gui_spawn_machine_state_menu_restore (void)
+{
+    machine_state_menu_restore ();
+}
+
+
+void gui_show_dialog (DIALOG * dialog, int items)
+{
+    int index;
+
+
+    centre_dialog (dialog);
+
+
+    dialog [0].dp3 = DATA_LARGE_FONT;
+
+
+    for (index = 0; index < (items - 1); index ++)
+    {
+        dialog [index].dp = screen;
+    }
+
+
+    popup_dialog (dialog, -1);
+}
+
+
 static INLINE void update_menus (void)
 {
     TOGGLE_MENU (machine_type_menu,
@@ -158,8 +203,6 @@ static INLINE void update_menus (void)
 
 
     TOGGLE_MENU (machine_menu, 2, video_display_status);
-
-    TOGGLE_MENU (options_video_menu, 0, video_enable_vsync);
 
 
     TOGGLE_MENU (options_audio_filter_menu,
@@ -174,6 +217,9 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_audio_filter_low_pass_menu,
         4, (papu_filter_type == APU_FILTER_DYNAMIC));
+
+
+    TOGGLE_MENU (options_video_menu, 0, video_enable_vsync);
 }
 
 
@@ -210,7 +256,13 @@ int show_gui (void)
     {
         DISABLE_MENU (file_menu, 2);
 
+
         DISABLE_MENU (machine_menu, 0);
+
+
+        DISABLE_MENU (machine_state_menu, 2);
+
+        DISABLE_MENU (machine_state_menu, 4);
     }
 
 
@@ -292,7 +344,13 @@ static int file_menu_load_rom (void)
 
             ENABLE_MENU (file_menu, 2);
 
+
             ENABLE_MENU (machine_menu, 0);
+
+
+            ENABLE_MENU (machine_state_menu, 2);
+
+            ENABLE_MENU (machine_state_menu, 4);
 
 
             return (D_CLOSE);
@@ -355,6 +413,17 @@ static int machine_menu_reset (void)
 }
 
 
+static int machine_menu_status (void)
+{
+    video_display_status = (! video_display_status);
+
+    update_menus ();
+
+
+    return (D_O_K);
+}
+
+
 static int machine_type_menu_ntsc (void)
 {
     machine_type = MACHINE_TYPE_NTSC;
@@ -377,13 +446,20 @@ static int machine_type_menu_pal (void)
 }
 
 
-static int machine_menu_status (void)
+static int machine_state_menu_select (void)
 {
-    video_display_status = (! video_display_status);
+    return (D_O_K);
+}
 
-    update_menus ();
+
+static int machine_state_menu_save (void)
+{
+    return (D_O_K);
+}
 
 
+static int machine_state_menu_restore (void)
+{
     return (D_O_K);
 }
 
@@ -506,24 +582,18 @@ static int options_video_palette_menu_nester (void)
 }
 
 
+static int help_menu_shortcuts (void)
+{
+    gui_show_dialog (help_shortcuts_dialog, 10);
+
+
+    return (D_O_K);
+}
+
+
 static int help_menu_about (void)
 {
-    int index;
-
-
-    centre_dialog (help_about_dialog);
-
-
-    help_about_dialog [0].dp3 = DATA_LARGE_FONT;
-
-
-    for (index = 0; index < 9; index ++)
-    {
-        help_about_dialog [index].dp = screen;
-    }
-
-
-    popup_dialog (help_about_dialog, -1);
+    gui_show_dialog (help_about_dialog, 10);
 
 
     return (D_O_K);
