@@ -384,7 +384,7 @@ int show_gui (void)
     video_blit (screen);
 
 
-    gui_message (GUI_COLOR_WHITE, "GUI initialized (%dx%d).", SCREEN_W, SCREEN_H);
+    gui_message (GUI_COLOR_WHITE, "GUI initialized (%dx%d, %s).", SCREEN_W, SCREEN_H, gfx_driver -> name);
 
 
     unscare_mouse ();
@@ -402,6 +402,12 @@ int show_gui (void)
 
     return (want_exit);
 }
+
+
+static int menu_bar_hide (void)
+{
+    return (D_CLOSE);
+};
 
 
 static int file_menu_load_rom (void)

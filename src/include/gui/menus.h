@@ -391,12 +391,15 @@ static MENU help_menu [] =
 };
 
 
+static int menu_bar_hide (void);
+
+
 static MENU menu_bar [] =
 { 
-    {    "&File", NULL,    file_menu,          0, NULL },
-    { "&Machine", NULL, machine_menu,          0, NULL },
-    { "&NetPlay", NULL,         NULL, D_DISABLED, NULL },
-    { "&Options", NULL, options_menu,          0, NULL },
-    {    "&Help", NULL,    help_menu,          0, NULL },
-    {       NULL, NULL,         NULL,          0, NULL }
+    {    "&File",          NULL,    file_menu, 0, NULL },
+    { "&Machine",          NULL, machine_menu, 0, NULL },
+    { "&Options",          NULL, options_menu, 0, NULL },
+    {    "&Help",          NULL,    help_menu, 0, NULL },
+    {        "<", menu_bar_hide,         NULL, 0, NULL },
+    {       NULL,          NULL,         NULL, 0, NULL }
 };
