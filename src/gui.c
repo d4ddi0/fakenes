@@ -12,6 +12,8 @@
 
 #include "audio.h"
 
+#include "cpu.h"
+
 #include "gui.h"
 
 #include "papu.h"
@@ -200,6 +202,11 @@ static int file_menu_load_rom (void)
         {
             if (rom_is_loaded)
             {
+                if (global_rom.sram_flag)
+                {
+                    sram_save (global_rom.filename);
+                }
+
                 free_rom (&global_rom);
             }
 

@@ -1,4 +1,4 @@
-
+ 
 
 /*
 
@@ -741,10 +741,10 @@ int main (int argc, char * argv [])
     {
         printf ("Emulated frames: %d (%d "
             "displayed).\n", emulated_frames, displayed_frames);
+
+        free_rom (&global_rom);
     }
 
-
-    free_rom (&global_rom);
 
     unload_datafile (data);
 

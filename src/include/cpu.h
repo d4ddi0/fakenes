@@ -30,6 +30,9 @@ extern "C" {
 #define CPU_INTERRUPT_NMI   1
 
 
+void sram_load (const char *rom_filename);
+void sram_save (const char *rom_filename);
+
 int cpu_init (void);
 
 void cpu_memmap_init(void);

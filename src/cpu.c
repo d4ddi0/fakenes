@@ -55,12 +55,82 @@ static UINT8 cpu_sram [8192];
 static M6502 cpu_context;
 
 
-int cpu_init (void)
+static char *get_sram_filename (char *buffer, const char *rom_filename, int buffer_size)
+{
+#ifdef UNIX
+
+    if (sramdir != NULL)
+    {
+        strcpy (buffer, sramdir);
+    
+        strcat (buffer, "/");
+
+        strcat (buffer, get_filename (rom_filename));
+    
+    
+        replace_extension
+            (buffer, buffer, "sav", buffer_size);
+    }
+	
+#else
+
+    replace_extension (buffer,
+        rom_filename, "sav", buffer_size);
+
+#endif
+
+    return buffer;
+
+}
+
+
+void sram_load (const char *rom_filename)
 {
     UINT8 buffer [256];
 
     FILE * sram_file;
 
+
+    get_sram_filename(buffer, rom_filename, sizeof(buffer));
+
+    if (exists (buffer))
+    {
+        sram_file = fopen (buffer, "rb");
+    
+
+        if (sram_file)
+        {
+            fread (cpu_sram, 1, sizeof (cpu_sram), sram_file);
+    
+            fclose (sram_file);
+        }
+    }
+}
+
+
+void sram_save (const char *rom_filename)
+{
+    UINT8 buffer [256];
+
+    FILE * sram_file;
+
+
+    get_sram_filename(buffer, rom_filename, sizeof(buffer));
+
+    sram_file = fopen (buffer, "wb");
+
+
+    if (sram_file)
+    {
+        fwrite (cpu_sram, 1, sizeof (cpu_sram), sram_file);
+
+        fclose (sram_file);
+    }
+}
+
+
+int cpu_init (void)
+{
 
     memset (cpu_ram, NULL, sizeof (cpu_ram));
 
@@ -72,42 +142,7 @@ int cpu_init (void)
 
     if (global_rom.sram_flag)
     {
-
-#ifdef UNIX
-
-        if (sramdir != NULL)
-        {
-            strcpy (buffer, sramdir);
-    
-            strcat (buffer, "/");
-    
-            strcat (buffer, get_filename (global_rom.filename));
-    
-    
-            replace_extension
-                (buffer, buffer, "sav", sizeof (buffer));
-        }
-	
-#else
-
-        replace_extension (buffer,
-            global_rom.filename, "sav", sizeof (buffer));
-
-#endif
-
-
-        if (exists (buffer))
-        {
-            sram_file = fopen (buffer, "rb");
-    
-
-            if (sram_file)
-            {
-                fread (cpu_sram, 1, sizeof (cpu_sram), sram_file);
-    
-                fclose (sram_file);
-            }
-        }
+        sram_load (global_rom.filename);
     }
 
 
@@ -196,10 +231,6 @@ void cpu_memmap_init (void)
 
 void cpu_exit (void)
 {
-    UINT8 buffer [256];
-
-    FILE * sram_file;
-
 
 #ifdef DEBUG
 
@@ -227,38 +258,7 @@ void cpu_exit (void)
 
     if (global_rom.sram_flag)
     {
-
-#ifdef UNIX
-
-        if (sramdir != NULL)
-        {
-            strcpy (buffer, sramdir);
-
-            strcat (buffer, "/");
-
-            strcat (buffer, get_filename (global_rom.filename));
-
-
-            replace_extension
-                (buffer, buffer, "sav", sizeof (buffer));
-        }
-	
-#else
-
-        replace_extension (buffer,
-            global_rom.filename, "sav", sizeof (buffer));
-
-#endif
-
-        sram_file = fopen (buffer, "wb");
-
-
-        if (sram_file)
-        {
-            fwrite (cpu_sram, 1, sizeof (cpu_sram), sram_file);
-
-            fclose (sram_file);
-        }
+        sram_save (global_rom.filename);
     }
 }
 
@@ -281,45 +281,10 @@ void disable_sram(void)
 
 void cpu_reset (void)
 {
-    FILE * sram_file;
-
-    UINT8 buffer [256];
-
 
     if (global_rom.sram_flag)
     {
-
-#ifdef UNIX
-
-        if (sramdir != NULL)
-        {
-            strcpy (buffer, sramdir);
-
-            strcat (buffer, "/");
-
-            strcat (buffer, get_filename (global_rom.filename));
-
-
-            replace_extension
-                (buffer, buffer, "sav", sizeof (buffer));
-        }
-	
-#else
-
-        replace_extension (buffer,
-            global_rom.filename, "sav", sizeof (buffer));
-
-#endif
-
-        sram_file = fopen (buffer, "wb");
-
-
-        if (sram_file)
-        {
-            fwrite (cpu_sram, 1, sizeof (cpu_sram), sram_file);
-
-            fclose (sram_file);
-        }
+        sram_save (global_rom.filename);
     }
 
 
