@@ -51,6 +51,7 @@ behavior, for the Ricoh RP2A03G CPU.
     Address_Zero_Page_Indirect(); \
     address.word += R->Y
 
+
 /* These macros calculate and read from effective addresses. */
 
 #define Read_Immediate(Rg) \

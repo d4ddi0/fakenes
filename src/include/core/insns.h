@@ -22,7 +22,7 @@ behavior, for the Ricoh RP2A03G CPU.
     { \
         R->ICount -= CYCLE_LENGTH; R->Cycles += CYCLE_LENGTH; \
         PC.bytes.low += data; \
-        if ((data & 0x80) ? (PC.bytes.low > data) : (PC.bytes.low < data)) \
+        if ((data & 0x80) ? (PC.bytes.low >= data) : (PC.bytes.low < data)) \
         { \
             Fetch(PC.word); \
             R->ICount -= CYCLE_LENGTH; R->Cycles += CYCLE_LENGTH; \

@@ -147,7 +147,7 @@ UINT16 FN2A03_Exec(FN2A03 *R)
 #endif
   switch(opcode)
   {
-    PAIR address, result;
+    PAIR address, temp_address, result;
     UINT8 zero_page_address, data;
 #include "core/codes.h"
   }
@@ -238,7 +238,7 @@ void FN2A03_Run(FN2A03 *R)
 #endif
       switch(opcode)
       {
-        PAIR address, result;
+        PAIR address, temp_address, result;
         UINT8 zero_page_address, data;
 #include "core/codes.h"
       }

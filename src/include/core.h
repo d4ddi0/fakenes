@@ -33,13 +33,16 @@ the emulation core.
 /* #define ALT_DEBUG */        /* Compile debugging version  */
 /* #define LSB_FIRST */        /* Compile for low-endian CPU */
 
-#define FN2A03_INT_NONE  0     /* No interrupt required      */
-#define FN2A03_INT_NMI   1     /* Non-maskable interrupt     */
+#define FN2A03_INT_NONE     0  /* No interrupt required      */
+#define FN2A03_INT_IRQ_NONE 0  /* No interrupt required      */
+#define FN2A03_INT_NMI      1  /* Non-maskable interrupt     */
+
+#define FN2A03_INT_IRQ_BASE         2
 /* Maskable IRQ cleared after single acknowledgement */
-#define FN2A03_INT_IRQ_SINGLE_SHOT 2
+#define FN2A03_INT_IRQ_SINGLE_SHOT  (FN2A03_INT_IRQ_BASE)
 /* Maskable IRQs cleared via FN2A03_Clear_Interrupt() */
-#define FN2A03_INT_IRQ_SOURCE(x) (FN2A03_INT_IRQ_SINGLE_SHOT + 1 + (x))
-#define FN2A03_INT_IRQ_SOURCE_MAX (31 - 1)
+#define FN2A03_INT_IRQ_SOURCE(x)    (FN2A03_INT_IRQ_BASE + 1 + (x))
+#define FN2A03_INT_IRQ_SOURCE_MAX   (31 - 1)
 
                                /* 2A03 status flags:         */
 #define	C_FLAG	  0x01         /* 1: Carry occured           */
@@ -56,6 +59,7 @@ the emulation core.
   UINT8     unsigned    sizeof(UINT8) == 1
   INT8      signed      sizeof(INT8) == 1
   UINT16    unsigned    sizeof(UINT16) == 2
+  UINT32    unsigned    sizeof(UINT32) == 4
   PAIR      union       sizeof(PAIR) == 2
    { UINT16 word; struct { UINT8 low, high } bytes; }
 */
@@ -74,7 +78,8 @@ typedef struct
                       /* zero.                               */
   int Cycles;         /* Elapsed cycles since last cleared   */
   int IBackup;        /* Private, don't touch                */
-  UINT16 IRequest;    /* Set to the INT_IRQ when pending IRQ */
+  UINT32 IRequest;    /* Logic state of the IRQ line, each    */
+                      /*  bit reserved for a different source */
   UINT16 Trap;        /* Set Trap to address to trace from   */
   UINT8 AfterCLI;     /* Private, don't touch                */
   UINT8 TrapBadOps;   /* Set to 1 to warn of illegal opcodes */
@@ -131,6 +136,14 @@ void FN2A03_Reset(FN2A03 *R);
  then return next PC, and updated context in R.
 */
 UINT16 FN2A03_Exec(FN2A03 *R);
+
+/*
+ FN2A03_Clear_Interrupt()
+
+  This function clears a maskable interrupt source previously raised by
+ FN2A03_Interrupt().
+*/
+void FN2A03_Clear_Interrupt(FN2A03 *R,UINT8 Type);
 
 /*
  FN2A03_Interrupt()

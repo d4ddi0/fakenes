@@ -51,7 +51,7 @@ OPCODE_EPILOG
 OPCODE_PROLOG(0x40) /* RTI */
     UINT8 P;
     Pull(P);
-    if ((R->IRequest != FN2A03_INT_NONE) && (!(P & I_FLAG) && R->I))
+    if (R->IRequest && (!(P & I_FLAG) && R->I))
     {
       R->AfterCLI = 1;
       R->IBackup = R->ICount;
@@ -98,7 +98,7 @@ OPCODE_EPILOG
 
 
 OPCODE_PROLOG(0x58) /* CLI */
-    if ((R->IRequest != FN2A03_INT_NONE) && (R->I))
+    if (R->IRequest && R->I)
     {
       R->AfterCLI = 1;
       R->IBackup = R->ICount;
@@ -111,7 +111,7 @@ OPCODE_EPILOG
 OPCODE_PROLOG(0x28) /* PLP */
     UINT8 P;
     Pull(P);
-    if ((R->IRequest != FN2A03_INT_NONE) && (!(P & I_FLAG) && R->I))
+    if (R->IRequest && (!(P & I_FLAG) && R->I))
     {
       R->AfterCLI = 1;
       R->IBackup = R->ICount;
@@ -179,12 +179,12 @@ OPCODE_PROLOG(0xA8) /* TAY */
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xC8) /* INY */
-    R->Y++; Update_NZ(R->Y);
+    Insn_INC(R->Y);
     PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x88) /* DEY */
-    R->Y--; Update_NZ(R->Y);
+    Insn_DEC(R->Y);
     PC.word++;
 OPCODE_EPILOG
 
@@ -199,12 +199,12 @@ OPCODE_PROLOG(0xAA) /* TAX */
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xE8) /* INX */
-    R->X++; Update_NZ(R->X);
+    Insn_INC(R->X);
     PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xCA) /* DEX */
-    R->X--; Update_NZ(R->X);
+    Insn_DEC(R->X);
     PC.word++;
 OPCODE_EPILOG
 
@@ -268,7 +268,7 @@ OPCODE_PROLOG(0x65) /* ADC $ss ZP */
     Read_Zero_Page(data); Insn_ADC(data);
 OPCODE_EPILOG
 
-OPCODE_PROLOG(0x66) /* ROL $ss ZP */
+OPCODE_PROLOG(0x66) /* ROR $ss ZP */
     RMW_Zero_Page(Insn_ROR);
 OPCODE_EPILOG
 
