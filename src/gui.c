@@ -432,6 +432,17 @@ int gui_show_dialog (DIALOG * dialog)
     BITMAP * saved;
 
 
+    int position;
+
+
+    UINT16 x = 0;
+
+    UINT16 y = 0;
+
+
+    int moved = FALSE;
+
+
     int index = 0;
 
 
@@ -445,7 +456,22 @@ int gui_show_dialog (DIALOG * dialog)
     unscare_mouse ();
 
 
-    centre_dialog (dialog);
+    position = get_config_hex ("dialogs", dialog [0].dp2, -1);
+
+
+    if (position == -1)
+    {
+        centre_dialog (dialog);
+    }
+    else
+    {
+        x = (position >> 16);
+
+        y = (position & 0x0000ffff);
+
+
+        position_dialog (dialog, x, y);
+    }
 
 
     dialog [0].dp3 = DATA_TO_FONT (LARGE_FONT);
@@ -485,10 +511,24 @@ int gui_show_dialog (DIALOG * dialog)
         restart_dialog = FALSE;
 
 
-        position_dialog (dialog, dialog_x, dialog_y);
+        x = dialog_x;
+
+        y = dialog_y;
+
+
+        position_dialog (dialog, x, y);
+
+
+        moved = TRUE;
 
 
         goto again;
+    }
+
+
+    if (moved)
+    {
+        set_config_hex ("dialogs", dialog [0].dp2, ((x << 16) | y));
     }
 
 
