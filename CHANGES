@@ -13,7 +13,7 @@ MMC3 IRQ improvements.
 MMC3 PRG banking fixed.
 
 Audio rendernig & output changes
-Default samping rate changed to 44.1 kHz.
+Default sampling rate changed to 44.1 kHz.
 Default buffer length (in frames) changed to 4.
 Various recording bugs fixed.
 Linear echo effect tweaked and intensified.
