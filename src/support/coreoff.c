@@ -16,8 +16,9 @@ Entertainment System).
 
 */
 
-#define ALLEGRO_NO_MAGIC_MAIN
-#include <allegro.h>            /* INLINE */
+#ifndef INLINE
+#define INLINE  /* Not really needed. */
+#endif
 
 #include <stdio.h>
 #include "core.h"
@@ -64,3 +65,4 @@ int main()
 
  return 0;
 }
+END_OF_MAIN()
