@@ -1056,7 +1056,7 @@ void ppu_vblank (void)
 
 void ppu_end_render (void)
 {
-    video_blit ();
+    video_blit (screen);
 
     ppu_vblank ();
 }

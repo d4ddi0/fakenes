@@ -43,7 +43,7 @@ int video_init (void);
 void video_exit (void);
 
 
-void video_blit (void);
+void video_blit (BITMAP *);
 
 
 void video_zoom_in (void);

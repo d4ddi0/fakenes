@@ -127,7 +127,7 @@ static int gui_redraw_callback (int msg, DIALOG * d, int c)
 
         clear (screen);
 
-        video_blit ();
+        video_blit (screen);
 
 
         return (D_REDRAW);

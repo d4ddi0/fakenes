@@ -40,6 +40,9 @@ You must read and accept the license prior to use.
 #include "timing.h"
 
 
+static BITMAP * screen_buffer = NULL;
+
+
 int video_display_status = FALSE;
 
 int video_enable_vsync = FALSE;
@@ -76,6 +79,8 @@ static int light_level = 0;
 
 static int blitter_type = 0;
 
+
+#define VIDEO_COLOR_BLACK   palette_color [65]
 
 #define VIDEO_COLOR_WHITE   palette_color [33]
 
@@ -125,6 +130,11 @@ int video_init (void)
     }
 
 
+    screen_buffer = create_bitmap (SCREEN_W, SCREEN_H);
+
+    clear (screen_buffer);
+
+
     /* Heh, recursive variable assignation. :( */
 
     video_set_blitter (blitter_type);
@@ -166,6 +176,9 @@ void video_exit (void)
     set_gfx_mode (GFX_TEXT, 0, 0, 0, 0);
 
 
+    destroy_bitmap (screen_buffer);
+
+
     destroy_bitmap (video_buffer);
 
     destroy_bitmap (base_video_buffer);
@@ -201,7 +214,7 @@ void video_exit (void)
 }
 
 
-void video_blit (void)
+void video_blit (BITMAP * bitmap)
 {
     if ((video_display_status) && (rom_is_loaded))
     {
@@ -228,8 +241,7 @@ void video_blit (void)
     {
         if ((mouse_x < 256) && (mouse_y < 240))
         {
-            masked_blit (DATA_GUN_SPRITE, base_video_buffer,
-                0, 0, (mouse_x + 1), (mouse_y + 9), 16, 16);
+            masked_blit (DATA_GUN_SPRITE, base_video_buffer, 0, 0, (mouse_x + 1), (mouse_y + 9), 16, 16);
         }
     }
 
@@ -245,13 +257,12 @@ void video_blit (void)
 
     if (stretched_mode)
     {
-        stretch_blit (video_buffer, screen, 0, 0, 256, 240,
+        stretch_blit (video_buffer, bitmap, 0, 0, 256, 240,
             blit_x_offset, blit_y_offset, stretch_width, stretch_height);
     }
     else
     {
-        blit (video_buffer, screen,
-            0, 0, blit_x_offset, blit_y_offset, 256, 240);
+        blit (video_buffer, bitmap, 0, 0, blit_x_offset, blit_y_offset, 256, 240);
     }
 
 
@@ -314,11 +325,12 @@ void video_zoom_out (void)
     video_zoom (-zoom_factor_x, -zoom_factor_y);
 
 
-    /* Nasty hack. */
+    video_blit (screen_buffer);
 
-    vsync ();
+    blit (screen_buffer, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
 
-    clear (screen);
+
+    clear (screen_buffer);
 }
 
 
