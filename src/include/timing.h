@@ -52,7 +52,7 @@ void resume_timing (void);
 #define LAST_DISPLAYED_LINE     239
 
 
-#define FIRST_VBLANK_LINE       241
+#define FIRST_VBLANK_LINE       240
 
 
 #ifdef __cplusplus

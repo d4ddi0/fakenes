@@ -132,7 +132,7 @@ static UINT8 spr_ram_address = 0;
 static int sprite_height = 8;
 
 
-static int want_vblank_nmi = TRUE;
+static int want_vblank_nmi = FALSE;
 
 static int vblank_occured = FALSE;
 static int vram_writable = FALSE;
@@ -640,7 +640,7 @@ void ppu_reset (void)
 
     address_increment = 1;
 
-    want_vblank_nmi = TRUE;
+    want_vblank_nmi = FALSE;
 
     vblank_occured = FALSE;
 
@@ -1433,15 +1433,6 @@ void ppu_vblank (void)
     vblank_occured = TRUE;
 
     vram_writable = TRUE;
-
-
-    cpu_execute (1);
-
-
-    if (want_vblank_nmi)
-    {
-        cpu_interrupt (CPU_INTERRUPT_NMI);
-    }
 }
 
 
@@ -1450,6 +1441,15 @@ void ppu_end_render (void)
     video_blit ();
 
     ppu_vblank ();
+}
+
+
+void ppu_vblank_nmi (void)
+{
+    if (want_vblank_nmi)
+    {
+        cpu_interrupt (CPU_INTERRUPT_NMI);
+    }
 }
 
 

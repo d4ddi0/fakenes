@@ -49,6 +49,7 @@ void ppu_write (UINT16, UINT8);
 void ppu_clear (void);
 
 void ppu_vblank (void);
+void ppu_vblank_nmi (void);
 
 
 void ppu_start_line (void);

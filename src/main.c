@@ -620,7 +620,13 @@ int main (int argc, char * argv [])
                     {
                         ppu_end_render ();
 
-                        cpu_execute (SCANLINE_CLOCKS - 1);
+                        cpu_execute (SCANLINE_CLOCKS);
+                    }
+                    else if (ppu_scanline == FIRST_VBLANK_LINE + 1)
+                    {
+                        ppu_vblank_nmi ();
+
+                        cpu_execute (SCANLINE_CLOCKS);
                     }
                     else if (ppu_scanline == ppu_frame_last_line)
                     {
@@ -672,7 +678,13 @@ int main (int argc, char * argv [])
                     {
                         ppu_vblank ();
 
-                        cpu_execute (SCANLINE_CLOCKS - 1);
+                        cpu_execute (SCANLINE_CLOCKS);
+                    }
+                    else if (ppu_scanline == FIRST_VBLANK_LINE + 1)
+                    {
+                        ppu_vblank_nmi ();
+
+                        cpu_execute (SCANLINE_CLOCKS);
                     }
                     else if (ppu_scanline == ppu_frame_last_line)
                     {
