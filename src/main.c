@@ -44,6 +44,8 @@ extern int errno;
 #endif
 
 
+#include "audio.h"
+
 #include "cpu.h"
 
 #include "gui.h"
@@ -74,7 +76,7 @@ int machine_type = MACHINE_TYPE_NTSC;
 
 int frame_skip_min = 0;
 
-int frame_skip_max = 6;
+int frame_skip_max = 8;
 
 
 volatile int timing_fps = 0;
@@ -132,8 +134,6 @@ END_OF_STATIC_FUNCTION (fps_interrupt);
 static void throttle_interrupt (void)
 {
     throttle_counter ++;
-
-    papu_process_frame ();
 }
 
 END_OF_STATIC_FUNCTION (throttle_interrupt);
@@ -170,12 +170,12 @@ int main (int argc, char * argv [])
 
 #ifdef UNIX
 
-    printf ("\nCopyright (c) 2001, Randy McDowell and Ian Smith.\n"
+    printf ("\nCopyright (c) 2002, Randy McDowell and Ian Smith.\n"
             "All rights reserved.  See 'LICENSE' for details.\n\n");
 
 #else
 
-    printf ("\nCopyright (c) 2001, Randy McDowell and Ian Smith.\n"
+    printf ("\nCopyright (c) 2002, Randy McDowell and Ian Smith.\n"
             "All rights reserved.  See 'LICENSE.TXT' for details.\n\n");
 
 #endif
@@ -294,7 +294,7 @@ int main (int argc, char * argv [])
 
     frame_skip_min = get_config_int ("timing", "frame_skip_min", 0);
 
-    frame_skip_max = get_config_int ("timing", "frame_skip_max", 6);
+    frame_skip_max = get_config_int ("timing", "frame_skip_max", 8);
 
 
     install_timer ();
@@ -369,6 +369,23 @@ int main (int argc, char * argv [])
     }
 
 
+    if (audio_init () != 0)
+    {
+        fprintf (stderr,
+            "PANIC: Failed to initialize audio interface!\n");
+
+
+        free_rom (&global_rom);
+
+        return (1);
+    }
+
+
+    papu_init ();
+
+    papu_reset ();
+
+
     if (video_init () != 0)
     {
         fprintf (stderr,
@@ -409,6 +426,9 @@ int main (int argc, char * argv [])
     {
         while (! input_process ())
         {
+            papu_process_frame ();
+
+
             if (-- frame_count > 0)
             {
                 redraw_flag = FALSE;
@@ -681,6 +701,11 @@ int main (int argc, char * argv [])
     set_config_int ("timing", "frame_skip_max", frame_skip_max);
 
 
+    papu_exit ();
+
+    audio_exit ();
+
+
     video_exit ();
 
     ppu_exit ();
@@ -689,7 +714,7 @@ int main (int argc, char * argv [])
     if (rom_is_loaded)
     {
         cpu_exit ();
-
+    
         mmc_exit ();
     }
 
