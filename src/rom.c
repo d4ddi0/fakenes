@@ -185,8 +185,15 @@ int load_rom (AL_CONST UINT8 * filename, ROM * rom)
     rom -> sram_flag = (rom -> control_byte_1 & ROM_CTRL_SRAM);
 
 
-    ppu_set_mirroring (((rom -> control_byte_1 &
-        ROM_CTRL_MIRROR) ? MIRRORING_VERTICAL : MIRRORING_HORIZONTAL));
+    if (rom -> control_byte_1 & ROM_CTRL_4SCREEN)
+    {
+        ppu_set_mirroring (MIRRORING_FOUR_SCREEN);
+    }
+    else
+    {
+        ppu_set_mirroring (((rom -> control_byte_1 &
+            ROM_CTRL_MIRROR) ? MIRRORING_VERTICAL : MIRRORING_HORIZONTAL));
+    }
 
 
     gzclose (rom_file);
@@ -342,8 +349,15 @@ int load_rom (AL_CONST UINT8 * filename, ROM * rom)
     rom -> sram_flag = (rom -> control_byte_1 & ROM_CTRL_SRAM);
 
 
-    ppu_set_mirroring (((rom -> control_byte_1 &
-        ROM_CTRL_MIRROR) ? MIRRORING_VERTICAL : MIRRORING_HORIZONTAL));
+    if (rom -> control_byte_1 & ROM_CTRL_4SCREEN)
+    {
+        ppu_set_mirroring (MIRRORING_FOUR_SCREEN);
+    }
+    else
+    {
+        ppu_set_mirroring (((rom -> control_byte_1 &
+            ROM_CTRL_MIRROR) ? MIRRORING_VERTICAL : MIRRORING_HORIZONTAL));
+    }
 
 
     fclose (rom_file);
