@@ -49,6 +49,9 @@ int timing_hertz;
 int timing_audio_fps;
 
 
+int timing_half_speed;
+
+
 void suspend_timing (void);
 
 void resume_timing (void);

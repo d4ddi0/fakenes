@@ -86,8 +86,8 @@ static DIALOG netplay_client_connect_dialog [] =
 
 static DIALOG help_shortcuts_dialog [] =
 {
-    {      sl_frame,   0,   0, 134, 165, 0, 0, 0,      0,            0, 0, NIL,               "Shortcuts", NIL },
-    { d_button_proc, 114,   4,  16,  12, 0, 0, 0, D_EXIT,            0, 0, "X",                       NIL, NIL },
+    {      sl_frame,   0,   0, 268, 165, 0, 0, 0,      0,            0, 0, NIL,               "Shortcuts", NIL },
+    { d_button_proc, 248,   4,  16,  12, 0, 0, 0, D_EXIT,            0, 0, "X",                       NIL, NIL },
     {       sl_text,   9,  29,   0,   0, 0, 0, 0,      0,            0, 0, NIL,     "F1  - Save Snapshot", NIL },
     {       sl_text,   9,  41,   0,   0, 0, 0, 0,      0,            0, 0, NIL,     "F2  - Toggle Status", NIL },
     {       sl_text,   9,  53,   0,   0, 0, 0, 0,      0,            0, 0, NIL,        "F3  - Save State", NIL },
@@ -98,6 +98,13 @@ static DIALOG help_shortcuts_dialog [] =
     {       sl_text,   9, 117,   0,   0, 0, 0, 0,      0,            0, 0, NIL, "F8  - Toggle Background", NIL },
     {       sl_text,   9, 133,   0,   0, 0, 0, 0,      0,            0, 0, NIL, "0-9 - Select State Slot", NIL },
     {       sl_text,   9, 149,   0,   0, 0, 0, 0,      0,            0, 0, NIL,    "ESC - Enter/Exit GUI", NIL },
+    {       sl_text, 143,  29,   0,   0, 0, 0, 0,      0,            0, 0, NIL, "~   - Fast Forward Mode", NIL },
+    {       sl_text, 143,  41,   0,   0, 0, 0, 0,      0,            0, 0, NIL,  "F9  - Toggle Slow Mode", NIL },
+    {       sl_text, 143,  57,   0,   0, 0, 0, 0,      0,            0, 0, NIL,    "F10 - Darken Palette", NIL },
+    {       sl_text, 143,  69,   0,   0, 0, 0, 0,      0,            0, 0, NIL,  "F11 - Brighten Palette", NIL },
+    {       sl_text, 143,  85,   0,   0, 0, 0, 0,      0,            0, 0, NIL, "F12 - Record Start/Stop", NIL },
+    {       sl_text, 143,  99,   0,   0, 0, 0, 0,      0,            0, 0, NIL,     "BACKSPACE - Message", NIL },
+    {       sl_text, 143, 149,   0,   0, 0, 0, 0,      0,            0, 0, NIL, "No other keys are used.", NIL },
     {           NIL,   0,   0,   0,   0, 0, 0, 0,      0, SL_FRAME_END, 0, NIL,                       NIL, NIL }
 };
 

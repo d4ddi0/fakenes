@@ -74,6 +74,9 @@ int papu_surround_sound = FALSE;
 int papu_dithering = FALSE;
 
 
+int papu_is_recording = FALSE;
+
+
 static void * echo_buffer_a = NIL;
 
 static void * echo_buffer_b = NIL;
@@ -113,6 +116,12 @@ int papu_reinit (void)
 
 
     apu_setparams (audio_sample_rate, speed, 0, audio_sample_size);
+
+
+    if (timing_half_speed)
+    {
+        speed /= 2;
+    }
 
 
     echo_buffer_size = ((audio_sample_rate / speed) * audio_buffer_length);
@@ -370,8 +379,6 @@ static INLINE void apply_echo (void)
 }
 
 
-static int is_recording = FALSE;
-
 static FILE * dump_file = NIL;
 
 
@@ -385,7 +392,7 @@ int papu_start_record (void)
     }
 
 
-    is_recording = TRUE;
+    papu_is_recording = TRUE;
 
 
     return (0);
@@ -394,11 +401,11 @@ int papu_start_record (void)
 
 void papu_stop_record (void)
 {
-    if (is_recording)
+    if (papu_is_recording)
     {
         fclose (dump_file);
 
-        is_recording = FALSE;
+        papu_is_recording = FALSE;
     }
 }
 
@@ -420,6 +427,12 @@ void papu_process (void)
 
 
     speed = (machine_type == MACHINE_TYPE_NTSC ? 60 : 50);
+
+
+    if (timing_half_speed)
+    {
+        speed /= 2;
+    }
 
 
     if (key [KEY_TILDE])
@@ -492,7 +505,7 @@ void papu_process (void)
             }
 
 
-            if (is_recording)
+            if (papu_is_recording)
             {
                 fwrite (audio_buffer, echo_buffer_size, 1, dump_file);
             }

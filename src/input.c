@@ -640,6 +640,12 @@ int input_process (void)
         speed = ((machine_type == MACHINE_TYPE_NTSC) ? 60 : 50);
 
 
+        if (timing_half_speed)
+        {
+            speed /= 2;
+        }
+
+
         if (++ frames == (input_autosave_interval * speed))
         {
             input_autosave_triggered = TRUE;
@@ -687,28 +693,6 @@ int input_process (void)
 
 
                 resume_timing ();
-
-
-                break;
-
-
-            case KEY_EQUALS:
-
-                if (frame_skip_max < 60)
-                {
-                    frame_skip_max ++;
-                }
-
-
-                break;
-
-
-           case KEY_MINUS:
-
-                if (frame_skip_max > 1)
-                {
-                    frame_skip_max --;
-                }
 
 
                 break;

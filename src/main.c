@@ -107,6 +107,9 @@ int timing_audio_fps = 0;
 int timing_audio_hertz = 0;
 
 
+int timing_half_speed = FALSE;
+
+
 #ifdef POSIX
 
 UINT8 * homedir = NIL;
@@ -193,6 +196,12 @@ void resume_timing (void)
 
 
     speed = ((machine_type == MACHINE_TYPE_NTSC) ? 60 : 50);
+
+
+    if (timing_half_speed)
+    {
+        speed /= 2;
+    }
 
 
     install_int_ex (fps_interrupt, BPS_TO_TIMER (1));

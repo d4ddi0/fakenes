@@ -312,6 +312,46 @@ void gui_handle_keypress (int index)
             break;
 
 
+        case KEY_F9:
+
+            timing_half_speed = (! timing_half_speed);
+
+
+            if (! gui_is_active)
+            {
+                suspend_timing ();
+
+
+                resume_timing ();
+            }
+
+
+            audio_exit ();
+
+            audio_init ();
+
+
+            papu_reinit ();
+
+
+            break;
+
+
+        case KEY_F12:
+
+            if (papu_is_recording)
+            {
+                options_audio_record_menu_stop ();
+            }
+            else
+            {
+                options_audio_record_menu_start ();
+            }
+
+
+            break;
+
+
         case KEY_0:
 
         case KEY_1:

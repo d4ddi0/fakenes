@@ -102,6 +102,12 @@ int audio_init (void)
         speed = ((machine_type == MACHINE_TYPE_NTSC) ? 60 : 50);
 
 
+        if (timing_half_speed)
+        {
+            speed /= 2;
+        }
+
+
         audio_stream = play_audio_stream (((audio_sample_rate / speed) * audio_buffer_length),
             audio_sample_size, audio_pseudo_stereo, audio_sample_rate, 255, 128);
     

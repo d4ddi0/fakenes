@@ -1525,7 +1525,7 @@ void video_handle_keypress (int index)
 {
     switch ((index >> 8))
     {
-        case KEY_PLUS_PAD:
+        case KEY_EQUALS:
 
             video_zoom (zoom_factor_x, zoom_factor_y);
 
@@ -1533,7 +1533,7 @@ void video_handle_keypress (int index)
             break;
 
 
-        case KEY_MINUS_PAD:
+        case KEY_MINUS:
 
             video_zoom (-zoom_factor_x, -zoom_factor_y);
 
@@ -1541,49 +1541,7 @@ void video_handle_keypress (int index)
             break;
 
 
-        case KEY_OPENBRACE:
-
-            if ((index & 0xff) == '{')
-            {
-                image_offset_x += 8;
-            }
-            else
-            {
-                image_offset_x -= 8;
-            }
-
-
-            vsync ();
-
-
-            clear (screen);
-
-
-            break;
-
-
-        case KEY_CLOSEBRACE:
-
-            if ((index & 0xff) == '}')
-            {
-                image_offset_y += 8;
-            }
-            else
-            {
-                image_offset_y -= 8;
-            }
-
-
-            vsync ();
-
-
-            clear (screen);
-
-
-            break;
-
-
-        case KEY_COMMA:
+        case KEY_F10:
 
             if (light_adjustment > -63)
             {
@@ -1597,7 +1555,7 @@ void video_handle_keypress (int index)
             break;
 
 
-        case KEY_STOP:
+        case KEY_F11:
 
             if (light_adjustment < 63)
             {
