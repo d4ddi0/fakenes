@@ -574,11 +574,6 @@ int show_gui (int first_run)
     DISABLE_MENU (machine_state_menu, 4);
 
 
-    DISABLE_MENU (options_audio_advanced_menu, 2);
-
-    DISABLE_MENU (options_audio_advanced_menu, 4);
-
-
 #ifdef ALLEGRO_DOS
 
     DISABLE_MENU (options_video_advanced_menu, 0);
