@@ -42,4 +42,7 @@ int gui_is_active;
 void gui_handle_keypress (int);
 
 
+void gui_stop_replay (void);
+
+
 #endif /* ! GUI_H_INCLUDED */

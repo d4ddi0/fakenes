@@ -1336,6 +1336,9 @@ static void draw_messages (void);
 static void erase_messages (void);
 
 
+static int flash_tick = 0;
+
+
 void video_blit (BITMAP * bitmap)
 {
     BITMAP * source_buffer;
@@ -1462,7 +1465,7 @@ void video_blit (BITMAP * bitmap)
     }
 
 
-    if (((video_message_duration > 0) || (input_mode == INPUT_MODE_CHAT)) && (! gui_is_active))
+    if (((video_message_duration > 0) || (input_mode & INPUT_MODE_CHAT)) && (! gui_is_active))
     {
         draw_messages ();
     }
@@ -1475,7 +1478,7 @@ void video_blit (BITMAP * bitmap)
     release_bitmap (bitmap);
 
 
-    if (((video_message_duration > 0) || (input_mode == INPUT_MODE_CHAT)) && (! gui_is_active))
+    if (((video_message_duration > 0) || (input_mode & INPUT_MODE_CHAT)) && (! gui_is_active))
     {
         erase_messages ();
     }
@@ -1542,24 +1545,35 @@ void video_zoom (int x_factor, int y_factor)
 
 void video_handle_keypress (int index)
 {
+    if (! (input_mode & INPUT_MODE_CHAT))
+    {
+        switch ((index >> 8))
+        {
+            case KEY_EQUALS:
+    
+                video_zoom (zoom_factor_x, zoom_factor_y);
+    
+    
+                break;
+    
+    
+            case KEY_MINUS:
+    
+                video_zoom (-zoom_factor_x, -zoom_factor_y);
+    
+    
+                break;
+
+
+            default:
+
+                break;
+        }
+    }
+
+
     switch ((index >> 8))
     {
-        case KEY_EQUALS:
-
-            video_zoom (zoom_factor_x, zoom_factor_y);
-
-
-            break;
-
-
-        case KEY_MINUS:
-
-            video_zoom (-zoom_factor_x, -zoom_factor_y);
-
-
-            break;
-
-
         case KEY_F10:
 
             if (light_adjustment > -63)
@@ -2209,7 +2223,7 @@ static void draw_messages (void)
     y = ((SCREEN_H - (height_text + 2)) - 1);
 
 
-    if (input_mode == INPUT_MODE_CHAT)
+    if (input_mode & INPUT_MODE_CHAT)
     {
         int length;
 

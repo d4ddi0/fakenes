@@ -11,6 +11,18 @@ static DIALOG main_dialog [] =
 };
 
 
+static DIALOG main_replay_record_start_dialog [] =
+{
+    {          sl_frame,   0,  0, 156, 84, 0, 0,   0,      0,            0, 0,   NIL, "Record Replay", NIL },
+    {     d_button_proc, 136,  4,  16, 12, 0, 0,   0, D_EXIT,            0, 0,   "X",             NIL, NIL },
+    {           sl_text,   9, 36,   0,  0, 0, 0,   0,      0,            0, 0,   NIL,       "&Title:", NIL },
+    { d_shadow_box_proc,  48, 32,  96, 16, 0, 0,   0,      0,            0, 0,   NIL,             NIL, NIL },
+    {       d_edit_proc,  50, 36,  92, 12, 0, 0, 't',      0,            0, 0,   NIL,             NIL, NIL },
+    {     d_button_proc, 112, 56,  32, 16, 0, 0, 'o', D_EXIT,            0, 0, "&OK",             NIL, NIL },
+    {               NIL,   0,  0,   0,  0, 0, 0,   0,      0, SL_FRAME_END, 0,   NIL,             NIL, NIL }
+};  
+
+
 static DIALOG main_messages_dialog [] =
 {
     {      sl_frame,   0,  0, 276, 136, 0, 0, 0,      0,            0, 0, NIL, "Messages", NIL },

@@ -1,5 +1,70 @@
 
 
+static int main_replay_select_menu_0 (void);
+
+static int main_replay_select_menu_1 (void);
+
+static int main_replay_select_menu_2 (void);
+
+static int main_replay_select_menu_3 (void);
+
+static int main_replay_select_menu_4 (void);
+
+
+static MENU main_replay_select_menu [] =
+{
+    { NIL, main_replay_select_menu_0, NIL, 0, NIL },
+    {  "",                       NIL, NIL, 0, NIL },
+    { NIL, main_replay_select_menu_1, NIL, 0, NIL },
+    {  "",                       NIL, NIL, 0, NIL },
+    { NIL, main_replay_select_menu_2, NIL, 0, NIL },
+    {  "",                       NIL, NIL, 0, NIL },
+    { NIL, main_replay_select_menu_3, NIL, 0, NIL },
+    {  "",                       NIL, NIL, 0, NIL },
+    { NIL, main_replay_select_menu_4, NIL, 0, NIL },
+    { NIL,                       NIL, NIL, 0, NIL }
+};
+
+
+static int main_replay_record_menu_start (void);
+
+static int main_replay_record_menu_stop (void);
+
+
+static MENU main_replay_record_menu [] =
+{
+    { "&Start", main_replay_record_menu_start, NIL,          0, NIL },
+    {       "",                           NIL, NIL,          0, NIL },
+    {  "S&top",  main_replay_record_menu_stop, NIL, D_DISABLED, NIL },
+    {      NIL,                           NIL, NIL,          0, NIL }
+};
+
+
+static int main_replay_play_menu_start (void);
+
+static int main_replay_play_menu_stop (void);
+
+
+static MENU main_replay_play_menu [] =
+{
+    { "&Start", main_replay_play_menu_start, NIL,          0, NIL },
+    {       "",                         NIL, NIL,          0, NIL },
+    {  "S&top",  main_replay_play_menu_stop, NIL, D_DISABLED, NIL },
+    {      NIL,                         NIL, NIL,          0, NIL }
+};
+
+
+static MENU main_replay_menu [] =
+{
+    { "&Select", NIL, main_replay_select_menu, 0, NIL },
+    {        "", NIL,                     NIL, 0, NIL },
+    { "&Record", NIL, main_replay_record_menu, 0, NIL },
+    {        "", NIL,                     NIL, 0, NIL },
+    {   "&Play", NIL,   main_replay_play_menu, 0, NIL },
+    {       NIL, NIL,                     NIL, 0, NIL }
+};
+
+
 static int main_menu_load_rom (void);
 
 static int main_menu_resume (void);
@@ -13,16 +78,18 @@ static int main_menu_exit (void);
 
 static MENU main_menu [] =
 {
-    { "&Load ROM...", main_menu_load_rom, NIL, 0, NIL },
-    {             "",                NIL, NIL, 0, NIL },
-    {      "&Resume",   main_menu_resume, NIL, 0, NIL },
-    {             "",                NIL, NIL, 0, NIL },
-    {    "&Snapshot", main_menu_snapshot, NIL, 0, NIL },
-    {             "",                NIL, NIL, 0, NIL },
-    { "&Messages...", main_menu_messages, NIL, 0, NIL },
-    {             "",                NIL, NIL, 0, NIL },
-    {        "E&xit",     main_menu_exit, NIL, 0, NIL },
-    {            NIL,                NIL, NIL, 0, NIL }
+    { "&Load ROM...", main_menu_load_rom,              NIL, 0, NIL },
+    {             "",                NIL,              NIL, 0, NIL },
+    {      "&Resume",   main_menu_resume,              NIL, 0, NIL },
+    {             "",                NIL,              NIL, 0, NIL },
+    {      "R&eplay",                NIL, main_replay_menu, 0, NIL },
+    {             "",                NIL,              NIL, 0, NIL },
+    {    "&Snapshot", main_menu_snapshot,              NIL, 0, NIL },
+    {             "",                NIL,              NIL, 0, NIL },
+    { "&Messages...", main_menu_messages,              NIL, 0, NIL },
+    {             "",                NIL,              NIL, 0, NIL },
+    {        "E&xit",     main_menu_exit,              NIL, 0, NIL },
+    {            NIL,                NIL,              NIL, 0, NIL }
 };
 
 

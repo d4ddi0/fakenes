@@ -221,6 +221,17 @@ void gui_message (int color, AL_CONST UINT8 * message, ...)
 static int machine_state_index = 0;
 
 
+/* For replays... */
+
+static int replay_index = 0;
+
+
+void gui_stop_replay (void)
+{
+    main_replay_play_menu_stop ();
+}
+
+
 void gui_handle_keypress (int index)
 {
     switch ((index >> 8))
@@ -251,9 +262,12 @@ void gui_handle_keypress (int index)
 
         case KEY_F4:
 
-            machine_state_menu_restore ();
+            if (! (input_mode & INPUT_MODE_REPLAY))
+            {
+                machine_state_menu_restore ();
+            }
 
-
+    
             break;
 
 
@@ -302,13 +316,16 @@ void gui_handle_keypress (int index)
 
         case KEY_F12:
 
-            if (papu_is_recording)
+            if (! (input_mode & INPUT_MODE_REPLAY_PLAY))
             {
-                options_audio_record_menu_stop ();
-            }
-            else
-            {
-                options_audio_record_menu_start ();
+                if (input_mode & INPUT_MODE_REPLAY_RECORD)
+                {
+                    main_replay_record_menu_stop ();
+                }
+                else
+                {
+                    main_replay_record_menu_start ();
+                }
             }
 
 
@@ -335,18 +352,21 @@ void gui_handle_keypress (int index)
 
         case KEY_9:
 
-          machine_state_index = ((index >> 8) - KEY_0);
+            if (! (input_mode & INPUT_MODE_CHAT))
+            {
+                machine_state_index = ((index >> 8) - KEY_0);
+    
+    
+                gui_message (gui_fg_color, "Current machine state slot set to %d.", machine_state_index);
+            }
 
 
-          gui_message (gui_fg_color, "Current machine state slot set to %d.", machine_state_index);
-
-
-          break;
+            break;
 
 
         default:
 
-          break;
+            break;
     }
 }
 
@@ -525,6 +545,17 @@ static INLINE void update_menus (void)
 
         ENABLE_MENU (options_video_filters_scanlines_menu, 4);
     }
+
+
+    TOGGLE_MENU (main_replay_select_menu, 0, (replay_index == 0));
+
+    TOGGLE_MENU (main_replay_select_menu, 2, (replay_index == 1));
+
+    TOGGLE_MENU (main_replay_select_menu, 4, (replay_index == 2));
+
+    TOGGLE_MENU (main_replay_select_menu, 6, (replay_index == 3));
+
+    TOGGLE_MENU (main_replay_select_menu, 8, (replay_index == 4));
 
 
     TOGGLE_MENU (machine_speed_menu, 0, (machine_type == MACHINE_TYPE_NTSC));
@@ -860,6 +891,8 @@ int show_gui (int first_run)
 
         DISABLE_MENU (main_menu, 4);
 
+        DISABLE_MENU (main_menu, 6);
+
 
         DISABLE_MENU (machine_menu, 0);
 
@@ -989,6 +1022,614 @@ static int netplay_handler (int message, DIALOG * dialog, int key)
 /* ---- Menu handlers. ---- */
 
 
+#define REPLAY_SELECT_MENU_HANDLER(slot)        \
+    static int main_replay_select_menu_##slot (void)    \
+    {                                           \
+        replay_index = slot;                    \
+                                                \
+        update_menus ();                        \
+                                                \
+                                                \
+        gui_message (gui_fg_color, "Current replay"     \
+            " slot set to %d.", replay_index);          \
+                                                \
+                                                \
+        return (D_O_K);                         \
+    }
+
+
+REPLAY_SELECT_MENU_HANDLER (0)
+
+REPLAY_SELECT_MENU_HANDLER (1)
+
+REPLAY_SELECT_MENU_HANDLER (2)
+
+REPLAY_SELECT_MENU_HANDLER (3)
+
+REPLAY_SELECT_MENU_HANDLER (4)
+
+
+static UINT8 replay_menu_texts [5] [20];
+
+static UINT8 replay_titles [5] [16];
+
+
+static int main_replay_menu_select (void)
+{
+    UINT8 buffer [256];
+
+    UINT8 buffer2 [16];
+
+    UINT8 buffer3 [4];
+
+
+    int index;
+
+
+    PACKFILE * file;
+
+
+    for (index = 0; index < 5; index ++)
+    {
+        memset (buffer, NIL, sizeof (buffer));
+    
+        memset (buffer2, NIL, sizeof (buffer2));
+    
+        memset (buffer3, NIL, sizeof (buffer3));
+
+
+        sprintf (buffer3, "fr%d", index);
+    
+
+        strcat (buffer, get_config_string ("gui", "save_path", "./"));
+    
+        put_backslash (buffer);
+    
+    
+        strcat (buffer, get_filename (global_rom.filename));
+    
+    
+        replace_extension (buffer, buffer, buffer3, sizeof (buffer));
+        
+    
+        file = pack_fopen (buffer, "r");
+    
+        if (file)
+        {
+            UINT8 signature [4];
+    
+    
+            int version;
+    
+
+            /* Probably don't need to verify these... */
+    
+            pack_fread (signature, 4, file);
+        
+        
+            version = pack_igetw (file);
+        
+
+            pack_fread (buffer2, sizeof (buffer2), file);
+
+
+            memset (replay_titles [index], NIL, 16);
+
+            strcat (replay_titles [index], buffer2);
+
+
+            pack_fclose (file);
+        }
+        else
+        {
+            memset (replay_titles [index], NIL, 16);
+
+            strcat (replay_titles [index], "Empty");
+        }
+
+
+        memset (replay_menu_texts [index], NIL, 20);
+
+        sprintf (replay_menu_texts [index], "&%d: %s", index, replay_titles [index]);
+
+
+        main_replay_select_menu [index * 2].text = replay_menu_texts [index];
+    }
+
+
+    return (D_O_K);
+}
+
+
+static int main_replay_record_menu_start (void)
+{
+    UINT8 buffer [256];
+
+    UINT8 buffer2 [16];
+
+    UINT8 buffer3 [4];
+
+
+    PACKFILE * file;
+
+
+    memset (buffer, NIL, sizeof (buffer));
+
+    memset (buffer2, NIL, sizeof (buffer2));
+
+    memset (buffer3, NIL, sizeof (buffer3));
+
+
+    if (gui_is_active)
+    {
+        main_replay_record_start_dialog [4].d1 = (sizeof (buffer2) - 1);
+        
+        main_replay_record_start_dialog [4].dp = buffer2;
+        
+
+        if (strcmp (replay_titles [replay_index], "Empty") == 0)
+        {
+            strcat (buffer2, "Untitled");
+        }
+        else
+        {
+            strcat (buffer2, replay_titles [replay_index]);
+        }
+        
+        
+        if (gui_show_dialog (main_replay_record_start_dialog) != 5)
+        {
+            return (D_O_K);
+        }
+    }
+    else
+    {
+        /* Save using last title. */
+
+        if (strcmp (replay_titles [replay_index], "Empty") == 0)
+        {
+            strcat (buffer2, "Untitled");
+        }
+        else
+        {
+            strcat (buffer2, replay_titles [replay_index]);
+        }
+    }
+
+
+    sprintf (buffer3, "fr%d", replay_index);
+
+
+    strcat (buffer, get_config_string ("gui", "save_path", "./"));
+
+    put_backslash (buffer);
+
+
+    strcat (buffer, get_filename (global_rom.filename));
+
+
+    replace_extension (buffer, buffer, buffer3, sizeof (buffer));
+
+
+    replay_file = pack_fopen (buffer, "w");
+
+    if (replay_file)
+    {
+        PACKFILE * file;
+
+
+        int version;
+
+
+        file = replay_file;
+
+
+        pack_fwrite ("FNSS", 4, file);
+    
+    
+        version = 0x0100;
+    
+
+        pack_iputw (version, file);
+    
+
+        pack_fwrite (buffer2, sizeof (buffer2), file);
+
+
+        pack_iputl (global_rom.trainer_crc32, file);
+
+
+        pack_iputl (global_rom.prg_rom_crc32, file);
+
+        pack_iputl (global_rom.chr_rom_crc32, file);
+
+
+        pack_fwrite ("CPU\0", 4, file);
+
+        cpu_save_state (file, version);
+
+
+        pack_fwrite ("PPU\0", 4, file);
+
+        ppu_save_state (file, version);
+
+
+        pack_fwrite ("PAPU", 4, file);
+
+        papu_save_state (file, version);
+
+
+        pack_fwrite ("MMC\0", 4, file);
+
+        mmc_save_state (file, version);
+
+
+        pack_fwrite ("CTRL", 4, file);
+
+        input_save_state (file, version);
+    
+
+        pack_fwrite ("REPL", 4, replay_file);
+
+
+        replay_file_chunk = pack_fopen_chunk (replay_file, FALSE);
+
+
+        DISABLE_MENU (main_replay_record_menu, 0);
+    
+        ENABLE_MENU (main_replay_record_menu, 2);
+    
+    
+        DISABLE_MENU (main_menu, 0);
+    
+
+        DISABLE_MENU (main_replay_menu, 0);
+
+        DISABLE_MENU (main_replay_menu, 4);
+
+
+        DISABLE_MENU (machine_menu, 0);
+    
+        DISABLE_MENU (machine_menu, 6);
+    
+    
+        DISABLE_MENU (machine_state_menu, 4);
+    
+    
+        DISABLE_MENU (top_menu, 3);
+    
+    
+        input_mode |= INPUT_MODE_REPLAY;
+    
+        input_mode |= INPUT_MODE_REPLAY_RECORD;
+    
+    
+        gui_message (gui_fg_color, "Replay recording session started.");
+    
+
+        /* Update save state titles. */
+
+        main_replay_menu_select ();
+
+
+        return (D_CLOSE);
+    }
+    else
+    {
+        gui_message (error_color, "Failed to open new machine state file.");
+    }
+
+
+    return (D_O_K);
+}
+
+
+static int main_replay_record_menu_stop (void)
+{
+    pack_fclose_chunk (replay_file_chunk);
+
+
+    pack_fclose (replay_file);
+
+
+    input_mode &= ~INPUT_MODE_REPLAY;
+
+    input_mode &= ~INPUT_MODE_REPLAY_RECORD;
+
+
+    ENABLE_MENU (main_replay_record_menu, 0);
+
+    DISABLE_MENU (main_replay_record_menu, 2);
+
+
+    ENABLE_MENU (main_menu, 0);
+
+
+    ENABLE_MENU (main_replay_menu, 0);
+
+    ENABLE_MENU (main_replay_menu, 4);
+
+
+    ENABLE_MENU (machine_menu, 0);
+
+    ENABLE_MENU (machine_menu, 6);
+
+
+    ENABLE_MENU (machine_state_menu, 4);
+
+
+    ENABLE_MENU (top_menu, 3);
+
+
+    gui_message (gui_fg_color, "Replay recording session stopped.");
+
+
+    return (D_O_K);
+}
+
+
+static int main_replay_play_menu_start (void)
+{
+    UINT8 buffer [256];
+
+    UINT8 buffer2 [16];
+
+    UINT8 buffer3 [4];
+
+
+    PACKFILE * file;
+
+
+    memset (buffer, NIL, sizeof (buffer));
+
+    memset (buffer3, NIL, sizeof (buffer3));
+
+
+    sprintf (buffer3, "fr%d", replay_index);
+
+
+    strcat (buffer, get_config_string ("gui", "save_path", "./"));
+
+    put_backslash (buffer);
+
+
+    strcat (buffer, get_filename (global_rom.filename));
+
+
+    replace_extension (buffer, buffer, buffer3, sizeof (buffer));
+
+
+    replay_file = pack_fopen (buffer, "r");
+
+    if (replay_file)
+    {
+        PACKFILE * file;
+
+
+        UINT8 signature [4];
+    
+    
+        int version;
+
+
+        UINT32 trainer_crc;
+
+
+        UINT32 prg_rom_crc;
+
+        UINT32 chr_rom_crc;
+
+
+        file = replay_file;
+
+
+        pack_fread (signature, 4, file);
+    
+    
+        if (strncmp (signature, "FNSS", 4))
+        {
+            gui_message (error_color, "Machine state file is invalid.");
+    
+    
+            pack_fclose (file);
+    
+    
+            return (D_O_K);
+        }
+    
+    
+        version = pack_igetw (file);
+    
+    
+        if (version > 0x0100)
+        {
+            gui_message (error_color, "Machine state file is of a future version.");
+    
+    
+            pack_fclose (file);
+    
+    
+            return (D_O_K);
+        }
+    
+
+        pack_fread (buffer2, sizeof (buffer2), file);
+
+
+        trainer_crc = pack_igetl (file);
+
+
+        prg_rom_crc = pack_igetl (file);
+
+        chr_rom_crc = pack_igetl (file);
+
+
+        if ((trainer_crc != global_rom.trainer_crc32) ||
+           ((prg_rom_crc != global_rom.prg_rom_crc32) || (chr_rom_crc != global_rom.chr_rom_crc32)))
+        {
+            gui_message (error_color, "Machine state file is for a different ROM.");
+    
+    
+            pack_fclose (file);
+    
+    
+            return (D_O_K);
+        }
+
+
+        machine_reset ();
+    
+
+        /* We ignore signatures for now, this will be used in the
+        future to load chunks in any order. */
+
+        pack_fread (signature, 4, file);
+
+        cpu_load_state (file, version);
+
+
+        pack_fread (signature, 4, file);
+
+        ppu_load_state (file, version);
+
+
+        pack_fread (signature, 4, file);
+    
+        papu_load_state (file, version);
+    
+
+        pack_fread (signature, 4, file);
+
+        mmc_load_state (file, version);
+
+
+        pack_fread (signature, 4, file);
+    
+        input_load_state (file, version);
+    
+
+        pack_fread (signature, 4, file);
+
+
+        if (strncmp (signature, "REPL", 4))
+        {
+            gui_message (error_color, "Machine state file is missing replay chunk.");
+    
+    
+            pack_fclose (file);
+    
+    
+            return (D_O_K);
+        }
+    
+
+        replay_file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+        DISABLE_MENU (main_replay_play_menu, 0);
+    
+        ENABLE_MENU (main_replay_play_menu, 2);
+    
+    
+        DISABLE_MENU (main_menu, 0);
+    
+
+        DISABLE_MENU (main_replay_menu, 0);
+
+        DISABLE_MENU (main_replay_menu, 2);
+
+
+        DISABLE_MENU (machine_menu, 0);
+    
+        DISABLE_MENU (machine_menu, 6);
+    
+    
+        DISABLE_MENU (machine_state_menu, 4);
+    
+    
+        DISABLE_MENU (top_menu, 3);
+    
+    
+        input_mode &= ~INPUT_MODE_PLAY;
+
+
+        input_mode |= INPUT_MODE_REPLAY;
+
+        input_mode |= INPUT_MODE_REPLAY_PLAY;
+
+
+        gui_message (gui_fg_color, "Replay playback started.");
+
+
+        return (D_CLOSE);
+    }
+    else
+    {
+        gui_message (error_color, "Machine state file does not exist.");
+
+
+        return (D_O_K);
+    }
+}
+
+
+static int main_replay_play_menu_stop (void)
+{
+    pack_fclose_chunk (replay_file_chunk);
+
+
+    pack_fclose (replay_file);
+
+
+    if (! (input_mode & INPUT_MODE_CHAT))
+    {
+        input_mode |= INPUT_MODE_PLAY;
+    }
+
+
+    input_mode &= ~INPUT_MODE_REPLAY;
+
+    input_mode &= ~INPUT_MODE_REPLAY_PLAY;
+
+
+    ENABLE_MENU (main_replay_play_menu, 0);
+
+    DISABLE_MENU (main_replay_play_menu, 2);
+
+
+    ENABLE_MENU (main_menu, 0);
+
+
+    ENABLE_MENU (main_replay_menu, 0);
+
+    ENABLE_MENU (main_replay_menu, 2);
+
+
+    ENABLE_MENU (machine_menu, 0);
+
+    ENABLE_MENU (machine_menu, 6);
+
+
+    ENABLE_MENU (machine_state_menu, 4);
+
+
+    ENABLE_MENU (top_menu, 3);
+
+
+    if (gui_is_active)
+    {
+        gui_message (gui_fg_color, "Replay playback stopped.");
+    }
+    else
+    {
+        gui_message (gui_fg_color, "Replay playback finished.");
+    }
+
+
+    return (D_O_K);
+}
+
+
 static int main_menu_load_rom (void)
 {
     ROM test_rom;
@@ -1070,6 +1711,11 @@ static int main_menu_load_rom (void)
             machine_state_menu_select ();
 
 
+            /* Update replay titles. */
+
+            main_replay_menu_select ();
+
+
             rom_is_loaded = TRUE;
     
             machine_init ();
@@ -1080,6 +1726,8 @@ static int main_menu_load_rom (void)
                 ENABLE_MENU (main_menu, 2);
     
                 ENABLE_MENU (main_menu, 4);
+
+                ENABLE_MENU (main_menu, 6);
     
     
                 ENABLE_MENU (machine_menu, 0);

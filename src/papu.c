@@ -29,6 +29,8 @@ You must read and accept the license prior to use.
 
 #include "apu.h"
 
+#include "input.h"
+
 #include "papu.h"
 
 
@@ -435,7 +437,7 @@ void papu_process (void)
     }
 
 
-    if (key [KEY_TILDE])
+    if ((key [KEY_TILDE]) && (! (input_mode & INPUT_MODE_CHAT)))
     {
         if (! fast_forward)
         {

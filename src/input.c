@@ -45,7 +45,7 @@ You must read and accept the license prior to use.
 int input_enable_zapper = FALSE;
 
 
-int input_mode = INPUT_MODE_PLAY;
+int input_mode = 0;
 
 
 UINT8 input_chat_name [256];
@@ -54,6 +54,11 @@ UINT8 input_chat_text [256];
 
 
 int input_chat_offset = 0;
+
+
+PACKFILE * replay_file = NIL;
+
+PACKFILE * replay_file_chunk = NIL;
 
 
 static int wait_frames = 0;
@@ -291,6 +296,12 @@ int input_init (void)
     memset (input_chat_name, NIL, sizeof (input_chat_name));
 
     memset (input_chat_text, NIL, sizeof (input_chat_text));
+
+
+    input_mode = 0;
+
+
+    input_mode |= INPUT_MODE_PLAY;
 
 
     return (0);
@@ -658,41 +669,82 @@ int input_process (void)
     int speed;
 
 
-    if (input_autosave_interval > 0)
+    if (input_mode & INPUT_MODE_REPLAY_PLAY)
     {
-        speed = ((machine_type == MACHINE_TYPE_NTSC) ? 60 : 50);
-
-
-        if (timing_half_speed)
+        for (player = 0; player < 4; player ++)
         {
-            speed /= 2;
-        }
+            UINT8 byte;
 
 
-        if (++ frames == (input_autosave_interval * speed))
-        {
-            input_autosave_triggered = TRUE;
+            int button;
 
 
-            /* Simulate keypress. */
-
-            gui_handle_keypress ((KEY_F3 << 8));
+            byte = pack_getc (replay_file_chunk);
 
 
-            input_autosave_triggered = FALSE;
+            for (button = 0; button < 8; button ++)
+            {
+                buttons [player] [button] = ((byte & (1 << button)) ? 1 : 0);
+            }
 
 
-            frames = 0;
+            if (pack_feof (replay_file_chunk))
+            {
+                gui_stop_replay ();
+
+
+                return (FALSE);
+            }
         }
     }
 
 
-    if (wait_frames > 0)
+  stop:
+
+    if ((input_mode & INPUT_MODE_PLAY) || (input_mode & INPUT_MODE_CHAT))
     {
-        wait_frames --;
+        if (! (input_mode & INPUT_MODE_REPLAY_RECORD))
+        {
+            if (input_autosave_interval > 0)
+            {
+                speed = ((machine_type == MACHINE_TYPE_NTSC) ? 60 : 50);
+        
+        
+                if (timing_half_speed)
+                {
+                    speed /= 2;
+                }
+        
+        
+                if (++ frames == (input_autosave_interval * speed))
+                {
+                    input_autosave_triggered = TRUE;
+        
+        
+                    /* Simulate keypress. */
+        
+                    gui_handle_keypress ((KEY_F3 << 8));
+        
+        
+                    input_autosave_triggered = FALSE;
+        
+        
+                    frames = 0;
+                }
+            }
+        }
+    }
 
 
-        return (FALSE);
+    if (input_mode & INPUT_MODE_PLAY)
+    {
+        if (wait_frames > 0)
+        {
+            wait_frames --;
+    
+    
+            return (FALSE);
+        }
     }
 
 
@@ -707,7 +759,7 @@ int input_process (void)
         index = readkey ();
 
 
-        if (input_mode == INPUT_MODE_CHAT)
+        if (input_mode & INPUT_MODE_CHAT)
         {
             switch ((index >> 8))
             {
@@ -752,7 +804,13 @@ int input_process (void)
                     input_chat_offset = 0;
 
 
-                    input_mode = INPUT_MODE_PLAY;
+                    input_mode &= ~INPUT_MODE_CHAT;
+
+
+                    if (! (input_mode & INPUT_MODE_REPLAY_PLAY))
+                    {
+                        input_mode |= INPUT_MODE_PLAY;
+                    }
 
 
                     speed = ((machine_type == MACHINE_TYPE_NTSC) ? 60 : 50);
@@ -795,146 +853,168 @@ int input_process (void)
                     break;
             }
         }
-        else
+
+
+        switch ((index >> 8))
         {
-            switch ((index >> 8))
+            case KEY_F5:
+    
+                ppu_invert_mirroring ();
+    
+    
+                break;
+    
+    
+            case KEY_F6:
+    
+                input_enable_zapper = (! input_enable_zapper);
+    
+    
+                break;
+    
+    
+            case KEY_ESC:
+    
+                suspend_timing ();
+
+
+                show:
+
+                  want_exit = show_gui (FALSE);
+
+
+                if (gui_needs_restart)
+                {
+                    /* Ugh. */
+
+                    goto show;
+                }
+
+
+                resume_timing ();
+    
+    
+                break;
+    
+    
+            case KEY_BACKSPACE:
+    
+                if (! (input_mode & INPUT_MODE_CHAT))
+                {
+                    input_mode &= ~INPUT_MODE_PLAY;
+    
+    
+                    input_mode |= INPUT_MODE_CHAT;
+                }
+    
+    
+                break;
+    
+    
+            default:
+    
+                break;
+        }
+    
+    
+        video_handle_keypress (index);
+    
+    
+        gui_handle_keypress (index);
+    }
+
+
+    if (input_mode & INPUT_MODE_PLAY)
+    {
+        for (player = 0; player < 4; player ++)
+        {
+            switch (input_devices [player])
             {
-                case KEY_ESC:
+                case INPUT_DEVICE_KEYBOARD_1:
     
-                    suspend_timing ();
-    
-    
-                    show:
-    
-                      want_exit = show_gui (FALSE);
+                    do_keyboard_1 (player);
     
     
-                    if (gui_needs_restart)
+                    break;
+    
+    
+                case INPUT_DEVICE_KEYBOARD_2:
+    
+                    do_keyboard_2 (player);
+    
+    
+                    break;
+    
+    
+                case INPUT_DEVICE_JOYSTICK_1:
+    
+                    if (want_poll)
                     {
-                        /* Ugh. */
+                        poll_joystick ();
     
-                        goto show;
+    
+                        want_poll = FALSE;
                     }
     
     
-                    resume_timing ();
+                    do_joystick_1 (player);
     
     
                     break;
     
     
-                case KEY_F5:
+                case INPUT_DEVICE_JOYSTICK_2:
     
-                    ppu_invert_mirroring ();
-    
-    
-                    break;
-    
-    
-                case KEY_F6:
-    
-                    input_enable_zapper = (! input_enable_zapper);
+                    if (want_poll)
+                    {
+                        poll_joystick ();
     
     
-                    break;
+                        want_poll = FALSE;
+                    }
     
     
-                case KEY_BACKSPACE:
+                    do_joystick_2 (player);
     
-                    input_mode = INPUT_MODE_CHAT;
-    
-    
-                    break;
-    
-    
-                default:
     
                     break;
             }
     
     
-            video_handle_keypress (index);
+            /* Prevent up and down from being pressed at the same time */
+            if (buttons [player] [4] && buttons [player] [5])
+            {
+                buttons [player] [4] = buttons [player] [5] = 0;
+            }
     
     
-            gui_handle_keypress (index);
-        }
-    }
-
-
-    if (input_mode == INPUT_MODE_CHAT)
-    {
-        return (FALSE);
-    }
-
-
-    for (player = 0; player < 4; player ++)
-    {
-        switch (input_devices [player])
-        {
-            case INPUT_DEVICE_KEYBOARD_1:
-
-                do_keyboard_1 (player);
-
-
-                break;
-
-
-            case INPUT_DEVICE_KEYBOARD_2:
-
-                do_keyboard_2 (player);
-
-
-                break;
-
-
-            case INPUT_DEVICE_JOYSTICK_1:
-
-                if (want_poll)
+            /* Prevent left and right from being pressed at the same time */
+            if (buttons [player] [6] && buttons [player] [7])
+            {
+                buttons [player] [6] = buttons [player] [7] = 0;
+            }
+    
+    
+            if (input_mode & INPUT_MODE_REPLAY_RECORD)
+            {
+                UINT8 byte = 0;
+    
+    
+                int button;
+    
+    
+                for (button = 0; button < 8; button ++)
                 {
-                    poll_joystick ();
-
-
-                    want_poll = FALSE;
+                    if (buttons [player] [button])
+                    {
+                        byte |= (1 << button);
+                    }
                 }
-
-
-                do_joystick_1 (player);
-
-
-                break;
-
-
-            case INPUT_DEVICE_JOYSTICK_2:
-
-                if (want_poll)
-                {
-                    poll_joystick ();
-
-
-                    want_poll = FALSE;
-                }
-
-
-                do_joystick_2 (player);
-
-
-                break;
+    
+    
+                pack_putc (byte, replay_file_chunk);
+            }
         }
-
-
-        /* Prevent up and down from being pressed at the same time */
-        if (buttons [player] [4] && buttons [player] [5])
-        {
-            buttons [player] [4] = buttons [player] [5] = 0;
-        }
-
-
-        /* Prevent left and right from being pressed at the same time */
-        if (buttons [player] [6] && buttons [player] [7])
-        {
-            buttons [player] [6] = buttons [player] [7] = 0;
-        }
-
     }
 
 

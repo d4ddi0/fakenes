@@ -50,13 +50,18 @@ int input_autosave_triggered;
 int input_mode;
 
 
-enum
-{
-    INPUT_MODE_PLAY,
+#define INPUT_MODE_PLAY             1
 
 
-    INPUT_MODE_CHAT
-};
+#define INPUT_MODE_REPLAY           (1 << 1)
+
+
+#define INPUT_MODE_REPLAY_RECORD    (1 << 2)
+
+#define INPUT_MODE_REPLAY_PLAY      (1 << 3)
+
+
+#define INPUT_MODE_CHAT             (1 << 4)
 
 
 UINT8 input_chat_name [256];
@@ -127,6 +132,11 @@ enum
 
     INPUT_DEVICE_BUTTON_RIGHT
 };
+
+
+PACKFILE * replay_file;
+
+PACKFILE * replay_file_chunk;
 
 
 void input_save_state (PACKFILE *, int);

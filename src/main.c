@@ -753,7 +753,7 @@ int main (int argc, char * argv [])
                 actual_fps_count ++;
     
     
-                if (key [KEY_TILDE])
+                if ((key [KEY_TILDE]) && (! (input_mode & INPUT_MODE_CHAT)))
                 {
                     /* Fast forward. */
 
