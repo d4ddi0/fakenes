@@ -45,7 +45,7 @@ static UINT8 cpu_sram [8192];
 
 static UINT8 * get_patches_filename (UINT8 * buffer, const UINT8 * rom_filename, int buffer_size)
 {
-    memset (buffer, NULL, buffer_size);
+    memset (buffer, NIL, buffer_size);
 
 
     strcat (buffer, get_config_string ("gui", "save_path", "./"));
@@ -74,7 +74,7 @@ void patches_load (const char * rom_filename)
     int index;
 
 
-    memset (cpu_patch_titles, NULL, sizeof (cpu_patch_titles));
+    memset (cpu_patch_titles, NIL, sizeof (cpu_patch_titles));
 
 
     for (index = 0; index < MAX_PATCHES; index ++)
@@ -127,7 +127,7 @@ void patches_load (const char * rom_filename)
             char * title;
 
 
-            memset (buffer, NULL, sizeof (buffer));
+            memset (buffer, NIL, sizeof (buffer));
 
 
             sprintf (buffer, "patch%02d", index);
@@ -192,7 +192,7 @@ void patches_save (const char * rom_filename)
 
     for (index = 0; index < cpu_patch_count; index ++)
     {
-        memset (buffer, NULL, sizeof (buffer));
+        memset (buffer, NIL, sizeof (buffer));
 
 
         sprintf (buffer, "patch%02d", index);
@@ -222,7 +222,7 @@ void patches_save (const char * rom_filename)
 
 static UINT8 * get_sram_filename (UINT8 * buffer, const UINT8 * rom_filename, int buffer_size)
 {
-    memset (buffer, NULL, buffer_size);
+    memset (buffer, NIL, buffer_size);
 
 
     strcat (buffer, get_config_string ("gui", "save_path", "./"));
@@ -287,9 +287,9 @@ void sram_save (const char *rom_filename)
 
 int cpu_init (void)
 {
-    memset (cpu_ram, NULL, sizeof (cpu_ram));
+    memset (cpu_ram, NIL, sizeof (cpu_ram));
 
-    memset (cpu_sram, NULL, sizeof (cpu_sram));
+    memset (cpu_sram, NIL, sizeof (cpu_sram));
 
     /* Trainer support - copy the trainer into the memory map */
     if ((global_rom.control_byte_1 & ROM_CTRL_TRAINER))
@@ -382,7 +382,7 @@ void cpu_memmap_init (void)
     cpu_patch_count = 0;
 
 
-    memset (cpu_patch_info, NULL, sizeof (cpu_patch_info));
+    memset (cpu_patch_info, NIL, sizeof (cpu_patch_info));
 
 
     /* Load patches from patch table. */
@@ -534,7 +534,7 @@ UINT8 * cpu_get_prg_rom_pages (ROM *rom)
     /* 16k PRG ROM page size */
     rom -> prg_rom = malloc (num_pages * 0x4000);
 
-    if (rom -> prg_rom != NULL)
+    if (rom -> prg_rom != NIL)
     {
         /* initialize to a known value for areas not present in image */
         memset (rom -> prg_rom, 0xFF, (num_pages * 0x4000));
