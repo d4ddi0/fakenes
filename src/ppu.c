@@ -564,7 +564,7 @@ void ppu_write (UINT16 address, UINT8 value)
                                   
 
             sprites_clip_enabled =
-                (value & BACKGROUND_CLIP_LEFT_EDGE_BIT);
+                !(value & BACKGROUND_CLIP_LEFT_EDGE_BIT);
 
             break;
 
