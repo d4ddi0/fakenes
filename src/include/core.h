@@ -11,6 +11,7 @@
 /**     commercially. Please, notify me, if you make any    **/   
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 11.June     2002 stainless Added emulation of JAM/HLT.    */
 /* 15.January  2002 TRAC      Added FAST_STACK.              */
 /* 13.January  2002 TRAC      Added option to allow CPU      */
 /*                            cycles to take more than one   */
@@ -98,6 +99,7 @@ typedef struct
   byte TrapBadOps;    /* Set to 1 to warn of illegal opcodes */
   word Trap;          /* Set Trap to address to trace from   */
   byte Trace;         /* Set Trace=1 to start tracing        */
+  byte Jammed;        /* Private, don't touch                */
 } M6502;
 
 /** Reset6502() **********************************************/

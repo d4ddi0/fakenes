@@ -11,6 +11,7 @@
 /**     commercially. Please, notify me, if you make any    **/
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 11.June     2002 stainless $f2 JAM/HLT opcode added.      */
 /* 16.January  2002 TRAC      Added flag emulation to TSX.   */
 /* 09.January  2002 TRAC      Added opcodes 04, 0F, 80.      */
 /* 07.January  2002 TRAC      Altered method of flag         */
@@ -708,6 +709,10 @@ OPCODE_PROLOG(0xFF) /* INS abcd,X */
     I=Rd6502(K.W);
     Wr6502(K.W,++I);
     M_SBC(I);
+OPCODE_EPILOG
+
+OPCODE_PROLOG(0xF2) /* JAM */
+    R->Jammed=1;
 OPCODE_EPILOG
 
 OPCODE_PROLOG_DEFAULT

@@ -13,6 +13,8 @@
 /**     commercially. Please, notify me, if you make any    **/   
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 11.June     2002 stainless Added emulation of JAM/HLT.    */
+/* 11.June     2002 stainless Commented out unused Exec6502. */
 /* 15.January  2002 TRAC      Added FAST_STACK.              */
 /* 13.January  2002 TRAC      Fixed bugs where additive      */
 /*                            cycle counting lost cycles.    */
@@ -343,26 +345,26 @@ static byte opcode_trace[10];
 /** will then return next PC, and current register values   **/
 /** in R.                                                   **/
 /*************************************************************/
-word Exec6502(M6502 *R)
-{
-  byte opcode, cycles;
-
-  opcode=Op6502(R->PC.W++);
-  cycles=Cycles[opcode];
-  R->Cycles+=cycles;
-  R->ICount-=cycles;
-#ifdef DEBUG
-  opcode_trace[opcode_count++]=opcode;
-  if (opcode_count==10) opcode_count=0;
-#endif
-  switch(opcode)
-  {
-#include "core/codes.h"
-  }
-
-  /* We are done */
-  return(R->PC.W);
-}
+//word Exec6502(M6502 *R)
+//{
+//  byte opcode, cycles;
+//
+//  opcode=Op6502(R->PC.W++);
+//  cycles=Cycles[opcode];
+//  R->Cycles+=cycles;
+//  R->ICount-=cycles;
+//#ifdef DEBUG
+//  opcode_trace[opcode_count++]=opcode;
+//  if (opcode_count==10) opcode_count=0;
+//#endif
+//  switch(opcode)
+//  {
+//#include "core/codes.h"
+//  }
+//
+//  /* We are done */
+//  return(R->PC.W);
+//}
 
 /** Int6502() ************************************************/
 /** This function will generate interrupt of a given type.  **/
@@ -372,6 +374,8 @@ word Exec6502(M6502 *R)
 void Int6502(M6502 *R,byte Type)
 {
   pair J;
+
+  if (R->Jammed) return;
 
   if((Type==INT_NMI)||((Type==INT_IRQ)&&!(R->I)))
   {
@@ -405,6 +409,8 @@ void Int6502(M6502 *R,byte Type)
 /*************************************************************/
 word Run6502(M6502 *R)
 {
+  if (R->Jammed) return R->PC.W;
+
   for(;;)
   {
     while (R->ICount>0)
@@ -423,6 +429,10 @@ word Run6502(M6502 *R)
       cycles=Cycles[opcode];
       R->Cycles+=cycles;
       R->ICount-=cycles;
+#ifdef DEBUG
+      opcode_trace[opcode_count++]=opcode;
+      if (opcode_count==10) opcode_count=0;
+#endif
       switch(opcode)
       {
 #include "core/codes.h"
