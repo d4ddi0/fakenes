@@ -103,7 +103,8 @@ ${OBJECT_PATH}/gui${OBJEXT}: \
     ${INCLUDE_PATH}/timing.h \
     ${INCLUDE_PATH}/gui/objects.h \
     ${INCLUDE_PATH}/gui/menus.h \
-    ${INCLUDE_PATH}/gui/dialogs.h
+    ${INCLUDE_PATH}/gui/dialogs.h \
+    ${INCLUDE_PATH}/gui/themes.h
 
 ${OBJECT_PATH}/input${OBJEXT}: \
     input.c \

@@ -37,4 +37,7 @@ You must read and accept the license prior to use.
 #define DATA_TO_RGB(id)         ((RGB *) DATA (id))
 
 
+#define DATA_TO_SAMPLE(id)      ((SAMPLE *) DATA (id))
+
+
 #endif /* ! DATA_H_INCLUDED */

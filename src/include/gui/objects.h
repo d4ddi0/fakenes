@@ -36,16 +36,18 @@ int sl_text (int message, DIALOG * dialog, int key)
 
                 /* d1 = shadow color. */
 
-                gui_textout_ex (dialog -> dp, dialog -> dp2, (x + 1), (y + 1), dialog -> d1, -1, FALSE);
+                /* gui_textout_ex (dialog -> dp, dialog -> dp2, (x + 1), (y + 1), dialog -> d1, -1, FALSE); */
+
+                gui_textout_ex (dialog -> dp, dialog -> dp2, (x + 1), (y + 1), GUI_SHADOW_COLOR, -1, FALSE);
 
 
                 if (dialog -> flags & D_DISABLED)
                 {
-                    gui_textout_ex (dialog -> dp, dialog -> dp2, x, y, gui_mg_color, -1, FALSE);
+                    gui_textout_ex (dialog -> dp, dialog -> dp2, x, y, GUI_DISABLED_COLOR, -1, FALSE);
                 }
                 else
                 {
-                    gui_textout_ex (dialog -> dp, dialog -> dp2, x, y, gui_fg_color, -1, FALSE);
+                    gui_textout_ex (dialog -> dp, dialog -> dp2, x, y, GUI_TEXT_COLOR, -1, FALSE);
                 }
             }
 
@@ -131,49 +133,59 @@ int sl_frame (int message, DIALOG * dialog, int key)
 
                 /* d1 = shadow color. */
 
-                rect (dialog -> dp, (x + 1), (y + 1), (x2 + 1), (y2 + 1), dialog -> d1);
+                /* rect (dialog -> dp, (x + 1), (y + 1), (x2 + 1), (y2 + 1), dialog -> d1); */
+
+                rect (dialog -> dp, (x + 1), (y + 1), (x2 + 1), (y2 + 1), GUI_SHADOW_COLOR);
         
-        
-                for (pixel = 0; pixel < dialog -> w; pixel ++)
+
+                if (GUI_GRADIENT_START_COLOR == GUI_GRADIENT_END_COLOR)
                 {
-                    int shade;
-
-
-                    int x_offset;
-
-                    int y_offset;
+                    rectfill (screen, x, y, (x + (dialog -> w - 1)), y2, GUI_GRADIENT_START_COLOR);
+                }
+                else
+                {
+                    video_create_gradient (GUI_GRADIENT_START_COLOR, GUI_GRADIENT_END_COLOR, dialog -> w, NIL, NIL);
     
-
-                    shade = (191 - ((pixel * 128) / dialog -> w));
-
-
-                    x_offset = (x + pixel);
-
-
-                    for (y_offset = y; y_offset <= y2; y_offset ++)
+    
+                    for (pixel = 0; pixel < dialog -> w; pixel ++)
                     {
-                        putpixel (screen, x_offset, y_offset, video_create_color_dither (shade, shade, shade, x_offset, y_offset));
+                        int x_offset;
+    
+                        int y_offset;
+    
+    
+                        x_offset = (x + pixel);
+    
+    
+                        for (y_offset = y; y_offset <= y2; y_offset ++)
+                        {
+                            putpixel (screen, x_offset, y_offset, video_create_gradient (NIL, NIL, NIL, x_offset, y_offset));
+                        }
                     }
                 }
 
         
-                rect (dialog -> dp, x, y, x2, y2, gui_fg_color);
+                rect (dialog -> dp, x, y, x2, y2, GUI_BORDER_COLOR);
 
 
-                rectfill (dialog -> dp, (x + 1), (y + 1), (x2 - 1), ((text_height (font) + text_y) + 4), gui_bg_color);
+                rectfill (dialog -> dp, (x + 1), (y + 1), (x2 - 1), ((text_height (font) + text_y) + 4), GUI_FILL_COLOR);
 
 
-                textout_ex (dialog -> dp, font, dialog -> dp2, (text_x + 1), (text_y + 1), dialog -> d1, -1);
+                /* textout_ex (dialog -> dp, font, dialog -> dp2, (text_x + 1), (text_y + 1), dialog -> d1, -1); */
 
-                textout_ex (dialog -> dp, font, dialog -> dp2, text_x, text_y, gui_fg_color, -1);
+                textout_ex (dialog -> dp, font, dialog -> dp2, (text_x + 1), (text_y + 1), GUI_SHADOW_COLOR, -1);
+
+                textout_ex (dialog -> dp, font, dialog -> dp2, text_x, text_y, GUI_TEXT_COLOR, -1);
 
 
-                hline (dialog -> dp, (x + 1), ((text_height (font) + text_y) + 4), (x2 - 1), gui_fg_color);
+                hline (dialog -> dp, (x + 1), ((text_height (font) + text_y) + 4), (x2 - 1), GUI_BORDER_COLOR);
 
 
-                hline (dialog -> dp, ((x + 1) - 1), (((text_height (font) + text_y) + 4) + 1), ((x2 - 1) + 1), dialog -> d1);
+                /* hline (dialog -> dp, ((x + 1) - 1), (((text_height (font) + text_y) + 4) + 1), ((x2 - 1) + 1), dialog -> d1); */
 
-                hline (dialog -> dp, ((x + 1) - 1), (((text_height (font) + text_y) + 4) + 2), ((x2 - 1) + 1), gui_fg_color);
+                hline (dialog -> dp, ((x + 1) - 1), (((text_height (font) + text_y) + 4) + 1), ((x2 - 1) + 1), GUI_SHADOW_COLOR);
+
+                hline (dialog -> dp, ((x + 1) - 1), (((text_height (font) + text_y) + 4) + 2), ((x2 - 1) + 1), GUI_BORDER_COLOR);
             }
 
 
@@ -215,7 +227,7 @@ int sl_frame (int message, DIALOG * dialog, int key)
                                 dialog -> w - 1),
                                 (dialog -> y + move_y - old_y +
                                 dialog -> h - 1),
-                                gui_fg_color);
+                                GUI_BORDER_COLOR);
                         }
 
 
@@ -228,7 +240,7 @@ int sl_frame (int message, DIALOG * dialog, int key)
                             (dialog -> y + move_y - old_y),
                             (dialog -> x + move_x - old_x + dialog -> w - 1),
                             (dialog -> y + move_y - old_y + dialog -> h - 1),
-                            gui_fg_color);
+                            GUI_BORDER_COLOR);
 
                         box_was_drawn = TRUE;
 
@@ -290,14 +302,6 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
     int old_fg = 0;
 
 
-    if (menu -> flags & D_DISABLED)
-    {
-        old_fg = gui_fg_color;
-
-        gui_fg_color = gui_mg_color;
-    }
-
-
     if (ugetc (menu -> text))
     {
         i = 0;
@@ -320,42 +324,54 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
         {
             int pixel;
     
-    
-            for (pixel = 0; pixel < width; pixel ++)
+
+            if (GUI_GRADIENT_START_COLOR == GUI_GRADIENT_END_COLOR)
             {
-                int shade;
-
-
-                int x_offset;
-
-                int y_offset;
-
-
-                shade = (191 - (((pixel + 1) * 128) / width));
-
-
-                x_offset = (x + pixel);
-
-
-                for (y_offset = y; y_offset <= (y + (text_height (font) + 3)); y_offset ++)
+                rectfill (screen, x, y, (x + (width - 1)), (y + (text_height (font) + 3)), GUI_GRADIENT_START_COLOR);
+            }
+            else
+            {
+                video_create_gradient (GUI_GRADIENT_START_COLOR, GUI_GRADIENT_END_COLOR, width, NIL, NIL);
+    
+    
+                for (pixel = 0; pixel < width; pixel ++)
                 {
-                    putpixel (screen, x_offset, y_offset, video_create_color_dither (shade, shade, shade, x_offset, y_offset));
+                    int x_offset;
+    
+                    int y_offset;
+    
+    
+                    x_offset = (x + pixel);
+    
+    
+                    for (y_offset = y; y_offset <= (y + (text_height (font) + 3)); y_offset ++)
+                    {
+                        putpixel (screen, x_offset, y_offset, video_create_gradient (NIL, NIL, NIL, x_offset, y_offset));
+                    }
                 }
             }
         }
         else if (selected)
         {
-            rectfill (screen, x, y, (x + (width - 1)), (y + (text_height (font) + 3)), video_create_color (0, 0, 0));
+            rectfill (screen, x, y, (x + (width - 1)), (y + (text_height (font) + 3)), GUI_SELECTED_COLOR);
         }
         else
         {
-            rectfill (screen, x, y, (x + (width - 1)), (y + (text_height (font) + 3)), gui_bg_color);
+            rectfill (screen, x, y, (x + (width - 1)), (y + (text_height (font) + 3)), GUI_MENU_BAR_COLOR);
         }
 
 
-        gui_textout_ex (screen, buf, (x + 9), (y + 2), video_create_color (0, 0, 0), -1, FALSE);
+        gui_textout_ex (screen, buf, (x + 9), (y + 2), GUI_SHADOW_COLOR, -1, FALSE);
 
-        gui_textout_ex (screen, buf, (x + 8), (y + 1), gui_fg_color, -1, FALSE);
+
+        if (menu -> flags & D_DISABLED)
+        {
+            gui_textout_ex (screen, buf, (x + 8), (y + 1), GUI_DISABLED_COLOR, -1, FALSE);
+        }
+        else
+        {
+            gui_textout_ex (screen, buf, (x + 8), (y + 1), GUI_TEXT_COLOR, -1, FALSE);
+        }
 
 
         if (j == '\t')
@@ -363,9 +379,17 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
             tok = ((menu -> text + i) + uwidth ((menu -> text + i)));
 
 
-            gui_textout_ex (screen, tok, (x + ((width - (gui_strlen (tok) - 10)) + 1)), (y + 2), video_create_color (0, 0, 0), -1, FALSE);
+            gui_textout_ex (screen, tok, (x + ((width - (gui_strlen (tok) - 10)) + 1)), (y + 2), GUI_SHADOW_COLOR, -1, FALSE);
 
-            gui_textout_ex (screen, tok, (x + (width - (gui_strlen (tok) - 10))), (y + 1), gui_fg_color, -1, FALSE);
+
+            if (menu -> flags & D_DISABLED)
+            {
+                gui_textout_ex (screen, tok, (x + (width - (gui_strlen (tok) - 10))), (y + 1), GUI_DISABLED_COLOR, -1, FALSE);
+            }
+            else
+            {
+                gui_textout_ex (screen, tok, (x + (width - (gui_strlen (tok) - 10))), (y + 1), GUI_TEXT_COLOR, -1, FALSE);
+            }
         }
 
 
@@ -377,61 +401,73 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
             centre_y = (y + (text_height (font) / 2));
 
 
-            triangle (screen, ((x + (width - 4)) + 1), (centre_y + 1), ((x + (width - 8)) + 1), ((centre_y - 4) + 1), ((x + (width - 8)) + 1), ((centre_y + 4) + 1), video_create_color (0, 0, 0));
+            triangle (screen, ((x + (width - 4)) + 1), (centre_y + 1), ((x + (width - 8)) + 1), ((centre_y - 4) + 1), ((x + (width - 8)) + 1), ((centre_y + 4) + 1), GUI_SHADOW_COLOR);
                                              
-            triangle (screen, (x + (width - 4)), centre_y, (x + (width - 8)), (centre_y - 4), (x + (width - 8)), (centre_y + 4), gui_fg_color);
+
+            if (menu -> flags & D_DISABLED)
+            {
+                triangle (screen, (x + (width - 4)), centre_y, (x + (width - 8)), (centre_y - 4), (x + (width - 8)), (centre_y + 4), GUI_DISABLED_COLOR);
+            }
+            else
+            {
+                triangle (screen, (x + (width - 4)), centre_y, (x + (width - 8)), (centre_y - 4), (x + (width - 8)), (centre_y + 4), GUI_TEXT_COLOR);
+            }
         }
     }
     else
     {
+        int pixel;
+
+
+        if (GUI_GRADIENT_START_COLOR == GUI_GRADIENT_END_COLOR)
         {
-            int pixel;
+            rectfill (screen, x, y, (x + (width - 1)), (y + (text_height (font) + 3)), GUI_GRADIENT_START_COLOR);
+        }
+        else
+        {
+            video_create_gradient (GUI_GRADIENT_START_COLOR, GUI_GRADIENT_END_COLOR, width, NIL, NIL);
     
     
             for (pixel = 0; pixel < width; pixel ++)
             {
-                int shade;
-
-
                 int x_offset;
-
+    
                 int y_offset;
-
-
-                shade = (191 - ((pixel * 128) / width));
-
-
+    
+    
                 x_offset = (x + pixel);
-
-
+    
+    
                 for (y_offset = y; y_offset <= (y + (text_height (font) + 3)); y_offset ++)
                 {
-                    putpixel (screen, x_offset, y_offset, video_create_color_dither (shade, shade, shade, x_offset, y_offset));
+                    putpixel (screen, x_offset, y_offset, video_create_gradient (NIL, NIL, NIL, x_offset, y_offset));
                 }
             }
         }
 
 
-        hline (screen, x, (y + (text_height (font) / 2)), (x + width), gui_mg_color);
+        hline (screen, x, (y + (text_height (font) / 2)), (x + width), GUI_LIGHT_SHADOW_COLOR);
 
-        hline (screen, x, (y + ((text_height (font) / 2) + 2)), (x + (width - 1)), gui_fg_color);
+        hline (screen, x, (y + ((text_height (font) / 2) + 2)), (x + (width - 1)), GUI_BORDER_COLOR);
 
 
-        hline (screen, (x - 1), (y + ((text_height (font) / 2) + 1)), (x + width), video_create_color (0, 0, 0));
+        hline (screen, (x - 1), (y + ((text_height (font) / 2) + 1)), (x + width), GUI_SHADOW_COLOR);
     }
 
 
     if (menu -> flags & D_SELECTED)
     {
-        circlefill (screen, ((x + 3) + 1), ((y + (text_height (font) / 2)) + 1), 2, video_create_color (0, 0, 0));
-
-        circlefill (screen, (x + 3), (y + (text_height (font) / 2)), 2, gui_fg_color);
-    }
+        circlefill (screen, ((x + 3) + 1), ((y + (text_height (font) / 2)) + 1), 2, GUI_SHADOW_COLOR);
 
 
-    if (menu -> flags & D_DISABLED)
-    {
-        gui_fg_color = old_fg;
+        if (menu -> flags & D_DISABLED)
+        {
+            circlefill (screen, (x + 3), (y + (text_height (font) / 2)), 2, GUI_DISABLED_COLOR);
+        }
+        else
+        {
+            circlefill (screen, (x + 3), (y + (text_height (font) / 2)), 2, GUI_TEXT_COLOR);
+        }
     }
 }
 
@@ -445,14 +481,12 @@ static void sl_draw_menu (int x, int y, int width, int height)
     height --;
 
 
-    /* 0 = shadow color. */
+    vline (screen, (x + width), (y + 1), (y + height), GUI_SHADOW_COLOR);
 
-    vline (screen, (x + width), (y + 1), (y + height), 0);
-
-    hline (screen, (x + 1), (y + height), (x + width), 0);
+    hline (screen, (x + 1), (y + height), (x + width), GUI_SHADOW_COLOR);
 
 
-    rect (screen, x, y, (x + (width - 1)), (y + (height - 1)), gui_fg_color);
+    rect (screen, x, y, (x + (width - 1)), (y + (height - 1)), GUI_BORDER_COLOR);
 }
 
 

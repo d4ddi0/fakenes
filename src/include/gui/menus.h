@@ -240,6 +240,31 @@ static MENU netplay_menu [] =
 };
 
 
+static int options_gui_theme_menu_classic (void);
+
+static int options_gui_theme_menu_stainless_steel (void);
+
+static int options_gui_theme_menu_zero_4 (void);
+
+
+static MENU options_gui_theme_menu [] =
+{
+    {         "&1: Classic",         options_gui_theme_menu_classic, NIL, 0, NIL },
+    {                    "",                                    NIL, NIL, 0, NIL },
+    { "&2: stainless Steel", options_gui_theme_menu_stainless_steel, NIL, 0, NIL },
+    {                    "",                                    NIL, NIL, 0, NIL },
+    {          "&3: Zero 4",          options_gui_theme_menu_zero_4, NIL, 0, NIL },
+    {                   NIL,                                    NIL, NIL, 0, NIL }
+};
+
+
+static MENU options_gui_menu [] =
+{
+    { "&Theme", NIL, options_gui_theme_menu, 0, NIL },
+    {      NIL, NIL,                    NIL, 0, NIL }
+};
+
+
 static int options_system_menu_ntsc_60_hz (void);
 
 static int options_system_menu_pal_50_hz (void);
@@ -951,6 +976,8 @@ static int options_menu_patches (void);
 static MENU options_menu [] =
 {
     {     "&Status",  options_menu_status,                 NIL, 0, NIL },
+    {            "",                  NIL,                 NIL, 0, NIL },
+    {        "&GUI",                  NIL,    options_gui_menu, 0, NIL },
     {            "",                  NIL,                 NIL, 0, NIL },
     {     "S&ystem",                  NIL, options_system_menu, 0, NIL },
     {            "",                  NIL,                 NIL, 0, NIL },

@@ -69,7 +69,24 @@ static int dialog_y = 0;
 static int restart_dialog = FALSE;
 
 
+GUI_THEME gui_theme;
+
+
+GUI_THEME * last_theme = NIL;
+
+
+RGB * gui_image_palette = NIL;
+
+
+static BITMAP * mouse_sprite = NIL;
+
+
+static BITMAP * background_image = NIL;
+
+
 /* Keep these in order! */
+
+#include "gui/themes.h"
 
 #include "gui/objects.h"
 
@@ -97,25 +114,64 @@ static RGB * current_palette = NIL;
 static PALETTE custom_palette;
 
 
-static int shadow_color = 0;
+static INLINE void pack_color (GUI_COLOR * color)
+{
+    int red;
 
-static int error_color = 0;
+    int green;
+
+    int blue;
+
+
+    red = (color -> red * 255);
+
+    green = (color -> green * 255);
+
+    blue = (color -> blue * 255);
+
+
+    color -> packed = video_create_color (red, green, blue);
+}
+
+
+void gui_set_theme (GUI_THEME * theme)
+{
+    int index;
+
+
+    last_theme = theme;
+
+
+    memcpy (&gui_theme, theme, sizeof (GUI_THEME));
+
+
+    video_set_palette (NIL);
+
+
+    for (index = 0; index < GUI_TOTAL_COLORS; index ++)
+    {
+        pack_color (&gui_theme [index]);
+    }
+
+
+    gui_bg_color = GUI_FILL_COLOR;
+
+    gui_fg_color = GUI_TEXT_COLOR;
+
+
+    gui_mg_color = GUI_DISABLED_COLOR;
+}
 
 
 static void update_colors (void)
 {
-    gui_bg_color = video_create_color (127, 127, 127);
-
-    gui_fg_color = video_create_color (255, 255, 255);
-
-
-    gui_mg_color = video_create_color (191, 191, 191);
+    if (last_theme)
+    {
+        gui_set_theme (last_theme);
+    }
 
 
-    shadow_color = video_create_color (0, 0, 0);
-
-
-    error_color  = video_create_color (255, 63, 0);
+    broadcast_dialog_message (MSG_DRAW, NIL);
 }
 
 
@@ -143,15 +199,15 @@ static void gui_message_border (void)
     y2 = (SCREEN_H - 16);
 
 
-    vline (screen, (x2 + 1), (y + 1), (y2 + 1), shadow_color);
+    vline (screen, (x2 + 1), (y + 1), (y2 + 1), GUI_SHADOW_COLOR);
 
-    hline (screen, (x + 1), (y2 + 1), (x2 + 1), shadow_color);
-
-
-    rectfill (screen, x, y, x2, y2, gui_bg_color);
+    hline (screen, (x + 1), (y2 + 1), (x2 + 1), GUI_SHADOW_COLOR);
 
 
-    rect (screen, x, y, x2, y2, gui_fg_color);
+    rectfill (screen, x, y, x2, y2, GUI_FILL_COLOR);
+
+
+    rect (screen, x, y, x2, y2, GUI_BORDER_COLOR);
 }
 
 
@@ -357,7 +413,7 @@ void gui_handle_keypress (int index)
                 machine_state_index = ((index >> 8) - KEY_0);
     
     
-                gui_message (gui_fg_color, "Machine state slot set to %d.", machine_state_index);
+                gui_message (GUI_TEXT_COLOR, "Machine state slot set to %d.", machine_state_index);
             }
 
 
@@ -403,7 +459,7 @@ int gui_show_dialog (DIALOG * dialog)
         }
 
 
-        dialog [index].fg = gui_fg_color;
+        dialog [index].fg = GUI_TEXT_COLOR;
 
         dialog [index].bg = gui_bg_color;
 
@@ -530,6 +586,13 @@ static INLINE void update_menus (void)
 
 
     TOGGLE_MENU (options_menu, 0, video_display_status);
+
+
+    TOGGLE_MENU (options_gui_theme_menu, 0, (last_theme == &classic_theme));
+
+    TOGGLE_MENU (options_gui_theme_menu, 2, (last_theme == &stainless_steel_theme));
+
+    TOGGLE_MENU (options_gui_theme_menu, 4, (last_theme == &zero_4_theme));
 
 
     TOGGLE_MENU (options_system_menu, 0, (machine_type == MACHINE_TYPE_NTSC));
@@ -786,26 +849,23 @@ static INLINE void update_menus (void)
 extern UINT8 logfile [256];
 
 
-static INLINE void draw_logo (void)
+static INLINE void draw_background (void)
 {
     if (! rom_is_loaded)
     {
-        BITMAP * logo;
+        rectfill (screen, 0, 0, SCREEN_W, SCREEN_H, GUI_BACKGROUND_COLOR);
 
 
-        logo = DATA_TO_BITMAP (LOGO_BITMAP);
-
-
-        blit (logo, screen, 0, 0, ((SCREEN_W / 2) - (logo -> w / 2)), ((SCREEN_H / 2) - (logo -> h / 2)), logo -> w, logo -> h);
+        if (background_image)
+        {
+            blit (background_image, screen, 0, 0, ((SCREEN_W / 2) - (background_image -> w / 2)), ((SCREEN_H / 2) - (background_image -> h / 2)), background_image -> w, background_image -> h);
+        }
     }
 }
 
 
 int show_gui (int first_run)
 {
-    update_colors ();
-
-
     gui_needs_restart = FALSE;
 
     gui_is_active = TRUE;
@@ -868,7 +928,16 @@ int show_gui (int first_run)
         CHECK_MENU (options_video_palette_menu, 0);
     
 
+        set_zero_4_theme ();
+
+
         gui_initialized = TRUE;
+    }
+
+
+    if (mouse_sprite)
+    {
+        set_mouse_sprite (mouse_sprite);
     }
 
 
@@ -898,14 +967,14 @@ int show_gui (int first_run)
     video_blit (screen);
 
 
-    draw_logo ();
+    draw_background ();
 
 
     switch (video_get_color_depth ())
     {
         case 8:
 
-            gui_message (gui_fg_color, "%dx%d 8-bit, %s.", SCREEN_W, SCREEN_H, gfx_driver -> name);
+            gui_message (GUI_TEXT_COLOR, "%dx%d 8-bit, %s.", SCREEN_W, SCREEN_H, gfx_driver -> name);
 
 
             break;
@@ -913,7 +982,7 @@ int show_gui (int first_run)
 
         case 15:
 
-            gui_message (gui_fg_color, "%dx%d 15-bit, %s.", SCREEN_W, SCREEN_H, gfx_driver -> name);
+            gui_message (GUI_TEXT_COLOR, "%dx%d 15-bit, %s.", SCREEN_W, SCREEN_H, gfx_driver -> name);
 
 
             break;
@@ -921,7 +990,7 @@ int show_gui (int first_run)
 
         case 16:
 
-            gui_message (gui_fg_color, "%dx%d 16-bit, %s.", SCREEN_W, SCREEN_H, gfx_driver -> name);
+            gui_message (GUI_TEXT_COLOR, "%dx%d 16-bit, %s.", SCREEN_W, SCREEN_H, gfx_driver -> name);
 
 
             break;
@@ -929,7 +998,7 @@ int show_gui (int first_run)
 
         case 32:
 
-            gui_message (gui_fg_color, "%dx%d 32-bit, %s.", SCREEN_W, SCREEN_H, gfx_driver -> name);
+            gui_message (GUI_TEXT_COLOR, "%dx%d 32-bit, %s.", SCREEN_W, SCREEN_H, gfx_driver -> name);
 
 
             break;
@@ -994,7 +1063,7 @@ int show_gui (int first_run)
     video_blit (screen);
 
 
-    draw_logo ();
+    draw_background ();
 
 
     audio_resume ();
@@ -1019,7 +1088,7 @@ static int netplay_handler (int message, DIALOG * dialog, int key)
             int result;
 
 
-            gui_message (gui_fg_color, "Accepted connection from client.");
+            gui_message (GUI_TEXT_COLOR, "Accepted connection from client.");
 
 
             result = main_menu_load_rom ();
@@ -1030,7 +1099,7 @@ static int netplay_handler (int message, DIALOG * dialog, int key)
             }
             else
             {
-                gui_message (gui_fg_color, "NetPlay session canceled.");
+                gui_message (GUI_TEXT_COLOR, "NetPlay session canceled.");
             }
         }
     }
@@ -1051,7 +1120,7 @@ static int netplay_handler (int message, DIALOG * dialog, int key)
         update_menus ();                        \
                                                 \
                                                 \
-        gui_message (gui_fg_color, "Replay"     \
+        gui_message (GUI_TEXT_COLOR, "Replay"     \
             " slot set to %d.", replay_index);          \
                                                 \
                                                 \
@@ -1320,7 +1389,7 @@ static int main_replay_record_menu_start (void)
         input_mode |= INPUT_MODE_REPLAY_RECORD;
     
     
-        gui_message (gui_fg_color, "Replay recording session started.");
+        gui_message (GUI_TEXT_COLOR, "Replay recording session started.");
     
 
         /* Update save state titles. */
@@ -1332,7 +1401,7 @@ static int main_replay_record_menu_start (void)
     }
     else
     {
-        gui_message (error_color, "Failed to open new machine state file.");
+        gui_message (GUI_ERROR_COLOR, "Failed to open new machine state file.");
     }
 
 
@@ -1372,7 +1441,7 @@ static int main_replay_record_menu_stop (void)
     ENABLE_MENU (top_menu, 2);
 
 
-    gui_message (gui_fg_color, "Replay recording session stopped.");
+    gui_message (GUI_TEXT_COLOR, "Replay recording session stopped.");
 
 
     return (D_O_K);
@@ -1439,7 +1508,7 @@ static int main_replay_play_menu_start (void)
     
         if (strncmp (signature, "FNSS", 4))
         {
-            gui_message (error_color, "Machine state file is invalid.");
+            gui_message (GUI_ERROR_COLOR, "Machine state file is invalid.");
     
     
             pack_fclose (file);
@@ -1454,7 +1523,7 @@ static int main_replay_play_menu_start (void)
     
         if (version > 0x0100)
         {
-            gui_message (error_color, "Machine state file is of a future version.");
+            gui_message (GUI_ERROR_COLOR, "Machine state file is of a future version.");
     
     
             pack_fclose (file);
@@ -1478,7 +1547,7 @@ static int main_replay_play_menu_start (void)
         if ((trainer_crc != global_rom.trainer_crc32) ||
            ((prg_rom_crc != global_rom.prg_rom_crc32) || (chr_rom_crc != global_rom.chr_rom_crc32)))
         {
-            gui_message (error_color, "Machine state file is for a different ROM.");
+            gui_message (GUI_ERROR_COLOR, "Machine state file is for a different ROM.");
     
     
             pack_fclose (file);
@@ -1524,7 +1593,7 @@ static int main_replay_play_menu_start (void)
 
         if (strncmp (signature, "REPL", 4))
         {
-            gui_message (error_color, "Machine state file is missing replay chunk.");
+            gui_message (GUI_ERROR_COLOR, "Machine state file is missing replay chunk.");
     
     
             pack_fclose (file);
@@ -1564,14 +1633,14 @@ static int main_replay_play_menu_start (void)
         input_mode |= INPUT_MODE_REPLAY_PLAY;
 
 
-        gui_message (gui_fg_color, "Replay playback started.");
+        gui_message (GUI_TEXT_COLOR, "Replay playback started.");
 
 
         return (D_CLOSE);
     }
     else
     {
-        gui_message (error_color, "Machine state file does not exist.");
+        gui_message (GUI_ERROR_COLOR, "Machine state file does not exist.");
 
 
         return (D_O_K);
@@ -1619,11 +1688,11 @@ static int main_replay_play_menu_stop (void)
 
     if (gui_is_active)
     {
-        gui_message (gui_fg_color, "Replay playback stopped.");
+        gui_message (GUI_TEXT_COLOR, "Replay playback stopped.");
     }
     else
     {
-        gui_message (gui_fg_color, "Replay playback finished.");
+        gui_message (GUI_TEXT_COLOR, "Replay playback finished.");
     }
 
 
@@ -1670,7 +1739,7 @@ static int main_menu_load_rom (void)
 
         if (load_rom (buffer, &test_rom) != 0)
         {
-            gui_message (error_color, "Failed to load ROM!");
+            gui_message (GUI_ERROR_COLOR, "Failed to load ROM!");
 
 
             if (netplay_server_active)
@@ -1792,7 +1861,7 @@ static int main_menu_reset (void)
         update_menus ();                        \
                                                 \
                                                 \
-        gui_message (gui_fg_color, "Machine"            \
+        gui_message (GUI_TEXT_COLOR, "Machine"            \
             " state slot set to %d.", machine_state_index);     \
                                                 \
                                                 \
@@ -2044,7 +2113,7 @@ static int main_state_menu_save (void)
 
         if (! input_autosave_triggered)
         {
-            gui_message (gui_fg_color, "Machine state saved in slot %d.", machine_state_index);
+            gui_message (GUI_TEXT_COLOR, "Machine state saved in slot %d.", machine_state_index);
         }
 
 
@@ -2054,7 +2123,7 @@ static int main_state_menu_save (void)
     }
     else
     {
-        gui_message (error_color, "Failed to open new machine state file.");
+        gui_message (GUI_ERROR_COLOR, "Failed to open new machine state file.");
     }
 
 
@@ -2116,7 +2185,7 @@ static int main_state_menu_restore (void)
     
         if (strncmp (signature, "FNSS", 4))
         {
-            gui_message (error_color, "Machine state file is invalid.");
+            gui_message (GUI_ERROR_COLOR, "Machine state file is invalid.");
     
     
             pack_fclose (file);
@@ -2131,7 +2200,7 @@ static int main_state_menu_restore (void)
     
         if (version > 0x0100)
         {
-            gui_message (error_color, "Machine state file is of a future version.");
+            gui_message (GUI_ERROR_COLOR, "Machine state file is of a future version.");
     
     
             pack_fclose (file);
@@ -2155,7 +2224,7 @@ static int main_state_menu_restore (void)
         if ((trainer_crc != global_rom.trainer_crc32) ||
            ((prg_rom_crc != global_rom.prg_rom_crc32) || (chr_rom_crc != global_rom.chr_rom_crc32)))
         {
-            gui_message (error_color, "Machine state file is for a different ROM.");
+            gui_message (GUI_ERROR_COLOR, "Machine state file is for a different ROM.");
     
     
             pack_fclose (file);
@@ -2199,14 +2268,14 @@ static int main_state_menu_restore (void)
         pack_fclose (file);
     
     
-        gui_message (gui_fg_color, "Machine state loaded from slot %d.", machine_state_index);
+        gui_message (GUI_TEXT_COLOR, "Machine state loaded from slot %d.", machine_state_index);
 
 
         return (D_CLOSE);
     }
     else
     {
-        gui_message (error_color, "Machine state file does not exist.");
+        gui_message (GUI_ERROR_COLOR, "Machine state file does not exist.");
 
 
         return (D_O_K);
@@ -2221,7 +2290,7 @@ static int main_state_autosave_menu_disabled (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Autosave disabled.");
+    gui_message (GUI_TEXT_COLOR, "Autosave disabled.");
 
 
     return (D_O_K);
@@ -2235,7 +2304,7 @@ static int main_state_autosave_menu_10_seconds (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Autosave interval set to 10 seconds.");
+    gui_message (GUI_TEXT_COLOR, "Autosave interval set to 10 seconds.");
 
 
     return (D_O_K);
@@ -2249,7 +2318,7 @@ static int main_state_autosave_menu_30_seconds (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Autosave interval set to 30 seconds.");
+    gui_message (GUI_TEXT_COLOR, "Autosave interval set to 30 seconds.");
 
 
     return (D_O_K);
@@ -2263,7 +2332,7 @@ static int main_state_autosave_menu_60_seconds (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Autosave interval set to 60 seconds.");
+    gui_message (GUI_TEXT_COLOR, "Autosave interval set to 60 seconds.");
 
 
     return (D_O_K);
@@ -2291,7 +2360,7 @@ static int main_menu_snapshot (void)
 
             save_bitmap (filename, video_buffer, current_palette);
 
-            gui_message (gui_fg_color, "Snapshot saved to %s.", filename);
+            gui_message (GUI_TEXT_COLOR, "Snapshot saved to %s.", filename);
         }
     }
 
@@ -2381,6 +2450,42 @@ static int options_menu_status (void)
 }
 
 
+static int options_gui_theme_menu_classic (void)
+{
+    set_classic_theme ();
+
+
+    gui_needs_restart = TRUE;
+
+    
+    return (D_CLOSE);
+}
+
+
+static int options_gui_theme_menu_stainless_steel (void)
+{
+    set_stainless_steel_theme ();
+
+
+    gui_needs_restart = TRUE;
+
+
+    return (D_CLOSE);
+}
+
+
+static int options_gui_theme_menu_zero_4 (void)
+{
+    set_zero_4_theme ();
+
+
+    gui_needs_restart = TRUE;
+
+
+    return (D_CLOSE);
+}
+
+
 static int options_system_menu_ntsc_60_hz (void)
 {
     machine_type = MACHINE_TYPE_NTSC;
@@ -2397,7 +2502,7 @@ static int options_system_menu_ntsc_60_hz (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "System type set to NTSC (60 Hz).");
+    gui_message (GUI_TEXT_COLOR, "System type set to NTSC (60 Hz).");
 
 
     return (D_O_K);
@@ -2420,7 +2525,7 @@ static int options_system_menu_pal_50_hz (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "System type set to PAL (50 Hz).");
+    gui_message (GUI_TEXT_COLOR, "System type set to PAL (50 Hz).");
 
 
     return (D_O_K);
@@ -2445,11 +2550,11 @@ static int options_audio_menu_enabled (void)
 
     if (! audio_enable_output)
     {
-        gui_message (gui_fg_color, "Audio rendering and output disabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio rendering and output disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Audio rendering and output enabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio rendering and output enabled.");
     }
 
 
@@ -2474,7 +2579,7 @@ static int options_audio_menu_enabled (void)
         update_menus ();                        \
                                                 \
                                                 \
-        gui_message (gui_fg_color, "Audio mixing speed set to %d Hz.", speed);  \
+        gui_message (GUI_TEXT_COLOR, "Audio mixing speed set to %d Hz.", speed);  \
                                                 \
                                                 \
         return (D_O_K);                         \
@@ -2516,7 +2621,7 @@ static int options_audio_mixing_channels_menu_mono (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Audio channels set to mono.");
+    gui_message (GUI_TEXT_COLOR, "Audio channels set to mono.");
 
 
     return (D_O_K);
@@ -2546,7 +2651,7 @@ static int options_audio_mixing_channels_menu_pseudo_stereo_mode_1 (void)
     update_menus ();
     
 
-    gui_message (gui_fg_color, "Audio channels set to pseudo stereo (mode 1).");
+    gui_message (GUI_TEXT_COLOR, "Audio channels set to pseudo stereo (mode 1).");
 
 
     return (D_O_K);
@@ -2576,7 +2681,7 @@ static int options_audio_mixing_channels_menu_pseudo_stereo_mode_2 (void)
     update_menus ();
     
 
-    gui_message (gui_fg_color, "Audio channels set to pseudo stereo (mode 2).");
+    gui_message (GUI_TEXT_COLOR, "Audio channels set to pseudo stereo (mode 2).");
 
 
     return (D_O_K);
@@ -2606,7 +2711,7 @@ static int options_audio_mixing_channels_menu_pseudo_stereo_mode_3 (void)
     update_menus ();
     
 
-    gui_message (gui_fg_color, "Audio channels set to pseudo stereo (mode 3).");
+    gui_message (GUI_TEXT_COLOR, "Audio channels set to pseudo stereo (mode 3).");
 
 
     return (D_O_K);
@@ -2629,7 +2734,7 @@ static int options_audio_mixing_quality_menu_low_8_bit (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Audio mixing quality set to low (8-bit).");
+    gui_message (GUI_TEXT_COLOR, "Audio mixing quality set to low (8-bit).");
 
 
     return (D_O_K);
@@ -2652,7 +2757,7 @@ static int options_audio_mixing_quality_menu_high_16_bit (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Audio mixing quality set to high (16-bit).");
+    gui_message (GUI_TEXT_COLOR, "Audio mixing quality set to high (16-bit).");
 
 
     return (D_O_K);
@@ -2669,11 +2774,11 @@ static int options_audio_mixing_quality_menu_dithering (void)
 
     if (! papu_dithering)
     {
-        gui_message (gui_fg_color, "Audio random noise dithering disabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio random noise dithering disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Audio random noise dithering enabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio random noise dithering enabled.");
     }
 
 
@@ -2691,11 +2796,11 @@ static int options_audio_mixing_advanced_menu_reverse_stereo (void)
 
     if (! papu_swap_channels)
     {
-        gui_message (gui_fg_color, "Audio reverse stereo disabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio reverse stereo disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Audio reverse stereo enabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio reverse stereo enabled.");
     }
 
 
@@ -2715,11 +2820,11 @@ static int options_audio_effects_menu_linear_echo (void)
 
     if (! papu_linear_echo)
     {
-        gui_message (gui_fg_color, "Audio linear echo effect disabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio linear echo effect disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Audio linear echo effect enabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio linear echo effect enabled.");
     }
 
 
@@ -2740,11 +2845,11 @@ static int options_audio_effects_menu_spatial_stereo_mode_1 (void)
 
     if (! papu_spatial_stereo)
     {
-        gui_message (gui_fg_color, "Audio spatial stereo effect disabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio spatial stereo effect disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Audio spatial stereo effect enabled (mode 1).");
+        gui_message (GUI_TEXT_COLOR, "Audio spatial stereo effect enabled (mode 1).");
     }
 
 
@@ -2765,11 +2870,11 @@ static int options_audio_effects_menu_spatial_stereo_mode_2 (void)
 
     if (! papu_spatial_stereo)
     {
-        gui_message (gui_fg_color, "Audio spatial stereo effect disabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio spatial stereo effect disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Audio spatial stereo effect enabled (mode 2).");
+        gui_message (GUI_TEXT_COLOR, "Audio spatial stereo effect enabled (mode 2).");
     }
 
 
@@ -2790,11 +2895,11 @@ static int options_audio_effects_menu_spatial_stereo_mode_3 (void)
 
     if (! papu_spatial_stereo)
     {
-        gui_message (gui_fg_color, "Audio spatial stereo effect disabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio spatial stereo effect disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Audio spatial stereo effect enabled (mode 3).");
+        gui_message (GUI_TEXT_COLOR, "Audio spatial stereo effect enabled (mode 3).");
     }
 
 
@@ -2830,11 +2935,11 @@ static int options_audio_filters_menu_low_pass_mode_1 (void)
 
     if (! (filters & PAPU_FILTER_LOW_PASS_MODE_1))
     {
-        gui_message (gui_fg_color, "Low pass audio filter disabled.");
+        gui_message (GUI_TEXT_COLOR, "Low pass audio filter disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Low pass audio filter enabled (mode 1).");
+        gui_message (GUI_TEXT_COLOR, "Low pass audio filter enabled (mode 1).");
     }
 
 
@@ -2870,11 +2975,11 @@ static int options_audio_filters_menu_low_pass_mode_2 (void)
 
     if (! (filters & PAPU_FILTER_LOW_PASS_MODE_2))
     {
-        gui_message (gui_fg_color, "Low pass audio filter disabled.");
+        gui_message (GUI_TEXT_COLOR, "Low pass audio filter disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Low pass audio filter enabled (mode 2).");
+        gui_message (GUI_TEXT_COLOR, "Low pass audio filter enabled (mode 2).");
     }
 
 
@@ -2910,11 +3015,11 @@ static int options_audio_filters_menu_low_pass_mode_3 (void)
 
     if (! (filters & PAPU_FILTER_LOW_PASS_MODE_3))
     {
-        gui_message (gui_fg_color, "Low pass audio filter disabled.");
+        gui_message (GUI_TEXT_COLOR, "Low pass audio filter disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Low pass audio filter enabled (mode 3).");
+        gui_message (GUI_TEXT_COLOR, "Low pass audio filter enabled (mode 3).");
     }
 
 
@@ -2943,7 +3048,7 @@ static int options_audio_filters_menu_high_pass (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Toggled high pass audio filter.");
+    gui_message (GUI_TEXT_COLOR, "Toggled high pass audio filter.");
 
 
     return (D_O_K);
@@ -2962,11 +3067,11 @@ static int options_audio_channels_menu_rectangle_wave_a (void)
 
     if (! papu_enable_square_1)
     {
-        gui_message (gui_fg_color, "Audio rectangle wave channel A disabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio rectangle wave channel A disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Audio rectangle wave channel A enabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio rectangle wave channel A enabled.");
     }
 
 
@@ -2986,11 +3091,11 @@ static int options_audio_channels_menu_rectangle_wave_b (void)
 
     if (! papu_enable_square_2)
     {
-        gui_message (gui_fg_color, "Audio rectangle wave channel B disabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio rectangle wave channel B disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Audio rectangle wave channel B enabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio rectangle wave channel B enabled.");
     }
 
 
@@ -3010,11 +3115,11 @@ static int options_audio_channels_menu_triangle_wave (void)
 
     if (! papu_enable_triangle)
     {
-        gui_message (gui_fg_color, "Audio triangle wave channel disabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio triangle wave channel disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Audio triangle wave channel enabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio triangle wave channel enabled.");
     }
 
 
@@ -3034,11 +3139,11 @@ static int options_audio_channels_menu_white_noise (void)
 
     if (! papu_enable_noise)
     {
-        gui_message (gui_fg_color, "Audio white noise channel disabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio white noise channel disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Audio white noise channel enabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio white noise channel enabled.");
     }
 
 
@@ -3058,11 +3163,11 @@ static int options_audio_channels_menu_digital (void)
 
     if (! papu_enable_dmc)
     {
-        gui_message (gui_fg_color, "Audio digital channel disabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio digital channel disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Audio digital channel enabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio digital channel enabled.");
     }
 
 
@@ -3082,11 +3187,11 @@ static int options_audio_channels_menu_extended (void)
 
     if (! papu_enable_exsound)
     {
-        gui_message (gui_fg_color, "Audio extended channels disabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio extended channels disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Audio extended channels enabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio extended channels enabled.");
     }
                                               
 
@@ -3106,11 +3211,11 @@ static int options_audio_advanced_menu_ideal_triangle (void)
 
     if (! papu_ideal_triangle)
     {
-        gui_message (gui_fg_color, "Audio ideal triangle emulation disabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio ideal triangle emulation disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Audio ideal triangle emulation enabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio ideal triangle emulation enabled.");
     }
 
 
@@ -3128,7 +3233,7 @@ static int options_audio_record_menu_start (void)
     }
 
 
-    gui_message (gui_fg_color, "Audio recording session started.");
+    gui_message (GUI_TEXT_COLOR, "Audio recording session started.");
 
 
     return (D_O_K);
@@ -3145,7 +3250,7 @@ static int options_audio_record_menu_stop (void)
     DISABLE_MENU (options_audio_record_menu, 2);
 
 
-    gui_message (gui_fg_color, "Audio recording session stopped.");
+    gui_message (GUI_TEXT_COLOR, "Audio recording session stopped.");
 
 
     return (D_O_K);
@@ -3320,6 +3425,10 @@ static int options_video_colors_menu_paletted_8_bit (void)
 {
     video_set_color_depth (8);
 
+
+    update_colors ();
+
+
     gui_needs_restart = TRUE;
 
 
@@ -3330,6 +3439,10 @@ static int options_video_colors_menu_paletted_8_bit (void)
 static int options_video_colors_menu_true_color_15_bit (void)
 {
     video_set_color_depth (15);
+
+
+    update_colors ();
+
 
     gui_needs_restart = TRUE;
 
@@ -3342,6 +3455,10 @@ static int options_video_colors_menu_true_color_16_bit (void)
 {
     video_set_color_depth (16);
 
+
+    update_colors ();
+
+
     gui_needs_restart = TRUE;
 
 
@@ -3352,6 +3469,10 @@ static int options_video_colors_menu_true_color_16_bit (void)
 static int options_video_colors_menu_true_color_32_bit (void)
 {
     video_set_color_depth (32);
+
+
+    update_colors ();
+
 
     gui_needs_restart = TRUE;
 
@@ -3372,10 +3493,10 @@ static int options_video_blitter_menu_automatic (void)
     video_blit (screen);
 
 
-    draw_logo ();
+    draw_background ();
 
 
-    gui_message (gui_fg_color, "Video blitter set to automatic.");
+    gui_message (GUI_TEXT_COLOR, "Video blitter set to automatic.");
 
 
     return (D_REDRAW);
@@ -3394,10 +3515,10 @@ static int options_video_blitter_menu_normal (void)
     video_blit (screen);
 
 
-    draw_logo ();
+    draw_background ();
 
 
-    gui_message (gui_fg_color, "Video blitter set to normal.");
+    gui_message (GUI_TEXT_COLOR, "Video blitter set to normal.");
 
 
     return (D_REDRAW);
@@ -3416,10 +3537,10 @@ static int options_video_blitter_menu_stretched (void)
     video_blit (screen);
 
 
-    draw_logo ();
+    draw_background ();
 
 
-    gui_message (gui_fg_color, "Video blitter set to stretched.");
+    gui_message (GUI_TEXT_COLOR, "Video blitter set to stretched.");
 
 
     return (D_REDRAW);
@@ -3438,10 +3559,10 @@ static int options_video_blitter_menu_interpolated_2x (void)
     video_blit (screen);
 
 
-    draw_logo ();
+    draw_background ();
 
 
-    gui_message (gui_fg_color, "Video blitter set to interpolated (2x).");
+    gui_message (GUI_TEXT_COLOR, "Video blitter set to interpolated (2x).");
 
 
     return (D_REDRAW);
@@ -3460,10 +3581,10 @@ static int options_video_blitter_menu_interpolated_3x (void)
     video_blit (screen);
 
 
-    draw_logo ();
+    draw_background ();
 
 
-    gui_message (gui_fg_color, "Video blitter set to interpolated (3x).");
+    gui_message (GUI_TEXT_COLOR, "Video blitter set to interpolated (3x).");
 
 
     return (D_REDRAW);
@@ -3482,10 +3603,10 @@ static int options_video_blitter_menu_2xsoe (void)
     video_blit (screen);
 
 
-    draw_logo ();
+    draw_background ();
 
 
-    gui_message (gui_fg_color, "Video blitter set to 2xSOE engine.");
+    gui_message (GUI_TEXT_COLOR, "Video blitter set to 2xSOE engine.");
 
 
     return (D_REDRAW);
@@ -3504,10 +3625,10 @@ static int options_video_blitter_menu_2xscl (void)
     video_blit (screen);
 
 
-    draw_logo ();
+    draw_background ();
 
 
-    gui_message (gui_fg_color, "Video blitter set to 2xSCL engine.");
+    gui_message (GUI_TEXT_COLOR, "Video blitter set to 2xSCL engine.");
 
 
     return (D_REDRAW);
@@ -3526,10 +3647,10 @@ static int options_video_blitter_menu_super_2xsoe (void)
     video_blit (screen);
 
 
-    draw_logo ();
+    draw_background ();
 
 
-    gui_message (gui_fg_color, "Video blitter set to super 2xSOE engine.");
+    gui_message (GUI_TEXT_COLOR, "Video blitter set to super 2xSOE engine.");
 
 
     return (D_REDRAW);
@@ -3548,10 +3669,10 @@ static int options_video_blitter_menu_super_2xscl (void)
     video_blit (screen);
 
 
-    draw_logo ();
+    draw_background ();
 
 
-    gui_message (gui_fg_color, "Video blitter set to super 2xSCL engine.");
+    gui_message (GUI_TEXT_COLOR, "Video blitter set to super 2xSCL engine.");
 
 
     return (D_REDRAW);
@@ -3589,16 +3710,16 @@ static int options_video_filters_menu_scanlines_25_percent (void)
     video_blit (screen);
 
 
-    draw_logo ();
+    draw_background ();
 
 
     if (! (filters & VIDEO_FILTER_SCANLINES_LOW))
     {
-        gui_message (gui_fg_color, "Scanlines video filter disabled.");
+        gui_message (GUI_TEXT_COLOR, "Scanlines video filter disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Scanlines video filter enabled (25%%).");
+        gui_message (GUI_TEXT_COLOR, "Scanlines video filter enabled (25%%).");
     }
 
 
@@ -3637,16 +3758,16 @@ static int options_video_filters_menu_scanlines_50_percent (void)
     video_blit (screen);
 
 
-    draw_logo ();
+    draw_background ();
 
 
     if (! (filters & VIDEO_FILTER_SCANLINES_MEDIUM))
     {
-        gui_message (gui_fg_color, "Scanlines video filter disabled.");
+        gui_message (GUI_TEXT_COLOR, "Scanlines video filter disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Scanlines video filter enabled (50%%).");
+        gui_message (GUI_TEXT_COLOR, "Scanlines video filter enabled (50%%).");
     }
 
 
@@ -3685,16 +3806,16 @@ static int options_video_filters_menu_scanlines_100_percent (void)
     video_blit (screen);
 
 
-    draw_logo ();
+    draw_background ();
 
 
     if (! (filters & VIDEO_FILTER_SCANLINES_HIGH))
     {
-        gui_message (gui_fg_color, "Scanlines video filter disabled.");
+        gui_message (GUI_TEXT_COLOR, "Scanlines video filter disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Scanlines video filter enabled (100%%%).");
+        gui_message (GUI_TEXT_COLOR, "Scanlines video filter enabled (100%%%).");
     }
 
 
@@ -3711,11 +3832,11 @@ static int options_video_menu_vsync (void)
 
     if (! video_enable_vsync)
     {
-        gui_message (gui_fg_color, "VSync disabled.");
+        gui_message (GUI_TEXT_COLOR, "VSync disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "VSync enabled.");
+        gui_message (GUI_TEXT_COLOR, "VSync enabled.");
     }
 
 
@@ -3732,11 +3853,11 @@ static int options_video_layers_menu_sprites_a (void)
 
     if (! ppu_enable_sprite_layer_a)
     {
-        gui_message (gui_fg_color, "Video sprites layer A disabled.");
+        gui_message (GUI_TEXT_COLOR, "Video sprites layer A disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Video sprites layer A enabled.");
+        gui_message (GUI_TEXT_COLOR, "Video sprites layer A enabled.");
     }
 
 
@@ -3753,11 +3874,11 @@ static int options_video_layers_menu_sprites_b (void)
 
     if (! ppu_enable_sprite_layer_b)
     {
-        gui_message (gui_fg_color, "Video sprites layer B disabled.");
+        gui_message (GUI_TEXT_COLOR, "Video sprites layer B disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Video sprites layer B enabled.");
+        gui_message (GUI_TEXT_COLOR, "Video sprites layer B enabled.");
     }
 
 
@@ -3774,11 +3895,11 @@ static int options_video_layers_menu_background (void)
 
     if (! ppu_enable_background_layer)
     {
-        gui_message (gui_fg_color, "Video background layer disabled.");
+        gui_message (GUI_TEXT_COLOR, "Video background layer disabled.");
     }
     else
     {
-        gui_message (gui_fg_color, "Video background layer enabled.");
+        gui_message (GUI_TEXT_COLOR, "Video background layer enabled.");
     }
 
 
@@ -3815,10 +3936,10 @@ static int options_video_palette_menu_ntsc_color (void)
     video_blit (screen);
 
 
-    draw_logo ();
+    draw_background ();
 
 
-    gui_message (gui_fg_color, "Video palette set to NTSC color.");
+    gui_message (GUI_TEXT_COLOR, "Video palette set to NTSC color.");
 
 
     return (D_REDRAW);
@@ -3854,10 +3975,10 @@ static int options_video_palette_menu_ntsc_grayscale (void)
     video_blit (screen);
 
 
-    draw_logo ();
+    draw_background ();
 
 
-    gui_message (gui_fg_color, "Video palette set to NTSC grayscale.");
+    gui_message (GUI_TEXT_COLOR, "Video palette set to NTSC grayscale.");
 
 
     return (D_REDRAW);
@@ -3892,10 +4013,10 @@ static int options_video_palette_menu_gnuboy (void)
     video_blit (screen);
 
 
-    draw_logo ();
+    draw_background ();
 
 
-    gui_message (gui_fg_color, "Video palette set to gnuboy.");
+    gui_message (GUI_TEXT_COLOR, "Video palette set to gnuboy.");
 
 
     return (D_REDRAW);
@@ -3931,10 +4052,10 @@ static int options_video_palette_menu_nester (void)
     video_blit (screen);
 
 
-    draw_logo ();
+    draw_background ();
 
 
-    gui_message (gui_fg_color, "Video palette set to NESter.");
+    gui_message (GUI_TEXT_COLOR, "Video palette set to NESter.");
 
 
     return (D_REDRAW);
@@ -3970,10 +4091,10 @@ static int options_video_palette_menu_nesticle (void)
     video_blit (screen);
 
 
-    draw_logo ();
+    draw_background ();
 
 
-    gui_message (gui_fg_color, "Video palette set to NESticle.");
+    gui_message (GUI_TEXT_COLOR, "Video palette set to NESticle.");
 
 
     return (D_REDRAW);
@@ -4031,17 +4152,17 @@ static int options_video_palette_menu_custom (void)
         video_blit (screen);
     
 
-        draw_logo ();
+        draw_background ();
 
 
-        gui_message (gui_fg_color, "Video palette set to custom.");
+        gui_message (GUI_TEXT_COLOR, "Video palette set to custom.");
     
     
         return (D_REDRAW);
     }
     else
     {
-        gui_message (error_color, "Error opening FAKENES.PAL!");
+        gui_message (GUI_ERROR_COLOR, "Error opening FAKENES.PAL!");
     }
 
 
@@ -4515,7 +4636,7 @@ static int options_input_dialog_set_buttons (DIALOG * dialog)
 
         case INPUT_DEVICE_KEYBOARD_2:
 
-            gui_message (gui_fg_color, "Press any key.");
+            gui_message (GUI_TEXT_COLOR, "Press any key.");
     
     
             clear_keybuf ();
@@ -4529,7 +4650,7 @@ static int options_input_dialog_set_buttons (DIALOG * dialog)
             input_map_device_button (selected_player_device, button, index);
     
     
-            gui_message (gui_fg_color, "Button mapped to scancode %d.", index);
+            gui_message (GUI_TEXT_COLOR, "Button mapped to scancode %d.", index);
 
 
             break;
@@ -4537,7 +4658,7 @@ static int options_input_dialog_set_buttons (DIALOG * dialog)
 
         case INPUT_DEVICE_JOYSTICK_1:
 
-            gui_message (gui_fg_color, "Press any button on joystick #1.");
+            gui_message (GUI_TEXT_COLOR, "Press any button on joystick #1.");
     
     
             clear_keybuf ();
@@ -4555,7 +4676,7 @@ static int options_input_dialog_set_buttons (DIALOG * dialog)
                         input_map_device_button (selected_player_device, button, index);
                 
                 
-                        gui_message (gui_fg_color, "Button mapped to joystick #1 button %d.", index);
+                        gui_message (GUI_TEXT_COLOR, "Button mapped to joystick #1 button %d.", index);
     
     
                         return (D_O_K);
@@ -4567,7 +4688,7 @@ static int options_input_dialog_set_buttons (DIALOG * dialog)
                 {
                     if ((readkey () >> 8) == KEY_ESC)
                     {
-                        gui_message (error_color, "Button mapping canceled.");
+                        gui_message (GUI_ERROR_COLOR, "Button mapping canceled.");
     
     
                         return (D_O_K);
@@ -4581,7 +4702,7 @@ static int options_input_dialog_set_buttons (DIALOG * dialog)
 
         case INPUT_DEVICE_JOYSTICK_2:
 
-            gui_message (gui_fg_color, "Press any button on joystick #2.");
+            gui_message (GUI_TEXT_COLOR, "Press any button on joystick #2.");
     
     
             clear_keybuf ();
@@ -4599,7 +4720,7 @@ static int options_input_dialog_set_buttons (DIALOG * dialog)
                         input_map_device_button (selected_player_device, button, index);
                 
                 
-                        gui_message (gui_fg_color, "Button mapped to joystick #1 button %d.", index);
+                        gui_message (GUI_TEXT_COLOR, "Button mapped to joystick #1 button %d.", index);
     
     
                         return (D_O_K);
@@ -4611,7 +4732,7 @@ static int options_input_dialog_set_buttons (DIALOG * dialog)
                 {
                     if ((readkey () >> 8) == KEY_ESC)
                     {
-                        gui_message (error_color, "Button mapping canceled.");
+                        gui_message (GUI_ERROR_COLOR, "Button mapping canceled.");
     
     
                         return (D_O_K);
@@ -4652,7 +4773,7 @@ static int netplay_protocol_menu_tcpip (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Netplay protocol set to TCP/IP.");
+    gui_message (GUI_TEXT_COLOR, "Netplay protocol set to TCP/IP.");
 
 
     return (D_O_K);
@@ -4666,7 +4787,7 @@ static int netplay_protocol_menu_spx (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Netplay protocol set to SPX.");
+    gui_message (GUI_TEXT_COLOR, "Netplay protocol set to SPX.");
 
 
     return (D_O_K);
@@ -4677,7 +4798,7 @@ static int netplay_server_menu_start (void)
 {
     if (netplay_open_server () != 0)
     {
-        gui_message (error_color, "Failed to start the netplay server!");
+        gui_message (GUI_ERROR_COLOR, "Failed to start the netplay server!");
     }
 
 
@@ -4699,7 +4820,7 @@ static int netplay_server_menu_start (void)
     ENABLE_MENU (netplay_server_menu, 2);
 
 
-    gui_message (gui_fg_color, "Started NetPlay server, awaiting client.");
+    gui_message (GUI_TEXT_COLOR, "Started NetPlay server, awaiting client.");
 
 
     return (D_REDRAW);
@@ -4729,7 +4850,7 @@ static int netplay_server_menu_stop (void)
     ENABLE_MENU (netplay_server_menu, 0);
 
 
-    gui_message (gui_fg_color, "Stopped NetPlay server.");
+    gui_message (GUI_TEXT_COLOR, "Stopped NetPlay server.");
 
 
     return (D_REDRAW);
@@ -4762,7 +4883,7 @@ static int netplay_client_menu_connect (void)
 
         if (netplay_open_client (buffer) != 0)
         {
-            gui_message (error_color, "Failed to connect to the server!");
+            gui_message (GUI_ERROR_COLOR, "Failed to connect to the server!");
 
 
             return (D_O_K);
@@ -4775,7 +4896,7 @@ static int netplay_client_menu_connect (void)
     {
         if (netplay_open_client (NIL) != 0)
         {
-            gui_message (error_color, "Failed to connect to the server!");
+            gui_message (GUI_ERROR_COLOR, "Failed to connect to the server!");
 
 
             return (D_O_K);
@@ -4801,7 +4922,7 @@ static int netplay_client_menu_connect (void)
     ENABLE_MENU (netplay_client_menu, 2);
 
 
-    gui_message (gui_fg_color, "NetPlay client connected to the server.");
+    gui_message (GUI_TEXT_COLOR, "NetPlay client connected to the server.");
 
 
     return (D_O_K);
@@ -4831,7 +4952,7 @@ static int netplay_client_menu_disconnect (void)
     ENABLE_MENU (netplay_client_menu, 0);
 
 
-    gui_message (gui_fg_color, "NetPlay client disconnected from the server.");
+    gui_message (GUI_TEXT_COLOR, "NetPlay client disconnected from the server.");
 
 
     return (D_O_K);

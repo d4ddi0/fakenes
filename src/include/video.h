@@ -22,6 +22,9 @@ You must read and accept the license prior to use.
 #define VIDEO_H_INCLUDED
 
 
+#include "gui.h"
+
+
 #include "misc.h"
 
 
@@ -107,6 +110,11 @@ void video_set_palette (RGB *);
 int video_create_color (int, int, int);
 
 int video_create_color_dither (int, int, int, int, int);
+
+
+int video_create_gradient (int, int, int, int, int);
+
+void video_create_gui_gradient (GUI_COLOR *, GUI_COLOR *, int);
 
 
 void video_set_blitter (int);

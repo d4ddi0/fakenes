@@ -279,9 +279,6 @@ int video_init (void)
     }
 
 
-    set_mouse_sprite (DATA_TO_BITMAP (ARROW_SPRITE));
-
-
     show_mouse (screen);
 
     scare_mouse ();
@@ -289,7 +286,7 @@ int video_init (void)
 
     if (preserve_palette)
     {
-        video_set_palette (internal_palette);
+        video_set_palette (NIL);
     }
     else
     {
@@ -891,14 +888,36 @@ void video_handle_keypress (int index)
 }
 
 
-#define NES_PALETTE_START       1
-
-#define NES_PALETTE_END         (NES_PALETTE_START + 64)
+#define NES_PALETTE_SIZE                64
 
 
-#define GUI_PALETTE_START       128
+#define NES_PALETTE_START               1
 
-#define GUI_PALETTE_END         (GUI_PALETTE_START + 64)
+#define NES_PALETTE_END                 (NES_PALETTE_START + NES_PALETTE_SIZE)
+
+
+#define GUI_GRADIENT_PALETTE_SIZE       64
+
+
+#define GUI_GRADIENT_PALETTE_START      (NES_PALETTE_END + 1)
+
+#define GUI_GRADIENT_PALETTE_END        (GUI_GRADIENT_PALETTE_START + GUI_GRADIENT_PALETTE_SIZE)
+
+
+#define GUI_COLORS_PALETTE_SIZE         GUI_TOTAL_COLORS
+
+
+#define GUI_COLORS_PALETTE_START        (GUI_GRADIENT_PALETTE_END + 1)
+
+#define GUI_COLORS_PALETTE_END          (GUI_COLORS_PALETTE_START + GUI_COLORS_PALETTE_SIZE)
+
+
+#define GUI_IMAGE_PALETTE_SIZE          112
+
+
+#define GUI_IMAGE_PALETTE_START         (256 - GUI_IMAGE_PALETTE_SIZE)
+
+#define GUI_IMAGE_PALETTE_END           (GUI_IMAGE_PALETTE_START + GUI_IMAGE_PALETTE_SIZE)
 
 
 static UINT16 solid_map [64] [64] [64];
@@ -919,7 +938,7 @@ void video_set_palette (RGB * palette)
     int b;
 
 
-    if (palette != internal_palette)
+    if (palette)
     {
         last_palette = palette;
     
@@ -938,13 +957,51 @@ void video_set_palette (RGB * palette)
     }
 
 
-    for (index = GUI_PALETTE_START; index < GUI_PALETTE_END; index ++)
+    if (gui_is_active)
     {
-        internal_palette [index].r = (index - GUI_PALETTE_START);
-
-        internal_palette [index].g = (index - GUI_PALETTE_START);
-
-        internal_palette [index].b = (index - GUI_PALETTE_START);
+        video_create_gui_gradient (&gui_theme [0], &gui_theme [1], GUI_GRADIENT_PALETTE_SIZE);
+    
+    
+        for (index = GUI_GRADIENT_PALETTE_START; index < GUI_GRADIENT_PALETTE_END; index ++)
+        {
+            GUI_COLOR color;
+    
+    
+            video_create_gui_gradient (&color, NIL, NIL);
+    
+    
+            internal_palette [index].r = (color.red * 63);
+    
+            internal_palette [index].g = (color.green * 63);
+    
+            internal_palette [index].b = (color.blue * 63);
+        }
+    
+    
+        for (index = GUI_COLORS_PALETTE_START; index < GUI_COLORS_PALETTE_END; index ++)
+        {
+            int color;
+    
+    
+            color = (index - GUI_COLORS_PALETTE_START);
+    
+    
+            internal_palette [index].r = (gui_theme [color].red * 63);
+    
+            internal_palette [index].g = (gui_theme [color].green * 63);
+    
+            internal_palette [index].b = (gui_theme [color].blue * 63);
+        }
+    
+    
+        for (index = GUI_IMAGE_PALETTE_START; index < GUI_IMAGE_PALETTE_END; index ++)
+        {
+            internal_palette [index].r = gui_image_palette [index].r;
+    
+            internal_palette [index].g = gui_image_palette [index].g;
+    
+            internal_palette [index].b = gui_image_palette [index].b;
+        }
     }
 
 
@@ -1040,6 +1097,138 @@ int video_create_color_dither (int r, int g, int b, int x, int y)
 
     return (video_create_color (r, g, b));
 }
+
+
+#define GRADIENT_SHIFTS         16
+
+
+#define GRADIENT_MULTIPLIER     (255 << GRADIENT_SHIFTS)
+
+
+static int gradient_start [3];
+
+static int gradient_end [3];
+
+
+static float gradient_delta [3];
+
+
+static int gradient_slice;
+
+
+static int gradient_last_x;
+
+
+int video_create_gradient (int start, int end, int slices, int x, int y)
+{
+    if (slices)
+    {
+        gradient_start [0] = (getr (start) << GRADIENT_SHIFTS);
+
+        gradient_start [1] = (getg (start) << GRADIENT_SHIFTS);
+
+        gradient_start [2] = (getb (start) << GRADIENT_SHIFTS);
+
+
+        gradient_end [0] = (getr (end) << GRADIENT_SHIFTS);
+
+        gradient_end [1] = (getg (end) << GRADIENT_SHIFTS);
+
+        gradient_end [2] = (getb (end) << GRADIENT_SHIFTS);
+
+
+        gradient_delta [0] = ((gradient_end [0] - gradient_start [0]) / slices);
+
+        gradient_delta [1] = ((gradient_end [1] - gradient_start [1]) / slices);
+
+        gradient_delta [2] = ((gradient_end [2] - gradient_start [2]) / slices);
+
+
+        gradient_slice = 0;
+
+
+        gradient_last_x = -1;
+
+
+        return (NIL);
+    }
+    else
+    {
+        int red;
+
+        int green;
+
+        int blue;
+
+
+        red = (gradient_start [0] + (gradient_delta [0] * gradient_slice));
+
+        green = (gradient_start [1] + (gradient_delta [1] * gradient_slice));
+
+        blue = (gradient_start [2] + (gradient_delta [2] * gradient_slice));
+
+
+        red >>= GRADIENT_SHIFTS;
+
+        green >>= GRADIENT_SHIFTS;
+
+        blue >>= GRADIENT_SHIFTS;
+
+
+        if (gradient_last_x != x)
+        {
+            gradient_last_x = x;
+
+
+            gradient_slice ++;
+        }
+
+
+        return (video_create_color_dither (red, green, blue, x, y));
+    }
+}
+ 
+
+void video_create_gui_gradient (GUI_COLOR * start, GUI_COLOR * end, int slices)
+{
+    if (slices)
+    {
+        gradient_start [0] = (start -> red * GRADIENT_MULTIPLIER);
+
+        gradient_start [1] = (start -> green * GRADIENT_MULTIPLIER);
+
+        gradient_start [2] = (start -> blue * GRADIENT_MULTIPLIER);
+
+
+        gradient_end [0] = (end -> red * GRADIENT_MULTIPLIER);
+
+        gradient_end [1] = (end -> green * GRADIENT_MULTIPLIER);
+
+        gradient_end [2] = (end -> blue * GRADIENT_MULTIPLIER);
+
+
+        gradient_delta [0] = ((gradient_end [0] - gradient_start [0]) / slices);
+
+        gradient_delta [1] = ((gradient_end [1] - gradient_start [1]) / slices);
+
+        gradient_delta [2] = ((gradient_end [2] - gradient_start [2]) / slices);
+
+
+        gradient_slice = 0;
+    }
+    else
+    {
+        start -> red = ((gradient_start [0] + (gradient_delta [0] * gradient_slice)) / GRADIENT_MULTIPLIER);
+
+        start -> green = ((gradient_start [1] + (gradient_delta [1] * gradient_slice)) / GRADIENT_MULTIPLIER);
+
+        start -> blue = ((gradient_start [2] + (gradient_delta [2] * gradient_slice)) / GRADIENT_MULTIPLIER);
+
+
+        gradient_slice ++;
+    }
+}
+
 
 
 void video_set_blitter (int blitter)
