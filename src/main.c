@@ -88,14 +88,14 @@ int frame_skip_max = 0;
 static int first_run = FALSE;
 
 
-volatile int timing_fps = 0;
+int timing_fps = 0;
 
-volatile int timing_hertz = 0;
+int timing_hertz = 0;
 
 
-volatile int timing_audio_fps = 0;
+int timing_audio_fps = 0;
 
-volatile int timing_audio_hertz = 0;
+int timing_audio_hertz = 0;
 
 
 #ifdef POSIX
@@ -131,29 +131,20 @@ static int executed_frames = 0;
 static int rendered_frames = 0;
 
 
-static volatile int actual_fps_count = 0;
+static int actual_fps_count = 0;
 
-static volatile int virtual_fps_count = 0;
+static int virtual_fps_count = 0;
 
 
 static volatile int throttle_counter = 0;
 
 
+static volatile int frame_interrupt = FALSE;
+
+
 static void fps_interrupt (void)
 {
-    timing_fps = actual_fps_count;
-
-    actual_fps_count = 0;
-
-
-    timing_hertz = virtual_fps_count;
-
-    virtual_fps_count = 0;
-
-
-    timing_audio_fps = audio_fps;
-
-    audio_fps = 0;
+    frame_interrupt = TRUE;
 }
 
 END_OF_STATIC_FUNCTION (fps_interrupt);
@@ -172,6 +163,23 @@ void suspend_timing (void)
     remove_int (fps_interrupt);
 
     remove_int (throttle_interrupt);
+
+
+    redraw_flag = TRUE;
+
+
+    actual_fps_count = 0;
+
+    virtual_fps_count = 0;
+
+
+    frame_count = 1;
+
+
+    throttle_counter = 0;
+
+
+    frame_interrupt = FALSE;
 }
 
 
@@ -186,6 +194,24 @@ void resume_timing (void)
     install_int_ex (fps_interrupt, BPS_TO_TIMER (1));
 
     install_int_ex (throttle_interrupt, BPS_TO_TIMER (speed));
+}
+
+
+static INLINE int fix (int value, int base, int limit)
+{
+    if (value < base)
+    {
+        value = base;
+    }
+
+
+    if (value > limit)
+    {
+        value = limit;
+    }
+
+
+    return (value);
 }
 
 
@@ -499,7 +525,7 @@ int main (int argc, char * argv [])
 
     frame_skip_min = get_config_int ("timing", "frame_skip_min", 0);
 
-    frame_skip_max = get_config_int ("timing", "frame_skip_max", 9);
+    frame_skip_max = get_config_int ("timing", "frame_skip_max", 8);
 
 
     machine_type = get_config_int ("timing", "machine_type", MACHINE_TYPE_NTSC);
@@ -654,6 +680,12 @@ int main (int argc, char * argv [])
     }
 
 
+    LOCK_VARIABLE (frame_interrupt);
+
+
+    LOCK_VARIABLE (throttle_counter);
+
+
     LOCK_FUNCTION (fps_interrupt);
 
     LOCK_FUNCTION (throttle_interrupt);
@@ -686,6 +718,46 @@ int main (int argc, char * argv [])
 
         while (! input_process ())
         {
+            int speed;
+
+
+            speed = ((machine_type == MACHINE_TYPE_NTSC) ? 60 : 50);
+
+
+            if (frame_interrupt)
+            {
+                if (frame_skip_min == 0)
+                {
+                    timing_fps = fix (actual_fps_count, 1, speed);
+                
+                    timing_hertz = fix (virtual_fps_count, 1, speed);
+                
+    
+                    timing_audio_fps = fix (audio_fps, 1, speed);
+                }
+                else
+                {
+                    timing_fps = actual_fps_count;
+                
+                    timing_hertz = virtual_fps_count;
+                
+    
+                    timing_audio_fps = audio_fps;
+                }
+
+
+                actual_fps_count = 0;
+
+                virtual_fps_count = 0;
+
+
+                audio_fps = 0;
+
+
+                frame_interrupt = FALSE;
+            }
+
+
             executed_frames ++;
 
 
@@ -706,33 +778,40 @@ int main (int argc, char * argv [])
                 if (key [KEY_TILDE])
                 {
                     /* Fast forward. */
-    
+
                     frame_count = frame_skip_max;
-    
-                    throttle_counter = 0;
                 }
                 else
                 {
                     if (frame_skip_min == 0)
                     {
-                        while (throttle_counter == 0);
+                        while (throttle_counter == 0)
+                        {
+                            yield_timeslice ();
+                        }
                     }
     
-    
+
                     frame_count = throttle_counter;
-    
-                    throttle_counter -= frame_count;
-    
-    
-                    if (frame_count >= frame_skip_max)
+
+
+                    if (frame_count > frame_skip_max)
                     {
                         frame_count = frame_skip_max;
                     }
-                    else if (frame_count <= frame_skip_min)
+
+
+                    if (frame_count < frame_skip_min)
                     {
                         frame_count = frame_skip_min;
                     }
                 }
+
+
+                frame_count ++;
+
+
+                throttle_counter = 0;
             }
     
     

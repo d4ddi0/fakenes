@@ -11,9 +11,10 @@ extern "C" {
 int machine_type;
 
 
-#define MACHINE_TYPE_NTSC   0
-
-#define MACHINE_TYPE_PAL    1
+enum
+{
+    MACHINE_TYPE_NTSC, MACHINE_TYPE_PAL
+};
 
 
 int machine_init (void);
@@ -26,12 +27,12 @@ int frame_skip_min;
 int frame_skip_max;
 
 
-volatile int timing_fps;
+int timing_fps;
 
-volatile int timing_hertz;
+int timing_hertz;
 
 
-volatile int timing_audio_fps;
+int timing_audio_fps;
 
 
 void suspend_timing (void);
