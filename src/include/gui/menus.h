@@ -290,6 +290,16 @@ static MENU options_video_blitter_menu [] =
 };
 
 
+static int options_video_filters_menu_scanlines (void);
+
+
+static MENU options_video_filters_menu [] =
+{
+    { "&Scanlines", options_video_filters_menu_scanlines, NULL, 0, NULL },
+    {         NULL,                                 NULL, NULL, 0, NULL }
+};
+
+
 static int options_video_layers_menu_sprites_a (void);
 
 static int options_video_layers_menu_sprites_b (void);
@@ -346,6 +356,8 @@ static MENU options_video_menu [] =
     { "&Resolution",                       NULL, options_video_resolution_menu, 0, NULL },
     {            "",                       NULL,                          NULL, 0, NULL },
     {    "&Blitter",                       NULL,    options_video_blitter_menu, 0, NULL },
+    {            "",                       NULL,                          NULL, 0, NULL },
+    {    "&Filters",                       NULL,    options_video_filters_menu, 0, NULL },
     {            "",                       NULL,                          NULL, 0, NULL },
     {      "&VSync",   options_video_menu_vsync,                          NULL, 0, NULL },
     {            "",                       NULL,                          NULL, 0, NULL },

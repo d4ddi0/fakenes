@@ -30,6 +30,9 @@ extern "C" {
 #define VIDEO_BLITTER_2XSOE         2
 
 
+#define VIDEO_FILTER_SCANLINES      1
+
+
 int video_display_status;
 
 int video_enable_vsync;
@@ -47,6 +50,8 @@ void video_exit (void);
 
 void video_blit (BITMAP *);
 
+void video_filter (void);
+
 
 void video_zoom_in (void);
 
@@ -59,6 +64,11 @@ void video_set_palette (RGB *);
 void video_set_blitter (int);
 
 int video_get_blitter (void);
+
+
+void video_set_filter_list (int);
+
+int video_get_filter_list (void);
 
 
 void video_set_resolution (int, int);

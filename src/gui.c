@@ -305,6 +305,9 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (options_video_blitter_menu, 4, (video_get_blitter () == VIDEO_BLITTER_2XSOE));
 
 
+    TOGGLE_MENU (options_video_filters_menu, 0, (video_get_filter_list () & VIDEO_FILTER_SCANLINES));
+
+
     TOGGLE_MENU (options_video_menu, 4, video_enable_vsync);
 
 
@@ -1047,6 +1050,31 @@ static int options_video_blitter_menu_stretched (void)
 static int options_video_blitter_menu_2xsoe (void)
 {
     video_set_blitter (VIDEO_BLITTER_2XSOE);
+
+    update_menus ();
+
+
+    return (D_O_K);
+}
+
+
+static int options_video_filters_menu_scanlines (void)
+{
+    int filters;
+
+
+    filters = video_get_filter_list ();
+
+
+    if (filters & VIDEO_FILTER_SCANLINES)
+    {
+        video_set_filter_list ((filters & ~VIDEO_FILTER_SCANLINES));
+    }
+    else
+    {
+        video_set_filter_list ((filters | VIDEO_FILTER_SCANLINES));
+    }
+
 
     update_menus ();
 

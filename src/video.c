@@ -80,6 +80,8 @@ static int light_level = 0;
 
 static int blitter_type = 0;
 
+static int filter_list = 0;
+
 
 #define VIDEO_COLOR_WHITE   palette_color [33]
 
@@ -108,6 +110,8 @@ int video_init (void)
 
 
     blitter_type = get_config_int ("video", "blitter_type", VIDEO_BLITTER_NORMAL);
+
+    filter_list = get_config_int ("video", "filter_list", 0);
 
 
     stretch_width = get_config_int ("video", "stretch_width", 512);
@@ -150,6 +154,8 @@ int video_init (void)
     /* Heh, recursive variable assignation. :( */
 
     video_set_blitter (blitter_type);
+
+    video_set_filter_list (filter_list);
 
 
     if (! preserve_video_buffer)
@@ -220,6 +226,9 @@ void video_exit (void)
 
 
     set_config_int ("video", "blitter_type", blitter_type);
+
+
+    set_config_int ("video", "filter_list", filter_list);
 
 
     set_config_int ("video", "stretch_width", stretch_width);
@@ -556,6 +565,9 @@ void video_blit (BITMAP * bitmap)
     }
 
 
+    video_filter ();
+
+
     if ((video_display_status) && (! gui_is_active))
     {
         display_status (screen_buffer, VIDEO_COLOR_WHITE);
@@ -766,5 +778,32 @@ void video_set_resolution (int width, int height)
     if (gui_is_active)
     {
         unscare_mouse ();
+    }
+}
+
+
+void video_set_filter_list (int filters)
+{
+    filter_list = filters;
+}
+
+
+int video_get_filter_list (void)
+{
+    return (filter_list);
+}
+
+
+void video_filter (void)
+{
+    int y;
+
+
+    if (filter_list & VIDEO_FILTER_SCANLINES)
+    {
+        for (y = 0; y < screen_buffer -> h; y += 2)
+        {
+            hline (screen_buffer, 0, y, screen_buffer -> w, 0);
+        }
     }
 }
