@@ -23,6 +23,9 @@ extern "C" {
 int show_gui (void);
 
 
+int gui_is_active;
+
+
 #ifdef __cplusplus
 }
 #endif

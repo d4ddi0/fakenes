@@ -54,8 +54,11 @@ static INLINE void aorom_reset (void)
 
 static INLINE int aorom_init (void)
 {
-    printf ("Using memory mapper #7 (AOROM) "
-        "(%d PRG, no CHR).\n\n", ROM_PRG_ROM_PAGES);
+    if (! gui_is_active)
+    {
+        printf ("Using memory mapper #7 (AOROM) "
+            "(%d PRG, no CHR).\n\n", ROM_PRG_ROM_PAGES);
+    }
 
 
     /* No VROM hardware. */

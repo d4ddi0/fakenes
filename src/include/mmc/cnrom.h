@@ -66,8 +66,11 @@ static INLINE void cnrom_reset (void)
 
 static INLINE int cnrom_init (void)
 {
-    printf ("Using memory mapper #3 (CNROM) "
-        "(no PRG, %d CHR).\n\n", ROM_CHR_ROM_PAGES);
+    if (! gui_is_active)
+    {
+        printf ("Using memory mapper #3 (CNROM) "
+            "(no PRG, %d CHR).\n\n", ROM_CHR_ROM_PAGES);
+    }
 
 
     mmc_no_vrom = FALSE;

@@ -23,6 +23,9 @@
 #include "timing.h"
 
 
+int gui_is_active = FALSE;
+
+
 static int want_exit = FALSE;
 
 
@@ -36,11 +39,17 @@ int show_gui (void)
     gui_mg_color = 17;
 
 
+    gui_is_active = TRUE;
+
+
     unscare_mouse ();
 
     do_dialog (main_dialog, -1);
 
     scare_mouse ();
+
+
+    gui_is_active = FALSE;
 
 
     clear (screen);

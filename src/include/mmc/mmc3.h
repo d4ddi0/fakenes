@@ -254,8 +254,11 @@ static INLINE void mmc3_reset (void)
 
 static INLINE int mmc3_init (void)
 {
-    printf ("Using memory mapper #4 (MMC3) "
-        "(%d PRG, %d CHR).\n\n", ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
+    if (! gui_is_active)
+    {
+        printf ("Using memory mapper #4 (MMC3) "
+            "(%d PRG, %d CHR).\n\n", ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
+    }
 
 
     if ((ROM_PRG_ROM_PAGES) == 1) mmc3_prg_mask = 1;

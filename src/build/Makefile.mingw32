@@ -25,9 +25,9 @@ CFLAGS = ${IFLAGS} ${OFLAGS} ${WFLAGS} ${DFLAGS}
 
 
 ifdef DEBUG
-    LIBRARIES = support/resource.o -lalld
+    LIBRARIES = support/resource.o -lalld -lz
 else
-    LIBRARIES = support/resource.o -lalleg
+    LIBRARIES = support/resource.o -lalleg -lz
 endif
 
 
@@ -76,7 +76,7 @@ main.o : main.c include/build.h include/cpu.h include/data.h \
          include/rom.h include/video.h include/timing.h
          
 mmc.o : mmc.c include/mmc/aorom.h include/mmc/cnrom.h include/cpu.h \
-        include/mmc/dreams.h include/misc.h include/mmc.h \
+        include/mmc/dreams.h include/gui.h include/misc.h include/mmc.h \
         include/mmc/mmc1.h include/mmc/mmc2.h include/mmc/mmc3.h \
         include/mmc/mmc4.h include/ppu.h include/rom.h include/mmc/unrom.h
 

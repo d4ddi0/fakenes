@@ -37,8 +37,11 @@ static INLINE void unrom_reset (void)
 
 static INLINE int unrom_init (void)
 {
-    printf ("Using memory mapper #2 (UNROM) "
-        "(%d PRG, no CHR).\n\n", ROM_PRG_ROM_PAGES);
+    if (! gui_is_active)
+    {
+        printf ("Using memory mapper #2 (UNROM) "
+            "(%d PRG, no CHR).\n\n", ROM_PRG_ROM_PAGES);
+    }
 
 
     /* No VROM hardware. */

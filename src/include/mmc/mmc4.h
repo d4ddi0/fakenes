@@ -190,8 +190,11 @@ static INLINE void mmc4_reset (void)
 
 static INLINE int mmc4_init (void)
 {
-    printf ("Using memory mapper #10 (MMC4) (%d PRG, "
-        "%d CHR).\n\n", ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
+    if (! gui_is_active)
+    {
+        printf ("Using memory mapper #10 (MMC4) (%d PRG, "
+            "%d CHR).\n\n", ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
+    }
 
 
     /* Mapper requires at least 16k of PRG ROM, and some CHR ROM */
