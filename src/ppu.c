@@ -695,6 +695,9 @@ void ppu_end_line(void)
 }
 
 
+static void ppu_render_low_sprites (void);
+
+
 void ppu_clear (void)
 {
     vblank_occured = FALSE;
@@ -702,6 +705,12 @@ void ppu_clear (void)
 
     first_line_this_frame = TRUE;
     vram_address_start_new_frame();
+
+
+    rectfill (video_buffer, 0, 0,
+        255, 239, ppu_background_palette [0]);
+
+    ppu_render_low_sprites ();
 }
 
 
@@ -715,8 +724,6 @@ void ppu_clear (void)
 
 void ppu_render_line (int line)
 {
-    hline (video_buffer, 0, line, 255, ppu_background_palette[0]);
-
     if (background_enabled)
     {
         int attribute_address, attribute_byte = 0;
@@ -854,12 +861,12 @@ void ppu_vblank (void)
 }
 
 
-static void ppu_render_sprites (void);
+static void ppu_render_high_sprites (void);
 
 
 void ppu_render (void)
 {
-    ppu_render_sprites ();
+    ppu_render_high_sprites ();
 
 
     video_blit ();
@@ -1063,7 +1070,32 @@ static INLINE void ppu_render_sprite (int sprite)
 }
 
 
-static void ppu_render_sprites (void)
+static void ppu_render_low_sprites (void)
+{
+    int sprite, priority;
+
+
+    if (! sprites_enabled)
+    {
+        return;
+    }
+
+
+    for (sprite = 63; sprite >= 0; sprite --)
+    {
+        priority = (ppu_spr_ram
+            [(sprite * 4) + 2] & SPRITE_PRIORITY_BIT);
+
+
+        if (priority)
+        {
+            ppu_render_sprite (sprite);
+        }
+    }
+}
+
+
+static void ppu_render_high_sprites (void)
 {
     int sprite, priority;
 
