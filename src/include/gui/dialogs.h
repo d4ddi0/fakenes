@@ -159,15 +159,18 @@ static DIALOG help_shortcuts_dialog [] =
 
 static DIALOG help_about_dialog [] =
 {
-    {      sl_frame,   0,   0, 120, 134, 0, 0, 0,      0,            0, 0, NIL,              "About", NIL },
+    {      sl_frame,   0,   0, 120, 178, 0, 0, 0,      0,            0, 0, NIL,              "About", NIL },
     { d_button_proc, 100,   4,  16,  12, 0, 0, 0, D_EXIT,            0, 0, "X",                  NIL, NIL },
     {       sl_text,   9,  29,   0,   0, 0, 0, 0,      0,            0, 0, NIL,        "Developers:", NIL },
     {       sl_text,  17,  41,   0,   0, 0, 0, 0,      0,            0, 0, NIL,     "Randy McDowell", NIL },
-    {       sl_text,  17,  53,   0,   0, 0, 0, 0,      0,            0, 0, NIL,          "Ian Smith", NIL },
-    {       sl_text,  17,  65,   0,   0, 0, 0, 0,      0,            0, 0, NIL,    "Charles Bilyue'", NIL },
-    {       sl_text,  17,  77,   0,   0, 0, 0, 0,      0,            0, 0, NIL, "Jonathan Gevaryahu", NIL },
+    {       sl_text,  17,  53,   0,   0, 0, 0, 0,      0,            0, 0, NIL,    "Charles Bilyue'", NIL },
+    {       sl_text,  17,  65,   0,   0, 0, 0, 0,      0,            0, 0, NIL, "Jonathan Gevaryahu", NIL },
+    {       sl_text,  17,  77,   0,   0, 0, 0, 0,      0,            0, 0, NIL,     "Chris Robinson", NIL },
     {       sl_text,   9,  93,   0,   0, 0, 0, 0,      0,            0, 0, NIL,      "Contributors:", NIL },
     {       sl_text,  17, 105,   0,   0, 0, 0, 0,      0,            0, 0, NIL,      "Chris Sheehan", NIL },
     {       sl_text,  17, 117,   0,   0, 0, 0, 0,      0,            0, 0, NIL,   "Amit Vainsencher", NIL },
+    {       sl_text,   9, 133,   0,   0, 0, 0, 0,      0,            0, 0, NIL,          "Remnants:", NIL },
+    {       sl_text,  17, 145,   0,   0, 0, 0, 0,      0,            0, 0, NIL,          "Ian Smith", NIL },
+    {       sl_text,  27, 161,   0,   0, 0, 0, 0,      0,            0, 0, NIL,     "Thank you all!", NIL },
     {           NIL,   0,   0,   0,   0, 0, 0, 0,      0, SL_FRAME_END, 0, NIL,                  NIL, NIL }
 };
