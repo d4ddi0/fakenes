@@ -1,67 +1,174 @@
 
-FakeNES is a portable, open-source NES emulator.
 
-YOU MUST READ 'LICENSE' BEFORE USING.
-
-
-'SOURCE' contains installation instructions.
+   ==============
+    Introduction
+   ==============
 
 
-    =================
-     Input Interface
-    =================
+      FakeNES is an Open Source NES emulator.  It currently uses the
+      excellent Allegro multimedia library for input, graphics, and
+      sound effects/music across various platforms.
 
-      Current FakeNES supports up to 4 players (only used in a select
-      few games such as Gauntlet 2) via both the keyboard and/or
-      a maximum of two joypads or other joystick-like devices.
+      Currently, FakeNES is written in 100% C.  It was originally
+      designed to run on DOS and Microsoft Windows, but now features a
+      POSIX build system as well.  Be warned, however, that FakeNES
+      is untested on systems which uses a big-end-first memory layout.
 
-      The input device for each player is mappable separately but
-      an input device is not unique to that player.  For example,
-      keyboard layout #1 can be assigned to both players #1 and #2
-      without conflicts.
+      Even worse, the C core is portable but also slow.  Do not expect
+      FakeNES to run blazingly fast on a 486, or even a Pentium.  I
+      would recommend at least a 300 MHz processor for full enjoyment.
 
-      You can select the input device for each player in the FakeNES
-      configuration file under the "player_x_device" items (where 'x'
-      is the player #).  The following values are currently supported:
+      If you need any help regarding building FakeNES from the source
+      code archive, please read the SOURCE text file that came with
+      your source or source+binary distribution.
 
-      0: No input (disables ALL input for this player).
+      The SUPPORT text file that is packaged with all distributions
+      documents various places where you can find support and help for
+      anything related to FakeNES.  Please, only consult support
+      services if you have a problem which you cannot fix yourself.
 
-      1: Keyboard layout #1
-      2: Keyboard layout #2
 
-        The keyboard layouts are defined by supplying a sequence of
-        8 integer scancodes separated by spaces in the "[input]"
-        section via the "key1_scancodes" and "key2_scancodes" items.
-        The order is A, B, Select, Start, Up, Down, Left, and Right.
+   ===============
+    Configuration
+   ===============
 
-        If these items are not found, or are corrupt, then FakeNES
-        will use the built in defaults of X, Z, Tab, Enter, Up, Down
-        Left, and Right, respectively, for keyboard layout #1, and
-        number pad 1, 3, 7, 9, 8, 2, 4, 6, respectively, for keyboard
-        layout #2.
+      FakeNES uses a standard configuration system similar to that
+      used by many DOS, Windows, and UNIX applications.
 
-      3: Joystick device #1
-      4: Joystick device #2
+      Each item in the configuration file that is not surrounded
+      by square brackets ([ and ]) defines an 'element' or 'key'.
+      The equal sign (=) is used to assign a value to that element.
 
-        The joystick devices support mapping of 2 (A, B) or 4 (A, B,
-        Select, Start) buttons to the input interface, but you can
-        only use 4 buttons if your platform supports it.  FakeNES
-        will automatically detect this, and enable them if available.
+      Items which are surrounded by brackets are called headers.
+      Headers define a section or group of related elements.
 
-        Therefor, it is recommended that you preserve A and B as the
-        first 2 buttons (on the NES, the order would be B, A, though).
-        If no more than 2 buttons are available, then keyboard layout #1
-        (for joystick device #1) and keyboard layout #2 (for joystick
-        device #2) will be used to handle Select and Start buttons.
+      Comments are delimeted by the pound (#) sign and are ignored
+      by the configuration file parser.
 
-        The joystick button mappings are defined by supplying a
-        sequence of integer button #s (up to 10) separated by spaces in
-        the "[input]" section via the "joy1_buttons" and "joy2_buttons"
-        items.  Please refer to your joystick device manual for
-        information about button #s and where each button is located
-        on your joypad or joystick-like device.  The order is A, B,
-        Select, Start.
+      At this time, command-line options are not supported.  However,
+      you may supply the name of an NES ROM file that you would like
+      to load on the command-line instead of loading it from the GUI.
 
-        If these items are not found, or are corrupt, then FakeNES
-        will use the built in defaults of 1, 0, 2, and 3, respectively,
-        for both joystick devices.
+
+   ==============
+    Input engine
+   ==============
+
+      FakeNES supports the 4-player adapter automatically, but you
+      will need to enable emulation of the Zapper (Optical Gun)
+      manually.  You can toggle emulation of the Zapper and display
+      of the crosshair by pressing the F5 key during gameplay.
+
+      Note: A mouse is required for Zapper support.
+
+      Currently, FakeNES supports two different keyboard layouts on
+      a single keyboard, and up to two (2) joystick-like devices
+      such as joypads.  Each device may be assigned to any player,
+      you can even assign a single device to multiple players.
+
+      All configuration of the controls is done in the configuration
+      file, under the [input] header.  You can assign a specific
+      device to each player by modifying the player_#_device elements
+      (replace # with the associated player number).
+
+      The following values are permitted:
+
+        0: No input (disables all input for this player).
+    
+        1: Keyboard layout #1
+        2: Keyboard layout #2
+    
+            There are two (2) configurable keyboard layouts which
+            are present on the same keyboard, and may define
+            overlapping keys without conflicts.  Modifying the
+            key1_scancodes and key2_scancodes elements allow you
+            to customize the key mappings for each layout.
+
+            Note that due to portability reasons, FakeNES does not
+            accept standard IBM scancodes.  Instead, you need to
+            supply a sequence of 8 integer scancodes as defined by
+            the Allegro multimedia library.
+
+            The order in which the scancodes are applied is very
+            important, and cooresponds to the associated NES standard
+            controller buttons: A, B, Select, Start, Up, Down, Left,
+            and Right.  If a complete sequence of 8 scancodes cannot
+            be found, then the defaults will be used.
+
+            For layout #1, they are X, Z, Tab, and Enter, respectively,
+            combined with the arrow keys for directional control.
+
+        3: Joystick device #1
+        4: Joystick device #2
+
+            To be documented.
+
+
+   =============
+    Core timing
+   =============
+
+      FakeNES contains an automatic speed throttling system.  By
+      modifying the frame_skip_min and frame_skip_max elements under
+      the [timing] header in the configuration file, you can toggle
+      speed cap and set the parameters for frame skipping.
+
+      Frame skipping is a technique that allows the emulation to run
+      much faster, at the cost of fewer frames-per-second (FPS) being
+      rendered, which results in more latent or choppy gameplay.
+
+      Speed capping effectively limits the maximum amount of FPS to
+      be rendered to match that of the NES itself, which keeps the
+      emulation from running too fast on fast processors or when
+      frame skipping is being used.
+
+      frame_skip_min defines the least amount of frames to be
+      skipped, setting it to zero (0) effectively disables minimum
+      frame skipping and enables the speed capping mechanism.
+
+      frame_skip_max defines the highest allowable amount of frames
+      to be skipped.  FakeNES will never skip more frames than is
+      defined by this element, even if full speed is not obtained.
+
+      Setting frame_skip_min and frame_skip_max to equal values
+      effectively sets a fixed amount of frames to be skipped.
+
+      If the speed cap is enabled, you can use the fast forward key
+      to surpass the speed cap and skip frame_skip_max frames as long
+      as the key is being held down.  By default, the fast forward key
+      is defined as the tilde key above the Tab key on most keyboards.
+
+      The machine_type element allows you to select which standard
+      is to be used by the speed throttling system and sound/graphics
+      engines.  Set it to zero (0) for NTSC or one (1) for PAL.  There
+      are not many PAL NES games, and many of them should run fine in
+      NTSC mode.  Only modify this element if you have problems.
+
+
+   ===============
+    Anything else
+   ===============
+
+      If it isn't listed here then it probably blows, isn't finished,
+      or I just don't feel like wasting my time documenting it.
+
+      If you would like something documented, please let me know.
+      You can contact me by E-mail at stainless@users.sourceforge.net.
+
+
+   ===============
+    In closing...
+   ===============
+
+      That's all for now.
+
+      I would like to thank my fellow ZSNES developers, without them
+      I would have never became interested in the world of emulation.
+
+      I would also like to thank the current maintainer of SNEeSe,
+      for without him FakeNES would not have even been possible.
+
+      And finally I would like to thank everybody else who is still
+      (as Matt Conte put it) hacking around with the piece of shit.
+
+      - Randy McDowell (stainless)
