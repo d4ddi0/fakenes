@@ -16,8 +16,9 @@ Entertainment System).
 
 */
 
+/* Not really needed. */
 #ifndef INLINE
-#define INLINE  /* Not really needed. */
+#define INLINE
 #endif
 
 #include <stdio.h>
@@ -65,4 +66,3 @@ int main()
 
  return 0;
 }
-END_OF_MAIN()
