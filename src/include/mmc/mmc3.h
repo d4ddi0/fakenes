@@ -53,7 +53,7 @@ static void mmc3_write (UINT16 address, UINT8 value)
     int scrap;
 
 
-    switch (address)
+    switch (address & 0xE001)
     {
         case 0x8000:
 
