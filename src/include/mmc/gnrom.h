@@ -17,19 +17,15 @@ static void gnrom_write (UINT16 address, UINT8 value)
 
     chr_bank = (value & 0x0f);
 
-    prg_bank = (((value & 0xf0) >> 4) & gnrom_prg_mask);
-
-
     /* Convert 32k page # to 16k. */
-
-    prg_bank *= 2;
+    prg_bank = ((((value & 0xf0) >> 4) * 2));
 
 
     /* Select requested 32k page. */
 
-    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K (prg_bank));
+    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K (prg_bank & gnrom_prg_mask));
 
-    cpu_set_read_address_16k (0xc000, ROM_PAGE_16K ((prg_bank + 1)));
+    cpu_set_read_address_16k (0xc000, ROM_PAGE_16K ((prg_bank + 1) & gnrom_prg_mask));
 
 
     /* Convert 8k page # to 1k. */
@@ -58,7 +54,7 @@ static INLINE void gnrom_reset (void)
 
     /* Select second 16k page in upper 16k. */
 
-    cpu_set_read_address_16k (0xc000, ROM_PAGE_16K (1));
+    cpu_set_read_address_16k (0xc000, ROM_PAGE_16K (1 & gnrom_prg_mask));
 
 
     /* Select first 8k page. */
