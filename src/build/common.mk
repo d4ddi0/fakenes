@@ -76,6 +76,8 @@ rom${OBJEXT} : rom.c include/ppu.h include/rom.h include/misc.h include/mmc.h \
 video${OBJEXT} : video.c include/audio.h include/cpu.h include/core.h \
   include/misc.h include/rom.h include/mmc.h include/cpu_in.h \
   include/gui.h include/input.h include/ppu.h include/video.h \
-  include/data.h include/datafile.h include/timing.h
+  include/data.h include/datafile.h include/timing.h include/blit/2xsoe.h \
+  include/blit/shared.h include/blit/2xscl.h include/blit/interp2x.h \
+  include/blit/interp3x.h include/blit/s2xsoe.h include/blit/s2xscl.h
 
 support/unzip${OBJEXT} : support/unzip.c support/unzip.h
