@@ -403,33 +403,33 @@ static MENU options_audio_filters_menu [] =
 };
 
 
-static int options_audio_channels_menu_square_wave_a (void);
+static int options_audio_channels_menu_rectangle_wave_a (void);
 
-static int options_audio_channels_menu_square_wave_b (void);
+static int options_audio_channels_menu_rectangle_wave_b (void);
 
 static int options_audio_channels_menu_triangle_wave (void);
 
 static int options_audio_channels_menu_white_noise (void);
 
-static int options_audio_channels_menu_digital_dm (void);
+static int options_audio_channels_menu_digital (void);
 
 static int options_audio_channels_menu_extended (void);
 
 
 static MENU options_audio_channels_menu [] =
 {
-    { "&Square Wave A", options_audio_channels_menu_square_wave_a, NIL, 0, NIL },
-    {               "",                                       NIL, NIL, 0, NIL },
-    { "S&quare Wave B", options_audio_channels_menu_square_wave_b, NIL, 0, NIL },
-    {               "",                                       NIL, NIL, 0, NIL },
-    { "&Triangle Wave", options_audio_channels_menu_triangle_wave, NIL, 0, NIL },
-    {               "",                                       NIL, NIL, 0, NIL },
-    {   "&White Noise",   options_audio_channels_menu_white_noise, NIL, 0, NIL },
-    {               "",                                       NIL, NIL, 0, NIL },
-    {  "&Digital (DM)",    options_audio_channels_menu_digital_dm, NIL, 0, NIL },
-    {               "",                                       NIL, NIL, 0, NIL },
-    {      "&Extended",      options_audio_channels_menu_extended, NIL, 0, NIL },
-    {              NIL,                                       NIL, NIL, 0, NIL }
+    { "&Rectangle Wave A", options_audio_channels_menu_rectangle_wave_a, NIL, 0, NIL },
+    {                  "",                                          NIL, NIL, 0, NIL },
+    { "R&ectangle Wave B", options_audio_channels_menu_rectangle_wave_b, NIL, 0, NIL },
+    {                  "",                                          NIL, NIL, 0, NIL },
+    {    "&Triangle Wave",    options_audio_channels_menu_triangle_wave, NIL, 0, NIL },
+    {                  "",                                          NIL, NIL, 0, NIL },
+    {      "&White Noise",      options_audio_channels_menu_white_noise, NIL, 0, NIL },
+    {                  "",                                          NIL, NIL, 0, NIL },
+    {          "&Digital",          options_audio_channels_menu_digital, NIL, 0, NIL },
+    {                  "",                                          NIL, NIL, 0, NIL },
+    {         "&Extended",         options_audio_channels_menu_extended, NIL, 0, NIL },
+    {                 NIL,                                          NIL, NIL, 0, NIL }
 };
 
 
