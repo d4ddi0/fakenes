@@ -188,12 +188,6 @@ void video_exit (void)
 
 void video_blit (void)
 {
-    if (ppu_clip_background)
-    {
-        rectfill (video_buffer, 0, 0, 7, 239, 0);
-    }
-
-
     if ((video_display_status) && (rom_is_loaded))
     {
         textout (video_buffer, font,

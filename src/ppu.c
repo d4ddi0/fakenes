@@ -136,9 +136,6 @@ static int hit_first_sprite = FALSE;
 static int background_clip_enabled = FALSE;
 static int sprites_clip_enabled = FALSE;
 
-int ppu_clip_background = FALSE; // hack
-
-
 static int first_line_this_frame = TRUE;
 
 static int background_tileset = 0;
@@ -219,6 +216,7 @@ UINT8 * ppu_get_chr_rom_pages (int num_pages)
 
 UINT32 tile_decode_table_plane_0[16];
 UINT32 tile_decode_table_plane_1[16];
+UINT8 attribute_table [4];
 
 
 void ppu_cache_chr_rom_pages (void)
@@ -340,6 +338,12 @@ void ppu_set_ram_8k_pattern_vram (void)
 int ppu_init (void)
 {
     int i;
+
+    /* calculate the attribute lookup table */
+    for (i = 0; i < 4; i++)
+    {
+        attribute_table [i] = (i << 2) | 3;
+    }
 
     /* calculate the tile decoding lookup tables */
     for (i = 0; i < 16; i++)
@@ -915,9 +919,6 @@ void ppu_write (UINT16 address, UINT8 value)
             background_clip_enabled =
                 !(value & BACKGROUND_CLIP_LEFT_EDGE_BIT);
 
-            ppu_clip_background = background_clip_enabled;
-                                  
-
             sprites_clip_enabled =
                 !(value & SPRITES_CLIP_LEFT_EDGE_BIT);
 
@@ -1113,8 +1114,6 @@ void ppu_start_frame (void)
 
 void ppu_start_render (void)
 {
-    clear_to_color (video_buffer, ppu_background_palette [0]);
-
     ppu_start_frame();
 }
 
@@ -1181,6 +1180,16 @@ void ppu_render_background (int line)
     int x, sub_x;
     int y, sub_y;
 
+    if (background_clip_enabled)
+    {
+        hline (video_buffer, 0, line, 7, 0);
+        hline (video_buffer, 8, line, 255, ppu_background_palette [0]);
+    }
+    else
+    {
+        hline (video_buffer, 0, line, 255, ppu_background_palette [0]);
+    }
+
     name_table = (vram_address >> 10) & 3;
     name_table_address = name_tables_read[name_table];
 
@@ -1202,13 +1211,15 @@ void ppu_render_background (int line)
     }
 
 
+    /* If background clip left edge is enabled, then skip the entirety
+     * of the first tile
+     */
     /* Draw the background. */
     for (x = 0; x < (256 / 8) + 1; x ++)
     {
-        int attribute;
+        UINT8 attribute;
         int tile;
         UINT8 *cache_address;
-
 
         if (!(vram_address & 3))
         /* fetch and shift attribute byte */
@@ -1235,9 +1246,20 @@ void ppu_render_background (int line)
             ((tile & 0x3FF) / 2 * 8) + sub_y * 8;
 
 
-        attribute = ((attribute_byte & 3) << 2) | 3;
+        attribute = attribute_table [attribute_byte & 3];
 
-        for (sub_x = 0; sub_x < 8; sub_x ++)
+        if (background_clip_enabled && (x <= 1))
+        {
+            if (x == 0) sub_x = 8;
+            else /* (x == 1) */ sub_x = x_offset;
+           
+        }
+        else
+        {
+            sub_x = 0;
+        }
+
+        for (; sub_x < 8; sub_x ++)
         {
             UINT8 color = cache_address[sub_x] & attribute;
 
@@ -1296,6 +1318,7 @@ void ppu_render_line (int line)
 
     if (sprites_enabled)
     {
+        /* used for sprite pixel allocation and collision detection */
         for (i = 0; i < 256; i++)
         {
             background_pixels [8 + i] = 0;
@@ -1307,6 +1330,10 @@ void ppu_render_line (int line)
     if (background_enabled)
     {
         ppu_render_background (line);
+    }
+    else
+    {
+        hline (video_buffer, 0, line, 255, 0);
     }
 
     if (sprites_enabled)
@@ -1388,7 +1415,9 @@ static INLINE void ppu_render_sprite (int sprite, int line)
 
     int first_x, last_x, last_y;
 
-    int tile, color, attribute;
+    int tile;
+
+    UINT8 attribute;
 
     int address, priority;
 
@@ -1482,7 +1511,7 @@ static INLINE void ppu_render_sprite (int sprite, int line)
     cache_address = ppu_vram_block_cache_address [address >> 10] +
         ((address & 0x3FF) / 2 * 8);
 
-    attribute = ((ppu_spr_ram [sprite + 2] & 3) << 2) | 3;
+    attribute = attribute_table [ppu_spr_ram [sprite + 2] & 3];
 
 
     /* Flipping. */
@@ -1502,6 +1531,8 @@ static INLINE void ppu_render_sprite (int sprite, int line)
         {
             for (sub_x = first_x; sub_x <= last_x; sub_x ++)
             {
+                UINT8 color;
+
                 if (flip_h)
                 {
                     if (flip_v)
@@ -1561,6 +1592,8 @@ static INLINE void ppu_render_sprite (int sprite, int line)
         {
             for (sub_x = first_x; sub_x <= last_x; sub_x ++)
             {
+                UINT8 color;
+
                 if (flip_h)
                 {
                     if (flip_v)
@@ -1621,6 +1654,8 @@ static INLINE void ppu_render_sprite (int sprite, int line)
         {
             for (sub_x = first_x; sub_x <= last_x; sub_x ++)
             {
+                UINT8 color;
+
                 if (flip_h)
                 {
                     if (flip_v)
@@ -1679,6 +1714,8 @@ static INLINE void ppu_render_sprite (int sprite, int line)
         {
             for (sub_x = first_x; sub_x <= last_x; sub_x ++)
             {
+                UINT8 color;
+
                 if (flip_h)
                 {
                     if (flip_v)
