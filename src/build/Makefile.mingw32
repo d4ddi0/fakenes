@@ -1,130 +1,114 @@
-
-
 # Default to x86 optimized core.
 
 ifndef ASM_CORE
-    ASM_CORE := 1
+    ASM_CORE = 1
 endif
 
-
-ifndef CPU_ARCH
-    CPU_ARCH := i486
+ifndef NO_HAWKNL
+    HAWK_DEF = -DUSE_HAWKNL
+    HAWK_LIB = -lHawkNL
 endif
 
-ifndef CPU_TYPE
-    CPU_TYPE := pentium2
+ifdef CPU_TYPE
+    ifdef CPU_ARCH
+        CPU = -mcpu=$(CPU_TYPE) -march=$(CPU_ARCH)
+    else
+        CPU = -mcpu=$(CPU_TYPE)
+    endif
+else
+    ifdef CPU_ARCH
+        CPU = -march=$(CPU_ARCH)
+    else
+        CPU = -mcpu=i486 -march=pentium2
+    endif
 endif
-
 
 CC = gcc
-
-NASM = nasm
-
+ifndef NASM
+    NASM = nasm
+endif
 RM = rm -f -v
 
-
 EXEEXT = w.exe
-
 OBJEXT = w.o
 
-
 BINARY = fakenes${EXEEXT}
-
 BINARY_DEBUG = fakenesd${EXEEXT}
 
+ifndef DOS_PATHS
+    COREOFF = support/coreoff$(EXEEXT)
+    COREINC = support/coreoff.inc
+else
+    COREOFF = support\coreoff$(EXEEXT)
+    COREINC = support\coreoff.inc
+endif
 
 IFLAGS = -Iinclude/ -Isupport/
-
-ifdef DEBUG
-    OFLAGS := -O0 -g -ggdb3
-
-    DFLAGS := -DDEBUG -DUSE_ZLIB -DUSE_HAWKNL -DLSB_FIRST
-else
-    OFLAGS := -march=${CPU_ARCH} -mcpu=${CPU_TYPE} -O3 -fomit-frame-pointer \
-    -fno-rtti -fno-exceptions -funroll-loops -ffast-math -fforce-addr \
-    -fforce-mem -fstrength-reduce -fthread-jumps -fexpensive-optimizations \
-    -foptimize-sibling-calls -fstrict-aliasing -maccumulate-outgoing-args \
-    -fschedule-insns -fschedule-insns2
-
-    DFLAGS := -DUSE_ZLIB -DUSE_HAWKNL -DLSB_FIRST
-endif
-
-ifneq (${ASM_CORE}, 0)
-    DFLAGS := ${DFLAGS} -DNO_C_CORE
-endif
-
-WFLAGS = -Wall -Wno-unused
-
-
-CFLAGS = ${IFLAGS} ${OFLAGS} ${WFLAGS} ${DFLAGS}
-
 
 NASMDFLAGS = -DC_LABELS_PREFIX=_
 
 ifdef DEBUG
+    OFLAGS = -O0 -g -ggdb3
+    DFLAGS = -DDEBUG -DUSE_ZLIB $(HAWK_DEF) -DLSB_FIRST
     NASMFLAGS = ${IFLAGS} -g -f win32 ${NASMDFLAGS}
 else
+    OFLAGS = ${CPU} -O3 -fomit-frame-pointer -fno-rtti -fno-exceptions \
+    -funroll-loops -ffast-math -fforce-addr -fforce-mem -fstrength-reduce \
+    -fthread-jumps -fexpensive-optimizations -foptimize-sibling-calls \
+    -fstrict-aliasing -maccumulate-outgoing-args -fschedule-insns \
+    -fschedule-insns2
+
+    DFLAGS = -DUSE_ZLIB $(HAWK_DEF) -DLSB_FIRST
     NASMFLAGS = ${IFLAGS} -O3 -f win32 ${NASMDFLAGS}
 endif
 
+ifneq (${ASM_CORE}, 0)
+    DFLAGS += -DNO_C_CORE
+endif
 
-LIBRARIES = support/resource.o -lalleg -lz -lHawkNL
+WFLAGS = -Wall -Wno-unused
 
+CFLAGS = ${IFLAGS} ${OFLAGS} ${WFLAGS} ${DFLAGS}
 
-OBJECTS := apu${OBJEXT} audio${OBJEXT} core${OBJEXT} cpu${OBJEXT} \
+LIBRARIES = support/resource.o -lalleg -lz $(HAWK_LIB)
+
+OBJECTS = apu${OBJEXT} audio${OBJEXT} core${OBJEXT} cpu${OBJEXT} \
     data${OBJEXT} gui${OBJEXT} input${OBJEXT} papu${OBJEXT} ppu${OBJEXT} \
     rom${OBJEXT} main${OBJEXT} mmc${OBJEXT} netplay${OBJEXT} \
     video${OBJEXT} crc32${OBJEXT} support/unzip${OBJEXT}
 
 ifneq (${ASM_CORE}, 0)
-    OBJECTS := ${OBJECTS} corex86${OBJEXT}
+    OBJECTS += corex86${OBJEXT}
 endif
-
 
 ifdef DEBUG
-    all : ${BINARY_DEBUG}
+    all: ${BINARY_DEBUG}
 else
-    all : ${BINARY}
+    all: ${BINARY}
 endif
 
-
-${BINARY} : ${OBJECTS}
-
+${BINARY}: ${OBJECTS}
 	${CC} ${OBJECTS} -o ${BINARY} -s ${LIBRARIES}
 
-
-${BINARY_DEBUG} : ${OBJECTS}
-
+${BINARY_DEBUG}: ${OBJECTS}
 	${CC} ${OBJECTS} -o ${BINARY_DEBUG} -g -ggdb3 ${LIBRARIES}
-
 
 .SUFFIXES : .asm .c
 
 %${OBJEXT} : %.asm
-
 	${NASM} $< -o $@ ${NASMFLAGS}
 
-
 %${OBJEXT} : %.c
-
 	${CC} -c $< -o $@ ${CFLAGS}
 
-
 support/coreoff.inc: support/coreoff.c include/core.h include/misc.h
-
 	${CC} $< -o support/coreoff${EXEEXT} ${CFLAGS} -s
-
-	support/coreoff${EXEEXT} > support/coreoff.inc
-
+	$(COREOFF) > $(COREINC)
 
 include build/common.mk
 
-
 clean :
-
 	${RM} ${OBJECTS}
-
 	${RM} ${BINARY} ${BINARY_DEBUG}
 
-
-	${RM} support/coreoff${EXEEXT} support/coreoff.inc
+	${RM} $(COREOFF) $(COREINC)
