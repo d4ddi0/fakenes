@@ -131,6 +131,74 @@ static void mmc1_write (UINT16 address, UINT8 value)
             }
 
             mmc1_cpu_bank_sort();
+
+            if (ROM_CHR_ROM_PAGES > 0)
+            {
+                if (mmc1_register[0] & 0x10)
+                /* 4k VROM mapping? */
+                {
+                    int mmc1_bank_number = mmc1_register[1] & mmc1_chr_mask;
+
+                    if (mmc1_bank_number > ROM_CHR_ROM_PAGES * 2)
+                    {
+                     /* not sure how to handle non-existant CHR ROM */
+                     /* ignoring high address bits */
+                     mmc1_bank_number &= mmc1_chr_mask / 2;
+                    }
+
+                    mmc1_bank_number <<= 2;
+                    printf("VROM 4k low: %02X %02X\n", mmc1_register[1], mmc1_bank_number);
+
+                    /* swap 4k of CHR-ROM */ //works!!!
+                    mmc_vrom_banks[0] = VROM_PAGE_1K (mmc1_bank_number);
+                    mmc_vrom_banks[1] = VROM_PAGE_1K (mmc1_bank_number + 1);
+                    mmc_vrom_banks[2] = VROM_PAGE_1K (mmc1_bank_number + 2);
+                    mmc_vrom_banks[3] = VROM_PAGE_1K (mmc1_bank_number + 3);
+
+                    mmc1_bank_number = mmc1_register[2] & mmc1_chr_mask;
+
+                    if (mmc1_bank_number > ROM_CHR_ROM_PAGES * 2)
+                    {
+                        /* not sure how to handle non-existant CHR ROM */
+                        /* ignoring high address bits */
+                        mmc1_bank_number &= mmc1_chr_mask / 2;
+                    }
+
+                    mmc1_bank_number <<= 2;
+                    printf("VROM 4k high: %02X %02X\n", mmc1_register[2], mmc1_bank_number);
+
+                    /* swap other 4k of CHR-ROM */ //works!!!
+                    mmc_vrom_banks[4] = VROM_PAGE_1K (mmc1_bank_number);
+                    mmc_vrom_banks[5] = VROM_PAGE_1K (mmc1_bank_number + 1);
+                    mmc_vrom_banks[6] = VROM_PAGE_1K (mmc1_bank_number + 2);
+                    mmc_vrom_banks[7] = VROM_PAGE_1K (mmc1_bank_number + 3);
+                }
+                else
+                /* No, 8k VROM mapping */
+                {
+                    int mmc1_bank_number = mmc1_register[1] & mmc1_chr_mask & ~1;
+
+                    if (mmc1_bank_number > ROM_CHR_ROM_PAGES * 2)
+                    {
+                     /* not sure how to handle non-existant CHR ROM */
+                     /* ignoring high address bits */
+                     mmc1_bank_number &= mmc1_chr_mask / 2;
+                    }
+
+                    mmc1_bank_number <<= 2;
+                    printf("VROM 8k: %02X %02X\n", mmc1_register[1], mmc1_bank_number);
+
+                    /* swap 8k of CHR-ROM */ //never called??
+                    mmc_vrom_banks[0] = VROM_PAGE_1K (mmc1_bank_number);
+                    mmc_vrom_banks[1] = VROM_PAGE_1K (mmc1_bank_number + 1);
+                    mmc_vrom_banks[2] = VROM_PAGE_1K (mmc1_bank_number + 2);
+                    mmc_vrom_banks[3] = VROM_PAGE_1K (mmc1_bank_number + 3);
+                    mmc_vrom_banks[4] = VROM_PAGE_1K (mmc1_bank_number + 4);
+                    mmc_vrom_banks[5] = VROM_PAGE_1K (mmc1_bank_number + 5);
+                    mmc_vrom_banks[6] = VROM_PAGE_1K (mmc1_bank_number + 6);
+                    mmc_vrom_banks[7] = VROM_PAGE_1K (mmc1_bank_number + 7);
+                }
+            }
             return;
         }
 	
@@ -166,6 +234,7 @@ static void mmc1_write (UINT16 address, UINT8 value)
                     }
 
                     mmc1_bank_number <<= 2;
+                    printf("VROM 4k low: %02X %02X\n", mmc1_register[1], mmc1_bank_number);
 
                     /* swap 4k of CHR-ROM */ //works!!!
                     mmc_vrom_banks[0] = VROM_PAGE_1K (mmc1_bank_number);
@@ -186,6 +255,7 @@ static void mmc1_write (UINT16 address, UINT8 value)
                     }
 
                     mmc1_bank_number <<= 2;
+                    printf("VROM 8k: %02X %02X\n", mmc1_register[1], mmc1_bank_number);
 
                     /* swap 8k of CHR-ROM */ //never called??
                     mmc_vrom_banks[0] = VROM_PAGE_1K (mmc1_bank_number);
@@ -240,6 +310,7 @@ static void mmc1_write (UINT16 address, UINT8 value)
                 }
 
                 mmc1_bank_number <<= 2;
+                printf("VROM 4k high: %02X %02X\n", mmc1_register[2], mmc1_bank_number);
 
                 /* swap other 4k of CHR-ROM */ //works!!!
                 mmc_vrom_banks[4] = VROM_PAGE_1K (mmc1_bank_number);
@@ -309,7 +380,7 @@ static INLINE void mmc1_reset (void)
     mmc1_cpu_bank_sort();
 
 
-    if (!ROM_CHR_ROM_PAGES)
+    if (ROM_CHR_ROM_PAGES)
     {
         /* Select first 8k page. */
 
@@ -358,7 +429,7 @@ static INLINE int mmc1_init (void)
     mmc1_prg_mask = (mmc1_prg_mask - 1);
 
 
-    if (! ROM_CHR_ROM_PAGES > 0)
+    if ((ROM_CHR_ROM_PAGES) == 0)
     {
         /* No VROM is present. */
 
