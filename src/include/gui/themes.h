@@ -1,5 +1,15 @@
 
 
+enum
+{
+    GUI_THEME_CLASSIC = 1,
+
+    GUI_THEME_STAINLESS_STEEL,
+
+    GUI_THEME_ZERO_4
+};
+
+
 static GUI_THEME classic_theme =
 {
     { 0.17, 0.51, 0.87 }, /* Gradients start. */
@@ -26,6 +36,9 @@ static INLINE void set_classic_theme (void)
 
 
     gui_image_palette = DATA_TO_RGB (GUI_CLASSIC_THEME_PALETTE);
+
+
+    gui_theme_id = GUI_THEME_CLASSIC;
 
 
     gui_set_theme (&classic_theme);
@@ -60,6 +73,9 @@ static INLINE void set_stainless_steel_theme (void)
     gui_image_palette = DATA_TO_RGB (GUI_STAINLESS_STEEL_THEME_PALETTE);
 
 
+    gui_theme_id = GUI_THEME_STAINLESS_STEEL;
+
+
     gui_set_theme (&stainless_steel_theme);
 }
 
@@ -92,5 +108,40 @@ static INLINE void set_zero_4_theme (void)
     gui_image_palette = DATA_TO_RGB (GUI_ZERO_4_THEME_PALETTE);
 
 
+    gui_theme_id = GUI_THEME_ZERO_4;
+
+
     gui_set_theme (&zero_4_theme);
+}
+
+
+static INLINE void set_theme (void)
+{
+    switch (gui_theme_id)
+    {
+        case GUI_THEME_CLASSIC:
+
+            set_classic_theme ();
+
+
+            break;
+
+
+        case GUI_THEME_STAINLESS_STEEL:
+
+            set_stainless_steel_theme ();
+
+
+            break;
+
+
+         case GUI_THEME_ZERO_4:
+
+         default:
+
+            set_zero_4_theme ();
+
+
+            break;
+    }
 }

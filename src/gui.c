@@ -71,6 +71,8 @@ static int restart_dialog = FALSE;
 
 GUI_THEME gui_theme;
 
+int gui_theme_id = 0;
+
 
 GUI_THEME * last_theme = NIL;
 
@@ -990,7 +992,10 @@ int show_gui (int first_run)
         CHECK_MENU (options_video_palette_menu, 0);
     
 
-        set_zero_4_theme ();
+        gui_theme_id = get_config_int ("gui", "theme", 0);
+
+
+        set_theme ();
 
 
         gui_initialized = TRUE;
@@ -1110,6 +1115,9 @@ int show_gui (int first_run)
 
         set_config_string ("netplay", "ip_address", ip_address);
     }
+
+
+    set_config_int ("gui", "theme", gui_theme_id);
 
 
     /* Is this needed for Zapper? */
