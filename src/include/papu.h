@@ -66,19 +66,18 @@ int papu_ideal_triangle;
 
 int papu_linear_echo;
 
-int papu_surround_sound;
+
+int papu_spatial_stereo;
 
 
 enum
 {
-    PAPU_SURROUND_SOUND_NONE,
+    PAPU_SPATIAL_STEREO_MODE_1 = 1,
 
+    PAPU_SPATIAL_STEREO_MODE_2,
 
-    PAPU_SURROUND_SOUND_MONO,
+    PAPU_SPATIAL_STEREO_MODE_3,
 
-    PAPU_SURROUND_SOUND_STEREO_1,
-
-    PAPU_SURROUND_SOUND_STEREO_2
 };
 
 

@@ -450,13 +450,17 @@ static INLINE void update_menus (void)
         papu_swap_channels = FALSE;
 
 
-        papu_surround_sound = PAPU_SURROUND_SOUND_NONE;
+        papu_spatial_stereo = FALSE;
         
 
         DISABLE_MENU (options_audio_mixing_advanced_menu, 0);
 
 
         DISABLE_MENU (options_audio_effects_menu, 2);
+
+        DISABLE_MENU (options_audio_effects_menu, 4);
+
+        DISABLE_MENU (options_audio_effects_menu, 6);
     }
     else
     {
@@ -464,6 +468,10 @@ static INLINE void update_menus (void)
 
 
         ENABLE_MENU (options_audio_effects_menu, 2);
+
+        ENABLE_MENU (options_audio_effects_menu, 4);
+
+        ENABLE_MENU (options_audio_effects_menu, 6);
     }
 
 
@@ -577,11 +585,11 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_audio_effects_menu, 0, papu_linear_echo);
 
-    TOGGLE_MENU (options_audio_effects_menu, 2, (papu_surround_sound == PAPU_SURROUND_SOUND_MONO));
+    TOGGLE_MENU (options_audio_effects_menu, 2, (papu_spatial_stereo == PAPU_SPATIAL_STEREO_MODE_1));
 
-    TOGGLE_MENU (options_audio_effects_menu, 4, (papu_surround_sound == PAPU_SURROUND_SOUND_STEREO_1));
+    TOGGLE_MENU (options_audio_effects_menu, 4, (papu_spatial_stereo == PAPU_SPATIAL_STEREO_MODE_2));
 
-    TOGGLE_MENU (options_audio_effects_menu, 6, (papu_surround_sound == PAPU_SURROUND_SOUND_STEREO_2));
+    TOGGLE_MENU (options_audio_effects_menu, 6, (papu_spatial_stereo == PAPU_SPATIAL_STEREO_MODE_3));
 
 
     TOGGLE_MENU (options_audio_filters_menu, 0, (papu_get_filter_list () & PAPU_FILTER_LOW_PASS_MODE_1));
@@ -2933,9 +2941,9 @@ static int options_audio_effects_menu_linear_echo (void)
 }
 
 
-static int options_audio_effects_menu_surround_sound_mono (void)
+static int options_audio_effects_menu_spatial_stereo_mode_1 (void)
 {
-    papu_surround_sound = ((papu_surround_sound == PAPU_SURROUND_SOUND_MONO) ? PAPU_SURROUND_SOUND_NONE : PAPU_SURROUND_SOUND_MONO);
+    papu_spatial_stereo = ((papu_spatial_stereo == PAPU_SPATIAL_STEREO_MODE_1) ? FALSE : PAPU_SPATIAL_STEREO_MODE_1);
 
 
     update_menus ();
@@ -2944,13 +2952,13 @@ static int options_audio_effects_menu_surround_sound_mono (void)
     papu_reinit ();
 
 
-    if (papu_surround_sound == PAPU_SURROUND_SOUND_NONE)
+    if (! papu_spatial_stereo)
     {
-        gui_message (gui_fg_color, "Disabled surround sound audio effect.");
+        gui_message (gui_fg_color, "Disabled spatial stereo audio effect.");
     }
     else
     {
-        gui_message (gui_fg_color, "Enabled surround sound audio effect (mono mode).");
+        gui_message (gui_fg_color, "Enabled spatial stereo audio effect (mode 1).");
     }
 
 
@@ -2958,9 +2966,9 @@ static int options_audio_effects_menu_surround_sound_mono (void)
 }
 
 
-static int options_audio_effects_menu_surround_sound_stereo_1 (void)
+static int options_audio_effects_menu_spatial_stereo_mode_2 (void)
 {
-    papu_surround_sound = ((papu_surround_sound == PAPU_SURROUND_SOUND_STEREO_1) ? PAPU_SURROUND_SOUND_NONE : PAPU_SURROUND_SOUND_STEREO_1);
+    papu_spatial_stereo = ((papu_spatial_stereo == PAPU_SPATIAL_STEREO_MODE_2) ? FALSE : PAPU_SPATIAL_STEREO_MODE_2);
 
 
     update_menus ();
@@ -2969,13 +2977,13 @@ static int options_audio_effects_menu_surround_sound_stereo_1 (void)
     papu_reinit ();
 
 
-    if (papu_surround_sound == PAPU_SURROUND_SOUND_NONE)
+    if (! papu_spatial_stereo)
     {
-        gui_message (gui_fg_color, "Disabled surround sound audio effect.");
+        gui_message (gui_fg_color, "Disabled spatial stereo audio effect.");
     }
     else
     {
-        gui_message (gui_fg_color, "Enabled surround sound audio effect (stereo mode 1).");
+        gui_message (gui_fg_color, "Enabled spatial stereo audio effect (mode 2).");
     }
 
 
@@ -2983,9 +2991,9 @@ static int options_audio_effects_menu_surround_sound_stereo_1 (void)
 }
 
 
-static int options_audio_effects_menu_surround_sound_stereo_2 (void)
+static int options_audio_effects_menu_spatial_stereo_mode_3 (void)
 {
-    papu_surround_sound = ((papu_surround_sound == PAPU_SURROUND_SOUND_STEREO_2) ? PAPU_SURROUND_SOUND_NONE : PAPU_SURROUND_SOUND_STEREO_2);
+    papu_spatial_stereo = ((papu_spatial_stereo == PAPU_SPATIAL_STEREO_MODE_3) ? FALSE : PAPU_SPATIAL_STEREO_MODE_3);
 
 
     update_menus ();
@@ -2994,13 +3002,13 @@ static int options_audio_effects_menu_surround_sound_stereo_2 (void)
     papu_reinit ();
 
 
-    if (papu_surround_sound == PAPU_SURROUND_SOUND_NONE)
+    if (! papu_spatial_stereo)
     {
-        gui_message (gui_fg_color, "Disabled surround sound audio effect.");
+        gui_message (gui_fg_color, "Disabled spatial stereo audio effect.");
     }
     else
     {
-        gui_message (gui_fg_color, "Enabled surround sound audio effect (stereo mode 2).");
+        gui_message (gui_fg_color, "Enabled spatial stereo audio effect (mode 3).");
     }
 
 

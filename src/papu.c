@@ -67,7 +67,8 @@ int papu_ideal_triangle = TRUE;
 
 int papu_linear_echo = TRUE;
 
-int papu_surround_sound = PAPU_SURROUND_SOUND_NONE;
+
+int papu_spatial_stereo = PAPU_SPATIAL_STEREO_MODE_2;
 
 
 int papu_dithering = FALSE;
@@ -231,7 +232,8 @@ int papu_init (void)
 
     papu_linear_echo = get_config_int ("papu", "linear_echo", TRUE);
 
-    papu_surround_sound = get_config_int ("audio", "surround_sound", PAPU_SURROUND_SOUND_NONE);
+
+    papu_spatial_stereo = get_config_int ("audio", "spatial_stereo", PAPU_SPATIAL_STEREO_MODE_2);
 
 
     if ((result = papu_reinit ()) != 0)
@@ -320,7 +322,8 @@ void papu_exit (void)
 
     set_config_int ("papu", "linear_echo", papu_linear_echo);
 
-    set_config_int ("audio", "surround_sound", papu_surround_sound);
+
+    set_config_int ("audio", "spatial_stereo", papu_spatial_stereo);
 
 
     set_config_int ("audio", "dithering", papu_dithering);
@@ -509,7 +512,7 @@ void papu_process (void)
             if (audio_pseudo_stereo)
             {
                 apu_process_stereo (audio_buffer, PAPU_BUFFER_SIZE, papu_dithering,
-                    audio_pseudo_stereo, papu_swap_channels, papu_surround_sound);
+                    audio_pseudo_stereo, papu_swap_channels, papu_spatial_stereo);
             }
             else
             {
