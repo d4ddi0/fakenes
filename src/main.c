@@ -98,6 +98,8 @@ UINT8 * homedir = NULL;
 
 UINT8 * sramdir = NULL;
 
+UINT8 * logdir = NULL;
+
 UINT8 * confdir = NULL;
 
 
@@ -105,6 +107,9 @@ UINT8 * datfile = NULL;
 
 
 static DIR * tmpdir = NULL;
+
+
+UINT8 logfile [256];
 
 #endif
 
@@ -227,7 +232,10 @@ int main (int argc, char * argv [])
     {
         const UINT8 confdir_base [] = "/.fakenes";
 
+
         const UINT8 sramdir_base [] = "/sram";
+
+        const UINT8 logdir_base [] = "/logs";
 
 
         confdir = ((UINT8 *) malloc (strlen (homedir) + sizeof (confdir_base)));
@@ -249,10 +257,31 @@ int main (int argc, char * argv [])
 
                 strcat (sramdir, sramdir_base);
             }
+
+
+            logdir = ((UINT8 *) malloc (strlen (confdir) + sizeof (logdir_base)));
+
+
+            if (logdir)
+            {
+                strcpy (logdir, confdir);
+
+                strcat (logdir, logdir_base);
+
+
+                memset (logfile, NULL, sizeof (logfile));
+
+
+                strcat (logfile, logdir);
+
+                strcat (logfile, "/messages");
+            }
         }
         else
         {
             sramdir = NULL;
+
+            logdir = NULL;
         }
 
 
@@ -284,6 +313,11 @@ int main (int argc, char * argv [])
                         /* Error checking for sramdir happens later. */
 
                         mkdir (sramdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH));
+
+
+                        /* And likesie for logdir. */
+
+                        mkdir (logdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH));
                     }
                 }
                 else
@@ -385,6 +419,60 @@ int main (int argc, char * argv [])
                 free (confdir);
 
                 sramdir = NULL;
+            }
+        }
+        else
+        {
+            /* Close the directory we just opened. */
+
+            closedir (tmpdir);
+        }
+    }
+
+
+    /* Check the logs directory. */
+
+    if (! logdir)
+    {
+        /* If we have a valid home directory, there was an error. */
+
+        if (homedir)
+        {
+            fprintf (stderr, "Error when generating log path.\nLogs will not be saved.\n");
+        }
+    }
+    else
+    {
+        if (! (tmpdir = opendir (logdir)))
+        {
+            if (errno == ENOENT)
+            {
+                if (mkdir (sramdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) == -1)
+                {
+                    fprintf (stderr, "Error creating \"%s\"", logdir);
+
+
+                    free (logdir);
+
+                    logdir = NULL;
+                }
+            }
+            else
+            {
+                UINT8 errorbuf [300] = { NULL };
+
+
+                strcat (errorbuf, confdir);
+
+                perror (errorbuf);
+
+
+                fprintf (stderr, "%s.\nConfiguration will not be saved.\n", errorbuf);
+
+
+                free (confdir);
+
+                logdir = NULL;
             }
         }
         else

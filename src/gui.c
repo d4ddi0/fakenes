@@ -88,6 +88,9 @@ static void reset_timer (void)
 END_OF_STATIC_FUNCTION (reset_timer);
 
 
+static FILE * log_file = NULL;
+
+
 void gui_message (int color, AL_CONST UINT8 * message, ...)
 {
     va_list format;
@@ -111,6 +114,12 @@ void gui_message (int color, AL_CONST UINT8 * message, ...)
     va_end (format);
 
 
+    if (log_file)
+    {
+        fprintf (log_file, "GUI: %s\n", message_buffer);
+    }
+
+
     redraw_flag = TRUE;
 
 
@@ -125,7 +134,13 @@ static int gui_redraw_callback (int msg, DIALOG * d, int c)
         redraw_flag = FALSE;
 
 
+        vsync ();
+
+
+        clear (screen);
+
         video_blit (screen);
+
 
         vsync ();
 
@@ -339,8 +354,14 @@ static INLINE void update_menus (void)
 }
 
 
+extern UINT8 logfile [256];
+
+
 int show_gui (void)
 {
+    time_t start;
+
+
     LOCK_VARIABLE (message_buffer);
 
     LOCK_VARIABLE (redraw_flag);
@@ -365,6 +386,24 @@ int show_gui (void)
     gui_needs_restart = FALSE;
 
     gui_is_active = TRUE;
+
+
+#ifdef POSIX
+
+    log_file = fopen (logfile, "w");
+#else
+
+    log_file = fopen ("messages.log", "w");
+#endif
+
+
+    if (log_file)
+    {
+        time (&start);
+
+
+        fprintf (log_file, "\n--- %s", asctime (localtime (&start)));
+    }
 
 
     update_menus ();
@@ -411,6 +450,9 @@ int show_gui (void)
     audio_resume ();
 
 
+    fclose (log_file);
+
+
     return (want_exit);
 }
 
@@ -425,14 +467,22 @@ static int file_menu_load_rom (void)
 {
     ROM test_rom;
 
+
     UINT8 buffer [256];
 
     UINT8 buffer2 [256];
+
+    UINT8 buffer3 [256];
 
 
     memset (buffer, NULL, sizeof (buffer));
 
     memset (buffer2, NULL, sizeof (buffer2));
+
+    memset (buffer3, NULL, sizeof (buffer3));
+
+
+    strcat (buffer, get_config_string ("gui", "load_rom_path", "/"));
 
 
 #ifdef USE_ZLIB
@@ -447,9 +497,13 @@ static int file_menu_load_rom (void)
 
 #endif
 
+        set_config_string ("gui", "load_rom_path", replace_filename (buffer3, buffer, "", sizeof (buffer3)));
+
+
         if (load_rom (buffer, &test_rom) != 0)
         {
             gui_message (GUI_COLOR_RED, "Failed to load ROM!");
+
 
             return (D_O_K);
         }
@@ -496,6 +550,9 @@ static int file_menu_load_rom (void)
     }
     else
     {
+        set_config_string ("gui", "load_rom_path", replace_filename (buffer3, buffer, "", sizeof (buffer3)));
+
+
         return (D_O_K);
     }
 }
@@ -576,6 +633,9 @@ static int machine_type_menu_ntsc (void)
     update_menus ();
 
 
+    gui_message (GUI_COLOR_WHITE, "Emulation set to NTSC (60 Hz).");
+
+
     return (D_O_K);
 }
 
@@ -594,6 +654,9 @@ static int machine_type_menu_pal (void)
 
 
     update_menus ();
+
+
+    gui_message (GUI_COLOR_WHITE, "Emulation set to PAL (50 Hz).");
 
 
     return (D_O_K);
@@ -634,6 +697,9 @@ static int options_audio_menu_enabled (void)
     update_menus ();
 
 
+    gui_message (GUI_COLOR_WHITE, "Toggled audio rendering and output.");
+
+
     return (D_O_K);
 }
 
@@ -652,6 +718,9 @@ static int options_audio_mixing_menu_normal (void)
 
 
     update_menus ();
+
+
+    gui_message (GUI_COLOR_WHITE, "Audio mixing set to normal (mono).");
 
 
     return (D_O_K);
@@ -680,7 +749,10 @@ static int options_audio_mixing_stereo_menu_classic (void)
 
     update_menus ();
     
-    
+
+    gui_message (GUI_COLOR_WHITE, "Audio mixing set to classic stereo.");
+
+
     return (D_O_K);
 }
 
@@ -707,7 +779,10 @@ static int options_audio_mixing_stereo_menu_enhanced (void)
 
     update_menus ();
     
-    
+
+    gui_message (GUI_COLOR_WHITE, "Audio mixing set to enhanced stereo.");
+
+
     return (D_O_K);
 }
 
@@ -734,7 +809,10 @@ static int options_audio_mixing_stereo_menu_accurate (void)
 
     update_menus ();
     
-    
+
+    gui_message (GUI_COLOR_WHITE, "Audio mixing set to accurate stereo.");
+
+
     return (D_O_K);
 }
 
@@ -753,6 +831,9 @@ static int options_audio_mixing_quality_menu_low_8_bit (void)
 
 
     update_menus ();
+
+
+    gui_message (GUI_COLOR_WHITE, "Audio mixing quality set to low.");
 
 
     return (D_O_K);
@@ -775,6 +856,9 @@ static int options_audio_mixing_quality_menu_high_16_bit (void)
     update_menus ();
 
 
+    gui_message (GUI_COLOR_WHITE, "Audio mixing quality set to high.");
+
+
     return (D_O_K);
 }
 
@@ -787,6 +871,9 @@ static int options_audio_effects_menu_linear_echo (void)
 
 
     papu_reinit ();
+
+
+    gui_message (GUI_COLOR_WHITE, "Toggled linear echo audio effect.");
 
 
     return (D_O_K);
@@ -803,6 +890,9 @@ static int options_audio_effects_menu_surround_sound (void)
     papu_reinit ();
 
 
+    gui_message (GUI_COLOR_WHITE, "Toggled surround sound audio effect.");
+
+
     return (D_O_K);
 }
 
@@ -815,6 +905,9 @@ static int options_audio_filter_menu_none (void)
 
 
     apu_setfilter (APU_FILTER_NONE);
+
+
+    gui_message (GUI_COLOR_WHITE, "Audio filtering disabled.");
 
 
     return (D_O_K);
@@ -831,6 +924,9 @@ static int options_audio_filter_low_pass_menu_simple (void)
     apu_setfilter (APU_FILTER_LOWPASS);
 
 
+    gui_message (GUI_COLOR_WHITE, "Audio filter set to low pass.");
+
+
     return (D_O_K);
 }
 
@@ -843,6 +939,9 @@ static int options_audio_filter_low_pass_menu_weighted (void)
 
 
     apu_setfilter (APU_FILTER_WEIGHTED);
+
+
+    gui_message (GUI_COLOR_WHITE, "Audio filter set to weighted low pass.");
 
 
     return (D_O_K);
@@ -859,6 +958,9 @@ static int options_audio_filter_low_pass_menu_dynamic (void)
     apu_setfilter (APU_FILTER_DYNAMIC);
 
 
+    gui_message (GUI_COLOR_WHITE, "Audio filter set to dynamic low pass.");
+
+
     return (D_O_K);
 }
 
@@ -871,6 +973,9 @@ static int options_audio_filter_menu_high_pass (void)
 
 
     apu_setfilter (APU_FILTER_HIGHPASS);
+
+
+    gui_message (GUI_COLOR_WHITE, "Audio filter set to high pass.");
 
 
     return (D_O_K);
@@ -887,6 +992,9 @@ static int options_audio_channels_menu_square_1 (void)
     update_menus ();
 
 
+    gui_message (GUI_COLOR_WHITE, "Toggled mixing of square wave channel A.");
+
+
     return (D_O_K);
 }
 
@@ -899,6 +1007,9 @@ static int options_audio_channels_menu_square_2 (void)
 
 
     update_menus ();
+
+
+    gui_message (GUI_COLOR_WHITE, "Toggled mixing of square wave channel B.");
 
 
     return (D_O_K);
@@ -915,6 +1026,9 @@ static int options_audio_channels_menu_triangle (void)
     update_menus ();
 
 
+    gui_message (GUI_COLOR_WHITE, "Toggled mixing of triangle channel.");
+
+
     return (D_O_K);
 }
 
@@ -927,6 +1041,9 @@ static int options_audio_channels_menu_noise (void)
 
 
     update_menus ();
+
+
+    gui_message (GUI_COLOR_WHITE, "Toggled mixing of noise channel.");
 
 
     return (D_O_K);
@@ -943,6 +1060,9 @@ static int options_audio_channels_menu_dmc (void)
     update_menus ();
 
 
+    gui_message (GUI_COLOR_WHITE, "Toggled mixing of delta modulation channel.");
+
+
     return (D_O_K);
 }
 
@@ -957,6 +1077,9 @@ static int options_audio_channels_menu_exsound (void)
     update_menus ();
 
 
+    gui_message (GUI_COLOR_WHITE, "Toggled mixing of external channels.");
+                                              
+
     return (D_O_K);
 }
 
@@ -969,6 +1092,9 @@ static int options_audio_advanced_menu_ideal_triangle (void)
 
 
     update_menus ();
+
+
+    gui_message (GUI_COLOR_WHITE, "Toggled emulation of ideal triangle.");
 
 
     return (D_O_K);
@@ -985,6 +1111,9 @@ static int options_audio_advanced_menu_smooth_envelope (void)
     update_menus ();
 
 
+    gui_message (GUI_COLOR_RED, "Smooth envelope is not implemented.");
+
+
     return (D_O_K);
 }
 
@@ -997,6 +1126,9 @@ static int options_audio_advanced_menu_smooth_sweep (void)
 
 
     update_menus ();
+
+
+    gui_message (GUI_COLOR_RED, "Smooth sweep is not implemented.");
 
 
     return (D_O_K);
@@ -1013,6 +1145,9 @@ static int options_audio_record_menu_start (void)
     }
 
 
+    gui_message (GUI_COLOR_WHITE, "Audio recording session started.");
+
+
     return (D_O_K);
 }
 
@@ -1025,6 +1160,9 @@ static int options_audio_record_menu_stop (void)
     ENABLE_MENU (options_audio_record_menu, 0);
 
     DISABLE_MENU (options_audio_record_menu, 2);
+
+
+    gui_message (GUI_COLOR_WHITE, "Audio recording session halted.");
 
 
     return (D_O_K);
@@ -1060,7 +1198,13 @@ static int options_video_blitter_menu_normal (void)
 {
     video_set_blitter (VIDEO_BLITTER_NORMAL);
 
+
+    redraw_flag = TRUE;
+
     update_menus ();
+
+
+    gui_message (GUI_COLOR_WHITE, "Video blitter set to normal.");
 
 
     return (D_O_K);
@@ -1071,7 +1215,13 @@ static int options_video_blitter_menu_stretched (void)
 {
     video_set_blitter (VIDEO_BLITTER_STRETCHED);
 
+
+    redraw_flag = TRUE;
+
     update_menus ();
+
+
+    gui_message (GUI_COLOR_WHITE, "Video blitter set to stretched.");
 
 
     return (D_O_K);
@@ -1082,7 +1232,13 @@ static int options_video_blitter_menu_2xsoe (void)
 {
     video_set_blitter (VIDEO_BLITTER_2XSOE);
 
+
+    redraw_flag = TRUE;
+
     update_menus ();
+
+
+    gui_message (GUI_COLOR_WHITE, "Video blitter set to 2xSOE engine.");
 
 
     return (D_O_K);
@@ -1107,7 +1263,12 @@ static int options_video_filters_menu_scanlines (void)
     }
 
 
+    redraw_flag = TRUE;
+
     update_menus ();
+
+
+    gui_message (GUI_COLOR_WHITE, "Toggled scanlines video filter (priority 0).");
 
 
     return (D_O_K);
@@ -1121,6 +1282,9 @@ static int options_video_menu_vsync (void)
     update_menus ();
 
 
+    gui_message (GUI_COLOR_WHITE, "Toggled vsync synchronization.");
+
+
     return (D_O_K);
 }
 
@@ -1130,6 +1294,9 @@ static int options_video_layers_menu_sprites_a (void)
     ppu_enable_sprite_layer_a = (! ppu_enable_sprite_layer_a);
 
     update_menus ();
+
+
+    gui_message (GUI_COLOR_WHITE, "Toggled PPU sprites layer A (priority 1).");
 
 
     return (D_O_K);
@@ -1143,6 +1310,9 @@ static int options_video_layers_menu_sprites_b (void)
     update_menus ();
 
 
+    gui_message (GUI_COLOR_WHITE, "Toggled PPU sprites layer B (priority 0).");
+
+
     return (D_O_K);
 }
 
@@ -1152,6 +1322,9 @@ static int options_video_layers_menu_background (void)
     ppu_enable_background_layer = (! ppu_enable_background_layer);
 
     update_menus ();
+
+
+    gui_message (GUI_COLOR_WHITE, "Toggled PPU background layer.");
 
 
     return (D_O_K);
