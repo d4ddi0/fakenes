@@ -380,6 +380,9 @@ static INLINE void update_menus (void)
         DISABLE_MENU (options_video_blitter_menu, 6);
 
 
+        ENABLE_MENU (options_video_blitter_menu, 8);
+
+
         ENABLE_MENU (options_video_filters_scanlines_menu, 2);
 
         ENABLE_MENU (options_video_filters_scanlines_menu, 4);
