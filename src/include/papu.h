@@ -26,7 +26,9 @@ extern "C" {
 #include "misc.h"
 
 
-#define PAPU_EXSOUND_VRC6   0x01
+#define PAPU_EXSOUND_VRC6   1
+
+#define PAPU_EXSOUND_MMC5   8
 
 
 int papu_filter_type;

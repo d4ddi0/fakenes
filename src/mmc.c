@@ -20,6 +20,8 @@ You must read and accept the license prior to use.
 
 #include <stdio.h>
 
+#include <string.h>
+
 
 #include "cpu.h"
 
@@ -45,6 +47,8 @@ You must read and accept the license prior to use.
 #include "mmc/mmc3.h"
 
 #include "mmc/mmc2and4.h"
+
+#include "mmc/mmc5.h"
 
 
 #include "mmc/unrom.h"
@@ -146,6 +150,8 @@ void mmc_request (ROM * rom)
     MMC_NEXT_LIST_ITEM (mmc3);      /* MMC3. */
 
     MMC_NEXT_LIST_ITEM (mmc4);      /* MMC4. */
+
+    MMC_NEXT_LIST_ITEM (mmc5);      /* MMC5. */
 
 
     /* Other MMCs. */
