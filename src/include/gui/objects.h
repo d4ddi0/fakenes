@@ -160,7 +160,7 @@ int sl_frame (int message, DIALOG * dialog, int key)
                             }
 
 
-                            putpixel (screen, (x + pixel), y_offset, makecol (shade, shade, shade));
+                            putpixel (screen, (x + pixel), y_offset, video_create_color (shade, shade, shade));
                         }
                         else
                         {
@@ -184,15 +184,15 @@ int sl_frame (int message, DIALOG * dialog, int key)
     
                                     break;
     
-    
+
                                 case 32:
     
                                     putpixel (screen, (x + pixel), y_offset, makecol32 (shade, shade, shade));
     
     
                                     break;
-    
-    
+
+
                                 default:
     
                                     break;
@@ -392,7 +392,7 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
                         }
     
     
-                        putpixel (screen, (x + pixel), y_offset, makecol (shade, shade, shade));
+                        putpixel (screen, (x + pixel), y_offset, video_create_color (shade, shade, shade));
                     }
                     else
                     {
@@ -435,7 +435,7 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
         }
         else if (selected)
         {
-            rectfill (screen, x, y, (x + (width - 1)), (y + (text_height (font) + 3)), makecol (0, 0, 0));
+            rectfill (screen, x, y, (x + (width - 1)), (y + (text_height (font) + 3)), video_create_color (0, 0, 0));
         }
         else
         {
@@ -443,7 +443,7 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
         }
 
 
-        gui_textout_ex (screen, buf, (x + 9), (y + 2), makecol (0, 0, 0), -1, FALSE);
+        gui_textout_ex (screen, buf, (x + 9), (y + 2), video_create_color (0, 0, 0), -1, FALSE);
 
         gui_textout_ex (screen, buf, (x + 8), (y + 1), gui_fg_color, -1, FALSE);
 
@@ -453,7 +453,7 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
             tok = ((menu -> text + i) + uwidth ((menu -> text + i)));
 
 
-            gui_textout_ex (screen, tok, (x + ((width - (gui_strlen (tok) - 10)) + 1)), (y + 2), makecol (0, 0, 0), -1, FALSE);
+            gui_textout_ex (screen, tok, (x + ((width - (gui_strlen (tok) - 10)) + 1)), (y + 2), video_create_color (0, 0, 0), -1, FALSE);
 
             gui_textout_ex (screen, tok, (x + (width - (gui_strlen (tok) - 10))), (y + 1), gui_fg_color, -1, FALSE);
         }
@@ -467,7 +467,7 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
             centre_y = (y + (text_height (font) / 2));
 
 
-            triangle (screen, ((x + (width - 4)) + 1), (centre_y + 1), ((x + (width - 8)) + 1), ((centre_y - 4) + 1), ((x + (width - 8)) + 1), ((centre_y + 4) + 1), makecol (0, 0, 0));
+            triangle (screen, ((x + (width - 4)) + 1), (centre_y + 1), ((x + (width - 8)) + 1), ((centre_y - 4) + 1), ((x + (width - 8)) + 1), ((centre_y + 4) + 1), video_create_color (0, 0, 0));
                                              
             triangle (screen, (x + (width - 4)), centre_y, (x + (width - 8)), (centre_y - 4), (x + (width - 8)), (centre_y + 4), gui_fg_color);
         }
@@ -504,7 +504,7 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
                         }
     
     
-                        putpixel (screen, (x + pixel), y_offset, makecol (shade, shade, shade));
+                        putpixel (screen, (x + pixel), y_offset, video_create_color (shade, shade, shade));
                     }
                     else
                     {
@@ -552,13 +552,13 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
         hline (screen, x, (y + ((text_height (font) / 2) + 2)), (x + (width - 1)), gui_fg_color);
 
 
-        hline (screen, (x - 1), (y + ((text_height (font) / 2) + 1)), (x + width), makecol (0, 0, 0));
+        hline (screen, (x - 1), (y + ((text_height (font) / 2) + 1)), (x + width), video_create_color (0, 0, 0));
     }
 
 
     if (menu -> flags & D_SELECTED)
     {
-        circlefill (screen, ((x + 3) + 1), ((y + (text_height (font) / 2)) + 1), 2, makecol (0, 0, 0));
+        circlefill (screen, ((x + 3) + 1), ((y + (text_height (font) / 2)) + 1), 2, video_create_color (0, 0, 0));
 
         circlefill (screen, (x + 3), (y + (text_height (font) / 2)), 2, gui_fg_color);
     }

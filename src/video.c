@@ -1,4 +1,4 @@
-  
+ 
 
 /*
 
@@ -806,12 +806,22 @@ void video_handle_keypress (int index)
 #define GUI_PALETTE_END         (GUI_PALETTE_START + 64)
 
 
+static UINT8 solid_map [64] [64] [64];
+
+
 static COLOR_MAP half_transparency_map;
 
 
 void video_set_palette (RGB * palette)
 {
     int index;
+
+
+    int r;
+
+    int g;
+
+    int b;
 
 
     last_palette = palette;
@@ -843,6 +853,18 @@ void video_set_palette (RGB * palette)
     set_palette (internal_palette);
 
 
+    for (r = 0; r < 64; r ++)
+    {
+        for (g = 0; g < 64; g ++)
+        {
+            for (b = 0; b < 64; b ++)
+            {
+                solid_map [r] [g] [b] = makecol ((r * 4), (g * 4), (b * 4));
+            }
+        }
+    }
+
+
     set_trans_blender (0, 0, 0, 127);
 
 
@@ -850,6 +872,37 @@ void video_set_palette (RGB * palette)
 
 
     color_map = &half_transparency_map;
+}
+
+
+int video_create_color (int r, int g, int b)
+{
+    switch (color_depth)
+    {
+        case 8:
+
+            return (solid_map [(r / 4)] [(g / 4)] [(b / 4)]);
+
+
+        case 15:
+
+            return (makecol15 (r, g, b));
+
+
+        case 16:
+
+            return (makecol16 (r, g, b));
+
+
+        case 32:
+
+            return (makecol32 (r, g, b));
+
+
+        default:
+
+            return (0);
+    }
 }
 
 
@@ -1316,9 +1369,9 @@ static void draw_messages (void)
     height_text = text_height (font);
 
 
-    gray = makecol (127, 127, 127);
+    gray = video_create_color (127, 127, 127);
 
-    silver = makecol (191, 191, 191);
+    silver = video_create_color (191, 191, 191);
 
 
     x = 0;

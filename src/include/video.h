@@ -104,6 +104,9 @@ void video_handle_keypress (int);
 void video_set_palette (RGB *);
 
 
+int video_create_color (int, int, int);
+
+
 void video_set_blitter (int);
 
 int video_get_blitter (void);

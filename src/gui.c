@@ -104,18 +104,18 @@ static int error_color = 0;
 
 static void update_colors (void)
 {
-    gui_bg_color = makecol (127, 127, 127);
+    gui_bg_color = video_create_color (127, 127, 127);
 
-    gui_fg_color = makecol (255, 255, 255);
-
-
-    gui_mg_color = makecol (191, 191, 191);
+    gui_fg_color = video_create_color (255, 255, 255);
 
 
-    shadow_color = makecol (0, 0, 0);
+    gui_mg_color = video_create_color (191, 191, 191);
 
 
-    error_color  = makecol (255, 63, 0);
+    shadow_color = video_create_color (0, 0, 0);
+
+
+    error_color  = video_create_color (255, 63, 0);
 }
 
 
