@@ -33,7 +33,13 @@ You must read and accept the license prior to use.
 #define PAPU_EXSOUND_MMC5   8
 
 
-int papu_filter_type;
+#define PAPU_FILTER_LOW_PASS_MODE_1     1
+
+#define PAPU_FILTER_LOW_PASS_MODE_2     2
+
+#define PAPU_FILTER_LOW_PASS_MODE_3     4
+
+#define PAPU_FILTER_HIGH_PASS           8
 
 
 int papu_enable_square_1;
@@ -117,6 +123,11 @@ void papu_update (void);
 void papu_save_state (PACKFILE *, int);
 
 void papu_load_state (PACKFILE *, int);
+
+
+void papu_set_filter_list (int);
+
+int papu_get_filter_list (void);
 
 
 #endif /* ! PPU_H_INCLUDED */

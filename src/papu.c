@@ -43,9 +43,6 @@ You must read and accept the license prior to use.
 static apu_t * default_apu = NIL;
 
 
-int papu_filter_type = 0;
-
-
 int papu_enable_square_1 = TRUE;
 
 int papu_enable_square_2 = TRUE;
@@ -77,6 +74,9 @@ int papu_dithering = FALSE;
 
 
 int papu_is_recording = FALSE;
+
+
+static int filter_list = 0;
 
 
 #define ECHO_DEPTH  3
@@ -240,9 +240,14 @@ int papu_init (void)
     }
 
     
-    papu_filter_type = get_config_int ("audio", "filter_type", APU_FILTER_WEIGHTED);
+    filter_list = get_config_int ("audio", "filter_list", 0);
 
-    apu_setfilter (papu_filter_type);
+    if (filter_list == 0)
+    {
+        filter_list |= PAPU_FILTER_LOW_PASS_MODE_2;
+    }
+
+    papu_set_filter_list (filter_list);
 
 
     papu_swap_channels = get_config_int ("audio", "swap_channels", FALSE);
@@ -291,7 +296,8 @@ void papu_exit (void)
     }
 
 
-    set_config_int ("audio", "filter_type", papu_filter_type);
+    set_config_int ("audio", "filter_list", filter_list);
+
 
     set_config_int ("audio", "swap_channels", papu_swap_channels);
 
@@ -644,3 +650,16 @@ void papu_load_state (PACKFILE * file, int version)
 
     pack_fclose_chunk (file_chunk);
 }
+
+
+void papu_set_filter_list (int filters)
+{
+    apu_setfilterlist ((filter_list = filters));
+}
+
+
+int papu_get_filter_list (void)
+{
+    return (filter_list);
+}
+

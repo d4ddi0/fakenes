@@ -584,16 +584,13 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (options_audio_effects_menu, 6, (papu_surround_sound == PAPU_SURROUND_SOUND_STEREO_2));
 
 
-    TOGGLE_MENU (options_audio_filter_menu, 0, (papu_filter_type == APU_FILTER_NONE));
+    TOGGLE_MENU (options_audio_filters_menu, 0, (papu_get_filter_list () & PAPU_FILTER_LOW_PASS_MODE_1));
 
-    TOGGLE_MENU (options_audio_filter_menu, 4, (papu_filter_type == APU_FILTER_HIGHPASS));
+    TOGGLE_MENU (options_audio_filters_menu, 2, (papu_get_filter_list () & PAPU_FILTER_LOW_PASS_MODE_2));
 
+    TOGGLE_MENU (options_audio_filters_menu, 4, (papu_get_filter_list () & PAPU_FILTER_LOW_PASS_MODE_3));
 
-    TOGGLE_MENU (options_audio_filter_low_pass_menu, 0, (papu_filter_type == APU_FILTER_LOWPASS));
-
-    TOGGLE_MENU (options_audio_filter_low_pass_menu, 2, (papu_filter_type == APU_FILTER_WEIGHTED));
-
-    TOGGLE_MENU (options_audio_filter_low_pass_menu, 4, (papu_filter_type == APU_FILTER_DYNAMIC));
+    TOGGLE_MENU (options_audio_filters_menu, 6, (papu_get_filter_list () & PAPU_FILTER_HIGH_PASS));
 
 
     TOGGLE_MENU (options_audio_channels_menu, 0, papu_enable_square_1);
@@ -3011,85 +3008,127 @@ static int options_audio_effects_menu_surround_sound_stereo_2 (void)
 }
 
 
-static int options_audio_filter_menu_none (void)
+static int options_audio_filters_menu_low_pass_mode_1 (void)
 {
-    papu_filter_type = APU_FILTER_NONE;
+    int filters;
+
+
+    filters = papu_get_filter_list ();
+
+
+    if (filters & PAPU_FILTER_LOW_PASS_MODE_1)
+    {
+        papu_set_filter_list ((filters & ~PAPU_FILTER_LOW_PASS_MODE_1));
+    }
+    else
+    {
+        filters &= ~PAPU_FILTER_LOW_PASS_MODE_2;
+
+        filters &= ~PAPU_FILTER_LOW_PASS_MODE_3;
+
+
+        papu_set_filter_list ((filters | PAPU_FILTER_LOW_PASS_MODE_1));
+    }
+
 
     update_menus ();
 
 
-    apu_setfilter (APU_FILTER_NONE);
-
-
-    gui_message (gui_fg_color, "Audio filtering disabled.");
+    gui_message (gui_fg_color, "Toggled low pass audio filter (mode 1).");
 
 
     return (D_O_K);
 }
 
 
-static int options_audio_filter_low_pass_menu_simple (void)
+static int options_audio_filters_menu_low_pass_mode_2 (void)
 {
-    papu_filter_type = APU_FILTER_LOWPASS;
+    int filters;
+
+
+    filters = papu_get_filter_list ();
+
+
+    if (filters & PAPU_FILTER_LOW_PASS_MODE_2)
+    {
+        papu_set_filter_list ((filters & ~PAPU_FILTER_LOW_PASS_MODE_2));
+    }
+    else
+    {
+        filters &= ~PAPU_FILTER_LOW_PASS_MODE_1;
+
+        filters &= ~PAPU_FILTER_LOW_PASS_MODE_3;
+
+
+        papu_set_filter_list ((filters | PAPU_FILTER_LOW_PASS_MODE_2));
+    }
+
 
     update_menus ();
 
 
-    apu_setfilter (APU_FILTER_LOWPASS);
-
-
-    gui_message (gui_fg_color, "Audio filter set to low pass.");
+    gui_message (gui_fg_color, "Toggled low pass audio filter (mode 2).");
 
 
     return (D_O_K);
 }
 
 
-static int options_audio_filter_low_pass_menu_weighted (void)
+static int options_audio_filters_menu_low_pass_mode_3 (void)
 {
-    papu_filter_type = APU_FILTER_WEIGHTED;
+    int filters;
+
+
+    filters = papu_get_filter_list ();
+
+
+    if (filters & PAPU_FILTER_LOW_PASS_MODE_3)
+    {
+        papu_set_filter_list ((filters & ~PAPU_FILTER_LOW_PASS_MODE_3));
+    }
+    else
+    {
+        filters &= ~PAPU_FILTER_LOW_PASS_MODE_1;
+
+        filters &= ~PAPU_FILTER_LOW_PASS_MODE_2;
+
+
+        papu_set_filter_list ((filters | PAPU_FILTER_LOW_PASS_MODE_3));
+    }
+
 
     update_menus ();
 
 
-    apu_setfilter (APU_FILTER_WEIGHTED);
-
-
-    gui_message (gui_fg_color, "Audio filter set to weighted low pass.");
+    gui_message (gui_fg_color, "Toggled low pass audio filter (mode 3).");
 
 
     return (D_O_K);
 }
 
 
-static int options_audio_filter_low_pass_menu_dynamic (void)
+static int options_audio_filters_menu_high_pass (void)
 {
-    papu_filter_type = APU_FILTER_DYNAMIC;
+    int filters;
+
+
+    filters = papu_get_filter_list ();
+
+
+    if (filters & PAPU_FILTER_HIGH_PASS)
+    {
+        papu_set_filter_list ((filters & ~PAPU_FILTER_HIGH_PASS));
+    }
+    else
+    {
+        papu_set_filter_list ((filters | PAPU_FILTER_HIGH_PASS));
+    }
+
 
     update_menus ();
 
 
-    apu_setfilter (APU_FILTER_DYNAMIC);
-
-
-    gui_message (gui_fg_color, "Audio filter set to dynamic low pass.");
-
-
-    return (D_O_K);
-}
-
-
-static int options_audio_filter_menu_high_pass (void)
-{
-    papu_filter_type = APU_FILTER_HIGHPASS;
-
-    update_menus ();
-
-
-    apu_setfilter (APU_FILTER_HIGHPASS);
-
-
-    gui_message (gui_fg_color, "Audio filter set to high pass.");
+    gui_message (gui_fg_color, "Toggled high pass audio filter.");
 
 
     return (D_O_K);

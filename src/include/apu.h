@@ -500,15 +500,6 @@ typedef struct {
 // ----------------------------------------------------------------------------
 // APU Sound struct
 
-enum
-{
-   APU_FILTER_NONE,
-   APU_FILTER_LOWPASS,
-   APU_FILTER_WEIGHTED,
-   APU_FILTER_DYNAMIC,
-   APU_FILTER_HIGHPASS
-};
-
 #ifdef APU_YANO
 enum
 {
@@ -580,7 +571,7 @@ typedef struct apu_s
    int num_samples;
 
    boolean mix_enable[6];
-   int filter_type;
+   int filter_list;
 
    INT32 cycle_rate;
 
@@ -614,7 +605,7 @@ extern void apu_process_stereo(void *buffer, int num_samples, int dither, int st
 extern void apu_reset(void);
 
 extern void apu_setext(apu_t *apu, apuext_t *ext);
-extern void apu_setfilter(int filter_type);
+extern void apu_setfilterlist(int filter_list);
 extern void apu_setchan(int chan, boolean enabled);
 #ifdef APU_YANO
 extern void apu_setmode(int item, int mode);
@@ -638,6 +629,9 @@ extern boolean sync_dmc_register(UINT32 cpu_cycles);
 
 /*
 ** $Log$
+** Revision 1.7  2004/02/17 06:43:06  stainless
+** Reworked Audio > Filter menu, added support for multiple audio filters.
+**
 ** Revision 1.6  2002/07/17 10:46:40  stainless
 ** Added random noise dithering for 8-bit audio.
 **

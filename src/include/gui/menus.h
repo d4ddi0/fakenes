@@ -397,37 +397,25 @@ static MENU options_audio_effects_menu [] =
 };
 
 
-static int options_audio_filter_low_pass_menu_simple (void);
+static int options_audio_filters_menu_low_pass_mode_1 (void);
 
-static int options_audio_filter_low_pass_menu_weighted (void);
+static int options_audio_filters_menu_low_pass_mode_2 (void);
 
-static int options_audio_filter_low_pass_menu_dynamic (void);
+static int options_audio_filters_menu_low_pass_mode_3 (void);
 
-
-static MENU options_audio_filter_low_pass_menu [] =
-{
-    {   "&Simple",   options_audio_filter_low_pass_menu_simple, NIL, 0, NIL },
-    {          "",                                         NIL, NIL, 0, NIL },
-    { "&Weighted", options_audio_filter_low_pass_menu_weighted, NIL, 0, NIL },
-    {          "",                                         NIL, NIL, 0, NIL },
-    {  "&Dynamic",  options_audio_filter_low_pass_menu_dynamic, NIL, 0, NIL },
-    {         NIL,                                         NIL, NIL, 0, NIL }
-};
+static int options_audio_filters_menu_high_pass (void);
 
 
-static int options_audio_filter_menu_none (void);
-
-static int options_audio_filter_menu_high_pass (void);
-
-
-static MENU options_audio_filter_menu [] =
+static MENU options_audio_filters_menu [] =
 {     
-    {      "&None",      options_audio_filter_menu_none,                                NIL, 0, NIL },
-    {           "",                                 NIL,                                NIL, 0, NIL },
-    {  "&Low Pass",                                 NIL, options_audio_filter_low_pass_menu, 0, NIL },
-    {           "",                                 NIL,                                NIL, 0, NIL },
-    { "&High Pass", options_audio_filter_menu_high_pass,                                NIL, 0, NIL },
-    {          NIL,                                 NIL,                                NIL, 0, NIL }
+    { "&Low Pass (Mode 1)", options_audio_filters_menu_low_pass_mode_1, NIL, 0, NIL },
+    {                   "",                                        NIL, NIL, 0, NIL },
+    { "L&ow Pass (Mode 2)", options_audio_filters_menu_low_pass_mode_2, NIL, 0, NIL },
+    {                   "",                                        NIL, NIL, 0, NIL },
+    { "Lo&w Pass (Mode 3)", options_audio_filters_menu_low_pass_mode_3, NIL, 0, NIL },
+    {                   "",                                        NIL, NIL, 0, NIL },
+    {         "&High Pass",       options_audio_filters_menu_high_pass, NIL, 0, NIL },
+    {                  NIL,                                        NIL, NIL, 0, NIL }
 };
 
 
@@ -496,7 +484,7 @@ static MENU options_audio_menu [] =
     {          "",                        NIL,                         NIL, 0, NIL },
     {  "Effec&ts",                        NIL,  options_audio_effects_menu, 0, NIL },
     {          "",                        NIL,                         NIL, 0, NIL },
-    {   "&Filter",                        NIL,   options_audio_filter_menu, 0, NIL },
+    {  "&Filters",                        NIL,  options_audio_filters_menu, 0, NIL },
     {          "",                        NIL,                         NIL, 0, NIL },
     { "&Channels",                        NIL, options_audio_channels_menu, 0, NIL },
     {          "",                        NIL,                         NIL, 0, NIL },

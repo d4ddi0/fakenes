@@ -48,6 +48,7 @@
 #include <time.h>
 #include "apu.h"
 #include "cpu.h"
+#include "papu.h"
 //DCR#include "log.h"
 #include "misc.h"
 
@@ -1389,36 +1390,30 @@ void apu_process(void *buffer, int num_samples, int dither)
          }
 
          /* do any filtering */
-         if (APU_FILTER_NONE != apu->filter_type)
+         next_sample = accum;
+
+         if (apu->filter_list & PAPU_FILTER_LOW_PASS_MODE_1)
          {
-            next_sample = accum;
-
-            if (APU_FILTER_LOWPASS == apu->filter_type)
-            {
-               accum += prev_sample;
-               accum >>= 1;
-            }
-            else if (APU_FILTER_WEIGHTED == apu->filter_type)
-            {
-               next_sample =
-               accum = (accum + accum + accum + prev_sample) >> 2;
-            }
-            else if (APU_FILTER_DYNAMIC == apu->filter_type)
-            {
-                accum += prev_sample;
-                accum >>= 1;
-
-                next_sample = accum;
-            }
-            else
-            {
-                /* high pass */
-                accum -= (prev_sample / 2);
-                accum <<= 1;
-            }
-
-            prev_sample = next_sample;
+            accum += prev_sample;
+            accum >>= 1;
          }
+         else if (apu->filter_list & PAPU_FILTER_LOW_PASS_MODE_2)
+         {
+            next_sample = accum = (((accum + accum + accum) + prev_sample) >> 2);
+         }
+         else if (apu->filter_list & PAPU_FILTER_LOW_PASS_MODE_3)
+         {
+            accum += prev_sample;
+            next_sample = accum >>= 1;
+         }
+
+         if (apu->filter_list & PAPU_FILTER_HIGH_PASS)
+         {
+            accum -= prev_sample;
+            accum <<= 2;
+         }
+
+         prev_sample = next_sample;
 
          /* little extra kick for the kids */
 //         accum <<= 1;
@@ -1667,53 +1662,39 @@ void apu_process_stereo(void *buffer, int num_samples, int dither, int style, in
          accum_right += (accum_centre / 2);
 
          /* do any filtering */
-         if (APU_FILTER_NONE != apu->filter_type)
+         next_sample_left = accum_left;
+         next_sample_right = accum_right;
+
+         if (apu->filter_list & PAPU_FILTER_LOW_PASS_MODE_1)
          {
-            next_sample_left = accum_left;
-            next_sample_right = accum_right;
-
-            if (APU_FILTER_LOWPASS == apu->filter_type)
-            {
-               accum_left += prev_sample_left;
-               accum_left >>= 1;
-
-               accum_right += prev_sample_right;
-               accum_right >>= 1;
-            }
-            else if (APU_FILTER_WEIGHTED == apu->filter_type)
-            {
-               accum_left = (accum_left +
-                accum_left + accum_left + prev_sample_left) >> 2;
-
-               accum_right = (accum_right +
-                accum_right + accum_right + prev_sample_right) >> 2;
-            }
-            else if (APU_FILTER_DYNAMIC == apu->filter_type)
-            {
-                /* dynamic */
-               accum_left += prev_sample_left;
-               accum_left >>= 1;
-
-               next_sample_left = accum_left;
-
-               accum_right += prev_sample_right;
-               accum_right >>= 1;
-
-               next_sample_right = accum_right;
-            }
-            else
-            {
-                /* high pass */
-                accum_left -= (prev_sample_left / 2);
-                accum_left <<= 1;
-
-                accum_right -= (prev_sample_right / 2);
-                accum_right <<= 1;
-            }
-
-            prev_sample_left = next_sample_left;
-            prev_sample_right = next_sample_right;
+            accum_left += prev_sample_left;
+            accum_left >>= 1;
+            accum_right += prev_sample_right;
+            accum_right >>= 1;
          }
+         else if (apu->filter_list & PAPU_FILTER_LOW_PASS_MODE_2)
+         {
+            accum_left = (((accum_left + accum_left + accum_left) + prev_sample_left) >> 2);
+            accum_right = (((accum_right + accum_right + accum_right) + prev_sample_right) >> 2);
+         }
+         else if (apu->filter_list & PAPU_FILTER_LOW_PASS_MODE_3)
+         {
+            accum_left += prev_sample_left;
+            next_sample_left = accum_left >>= 1;
+            accum_right += prev_sample_right;
+            next_sample_right = accum_right >>= 1;
+         }
+
+         if (apu->filter_list & PAPU_FILTER_HIGH_PASS)
+         {
+            accum_left -= prev_sample_left;
+            accum_left <<= 2;
+            accum_right -= prev_sample_right;
+            accum_right <<= 2;
+         }
+
+         prev_sample_left = next_sample_left;
+         prev_sample_right = next_sample_right;
 
          /* little extra kick for the kids */
 //         accum <<= 1;
@@ -1833,10 +1814,10 @@ void apu_process_stereo(void *buffer, int num_samples, int dither, int style, in
 }
 
 /* set the filter type */
-void apu_setfilter(int filter_type)
+void apu_setfilterlist(int filter_list)
 {
    ASSERT(apu);
-   apu->filter_type = filter_type;
+   apu->filter_list = filter_list;
 }
 
 // apu_reset_apus() added by T.Yano
@@ -2014,7 +1995,7 @@ apu_t *apu_create(int sample_rate, int refresh_rate, int frag_size, int sample_b
    for (channel = 0; channel < 6; channel++)
       apu_setchan(channel, TRUE);
 
-   apu_setfilter(APU_FILTER_LOWPASS);
+   //apu_setfilter(APU_FILTER_LOWPASS);
 #ifdef APU_YANO
    apu_setmode(APUMODE_IDEAL_TRIANGLE, FALSE);
 #endif /* APU_YANO */
@@ -2101,6 +2082,9 @@ boolean sync_dmc_register(UINT32 cpu_cycles)
 
 /*
 ** $Log$
+** Revision 1.14  2004/02/17 06:43:06  stainless
+** Reworked Audio > Filter menu, added support for multiple audio filters.
+**
 ** Revision 1.13  2004/02/15 23:48:14  stainless
 ** Rewrote 'Surround Sound' effect and added 2 new variants.
 **
