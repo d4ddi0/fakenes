@@ -98,27 +98,30 @@ static INLINE void mmc3_cpu_bank_sort (void)
 
 static INLINE void mmc3_ppu_bank_sort (void)
 {
-    ppu_set_ram_1k_pattern_vrom_block (
-        (mmc3_chr_address << 10), mmc3_chr_bank [0] & ~1);
-    ppu_set_ram_1k_pattern_vrom_block (
-        ((1 + mmc3_chr_address) << 10), mmc3_chr_bank [0] | 1);
+    if (ROM_CHR_ROM_PAGES > 0)
+    {
+        ppu_set_ram_1k_pattern_vrom_block (
+            (mmc3_chr_address << 10), mmc3_chr_bank [0] & ~1);
+        ppu_set_ram_1k_pattern_vrom_block (
+            ((1 + mmc3_chr_address) << 10), mmc3_chr_bank [0] | 1);
 
-    ppu_set_ram_1k_pattern_vrom_block (
-        ((2 + mmc3_chr_address) << 10), mmc3_chr_bank [1] & ~1);
-    ppu_set_ram_1k_pattern_vrom_block (
-        ((3 + mmc3_chr_address) << 10), mmc3_chr_bank [1] | 1);
+        ppu_set_ram_1k_pattern_vrom_block (
+            ((2 + mmc3_chr_address) << 10), mmc3_chr_bank [1] & ~1);
+        ppu_set_ram_1k_pattern_vrom_block (
+            ((3 + mmc3_chr_address) << 10), mmc3_chr_bank [1] | 1);
 
-    ppu_set_ram_1k_pattern_vrom_block (
-        ((4 - mmc3_chr_address) << 10), mmc3_chr_bank [2]);
+        ppu_set_ram_1k_pattern_vrom_block (
+            ((4 - mmc3_chr_address) << 10), mmc3_chr_bank [2]);
 
-    ppu_set_ram_1k_pattern_vrom_block (
-        ((5 - mmc3_chr_address) << 10), mmc3_chr_bank [3]);
+        ppu_set_ram_1k_pattern_vrom_block (
+            ((5 - mmc3_chr_address) << 10), mmc3_chr_bank [3]);
 
-    ppu_set_ram_1k_pattern_vrom_block (
-        ((6 - mmc3_chr_address) << 10), mmc3_chr_bank [4]);
+        ppu_set_ram_1k_pattern_vrom_block (
+            ((6 - mmc3_chr_address) << 10), mmc3_chr_bank [4]);
 
-    ppu_set_ram_1k_pattern_vrom_block (
-        ((7 - mmc3_chr_address) << 10), mmc3_chr_bank [5]);
+        ppu_set_ram_1k_pattern_vrom_block (
+            ((7 - mmc3_chr_address) << 10), mmc3_chr_bank [5]);
+    }
 }
 
 
@@ -348,32 +351,21 @@ static void mmc3_reset (void)
     mmc3_cpu_bank_sort ();
 
 
-    if (ROM_CHR_ROM_PAGES > 0)
-    {
-        /* Select first 8k page. */
+    /* Select first 8k CHR ROM page. */
 
-        mmc3_chr_bank [0] = 0;
-        mmc3_chr_bank [1] = 2;
-        mmc3_chr_bank [2] = 4;
-        mmc3_chr_bank [3] = 5;
-        mmc3_chr_bank [4] = 6;
-        mmc3_chr_bank [5] = 7;
+    mmc3_chr_bank [0] = 0;
+    mmc3_chr_bank [1] = 2;
+    mmc3_chr_bank [2] = 4;
+    mmc3_chr_bank [3] = 5;
+    mmc3_chr_bank [4] = 6;
+    mmc3_chr_bank [5] = 7;
 
-        mmc3_ppu_bank_sort ();
-    }    
+    mmc3_ppu_bank_sort ();
 }
 
 
 static int mmc3_init (void)
 {
-    if (ROM_CHR_ROM_PAGES == 0)
-    {
-        /* No VROM is present. */
-
-        ppu_set_ram_8k_pattern_vram ();
-    }
-
-
     mmc3_reset ();
 
     cpu_set_write_handler_32k (0x8000, mmc3_write);
