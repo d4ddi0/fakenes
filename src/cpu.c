@@ -38,6 +38,14 @@ All rights reserved.  See 'LICENSE' for details.
 #include "misc.h"
 
 
+#ifdef UNIX
+
+extern char *confdir;
+
+extern char *sramdir;
+
+#endif
+
 static UINT8 cpu_ram [65536];
 
 static UINT8 cpu_sram [8192];
@@ -60,8 +68,24 @@ int cpu_init (void)
 
     if (global_rom.sram_flag)
     {
+
+#ifdef UNIX
+
+	if(sramdir != NULL)
+	{
+	    strcpy(buffer, sramdir);
+	    strcat(buffer, "/");
+	    strcat(buffer, get_filename(global_rom.filename));
+	    replace_extension (buffer,
+		buffer, "sav", sizeof (buffer));
+	}
+	
+#else
+
         replace_extension (buffer,
             global_rom.filename, "sav", sizeof (buffer));
+
+#endif
 
 
         if (exists (buffer))
@@ -119,9 +143,23 @@ void cpu_exit (void)
 
     if (global_rom.sram_flag)
     {
+#ifdef UNIX
+
+	if(sramdir != NULL)
+	{
+	    strcpy(buffer, sramdir);
+	    strcat(buffer, "/");
+	    strcat(buffer, get_filename(global_rom.filename));
+	    replace_extension (buffer,
+		buffer, "sav", sizeof (buffer));
+	}
+	
+#else
+
         replace_extension (buffer,
             global_rom.filename, "sav", sizeof (buffer));
 
+#endif
 
         sram_file = fopen (buffer, "wb");
 
