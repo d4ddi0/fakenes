@@ -750,7 +750,7 @@ static INLINE void blit_2xscl (BITMAP * source, BITMAP * target, int x, int y)
 #define FAST_PUTPIXEL16(bitmap, x, y, color)    (((UINT16 *) bitmap -> line [y]) [x] = color)
 
 
-static INLINE int half (int color)
+static INLINE int mix (int color_a, int color_b)
 {
     int r;
 
@@ -761,11 +761,18 @@ static INLINE int half (int color)
 
     /* 0 - 63 --> 0 - 127. */
 
-    r = (internal_palette [color].r * 2);
+    r = (internal_palette [color_a].r * 2);
 
-    g = (internal_palette [color].g * 2);
+    g = (internal_palette [color_a].g * 2);
 
-    b = (internal_palette [color].b * 2);
+    b = (internal_palette [color_a].b * 2);
+
+
+    r += (internal_palette [color_b].r * 2);
+
+    g += (internal_palette [color_b].g * 2);
+
+    b += (internal_palette [color_b].b * 2);
 
 
     return (makecol (r, g, b));
@@ -825,7 +832,7 @@ static INLINE void blit_super_2xscl (BITMAP * source, BITMAP * target, int x, in
             x_base = (x + (x_offset * 2));
 
 
-            center_pixel = palette_color [FAST_GETPIXEL (source, x_offset, y_offset)];
+            center_pixel = FAST_GETPIXEL (source, x_offset, y_offset);
 
 
             if (x_base == 0)
@@ -834,7 +841,7 @@ static INLINE void blit_super_2xscl (BITMAP * source, BITMAP * target, int x, in
             }
             else
             {
-                west_pixel = palette_color [FAST_GETPIXEL (source, (x_offset - 1), y_offset)];
+                west_pixel = FAST_GETPIXEL (source, (x_offset - 1), y_offset);
             }
         
 
@@ -844,7 +851,7 @@ static INLINE void blit_super_2xscl (BITMAP * source, BITMAP * target, int x, in
             }
             else
             {
-                east_pixel = palette_color [FAST_GETPIXEL (source, (x_offset + 1), y_offset)];
+                east_pixel = FAST_GETPIXEL (source, (x_offset + 1), y_offset);
             }
 	
 
@@ -854,7 +861,7 @@ static INLINE void blit_super_2xscl (BITMAP * source, BITMAP * target, int x, in
             }
             else
             {
-                south_pixel = palette_color [FAST_GETPIXEL (source, x_offset, (y_offset + 1))];
+                south_pixel = FAST_GETPIXEL (source, x_offset, (y_offset + 1));
             }
 	
 
@@ -870,41 +877,41 @@ static INLINE void blit_super_2xscl (BITMAP * source, BITMAP * target, int x, in
 
             if ((west_pixel == north_pixel) && (north_pixel != east_pixel) && (west_pixel != south_pixel))
             {
-                FAST_PUTPIXEL16 (target, x_base, y_base, west_pixel);
+                FAST_PUTPIXEL16 (target, x_base, y_base, palette_color [west_pixel]);
             }
             else
             {
-                FAST_PUTPIXEL16 (target, x_base, y_base, center_pixel);
+                FAST_PUTPIXEL16 (target, x_base, y_base, mix (center_pixel, west_pixel));
             }
 
 
             if ((north_pixel == east_pixel) && (north_pixel != west_pixel) && (east_pixel != south_pixel))
             {
-                FAST_PUTPIXEL16 (target, (x_base + 1), y_base, east_pixel);
+                FAST_PUTPIXEL16 (target, (x_base + 1), y_base, palette_color [east_pixel]);
             }
             else
             {
-                FAST_PUTPIXEL16 (target, (x_base + 1), y_base, center_pixel);
+                FAST_PUTPIXEL16 (target, (x_base + 1), y_base, mix (center_pixel, east_pixel));
             }
 
 
             if ((west_pixel == south_pixel) && (west_pixel != north_pixel) && (south_pixel != east_pixel))
             {
-                FAST_PUTPIXEL16 (target, x_base, (y_base + 1), west_pixel);
+                FAST_PUTPIXEL16 (target, x_base, (y_base + 1), palette_color [west_pixel]);
             }
             else
             {
-                FAST_PUTPIXEL16 (target, x_base, (y_base + 1), center_pixel);
+                FAST_PUTPIXEL16 (target, x_base, (y_base + 1), mix (center_pixel, west_pixel));
             }
 
 
             if ((south_pixel == east_pixel) && (west_pixel != south_pixel) && (north_pixel != east_pixel))
             {
-                FAST_PUTPIXEL16 (target, (x_base + 1), (y_base + 1), east_pixel);
+                FAST_PUTPIXEL16 (target, (x_base + 1), (y_base + 1), palette_color [east_pixel]);
             }
             else
             {
-                FAST_PUTPIXEL16 (target, (x_base + 1), (y_base + 1), center_pixel);
+                FAST_PUTPIXEL16 (target, (x_base + 1), (y_base + 1), mix (center_pixel, east_pixel));
             }
         }
     }
