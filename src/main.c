@@ -761,6 +761,10 @@ int main (int argc, char * argv [])
             executed_frames ++;
 
 
+            /* decrement frame skip counter */
+            /* when # of frame periods between start of first skipped frame
+            /*  before last drawn frame and end of last drawn frame have
+            /*  passed, draw another */
             if (-- frame_count > 0)
             {
                 redraw_flag = FALSE;
@@ -780,6 +784,9 @@ int main (int argc, char * argv [])
                     /* Fast forward. */
 
                     frame_count = frame_skip_max;
+
+                    /* zero speed-throttle counter as we're bypassing it */
+                    throttle_counter = 0;
                 }
                 else
                 {
@@ -794,27 +801,27 @@ int main (int argc, char * argv [])
 
                     frame_count = throttle_counter;
 
+                    /* update speed-throttle counter */
+                    /* using subtract so as to not lose ticks */
+                    throttle_counter -= frame_count;
 
-                    if (frame_count > frame_skip_max)
+
+                    /* enforce limits. */
+                    /* if we hit one, don't check the other... */
+                    if (frame_count >= frame_skip_max)
                     {
                         frame_count = frame_skip_max;
                     }
-
-
-                    if (frame_count < frame_skip_min)
+                    else if (frame_count <= frame_skip_min)
                     {
                         frame_count = frame_skip_min;
                     }
                 }
 
 
-                frame_count ++;
-
-
-                throttle_counter = 0;
             }
-    
-    
+
+
             virtual_fps_count ++;
     
 
