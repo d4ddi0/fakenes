@@ -97,6 +97,8 @@ static int want_vblank_nmi = TRUE;
 static int vblank_occured = FALSE;
 static int vram_writable = FALSE;
 
+static int hit_first_sprite = FALSE;
+
 
 static int background_enabled = FALSE;
 static int sprites_enabled = FALSE;
@@ -450,6 +452,11 @@ UINT8 ppu_read (UINT16 address)
                 }
             }
             else
+            //{
+            //    data |= SPRITE_0_COLLISION_BIT;
+            //}
+
+            if (hit_first_sprite)
             {
                 data |= SPRITE_0_COLLISION_BIT;
             }
@@ -715,6 +722,8 @@ void ppu_clear (void)
 
     first_line_this_frame = TRUE;
     vram_address_start_new_frame();
+
+    hit_first_sprite = FALSE;
 }
 
 
@@ -723,6 +732,15 @@ void ppu_start_render (void)
     clear_to_color (video_buffer, ppu_background_palette [0]);
 
     ppu_render_low_sprites ();
+}
+
+
+void ppu_stub_render_line (int line)
+{
+    if ((ppu_spr_ram [0] + 1) == line)
+    {
+        hit_first_sprite = TRUE;
+    }
 }
 
 
@@ -736,6 +754,11 @@ void ppu_start_render (void)
 
 void ppu_render_line (int line)
 {
+    if ((ppu_spr_ram [0] + 1) == line)
+    {
+        hit_first_sprite = TRUE;
+    }
+
     if (background_enabled)
     {
         int attribute_address, attribute_byte = 0;

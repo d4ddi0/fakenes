@@ -46,6 +46,8 @@ void ppu_start_line (void);
 void ppu_end_line (void);
 
 
+void ppu_stub_render_line (int);
+
 void ppu_render_line (int);
 
 

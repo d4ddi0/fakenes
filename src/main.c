@@ -598,6 +598,8 @@ int main (int argc, char * argv [])
                         {
                             ppu_start_line ();
 
+                            ppu_stub_render_line (line);
+
                             ppu_end_line ();
 
                             cpu_execute (SCANLINE_CLOCKS);
@@ -643,6 +645,8 @@ int main (int argc, char * argv [])
                             (line <= LAST_DISPLAYED_LINE))
                         {
                             ppu_start_line ();
+
+                            ppu_stub_render_line (line);
 
                             ppu_end_line ();
 
