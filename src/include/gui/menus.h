@@ -685,45 +685,129 @@ static MENU options_video_driver_menu [] =
 };
 
 
-static int options_video_resolution_menu_256_224 (void);
+static int options_video_resolution_proportionate_menu_256_224 (void);
 
-static int options_video_resolution_menu_256_240 (void);
+static int options_video_resolution_proportionate_menu_256_240 (void);
 
-static int options_video_resolution_menu_256_256 (void);
+static int options_video_resolution_proportionate_menu_512_448 (void);
+
+static int options_video_resolution_proportionate_menu_512_480 (void);
+
+static int options_video_resolution_proportionate_menu_768_672 (void);
+
+static int options_video_resolution_proportionate_menu_768_720 (void);
+
+static int options_video_resolution_proportionate_menu_1024_896 (void);
+
+static int options_video_resolution_proportionate_menu_1024_960 (void);
+
+static int options_video_resolution_proportionate_menu_1280_1120 (void);
+
+static int options_video_resolution_proportionate_menu_1280_1200 (void);
+
+
+static MENU options_video_resolution_proportionate_menu [] =
+{
+    {   " &1: 256x224",   options_video_resolution_proportionate_menu_256_224, NIL, 0, NIL },
+    {               "",                                                   NIL, NIL, 0, NIL },
+    {   " &2: 256x240",   options_video_resolution_proportionate_menu_256_240, NIL, 0, NIL },
+    {               "",                                                   NIL, NIL, 0, NIL },
+    {   " &3: 512x448",   options_video_resolution_proportionate_menu_512_448, NIL, 0, NIL },
+    {               "",                                                   NIL, NIL, 0, NIL },
+    {   " &4: 512x480",   options_video_resolution_proportionate_menu_512_480, NIL, 0, NIL },
+    {               "",                                                   NIL, NIL, 0, NIL },
+    {   " &5: 768x672",   options_video_resolution_proportionate_menu_768_672, NIL, 0, NIL },
+    {               "",                                                   NIL, NIL, 0, NIL },
+    {   " &6: 768x720",   options_video_resolution_proportionate_menu_768_720, NIL, 0, NIL },
+    {               "",                                                   NIL, NIL, 0, NIL },
+    {  " &7: 1152x896",  options_video_resolution_proportionate_menu_1024_896, NIL, 0, NIL },
+    {               "",                                                   NIL, NIL, 0, NIL },
+    {  " &8: 1152x900",  options_video_resolution_proportionate_menu_1024_960, NIL, 0, NIL },
+    {               "",                                                   NIL, NIL, 0, NIL },
+    { " &9: 1280x1120", options_video_resolution_proportionate_menu_1280_1120, NIL, 0, NIL },
+    {               "",                                                   NIL, NIL, 0, NIL },
+    { "1&0: 1280x1200", options_video_resolution_proportionate_menu_1280_1200, NIL, 0, NIL },
+    {              NIL,                                                   NIL, NIL, 0, NIL }
+};
+
+
+static int options_video_resolution_extended_menu_384_288 (void);
+
+static int options_video_resolution_extended_menu_400_300 (void);
+
+static int options_video_resolution_extended_menu_512_384 (void);
+
+static int options_video_resolution_extended_menu_640_400 (void);
+
+static int options_video_resolution_extended_menu_720_480 (void);
+
+static int options_video_resolution_extended_menu_720_576 (void);
+
+static int options_video_resolution_extended_menu_1152_900 (void);
+
+static int options_video_resolution_extended_menu_1280_960 (void);
+
+static int options_video_resolution_extended_menu_1024_1024 (void);
+
+
+static MENU options_video_resolution_extended_menu [] =
+{
+    {   "&1: 384x288",   options_video_resolution_extended_menu_384_288, NIL, 0, NIL },
+    {              "",                                               NIL, NIL, 0, NIL },
+    {   "&2: 400x300",   options_video_resolution_extended_menu_400_300, NIL, 0, NIL },
+    {              "",                                               NIL, NIL, 0, NIL },
+    {   "&3: 512x384",   options_video_resolution_extended_menu_512_384, NIL, 0, NIL },
+    {              "",                                               NIL, NIL, 0, NIL },
+    {   "&4: 640x400",   options_video_resolution_extended_menu_640_400, NIL, 0, NIL },
+    {              "",                                               NIL, NIL, 0, NIL },
+    {   "&5: 720x480",   options_video_resolution_extended_menu_720_480, NIL, 0, NIL },
+    {              "",                                               NIL, NIL, 0, NIL },
+    {   "&6: 720x576",   options_video_resolution_extended_menu_720_576, NIL, 0, NIL },
+    {              "",                                               NIL, NIL, 0, NIL },
+    {  "&7: 1152x900",  options_video_resolution_extended_menu_1152_900, NIL, 0, NIL },
+    {              "",                                               NIL, NIL, 0, NIL },
+    { "&8: 1024x1024", options_video_resolution_extended_menu_1024_1024, NIL, 0, NIL },
+    {              "",                                               NIL, NIL, 0, NIL },
+    {  "&9: 1280x960",  options_video_resolution_extended_menu_1280_960, NIL, 0, NIL },
+    {             NIL,                                               NIL, NIL, 0, NIL }
+};
+
 
 static int options_video_resolution_menu_320_240 (void);
 
-static int options_video_resolution_menu_400_300 (void);
-
-static int options_video_resolution_menu_512_384 (void);
-
-static int options_video_resolution_menu_512_480 (void);
-
-static int options_video_resolution_menu_640_400 (void);
-
 static int options_video_resolution_menu_640_480 (void);
+
+static int options_video_resolution_menu_800_600 (void);
+
+static int options_video_resolution_menu_1024_768 (void);
+
+static int options_video_resolution_menu_1152_864 (void);
+
+static int options_video_resolution_menu_1280_1024 (void);
+
+static int options_video_resolution_menu_1600_1200 (void);
 
 
 static MENU options_video_resolution_menu [] =
 {
-    { "&1: 256x224", options_video_resolution_menu_256_224, NIL, 0, NIL },
-    {            "",                                   NIL, NIL, 0, NIL },
-    { "&2: 256x240", options_video_resolution_menu_256_240, NIL, 0, NIL },
-    {            "",                                   NIL, NIL, 0, NIL },
-    { "&3: 256x256", options_video_resolution_menu_256_256, NIL, 0, NIL },
-    {            "",                                   NIL, NIL, 0, NIL },
-    { "&4: 320x240", options_video_resolution_menu_320_240, NIL, 0, NIL },
-    {            "",                                   NIL, NIL, 0, NIL },
-    { "&5: 400x300", options_video_resolution_menu_400_300, NIL, 0, NIL },
-    {            "",                                   NIL, NIL, 0, NIL },
-    { "&6: 512x384", options_video_resolution_menu_512_384, NIL, 0, NIL },
-    {            "",                                   NIL, NIL, 0, NIL },
-    { "&7: 512x480", options_video_resolution_menu_512_480, NIL, 0, NIL },
-    {            "",                                   NIL, NIL, 0, NIL },
-    { "&8: 640x400", options_video_resolution_menu_640_400, NIL, 0, NIL },
-    {            "",                                   NIL, NIL, 0, NIL },
-    { "&9: 640x480", options_video_resolution_menu_640_480, NIL, 0, NIL },
-    {           NIL,                                   NIL, NIL, 0, NIL }
+    { "&Proportionate",                                     NIL, options_video_resolution_proportionate_menu, 0, NIL },
+    {               "",                                     NIL,                                         NIL, 0, NIL },
+    {    "&1: 320x240",   options_video_resolution_menu_320_240,                                         NIL, 0, NIL },
+    {               "",                                     NIL,                                         NIL, 0, NIL },
+    {    "&2: 640x480",   options_video_resolution_menu_640_480,                                         NIL, 0, NIL },
+    {               "",                                     NIL,                                         NIL, 0, NIL },
+    {    "&3: 800x600",   options_video_resolution_menu_800_600,                                         NIL, 0, NIL },
+    {               "",                                     NIL,                                         NIL, 0, NIL },
+    {   "&4: 1024x768",  options_video_resolution_menu_1024_768,                                         NIL, 0, NIL },
+    {               "",                                     NIL,                                         NIL, 0, NIL },
+    {   "&5: 1152x864",  options_video_resolution_menu_1152_864,                                         NIL, 0, NIL },
+    {               "",                                     NIL,                                         NIL, 0, NIL },
+    {  "&6: 1280x1024", options_video_resolution_menu_1280_1024,                                         NIL, 0, NIL },
+    {               "",                                     NIL,                                         NIL, 0, NIL },
+    {  "&7: 1600x1200", options_video_resolution_menu_1600_1200,                                         NIL, 0, NIL },
+    {               "",                                     NIL,                                         NIL, 0, NIL },
+    {     "&extended",                                     NIL,     options_video_resolution_extended_menu, 0, NIL },
+    {              NIL,                                     NIL,                                         NIL, 0, NIL }
 };
 
 

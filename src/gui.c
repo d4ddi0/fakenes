@@ -704,24 +704,59 @@ static INLINE void update_menus (void)
 
 #endif
 
+    TOGGLE_MENU (options_video_resolution_proportionate_menu, 0, ((SCREEN_W == 256) && (SCREEN_H == 224)));
 
-    TOGGLE_MENU (options_video_resolution_menu, 0, ((SCREEN_W == 256) && (SCREEN_H == 224)));
+    TOGGLE_MENU (options_video_resolution_proportionate_menu, 2, ((SCREEN_W == 256) && (SCREEN_H == 240)));
 
-    TOGGLE_MENU (options_video_resolution_menu, 2, ((SCREEN_W == 256) && (SCREEN_H == 240)));
+    TOGGLE_MENU (options_video_resolution_proportionate_menu, 4, ((SCREEN_W == 512) && (SCREEN_H == 448)));
 
-    TOGGLE_MENU (options_video_resolution_menu, 4, ((SCREEN_W == 256) && (SCREEN_H == 256)));
+    TOGGLE_MENU (options_video_resolution_proportionate_menu, 6, ((SCREEN_W == 512) && (SCREEN_H == 480)));
 
-    TOGGLE_MENU (options_video_resolution_menu, 6, ((SCREEN_W == 320) && (SCREEN_H == 240)));
+    TOGGLE_MENU (options_video_resolution_proportionate_menu, 8, ((SCREEN_W == 768) && (SCREEN_H == 672)));
 
-    TOGGLE_MENU (options_video_resolution_menu, 8, ((SCREEN_W == 400) && (SCREEN_H == 300)));
+    TOGGLE_MENU (options_video_resolution_proportionate_menu, 10, ((SCREEN_W == 768) && (SCREEN_H == 720)));
 
-    TOGGLE_MENU (options_video_resolution_menu, 10, ((SCREEN_W == 512) && (SCREEN_H == 384)));
+    TOGGLE_MENU (options_video_resolution_proportionate_menu, 12, ((SCREEN_W == 1024) && (SCREEN_H == 896)));
 
-    TOGGLE_MENU (options_video_resolution_menu, 12, ((SCREEN_W == 512) && (SCREEN_H == 480)));
+    TOGGLE_MENU (options_video_resolution_proportionate_menu, 14, ((SCREEN_W == 1024) && (SCREEN_H == 960)));
 
-    TOGGLE_MENU (options_video_resolution_menu, 14, ((SCREEN_W == 640) && (SCREEN_H == 400)));
+    TOGGLE_MENU (options_video_resolution_proportionate_menu, 16, ((SCREEN_W == 1280) && (SCREEN_H == 1120)));
 
-    TOGGLE_MENU (options_video_resolution_menu, 16, ((SCREEN_W == 640) && (SCREEN_H == 480)));
+    TOGGLE_MENU (options_video_resolution_proportionate_menu, 18, ((SCREEN_W == 1280) && (SCREEN_H == 1200)));
+
+
+    TOGGLE_MENU (options_video_resolution_menu, 2, ((SCREEN_W == 320) && (SCREEN_H == 240)));
+
+    TOGGLE_MENU (options_video_resolution_menu, 4, ((SCREEN_W == 640) && (SCREEN_H == 480)));
+
+    TOGGLE_MENU (options_video_resolution_menu, 6, ((SCREEN_W == 800) && (SCREEN_H == 600)));
+
+    TOGGLE_MENU (options_video_resolution_menu, 8, ((SCREEN_W == 1024) && (SCREEN_H == 768)));
+
+    TOGGLE_MENU (options_video_resolution_menu, 10, ((SCREEN_W == 1152) && (SCREEN_H == 864)));
+
+    TOGGLE_MENU (options_video_resolution_menu, 12, ((SCREEN_W == 1280) && (SCREEN_H == 1024)));
+
+    TOGGLE_MENU (options_video_resolution_menu, 14, ((SCREEN_W == 1600) && (SCREEN_H == 1200)));
+
+
+    TOGGLE_MENU (options_video_resolution_extended_menu, 0, ((SCREEN_W == 384) && (SCREEN_H == 288)));
+
+    TOGGLE_MENU (options_video_resolution_extended_menu, 2, ((SCREEN_W == 400) && (SCREEN_H == 300)));
+
+    TOGGLE_MENU (options_video_resolution_extended_menu, 4, ((SCREEN_W == 512) && (SCREEN_H == 384)));
+
+    TOGGLE_MENU (options_video_resolution_extended_menu, 6, ((SCREEN_W == 640) && (SCREEN_H == 400)));
+
+    TOGGLE_MENU (options_video_resolution_extended_menu, 8, ((SCREEN_W == 720) && (SCREEN_H == 480)));
+
+    TOGGLE_MENU (options_video_resolution_extended_menu, 10, ((SCREEN_W == 720) && (SCREEN_H == 576)));
+
+    TOGGLE_MENU (options_video_resolution_extended_menu, 12, ((SCREEN_W == 1152) && (SCREEN_H == 900)));
+
+    TOGGLE_MENU (options_video_resolution_extended_menu, 14, ((SCREEN_W == 1280) && (SCREEN_H == 960)));
+
+    TOGGLE_MENU (options_video_resolution_extended_menu, 16, ((SCREEN_W == 1024) && (SCREEN_H == 1024)));
 
 
     TOGGLE_MENU (options_video_colors_menu, 0, (video_get_color_depth () == 8));
@@ -3342,23 +3377,71 @@ static int options_video_driver_menu_automatic (void)
     }
 
 
-RESOLUTION_MENU_HANDLER (256, 224)
+#define RESOLUTION_MENU_HANDLER_EX(type, width, height)     \
+    static int options_video_resolution_##type##_menu_##width##_##height (void)     \
+    {                                           \
+        video_set_resolution (width, height);   \
+                                                \
+        gui_needs_restart = TRUE;               \
+                                                \
+                                                \
+        return (D_CLOSE);                       \
+    }
 
-RESOLUTION_MENU_HANDLER (256, 240)
 
-RESOLUTION_MENU_HANDLER (256, 256)
+RESOLUTION_MENU_HANDLER_EX (proportionate, 256, 224)
+
+RESOLUTION_MENU_HANDLER_EX (proportionate, 256, 240)
+
+RESOLUTION_MENU_HANDLER_EX (proportionate, 512, 448)
+
+RESOLUTION_MENU_HANDLER_EX (proportionate, 512, 480)
+
+RESOLUTION_MENU_HANDLER_EX (proportionate, 768, 672)
+
+RESOLUTION_MENU_HANDLER_EX (proportionate, 768, 720)
+
+RESOLUTION_MENU_HANDLER_EX (proportionate, 1024, 896)
+
+RESOLUTION_MENU_HANDLER_EX (proportionate, 1024, 960)
+
+RESOLUTION_MENU_HANDLER_EX (proportionate, 1280, 1120)
+
+RESOLUTION_MENU_HANDLER_EX (proportionate, 1280, 1200)
+
 
 RESOLUTION_MENU_HANDLER (320, 240)
 
-RESOLUTION_MENU_HANDLER (400, 300)
-
-RESOLUTION_MENU_HANDLER (512, 384)
-
-RESOLUTION_MENU_HANDLER (512, 480)
-
-RESOLUTION_MENU_HANDLER (640, 400)
-
 RESOLUTION_MENU_HANDLER (640, 480)
+
+RESOLUTION_MENU_HANDLER (800, 600)
+
+RESOLUTION_MENU_HANDLER (1024, 768)
+
+RESOLUTION_MENU_HANDLER (1152, 864)
+
+RESOLUTION_MENU_HANDLER (1280, 1024)
+
+RESOLUTION_MENU_HANDLER (1600, 1200)
+
+
+RESOLUTION_MENU_HANDLER_EX (extended, 384, 288)
+
+RESOLUTION_MENU_HANDLER_EX (extended, 400, 300)
+
+RESOLUTION_MENU_HANDLER_EX (extended, 512, 384)
+
+RESOLUTION_MENU_HANDLER_EX (extended, 640, 400)
+
+RESOLUTION_MENU_HANDLER_EX (extended, 720, 480)
+
+RESOLUTION_MENU_HANDLER_EX (extended, 720, 576)
+
+RESOLUTION_MENU_HANDLER_EX (extended, 1152, 900)
+
+RESOLUTION_MENU_HANDLER_EX (extended, 1280, 960)
+
+RESOLUTION_MENU_HANDLER_EX (extended, 1024, 1024)
 
 
 static int options_video_colors_menu_few_8_bit (void)
