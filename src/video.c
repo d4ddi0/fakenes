@@ -126,7 +126,7 @@ int video_init (void)
 
     first_blit_line = get_config_int ("video", "first_blit_line", 0);
 
-    last_blit_line = get_config_int ("video", "last_blit_line", 223);
+    last_blit_line = get_config_int ("video", "last_blit_line", 239);
 
 
     zoom_factor_x = get_config_int ("video", "zoom_factor_x", 256);
