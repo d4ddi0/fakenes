@@ -439,6 +439,8 @@ static int options_video_blitter_menu_normal (void);
 
 static int options_video_blitter_menu_stretched (void);
 
+static int options_video_blitter_menu_interpolated (void);
+
 static int options_video_blitter_menu_2xsoe (void);
 
 static int options_video_blitter_menu_2xscl (void);
@@ -450,20 +452,22 @@ static int options_video_blitter_menu_super_2xscl (void);
 
 static MENU options_video_blitter_menu [] =
 {
-    {   "&Automatic",   options_video_blitter_menu_automatic, NIL, 0, NIL },
-    {             "",                                    NIL, NIL, 0, NIL },
-    {      "&Normal",      options_video_blitter_menu_normal, NIL, 0, NIL },
-    {             "",                                    NIL, NIL, 0, NIL },
-    {   "&Stretched",   options_video_blitter_menu_stretched, NIL, 0, NIL },
-    {             "",                                    NIL, NIL, 0, NIL },
-    {       "&2xSOE",       options_video_blitter_menu_2xsoe, NIL, 0, NIL },
-    {             "",                                    NIL, NIL, 0, NIL },
-    {       "2&xSCL",       options_video_blitter_menu_2xscl, NIL, 0, NIL },
-    {             "",                                    NIL, NIL, 0, NIL },
-    { "Sup&er 2xSOE", options_video_blitter_menu_super_2xsoe, NIL, 0, NIL },
-    {             "",                                    NIL, NIL, 0, NIL },
-    { "Su&per 2xSCL", options_video_blitter_menu_super_2xscl, NIL, 0, NIL },
-    {            NIL,                                    NIL, NIL, 0, NIL }
+    {    "&Automatic",    options_video_blitter_menu_automatic, NIL, 0, NIL },
+    {              "",                                     NIL, NIL, 0, NIL },
+    {       "&Normal",       options_video_blitter_menu_normal, NIL, 0, NIL },
+    {              "",                                     NIL, NIL, 0, NIL },
+    {    "&Stretched",    options_video_blitter_menu_stretched, NIL, 0, NIL },
+    {              "",                                     NIL, NIL, 0, NIL },
+    { "&Interpolated", options_video_blitter_menu_interpolated, NIL, 0, NIL },
+    {              "",                                     NIL, NIL, 0, NIL },
+    {        "&2xSOE",        options_video_blitter_menu_2xsoe, NIL, 0, NIL },
+    {              "",                                     NIL, NIL, 0, NIL },
+    {        "2&xSCL",        options_video_blitter_menu_2xscl, NIL, 0, NIL },
+    {              "",                                     NIL, NIL, 0, NIL },
+    {  "Sup&er 2xSOE",  options_video_blitter_menu_super_2xsoe, NIL, 0, NIL },
+    {              "",                                     NIL, NIL, 0, NIL },
+    {  "Su&per 2xSCL",  options_video_blitter_menu_super_2xscl, NIL, 0, NIL },
+    {             NIL,                                     NIL, NIL, 0, NIL }
 };
 
 

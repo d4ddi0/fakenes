@@ -833,6 +833,104 @@ static INLINE int mix (int color_a, int color_b)
 }
 
 
+static INLINE void blit_interpolated (BITMAP * source, BITMAP * target, int x, int y)
+{
+    int x_base;
+
+    int y_base;
+
+
+    int x_offset;
+
+    int y_offset;
+
+
+    int center_pixel;
+
+
+    int east_pixel;
+
+    int south_pixel;
+
+
+    int south_east_pixel;
+
+
+    if ((target -> w < (source -> w * 2)) || (target -> h < (source -> h * 2)))
+    {
+        /* Center error message on target. */
+
+        y += ((source -> h / 2) - (((text_height (font) * 2) + (text_height (font) / 2)) / 2));
+
+
+        textout (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_WHITE);
+
+
+        textprintf (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),
+            VIDEO_COLOR_WHITE, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
+
+
+        return;
+    }
+
+
+    for (y_offset = 0; y_offset < source -> h; y_offset ++)
+    {
+        y_base = (y + (y_offset * 2));
+
+
+        for (x_offset = 0; x_offset < source -> w; x_offset ++)
+        {
+            x_base = (x + (x_offset * 2));
+
+
+            center_pixel = FAST_GETPIXEL (source, x_offset, y_offset);
+
+
+            if ((x_offset + 1) >= source -> w)
+            {
+                east_pixel = center_pixel;
+            }
+            else
+            {
+                east_pixel = FAST_GETPIXEL (source, (x_offset + 1), y_offset);
+            }
+	
+
+            if ((y_offset + 1) >= source -> h)
+            {
+                south_pixel = center_pixel;
+            }
+            else
+            {
+                south_pixel = FAST_GETPIXEL (source, x_offset, (y_offset + 1));
+            }
+
+
+            if (((x_offset + 1) >= source -> w) || ((y_offset + 1) >= source -> h))
+            {
+                south_east_pixel = center_pixel;
+            }
+            else
+            {
+                south_east_pixel = FAST_GETPIXEL (source, (x_offset + 1), (y_offset + 1));
+            }
+
+
+            FAST_PUTPIXEL16 (target, x_base, y_base, palette_color [center_pixel]);
+
+
+            FAST_PUTPIXEL16 (target, (x_base + 1), y_base, mix (center_pixel, east_pixel));
+
+            FAST_PUTPIXEL16 (target, x_base, (y_base + 1), mix (center_pixel, south_pixel));
+
+
+            FAST_PUTPIXEL16 (target, (x_base + 1), (y_base + 1), mix (center_pixel, south_east_pixel));
+        }
+    }
+}
+
+
 static INLINE void blit_super_2xsoe (BITMAP * source, BITMAP * target, int x, int y)
 {
     int x_base;
@@ -1265,6 +1363,14 @@ void video_blit (BITMAP * bitmap)
             break;
 
 
+        case VIDEO_BLITTER_INTERPOLATED:
+
+            blit_interpolated (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
+
+
+            break;
+
+
         case VIDEO_BLITTER_2XSOE:
 
             blit_2xsoe (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
@@ -1381,8 +1487,9 @@ static INLINE int fix (int value, int base, int limit)
 
 void video_zoom (int x_factor, int y_factor)
 {
-    if ((blitter_type == VIDEO_BLITTER_2XSOE) ||
-        (blitter_type == VIDEO_BLITTER_2XSCL))
+    if (((blitter_type == VIDEO_BLITTER_2XSOE) || (blitter_type == VIDEO_BLITTER_SUPER_2XSOE)) ||
+        ((blitter_type == VIDEO_BLITTER_2XSCL) || (blitter_type == VIDEO_BLITTER_SUPER_2XSCL)) ||
+         (blitter_type == VIDEO_BLITTER_INTERPOLATED))
     {
         return;
     }
@@ -1609,6 +1716,8 @@ void video_set_blitter (int blitter)
 
             break;
 
+
+        case VIDEO_BLITTER_INTERPOLATED:
 
         case VIDEO_BLITTER_2XSOE:
 
