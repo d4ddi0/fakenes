@@ -624,21 +624,27 @@ static MENU options_video_driver_linux_menu [] =
 
 #ifdef ALLEGRO_UNIX
 
-static int options_video_driver_unix_menu_x_windows (void);
+static int options_video_driver_unix_menu_x_windows_full (void);
 
 static int options_video_driver_unix_menu_x_dga (void);
+
+static int options_video_driver_unix_menu_x_dga_full (void);
 
 static int options_video_driver_unix_menu_x_dga_2 (void);
 
 
 static MENU options_video_driver_unix_menu [] =
 {
-    { "X &Windows", options_video_driver_unix_menu_x_windows, NIL, 0, NIL },
-    {           "",                                      NIL, NIL, 0, NIL },
-    {     "X/&DGA",     options_video_driver_unix_menu_x_dga, NIL, 0, NIL },
-    {           "",                                      NIL, NIL, 0, NIL },
-    {   "X/D&GA 2",   options_video_driver_unix_menu_x_dga_2, NIL, 0, NIL },
-    {          NIL,                                      NIL, NIL, 0, NIL }
+    {      "X &Windows",      options_video_driver_unix_menu_x_windows, NIL, 0, NIL },
+    {                "",                                           NIL, NIL, 0, NIL },
+    { "X &Windows Full", options_video_driver_unix_menu_x_windows_full, NIL, 0, NIL },
+    {                "",                                           NIL, NIL, 0, NIL },
+    {          "X/&DGA",          options_video_driver_unix_menu_x_dga, NIL, 0, NIL },
+    {                "",                                           NIL, NIL, 0, NIL },
+    {     "X/&DGA FULL",     options_video_driver_unix_menu_x_dga_full, NIL, 0, NIL },
+    {                "",                                           NIL, NIL, 0, NIL },
+    {        "X/D&GA 2",        options_video_driver_unix_menu_x_dga_2, NIL, 0, NIL },
+    {               NIL,                                           NIL, NIL, 0, NIL }
 };
 
 #else

@@ -727,9 +727,13 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_video_driver_unix_menu, 0, (gfx_driver -> id == GFX_XWINDOWS));
 
-    TOGGLE_MENU (options_video_driver_unix_menu, 2, (gfx_driver -> id == GFX_XDGA));
+    TOGGLE_MENU (options_video_driver_unix_menu, 2, (gfx_driver -> id == GFX_XWINDOWS_FULLSCREEN));
 
-    TOGGLE_MENU (options_video_driver_unix_menu, 4, (gfx_driver -> id == GFX_XDGA2));
+    TOGGLE_MENU (options_video_driver_unix_menu, 4, (gfx_driver -> id == GFX_XDGA));
+
+    TOGGLE_MENU (options_video_driver_unix_menu, 6, (gfx_driver -> id == GFX_XDGA_FULLSCREEN));
+
+    TOGGLE_MENU (options_video_driver_unix_menu, 8, (gfx_driver -> id == GFX_XDGA2));
 
 #endif
 
@@ -3242,7 +3246,11 @@ DRIVER_MENU_HANDLER (linux, svgalib, GFX_SVGALIB)
 
 DRIVER_MENU_HANDLER (unix, x_windows, GFX_XWINDOWS)
 
+DRIVER_MENU_HANDLER (unix, x_windows_full, GFX_XWINDOWS_FULLSCREEN)
+
 DRIVER_MENU_HANDLER (unix, x_dga, GFX_XDGA)
+
+DRIVER_MENU_HANDLER (unix, x_dga_full, GFX_XDGA_FULLSCREEN)
 
 DRIVER_MENU_HANDLER (unix, x_dga_2, GFX_XDGA2)
 
