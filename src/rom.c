@@ -68,9 +68,6 @@ int rom_is_loaded = FALSE;
 #define LR_READ(file, buffer, size)     (fread (buffer, 1, size, file))
 
 
-#define load_rom(filename, rom)     (load_ines_rom (filename, rom))
-
-
 #endif /* USE_ZLIB */
 
 
@@ -251,6 +248,10 @@ int load_rom_from_zip (const UINT8 * filename, ROM * rom)
 {
     INES_HEADER ines_header;
 
+
+#ifdef USE_ZLIB
+
+
     unzFile zip_file;
 
 
@@ -427,6 +428,15 @@ int load_rom_from_zip (const UINT8 * filename, ROM * rom)
 
 
     return (0);
+
+
+#else /* USE_ZLIB */
+
+
+    return (1);
+
+
+#endif
 }
 
 
