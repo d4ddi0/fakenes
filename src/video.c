@@ -81,12 +81,17 @@ static int light_level = 0;
 static int blitter_type = 0;
 
 
-#define VIDEO_COLOR_BLACK   palette_color [0]
-
 #define VIDEO_COLOR_WHITE   palette_color [33]
+
+#define VIDEO_COLOR_RED     palette_color [6]
 
 
 static int preserve_video_buffer = FALSE;
+
+static int preserve_palette = FALSE;
+
+
+static PALETTE internal_palette;
 
 
 int video_init (void)
@@ -166,7 +171,14 @@ int video_init (void)
     scare_mouse ();
 
 
-    video_set_palette (DATA_DEFAULT_PALETTE);
+    if (preserve_palette)
+    {
+        set_palette (internal_palette);
+    }
+    else
+    {
+        video_set_palette (DATA_DEFAULT_PALETTE);
+    }
 
 
     text_mode (-1);
@@ -252,6 +264,11 @@ static INLINE void display_status (BITMAP * bitmap, int color)
 }
 
 
+#define FAST_GETPIXEL(bitmap, x, y)         bitmap -> line [y] [x]
+
+#define FAST_PUTPIXEL(bitmap, x, y, color)  (bitmap -> line [y] [x] = color)
+
+
 static INLINE void blit_2xsoe (BITMAP * source, BITMAP * target, int x, int y)
 {
     int x_base;
@@ -277,67 +294,190 @@ static INLINE void blit_2xsoe (BITMAP * source, BITMAP * target, int x, int y)
     int west_pixel;
 
 
+    if ((target -> w < (source -> w * 2)) || (target -> h < (source -> h * 2)))
+    {
+        if (! rom_is_loaded)
+        {
+            return;
+        }
+
+
+        /* Center error message on target. */
+
+        y += ((source -> h / 2) - (((text_height (font) * 2) + (text_height (font) / 2)) / 2));
+
+
+        textout (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_RED);
+
+
+        textprintf (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),
+            VIDEO_COLOR_RED, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
+
+
+        return;
+    }
+
+
     for (y_offset = 0; y_offset < source -> h; y_offset ++)
     {
         y_base = (y + (y_offset * 2));
 
 
-        for (x_offset = 0; x_offset < source -> w; x_offset ++)
+        /* Handle first pixel on line. */
+
+        x_offset = 0;
+
+        x_base = x;
+
+
+        center_pixel = FAST_GETPIXEL (source, x_offset, y_offset);
+
+
+        FAST_PUTPIXEL (target, x_base, y_base, center_pixel);
+
+        FAST_PUTPIXEL (target, x_base, (y_base + 1), center_pixel);
+
+
+        if (source -> w < 2)
         {
-            x_base = (x + (x_offset * 2));
+            FAST_PUTPIXEL (target, (x_base + 1), y_base, center_pixel);
+
+            FAST_PUTPIXEL (target, (x_base + 1), (y_base + 1), center_pixel);
 
 
-            center_pixel = getpixel (source, x_offset, y_offset);
+            continue;
+        }
 
 
-            north_pixel = getpixel (source, x_offset, (y_offset - 1));
-
-            east_pixel = getpixel (source, (x_offset - 1), y_offset);
+        west_pixel = FAST_GETPIXEL (source, (x_offset + 1), y_offset);
 
 
-            south_pixel = getpixel (source, x_offset, (y_offset + 1));
-
-            west_pixel = getpixel (source, (x_offset + 1), y_offset);
+        if (y_offset > 0)
+        {
+            north_pixel = FAST_GETPIXEL (source, x_offset, (y_offset - 1));
 
 
             if (north_pixel != west_pixel)
             {
-                putpixel (target, (x_base + 1), y_base, center_pixel);
+                FAST_PUTPIXEL (target, (x_base + 1), y_base, center_pixel);
             }
             else
             {
-                putpixel (target, (x_base + 1), y_base, west_pixel);
+                FAST_PUTPIXEL (target, (x_base + 1), y_base, west_pixel);
             }    
+        }
+        else
+        {
+            FAST_PUTPIXEL (target, (x_base + 1), y_base, center_pixel);
+        }
 
 
-            if (north_pixel != east_pixel)
-            {
-                putpixel (target, x_base, y_base, center_pixel);
-            }
-            else
-            {
-                putpixel (target, x_base, y_base, east_pixel);
-            }    
+        if ((y_offset + 1) < source -> h)
+        {
+            south_pixel = FAST_GETPIXEL (source, x_offset, (y_offset + 1));
 
 
             if (south_pixel != west_pixel)
             {
-                putpixel (target, (x_base + 1), (y_base + 1), center_pixel);
+                FAST_PUTPIXEL (target, (x_base + 1), (y_base + 1), center_pixel);
             }
             else
             {
-                putpixel (target, (x_base + 1), (y_base + 1), west_pixel);
+                FAST_PUTPIXEL (target, (x_base + 1), (y_base + 1), west_pixel);
             }    
+        }
+        else
+        {
+            FAST_PUTPIXEL (target, (x_base + 1), (y_base + 1), center_pixel);
+        }
 
 
-            if (south_pixel != east_pixel)
+        for (x_offset = 1; x_offset < source -> w; x_offset ++)
+        {
+            x_base = (x + (x_offset * 2));
+
+
+            east_pixel = center_pixel;
+
+            center_pixel = west_pixel;
+
+
+            if (y_offset > 0)
             {
-                putpixel (target, x_base, (y_base + 1), center_pixel);
+                north_pixel = FAST_GETPIXEL (source, x_offset, (y_offset - 1));
+
+
+                if (north_pixel != east_pixel)
+                {
+                    FAST_PUTPIXEL (target, x_base, y_base, center_pixel);
+                }
+                else
+                {
+                    FAST_PUTPIXEL (target, x_base, y_base, east_pixel);
+                }    
             }
             else
             {
-                putpixel (target, x_base, (y_base + 1), east_pixel);
-            }    
+                north_pixel = -1;
+
+
+                FAST_PUTPIXEL (target, x_base, y_base, center_pixel);
+            }
+
+
+            if ((y_offset + 1) < source -> h)
+            {
+                south_pixel = FAST_GETPIXEL (source, x_offset, (y_offset + 1));
+
+
+                if (south_pixel != east_pixel)
+                {
+                    FAST_PUTPIXEL (target, x_base, (y_base + 1), center_pixel);
+                }
+                else
+                {
+                    FAST_PUTPIXEL (target, x_base, (y_base + 1), east_pixel);
+                }    
+            }
+            else
+            {
+                south_pixel = -1;
+
+
+                FAST_PUTPIXEL (target, x_base, (y_base + 1), center_pixel);
+            }
+
+
+            if ((x_offset + 1) < source -> w)
+            {
+                west_pixel = FAST_GETPIXEL (source, (x_offset + 1), y_offset);
+
+
+                if ((north_pixel < 0) || (north_pixel != west_pixel))
+                {
+                    FAST_PUTPIXEL (target, (x_base + 1), y_base, center_pixel);
+                }
+                else
+                {
+                    FAST_PUTPIXEL (target, (x_base + 1), y_base, west_pixel);
+                }    
+
+
+                if ((south_pixel < 0) || (south_pixel != west_pixel))
+                {
+                    FAST_PUTPIXEL (target, (x_base + 1), (y_base + 1), center_pixel);
+                }
+                else
+                {
+                    FAST_PUTPIXEL (target, (x_base + 1), (y_base + 1), west_pixel);
+                }    
+            }
+            else
+            {
+                FAST_PUTPIXEL (target, (x_base + 1), y_base, center_pixel);
+
+                FAST_PUTPIXEL (target, (x_base + 1), (y_base + 1), center_pixel);
+            }
         }
     }
 }
@@ -482,9 +622,6 @@ void video_zoom_out (void)
 }
 
 
-static PALETTE internal_palette;
-
-
 void video_set_palette (RGB * palette)
 {
     int index;
@@ -536,9 +673,18 @@ void video_set_blitter (int blitter)
 
         case VIDEO_BLITTER_2XSOE:
 
-            blit_x_offset = ((SCREEN_W / 2) - 256);
-
-            blit_y_offset = ((SCREEN_H / 2) - 240);
+            if (! ((SCREEN_W < 512) || (SCREEN_H < 480)))
+            {
+                blit_x_offset = ((SCREEN_W / 2) - 256);
+    
+                blit_y_offset = ((SCREEN_H / 2) - 240);
+            }
+            else
+            {
+                blit_x_offset = ((SCREEN_W / 2) - (256 / 2));
+            
+                blit_y_offset = ((SCREEN_H / 2) - (240 / 2));
+            }
 
 
             break;
@@ -582,6 +728,8 @@ void video_set_resolution (int width, int height)
 
     preserve_video_buffer = TRUE;
 
+    preserve_palette = TRUE;
+
 
     video_exit ();
 
@@ -597,10 +745,9 @@ void video_set_resolution (int width, int height)
     }
 
 
-    set_palette (internal_palette);
-
-
     preserve_video_buffer = FALSE;
+
+    preserve_palette = FALSE;
 
 
     if (gui_is_active)
