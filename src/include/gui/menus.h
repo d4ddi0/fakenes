@@ -385,6 +385,8 @@ static int options_video_resolution_menu_400_300 (void);
 
 static int options_video_resolution_menu_512_384 (void);
 
+static int options_video_resolution_menu_512_480 (void);
+
 static int options_video_resolution_menu_640_400 (void);
 
 static int options_video_resolution_menu_640_480 (void);
@@ -404,9 +406,11 @@ static MENU options_video_resolution_menu [] =
     {            "",                                   NIL, NIL, 0, NIL },
     { "&6: 512x384", options_video_resolution_menu_512_384, NIL, 0, NIL },
     {            "",                                   NIL, NIL, 0, NIL },
-    { "&7: 640x400", options_video_resolution_menu_640_400, NIL, 0, NIL },
+    { "&7: 512x480", options_video_resolution_menu_512_480, NIL, 0, NIL },
     {            "",                                   NIL, NIL, 0, NIL },
-    { "&8: 640x480", options_video_resolution_menu_640_480, NIL, 0, NIL },
+    { "&8: 640x400", options_video_resolution_menu_640_400, NIL, 0, NIL },
+    {            "",                                   NIL, NIL, 0, NIL },
+    { "&9: 640x480", options_video_resolution_menu_640_480, NIL, 0, NIL },
     {           NIL,                                   NIL, NIL, 0, NIL }
 };
 
