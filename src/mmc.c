@@ -169,6 +169,8 @@ void mmc_request (ROM * rom)
 
     MMC_NEXT_LIST_ITEM (vrc6);      /* VRC6. */
 
+    MMC_NEXT_LIST_ITEM (vrc6b);     /* VRC6. */
+
 
     MMC_LAST_LIST_ITEM ();          /* Unsupported mapper. */
 }

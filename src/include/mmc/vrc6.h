@@ -1,8 +1,13 @@
 
 
-/* Mapper #24 (Konami VRC6). */
+/* Mappers #24 (Konami VRC6). */
 
 /* This mapper is fully supported. */
+
+
+/* Mapper #26 is also Konami VRC6. */
+
+/* See vrc6b_reset for the difference. */
 
 
 #include "mmc/shared.h"
@@ -21,9 +26,20 @@ static const MMC mmc_vrc6 =
 };
 
 
+static void vrc6b_reset (void);
+
+
+static const MMC mmc_vrc6b =
+{
+    26, "Konami VRC6 + ExSound",
+
+    vrc6_init, vrc6b_reset
+};
+
+
 static const char vrc6_mirroring_table [] =
 {
-    MIRRORING_HORIZONTAL, MIRRORING_VERTICAL,
+    MIRRORING_VERTICAL, MIRRORING_HORIZONTAL,
 
     MIRRORING_ONE_SCREEN_2000, MIRRORING_ONE_SCREEN_2400
 };
@@ -61,11 +77,22 @@ static int vrc6_irq_tick (int line)
 }
 
 
+static char vrc6_swap_address_pins = FALSE;
+
+
 static void vrc6_write (UINT16 address, UINT8 value)
 {
     int major;
 
     int minor;
+
+
+    /* Swap address pins. */
+
+    if (vrc6_swap_address_pins)
+    {
+        address = ((address & 0xfffc) | ((address >> 1) & 1) | ((address << 1) & 2));
+    }
 
 
     /* Extract command indexes. */
@@ -225,8 +252,24 @@ static void vrc6_reset (void)
 }
 
 
+static void vrc6b_reset (void)
+{
+    /* Pins A0 and A1 are swapped in mapper #26. */
+
+    vrc6_swap_address_pins = TRUE;
+
+
+    vrc6_reset ();
+}
+
+
 static int vrc6_init (void)
 {
+    /* Disable address pin swap. */
+
+    vrc6_swap_address_pins = FALSE;
+
+
     /* Start out with VRAM. */
 
     ppu_set_ram_8k_pattern_vram ();
