@@ -258,7 +258,6 @@ void FN2A03_Interrupt(FN2A03 *R,UINT8 Type)
   This function will execute RP2A03G code until the cycle
  counter expires.
 */
-#define NO_C_CORE
 #ifndef NO_C_CORE
 void FN2A03_Run(FN2A03 *R)
 {
