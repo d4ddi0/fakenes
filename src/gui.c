@@ -364,14 +364,13 @@ int show_gui (void)
     {
         DISABLE_MENU (file_menu, 2);
 
-
         DISABLE_MENU (machine_menu, 0);
-
-
-        DISABLE_MENU (machine_state_menu, 2);
-
-        DISABLE_MENU (machine_state_menu, 4);
     }
+
+
+    DISABLE_MENU (machine_state_menu, 2);
+
+    DISABLE_MENU (machine_state_menu, 4);
 
 
     audio_suspend ();
@@ -460,9 +459,9 @@ static int file_menu_load_rom (void)
             ENABLE_MENU (machine_menu, 0);
 
 
-            ENABLE_MENU (machine_state_menu, 2);
+            // ENABLE_MENU (machine_state_menu, 2);
 
-            ENABLE_MENU (machine_state_menu, 4);
+            // ENABLE_MENU (machine_state_menu, 4);
 
 
             sprintf (buffer2, "FakeNES - %s", get_filename (global_rom.filename));
