@@ -1465,6 +1465,8 @@ void apu_process(void *buffer, int num_samples)
    apu->elapsed_cycles = cpu_get_cycles(FALSE);
 }
 
+static boolean cycle_noise = TRUE;
+
 void apu_process_stereo(void *buffer, int num_samples, int style, int flip, int surround)
 {
    apudata_t *d;
@@ -1476,9 +1478,6 @@ void apu_process_stereo(void *buffer, int num_samples, int style, int flip, int 
 
    INT32 next_sample_left, next_sample_right;
    INT32 prev_sample_left = 0, prev_sample_right = 0;
-
-   int cycle_triangle = FALSE;
-   int cycle_noise = TRUE;
 
    ASSERT(apu);
 
@@ -1600,18 +1599,13 @@ void apu_process_stereo(void *buffer, int num_samples, int style, int flip, int 
          else if (style == 2)
          {
              /* FakeNES enhanced. (may/2002) */
-             /* Cycles the noise/triangle channels against each other. */
+             /* Cycles the noise and centers the triangle. */
 
              if (apu->mix_enable[0]) accum_left += apu_rectangle(&apu->apus.rectangle[0]);
              if (apu->mix_enable[1]) accum_right += apu_rectangle(&apu->apus.rectangle[1]);
 
+             if (apu->mix_enable[2]) accum_centre += apu_triangle(&apu->apus.triangle);
              if (apu->mix_enable[4]) accum_centre += apu_dmc(&apu->apus.dmc);
-
-             if (! cycle_triangle) {
-                if (apu->mix_enable[2]) accum_left += apu_triangle(&apu->apus.triangle);
-             } else {
-                if (apu->mix_enable[2]) accum_right += apu_triangle(&apu->apus.triangle);
-             }
 
              if (! cycle_noise) {
                 if (apu->mix_enable[3]) accum_left += apu_noise(&apu->apus.noise);
@@ -1807,7 +1801,6 @@ void apu_process_stereo(void *buffer, int num_samples, int style, int flip, int 
 
    if (style == 2)
    {
-      cycle_triangle = (! cycle_triangle);
       cycle_noise = (! cycle_noise);
    }
 }
@@ -2079,8 +2072,8 @@ boolean sync_dmc_register(UINT32 cpu_cycles)
 
 /*
 ** $Log$
-** Revision 1.8  2002/05/02 16:48:42  stainless
-** Added 'enhanced' & 'accurate' variations of pseudo stereo.
+** Revision 1.9  2002/05/03 01:22:12  stainless
+** Enhanced stereo fix & improvements.
 **
 ** Revision 1.7  2002/04/27 03:26:47  stainless
 ** Enabled generation of DMC IRQ.
