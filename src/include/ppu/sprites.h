@@ -269,42 +269,42 @@ static INLINE void ppu_render_sprite (int sprite, int line)
         if (priority)
         /* low priority, plot under background */
         {
-            for (sub_x = first_x; sub_x <= last_x; sub_x ++)
+            if (ppu_enable_sprite_layer_a)
             {
-                UINT8 color;
-
-                if (flip_h)
+                for (sub_x = first_x; sub_x <= last_x; sub_x ++)
                 {
-                    color = cache_address [(7 - sub_x)];
-                }
-                else
-                {
-                    color = cache_address [sub_x];
-                }
+                    UINT8 color;
 
-                /* Transparency. */
-                if ((color &= attribute) == 0)
-                {
-                    continue;
-                }
+                    if (flip_h)
+                    {
+                        color = cache_address [(7 - sub_x)];
+                    }
+                    else
+                    {
+                        color = cache_address [sub_x];
+                    }
 
-
-                /* Transparency. */
-                if (background_pixels [8 + (x + sub_x)])
-                {
-                    background_pixels [8 + (x + sub_x)] = 16;
-                    continue;
-                }
-                else
-                {
-                    background_pixels [8 + (x + sub_x)] = 16;
-                }
-
-                color = ppu_sprite_palette [color];
+                    /* Transparency. */
+                    if ((color &= attribute) == 0)
+                    {
+                        continue;
+                    }
 
 
-                if (ppu_enable_sprite_layer_a)
-                {
+                    /* Transparency. */
+                    if (background_pixels [8 + (x + sub_x)])
+                    {
+                        background_pixels [8 + (x + sub_x)] = 16;
+                        continue;
+                    }
+                    else
+                    {
+                        background_pixels [8 + (x + sub_x)] = 16;
+                    }
+
+                    color = ppu_sprite_palette [color];
+
+
                     PPU_PUTPIXEL (video_buffer,
                         (x + sub_x), line, color);
                 }
@@ -314,44 +314,45 @@ static INLINE void ppu_render_sprite (int sprite, int line)
         else
         /* high priority, plot over background */
         {
-            for (sub_x = first_x; sub_x <= last_x; sub_x ++)
+            if (ppu_enable_sprite_layer_b)
             {
-                UINT8 color;
-
-                if (flip_h)
+                for (sub_x = first_x; sub_x <= last_x; sub_x ++)
                 {
-                    color = cache_address [(7 - sub_x)];
-                }
-                else
-                {
-                    color = cache_address [sub_x];
-                }
+                    UINT8 color;
 
-                /* Transparency. */
-                if ((color &= attribute) == 0)
-                {
-                    continue;
-                }
+                    if (flip_h)
+                    {
+                        color = cache_address [(7 - sub_x)];
+                    }
+                    else
+                    {
+                        color = cache_address [sub_x];
+                    }
 
-
-                /* Transparency. */
-                if (background_pixels [8 + (x + sub_x)] >= 16)
-                {
-                    continue;
-                }
-                else
-                {
-                    background_pixels [8 + (x + sub_x)] = 16;
-                }
-
-                color = ppu_sprite_palette [color];
+                    /* Transparency. */
+                    if ((color &= attribute) == 0)
+                    {
+                        continue;
+                    }
 
 
-                if (ppu_enable_sprite_layer_b)
-                {
+                    /* Transparency. */
+                    if (background_pixels [8 + (x + sub_x)] >= 16)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        background_pixels [8 + (x + sub_x)] = 16;
+                    }
+
+                    color = ppu_sprite_palette [color];
+
+
                     PPU_PUTPIXEL (video_buffer,
                         (x + sub_x), line, color);
                 }
+
             }
         }
     }
