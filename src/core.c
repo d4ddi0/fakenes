@@ -13,6 +13,7 @@
 /**     commercially. Please, notify me, if you make any    **/   
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 08.December 2001 stainless Replaced unnecessary Op6502s.  */
 /* 05.December 2001 TRAC      Added RETURN_ON_TRIP timing.   */
 /* 04.December 2001 TRAC      Fixed Run6502 cycle loss bug.  */
 /* 04.December 2001 TRAC      Indirect indexed and indexed   */
@@ -66,9 +67,9 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 #define MC_Ax(Rg)	M_LDWORD(Rg);Rg.W+=R->X
 #define MC_Ay(Rg)	M_LDWORD(Rg);Rg.W+=R->Y
 #define MC_Ix(Rg)	K.B.l=Op6502(R->PC.W++)+R->X;K.B.h=0; \
-            Rg.B.l=Op6502(K.W);K.B.l++;Rg.B.h=Op6502(K.W)
+            Rg.B.l=Rd6502(K.W);K.B.l++;Rg.B.h=Rd6502(K.W)
 #define MC_Iy(Rg)	K.B.l=Op6502(R->PC.W++);K.B.h=0; \
-            Rg.B.l=Op6502(K.W);K.B.l++;Rg.B.h=Op6502(K.W); \
+            Rg.B.l=Rd6502(K.W);K.B.l++;Rg.B.h=Rd6502(K.W); \
 			Rg.W+=R->Y
 
 /** Reading From Memory **************************************/
@@ -111,7 +112,7 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 #define M_LDWORD(Rg)	Rg.B.l=Op6502(R->PC.W++);Rg.B.h=Op6502(R->PC.W++)
 
 #define M_PUSH(Rg)	Wr6502(0x0100|R->S,Rg);R->S--
-#define M_POP(Rg)	R->S++;Rg=Op6502(0x0100|R->S)
+#define M_POP(Rg)   R->S++;Rg=Rd6502(0x0100|R->S)
 #define M_JR		R->PC.W+=(offset)Op6502(R->PC.W)+1;R->ICount--
 
 #define M_ADC(Rg) \
