@@ -6,7 +6,7 @@ FakeNES - A portable, open-source NES emulator.
 
 input.c: Implementation of the input emulation.
 
-Copyright (c) 2001, Randy McDowell and Ian Smith.
+Copyright (c) 2002, Randy McDowell and Ian Smith.
 All rights reserved.  See 'LICENSE' for details.
 
 */
@@ -140,7 +140,7 @@ void input_update_zapper (void)
 }
 
 
-static INLINE void _load_keycodes (void)
+static INLINE void load_keyboard_layouts (void)
 {
     memset (key1_buffer, NULL, sizeof (key1_buffer));
 
@@ -179,7 +179,7 @@ static INLINE void _load_keycodes (void)
 }
 
 
-static INLINE void _load_joycodes (void)
+static INLINE void load_joystick_layouts (void)
 {
     memset (joy1_buffer, NULL, sizeof (joy1_buffer));
 
@@ -238,9 +238,9 @@ int input_init (void)
         get_config_int ("input", "enable_zapper", FALSE);
 
 
-    _load_keycodes ();
+    load_keyboard_layouts ();
 
-    _load_joycodes ();
+    load_joystick_layouts ();
 
 
     return (0);
@@ -281,6 +281,14 @@ void input_exit (void)
 }
 
 
+void input_strobe_reset (void)
+{
+    current_read_p1 = 0;
+
+    current_read_p2 = 0;
+}
+
+
 void input_reset (void)
 {
     int index, player;
@@ -299,14 +307,6 @@ void input_reset (void)
 
 
     input_strobe_reset ();
-}
-
-
-void input_strobe_reset (void)
-{
-    current_read_p1 = 0;
-
-    current_read_p2 = 0;
 }
 
 
@@ -491,7 +491,7 @@ void input_write (UINT16 address, UINT8 value)
     ((joy [device].stick [0].axis [1].d2) ? 0x41 : 0)
 
 
-static INLINE void _do_keyboard_1 (int player)
+static INLINE void do_keyboard_1 (int player)
 {
     int index;
 
@@ -504,7 +504,7 @@ static INLINE void _do_keyboard_1 (int player)
 }
 
 
-static INLINE void _do_keyboard_2 (int player)
+static INLINE void do_keyboard_2 (int player)
 {
     int index;
 
@@ -517,7 +517,7 @@ static INLINE void _do_keyboard_2 (int player)
 }
 
 
-static INLINE void _do_joystick_1 (int player)
+static INLINE void do_joystick_1 (int player)
 {
     buttons [player] [0] = JOYSTICK_BUTTON (0, joy1_buttons [0]);
 
@@ -549,7 +549,7 @@ static INLINE void _do_joystick_1 (int player)
 }
 
 
-static INLINE void _do_joystick_2 (int player)
+static INLINE void do_joystick_2 (int player)
 {
     buttons [player] [0] = JOYSTICK_BUTTON (1, joy1_buttons [0]);
 
@@ -585,10 +585,10 @@ int input_process (void)
 {
     int player;
 
+
     int want_exit = FALSE;
 
-
-    poll_joystick ();
+    int want_poll = TRUE;
 
 
     for (player = 0; player < 4; player ++)
@@ -597,7 +597,7 @@ int input_process (void)
         {
             case INPUT_DEVICE_KEYBOARD_1:
 
-                _do_keyboard_1 (player);
+                do_keyboard_1 (player);
 
 
                 break;
@@ -605,7 +605,7 @@ int input_process (void)
 
             case INPUT_DEVICE_KEYBOARD_2:
 
-                _do_keyboard_2 (player);
+                do_keyboard_2 (player);
 
 
                 break;
@@ -613,7 +613,15 @@ int input_process (void)
 
             case INPUT_DEVICE_JOYSTICK_1:
 
-                _do_joystick_1 (player);
+                if (want_poll)
+                {
+                    poll_joystick ();
+
+                    want_poll = FALSE;
+                }
+
+
+                do_joystick_1 (player);
 
 
                 break;
@@ -621,7 +629,15 @@ int input_process (void)
 
             case INPUT_DEVICE_JOYSTICK_2:
 
-                _do_joystick_2 (player);
+                if (want_poll)
+                {
+                    poll_joystick ();
+
+                    want_poll = FALSE;
+                }
+
+
+                do_joystick_2 (player);
 
 
                 break;
@@ -645,6 +661,8 @@ int input_process (void)
                 break;
 
 
+            case KEY_EQUALS:
+
             case KEY_PLUS_PAD:
 
                 if (frame_skip_max < 60)
@@ -658,6 +676,8 @@ int input_process (void)
 
            case KEY_MINUS:
 
+           case KEY_MINUS_PAD:
+
                 if (frame_skip_max > 1)
                 {
                     frame_skip_max --;
@@ -669,14 +689,7 @@ int input_process (void)
 
             case KEY_F5:
 
-                if (input_enable_zapper)
-                {
-                    input_enable_zapper = FALSE;
-                }
-                else
-                {
-                    input_enable_zapper = TRUE;
-                }
+                input_enable_zapper = (! input_enable_zapper);
 
 
                 break;
