@@ -23,6 +23,9 @@ extern "C" {
 #endif
 
 
+#include <allegro.h>
+
+
 #include "rom.h"
 
 #include "misc.h"
@@ -162,6 +165,11 @@ void ppu_set_name_table_address_vrom (int table, int vrom_block);
 #define MIRRORING_ONE_SCREEN_2800   6
 
 #define MIRRORING_ONE_SCREEN_2C00   7
+
+
+void ppu_save_state (PACKFILE *, int);
+
+void ppu_load_state (PACKFILE *, int);
 
 
 #ifdef __cplusplus

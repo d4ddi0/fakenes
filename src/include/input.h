@@ -23,6 +23,9 @@ extern "C" {
 #endif
 
 
+#include <allegro.h>
+
+
 #include "misc.h"
 
 
@@ -59,6 +62,11 @@ int input_process (void);
 void input_update_zapper (void);
 
 void input_update_zapper_offsets (void);
+
+
+void input_save_state (PACKFILE *, int);
+
+void input_load_state (PACKFILE *, int);
 
 
 #ifdef __cplusplus

@@ -42,6 +42,11 @@ You must read and accept the license prior to use.
 #include "timing.h"
 
 
+static void null_save_state (PACKFILE *, int);
+
+static void null_load_state (PACKFILE *, int);
+
+
 #include "mmc/mmc1.h"
 
 #include "mmc/mmc3.h"
@@ -96,7 +101,12 @@ const MMC mmc_none =
 {
     0, "No mapper",
 
-    none_init, none_reset
+    none_init, none_reset,
+
+
+    "NONE\0\0\0\0",
+
+    null_save_state, null_load_state
 };
 
 
@@ -133,6 +143,18 @@ int none_init (void)
 
 
     return (0);
+}
+
+
+static void null_save_state (PACKFILE * file, int version)
+{
+    /* Do nothing. */
+}
+
+
+static void null_load_state (PACKFILE * file, int version)
+{
+    /* Do nothing. */
 }
 
 
@@ -228,4 +250,49 @@ int mmc_init (void)
 void mmc_reset (void)
 {
     ROM_CURRENT_MMC -> reset ();
+}
+
+
+void mmc_save_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    if (ROM_CURRENT_MMC -> save_state)
+    {
+        pack_fwrite (ROM_CURRENT_MMC -> id, 8, file_chunk);
+
+
+        ROM_CURRENT_MMC -> save_state (file_chunk, version);
+    }
+
+
+    pack_fclose_chunk (file_chunk);
+}
+
+
+void mmc_load_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    UINT8 signature [8];
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    if (ROM_CURRENT_MMC -> load_state)
+    {
+        pack_fread (signature, 8, file_chunk);
+
+
+        ROM_CURRENT_MMC -> load_state (file_chunk, version);
+    }
+
+
+    pack_fclose_chunk (file_chunk);
 }

@@ -14,7 +14,12 @@ const MMC mmc_mmc1 =
 {
     1, "MMC1",
 
-    mmc1_init, mmc1_reset
+    mmc1_init, mmc1_reset,
+
+
+    "MMC1\0\0\0\0",
+
+    null_save_state, null_load_state
 };
 
 

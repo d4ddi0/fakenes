@@ -23,6 +23,9 @@ extern "C" {
 #endif
 
 
+#include <allegro.h>
+
+
 #include "misc.h"
 
 
@@ -46,6 +49,14 @@ typedef struct _MMC
 
     void (* reset) (void);
 
+
+    const UINT8 * id;
+
+
+    void (* save_state) (PACKFILE *, int);
+
+    void (* load_state) (PACKFILE *, int);
+
 } MMC;
 
 
@@ -55,6 +66,11 @@ int (* mmc_scanline_end) (int);
 
 
 void (* mmc_check_latches) (UINT16);
+
+
+void mmc_save_state (PACKFILE *, int);
+
+void mmc_load_state (PACKFILE *, int);
 
 
 #ifdef __cplusplus

@@ -465,6 +465,12 @@ static INLINE void cpu_consume_cycles (int cycles)
 int cpu_get_cycles_line (void);
 int cpu_get_cycles (int);
 
+
+void cpu_save_state (PACKFILE *, int);
+
+void cpu_load_state (PACKFILE *, int);
+
+
 #ifdef __cplusplus
 }
 #endif

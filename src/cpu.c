@@ -429,3 +429,43 @@ int cpu_get_cycles (int reset)
 
     return (cycles / CYCLE_LENGTH);
 }
+
+
+void cpu_save_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    pack_fwrite (&cpu_context, sizeof (FN2A03), file_chunk);
+
+
+    pack_fwrite (cpu_ram, 0x800, file_chunk);
+
+    pack_fwrite (cpu_sram, 0x2000, file_chunk);
+
+
+    pack_fclose_chunk (file_chunk);
+}
+
+
+void cpu_load_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    pack_fread (&cpu_context, sizeof (FN2A03), file_chunk);
+
+
+    pack_fread (cpu_ram, 0x800, file_chunk);
+
+    pack_fread (cpu_sram, 0x2000, file_chunk);
+
+
+    pack_fclose_chunk (file_chunk);
+}

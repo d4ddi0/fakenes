@@ -14,7 +14,12 @@ const MMC mmc_mmc5 =
 {
     5, "MMC5 + ExSound",
 
-    mmc5_init, mmc5_reset
+    mmc5_init, mmc5_reset,
+
+
+    "MMC5\0\0\0\0",
+
+    null_save_state, null_load_state
 };
 
 

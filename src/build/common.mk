@@ -11,9 +11,10 @@ cpu.o : cpu.c include/cpu.h include/core.h include/input.h include/misc.h \
         include/mmc.h include/papu.h include/ppu.h include/rom.h
 
 gui.o : gui.c include/apu.h include/audio.h include/cpu.h include/data.h \
-        include/gui.h include/misc.h include/papu.h include/ppu.h \
-        include/rom.h include/timing.h include/video.h \
-        include/gui/dialogs.h include/gui/menus.h include/gui/objects.h
+        include/gui.h include/input.h include/misc.h include/mmc.h \
+        include/papu.h include/ppu.h include/rom.h include/timing.h \
+        include/video.h include/gui/dialogs.h include/gui/menus.h \
+        include/gui/objects.h
 
 input.o : input.c include/gui.h include/input.h include/misc.h \
           include/ppu.h include/rom.h include/timing.h include/video.h

@@ -13,17 +13,35 @@ static int cnrom_init (void);
 static void cnrom_reset (void);
 
 
+static void cnrom_save_state (PACKFILE *, int);
+
+static void cnrom_load_state (PACKFILE *, int);
+
+
 const MMC mmc_cnrom =
 {
     3, "CNROM",
 
-    cnrom_init, cnrom_reset
+    cnrom_init, cnrom_reset,
+
+
+    "CNROM\0\0\0",
+
+    cnrom_save_state, cnrom_load_state
 };
+
+
+static UINT8 cnrom_last_write = 0;
 
 
 static void cnrom_write (UINT16 address, UINT8 value)
 {
     int index;
+
+
+    /* Store page # for state saving. */
+
+    cnrom_last_write = value;
 
 
     /* Convert 8k page # to 1k. */
@@ -72,4 +90,34 @@ static int cnrom_init (void)
 
 
     return (0);
+}
+
+
+static void cnrom_save_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    pack_putc (cnrom_last_write, file_chunk);
+
+
+    pack_fclose_chunk (file_chunk);
+}
+
+
+static void cnrom_load_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    cnrom_write (0x8000, pack_getc (file_chunk));
+
+
+    pack_fclose_chunk (file_chunk);
 }

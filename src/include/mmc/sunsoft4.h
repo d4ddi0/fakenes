@@ -14,7 +14,12 @@ const MMC mmc_sunsoft4 =
 {
     68, "Sunsoft mapper #4",
 
-    sunsoft4_init, sunsoft4_reset
+    sunsoft4_init, sunsoft4_reset,
+
+
+    "SUNSOFT4",
+
+    null_save_state, null_load_state
 };
 
 

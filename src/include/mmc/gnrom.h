@@ -13,12 +13,25 @@ static int gnrom_init (void);
 static void gnrom_reset (void);
 
 
+static void gnrom_save_state (PACKFILE *, int);
+
+static void gnrom_load_state (PACKFILE *, int);
+
+
 const MMC mmc_gnrom =
 {
     66, "GNROM",
 
-    gnrom_init, gnrom_reset
+    gnrom_init, gnrom_reset,
+
+
+    "GNROM\0\0\0",
+
+    gnrom_save_state, gnrom_load_state
 };
+
+
+static UINT8 gnrom_last_write = 0;
 
 
 #define GNROM_PRG_ROM_MASK  0xf0
@@ -34,6 +47,11 @@ static void gnrom_write (UINT16 address, UINT8 value)
     int chr_page;
 
     int prg_page;
+
+
+    /* Store page #s for state saving. */
+
+    gnrom_last_write = value;
 
 
     /* Extract ROM page # (xxxx0000). */
@@ -97,4 +115,34 @@ static int gnrom_init (void)
 
 
     return (0);
+}
+
+
+static void gnrom_save_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    pack_putc (gnrom_last_write, file_chunk);
+
+
+    pack_fclose_chunk (file_chunk);
+}
+
+
+static void gnrom_load_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    gnrom_write (0x8000, pack_getc (file_chunk));
+
+
+    pack_fclose_chunk (file_chunk);
 }

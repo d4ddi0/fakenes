@@ -13,12 +13,25 @@ static int dreams_init (void);
 static void dreams_reset (void);
 
 
+static void dreams_save_state (PACKFILE *, int);
+
+static void dreams_load_state (PACKFILE *, int);
+
+
 const MMC mmc_dreams =
 {
     11, "Color Dreams",
 
-    dreams_init, dreams_reset
+    dreams_init, dreams_reset,
+
+
+    "DREAMS\0\0",
+
+    dreams_save_state, dreams_load_state
 };
+
+
+static UINT8 dreams_last_write = 0;
 
 
 #define DREAMS_PRG_ROM_MASK     0x0f
@@ -34,6 +47,11 @@ static void dreams_write (UINT16 address, UINT8 value)
     int prg_page;
 
     int chr_page;
+
+
+    /* Store page #s for state saving. */
+
+    dreams_last_write = value;
 
 
     /* Extract ROM page # (0000xxxx). */
@@ -97,4 +115,34 @@ static int dreams_init (void)
 
 
     return (0);
+}
+
+
+static void dreams_save_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    pack_putc (dreams_last_write, file_chunk);
+
+
+    pack_fclose_chunk (file_chunk);
+}
+
+
+static void dreams_load_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    dreams_write (0x8000, pack_getc (file_chunk));
+
+
+    pack_fclose_chunk (file_chunk);
 }

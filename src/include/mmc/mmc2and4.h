@@ -19,7 +19,12 @@ const MMC mmc_mmc2 =
 {
     9, "MMC2",
 
-    mmc2_init, mmc2_reset
+    mmc2_init, mmc2_reset,
+
+
+    "MMC2\0\0\0\0",
+
+    null_save_state, null_load_state
 };
 
 
@@ -32,7 +37,12 @@ const MMC mmc_mmc4 =
 {
     10, "MMC4",
 
-    mmc4_init, mmc4_reset
+    mmc4_init, mmc4_reset,
+
+
+    "MMC4\0\0\0\0",
+
+    null_save_state, null_load_state
 };
 
 

@@ -615,62 +615,6 @@ int input_process (void)
     int want_poll = TRUE;
 
 
-    for (player = 0; player < 4; player ++)
-    {
-        switch (input_devices [player])
-        {
-            case INPUT_DEVICE_KEYBOARD_1:
-
-                do_keyboard_1 (player);
-
-
-                break;
-
-
-            case INPUT_DEVICE_KEYBOARD_2:
-
-                do_keyboard_2 (player);
-
-
-                break;
-
-
-            case INPUT_DEVICE_JOYSTICK_1:
-
-                if (want_poll)
-                {
-                    poll_joystick ();
-
-
-                    want_poll = FALSE;
-                }
-
-
-                do_joystick_1 (player);
-
-
-                break;
-
-
-            case INPUT_DEVICE_JOYSTICK_2:
-
-                if (want_poll)
-                {
-                    poll_joystick ();
-
-
-                    want_poll = FALSE;
-                }
-
-
-                do_joystick_2 (player);
-
-
-                break;
-        }
-    }
-
-
     while (keypressed ())
     {
         int index;
@@ -803,5 +747,101 @@ int input_process (void)
     }
 
 
+    for (player = 0; player < 4; player ++)
+    {
+        switch (input_devices [player])
+        {
+            case INPUT_DEVICE_KEYBOARD_1:
+
+                do_keyboard_1 (player);
+
+
+                break;
+
+
+            case INPUT_DEVICE_KEYBOARD_2:
+
+                do_keyboard_2 (player);
+
+
+                break;
+
+
+            case INPUT_DEVICE_JOYSTICK_1:
+
+                if (want_poll)
+                {
+                    poll_joystick ();
+
+
+                    want_poll = FALSE;
+                }
+
+
+                do_joystick_1 (player);
+
+
+                break;
+
+
+            case INPUT_DEVICE_JOYSTICK_2:
+
+                if (want_poll)
+                {
+                    poll_joystick ();
+
+
+                    want_poll = FALSE;
+                }
+
+
+                do_joystick_2 (player);
+
+
+                break;
+        }
+    }
+
+
     return (want_exit);
+}
+
+
+void input_save_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    pack_putc (last_write, file_chunk);
+
+
+    pack_putc (current_read_p1, file_chunk);
+
+    pack_putc (current_read_p2, file_chunk);
+
+
+    pack_fclose_chunk (file_chunk);
+}
+
+
+void input_load_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    last_write = pack_getc (file_chunk);
+
+
+    current_read_p1 = pack_getc (file_chunk);
+
+    current_read_p2 = pack_getc (file_chunk);
+
+
+    pack_fclose_chunk (file_chunk);
 }

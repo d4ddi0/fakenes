@@ -23,6 +23,9 @@ extern "C" {
 #endif
 
 
+#include <allegro.h>
+
+
 #include "misc.h"
 
 
@@ -91,6 +94,11 @@ void papu_stop_record (void);
 void papu_process (void);
 
 void papu_update (void);
+
+
+void papu_save_state (PACKFILE *, int);
+
+void papu_load_state (PACKFILE *, int);
 
 
 #ifdef __cplusplus

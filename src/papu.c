@@ -513,3 +513,98 @@ void papu_process (void)
 
     sync_apu_register ();
 }
+
+
+void papu_save_state (PACKFILE * file, int version)
+{
+    int index;
+
+
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    for (index = 0; index < 2; index ++)
+    {
+        int index2;
+
+
+        for (index2 = 0; index2 < 4; index2 ++)
+        {
+            pack_putc (default_apu -> apus.rectangle [index].regs [index2], file_chunk);
+        }
+    }
+
+
+    for (index = 0; index < 3; index ++)
+    {
+        pack_putc (default_apu -> apus.triangle.regs [index], file_chunk);
+    }
+
+
+    for (index = 0; index < 3; index ++)
+    {
+        pack_putc (default_apu -> apus.noise.regs [index], file_chunk);
+    }
+
+
+    for (index = 0; index < 4; index ++)
+    {
+        pack_putc (default_apu -> apus.dmc.regs [index], file_chunk);
+    }
+
+
+    pack_putc (default_apu -> ex_chip, file_chunk);
+
+
+    pack_fclose_chunk (file_chunk);
+}
+
+
+void papu_load_state (PACKFILE * file, int version)
+{
+    int index;
+
+
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    for (index = 0; index < 0x16; index ++)
+    {
+        int value;
+
+
+        if (index == 0x14)
+        {
+            continue;
+        }
+
+
+        value = pack_getc (file_chunk);
+
+
+        /* Write the DMC registers directly. */
+
+        if ((index >= 0x10) && (index <= 0x13))
+        {
+            default_apu -> apus.dmc.regs [index - 0x10] = value;
+        }
+        else
+        {
+            apu_write ((0x4000 + index), value);
+
+            apu_write_cur ((0x4000 + index), value);
+        }
+    }
+
+
+    papu_set_exsound (pack_getc (file_chunk));
+
+
+    pack_fclose_chunk (file_chunk);
+}

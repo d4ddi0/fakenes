@@ -14,7 +14,12 @@ const MMC mmc_nina =
 {
     34, "NINA-001",
 
-    nina_init, nina_reset
+    nina_init, nina_reset,
+
+
+    "NINA\0\0\0\0",
+
+    null_save_state, null_load_state
 };
 
 

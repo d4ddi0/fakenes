@@ -13,12 +13,25 @@ static int ffe_f3_init (void);
 static void ffe_f3_reset (void);
 
 
+static void ffe_f3_save_state (PACKFILE *, int);
+
+static void ffe_f3_load_state (PACKFILE *, int);
+
+
 const MMC mmc_ffe_f3 =
 {
     8, "FFE F3xxx",
 
-    ffe_f3_init, ffe_f3_reset
+    ffe_f3_init, ffe_f3_reset,
+
+
+    "FFE_F3\0\0",
+
+    ffe_f3_save_state, ffe_f3_load_state
 };
+
+
+static UINT8 ffe_f3_last_write = 0;
 
 
 #define FFE_F3_PRG_ROM_MASK     0xf8
@@ -34,6 +47,11 @@ static void ffe_f3_write (UINT16 address, UINT8 value)
     int chr_page;
 
     int prg_page;
+
+
+    /* Store page #s for state saving. */
+
+    ffe_f3_last_write = value;
 
 
     /* Extract ROM page # (xxxxx000). */
@@ -99,4 +117,34 @@ static int ffe_f3_init (void)
 
 
     return (0);
+}
+
+
+static void ffe_f3_save_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    pack_putc (ffe_f3_last_write, file_chunk);
+
+
+    pack_fclose_chunk (file_chunk);
+}
+
+
+static void ffe_f3_load_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    ffe_f3_write (0x8000, pack_getc (file_chunk));
+
+
+    pack_fclose_chunk (file_chunk);
 }

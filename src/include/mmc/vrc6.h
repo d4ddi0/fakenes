@@ -22,7 +22,12 @@ static const MMC mmc_vrc6 =
 {
     24, "Konami VRC6 + ExSound",
 
-    vrc6_init, vrc6_reset
+    vrc6_init, vrc6_reset,
+
+
+    "VRC6\0\0\0\0",
+
+    null_save_state, null_load_state
 };
 
 
@@ -33,7 +38,12 @@ static const MMC mmc_vrc6v =
 {
     26, "Konami VRC6V + ExSound",
 
-    vrc6v_init, vrc6_reset
+    vrc6v_init, vrc6_reset,
+
+
+    "VRC6V\0\0\0",
+
+    null_save_state, null_load_state
 };
 
 

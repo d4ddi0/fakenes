@@ -762,8 +762,8 @@ int main (int argc, char * argv [])
 
 
             /* decrement frame skip counter */
-            /* when # of frame periods between start of first skipped frame
-            /*  before last drawn frame and end of last drawn frame have
+            /* when # of frame periods between start of first skipped frame  */
+            /*  before last drawn frame and end of last drawn frame have     */
             /*  passed, draw another */
             if (-- frame_count > 0)
             {

@@ -31,6 +31,10 @@ You must read and accept the license prior to use.
 
 #include "gui.h"
 
+#include "input.h"
+
+#include "mmc.h"
+
 #include "papu.h"
 
 #include "ppu.h"
@@ -309,6 +313,11 @@ int gui_show_dialog (DIALOG * dialog)
 }
 
 
+/* For save states... */
+
+static int machine_state_index = 0;
+
+
 static INLINE void update_menus (void)
 {
     if (! audio_pseudo_stereo)
@@ -401,6 +410,19 @@ static INLINE void update_menus (void)
 
 
     TOGGLE_MENU (machine_menu, 2, video_display_status);
+
+
+    TOGGLE_MENU (machine_state_select_menu, 0, ((machine_state_index * 2) == 0));
+
+    TOGGLE_MENU (machine_state_select_menu, 2, ((machine_state_index * 2) == 2));
+
+    TOGGLE_MENU (machine_state_select_menu, 4, ((machine_state_index * 2) == 4));
+
+    TOGGLE_MENU (machine_state_select_menu, 6, ((machine_state_index * 2) == 6));
+
+    TOGGLE_MENU (machine_state_select_menu, 8, ((machine_state_index * 2) == 8));
+
+    TOGGLE_MENU (machine_state_select_menu, 10, ((machine_state_index * 2) == 10));
 
 
     TOGGLE_MENU (netplay_protocol_menu, 0, (netplay_protocol == NETPLAY_PROTOCOL_TCPIP));
@@ -566,12 +588,14 @@ int show_gui (int first_run)
 
 
         DISABLE_MENU (machine_menu, 0);
+
+
+        DISABLE_MENU (machine_state_menu, 0);
+
+        DISABLE_MENU (machine_state_menu, 2);
+
+        DISABLE_MENU (machine_state_menu, 4);
     }
-
-
-    DISABLE_MENU (machine_state_menu, 2);
-
-    DISABLE_MENU (machine_state_menu, 4);
 
 
 #ifdef ALLEGRO_DOS
@@ -739,6 +763,11 @@ static int main_menu_load_rom (void)
             memcpy (&global_rom, &test_rom, sizeof (ROM));
 
 
+            /* Update save state titles. */
+
+            machine_state_menu_select ();
+
+
             rom_is_loaded = TRUE;
     
             machine_init ();
@@ -754,9 +783,11 @@ static int main_menu_load_rom (void)
                 ENABLE_MENU (machine_menu, 0);
     
     
-                // ENABLE_MENU (machine_state_menu, 2);
+                ENABLE_MENU (machine_state_menu, 0);
+
+                ENABLE_MENU (machine_state_menu, 2);
     
-                // ENABLE_MENU (machine_state_menu, 4);
+                ENABLE_MENU (machine_state_menu, 4);
             }
 
 
@@ -901,21 +932,331 @@ static int machine_speed_menu_pal_50_hz (void)
 }
 
 
+#define STATE_SELECT_MENU_HANDLER(slot)         \
+    static int machine_state_select_menu_##slot (void)    \
+    {                                           \
+        machine_state_index = (slot - 1);       \
+                                                \
+        update_menus ();                        \
+                                                \
+                                                \
+        return (D_O_K);                         \
+    }
+
+
+STATE_SELECT_MENU_HANDLER (1);
+
+STATE_SELECT_MENU_HANDLER (2);
+
+STATE_SELECT_MENU_HANDLER (3);
+
+STATE_SELECT_MENU_HANDLER (4);
+
+STATE_SELECT_MENU_HANDLER (5);
+
+STATE_SELECT_MENU_HANDLER (6);
+
+
 static int machine_state_menu_select (void)
 {
+    UINT8 buffer [256];
+
+    UINT8 buffer2 [16];
+
+    UINT8 buffer3 [4];
+
+
+    int index;
+
+
+    PACKFILE * file;
+
+
+    for (index = 0; index < 6; index ++)
+    {
+        memset (buffer, NULL, sizeof (buffer));
+    
+        memset (buffer2, NULL, sizeof (buffer2));
+    
+        memset (buffer3, NULL, sizeof (buffer3));
+
+
+        sprintf (buffer3, "fn%d", index);
+    
+    
+        replace_extension (buffer, global_rom.filename, buffer3, sizeof (buffer));
+    
+    
+        file = pack_fopen (buffer, "r");
+    
+        if (file)
+        {
+            UINT8 signature [4];
+    
+    
+            int version;
+    
+    
+            /* Probably don't need to verify these... */
+    
+            pack_fread (signature, 4, file);
+        
+        
+            version = pack_igetw (file);
+        
+        
+            pack_fread (buffer2, sizeof (buffer2), file);
+
+
+            memset (machine_state_select_menu [index * 2].dp, NULL, 16);
+
+            strcat (machine_state_select_menu [index * 2].dp, buffer2);
+
+
+            pack_fclose (file);
+        }
+        else
+        {
+            memset (machine_state_select_menu [index * 2].dp, NULL, 16);
+
+            strcat (machine_state_select_menu [index * 2].dp, "Untitled");
+        }
+
+
+        memset (machine_state_select_menu [index * 2].text, NULL, 20);
+
+        sprintf (machine_state_select_menu [index * 2].text, "&%d: %s", (index + 1), (char *) machine_state_select_menu [index * 2].dp);
+    }
+
+
     return (D_O_K);
 }
 
 
 static int machine_state_menu_save (void)
 {
+    UINT8 buffer [256];
+
+    UINT8 buffer2 [16];
+
+    UINT8 buffer3 [4];
+
+
+    PACKFILE * file;
+
+
+    memset (buffer, NULL, sizeof (buffer));
+
+    memset (buffer2, NULL, sizeof (buffer2));
+
+    memset (buffer3, NULL, sizeof (buffer3));
+
+
+    if (gui_is_active)
+    {
+        machine_state_save_dialog [4].d1 = (sizeof (buffer2) - 1);
+        
+        machine_state_save_dialog [4].dp = buffer2;
+        
+        
+        strcat (buffer2, machine_state_select_menu [machine_state_index * 2].dp);
+        
+        
+        if (gui_show_dialog (machine_state_save_dialog) != 5)
+        {
+            return (D_O_K);
+        }
+    }
+    else
+    {
+        /* Save using last title. */
+
+        strcat (buffer2, machine_state_select_menu [machine_state_index * 2].dp);
+    }
+
+
+    sprintf (buffer3, "fn%d", machine_state_index);
+
+
+    replace_extension (buffer, global_rom.filename, buffer3, sizeof (buffer));
+
+
+    file = pack_fopen (buffer, "w");
+
+    if (file)
+    {
+        int version;
+
+
+        pack_fwrite ("FNSS", 4, file);
+    
+    
+        version = 0x0100;
+    
+
+        pack_iputw (version, file);
+    
+
+        pack_fwrite (buffer2, sizeof (buffer2), file);
+
+
+        pack_fwrite ("CPU\0", 4, file);
+
+        cpu_save_state (file, version);
+
+
+        pack_fwrite ("PPU\0", 4, file);
+
+        ppu_save_state (file, version);
+
+
+        pack_fwrite ("PAPU", 4, file);
+
+        papu_save_state (file, version);
+
+
+        pack_fwrite ("MMC\0", 4, file);
+
+        mmc_save_state (file, version);
+
+
+        pack_fwrite ("CTRL", 4, file);
+
+        input_save_state (file, version);
+    
+    
+        pack_fclose (file);
+    
+    
+        gui_message (gui_fg_color, "Machine state saved in state slot %d.", (machine_state_index + 1));
+
+
+        /* Update save state titles. */
+
+        machine_state_menu_select ();
+    }
+    else
+    {
+        gui_message (error_color, "Failed to open new machine state file.");
+    }
+
+
     return (D_O_K);
 }
 
 
 static int machine_state_menu_restore (void)
 {
-    return (D_O_K);
+    UINT8 buffer [256];
+
+    UINT8 buffer2 [16];
+
+    UINT8 buffer3 [4];
+
+
+    PACKFILE * file;
+
+
+    memset (buffer, NULL, sizeof (buffer));
+
+    memset (buffer3, NULL, sizeof (buffer3));
+
+
+    sprintf (buffer3, "fn%d", machine_state_index);
+
+
+    replace_extension (buffer, global_rom.filename, buffer3, sizeof (buffer));
+
+
+    file = pack_fopen (buffer, "r");
+
+    if (file)
+    {
+        UINT8 signature [4];
+    
+    
+        int version;
+
+
+        pack_fread (signature, 4, file);
+    
+    
+        if (strncmp (signature, "FNSS", 4))
+        {
+            gui_message (error_color, "Machine state file is invalid.");
+    
+    
+            pack_fclose (file);
+    
+    
+            return (D_O_K);
+        }
+    
+    
+        version = pack_igetw (file);
+    
+    
+        if (version > 0x0100)
+        {
+            gui_message (error_color, "Machine state file is of a future version.");
+    
+    
+            pack_fclose (file);
+    
+    
+            return (D_O_K);
+        }
+    
+
+        pack_fread (buffer2, sizeof (buffer2), file);
+
+
+        machine_reset ();
+    
+
+        /* We ignore signatures for now, this will be used in the
+        future to load chunks in any order. */
+
+        pack_fread (signature, 4, file);
+
+        cpu_load_state (file, version);
+
+
+        pack_fread (signature, 4, file);
+
+        ppu_load_state (file, version);
+
+
+        pack_fread (signature, 4, file);
+    
+        papu_load_state (file, version);
+    
+
+        pack_fread (signature, 4, file);
+
+        mmc_load_state (file, version);
+
+
+        pack_fread (signature, 4, file);
+    
+        input_load_state (file, version);
+    
+    
+        pack_fclose (file);
+    
+    
+        gui_message (gui_fg_color, "Machine state loaded from state slot %d.", (machine_state_index + 1));
+
+
+        return (D_CLOSE);
+    }
+    else
+    {
+        gui_message (error_color, "Machine state file does not exist.");
+
+
+        return (D_O_K);
+    }
 }
 
 

@@ -13,16 +13,34 @@ static int unrom_init (void);
 static void unrom_reset (void);
 
 
+static void unrom_save_state (PACKFILE *, int);
+
+static void unrom_load_state (PACKFILE *, int);
+
+
 const MMC mmc_unrom =
 {
     2, "UNROM",
 
-    unrom_init, unrom_reset
+    unrom_init, unrom_reset,
+
+
+    "UNROM\0\0\0",
+
+    unrom_save_state, unrom_load_state
 };
+
+
+static UINT8 unrom_last_write = 0;
 
 
 static void unrom_write (UINT16 address, UINT8 value)
 {
+    /* Store page # for state saving. */
+
+    unrom_last_write = value;
+
+
     /* Select requested 16k ROM page. */
 
     cpu_set_read_address_16k_rom_block (0x8000, value);
@@ -60,4 +78,35 @@ static int unrom_init (void)
 
 
     return (0);
+}
+
+
+static void unrom_save_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    pack_putc (unrom_last_write, file_chunk);
+
+
+    pack_fclose_chunk (file_chunk);
+}
+
+
+static void unrom_load_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    unrom_write (0x8000, pack_getc (file_chunk));
+
+
+    pack_fclose_chunk (file_chunk);
+
 }
