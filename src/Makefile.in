@@ -10,7 +10,7 @@ RM = rm -f -v
 INSTALL = @INSTALL@
 
 
-BINARY = fakenes
+BINARY = fakenes@EXEEXT@
 
 DATAFILE = support/fakenes.dat
 
@@ -110,12 +110,6 @@ clean :
 	${RM} ${BINARY}
 
 
-distclean : clean
-
-	${RM} ../config.log
-
-	${RM} ../config.cache
-
-	${RM} ../config.status
+distclean :
 
 	${RM} Makefile

@@ -4,6 +4,7 @@ AC_INIT(src/main.c)
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL
+AC_PATH_PROG(MAKE, make, make)
 
 dnl Checks for libraries.
 AC_CHECK_LIB(z, gzopen)
@@ -36,7 +37,10 @@ dnl handled by using configure to detect size.
 
 dnl Checks for library functions.
 
-AC_SUBST(LIBS)
-AC_SUBST(DFLAGS)
+AC_SUBST(MAKE)
 
-AC_OUTPUT(src/Makefile)
+AC_SUBST(DFLAGS)
+AC_SUBST(EXEEXT)
+AC_SUBST(LIBS)
+
+AC_OUTPUT(Makefile src/Makefile)

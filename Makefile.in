@@ -1,0 +1,30 @@
+
+
+MAKE = @MAKE@
+
+RM = rm -f -v
+
+
+all :
+
+	cd src && ${MAKE} all
+
+
+install :
+
+	cd src && ${MAKE} install
+
+
+clean :
+
+	cd src && ${MAKE} clean
+
+
+distclean : clean
+
+	${RM} config.log config.cache config.status
+
+	${RM} Makefile
+
+
+	cd src && ${MAKE} distclean
