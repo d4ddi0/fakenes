@@ -135,8 +135,8 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 #define M_FL(Rg)        R->N=R->Z=Rg
 #define M_LDWORD(Rg)	Rg.B.l=Op6502(R->PC.W++);Rg.B.h=Op6502(R->PC.W++)
 
-#define M_PUSH(Rg)	Wr6502(0x0100|R->S,Rg);R->S--
-#define M_POP(Rg)   R->S++;Rg=Rd6502(0x0100|R->S)
+#define M_PUSH(Rg)      Wr6502Stack(R->S,Rg);R->S--
+#define M_POP(Rg)       R->S++;Rg=Rd6502Stack(R->S)
 #define M_JR            R->PC.W+=(offset)Op6502(R->PC.W)+1; \
                         R->ICount-=CYCLE_LENGTH;R->Cycles+=CYCLE_LENGTH
 
