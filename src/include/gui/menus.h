@@ -36,6 +36,36 @@ static MENU machine_speed_menu [] =
 };
 
 
+static int machine_state_select_menu_1 (void);
+
+static int machine_state_select_menu_2 (void);
+
+static int machine_state_select_menu_3 (void);
+
+static int machine_state_select_menu_4 (void);
+
+static int machine_state_select_menu_5 (void);
+
+static int machine_state_select_menu_6 (void);
+
+
+static MENU machine_state_select_menu [] =
+{
+    { "&1: Untitled\0         ", machine_state_select_menu_1, NULL, 0, "Untitled\0       " },
+    {                        "",                        NULL, NULL, 0,                NULL },
+    { "&2: Untitled\0         ", machine_state_select_menu_2, NULL, 0, "Untitled\0       " },
+    {                        "",                        NULL, NULL, 0,                NULL },
+    { "&3: Untitled\0         ", machine_state_select_menu_3, NULL, 0, "Untitled\0       " },
+    {                        "",                        NULL, NULL, 0,                NULL },
+    { "&4: Untitled\0         ", machine_state_select_menu_4, NULL, 0, "Untitled\0       " },
+    {                        "",                        NULL, NULL, 0,                NULL },
+    { "&5: Untitled\0         ", machine_state_select_menu_5, NULL, 0, "Untitled\0       " },
+    {                        "",                        NULL, NULL, 0,                NULL },
+    { "&6: Untitled\0         ", machine_state_select_menu_6, NULL, 0, "Untitled\0       " },
+    {                      NULL,                        NULL, NULL, 0,                NULL }
+};
+
+
 static int machine_state_menu_select (void);
 
 static int machine_state_menu_save (void);
@@ -45,12 +75,12 @@ static int machine_state_menu_restore (void);
 
 static MENU machine_state_menu [] =
 {
-    { "S&elect...",  machine_state_menu_select, NULL, D_DISABLED, NULL },
-    {           "",                       NULL, NULL,          0, NULL },
-    {      "&Save",    machine_state_menu_save, NULL,          0, NULL },
-    {           "",                       NULL, NULL,          0, NULL },
-    {   "&Restore", machine_state_menu_restore, NULL,          0, NULL },
-    {         NULL,                       NULL, NULL,          0, NULL }
+    {  "S&elect",                       NULL, machine_state_select_menu, 0, NULL },
+    {         "",                       NULL,                      NULL, 0, NULL },
+    {    "&Save",    machine_state_menu_save,                      NULL, 0, NULL },
+    {         "",                       NULL,                      NULL, 0, NULL },
+    { "&Restore", machine_state_menu_restore,                      NULL, 0, NULL },
+    {       NULL,                       NULL,                      NULL, 0, NULL }
 };
 
 
