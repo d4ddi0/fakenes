@@ -20,6 +20,8 @@ You must read and accept the license prior to use.
 
 #include "audio.h"
 
+#include "gui.h"
+
 
 #include "misc.h"
 
@@ -75,12 +77,18 @@ int audio_init (void)
         {
             return (1);
         }
+
+
+        if (digi_driver -> id == DIGI_NONE)
+        {
+            return (1);
+        }
     }
 
 
-    if (digi_driver -> id == DIGI_NONE)
+    if (! gui_is_active)
     {
-        return (1);
+        printf ("Audio initialized: %s (%d kHz).\n\n", digi_driver -> name, (audio_sample_rate / 1000));
     }
 
 
