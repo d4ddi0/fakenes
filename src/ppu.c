@@ -97,6 +97,9 @@ static void do_spr_ram_dma(UINT8 page);
 static int ppu_mirroring;
 
 
+#define PPU_GET_LINE_ADDRESS(bitmap, y) \
+    (bitmap -> line [y])
+
 #define PPU_PUTPIXEL(bitmap, x, y, color) \
     (bitmap -> line [y] [x] = color)
 

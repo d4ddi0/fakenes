@@ -6,34 +6,45 @@
 /* V = vertical name table          */
 /* Y = y line offset in tile        */
 
+/* dummy reads for write-back cache line loading */
+static INLINE UINT8 video_dummy_read(int line)
+{
+    return
+        PPU_GETPIXEL(video_buffer, 0, line) |
+        PPU_GETPIXEL(video_buffer, 16*2, line) |
+        PPU_GETPIXEL(video_buffer, 16*4, line) |
+        PPU_GETPIXEL(video_buffer, 16*6, line) |
+        PPU_GETPIXEL(video_buffer, 16*8, line) |
+        PPU_GETPIXEL(video_buffer, 16*10, line) |
+        PPU_GETPIXEL(video_buffer, 16*12, line) |
+        PPU_GETPIXEL(video_buffer, 16*14, line) |
+        PPU_GETPIXEL(video_buffer, 16, line) |
+        PPU_GETPIXEL(video_buffer, 16*3, line) |
+        PPU_GETPIXEL(video_buffer, 16*5, line) |
+        PPU_GETPIXEL(video_buffer, 16*7, line) |
+        PPU_GETPIXEL(video_buffer, 16*9, line) |
+        PPU_GETPIXEL(video_buffer, 16*11, line) |
+        PPU_GETPIXEL(video_buffer, 16*13, line) |
+        PPU_GETPIXEL(video_buffer, 16*15, line);
+}
+
 static void ppu_render_background (int line)
 {
     int attribute_address;
     int name_table;
     UINT8 *name_table_address;
     UINT8 attribute_byte = 0;
+    UINT8 *plot_buffer = PPU_GET_LINE_ADDRESS(video_buffer, line);
+    int plot_pixel = 0;
 
     int x, sub_x;
     int y, sub_y;
 
-    /* dummy reads for write-back cache line loading */
-    ppu_vram_dummy_write [0] =
-        PPU_GETPIXEL(video_buffer, 0, line) |
-        PPU_GETPIXEL(video_buffer, 16, line) |
-        PPU_GETPIXEL(video_buffer, 16*2, line) |
-        PPU_GETPIXEL(video_buffer, 16*3, line) |
-        PPU_GETPIXEL(video_buffer, 16*4, line) |
-        PPU_GETPIXEL(video_buffer, 16*5, line) |
-        PPU_GETPIXEL(video_buffer, 16*6, line) |
-        PPU_GETPIXEL(video_buffer, 16*7, line) |
-        PPU_GETPIXEL(video_buffer, 16*8, line) |
-        PPU_GETPIXEL(video_buffer, 16*9, line) |
-        PPU_GETPIXEL(video_buffer, 16*10, line) |
-        PPU_GETPIXEL(video_buffer, 16*11, line) |
-        PPU_GETPIXEL(video_buffer, 16*12, line) |
-        PPU_GETPIXEL(video_buffer, 16*13, line) |
-        PPU_GETPIXEL(video_buffer, 16*14, line) |
-        PPU_GETPIXEL(video_buffer, 16*15, line);
+    if (ppu_enable_background_layer)
+    {
+        /* dummy reads for write-back cache line loading */
+        ppu_vram_dummy_write [0] = video_dummy_read(line);
+    }
 
     name_table = (vram_address >> 10) & 3;
     name_table_address = name_tables_read[name_table];
@@ -71,8 +82,8 @@ static void ppu_render_background (int line)
         /* fetch and shift attribute byte */
         {
             attribute_byte =
-            name_table_address [0x3C0 + attribute_address] >>
-                ( (y & 2) * 2);
+            name_table_address [0x3C0 + attribute_address];
+            if (y & 2) attribute_byte >>= 4;
         }
 
         tile_name = name_table_address [vram_address & 0x3FF];
@@ -101,53 +112,86 @@ static void ppu_render_background (int line)
 
             attribute = attribute_table [attribute_byte & 3];
 
-            if (PPU_BACKGROUND_CLIP_ENABLED && (x <= 1))
+            if (x > 1)
             {
-                if (x == 0) sub_x = 8;
-                else /* (x == 1) */ sub_x = x_offset;
+                sub_x = 0;
             }
             else
             {
-                sub_x = 0;
+                if (PPU_BACKGROUND_CLIP_ENABLED)
+                {
+                    if (x == 0)
+                    {
+                        sub_x = 8;
+                        plot_pixel += 8 - x_offset;
+                    }
+                    else /* (x == 1) */
+                    {
+                        sub_x = x_offset;
+                        plot_pixel += x_offset;
+                    }
+                }
+                else
+                {
+                    if (x == 0)
+                    {
+                        sub_x = x_offset;
+                    }
+                    else
+                    {
+                        sub_x = 0;
+                    }
+                }
             }
 
             if (cache_tag != 0xFF)
             /* some transparent pixels */
             {
-                for (; sub_x < 8; sub_x ++)
+                for (; sub_x < 8; sub_x ++, plot_pixel ++)
                 {
                     UINT8 color = cache_address[sub_x] & attribute;
 
                     if (color == 0) continue;
 
-                    background_pixels [8 + ((x * 8) + sub_x - x_offset)] = color;
+                    background_pixels [8 + plot_pixel] = color;
 
                     if (ppu_enable_background_layer)
                     {
                         color = ppu_background_palette [color];
 
-                        PPU_PUTPIXEL (video_buffer,
-                            ((x * 8) + sub_x - x_offset), line, color);
+                        plot_buffer [plot_pixel] = color;
                     }
                 }
             }
             else
             /* no transparent pixels */
             {
-                for (; sub_x < 8; sub_x ++)
+                for (; sub_x < 8; sub_x ++, plot_pixel ++)
                 {
                     UINT8 color = cache_address[sub_x] & attribute;
 
-                    background_pixels [8 + ((x * 8) + sub_x - x_offset)] = color;
+                    background_pixels [8 + plot_pixel] = color;
 
                     if (ppu_enable_background_layer)
                     {
                         color = ppu_background_palette [color];
 
-                        PPU_PUTPIXEL (video_buffer,
-                            ((x * 8) + sub_x - x_offset), line, color);
+                        plot_buffer [plot_pixel] = color;
+/*                      PPU_PUTPIXEL (video_buffer,
+                            ((x * 8) + sub_x - x_offset), line, color);*/
                     }
                 }
+            }
+        }
+        else
+        {
+            if (x == 0)
+            {
+                plot_pixel += 8 - x_offset;
+            }
+            else
+            {
+                plot_pixel += 8;
             }
         }
 
