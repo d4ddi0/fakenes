@@ -62,7 +62,7 @@ static void ppu_cache_init (void)
 static void clear_vram_set (int vram_block)
 {
     ppu_vram_dirty_set_begin [vram_block] = -2;
-    ppu_vram_dirty_set_begin [vram_block] = -2;
+    ppu_vram_dirty_set_end [vram_block] = -2;
 }
 
 
@@ -155,7 +155,7 @@ static void recache_vram_set (int vram_block)
     int tile, begin, end;
 
     begin = ppu_vram_dirty_set_begin [vram_block] + (vram_block * 0x400) / (8 * 2);
-    end = ppu_vram_dirty_set_begin [vram_block] + (vram_block * 0x400) / (8 * 2);
+    end = ppu_vram_dirty_set_end [vram_block] + (vram_block * 0x400) / (8 * 2);
 
     for (tile = begin; tile <= end; tile++)
     {
@@ -189,7 +189,7 @@ static void recache_vram_set (int vram_block)
 }
 
 
-#define vram_set_needs_recache(set) (ppu_vram_dirty_set_begin [set] >= 0)
+#define vram_set_needs_recache(set) (ppu_vram_dirty_set_end [set] >= 0)
 
 static void recache_vram_sets (void)
 {

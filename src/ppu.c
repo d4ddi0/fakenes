@@ -584,11 +584,11 @@ void ppu_vram_write(UINT8 value)
 
                 this_tile = (address & 0x3FF) / 16;
 
-                if (ppu_vram_dirty_set_begin [vram_block] != this_tile)
+                if (ppu_vram_dirty_set_end [vram_block] != this_tile)
                 {
-                    if (ppu_vram_dirty_set_begin [vram_block] == this_tile - 1)
+                    if (ppu_vram_dirty_set_end [vram_block] == this_tile - 1)
                     {
-                        ppu_vram_dirty_set_begin [vram_block] ++;
+                        ppu_vram_dirty_set_end [vram_block] ++;
                     }
                     else
                     {
@@ -598,7 +598,7 @@ void ppu_vram_write(UINT8 value)
                         }
 
                         ppu_vram_dirty_set_begin [vram_block] =
-                            ppu_vram_dirty_set_begin [vram_block] = this_tile;
+                            ppu_vram_dirty_set_end [vram_block] = this_tile;
 
                         ppu_vram_cache_needs_update = TRUE;
                     }
