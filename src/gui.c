@@ -504,7 +504,7 @@ static int machine_type_menu_pal (void)
 
     audio_exit ();
 
-    papu_exit ();
+    audio_init ();
 
 
     papu_reinit ();
