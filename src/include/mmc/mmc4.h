@@ -13,9 +13,6 @@ static int mmc4_latch[2] = { 1, 1 };
 #define MMC4_MIRRORING_BIT   1
 
 
-static unsigned int mmc4_prg_mask;
-
-
 static void mmc4_check_latches (UINT16 address)
 {
     int bank, index, latch;
@@ -64,7 +61,7 @@ static void mmc4_write (UINT16 address, UINT8 value)
     {
         /* 16k ROM page select (unlatched). */
 
-        cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(value & mmc4_prg_mask));
+        cpu_set_read_address_16k_rom_block (0x8000, value);
     }
     else if (address == (0xb000 >> 12))
     {
@@ -190,39 +187,10 @@ static INLINE int mmc4_init (void)
     }
 
 
-    /* Mapper requires at least 16k of PRG ROM, and some CHR ROM */
-    if (ROM_PRG_ROM_PAGES < 1 || ROM_CHR_ROM_PAGES < 1)
-    {
-        return -1;
-    }
-
-    if (ROM_PRG_ROM_PAGES == 1) mmc4_prg_mask = 1;
-    else if (ROM_PRG_ROM_PAGES == 2) mmc4_prg_mask = 2;
-    else if (ROM_PRG_ROM_PAGES <= 4) mmc4_prg_mask = 4;
-    else if (ROM_PRG_ROM_PAGES <= 8) mmc4_prg_mask = 8;
-    else if (ROM_PRG_ROM_PAGES <= 16) mmc4_prg_mask = 16;
-    else if (ROM_PRG_ROM_PAGES <= 32) mmc4_prg_mask = 32;
-    else if (ROM_PRG_ROM_PAGES <= 64) mmc4_prg_mask = 64;
-    else if (ROM_PRG_ROM_PAGES <= 128) mmc4_prg_mask = 128;
-    else mmc4_prg_mask = 256;
-
-
-    if (ROM_PRG_ROM_PAGES != mmc4_prg_mask)
-    {
-        /* Bank count not even power of 2, unhandled. */
-
-        return (1);
-    }
-
-    /* Convert to 16k mask. */
-
-    mmc4_prg_mask = (mmc4_prg_mask - 1);
-
-
     mmc4_reset ();
 
-    mmc_write = mmc4_write;
-    cpu_set_write_handler_32k (0x8000, mmc4_write);
+    cpu_set_write_handler_8k (0xA000, mmc4_write);
+    cpu_set_write_handler_16k (0xC000, mmc4_write);
 
 
     mmc_check_latches = mmc4_check_latches;

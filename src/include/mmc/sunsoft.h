@@ -5,9 +5,6 @@
 /* This mapper is fully supported. */
 
 
-static unsigned int sunsoft_prg_mask = 0;
-
-
 static UINT8 sunsoft_name_table_banks [2];
 
 static UINT8 sunsoft_name_table_control = 0;
@@ -153,7 +150,7 @@ static void sunsoft_write (UINT16 address, UINT8 value)
 
             /* Select 16k page in lower 16k. */
 
-            cpu_set_read_address_16k (0x8000, ROM_PAGE_16K ((value & sunsoft_prg_mask)));
+            cpu_set_read_address_16k_rom_block (0x8000, value);
 
 
             break;
@@ -181,30 +178,6 @@ static INLINE int sunsoft_init (void)
         printf ("Using memory mapper #68 (Sunsoft) "
             "(%d PRG, %d CHR).\n\n", ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
     }
-
-
-    if (ROM_PRG_ROM_PAGES == 1) sunsoft_prg_mask = 1;
-    else if (ROM_PRG_ROM_PAGES == 2) sunsoft_prg_mask = 2;
-    else if (ROM_PRG_ROM_PAGES <= 4) sunsoft_prg_mask = 4;
-    else if (ROM_PRG_ROM_PAGES <= 8) sunsoft_prg_mask = 8;
-    else if (ROM_PRG_ROM_PAGES <= 16) sunsoft_prg_mask = 16;
-    else if (ROM_PRG_ROM_PAGES <= 32) sunsoft_prg_mask = 32;
-    else if (ROM_PRG_ROM_PAGES <= 64) sunsoft_prg_mask = 64;
-    else if (ROM_PRG_ROM_PAGES <= 128) sunsoft_prg_mask = 128;
-    else sunsoft_prg_mask = 256;
-
-
-    if (ROM_PRG_ROM_PAGES != sunsoft_prg_mask)
-    {
-        /* Page count not an even power of 2. */
-
-        return (1);
-    }
-
-
-    /* Generate 16k mask. */
-
-    sunsoft_prg_mask --;
 
 
     sunsoft_name_table_banks [0] = sunsoft_name_table_banks [1] = 0;

@@ -23,6 +23,8 @@ extern "C" {
 #include <allegro.h>
 #include "misc.h"
 
+#include "rom.h"
+
 #include "core.h"
 
 
@@ -53,6 +55,9 @@ int cpu_execute (int);
 
 UINT16 * cpu_active_pc;
 
+
+void cpu_free_prg_rom (ROM *rom);
+UINT8 * cpu_get_prg_rom_pages (ROM *rom);
 
 void enable_sram(void);
 void disable_sram(void);
@@ -263,6 +268,40 @@ static INLINE void cpu_set_write_handler_32k (UINT16 block_start, void (*handler
 
     cpu_set_write_handler_16k (block_start, handler);
     cpu_set_write_handler_16k (block_start + (16 << 10), handler);
+}
+
+
+/* ----- ROM-specific banking ----- */
+
+
+static INLINE void cpu_set_read_address_8k_rom_block (UINT16 block_start, int rom_block)
+{
+    if (rom_block >= (ROM_CHR_ROM_PAGES * 2))
+    {
+        rom_block &= ROM_PRG_ROM_PAGE_OVERFLOW_MASK;
+    }
+
+    cpu_set_read_address_8k (block_start, ROM_PRG_ROM + (rom_block << 13));
+}
+
+
+static INLINE void cpu_set_read_address_16k_rom_block (UINT16 block_start, int rom_block)
+{
+    if (rom_block >= ROM_CHR_ROM_PAGES)
+    {
+        rom_block &= ROM_PRG_ROM_PAGE_OVERFLOW_MASK / 2;
+    }
+
+    cpu_set_read_address_16k (block_start, ROM_PRG_ROM + (rom_block << 14));
+}
+
+
+static INLINE void cpu_set_read_address_32k_rom_block (UINT16 block_start, int rom_block)
+{
+    rom_block <<= 1;
+
+    cpu_set_read_address_16k_rom_block (block_start, rom_block);
+    cpu_set_read_address_16k_rom_block (block_start + 0x4000, rom_block + 1);
 }
 
 

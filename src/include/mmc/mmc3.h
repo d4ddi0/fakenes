@@ -22,9 +22,6 @@ static int mmc3_irq_latch = 0;
 static int mmc3_disable_irqs = TRUE;
 
 
-static unsigned int mmc3_prg_mask;
-
-
 #define MMC3_PRG_ADDRESS_BIT 0x40
 
 #define MMC3_CHR_ADDRESS_BIT 0x80
@@ -80,10 +77,10 @@ static void mmc3_write (UINT16 address, UINT8 value)
                 cpu_set_read_address_8k (0xC000, LAST_ROM_PAGE);
 
                 /* set addresses for swappable pages */
-                cpu_set_read_address_8k (0x8000,
-                    ROM_PAGE_8K(mmc3_cpu_bank[0]));
-                cpu_set_read_address_8k (0xA000,
-                    ROM_PAGE_8K(mmc3_cpu_bank[1]));
+                cpu_set_read_address_8k_rom_block (0x8000,
+                    mmc3_cpu_bank[0]);
+                cpu_set_read_address_8k_rom_block (0xA000,
+                    mmc3_cpu_bank[1]);
                 
             }
             else
@@ -93,10 +90,10 @@ static void mmc3_write (UINT16 address, UINT8 value)
                 cpu_set_read_address_8k (0x8000, LAST_ROM_PAGE);
 
                 /* set addresses for swappable pages */
-                cpu_set_read_address_8k (0xA000,
-                    ROM_PAGE_8K(mmc3_cpu_bank[1]));
-                cpu_set_read_address_8k (0xC000,
-                    ROM_PAGE_8K(mmc3_cpu_bank[0]));
+                cpu_set_read_address_8k_rom_block (0xA000,
+                    mmc3_cpu_bank[1]);
+                cpu_set_read_address_8k_rom_block (0xC000,
+                    mmc3_cpu_bank[0]);
                 
             }
 
@@ -157,10 +154,10 @@ static void mmc3_write (UINT16 address, UINT8 value)
 
                     /* 1 8k page at $8000 or $C000. */
 
-                    mmc3_cpu_bank[0] = value & mmc3_prg_mask;
+                    mmc3_cpu_bank[0] = value;
 
-                    cpu_set_read_address_8k (mmc3_prg_address,
-                        ROM_PAGE_8K(value & mmc3_prg_mask));
+                    cpu_set_read_address_8k_rom_block (mmc3_prg_address,
+                        value);
 
 
                     break;
@@ -170,10 +167,9 @@ static void mmc3_write (UINT16 address, UINT8 value)
 
                     /* 1 8k page at $A000. */
 
-                    mmc3_cpu_bank[1] = value & mmc3_prg_mask;
+                    mmc3_cpu_bank[1] = value;
 
-                    cpu_set_read_address_8k (0xA000,
-                        ROM_PAGE_8K(value & mmc3_prg_mask));
+                    cpu_set_read_address_8k_rom_block (0xA000, value);
 
 
                     break;
@@ -269,9 +265,9 @@ static INLINE void mmc3_reset (void)
     /* Select first 16k page in lower 16k. */
 
     mmc3_cpu_bank[0] = 0;
-    mmc3_cpu_bank[1] = (1 & mmc3_prg_mask);
-    cpu_set_read_address_8k (0x8000, ROM_PAGE_8K(0));
-    cpu_set_read_address_8k (0xA000, ROM_PAGE_8K(1 & mmc3_prg_mask));
+    mmc3_cpu_bank[1] = 1;
+    cpu_set_read_address_8k_rom_block (0x8000, mmc3_cpu_bank[0]);
+    cpu_set_read_address_8k_rom_block (0xA000, mmc3_cpu_bank[1]);
 
 
     /* Select last 16k page in upper 16k. */
@@ -300,29 +296,6 @@ static INLINE int mmc3_init (void)
     }
 
 
-    if (ROM_PRG_ROM_PAGES == 1) mmc3_prg_mask = 1;
-    else if (ROM_PRG_ROM_PAGES == 2) mmc3_prg_mask = 2;
-    else if (ROM_PRG_ROM_PAGES <= 4) mmc3_prg_mask = 4;
-    else if (ROM_PRG_ROM_PAGES <= 8) mmc3_prg_mask = 8;
-    else if (ROM_PRG_ROM_PAGES <= 16) mmc3_prg_mask = 16;
-    else if (ROM_PRG_ROM_PAGES <= 32) mmc3_prg_mask = 32;
-    else if (ROM_PRG_ROM_PAGES <= 64) mmc3_prg_mask = 64;
-    else if (ROM_PRG_ROM_PAGES <= 128) mmc3_prg_mask = 128;
-    else mmc3_prg_mask = 256;
-
-
-    if (ROM_PRG_ROM_PAGES != mmc3_prg_mask)
-    {
-        /* Bank count not even power of 2, unhandled. */
-
-        return (1);
-    }
-
-    /* Convert 16k mask to 8k mask. */
-
-    mmc3_prg_mask = ((mmc3_prg_mask * 2) - 1);
-
-
     if (ROM_CHR_ROM_PAGES == 0)
     {
         /* No VROM is present. */
@@ -333,7 +306,6 @@ static INLINE int mmc3_init (void)
 
     mmc3_reset ();
 
-    mmc_write = mmc3_write;
     cpu_set_write_handler_32k (0x8000, mmc3_write);
 
 

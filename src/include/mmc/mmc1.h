@@ -24,9 +24,6 @@ static int mmc1_previous_register = 0x0000;
 static int mmc1_256k_bank_num; //could be a char
 
 
-static unsigned int mmc1_prg_mask;
-
-
 #define MMC1_MIRRORING_ADDRESS_BIT  1
 #define MMC1_MIRRORING_MODE_BIT     2
 #define MMC1_PRG_BANK_SELECT_BIT    4
@@ -41,8 +38,8 @@ static unsigned int mmc1_prg_mask;
 
 static INLINE void mmc1_cpu_bank_sort (void)
 {
-  cpu_set_read_address_16k (0x8000, ROM_PAGE_16K(((mmc1_256k_bank_num * (256 / 16)) + mmc1_cpu_bank[0]) & mmc1_prg_mask));
-  cpu_set_read_address_16k (0xC000, ROM_PAGE_16K(((mmc1_256k_bank_num * (256 / 16)) + mmc1_cpu_bank[1]) & mmc1_prg_mask));
+  cpu_set_read_address_16k_rom_block (0x8000, (mmc1_256k_bank_num * (256 / 16)) + mmc1_cpu_bank[0]);
+  cpu_set_read_address_16k_rom_block (0xC000, (mmc1_256k_bank_num * (256 / 16)) + mmc1_cpu_bank[1]);
 }
 
 static void mmc1_write (UINT16 address, UINT8 value)
@@ -400,29 +397,6 @@ static INLINE int mmc1_init (void)
             "(%d PRG, %d CHR).\n\n", ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
     }
 
-    if (ROM_PRG_ROM_PAGES == 1) mmc1_prg_mask = 1;
-    else if (ROM_PRG_ROM_PAGES == 2) mmc1_prg_mask = 2;
-    else if (ROM_PRG_ROM_PAGES <= 4) mmc1_prg_mask = 4;
-    else if (ROM_PRG_ROM_PAGES <= 8) mmc1_prg_mask = 8;
-    else if (ROM_PRG_ROM_PAGES <= 16) mmc1_prg_mask = 16;
-    else if (ROM_PRG_ROM_PAGES <= 32) mmc1_prg_mask = 32;
-    else if (ROM_PRG_ROM_PAGES <= 64) mmc1_prg_mask = 64;
-    /* max 1024K PRG ROM */
-    else mmc1_prg_mask = 256;
-
-
-    if (ROM_PRG_ROM_PAGES != mmc1_prg_mask)
-    {
-        /* Bank count not even power of 2, unhandled. */
-
-        return (1);
-    }
-
-    /* Convert to 16k mask. */
-
-    mmc1_prg_mask = (mmc1_prg_mask - 1);
-
-
     if (ROM_CHR_ROM_PAGES == 0)
     {
         /* No VROM is present. */
@@ -433,7 +407,6 @@ static INLINE int mmc1_init (void)
 
     mmc1_reset ();
 
-    mmc_write = mmc1_write;
     cpu_set_write_handler_32k (0x8000, mmc1_write);
 
     return 0;

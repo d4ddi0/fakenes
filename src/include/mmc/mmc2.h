@@ -1,4 +1,3 @@
-#define MMC2_LIKE_MMC4
 
 
 /* Mapper #9 (MMC2). */
@@ -14,9 +13,6 @@ static int mmc2_latch[2] = { 1, 1 };
 #define MMC2_MIRRORING_BIT   1
 
 
-static unsigned int mmc2_prg_mask;
-
-
 static void mmc2_check_latches (UINT16 address)
 {
     int bank, index, latch;
@@ -26,9 +22,6 @@ static void mmc2_check_latches (UINT16 address)
 
     /* is this latch for $0000 or $1000? */
     bank = address >> 12;
-#ifndef MMC2_LIKE_MMC4
-    if (bank == 0) return;
-#endif
 
     /* we don't need bit 12 or bits 0-3, get rid of them */
     address &= 0xFF0;
@@ -67,9 +60,8 @@ static void mmc2_write (UINT16 address, UINT8 value)
     {
         /* 8k ROM page select (unlatched). */
 
-        cpu_set_read_address_8k (0x8000, ROM_PAGE_8K(value & mmc2_prg_mask));
+        cpu_set_read_address_8k_rom_block (0x8000, value);
     }
-#ifdef MMC2_LIKE_MMC4
     else if (address == (0xb000 >> 12))
     {
         /* Lower 4k VROM page select (latch #1). */
@@ -104,22 +96,6 @@ static void mmc2_write (UINT16 address, UINT8 value)
             }
         }
     }
-#else
-    else if (address == (0xb000 >> 12) || address == (0xc000 >> 12))
-    {
-        /* Lower 4k VROM page select (unlatched). */
-
-        /* Convert 4k page # to 1k. */
-
-        mmc2_vrom_bank[0][0] = value * 4;
-
-        for (index = 0; index < 4; index ++)
-        {
-            ppu_set_ram_1k_pattern_vrom_block (index << 10,
-                mmc2_vrom_bank[0][0] + index);
-        }
-    }
-#endif
     else if (address == (0xd000 >> 12))
     {
         /* Upper 4k VROM page select (latch #1). */
@@ -220,33 +196,10 @@ static INLINE int mmc2_init (void)
         return -1;
     }
 
-    if (ROM_PRG_ROM_PAGES == 1) mmc2_prg_mask = 1;
-    else if (ROM_PRG_ROM_PAGES == 2) mmc2_prg_mask = 2;
-    else if (ROM_PRG_ROM_PAGES <= 4) mmc2_prg_mask = 4;
-    else if (ROM_PRG_ROM_PAGES <= 8) mmc2_prg_mask = 8;
-    else if (ROM_PRG_ROM_PAGES <= 16) mmc2_prg_mask = 16;
-    else if (ROM_PRG_ROM_PAGES <= 32) mmc2_prg_mask = 32;
-    else if (ROM_PRG_ROM_PAGES <= 64) mmc2_prg_mask = 64;
-    else if (ROM_PRG_ROM_PAGES <= 128) mmc2_prg_mask = 128;
-    else mmc2_prg_mask = 256;
-
-
-    if (ROM_PRG_ROM_PAGES != mmc2_prg_mask)
-    {
-        /* Bank count not even power of 2, unhandled. */
-
-        return (1);
-    }
-
-    /* Convert 16k mask to 8k mask. */
-
-    mmc2_prg_mask = ((mmc2_prg_mask * 2) - 1);
-
-
     mmc2_reset ();
 
-    mmc_write = mmc2_write;
-    cpu_set_write_handler_32k (0x8000, mmc2_write);
+    cpu_set_write_handler_8k (0xA000, mmc2_write);
+    cpu_set_write_handler_16k (0xC000, mmc2_write);
 
 
     mmc_check_latches = mmc2_check_latches;

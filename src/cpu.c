@@ -266,6 +266,46 @@ void cpu_exit (void)
 }
 
 
+void cpu_free_prg_rom (ROM *rom)
+{
+    if (rom -> prg_rom) free (rom -> prg_rom);
+
+    rom -> prg_rom = NULL;
+}
+
+
+UINT8 * cpu_get_prg_rom_pages (ROM *rom)
+{
+    int num_pages = rom -> prg_rom_pages;
+
+    /* Compute a mask used to wrap invalid PRG ROM page numbers.
+     *  As PRG ROM banking uses a 8k page size, this mask is based
+     *  on a 8k page size.
+     */
+    if (((num_pages * 2 - 1) & (num_pages - 1)) == (num_pages - 1))
+    /* compute mask for even power of two */
+    {
+        rom -> prg_rom_page_overflow_mask = (num_pages * 2) - 1;
+    }
+    else
+    /* compute mask */
+    {
+        int i;
+
+        /* compute the largest even power of 2 less than
+           PRG ROM page count, and use that to compute the mask */
+        for (i = 0; (num_pages >> (i + 1)) > 0; i++);
+
+        rom -> prg_rom_page_overflow_mask = ((1 << i) * 2) - 1;
+    }
+
+    /* 16k PRG ROM page size */
+    rom -> prg_rom = malloc (num_pages * 0x4000);
+
+    return rom -> prg_rom;
+}
+
+
 void enable_sram(void)
 {
     cpu_set_read_address_8k (0x6000, cpu_sram);

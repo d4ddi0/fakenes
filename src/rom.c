@@ -134,9 +134,7 @@ int load_rom (AL_CONST UINT8 * filename, ROM * rom)
 
     /* Allocate and load PRG-ROM. */
 
-    rom -> prg_rom = malloc ((rom -> prg_rom_pages * 0x4000));
-
-    if (! rom -> prg_rom)
+    if (! cpu_get_prg_rom_pages (rom))
     {
         if (rom -> trainer)
         {
@@ -156,25 +154,27 @@ int load_rom (AL_CONST UINT8 * filename, ROM * rom)
 
     /* Allocate and load CHR-ROM. */
 
-    if (! ppu_get_chr_rom_pages (rom))
+    if (rom -> chr_rom_pages)
     {
-        if (rom -> trainer)
+        if (! ppu_get_chr_rom_pages (rom))
         {
-            free (rom -> trainer);
+            if (rom -> trainer)
+            {
+                free (rom -> trainer);
+            }
+
+
+            cpu_free_prg_rom (rom);
+
+
+            gzclose (rom_file);
+
+            return (1);
         }
 
-
-        free (rom -> prg_rom);
-
-
-        gzclose (rom_file);
-
-        return (1);
+        gzread (rom_file, rom -> chr_rom,
+            (rom -> chr_rom_pages * 0x2000));
     }
-
-
-    gzread (rom_file, rom -> chr_rom,
-        (rom -> chr_rom_pages * 0x2000));
 
 
     /* Fill in extra stuff. */
@@ -298,9 +298,7 @@ int load_rom (AL_CONST UINT8 * filename, ROM * rom)
 
     /* Allocate and load PRG-ROM. */
 
-    rom -> prg_rom = malloc ((rom -> prg_rom_pages * 0x4000));
-
-    if (! rom -> prg_rom)
+    if (! cpu_get_prg_rom_pages (rom))
     {
         if (rom -> trainer)
         {
@@ -320,25 +318,27 @@ int load_rom (AL_CONST UINT8 * filename, ROM * rom)
 
     /* Allocate and load CHR-ROM. */
 
-    if (! ppu_get_chr_rom_pages (rom))
+    if (rom -> chr_rom_pages)
     {
-        if (rom -> trainer)
+        if (! ppu_get_chr_rom_pages (rom))
         {
-            free (rom -> trainer);
+            if (rom -> trainer)
+            {
+                free (rom -> trainer);
+            }
+
+
+            cpu_free_prg_rom (rom);
+
+
+            fclose (rom_file);
+
+            return (1);
         }
 
-
-        free (rom -> prg_rom);
-
-
-        fclose (rom_file);
-
-        return (1);
+        fread (rom -> chr_rom, 1,
+            (rom -> chr_rom_pages * 0x2000), rom_file);
     }
-
-
-    fread (rom -> chr_rom, 1,
-        (rom -> chr_rom_pages * 0x2000), rom_file);
 
 
     /* Fill in extra stuff. */
@@ -377,7 +377,6 @@ void free_rom (ROM * rom)
     }
 
 
-    free (rom -> prg_rom);
-
+    cpu_free_prg_rom (rom);
     ppu_free_chr_rom (rom);
 }

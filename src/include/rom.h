@@ -51,6 +51,8 @@ typedef struct _ROM
     UINT8 * chr_rom_cache_tag;
                            /* CHR-ROM bank # wrapping mask         */
     UINT8 chr_rom_page_overflow_mask;
+                           /* PRG-ROM bank # wrapping mask         */
+    UINT8 prg_rom_page_overflow_mask;
 
     UINT8 sram_flag;       /* SRAM supported (extension)           */
     UINT8 filename [256];  /* Filename (extension)                 */
@@ -87,6 +89,7 @@ ROM global_rom;
 #define ROM_MAPPER_NUMBER   (global_rom.mapper_number)
 
 #define ROM_PRG_ROM         (global_rom.prg_rom)
+#define ROM_PRG_ROM_PAGE_OVERFLOW_MASK (global_rom.prg_rom_page_overflow_mask)
 #define ROM_CHR_ROM         (global_rom.chr_rom)
 #define ROM_CHR_ROM_CACHE   (global_rom.chr_rom_cache)
 #define ROM_CHR_ROM_CACHE_TAG   (global_rom.chr_rom_cache_tag)

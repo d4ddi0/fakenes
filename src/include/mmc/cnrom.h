@@ -29,22 +29,9 @@ static INLINE void cnrom_reset (void)
     int index;
 
 
-    if (ROM_PRG_ROM_PAGES == 1)
-    {
-        /* Select first 16k page (mirrored). */
+    /* Select first 32k page. */
 
-        cpu_set_read_address_16k (0x8000, ROM_PAGE_16K (0));
-
-        cpu_set_read_address_16k (0xC000, ROM_PAGE_16K (0));
-    }
-    else
-    {
-        /* Select first 32k page. */
-
-        cpu_set_read_address_16k (0x8000, ROM_PAGE_16K (0));
-
-        cpu_set_read_address_16k (0xC000, ROM_PAGE_16K (1));
-    }
+    cpu_set_read_address_32k_rom_block (0x8000, 0);
 
 
     /* Select first 8k page. */
