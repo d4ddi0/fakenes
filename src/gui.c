@@ -976,11 +976,13 @@ static int options_video_palette_menu_default (void)
 
     UNCHECK_MENU (options_video_palette_menu, 8);
 
+    UNCHECK_MENU (options_video_palette_menu, 10);
+
 
     CHECK_MENU (options_video_palette_menu, 0);
 
 
-    set_palette (DATA_DEFAULT_PALETTE);
+    video_set_palette (DATA_DEFAULT_PALETTE);
 
     current_palette = DATA_DEFAULT_PALETTE;
 
@@ -989,7 +991,7 @@ static int options_video_palette_menu_default (void)
 }
 
 
-static int options_video_palette_menu_gnuboy (void)
+static int options_video_palette_menu_grayscale (void)
 {
     UNCHECK_MENU (options_video_palette_menu, 0);
 
@@ -999,11 +1001,37 @@ static int options_video_palette_menu_gnuboy (void)
 
     UNCHECK_MENU (options_video_palette_menu, 8);
 
+    UNCHECK_MENU (options_video_palette_menu, 10);
+
 
     CHECK_MENU (options_video_palette_menu, 2);
 
 
-    set_palette (DATA_GNUBOY_PALETTE);
+    video_set_palette (DATA_GRAYSCALE_PALETTE);
+
+    current_palette = DATA_GRAYSCALE_PALETTE;
+
+
+    return (D_O_K);
+}
+
+static int options_video_palette_menu_gnuboy (void)
+{
+    UNCHECK_MENU (options_video_palette_menu, 0);
+
+    UNCHECK_MENU (options_video_palette_menu, 2);
+
+    UNCHECK_MENU (options_video_palette_menu, 6);
+
+    UNCHECK_MENU (options_video_palette_menu, 8);
+
+    UNCHECK_MENU (options_video_palette_menu, 10);
+
+
+    CHECK_MENU (options_video_palette_menu, 4);
+
+
+    video_set_palette (DATA_GNUBOY_PALETTE);
 
     current_palette = DATA_GNUBOY_PALETTE;
 
@@ -1018,15 +1046,17 @@ static int options_video_palette_menu_nester (void)
 
     UNCHECK_MENU (options_video_palette_menu, 2);
 
-    UNCHECK_MENU (options_video_palette_menu, 6);
+    UNCHECK_MENU (options_video_palette_menu, 4);
 
     UNCHECK_MENU (options_video_palette_menu, 8);
 
+    UNCHECK_MENU (options_video_palette_menu, 10);
 
-    CHECK_MENU (options_video_palette_menu, 4);
+
+    CHECK_MENU (options_video_palette_menu, 6);
 
 
-    set_palette (DATA_NESTER_PALETTE);
+    video_set_palette (DATA_NESTER_PALETTE);
 
     current_palette = DATA_NESTER_PALETTE;
 
@@ -1043,13 +1073,15 @@ static int options_video_palette_menu_nesticle (void)
 
     UNCHECK_MENU (options_video_palette_menu, 4);
 
-    UNCHECK_MENU (options_video_palette_menu, 8);
+    UNCHECK_MENU (options_video_palette_menu, 6);
+
+    UNCHECK_MENU (options_video_palette_menu, 10);
 
 
-    CHECK_MENU (options_video_palette_menu, 6);
+    CHECK_MENU (options_video_palette_menu, 8);
 
 
-    set_palette (DATA_NESTICLE_PALETTE);
+    video_set_palette (DATA_NESTICLE_PALETTE);
 
     current_palette = DATA_NESTICLE_PALETTE;
 
@@ -1092,12 +1124,14 @@ static int options_video_palette_menu_custom (void)
         UNCHECK_MENU (options_video_palette_menu, 4);
 
         UNCHECK_MENU (options_video_palette_menu, 6);
+
+        UNCHECK_MENU (options_video_palette_menu, 8);
     
     
-        CHECK_MENU (options_video_palette_menu, 8);
+        CHECK_MENU (options_video_palette_menu, 10);
     
-    
-        set_palette (custom_palette);
+
+        video_set_palette (((RGB *) custom_palette));
     
         current_palette = ((RGB *) &custom_palette);
     }

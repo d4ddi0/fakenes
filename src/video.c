@@ -1,4 +1,4 @@
-
+  
 
 /*
 
@@ -13,6 +13,9 @@ All rights reserved.  See 'LICENSE' for details.
 
 
 #include <allegro.h>
+
+
+#include <string.h>
 
 
 #include "cpu.h"
@@ -63,7 +66,10 @@ static int blit_x_offset = 0;
 static int blit_y_offset = 0;
 
 
-#define VIDEO_COLOR_WHITE   palette_color [33]
+static int light_level = 0;
+
+
+#define VIDEO_COLOR_WHITE palette_color [33]
 
 
 int video_init (void)
@@ -88,6 +94,9 @@ int video_init (void)
 
 
     zoom_factor = get_config_int ("video", "zoom_factor", 256);
+
+
+    light_level = get_config_int ("video", "light_level", 0);
 
 
     video_display_status = get_config_int ("video", "display_status", FALSE);
@@ -136,7 +145,7 @@ int video_init (void)
     scare_mouse ();
 
 
-    set_palette (DATA_DEFAULT_PALETTE);
+    video_set_palette (DATA_DEFAULT_PALETTE);
 
 
     text_mode (-1);
@@ -178,6 +187,9 @@ void video_exit (void)
 
 
     set_config_int ("video", "zoom_factor", zoom_factor);
+
+
+    set_config_int ("video", "light_level", light_level);
 
 
     set_config_int ("video", "display_status", video_display_status);
@@ -302,4 +314,47 @@ void video_zoom_out (void)
     vsync ();
 
     clear (screen);
+}
+
+
+static INLINE int fix (int value, int base, int limit)
+{
+    if (value < base)
+    {
+        value = base;
+    }
+
+
+    if (value > limit)
+    {
+        value = limit;
+    }
+
+
+    return (value);
+}
+
+
+static PALETTE internal_palette;
+
+
+void video_set_palette (RGB * palette)
+{
+    int index;
+
+
+    memcpy (internal_palette, palette, sizeof (internal_palette));
+
+
+    for (index = 1; index < 65; index ++)
+    {
+        internal_palette [index].r = fix ((internal_palette [index].r + light_level), 0, 63);
+
+        internal_palette [index].g = fix ((internal_palette [index].g + light_level), 0, 63);
+
+        internal_palette [index].b = fix ((internal_palette [index].b + light_level), 0, 63);
+    }
+
+
+    set_palette (internal_palette);
 }

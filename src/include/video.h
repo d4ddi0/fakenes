@@ -43,6 +43,9 @@ void video_zoom_in (void);
 void video_zoom_out (void);
 
 
+void video_set_palette (RGB *);
+
+
 #ifdef __cplusplus
 }
 #endif

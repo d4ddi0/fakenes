@@ -20,6 +20,9 @@ DATAFILE * data;
 #define DATA_DEFAULT_PALETTE    \
     ((RGB *) data [DEFAULT_PALETTE].dat)
 
+#define DATA_GRAYSCALE_PALETTE     \
+    ((RGB *) data [GRAYSCALE_PALETTE].dat)
+
 #define DATA_GNUBOY_PALETTE     \
     ((RGB *) data [GNUBOY_PALETTE].dat)
 

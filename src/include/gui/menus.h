@@ -246,6 +246,8 @@ static MENU options_video_layers_menu [] =
 
 static int options_video_palette_menu_default (void);
 
+static int options_video_palette_menu_grayscale (void);
+
 static int options_video_palette_menu_gnuboy (void);
 
 static int options_video_palette_menu_nester (void);
@@ -257,16 +259,18 @@ static int options_video_palette_menu_custom (void);
 
 static MENU options_video_palette_menu [] =
 {
-    {  "&Default",  options_video_palette_menu_default, NULL, 0, NULL },
-    {          "",                                NULL, NULL, 0, NULL },
-    {   "&gnuboy",   options_video_palette_menu_gnuboy, NULL, 0, NULL },
-    {          "",                                NULL, NULL, 0, NULL },
-    {   "&NESter",   options_video_palette_menu_nester, NULL, 0, NULL },
-    {          "",                                NULL, NULL, 0, NULL },
-    { "&NESticle", options_video_palette_menu_nesticle, NULL, 0, NULL },
-    {          "",                                NULL, NULL, 0, NULL },
-    {   "&Custom",   options_video_palette_menu_custom, NULL, 0, NULL },
-    {        NULL,                                NULL, NULL, 0, NULL }
+    {   "&Default",   options_video_palette_menu_default, NULL, 0, NULL },
+    {           "",                                 NULL, NULL, 0, NULL },
+    { "&Grayscale", options_video_palette_menu_grayscale, NULL, 0, NULL },
+    {           "",                                 NULL, NULL, 0, NULL },
+    {    "&gnuboy",    options_video_palette_menu_gnuboy, NULL, 0, NULL },
+    {           "",                                 NULL, NULL, 0, NULL },
+    {    "&NESter",    options_video_palette_menu_nester, NULL, 0, NULL },
+    {           "",                                 NULL, NULL, 0, NULL },
+    {  "&NESticle",  options_video_palette_menu_nesticle, NULL, 0, NULL },
+    {           "",                                 NULL, NULL, 0, NULL },
+    {    "&Custom",    options_video_palette_menu_custom, NULL, 0, NULL },
+    {         NULL,                                 NULL, NULL, 0, NULL }
 };
 
 
