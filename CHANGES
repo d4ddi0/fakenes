@@ -12,7 +12,7 @@ MMC interface overhauled.
 MMC3 IRQ improvements.
 MMC3 PRG banking fixed.
 
-Audio rendernig & output changes
+Audio rendering & output changes
 Default sampling rate changed to 44.1 kHz.
 Default buffer length (in frames) changed to 4.
 Various recording bugs fixed.
