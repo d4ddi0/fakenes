@@ -10,6 +10,8 @@ core.o : core.c include/core.h include/core/tables.h include/core/codes.h
 cpu.o : cpu.c include/cpu.h include/core.h include/input.h include/misc.h \
     include/mmc.h include/papu.h include/ppu.h include/rom.h
 
+data.o : data.c include/datafile.h
+
 gui.o : gui.c include/apu.h include/audio.h include/cpu.h include/data.h \
     include/gui.h include/input.h include/misc.h include/mmc.h \
     include/papu.h include/ppu.h include/rom.h include/timing.h \

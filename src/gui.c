@@ -360,7 +360,7 @@ int gui_show_dialog (DIALOG * dialog)
     centre_dialog (dialog);
 
 
-    dialog [0].dp3 = DATA_LARGE_FONT;
+    dialog [0].dp3 = DATA_TO_FONT (LARGE_FONT);
 
 
     while (dialog [index].d1 != SL_FRAME_END)
@@ -2417,9 +2417,9 @@ static int options_video_palette_menu_default (void)
     CHECK_MENU (options_video_palette_menu, 0);
 
 
-    video_set_palette (DATA_DEFAULT_PALETTE);
+    video_set_palette (DATA_TO_RGB (DEFAULT_PALETTE));
 
-    current_palette = DATA_DEFAULT_PALETTE;
+    current_palette = DATA_TO_RGB (DEFAULT_PALETTE);
 
 
     update_colors ();
@@ -2453,9 +2453,9 @@ static int options_video_palette_menu_grayscale (void)
     CHECK_MENU (options_video_palette_menu, 2);
 
 
-    video_set_palette (DATA_GRAYSCALE_PALETTE);
+    video_set_palette (DATA_TO_RGB (GRAYSCALE_PALETTE));
 
-    current_palette = DATA_GRAYSCALE_PALETTE;
+    current_palette = DATA_TO_RGB (GRAYSCALE_PALETTE);
 
 
     update_colors ();
@@ -2488,9 +2488,9 @@ static int options_video_palette_menu_gnuboy (void)
     CHECK_MENU (options_video_palette_menu, 4);
 
 
-    video_set_palette (DATA_GNUBOY_PALETTE);
+    video_set_palette (DATA_TO_RGB (GNUBOY_PALETTE));
 
-    current_palette = DATA_GNUBOY_PALETTE;
+    current_palette = DATA_TO_RGB (GNUBOY_PALETTE);
 
 
     update_colors ();
@@ -2524,9 +2524,9 @@ static int options_video_palette_menu_nester (void)
     CHECK_MENU (options_video_palette_menu, 6);
 
 
-    video_set_palette (DATA_NESTER_PALETTE);
+    video_set_palette (DATA_TO_RGB (NESTER_PALETTE));
 
-    current_palette = DATA_NESTER_PALETTE;
+    current_palette = DATA_TO_RGB (NESTER_PALETTE);
 
 
     update_colors ();
@@ -2560,9 +2560,9 @@ static int options_video_palette_menu_nesticle (void)
     CHECK_MENU (options_video_palette_menu, 8);
 
 
-    video_set_palette (DATA_NESTICLE_PALETTE);
+    video_set_palette (DATA_TO_RGB (NESTICLE_PALETTE));
 
-    current_palette = DATA_NESTICLE_PALETTE;
+    current_palette = DATA_TO_RGB (NESTICLE_PALETTE);
 
 
     update_colors ();

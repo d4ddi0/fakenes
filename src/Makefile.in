@@ -10,8 +10,6 @@ INSTALL = @INSTALL@
 
 BINARY = fakenes@EXEEXT@
 
-DATAFILE = support/fakenes.dat
-
 
 IFLAGS = -Iinclude -Isupport `allegro-config --cflags`
 
@@ -24,8 +22,8 @@ CFLAGS = ${IFLAGS} @CFLAGS@ ${DFLAGS}
 LIBRARIES = `allegro-config --libs` @LIBRARIES@
 
 
-OBJECTS = apu.o audio.o core.o cpu.o gui.o input.o papu.o ppu.o rom.o \
-    main.o mmc.o netplay.o video.o support/unzip.o
+OBJECTS = apu.o audio.o core.o cpu.o data.o gui.o input.o papu.o ppu.o \
+    rom.o main.o mmc.o netplay.o video.o support/unzip.o
 
 
 all : bootstrap ${BINARY}
@@ -41,18 +39,16 @@ ${BINARY} : ${OBJECTS}
 	${CC} ${OBJECTS} -o ${BINARY} ${LIBRARIES}
 
 
-install : ${BINARY} ${DATAFILE}
+install : ${BINARY}
 
-	@echo Installing the FakeNES binary and datafile...
+	@echo Installing the FakeNES binary...
 
 	${INSTALL} -m 0755 ${BINARY} /usr/bin
-
-	${INSTALL} -m 0644 ${DATAFILE} /usr/share
 
 
 	@echo Run \'${BINARY}\' once to create the configuration file.
 
-    @echo It will be stored in \'\$HOME/.fakenes\'.
+	@echo It will be stored in \'\$HOME/.fakenes\'.
 
 
 uninstall :
@@ -63,8 +59,6 @@ uninstall :
 
 
 	${RM} /usr/bin/${BINARY}
-
-	${RM} /usr/share/${DATAFILE}
 
 
 .SUFFIXES : .c

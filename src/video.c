@@ -229,7 +229,7 @@ int video_init (void)
     }
 
 
-    set_mouse_sprite (DATA_ARROW_SPRITE);
+    set_mouse_sprite (DATA_TO_BITMAP (ARROW_SPRITE));
 
 
     show_mouse (screen);
@@ -243,13 +243,13 @@ int video_init (void)
     }
     else
     {
-        video_set_palette (DATA_DEFAULT_PALETTE);
+        video_set_palette (DATA_TO_RGB (DEFAULT_PALETTE));
     }
 
 
     text_mode (-1);
 
-    font = DATA_SMALL_FONT;
+    font = DATA_TO_FONT (SMALL_FONT);
 
 
     set_display_switch_mode (SWITCH_PAUSE);
@@ -981,7 +981,7 @@ void video_blit (BITMAP * bitmap)
     {
         blit (video_buffer, mouse_sprite_remove_buffer, (input_zapper_x_offset - 7), (input_zapper_y_offset - 7), 0, 0, 16, 16);
 
-        masked_blit (DATA_GUN_SPRITE, video_buffer, 0, 0, (input_zapper_x_offset - 7), (input_zapper_y_offset - 7), 16, 16);
+        masked_blit (DATA_TO_BITMAP (GUN_SPRITE), video_buffer, 0, 0, (input_zapper_x_offset - 7), (input_zapper_y_offset - 7), 16, 16);
     }
 
 

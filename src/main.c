@@ -474,6 +474,7 @@ int main (int argc, char * argv [])
     install_timer ();
 
 
+    /*
 #ifdef POSIX
 
     data = load_datafile ("fakenes.dat");
@@ -501,6 +502,7 @@ int main (int argc, char * argv [])
 
         return (1);
     }
+    */
 
 
 #ifdef POSIX
@@ -1018,7 +1020,7 @@ int main (int argc, char * argv [])
     }
 
 
-    unload_datafile (data);
+    /* unload_datafile (data); */
 
 
     return (0);
