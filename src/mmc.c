@@ -42,11 +42,9 @@ You must read and accept the license prior to use.
 
 #include "mmc/mmc1.h"
 
-#include "mmc/mmc2.h"
-
 #include "mmc/mmc3.h"
 
-#include "mmc/mmc4.h"
+#include "mmc/mmc2and4.h"
 
 
 #include "mmc/unrom.h"
@@ -64,7 +62,7 @@ You must read and accept the license prior to use.
 
 #include "mmc/nina.h"
 
-#include "mmc/sunsoft.h"
+#include "mmc/sunsoft4.h"
 
 
 #include "mmc/vrc6.h"
@@ -167,7 +165,7 @@ void mmc_request (ROM * rom)
 
     MMC_NEXT_LIST_ITEM (nina);      /* NINA-001. */
 
-    MMC_NEXT_LIST_ITEM (sunsoft);   /* Sunsoft. */
+    MMC_NEXT_LIST_ITEM (sunsoft4);  /* Sunsoft mapper #4. */
 
 
     MMC_NEXT_LIST_ITEM (vrc6);      /* VRC6. */
