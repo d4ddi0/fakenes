@@ -150,6 +150,8 @@ int show_gui (void)
 
 static int file_menu_load_rom (void)
 {
+    ROM test_rom;
+
     UINT8 buffer [256];
 
 
@@ -170,21 +172,32 @@ static int file_menu_load_rom (void)
 
 #endif
 
-        if (rom_is_loaded)
+        if (load_rom (buffer, &test_rom) != 0)
         {
-            free_rom (&global_rom);
+            gui_message (6, "Failed to load ROM!");
+
+            return (D_O_K);
         }
+        else
+        {
+            free_rom (&test_rom);
 
 
-        load_rom (buffer, &global_rom);
+            if (rom_is_loaded)
+            {
+                free_rom (&global_rom);
+            }
 
-        rom_is_loaded = TRUE;
+            load_rom (buffer, &global_rom);
 
 
-        machine_init ();
+            rom_is_loaded = TRUE;
+    
+            machine_init ();
 
 
-        return (D_CLOSE);
+            return (D_CLOSE);
+        }
     }
     else
     {
@@ -252,7 +265,7 @@ static int machine_menu_status (void)
 {
     if (machine_menu [2].flags & D_SELECTED)
     {
-        machine_menu [2].flags = 0;
+        machine_menu [2].flags &= ~D_SELECTED;
 
         video_display_status = FALSE;
     }
@@ -272,15 +285,21 @@ static int options_video_menu_vsync (void)
 {
     if (options_video_menu [0].flags & D_SELECTED)
     {
-        options_video_menu [0].flags = 0;
+        options_video_menu [0].flags &= ~D_SELECTED;
 
         video_enable_vsync = FALSE;
+
+
+        gui_message (33, "VSync disabled.");
     }
     else
     {
         options_video_menu [0].flags |= D_SELECTED;
 
         video_enable_vsync = TRUE;
+
+
+        gui_message (33, "VSync enabled.");
     }
 
 
@@ -292,7 +311,7 @@ static int options_menu_gb_mode (void)
 {
     if (options_menu [2].flags & D_SELECTED)
     {
-        options_menu [2].flags = 0;
+        options_menu [2].flags &= ~D_SELECTED;
 
         set_palette (DATA_NES_PALETTE);
     }
