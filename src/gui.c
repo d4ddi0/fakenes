@@ -1526,7 +1526,7 @@ static int options_video_advanced_menu_force_window (void)
     gui_needs_restart = TRUE;
 
 
-    return (D_O_K);
+    return (D_CLOSE);
 }
 
 
