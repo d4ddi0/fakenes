@@ -53,6 +53,9 @@ int papu_enable_dmc;
 int papu_enable_exsound;
 
 
+int papu_swap_channels;
+
+
 int papu_ideal_triangle;
 
 

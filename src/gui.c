@@ -1,6 +1,5 @@
 
 
-
 /*
 
 FakeNES - A portable, Open Source NES emulator.
@@ -420,13 +419,22 @@ static INLINE void update_menus (void)
 {
     if (! audio_pseudo_stereo)
     {
+        papu_swap_channels = FALSE;
+
+
         papu_surround_sound = FALSE;
+        
+
+        DISABLE_MENU (options_audio_mixing_advanced_menu, 0);
 
 
         DISABLE_MENU (options_audio_effects_menu, 2);
     }
     else
     {
+        ENABLE_MENU (options_audio_mixing_advanced_menu, 0);
+
+
         ENABLE_MENU (options_audio_effects_menu, 2);
     }
 
@@ -591,6 +599,9 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (options_audio_mixing_quality_menu, 2, (audio_sample_size == 16));
 
     TOGGLE_MENU (options_audio_mixing_quality_menu, 4, papu_dithering);
+
+
+    TOGGLE_MENU (options_audio_mixing_advanced_menu, 0, papu_swap_channels);
 
 
     TOGGLE_MENU (options_audio_effects_menu, 0, papu_linear_echo);
@@ -2059,6 +2070,21 @@ static int options_audio_mixing_quality_menu_dithering (void)
 
 
     gui_message (gui_fg_color, "Toggled audio random noise dithering.");
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_mixing_advanced_menu_reverse_stereo (void)
+{
+    papu_swap_channels = (! papu_swap_channels);
+
+
+    update_menus ();
+
+
+    gui_message (gui_fg_color, "Toggled audio mixing reverse stereo order.");
 
 
     return (D_O_K);

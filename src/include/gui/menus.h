@@ -289,6 +289,16 @@ static MENU options_audio_mixing_quality_menu [] =
 };
 
 
+static int options_audio_mixing_advanced_menu_reverse_stereo (void);
+
+
+static MENU options_audio_mixing_advanced_menu [] =
+{
+    { "&Reverse Stereo", options_audio_mixing_advanced_menu_reverse_stereo, NIL, 0, NIL },
+    {               NIL,                                               NIL, NIL, 0, NIL }
+};
+
+
 static MENU options_audio_mixing_menu [] =
 {
     {    "&Speed", NIL,    options_audio_mixing_speed_menu, 0, NIL },
@@ -296,6 +306,9 @@ static MENU options_audio_mixing_menu [] =
     { "&Channels", NIL, options_audio_mixing_channels_menu, 0, NIL },
     {          "", NIL,                                NIL, 0, NIL },
     {  "&Quality", NIL,  options_audio_mixing_quality_menu, 0, NIL },
+    {          "", NIL,                                NIL, 0, NIL },
+    { "&Advanced", NIL, options_audio_mixing_advanced_menu, 0, NIL },
+    {         NIL, NIL,                                NIL, 0, NIL }
 };
 
 
