@@ -110,7 +110,6 @@ static int ppu_mirroring;
 #define VBLANK_FLAG_BIT         (1 << 7)
 #define SPRITE_0_COLLISION_BIT  (1 << 6)
 #define SPRITE_OVERFLOW_BIT     (1 << 5)
-#define VRAM_WRITE_FLAG_BIT     (1 << 4)
 
 
 #define PPU_PUTPIXEL(bitmap, x, y, color) \
@@ -820,6 +819,8 @@ static void recache_sprite_list (void)
 }
 
 
+static UINT8 last_ppu_write_value;
+
 UINT8 ppu_read (UINT16 address)
 {
     int data = 0;
@@ -835,6 +836,13 @@ UINT8 ppu_read (UINT16 address)
 
     switch (address & 7)
     {
+        case 0x2000 & 7:
+        case 0x2001 & 7:
+        case 0x2003 & 7:
+        case 0x2005 & 7:
+        case 0x2006 & 7:
+            return last_ppu_write_value;
+
         case 0x2002 & 7:
 
             /* PPU status register. */
@@ -843,14 +851,6 @@ UINT8 ppu_read (UINT16 address)
             {
                 data |= VBLANK_FLAG_BIT;
                 vblank_occured = FALSE;
-            }
-
-            if (!vram_writable)
-            {
-                if (background_enabled || sprites_enabled)
-                {
-                    data |= VRAM_WRITE_FLAG_BIT;
-                }
             }
 
             if (sprites_enabled && (ppu_scanline <= LAST_DISPLAYED_LINE))
@@ -877,7 +877,7 @@ UINT8 ppu_read (UINT16 address)
             address_write = FALSE;
 
 
-            return (data);
+            return (data | (last_ppu_write_value & 0x1F));
 
 
             break;
@@ -887,7 +887,7 @@ UINT8 ppu_read (UINT16 address)
 
             /* Sprite RAM I/O. */
 
-            data = ppu_spr_ram [spr_ram_address++];
+            return ppu_spr_ram [spr_ram_address++];
 
 
             break;
@@ -927,6 +927,8 @@ void ppu_write (UINT16 address, UINT8 value)
 
 
     /* Handle register mirroring. */
+
+    last_ppu_write_value = value;
 
     switch (address & 7)
     {
