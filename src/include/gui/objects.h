@@ -36,16 +36,16 @@ int sl_text (int message, DIALOG * dialog, int key)
 
                 /* d1 = shadow color. */
 
-                gui_textout (dialog -> dp, dialog -> dp2, (x + 1), (y + 1), dialog -> d1, FALSE);
+                gui_textout_ex (dialog -> dp, dialog -> dp2, (x + 1), (y + 1), dialog -> d1, -1, FALSE);
 
 
                 if (dialog -> flags & D_DISABLED)
                 {
-                    gui_textout (dialog -> dp, dialog -> dp2, x, y, gui_mg_color, FALSE);
+                    gui_textout_ex (dialog -> dp, dialog -> dp2, x, y, gui_mg_color, -1, FALSE);
                 }
                 else
                 {
-                    gui_textout (dialog -> dp, dialog -> dp2, x, y, gui_fg_color, FALSE);
+                    gui_textout_ex (dialog -> dp, dialog -> dp2, x, y, gui_fg_color, -1, FALSE);
                 }
             }
 
@@ -186,9 +186,9 @@ int sl_frame (int message, DIALOG * dialog, int key)
                 rectfill (dialog -> dp, (x + 1), (y + 1), (x2 - 1), ((text_height (font) + text_y) + 4), gui_bg_color);
 
 
-                textout (dialog -> dp, font, dialog -> dp2, (text_x + 1), (text_y + 1), dialog -> d1);
+                textout_ex (dialog -> dp, font, dialog -> dp2, (text_x + 1), (text_y + 1), dialog -> d1, -1);
 
-                textout (dialog -> dp, font, dialog -> dp2, text_x, text_y, gui_fg_color);
+                textout_ex (dialog -> dp, font, dialog -> dp2, text_x, text_y, gui_fg_color, -1);
 
 
                 hline (dialog -> dp, (x + 1), ((text_height (font) + text_y) + 4), (x2 - 1), gui_fg_color);
@@ -399,9 +399,9 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
         }
 
 
-        gui_textout (screen, buf, (x + 9), (y + 2), makecol (0, 0, 0), FALSE);
+        gui_textout_ex (screen, buf, (x + 9), (y + 2), makecol (0, 0, 0), -1, FALSE);
 
-        gui_textout (screen, buf, (x + 8), (y + 1), gui_fg_color, FALSE);
+        gui_textout_ex (screen, buf, (x + 8), (y + 1), gui_fg_color, -1, FALSE);
 
 
         if (j == '\t')
@@ -409,9 +409,9 @@ static void sl_draw_menu_item (MENU * menu, int x, int y, int width, int height,
             tok = ((menu -> text + i) + uwidth ((menu -> text + i)));
 
 
-            gui_textout (screen, tok, (x + ((width - (gui_strlen (tok) - 10)) + 1)), (y + 2), makecol (0, 0, 0), FALSE);
+            gui_textout_ex (screen, tok, (x + ((width - (gui_strlen (tok) - 10)) + 1)), (y + 2), makecol (0, 0, 0), -1, FALSE);
 
-            gui_textout (screen, tok, (x + (width - (gui_strlen (tok) - 10))), (y + 1), gui_fg_color, FALSE);
+            gui_textout_ex (screen, tok, (x + (width - (gui_strlen (tok) - 10))), (y + 1), gui_fg_color, -1, FALSE);
         }
 
 

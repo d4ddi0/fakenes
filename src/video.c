@@ -284,8 +284,6 @@ int video_init (void)
     }
 
 
-    text_mode (-1);
-
     font = DATA_TO_FONT (SMALL_FONT);
 
 
@@ -412,9 +410,9 @@ static INLINE void shadow_textout (BITMAP * bitmap, FONT * font, const UINT8 * t
 {
     /* This is a pain to do for printf, so we just do that manually. */
 
-    textout (bitmap, font, text, (x + 1), (y + 1), VIDEO_COLOR_BLACK);
+    textout_ex (bitmap, font, text, (x + 1), (y + 1), VIDEO_COLOR_BLACK, -1);
 
-    textout (bitmap, font, text, x, y, color);
+    textout_ex (bitmap, font, text, x, y, color, -1);
 }
 
 
@@ -430,16 +428,16 @@ static INLINE void display_status (BITMAP * bitmap, int color)
     shadow_textout (bitmap, font, "Core:", 16, (bitmap -> h - 50), color);
 
 
-    textprintf (bitmap, font, (20 + 1), ((bitmap -> h - 100) + 1), VIDEO_COLOR_BLACK, "%02d FPS", timing_fps);
+    textprintf_ex (bitmap, font, (20 + 1), ((bitmap -> h - 100) + 1), VIDEO_COLOR_BLACK, -1, "%02d FPS", timing_fps);
 
-    textprintf (bitmap, font, 20, (bitmap -> h - 100), color, "%02d FPS", timing_fps);
+    textprintf_ex (bitmap, font, 20, (bitmap -> h - 100), color, -1, "%02d FPS", timing_fps);
 
 
     if (audio_enable_output)
     {
-        textprintf (bitmap, font, (20 + 1), ((bitmap -> h - 68) + 1), VIDEO_COLOR_BLACK, "%02d FPS", timing_audio_fps);
+        textprintf_ex (bitmap, font, (20 + 1), ((bitmap -> h - 68) + 1), VIDEO_COLOR_BLACK, -1, "%02d FPS", timing_audio_fps);
 
-        textprintf (bitmap, font, 20, (bitmap -> h - 68), color, "%02d FPS", timing_audio_fps);
+        textprintf_ex (bitmap, font, 20, (bitmap -> h - 68), color, -1, "%02d FPS", timing_audio_fps);
     }
     else
     {
@@ -447,14 +445,14 @@ static INLINE void display_status (BITMAP * bitmap, int color)
     }
 
 
-    textprintf (bitmap, font, (20 + 1), ((bitmap -> h - 36) + 1), VIDEO_COLOR_BLACK, "%02d Hz", timing_hertz);
+    textprintf_ex (bitmap, font, (20 + 1), ((bitmap -> h - 36) + 1), VIDEO_COLOR_BLACK, -1, "%02d Hz", timing_hertz);
 
-    textprintf (bitmap, font, 20, (bitmap -> h - 36), color, "%02d Hz", timing_hertz);
+    textprintf_ex (bitmap, font, 20, (bitmap -> h - 36), color, -1, "%02d Hz", timing_hertz);
 
 
-    textprintf (bitmap, font, (20 + 1), ((bitmap -> h - 22) + 1), VIDEO_COLOR_BLACK, "PC: $%04X", * cpu_active_pc);
+    textprintf_ex (bitmap, font, (20 + 1), ((bitmap -> h - 22) + 1), VIDEO_COLOR_BLACK, -1, "PC: $%04X", * cpu_active_pc);
 
-    textprintf (bitmap, font, 20, (bitmap -> h - 22), color, "PC: $%04X", * cpu_active_pc);
+    textprintf_ex (bitmap, font, 20, (bitmap -> h - 22), color, -1, "PC: $%04X", * cpu_active_pc);
 }
 
 
@@ -495,11 +493,11 @@ static INLINE void blit_2xsoe (BITMAP * source, BITMAP * target, int x, int y)
         y += ((source -> h / 2) - (((text_height (font) * 2) + (text_height (font) / 2)) / 2));
 
 
-        textout (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_WHITE);
+        textout_ex (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_WHITE, -1);
 
 
-        textprintf (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),
-            VIDEO_COLOR_WHITE, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
+        textprintf_ex (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),
+            VIDEO_COLOR_WHITE, -1, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
 
 
         return;
@@ -725,11 +723,11 @@ static INLINE void blit_2xscl (BITMAP * source, BITMAP * target, int x, int y)
         y += ((source -> h / 2) - (((text_height (font) * 2) + (text_height (font) / 2)) / 2));
 
 
-        textout (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_WHITE);
+        textout_ex (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_WHITE, -1);
 
 
-        textprintf (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),
-            VIDEO_COLOR_WHITE, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
+        textprintf_ex (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),
+            VIDEO_COLOR_WHITE, -1, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
 
 
         return;
@@ -898,11 +896,11 @@ static INLINE void blit_interpolated (BITMAP * source, BITMAP * target, int x, i
         y += ((source -> h / 2) - (((text_height (font) * 2) + (text_height (font) / 2)) / 2));
 
 
-        textout (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_WHITE);
+        textout_ex (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_WHITE, -1);
 
 
-        textprintf (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),
-            VIDEO_COLOR_WHITE, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
+        textprintf_ex (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),
+            VIDEO_COLOR_WHITE, -1, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
 
 
         return;
@@ -998,11 +996,11 @@ static INLINE void blit_super_2xsoe (BITMAP * source, BITMAP * target, int x, in
         y += ((source -> h / 2) - (((text_height (font) * 2) + (text_height (font) / 2)) / 2));
 
 
-        textout (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_WHITE);
+        textout_ex (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_WHITE, -1);
 
 
-        textprintf (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),
-            VIDEO_COLOR_WHITE, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
+        textprintf_ex (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),
+            VIDEO_COLOR_WHITE, -1, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
 
 
         return;
@@ -1204,11 +1202,11 @@ static INLINE void blit_super_2xscl (BITMAP * source, BITMAP * target, int x, in
         y += ((source -> h / 2) - (((text_height (font) * 2) + (text_height (font) / 2)) / 2));
 
 
-        textout (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_WHITE);
+        textout_ex (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_WHITE, -1);
 
 
-        textprintf (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),
-            VIDEO_COLOR_WHITE, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
+        textprintf_ex (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),
+            VIDEO_COLOR_WHITE, -1, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
 
 
         return;

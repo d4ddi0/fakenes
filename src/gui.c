@@ -172,9 +172,9 @@ void gui_message (int color, AL_CONST UINT8 * message, ...)
         gui_message_border ();
     
     
-        textout_centre (screen, font, message_buffer, (SCREEN_W / 2), ((SCREEN_H - 19) - text_height (font)), 0);
+        textout_centre_ex (screen, font, message_buffer, (SCREEN_W / 2), ((SCREEN_H - 19) - text_height (font)), 0, -1);
     
-        textout_centre (screen, font, message_buffer, ((SCREEN_W / 2) - 1), (((SCREEN_H - 19) - text_height (font)) - 1), color);
+        textout_centre_ex (screen, font, message_buffer, ((SCREEN_W / 2) - 1), (((SCREEN_H - 19) - text_height (font)) - 1), color, -1);
 
 
         if (log_file)
