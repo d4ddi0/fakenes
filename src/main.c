@@ -439,6 +439,8 @@ int main (int argc, char * argv [])
 
     if (rom_is_loaded)
     {
+        resume_timing ();
+
         while (! input_process ())
         {
             papu_process_frame ();
@@ -802,7 +804,6 @@ int machine_init (void)
         cpu_reset ();
     
 
-        resume_timing ();
     }
 
 
