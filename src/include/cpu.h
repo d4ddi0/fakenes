@@ -39,7 +39,7 @@ extern "C" {
 
 UINT8 cpu_ram [65536];
 
-M6502 cpu_context;
+FN2A03 cpu_context;
 
 
 void sram_load (const char *rom_filename);
@@ -61,7 +61,7 @@ static INLINE void cpu_execute (int cycles)
 {
     cpu_context.ICount += cycles;
 
-    Run6502 (&cpu_context);
+    FN2A03_Run (&cpu_context);
 }
 
 
@@ -334,12 +334,12 @@ static INLINE void cpu_set_read_address_32k_rom_block (UINT16 block_start, int r
 }
 
 
-/* ----- M6502 Routines ----- */
+/* ----- FN2A03 Routines ----- */
 
 
-static INLINE byte Op6502 (word Addr)
+static INLINE UINT8 FN2A03_Fetch (UINT16 Addr)
 {
-    // printf ("Op6502 at $%04x.\n", Addr);
+    // printf ("FN2A03_Fetch at $%04x.\n", Addr);
 
     if (cpu_block_2k_read_address [Addr >> 11] != 0)
     {
@@ -352,9 +352,9 @@ static INLINE byte Op6502 (word Addr)
 }
 
 
-static INLINE byte Rd6502 (word Addr)
+static INLINE UINT8 FN2A03_Read (UINT16 Addr)
 {
-    // printf ("Rd6502 at $%04x.\n", Addr);
+    // printf ("FN2A03_Read at $%04x.\n", Addr);
 
     if (cpu_block_2k_read_address [Addr >> 11] != 0)
     {
@@ -367,9 +367,9 @@ static INLINE byte Rd6502 (word Addr)
 }
 
 
-static INLINE void Wr6502 (word Addr, byte Value)
+static INLINE void FN2A03_Write (UINT16 Addr, UINT8 Value)
 {
-    // printf ("Wr6502 at $%04x ($%02x).\n", Addr, Value);
+    // printf ("FN2A03_Write at $%04x ($%02x).\n", Addr, Value);
 
     if (cpu_block_2k_write_address [Addr >> 11] != 0)
     {
@@ -385,25 +385,25 @@ static INLINE void Wr6502 (word Addr, byte Value)
 #ifndef INLINE_WITH_MACROS
 
 
-static INLINE byte Rd6502Stack (byte S)
+static INLINE UINT8 FN2A03_Read_Stack (UINT8 S)
 {
     return (cpu_ram [0x100 + S]);
 }
 
 
-static INLINE void Wr6502Stack (byte S, byte Value)
+static INLINE void FN2A03_Write_Stack (UINT8 S, UINT8 Value)
 {
     cpu_ram [0x100 + S] = Value;
 }
 
 
-static INLINE byte Rd6502zp (byte S)
+static INLINE UINT8 FN2A03_Read_ZP (UINT8 S)
 {
     return (cpu_ram [S]);
 }
 
 
-static INLINE void Wr6502zp (byte S, byte Value)
+static INLINE void FN2A03_Write_ZP (UINT8 S, UINT8 Value)
 {
     cpu_ram [S] = Value;
 }
@@ -412,14 +412,14 @@ static INLINE void Wr6502zp (byte S, byte Value)
 #else   /* ! INLINE_WITH_MACROS */
 
 
-#define Rd6502Stack(S)          (cpu_ram [0x100 + S])
+#define FN2A03_Read_Stack(S)        (cpu_ram [0x100 + (UINT8) (S)])
 
-#define Wr6502Stack(S,Value)    (cpu_ram [0x100 + S] = Value)
+#define FN2A03_Write_Stack(S,Value) (cpu_ram [0x100 + (UINT8) (S)] = Value)
 
 
-#define Rd6502zp(S)             (cpu_ram [S])
+#define FN2A03_Read_ZP(S)           (cpu_ram [(UINT8) (S)])
 
-#define Wr6502zp(S,Value)       (cpu_ram [S] = Value)
+#define FN2A03_Write_ZP(S,Value)    (cpu_ram [(UINT8) (S)] = Value)
 
 
 #endif
@@ -428,19 +428,23 @@ static INLINE void Wr6502zp (byte S, byte Value)
 
 static INLINE UINT8 cpu_read (UINT16 address)
 {
-    return (Rd6502 (address));
+    return (FN2A03_Read (address));
 }
 
 
 static INLINE void cpu_write (UINT16 address, UINT8 value)
 {
-    Wr6502 (address, value);
+    FN2A03_Write (address, value);
 }
 
 
 void cpu_start_new_scanline (void);
 
-void cpu_consume_cycles (int cycles);
+static INLINE void cpu_consume_cycles (int cycles)
+{
+    FN2A03_consume_cycles (&cpu_context, cycles);
+}
+
 
 int cpu_get_cycles_line (void);
 int cpu_get_cycles (int);

@@ -1,3 +1,5 @@
+#ifndef __MISC_H__
+#define __MISC_H__
 
 
 #define UINT8   unsigned char
@@ -12,6 +14,26 @@
 #define INT16   signed short int
 
 #define INT32   signed long int
+
+
+typedef union
+{
+    struct
+    {
+#ifdef LSB_FIRST
+
+        UINT8 low, high;
+#else
+
+        UINT8 high, low;
+#endif
+    }
+    bytes;
+
+
+    UINT16 word;
+
+} PAIR;
 
 
 #undef  TRUE
@@ -29,3 +51,6 @@
 #undef NULL
 
 #define NULL    0
+
+
+#endif /* ! __MISC_H__ */

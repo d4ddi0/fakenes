@@ -1,24 +1,21 @@
-/** M6502: portable 6502 emulator ****************************/
-/**                                                         **/
-/**                          Tables.h                       **/
-/**                                                         **/
-/** This file contains tables of used by 6502 emulation to  **/
-/** compute NEGATIVE and ZERO flags. There are also timing  **/
-/** tables for 6502 opcodes. This file is included from     **/
-/** 6502.c.                                                 **/
-/**                                                         **/
-/** Copyright (C) Marat Fayzullin 1996                      **/
-/**     You are not allowed to distribute this software     **/
-/**     commercially. Please, notify me, if you make any    **/   
-/**     changes to this file.                               **/
-/*************************************************************/
-/* 13.January  2002 TRAC      Added option to allow CPU      */
-/*                            cycles to take more than one   */
-/*                            cycle-counter cycle.           */
-/* 26.November 2001 stainless Integrated into FakeNES.       */
-/*************************************************************/
+/*
 
-static byte BaseCycles[256] =
+FakeNES - A portable, Open Source NES emulator.
+
+core.c: Implementation of the RP2A03G CPU emulation
+
+Copyright (c) 2002, Charles Bilyue' and Randy McDowell.
+
+This is free software.  See 'LICENSE' for details.
+You must read and accept the license prior to use.
+
+ This file contains opcode execution timing tables for the Ricoh
+RP2A03G CPU, as used in the Nintendo Famicom (Family Computer) and
+NES (Nintendo Entertainment System).
+
+*/
+
+static UINT8 BaseCycles[256] =
 {
   7,6,2,8,3,3,5,5,3,2,2,2,4,4,6,6,
   2,5,2,8,4,4,6,6,2,4,2,7,5,5,7,7,
@@ -38,32 +35,4 @@ static byte BaseCycles[256] =
   2,5,2,8,4,4,6,6,2,4,2,7,5,5,7,7
 };
 
-static byte Cycles[256];
-
-byte ZNTable[256] =
-{
-  Z_FLAG,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-  N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,
-  N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,
-  N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,
-  N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,
-  N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,
-  N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,
-  N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,
-  N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,
-  N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,
-  N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,
-  N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,
-  N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,
-  N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,
-  N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,
-  N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,
-  N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,N_FLAG,
-};
+static UINT8 Cycles[256];

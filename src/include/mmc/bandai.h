@@ -39,7 +39,7 @@ static char bandai_enable_irqs = FALSE;
 
 static int bandai_irq_counter = 0;
 
-static MMC_COMBO16 bandai_irq_latch;
+static PAIR bandai_irq_latch;
 
 
 static int bandai_irq_tick (int line)

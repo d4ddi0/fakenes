@@ -1,752 +1,737 @@
-/** M6502: portable 6502 emulator ****************************/
-/**                                                         **/
-/**                          Codes.h                        **/
-/**                                                         **/
-/** This file contains implementation for the main table of **/
-/** 6502 commands. It is included from 6502.c.              **/
-/**                                                         **/
-/** Copyright (C) Marat Fayzullin 1996                      **/
-/**               Alex Krasivsky  1996                      **/
-/**     You are not allowed to distribute this software     **/
-/**     commercially. Please, notify me, if you make any    **/
-/**     changes to this file.                               **/
-/*************************************************************/
-/* 13.August   2002 TRAC      Reduced unmovable global       */
-/*                            references to PC.              */
-/* 11.June     2002 stainless $f2 JAM/HLT opcode added.      */
-/* 16.January  2002 TRAC      Added flag emulation to TSX.   */
-/* 09.January  2002 TRAC      Added opcodes 04, 0F, 80.      */
-/* 07.January  2002 TRAC      Altered method of flag         */
-/*                            emulation.                     */
-/* 10.December 2001 TRAC      Added opcodes 07 and 74.       */
-/* 04.December 2001 stainless $ff INS word,X opcode added.   */
-/* 04.December 2001 stainless $ef INS word opcode added.     */
-/* 02.December 2001 stainless Opcode fallback trace.         */
-/* 27.November 2001 stainless Fixed GCC compiler warning.    */
-/* 27.November 2001 stainless Added N6502 $6c opcode bug.    */
-/* 26.November 2001 stainless Integrated into FakeNES.       */
-/*************************************************************/
+/*
+
+FakeNES - A portable, Open Source NES emulator.
+
+core.c: Implementation of the RP2A03G CPU emulation
+
+Copyright (c) 2002, Charles Bilyue' and Randy McDowell.
+
+This is free software.  See 'LICENSE' for details.
+You must read and accept the license prior to use.
+
+ This file contains opcode emulation functions for the Ricoh RP2A03G
+CPU, as used in the Nintendo Famicom (Family Computer) and NES
+(Nintendo Entertainment System).
+
+*/
 
 OPCODE_PROLOG(0x10) /* BPL * REL */
-    if (R->N&N_FLAG) R->PC.W+=2; else { M_JR; } OPCODE_EXIT
+    Insn_Branch(!(R->N&N_FLAG)) OPCODE_EXIT
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x30) /* BMI * REL */
-    if (R->N&N_FLAG) { M_JR; } else R->PC.W+=2; OPCODE_EXIT
+    Insn_Branch(R->N&N_FLAG) OPCODE_EXIT
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xD0) /* BNE * REL */
-    if (!R->Z) R->PC.W+=2; else { M_JR; } OPCODE_EXIT
+    Insn_Branch(R->Z) OPCODE_EXIT
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xF0) /* BEQ * REL */
-    if (!R->Z) { M_JR; } else R->PC.W+=2; OPCODE_EXIT
+    Insn_Branch(!R->Z) OPCODE_EXIT
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x90) /* BCC * REL */
-    if (R->C) R->PC.W+=2; else { M_JR; } OPCODE_EXIT
+    Insn_Branch(!R->C) OPCODE_EXIT
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xB0) /* BCS * REL */
-    if (R->C) { M_JR; } else R->PC.W+=2; OPCODE_EXIT
+    Insn_Branch(R->C) OPCODE_EXIT
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x50) /* BVC * REL */
-    if (R->V) R->PC.W+=2; else { M_JR; } OPCODE_EXIT
+    Insn_Branch(!R->V) OPCODE_EXIT
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x70) /* BVS * REL */
-    if (R->V) { M_JR; } else R->PC.W+=2; OPCODE_EXIT
+    Insn_Branch(R->V) OPCODE_EXIT
 OPCODE_EPILOG
 
 
 OPCODE_PROLOG(0x40) /* RTI */
-    byte P;
-    M_POP(P);
-    if((R->IRequest!=INT_NONE)&&(!(P&I_FLAG) && R->I))
+    UINT8 P;
+    Pull(P);
+    if ((R->IRequest != FN2A03_INT_NONE) && (!(P & I_FLAG) && R->I))
     {
-      R->AfterCLI=1;
-      R->IBackup=R->ICount;
-      R->ICount=1;
+      R->AfterCLI = 1;
+      R->IBackup = R->ICount;
+      R->ICount = 1;
     }
-    M_UNFIX_P(P);M_POP(J.B.l);M_POP(J.B.h);R->PC.W=J.W;
+    Unpack_Flags(P); Pull16(PC);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x60) /* RTS */
-    M_POP(J.B.l);M_POP(J.B.h);R->PC.W=J.W+1;
+    Pull16(PC); PC.word++;
 OPCODE_EPILOG
 
 
 OPCODE_PROLOG(0x20) /* JSR $ssss ABS */
-    K.B.l=Op6502(R->PC.W+1);
-    K.B.h=Op6502(R->PC.W+2);
-    J.W=R->PC.W+2;
-    M_PUSH(J.B.h);
-    M_PUSH(J.B.l);
-    R->PC=K;
+    Fetch16(address);
+    PC.word += 2;
+    Push16(PC);
+    PC.word = address.word;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x4C) /* JMP $ssss ABS */
-    M_LDWORD(K);R->PC=K;
+    Fetch16(address);
+    PC.word = address.word;
 OPCODE_EPILOG
 
-OPCODE_PROLOG(0x6C) /* JMP ($ssss) ABDINDIR */
-    M_LDWORD(K);
-    J.B.l=Rd6502(K.W);
-    K.B.l++;
-    J.B.h=Rd6502(K.W);
-    R->PC.W=J.W;
+OPCODE_PROLOG(0x6C) /* JMP ($ssss) ABSINDIR */
+    Fetch16(address);
+    PC.bytes.low = Read(address.word);
+    address.bytes.low++;
+    PC.bytes.high = Read(address.word);
 OPCODE_EPILOG
 
 
 OPCODE_PROLOG(0x00) /* BRK */
-  byte P;
-  J.W=R->PC.W+2;
-  M_PUSH(J.B.h);M_PUSH(J.B.l);
-  P = M_FIX_P() | B_FLAG;
-  M_PUSH(P);
-  R->I=1;
-  J.B.l=Rd6502(0xFFFE);
-  J.B.h=Rd6502(0xFFFF);
-  R->PC.W=J.W;
+  UINT8 P;
+  PC.word += 2;
+  Push16(PC);
+  P = Pack_Flags() | B_FLAG;
+  Push(P);
+  R->I = 1;
+  PC.bytes.low = Read(0xFFFE);
+  PC.bytes.high = Read(0xFFFF);
 OPCODE_EPILOG
 
 
 OPCODE_PROLOG(0x58) /* CLI */
-    if((R->IRequest!=INT_NONE)&&(R->I))
+    if ((R->IRequest != FN2A03_INT_NONE) && (R->I))
     {
-      R->AfterCLI=1;
-      R->IBackup=R->ICount;
-      R->ICount=1;
+      R->AfterCLI = 1;
+      R->IBackup = R->ICount;
+      R->ICount = 1;
     }
-    R->I=0;
-    R->PC.W++;
+    R->I = 0;
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x28) /* PLP */
-    byte P;
-    M_POP(P);
-    if((R->IRequest!=INT_NONE)&&(!(P&I_FLAG) && R->I))
+    UINT8 P;
+    Pull(P);
+    if ((R->IRequest != FN2A03_INT_NONE) && (!(P & I_FLAG) && R->I))
     {
-      R->AfterCLI=1;
-      R->IBackup=R->ICount;
-      R->ICount=1;
+      R->AfterCLI = 1;
+      R->IBackup = R->ICount;
+      R->ICount = 1;
     }
-    M_UNFIX_P(P);
-    R->PC.W++;
+    Unpack_Flags(P);
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x08) /* PHP */
-    byte P;
-    P = M_FIX_P(); M_PUSH(P);
-    R->PC.W++;
+    UINT8 P;
+    P = Pack_Flags(); Push(P);
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x18) /* CLC */
-    R->C=0;
-    R->PC.W++;
+    R->C = 0;
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xB8) /* CLV */
-    R->V=0;
-    R->PC.W++;
+    R->V = 0;
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xD8) /* CLD */
-    R->D=0;
-    R->PC.W++;
+    R->D = 0;
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x38) /* SEC */
-    R->C=1;
-    R->PC.W++;
+    R->C = 1;
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xF8) /* SED */
-    R->D=1;
-    R->PC.W++;
+    R->D = 1;
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x78) /* SEI */
-    R->I=1;
-    R->PC.W++;
+    R->I = 1;
+    PC.word++;
 OPCODE_EPILOG
 
 
 OPCODE_PROLOG(0x48) /* PHA */
-    M_PUSH(R->A);
-    R->PC.W++;
+    Push(R->A);
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x68) /* PLA */
-    M_POP(R->A); M_FL(R->A);
-    R->PC.W++;
+    Pull(R->A); Update_NZ(R->A);
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x98) /* TYA */
-    R->A=R->Y; M_FL(R->A);
-    R->PC.W++;
+    R->A = R->Y; Update_NZ(R->A);
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xA8) /* TAY */
-    R->Y=R->A; M_FL(R->Y);
-    R->PC.W++;
+    R->Y = R->A; Update_NZ(R->Y);
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xC8) /* INY */
-    R->Y++; M_FL(R->Y);
-    R->PC.W++;
+    R->Y++; Update_NZ(R->Y);
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x88) /* DEY */
-    R->Y--; M_FL(R->Y);
-    R->PC.W++;
+    R->Y--; Update_NZ(R->Y);
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x8A) /* TXA */
-    R->A=R->X; M_FL(R->A);
-    R->PC.W++;
+    R->A = R->X; Update_NZ(R->A);
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xAA) /* TAX */
-    R->X=R->A; M_FL(R->X);
-    R->PC.W++;
+    R->X = R->A; Update_NZ(R->X);
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xE8) /* INX */
-    R->X++; M_FL(R->X);
-    R->PC.W++;
+    R->X++; Update_NZ(R->X);
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xCA) /* DEX */
-    R->X--; M_FL(R->X);
-    R->PC.W++;
+    R->X--; Update_NZ(R->X);
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xEA) /* NOP */
-    R->PC.W++;
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x9A) /* TXS */
-    R->S=R->X;
-    R->PC.W++;
+    R->S = R->X;
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xBA) /* TSX */
-    R->X=R->S; M_FL(R->X);
-    R->PC.W++;
+    R->X = R->S; Update_NZ(R->X);
+    PC.word++;
 OPCODE_EPILOG
 
 
 OPCODE_PROLOG(0x24) /* BIT $ss ZP */
-    MR_Zp(I); M_BIT(I);
+    Read_Zero_Page(data); Insn_BIT(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x2C) /* BIT $ssss ABS */
-    MR_Ab(I); M_BIT(I);
+    Read_Absolute(data); Insn_BIT(data);
 OPCODE_EPILOG
 
 
 OPCODE_PROLOG(0x04) /* NOP $ss ZP */
-    MR_Zp(I);
+    Read_Zero_Page(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x05) /* ORA $ss ZP */
-    MR_Zp(I); M_ORA(I);
+    Read_Zero_Page(data); Insn_ORA(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x06) /* ASL $ss ZP */
-    MM_Zp(M_ASL);
+    RMW_Zero_Page(Insn_ASL);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x07) /* SLO $ss ZP */
-    MM_Zp(M_SLO);
+    RMW_Zero_Page(Insn_SLO);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x25) /* AND $ss ZP */
-    MR_Zp(I); M_AND(I);
+    Read_Zero_Page(data); Insn_AND(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x26) /* ROL $ss ZP */
-    MM_Zp(M_ROL);
+    RMW_Zero_Page(Insn_ROL);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x45) /* EOR $ss ZP */
-    MR_Zp(I); M_EOR(I);
+    Read_Zero_Page(data); Insn_EOR(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x46) /* LSR $ss ZP */
-    MM_Zp(M_LSR);
+    RMW_Zero_Page(Insn_LSR);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x65) /* ADC $ss ZP */
-    MR_Zp(I); M_ADC(I);
+    Read_Zero_Page(data); Insn_ADC(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x66) /* ROL $ss ZP */
-    MM_Zp(M_ROR);
+    RMW_Zero_Page(Insn_ROR);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x84) /* STY $ss ZP */
-    MW_Zp(R->Y);
+    Write_Zero_Page(R->Y);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x85) /* STA $ss ZP */
-    MW_Zp(R->A);
+    Write_Zero_Page(R->A);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x86) /* STX $ss ZP */
-    MW_Zp(R->X);
+    Write_Zero_Page(R->X);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xA4) /* LDY $ss ZP */
-    MR_Zp(R->Y); M_FL(R->Y);
+    Read_Zero_Page(R->Y); Update_NZ(R->Y);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xA5) /* LDA $ss ZP */
-    MR_Zp(R->A); M_FL(R->A);
+    Read_Zero_Page(R->A); Update_NZ(R->A);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xA6) /* LDX $ss ZP */
-    MR_Zp(R->X); M_FL(R->X);
+    Read_Zero_Page(R->X); Update_NZ(R->X);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xC4) /* CPY $ss ZP */
-    MR_Zp(I); M_CMP(R->Y,I);
+    Read_Zero_Page(data); Insn_CMP(R->Y, data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xC5) /* CMP $ss ZP */
-    MR_Zp(I); M_CMP(R->A,I);
+    Read_Zero_Page(data); Insn_CMP(R->A, data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xC6) /* DEC $ss ZP */
-    MM_Zp(M_DEC);
+    RMW_Zero_Page(Insn_DEC);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xE4) /* CPX $ss ZP */
-    MR_Zp(I); M_CMP(R->X,I);
+    Read_Zero_Page(data); Insn_CMP(R->X, data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xE5) /* SBC $ss ZP */
-    MR_Zp(I); M_SBC(I);
+    Read_Zero_Page(data); Insn_SBC(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xE6) /* INC $ss ZP */
-    MM_Zp(M_INC);
+    RMW_Zero_Page(Insn_INC);
 OPCODE_EPILOG
 
 
 OPCODE_PROLOG(0x0D) /* ORA $ssss ABS */
-    MR_Ab(I); M_ORA(I);
+    Read_Absolute(data); Insn_ORA(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x0E) /* ASL $ssss ABS */
-    MM_Ab(M_ASL);
+    RMW_Absolute(Insn_ASL);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x0F) /* SLO $ssss ABS */
-    MM_Ab(M_SLO);
+    RMW_Absolute(Insn_SLO);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x2D) /* AND $ssss ABS */
-    MR_Ab(I); M_AND(I);
+    Read_Absolute(data); Insn_AND(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x2E) /* ROL $ssss ABS */
-    MM_Ab(M_ROL);
+    RMW_Absolute(Insn_ROL);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x4D) /* EOR $ssss ABS */
-    MR_Ab(I); M_EOR(I);
+    Read_Absolute(data); Insn_EOR(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x4E) /* LSR $ssss ABS */
-    MM_Ab(M_LSR);
+    RMW_Absolute(Insn_LSR);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x6D) /* ADC $ssss ABS */
-    MR_Ab(I); M_ADC(I);
+    Read_Absolute(data); Insn_ADC(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x6E) /* ROR $ssss ABS */
-    MM_Ab(M_ROR);
+    RMW_Absolute(Insn_ROR);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x8C) /* STY $ssss ABS */
-    MW_Ab(R->Y);
+    Write_Absolute(R->Y);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x8D) /* STA $ssss ABS */
-    MW_Ab(R->A);
+    Write_Absolute(R->A);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x8E) /* STX $ssss ABS */
-    MW_Ab(R->X);
+    Write_Absolute(R->X);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xAC) /* LDY $ssss ABS */
-    MR_Ab(R->Y); M_FL(R->Y);
+    Read_Absolute(R->Y); Update_NZ(R->Y);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xAD) /* LDA $ssss ABS */
-    MR_Ab(R->A); M_FL(R->A);
+    Read_Absolute(R->A); Update_NZ(R->A);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xAE) /* LDX $ssss ABS */
-    MR_Ab(R->X); M_FL(R->X);
+    Read_Absolute(R->X); Update_NZ(R->X);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xCC) /* CPY $ssss ABS */
-    MR_Ab(I); M_CMP(R->Y,I);
+    Read_Absolute(data); Insn_CMP(R->Y, data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xCD) /* CMP $ssss ABS */
-    MR_Ab(I); M_CMP(R->A,I);
+    Read_Absolute(data); Insn_CMP(R->A, data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xCE) /* DEC $ssss ABS */
-    MM_Ab(M_DEC);
+    RMW_Absolute(Insn_DEC);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xEC) /* CPX $ssss ABS */
-    MR_Ab(I); M_CMP(R->X,I);
+    Read_Absolute(data); Insn_CMP(R->X, data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xED) /* SBC $ssss ABS */
-    MR_Ab(I); M_SBC(I);
+    Read_Absolute(data); Insn_SBC(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xEE) /* INC $ssss ABS */
-    MM_Ab(M_INC);
+    RMW_Absolute(Insn_INC);
 OPCODE_EPILOG
 
 
 OPCODE_PROLOG(0x09) /* ORA #$ss IMM */
-    MR_Im(I); M_ORA(I);
+    Read_Immediate(data); Insn_ORA(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x29) /* AND #$ss IMM */
-    MR_Im(I); M_AND(I);
+    Read_Immediate(data); Insn_AND(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x49) /* EOR #$ss IMM */
-    MR_Im(I); M_EOR(I);
+    Read_Immediate(data); Insn_EOR(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x69) /* ADC #$ss IMM */
-    MR_Im(I); M_ADC(I);
+    Read_Immediate(data); Insn_ADC(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x80) /* NOP #$ss IMM */
-    MR_Im(I);
+    Read_Immediate(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xA0) /* LDY #$ss IMM */
-    MR_Im(R->Y); M_FL(R->Y);
+    Read_Immediate(R->Y); Update_NZ(R->Y);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xA2) /* LDX #$ss IMM */
-    MR_Im(R->X); M_FL(R->X);
+    Read_Immediate(R->X); Update_NZ(R->X);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xA9) /* LDA #$ss IMM */
-    MR_Im(R->A); M_FL(R->A);
+    Read_Immediate(R->A); Update_NZ(R->A);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xC0) /* CPY #$ss IMM */
-    MR_Im(I); M_CMP(R->Y,I);
+    Read_Immediate(data); Insn_CMP(R->Y, data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xC9) /* CMP #$ss IMM */
-    MR_Im(I); M_CMP(R->A,I);
+    Read_Immediate(data); Insn_CMP(R->A, data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xE0) /* CPX #$ss IMM */
-    MR_Im(I); M_CMP(R->X,I);
+    Read_Immediate(data); Insn_CMP(R->X, data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xE9) /* SBC #$ss IMM */
-    MR_Im(I); M_SBC(I);
+    Read_Immediate(data); Insn_SBC(data);
 OPCODE_EPILOG
 
 
 OPCODE_PROLOG(0x15) /* ORA $ss,x ZP,x */
-    MR_Zx(I); M_ORA(I);
+    Read_Zero_Page_Index_X(data); Insn_ORA(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x16) /* ASL $ss,x ZP,x */
-    MM_Zx(M_ASL);
+    RMW_Zero_Page_Index_X(Insn_ASL);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x35) /* AND $ss,x ZP,x */
-    MR_Zx(I); M_AND(I);
+    Read_Zero_Page_Index_X(data); Insn_AND(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x36) /* ROL $ss,x ZP,x */
-    MM_Zx(M_ROL);
+    RMW_Zero_Page_Index_X(Insn_ROL);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x55) /* EOR $ss,x ZP,x */
-    MR_Zx(I); M_EOR(I);
+    Read_Zero_Page_Index_X(data); Insn_EOR(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x56) /* LSR $ss,x ZP,x */
-    MM_Zx(M_LSR);
+    RMW_Zero_Page_Index_X(Insn_LSR);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x74) /* NOP $ss,x ZP,x */
-    MR_Zx(I);
+    Read_Zero_Page_Index_X(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x75) /* ADC $ss,x ZP,x */
-    MR_Zx(I); M_ADC(I);
+    Read_Zero_Page_Index_X(data); Insn_ADC(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x76) /* ROR $ss,x ZP,x */
-    MM_Zx(M_ROR);
+    RMW_Zero_Page_Index_X(Insn_ROR);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x94) /* STY $ss,x ZP,x */
-    MW_Zx(R->Y);
+    Write_Zero_Page_Index_X(R->Y);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x95) /* STA $ss,x ZP,x */
-    MW_Zx(R->A);
+    Write_Zero_Page_Index_X(R->A);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x96) /* STX $ss,y ZP,y */
-    MW_Zy(R->X);
+    Write_Zero_Page_Index_Y(R->X);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xB4) /* LDY $ss,x ZP,x */
-    MR_Zx(R->Y); M_FL(R->Y);
+    Read_Zero_Page_Index_X(R->Y); Update_NZ(R->Y);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xB5) /* LDA $ss,x ZP,x */
-    MR_Zx(R->A); M_FL(R->A);
+    Read_Zero_Page_Index_X(R->A); Update_NZ(R->A);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xB6) /* LDX $ss,y ZP,y */
-    MR_Zy(R->X); M_FL(R->X);
+    Read_Zero_Page_Index_Y(R->X); Update_NZ(R->X);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xD5) /* CMP $ss,x ZP,x */
-    MR_Zx(I); M_CMP(R->A,I);
+    Read_Zero_Page_Index_X(data); Insn_CMP(R->A, data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xD6) /* DEC $ss,x ZP,x */
-    MM_Zx(M_DEC);
+    RMW_Zero_Page_Index_X(Insn_DEC);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xF5) /* SBC $ss,x ZP,x */
-    MR_Zx(I); M_SBC(I);
+    Read_Zero_Page_Index_X(data); Insn_SBC(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xF6) /* INC $ss,x ZP,x */
-    MM_Zx(M_INC);
+    RMW_Zero_Page_Index_X(Insn_INC);
 OPCODE_EPILOG
 
 
 OPCODE_PROLOG(0x19) /* ORA $ssss,y ABS,y */
-    MR_Ay(I); M_ORA(I);
+    Read_Absolute_Index_Y(data); Insn_ORA(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x1D) /* ORA $ssss,x ABS,x */
-    MR_Ax(I); M_ORA(I);
+    Read_Absolute_Index_X(data); Insn_ORA(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x1E) /* ASL $ssss,x ABS,x */
-    MM_Ax(M_ASL);
+    RMW_Absolute_Index_X(Insn_ASL);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x39) /* AND $ssss,y ABS,y */
-    MR_Ay(I); M_AND(I);
+    Read_Absolute_Index_Y(data); Insn_AND(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x3D) /* AND $ssss,x ABS,x */
-    MR_Ax(I); M_AND(I);
+    Read_Absolute_Index_X(data); Insn_AND(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x3E) /* ROL $ssss,x ABS,x */
-    MM_Ax(M_ROL);
+    RMW_Absolute_Index_X(Insn_ROL);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x59) /* EOR $ssss,y ABS,y */
-    MR_Ay(I); M_EOR(I);
+    Read_Absolute_Index_Y(data); Insn_EOR(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x5D) /* EOR $ssss,x ABS,x */
-    MR_Ax(I); M_EOR(I);
+    Read_Absolute_Index_X(data); Insn_EOR(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x5E) /* LSR $ssss,x ABS,x */
-    MM_Ax(M_LSR);
+    RMW_Absolute_Index_X(Insn_LSR);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x79) /* ADC $ssss,y ABS,y */
-    MR_Ay(I); M_ADC(I);
+    Read_Absolute_Index_Y(data); Insn_ADC(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x7D) /* ADC $ssss,x ABS,x */
-    MR_Ax(I); M_ADC(I);
+    Read_Absolute_Index_X(data); Insn_ADC(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x7E) /* ROR $ssss,x ABS,x */
-    MM_Ax(M_ROR);
+    RMW_Absolute_Index_X(Insn_ROR);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x99) /* STA $ssss,y ABS,y */
-    MW_Ay(R->A);
+    Write_Absolute_Index_Y(R->A);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x9D) /* STA $ssss,x ABS,x */
-    MW_Ax(R->A);
+    Write_Absolute_Index_X(R->A);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xB9) /* LDA $ssss,y ABS,y */
-    MR_Ay(R->A); M_FL(R->A);
+    Read_Absolute_Index_Y(R->A); Update_NZ(R->A);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xBC) /* LDY $ssss,x ABS,x */
-    MR_Ax(R->Y); M_FL(R->Y);
+    Read_Absolute_Index_X(R->Y); Update_NZ(R->Y);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xBD) /* LDA $ssss,x ABS,x */
-    MR_Ax(R->A); M_FL(R->A);
+    Read_Absolute_Index_X(R->A); Update_NZ(R->A);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xBE) /* LDX $ssss,y ABS,y */
-    MR_Ay(R->X); M_FL(R->X);
+    Read_Absolute_Index_Y(R->X); Update_NZ(R->X);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xD9) /* CMP $ssss,y ABS,y */
-    MR_Ay(I); M_CMP(R->A,I);
+    Read_Absolute_Index_Y(data); Insn_CMP(R->A, data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xDD) /* CMP $ssss,x ABS,x */
-    MR_Ax(I); M_CMP(R->A,I);
+    Read_Absolute_Index_X(data); Insn_CMP(R->A, data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xDE) /* DEC $ssss,x ABS,x */
-    MM_Ax(M_DEC);
+    RMW_Absolute_Index_X(Insn_DEC);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xF9) /* SBC $ssss,y ABS,y */
-    MR_Ay(I); M_SBC(I);
+    Read_Absolute_Index_Y(data); Insn_SBC(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xFD) /* SBC $ssss,x ABS,x */
-    MR_Ax(I); M_SBC(I);
+    Read_Absolute_Index_X(data); Insn_SBC(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xFE) /* INC $ssss,x ABS,x */
-    MM_Ax(M_INC);
+    RMW_Absolute_Index_X(Insn_INC);
 OPCODE_EPILOG
 
 
-OPCODE_PROLOG(0x01) /* ORA ($ss,x) INDEXINDIR */
-    MR_Ix(I); M_ORA(I);
+OPCODE_PROLOG(0x01) /* ORA ($ss,x) */
+    Read_Indexed_Indirect_X(data); Insn_ORA(data);
 OPCODE_EPILOG
 
-OPCODE_PROLOG(0x11) /* ORA ($ss),y INDIRINDEX */
-    MR_Iy(I); M_ORA(I);
+OPCODE_PROLOG(0x11) /* ORA ($ss),y */
+    Read_Indirect_Indexed_Y(data); Insn_ORA(data);
 OPCODE_EPILOG
 
-OPCODE_PROLOG(0x21) /* AND ($ss,x) INDEXINDIR */
-    MR_Ix(I); M_AND(I);
+OPCODE_PROLOG(0x21) /* AND ($ss,x) */
+    Read_Indexed_Indirect_X(data); Insn_AND(data);
 OPCODE_EPILOG
 
-OPCODE_PROLOG(0x31) /* AND ($ss),y INDIRINDEX */
-    MR_Iy(I); M_AND(I);
+OPCODE_PROLOG(0x31) /* AND ($ss),y */
+    Read_Indirect_Indexed_Y(data); Insn_AND(data);
 OPCODE_EPILOG
 
-OPCODE_PROLOG(0x41) /* EOR ($ss,x) INDEXINDIR */
-    MR_Ix(I); M_EOR(I);
+OPCODE_PROLOG(0x41) /* EOR ($ss,x) */
+    Read_Indexed_Indirect_X(data); Insn_EOR(data);
 OPCODE_EPILOG
 
-OPCODE_PROLOG(0x51) /* EOR ($ss),y INDIRINDEX */
-    MR_Iy(I); M_EOR(I);
+OPCODE_PROLOG(0x51) /* EOR ($ss),y */
+    Read_Indirect_Indexed_Y(data); Insn_EOR(data);
 OPCODE_EPILOG
 
-OPCODE_PROLOG(0x61) /* ADC ($ss,x) INDEXINDIR */
-    MR_Ix(I); M_ADC(I);
+OPCODE_PROLOG(0x61) /* ADC ($ss,x) */
+    Read_Indexed_Indirect_X(data); Insn_ADC(data);
 OPCODE_EPILOG
 
-OPCODE_PROLOG(0x71) /* ADC ($ss),y INDIRINDEX */
-    MR_Iy(I); M_ADC(I);
+OPCODE_PROLOG(0x71) /* ADC ($ss),y */
+    Read_Indirect_Indexed_Y(data); Insn_ADC(data);
 OPCODE_EPILOG
 
-OPCODE_PROLOG(0x81) /* STA ($ss,x) INDEXINDIR */
-    MW_Ix(R->A);
+OPCODE_PROLOG(0x81) /* STA ($ss,x) */
+    Write_Indexed_Indirect_X(R->A);
 OPCODE_EPILOG
 
-OPCODE_PROLOG(0x91) /* STA ($ss),y INDIRINDEX */
-    MW_Iy(R->A);
+OPCODE_PROLOG(0x91) /* STA ($ss),y */
+    Write_Indirect_Indexed_Y(R->A);
 OPCODE_EPILOG
 
-OPCODE_PROLOG(0xA1) /* LDA ($ss,x) INDEXINDIR */
-    MR_Ix(R->A); M_FL(R->A);
+OPCODE_PROLOG(0xA1) /* LDA ($ss,x) */
+    Read_Indexed_Indirect_X(R->A); Update_NZ(R->A);
 OPCODE_EPILOG
 
-OPCODE_PROLOG(0xB1) /* LDA ($ss),y INDIRINDEX */
-    MR_Iy(R->A); M_FL(R->A);
+OPCODE_PROLOG(0xB1) /* LDA ($ss),y */
+    Read_Indirect_Indexed_Y(R->A); Update_NZ(R->A);
 OPCODE_EPILOG
 
-OPCODE_PROLOG(0xC1) /* CMP ($ss,x) INDEXINDIR */
-    MR_Ix(I); M_CMP(R->A,I);
+OPCODE_PROLOG(0xC1) /* CMP ($ss,x) */
+    Read_Indexed_Indirect_X(data); Insn_CMP(R->A, data);
 OPCODE_EPILOG
 
-OPCODE_PROLOG(0xD1) /* CMP ($ss),y INDIRINDEX */
-    MR_Iy(I); M_CMP(R->A,I);
+OPCODE_PROLOG(0xD1) /* CMP ($ss),y */
+    Read_Indirect_Indexed_Y(data); Insn_CMP(R->A, data);
 OPCODE_EPILOG
 
-OPCODE_PROLOG(0xE1) /* SBC ($ss,x) INDEXINDIR */
-    MR_Ix(I); M_SBC(I);
+OPCODE_PROLOG(0xE1) /* SBC ($ss,x) */
+    Read_Indexed_Indirect_X(data); Insn_SBC(data);
 OPCODE_EPILOG
 
-OPCODE_PROLOG(0xF1) /* SBC ($ss),y INDIRINDEX */
-    MR_Iy(I); M_SBC(I);
+OPCODE_PROLOG(0xF1) /* SBC ($ss),y */
+    Read_Indirect_Indexed_Y(data); Insn_SBC(data);
 OPCODE_EPILOG
 
 
 OPCODE_PROLOG(0x0A) /* ASL a ACC */
-    M_ASL(R->A);
-    R->PC.W++;
+    Insn_ASL(R->A);
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x2A) /* ROL a ACC */
-    M_ROL(R->A);
-    R->PC.W++;
+    Insn_ROL(R->A);
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x4A) /* LSR a ACC */
-    M_LSR(R->A);
-    R->PC.W++;
+    Insn_LSR(R->A);
+    PC.word++;
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x6A) /* ROR a ACC */
-    M_ROR(R->A);
-    R->PC.W++;
+    Insn_ROR(R->A);
+    PC.word++;
 OPCODE_EPILOG
 
 
 OPCODE_PROLOG(0xEF) /* INS abcd */
-    MC_Ab(K);
-    I=Rd6502(K.W);
-    Wr6502(K.W,++I);
-    M_SBC(I);
+    Address_Absolute();
+    data = Read(address.word) + 1;
+    Write(address.word, data);
+    Insn_SBC(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xFF) /* INS abcd,X */
-    MC_Ab(K);
-    K.W+=R->X;
-    I=Rd6502(K.W);
-    Wr6502(K.W,++I);
-    M_SBC(I);
+    Address_Absolute();
+    address.word += R->X;
+    data = Read(address.word) + 1;
+    Write(address.word, data);
+    Insn_SBC(data);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0xF2) /* JAM */
-    R->Jammed=1;
+    R->Jammed = 1;
 OPCODE_EPILOG
 
 OPCODE_PROLOG_DEFAULT
@@ -754,17 +739,18 @@ OPCODE_PROLOG_DEFAULT
     {
         printf
         (
-            "[M6502] Unrecognized instruction: $%02X at PC=$%04X\n",
-            Op6502(R->PC.W),(word)(R->PC.W)
+            "[FN2A03] Unrecognized instruction: $%02X at PC=$%04X\n",
+            Fetch(PC.word),(UINT16)(PC.word)
         );
     }
 #ifdef DEBUG
         printf("\nOpcode fallback trace:\n\n");
-        for (opcode_count=0;opcode_count<10;opcode_count++) {
+        for (opcode_count = 0; opcode_count < 10; opcode_count++)
+        {
             printf("$%02X ",opcode_trace[opcode_count]);
-            opcode_trace[opcode_count]=0;
+            opcode_trace[opcode_count] = 0;
         }
         printf("\n\n");
-        opcode_count=0;
+        opcode_count = 0;
 #endif
 OPCODE_EPILOG

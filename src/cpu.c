@@ -143,7 +143,7 @@ int cpu_init (void)
     }
 
 
-    cpu_active_pc = &cpu_context.PC.W;
+    cpu_active_pc = &cpu_context.PC.word;
 
 
     if (global_rom.sram_flag)
@@ -345,8 +345,7 @@ void cpu_reset (void)
     }
 
 
-    cpu_context.IPeriod = 0;
-    Reset6502 (&cpu_context);
+    FN2A03_Reset (&cpu_context);
 }
 
 
@@ -356,7 +355,7 @@ void cpu_interrupt (int type)
     {
         case CPU_INTERRUPT_IRQ:
 
-            Int6502 (&cpu_context, INT_IRQ);
+            FN2A03_Interrupt (&cpu_context, FN2A03_INT_IRQ_SINGLE_SHOT);
 
 
             break;
@@ -364,7 +363,7 @@ void cpu_interrupt (int type)
 
         case CPU_INTERRUPT_NMI:
 
-            Int6502 (&cpu_context, INT_NMI);
+            FN2A03_Interrupt (&cpu_context, FN2A03_INT_NMI);
 
 
             break;
@@ -386,13 +385,6 @@ void cpu_start_new_scanline (void)
 }
 
 
-void cpu_consume_cycles (int cycles)
-{
-    cpu_context.ICount -= cycles * CYCLE_LENGTH;
-    cpu_context.Cycles += cycles * CYCLE_LENGTH;
-}
-
-
 int cpu_get_cycles_line (void)
 {
     return (cpu_context.Cycles - scanline_start_cycle) / CYCLE_LENGTH;
@@ -411,12 +403,4 @@ int cpu_get_cycles (int reset)
 
 
     return (cycles / CYCLE_LENGTH);
-}
-
-
-/* Not needed. */
-
-byte Loop6502 (M6502 * R)
-{
-    return (INT_NONE);
 }
