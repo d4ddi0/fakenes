@@ -91,6 +91,8 @@ volatile int timing_audio_hertz = 0;
 
 #ifdef UNIX
 
+char * homedir = NULL;
+
 char * datfile = NULL;
 
 char * sramdir = NULL;
@@ -200,55 +202,80 @@ int main (int argc, char * argv [])
 
 #ifdef UNIX
 
-    // by amit
+    /* by amit */
     set_window_title ("FakeNES");
 
-    // Configuration directory checking
-    if(getenv("HOME")!=NULL)
+    /* Configuration directory checking */
+    homedir = getenv("HOME");
+    if(homedir != NULL)
     {
-        // the 11 comes from strlen("/.fakenes") and the \0 at the end
-        confdir = (char *) malloc(strlen(getenv("HOME")) + 11);
-        strcpy(confdir, getenv("HOME"));
-        strcat(confdir, "/.fakenes");
+        const char confdir_base[] = "/.fakenes";
+        const char sramdir_base[] = "/sram";
 
-	sramdir = (char *) malloc(strlen(confdir) + 6);
-	strcpy(sramdir, confdir);
-	strcat(sramdir, "/sram");
+        confdir = (char *) malloc(strlen(homedir) +
+            sizeof(confdir_base));
+        if (confdir != NULL)
+        {
+            strcpy(confdir, homedir);
+            strcat(confdir, confdir_base);
 
-	// Just see if we can open the dir
-	if((tmpdir = opendir(confdir)) == NULL)
-	{
-	    // Directory doesn't exist, create it
-	    if(errno == ENOENT)
-	    {
-		if(mkdir(confdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) == -1)
-		{
-		    fprintf(stderr, "Error creating \"%s\". Configuration will not be saved.\n", confdir);
-		    free(confdir);
-		    confdir=NULL;
-		} else // mkdir was successful, go on and make the sram dir
-		{
-		    // Error checking for sramdir happens later
-		    mkdir(sramdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH));
-		}
-	    } else if(errno == ENOTDIR) // Not a directory
-	    {
-		fprintf(stderr, "Warning: \"%s\" is not a directory, configuration will not be saved.\n", confdir);
-		free(confdir);
-		confdir=NULL;
-	    } else if(errno == EACCES) // Permission denied
-	    {
-		fprintf(stderr, "Warning: Permission denied when opening \"%s\". Configuration will not be saved.\n", confdir);
-		free(confdir);
-		confdir=NULL;
-	    } else // Something else
-	    {
-		fprintf(stderr, "Warning: an error occured when opening \"%s\". Configuration will not be saved.\n", confdir);
-		free(confdir);
-		confdir=NULL;
-	    }
-	}
-	closedir(tmpdir);
+            sramdir = (char *) malloc(strlen(confdir) + sizeof(sramdir_base));
+            if (sramdir != NULL)
+            {
+                strcpy(sramdir, confdir);
+                strcat(sramdir, sramdir_base);
+            }
+        }
+        else
+        {
+            sramdir=NULL;
+        }
+
+        if (confdir == NULL)
+        {
+            fprintf(stderr, "Allocation error when generating configuration path. Configuration will not be saved.\n");
+        }
+        else
+        {
+            /* Just see if we can open the dir */
+            if((tmpdir = opendir(confdir)) == NULL)
+            {
+                /* Directory doesn't exist, create it */
+                if(errno == ENOENT)
+                {
+                    if(mkdir(confdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) == -1)
+                    {
+                        fprintf(stderr, "Error creating \"%s\". Configuration will not be saved.\n", confdir);
+                        free(confdir);
+                        confdir=NULL;
+                    } else /* mkdir was successful, go on and make the sram dir */
+                    {
+                        /* Error checking for sramdir happens later */
+                        mkdir(sramdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH));
+                    }
+                } else if(errno == ENOTDIR) /* Not a directory */
+                {
+                    fprintf(stderr, "Warning: \"%s\" is not a directory, configuration will not be saved.\n", confdir);
+                    free(confdir);
+                    confdir=NULL;
+                } else if(errno == EACCES) /* Permission denied */
+                {
+                    fprintf(stderr, "Warning: Permission denied when opening \"%s\". Configuration will not be saved.\n", confdir);
+                    free(confdir);
+                    confdir=NULL;
+                } else /* Something else */
+                {
+                    fprintf(stderr, "Warning: an error occured when opening \"%s\". Configuration will not be saved.\n", confdir);
+                    free(confdir);
+                    confdir=NULL;
+                }
+            }
+            else
+            {
+                /* Close the dir we just opened */
+                closedir(tmpdir);
+            }
+        }
 
     }
     else
@@ -256,47 +283,64 @@ int main (int argc, char * argv [])
 	fprintf(stderr, "$HOME is not set, configuration will not be saved.\n");
     }
 
-    // Load up the config file
+    /* Load up the config file */
     if(confdir != NULL)
     {
-	char *conffile = malloc(strlen(confdir) + 7);
+        const char conffile_base[] = "/config";
+
+        char *conffile = malloc(strlen(confdir) + sizeof(conffile_base));
 	strcpy(conffile, confdir);
-	strcat(conffile, "/config");
+        strcat(conffile, conffile_base);
 	set_config_file (conffile);
     } else
     {
 	set_config_file ("/dev/null");
     }
 
-    // Check the sram dir
-    if(sramdir != NULL && (tmpdir = opendir(sramdir)) == NULL)
+    /* Check the sram dir */
+    if(sramdir == NULL)
     {
-	if(errno == ENOENT)
-	{
-	    if(mkdir(sramdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) == -1)
-	    {
-		fprintf(stderr, "Error creating sram directory \"%s\"", sramdir);
-		free(sramdir);
-		sramdir=NULL;
-	    }
-	} else if(errno == ENOTDIR) // Not a directory
-	{
-	    fprintf(stderr, "Warning: \"%s\" is not a directory, configuration will not be saved.\n", confdir);
-	    free(confdir);
-	    confdir=NULL;
-	} else if(errno == EACCES) // Permission denied
-	{
-	    fprintf(stderr, "Warning: Permission denied when opening \"%s\". SRAM files will not be saved.\n", sramdir);
-	    free(sramdir);
-	    confdir=NULL;
-	} else // Something else
-	{
-	    fprintf(stderr, "Warning: an error occured when opening \"%s\". SRAM files will not be saved.\n", sramdir);
-	    free(sramdir);
-	    confdir=NULL;
-	}
+        /* if we have a valid home dir, there was an allocation error */
+        if (homedir != NULL)
+        {
+            fprintf(stderr, "Allocation error when generating save path. SRAM files will not be saved.\n");
+        }
     }
-
+    else
+    {
+        if(tmpdir = opendir(sramdir)) == NULL)
+        {
+            if(errno == ENOENT)
+            {
+                if(mkdir(sramdir, (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) == -1)
+                {
+                    fprintf(stderr, "Error creating sram directory \"%s\"", sramdir);
+                    free(sramdir);
+                    sramdir=NULL;
+                }
+            } else if(errno == ENOTDIR) /* Not a directory */
+            {
+                fprintf(stderr, "Warning: \"%s\" is not a directory, configuration will not be saved.\n", confdir);
+                free(confdir);
+                sramdir=NULL;
+            } else if(errno == EACCES) /* Permission denied */
+            {
+                fprintf(stderr, "Warning: Permission denied when opening \"%s\". SRAM files will not be saved.\n", sramdir);
+                free(sramdir);
+                sramdir=NULL;
+            } else /* Something else */
+            {
+                fprintf(stderr, "Warning: an error occured when opening \"%s\". SRAM files will not be saved.\n", sramdir);
+                free(sramdir);
+                sramdir=NULL;
+            }
+        }
+        else
+        {
+            /* Close the dir we just opened */
+            closedir(tmpdir);
+        }
+    }
 #else
 
     set_window_title ("FakeNESw");
@@ -321,13 +365,33 @@ int main (int argc, char * argv [])
 
     if(confdir != NULL)
     {
-	datfile = malloc(strlen(confdir) + 13);
-	strcpy(datfile, confdir);
-	strcat(datfile, "/fakenes.dat");
-	data = load_datafile (datfile);
-    } else // confdir unset, try cwd
-	data = load_datafile ("fakenes.dat");
-    
+        const char datfile_base[] = "/fakenes.dat";
+
+        datfile = malloc(strlen(confdir) + sizeof(datfile_base));
+        if (datfile == NULL)
+        {
+            fprintf(stderr, "Allocation error when generating datafile path, trying cwd.\n");
+            datfile = "fakenes.dat";
+            data = load_datafile ("fakenes.dat");
+        }
+        else
+        {
+            strcpy(datfile, confdir);
+            strcat(datfile, datfile_base);
+            data = load_datafile (datfile);
+            if (data == NULL)
+            {
+                fprintf(stderr, "Datafile not found in configuration path, trying cwd.\n");
+                datfile = "fakenes.dat";
+                data = load_datafile (datfile);
+            }
+        }
+    } else /* confdir unset, try cwd */
+    {
+        datfile = "fakenes.dat";
+        data = load_datafile (datfile);
+    }
+
 #else
 
     data = load_datafile ("fakenes.dat");
