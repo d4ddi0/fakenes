@@ -11,6 +11,8 @@
 /**     commercially. Please, notify me, if you make any    **/
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 07.January  2002 TRAC      Altered method of flag         */
+/*                            emulation.                     */
 /* 10.December 2001 TRAC      Added opcodes 07 and 74.       */
 /* 04.December 2001 stainless $ff INS word,X opcode added.   */
 /* 04.December 2001 stainless $ef INS word opcode added.     */
@@ -20,18 +22,18 @@
 /* 26.November 2001 stainless Integrated into FakeNES.       */
 /*************************************************************/
 
-case 0x10: if(R->P&N_FLAG) R->PC.W++; else { M_JR; } break; /* BPL * REL */
-case 0x30: if(R->P&N_FLAG) { M_JR; } else R->PC.W++; break; /* BMI * REL */
-case 0xD0: if(R->P&Z_FLAG) R->PC.W++; else { M_JR; } break; /* BNE * REL */
-case 0xF0: if(R->P&Z_FLAG) { M_JR; } else R->PC.W++; break; /* BEQ * REL */
-case 0x90: if(R->P&C_FLAG) R->PC.W++; else { M_JR; } break; /* BCC * REL */
-case 0xB0: if(R->P&C_FLAG) { M_JR; } else R->PC.W++; break; /* BCS * REL */
-case 0x50: if(R->P&V_FLAG) R->PC.W++; else { M_JR; } break; /* BVC * REL */
-case 0x70: if(R->P&V_FLAG) { M_JR; } else R->PC.W++; break; /* BVS * REL */
+case 0x10: if(R->N&N_FLAG) R->PC.W++; else { M_JR; } break; /* BPL * REL */
+case 0x30: if(R->N&N_FLAG) { M_JR; } else R->PC.W++; break; /* BMI * REL */
+case 0xD0: if(!R->Z) R->PC.W++; else { M_JR; } break; /* BNE * REL */
+case 0xF0: if(!R->Z) { M_JR; } else R->PC.W++; break; /* BEQ * REL */
+case 0x90: if(R->C) R->PC.W++; else { M_JR; } break; /* BCC * REL */
+case 0xB0: if(R->C) { M_JR; } else R->PC.W++; break; /* BCS * REL */
+case 0x50: if(R->V) R->PC.W++; else { M_JR; } break; /* BVC * REL */
+case 0x70: if(R->V) { M_JR; } else R->PC.W++; break; /* BVS * REL */
 
 /* RTI */
 case 0x40:
-  M_POP(R->P);R->P|=R_FLAG;M_POP(R->PC.B.l);M_POP(R->PC.B.h);
+  M_POP(R->P);R->P|=R_FLAG;M_UNFIX_P();M_POP(R->PC.B.l);M_POP(R->PC.B.h);
   break;
 
 /* RTS */
@@ -61,42 +63,44 @@ case 0x6C:
 case 0x00:
   R->PC.W++;
   M_PUSH(R->PC.B.h);M_PUSH(R->PC.B.l);
+  M_FIX_P();
   M_PUSH(R->P|B_FLAG);
-  R->P=(R->P|I_FLAG)&~D_FLAG;
+  R->I=1;R->D=0;
   R->PC.B.l=Rd6502(0xFFFE);
   R->PC.B.h=Rd6502(0xFFFF);
   break;
 
 /* CLI */
 case 0x58:
-  if((R->IRequest!=INT_NONE)&&(R->P&I_FLAG))
+  if((R->IRequest!=INT_NONE)&&(R->I))
   {
     R->AfterCLI=1;
     R->IBackup=R->ICount;
     R->ICount=1;
   }
-  R->P&=~I_FLAG;
+  R->I=0;
   break;
 
 /* PLP */
 case 0x28:
   M_POP(I);
-  if((R->IRequest!=INT_NONE)&&((I^R->P)&~I&I_FLAG))
+  if((R->IRequest!=INT_NONE)&&((I^(R->I?I_FLAG:0))&~I&I_FLAG))
   {
     R->AfterCLI=1;
     R->IBackup=R->ICount;
     R->ICount=1;
   }
   R->P=I|R_FLAG;
+  M_UNFIX_P();
   break;
 
-case 0x08: M_PUSH(R->P);break;               /* PHP */
-case 0x18: R->P&=~C_FLAG;break;              /* CLC */
-case 0xB8: R->P&=~V_FLAG;break;              /* CLV */
-case 0xD8: R->P&=~D_FLAG;break;              /* CLD */
-case 0x38: R->P|=C_FLAG;break;               /* SEC */
-case 0xF8: R->P|=D_FLAG;break;               /* SED */
-case 0x78: R->P|=I_FLAG;break;               /* SEI */
+case 0x08: M_FIX_P();M_PUSH(R->P);break;     /* PHP */
+case 0x18: R->C=0;break;                     /* CLC */
+case 0xB8: R->V=0;break;                     /* CLV */
+case 0xD8: R->D=0;break;                     /* CLD */
+case 0x38: R->C=1;break;                     /* SEC */
+case 0xF8: R->D=1;break;                     /* SED */
+case 0x78: R->I=1;break;                     /* SEI */
 case 0x48: M_PUSH(R->A);break;               /* PHA */
 case 0x68: M_POP(R->A);M_FL(R->A);break;     /* PLA */
 case 0x98: R->A=R->Y;M_FL(R->A);break;       /* TYA */

@@ -11,6 +11,8 @@
 /**     commercially. Please, notify me, if you make any    **/   
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 07.January  2002 TRAC      Altered context struct for     */
+/*                            new method of flag emulation.  */
 /* 11.December 2001 TRAC      Added INLINE_MEMORY_HANDLERS.  */
 /* 05.December 2001 TRAC      Added RETURN_ON_TRIP timing.   */
 /* 27.November 2001 stainless Additive cycle counting.       */
@@ -76,6 +78,7 @@ typedef struct
 {
   byte A,P,X,Y,S;     /* CPU registers and program counter   */
   pair PC;
+  byte N,V,D,I,Z,C;   /* CPU status flags - Z flag set when Z == 0 */
 
   int IPeriod,ICount; /* Set IPeriod to number of CPU cycles */
                       /* between calls to Loop6502()         */

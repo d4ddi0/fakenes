@@ -13,6 +13,8 @@
 /**     commercially. Please, notify me, if you make any    **/   
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 07.January  2002 TRAC      Altered method of flag         */
+/*                            emulation.                     */
 /* 10.December 2001 TRAC      Added M_SLO.                   */
 /* 08.December 2001 stainless Replaced unnecessary Op6502s.  */
 /* 05.December 2001 TRAC      Added RETURN_ON_TRIP timing.   */
@@ -101,15 +103,19 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 /** Modifying Memory *****************************************/
 /** These macros calculate address and modify it.           **/
 /*************************************************************/
-#define MM_Ab(Cmd)	MC_Ab(J);I=Rd6502(J.W);Cmd(I);Wr6502(J.W,I)
-#define MM_Zp(Cmd)	MC_Zp(J);I=Rd6502(J.W);Cmd(I);Wr6502(J.W,I)
-#define MM_Zx(Cmd)	MC_Zx(J);I=Rd6502(J.W);Cmd(I);Wr6502(J.W,I)
-#define MM_Ax(Cmd)	MC_Ax(J);I=Rd6502(J.W);Cmd(I);Wr6502(J.W,I)
+#define MM_Ab(Cmd)      MC_Ab(J);I=Rd6502(J.W);Cmd(I);Wr6502(J.W,I)
+#define MM_Zp(Cmd)      MC_Zp(J);I=Rd6502(J.W);Cmd(I);Wr6502(J.W,I)
+#define MM_Zx(Cmd)      MC_Zx(J);I=Rd6502(J.W);Cmd(I);Wr6502(J.W,I)
+#define MM_Ax(Cmd)      MC_Ax(J);I=Rd6502(J.W);Cmd(I);Wr6502(J.W,I)
 
 /** Other Macros *********************************************/
 /** Calculating flags, stack, jumps, arithmetics, etc.      **/
 /*************************************************************/
-#define M_FL(Rg)	R->P=(R->P&~(Z_FLAG|N_FLAG))|ZNTable[Rg]
+#define M_FIX_P()       R->P=(R->N&N_FLAG)|(R->V?V_FLAG:0)|(R->D?D_FLAG:0)| \
+                        (R->I?I_FLAG:0)|(R->Z?0:Z_FLAG)|(R->C?C_FLAG:0)|R_FLAG|B_FLAG
+#define M_UNFIX_P()     R->N=R->P&N_FLAG;R->V=R->P&V_FLAG;R->D=R->P&D_FLAG; \
+                        R->I=R->P&I_FLAG;R->Z=R->P&Z_FLAG?0:1;R->C=R->P&C_FLAG;
+#define M_FL(Rg)        R->N=R->Z=Rg
 #define M_LDWORD(Rg)	Rg.B.l=Op6502(R->PC.W++);Rg.B.h=Op6502(R->PC.W++)
 
 #define M_PUSH(Rg)	Wr6502(0x0100|R->S,Rg);R->S--
@@ -117,27 +123,28 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 #define M_JR		R->PC.W+=(offset)Op6502(R->PC.W)+1;R->ICount--
 
 #define M_ADC(Rg) \
-    K.W=R->A+Rg+(R->P&C_FLAG); \
-    R->P&=~(N_FLAG|V_FLAG|Z_FLAG|C_FLAG); \
-    R->P|=(~(R->A^Rg)&(R->A^K.B.l)&0x80? V_FLAG:0)| \
-          (K.B.h? C_FLAG:0)|ZNTable[K.B.l]; \
+    K.W=R->A+Rg+(R->C?1:0); \
+    M_FL(K.B.l); \
+    R->V=(~(R->A^Rg)&(R->A^K.B.l)&0x80? V_FLAG:0); \
+    R->C=K.B.h; \
     R->A=K.B.l;
 
 /* Warning! C_FLAG is inverted before SBC and after it */
 #define M_SBC(Rg) \
-    K.W=R->A-Rg-(~R->P&C_FLAG); \
-    R->P&=~(N_FLAG|V_FLAG|Z_FLAG|C_FLAG); \
-    R->P|=((R->A^Rg)&(R->A^K.B.l)&0x80? V_FLAG:0)| \
-          (K.B.h? 0:C_FLAG)|ZNTable[K.B.l]; \
+    K.W=R->A-Rg-(R->C?0:1); \
+    M_FL(K.B.l); \
+    R->V=((R->A^Rg)&(R->A^K.B.l)&0x80? V_FLAG:0); \
+    R->C=(K.B.h? 0:C_FLAG); \
     R->A=K.B.l;
 
 #define M_CMP(Rg1,Rg2) \
   K.W=Rg1-Rg2; \
-  R->P&=~(N_FLAG|Z_FLAG|C_FLAG); \
-  R->P|=ZNTable[K.B.l]|(K.B.h? 0:C_FLAG)
+  M_FL(K.B.l); \
+  R->C=K.B.h?0:C_FLAG;
 #define M_BIT(Rg) \
-  R->P&=~(N_FLAG|V_FLAG|Z_FLAG); \
-  R->P|=(Rg&(N_FLAG|V_FLAG))|(Rg&R->A? 0:Z_FLAG)
+  R->N=Rg&N_FLAG; \
+  R->V=Rg&V_FLAG; \
+  R->Z=Rg&R->A;
 
 #define M_AND(Rg)	R->A&=Rg;M_FL(R->A)
 #define M_ORA(Rg)	R->A|=Rg;M_FL(R->A)
@@ -146,13 +153,13 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 #define M_DEC(Rg)	Rg--;M_FL(Rg)
 
 #define M_SLO(Rg)       M_ASL(Rg);M_ORA(Rg)
-#define M_ASL(Rg)	R->P&=~C_FLAG;R->P|=Rg>>7;Rg<<=1;M_FL(Rg)
-#define M_LSR(Rg)	R->P&=~C_FLAG;R->P|=Rg&C_FLAG;Rg>>=1;M_FL(Rg)
-#define M_ROL(Rg)	K.B.l=(Rg<<1)|(R->P&C_FLAG); \
-			R->P&=~C_FLAG;R->P|=Rg>>7;Rg=K.B.l; \
+#define M_ASL(Rg)       R->C=Rg>>7;Rg<<=1;M_FL(Rg)
+#define M_LSR(Rg)       R->C=Rg&C_FLAG;;Rg>>=1;M_FL(Rg)
+#define M_ROL(Rg)       K.B.l=(Rg<<1)|(R->C?C_FLAG:0); \
+                        R->C=Rg>>7;;Rg=K.B.l; \
 			M_FL(Rg)
-#define M_ROR(Rg)	K.B.l=(Rg>>1)|(R->P<<7); \
-			R->P&=~C_FLAG;R->P|=Rg&C_FLAG;Rg=K.B.l; \
+#define M_ROR(Rg)       K.B.l=(Rg>>1)|(R->C?0x80:0); \
+                        R->C=Rg&C_FLAG;Rg=K.B.l; \
 			M_FL(Rg)
 
 /** Reset6502() **********************************************/
@@ -163,7 +170,12 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 void Reset6502(M6502 *R)
 {
   R->A=R->X=R->Y=0x00;
+
   R->P=Z_FLAG|R_FLAG;
+
+  R->N=R->V=R->D=R->I=R->C=0;
+  R->Z=0;       /* 0 == set */
+
   R->S=0xFF;
   R->PC.B.l=Rd6502(0xFFFC);
   R->PC.B.h=Rd6502(0xFFFD);   
@@ -212,14 +224,15 @@ void Int6502(M6502 *R,byte Type)
 {
   register pair J;
 
-  if((Type==INT_NMI)||((Type==INT_IRQ)&&!(R->P&I_FLAG)))
+  if((Type==INT_NMI)||((Type==INT_IRQ)&&!(R->I)))
   {
     R->ICount-=7;
     M_PUSH(R->PC.B.h);
     M_PUSH(R->PC.B.l);
+    M_FIX_P();
     M_PUSH(R->P&~B_FLAG);
-    /* R->P&=~D_FLAG; */
-    if(Type==INT_NMI) J.W=0xFFFA; else { R->P|=I_FLAG;J.W=0xFFFE; }
+    /* R->D=0; */
+    if(Type==INT_NMI) J.W=0xFFFA; else { R->I=1;J.W=0xFFFE; }
     R->PC.B.l=Rd6502(J.W++);
     R->PC.B.h=Rd6502(J.W);
   }
