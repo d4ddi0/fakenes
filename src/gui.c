@@ -173,6 +173,26 @@ static int machine_menu_status (void)
 }
 
 
+static int options_menu_gameboy_mode (void)
+{
+    if (options_menu [0].flags & D_SELECTED)
+    {
+        options_menu [0].flags = 0;
+
+        set_palette (DATA_NES_PALETTE);
+    }
+    else
+    {
+        options_menu [0].flags |= D_SELECTED;
+
+        set_palette (DATA_GB_PALETTE);
+    }
+
+
+    return (D_O_K);
+}
+
+
 static int help_menu_about (void)
 {
     int index;

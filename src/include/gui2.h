@@ -35,6 +35,16 @@ static MENU machine_menu [4] =
 };
 
 
+static int options_menu_gameboy_mode (void);
+
+
+static MENU options_menu [2] =
+{
+    { "&GameBoy Mode", options_menu_gameboy_mode, NULL, 0, NULL },
+    {            NULL,                      NULL, NULL, 0, NULL }
+};
+
+
 static int help_menu_about (void);
 
 
@@ -50,7 +60,7 @@ static MENU menu_bar [6] =
     {    "&File", NULL,    file_menu,          0, NULL },
     { "&Machine", NULL, machine_menu,          0, NULL },
     {     "&CPU", NULL,         NULL, D_DISABLED, NULL },
-    { "&Options", NULL,         NULL, D_DISABLED, NULL },
+    { "&Options", NULL, options_menu,          0, NULL },
     {    "&Help", NULL,    help_menu,          0, NULL },
     {       NULL, NULL,         NULL,          0, NULL }
 };
