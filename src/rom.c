@@ -49,7 +49,7 @@ int rom_is_loaded = FALSE;
 
 #define LR_FILE FILE *
 #define LR_OPEN(name,mode) (fopen (name,mode))
-#define LR_READ(file,buffer,size) (fread (file, 1, buffer, size))
+#define LR_READ(file,buffer,size) (fread (buffer, 1, size, file))
 #define LR_CLOSE(file) (fclose (file))
 
 
