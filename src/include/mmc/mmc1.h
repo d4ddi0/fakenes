@@ -124,10 +124,13 @@ static void mmc1_write (UINT16 address, UINT8 value)
             else
             /* No, 32k PRG banking */
             {
-                int mmc1_bank_number = (mmc1_register[3] & ~1) << 1;
+                int mmc1_bank_number = (mmc1_register[3] & ~1);
 
                 mmc1_cpu_bank [0] = mmc1_bank_number & 0x0F;
-                mmc1_cpu_bank [1] = (mmc1_bank_number + 1) & 0x0F;
+                if (ROM_CHR_ROM_PAGES <= 16)
+                {
+                    mmc1_cpu_bank [1] = (mmc1_bank_number + 1) & 0x0F;
+                }
             }
 
             /* Handle >256K addressing */
@@ -362,10 +365,13 @@ static void mmc1_write (UINT16 address, UINT8 value)
             else
             /* No, 32k PRG banking */
             {
-                int mmc1_bank_number = (mmc1_register[3] & ~1) << 1;
+                int mmc1_bank_number = (mmc1_register[3] & ~1);
 
                 mmc1_cpu_bank [0] = mmc1_bank_number & 0x0F;
-                mmc1_cpu_bank [1] = (mmc1_bank_number + 1) & 0x0F;
+                if (ROM_CHR_ROM_PAGES <= 16)
+                {
+                    mmc1_cpu_bank [1] = (mmc1_bank_number + 1) & 0x0F;
+                }
             }
             mmc1_cpu_bank_sort();
         }
