@@ -238,6 +238,12 @@ int main (int argc, char * argv [])
     UINT8 buffer2 [256];
 
 
+    if (VERSION == 0x030)
+    {
+        printf ("\nThis release is dedicated to those who fell in the 9/11 attacks.\n");
+    }
+
+
     printf ("\nFakeNES version " VERSION_STRING ", by stainless and TRAC.\n"
             "Assistance provided by amit and Lord_Nightmare.\n");
 
