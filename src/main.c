@@ -94,6 +94,14 @@ int frame_skip_min = 0;
 int frame_skip_max = 0;
 
 
+static int enable_rsync = FALSE;
+
+static int rsync_grace_frames = 0;
+
+
+static int fast_forward = FALSE;
+
+
 static int first_run = FALSE;
 
 
@@ -141,6 +149,9 @@ static int rendered_frames = 0;
 static int actual_fps_count = 0;
 
 static int virtual_fps_count = 0;
+
+
+static int average_fps = 0;
 
 
 static volatile int throttle_counter = 0;
@@ -195,6 +206,23 @@ void resume_timing (void)
     int speed;
 
 
+    redraw_flag = TRUE;
+
+
+    actual_fps_count = 0;
+
+    virtual_fps_count = 0;
+
+
+    frame_count = 1;
+
+
+    throttle_counter = 0;
+
+
+    frame_interrupt = FALSE;
+
+
     speed = ((machine_type == MACHINE_TYPE_NTSC) ? 60 : 50);
 
 
@@ -207,6 +235,56 @@ void resume_timing (void)
     install_int_ex (fps_interrupt, BPS_TO_TIMER (1));
 
     install_int_ex (throttle_interrupt, BPS_TO_TIMER (speed));
+}
+
+
+void suspend_throttling (void)
+{
+    remove_int (throttle_interrupt);
+
+
+    redraw_flag = TRUE;
+
+
+    frame_count = 1;
+
+
+    throttle_counter = 0;
+}
+
+
+void resume_throttling (void)
+{
+    int speed;
+
+
+    redraw_flag = TRUE;
+
+
+    frame_count = 1;
+
+
+    throttle_counter = 0;
+
+
+    speed = ((machine_type == MACHINE_TYPE_NTSC) ? 60 : 50);
+
+
+    if (timing_half_speed)
+    {
+        speed /= 2;
+    }
+
+
+    install_int_ex (throttle_interrupt, BPS_TO_TIMER (speed));
+
+
+    if (enable_rsync)
+    {
+        while (throttle_counter == 0);
+
+        throttle_counter = 0;
+    }
 }
 
 
@@ -534,6 +612,11 @@ int main (int argc, char * argv [])
     machine_type = get_config_int ("timing", "machine_type", MACHINE_TYPE_NTSC);
 
 
+    enable_rsync = get_config_int ("timing", "enable_rsync", TRUE);
+
+    rsync_grace_frames = get_config_int ("timing", "rsync_grace_frames", 10);
+
+
     first_run = get_config_int ("gui", "first_run", TRUE);
 
 
@@ -704,7 +787,18 @@ int main (int argc, char * argv [])
 
             if (frame_interrupt)
             {
-                if (frame_skip_min == 0)
+                if (average_fps == 0)
+                {
+                    average_fps = speed;
+                }
+
+
+                average_fps += actual_fps_count;
+
+                average_fps /= 2;
+
+                
+                if ((frame_skip_min == 0) && (! fast_forward))
                 {
                     timing_fps = fix (actual_fps_count, 1, speed);
                 
@@ -724,12 +818,30 @@ int main (int argc, char * argv [])
                 }
 
 
-                actual_fps_count = 0;
+                if ((enable_rsync) && (! fast_forward))
+                {
+                    if ((actual_fps_count < (average_fps - rsync_grace_frames)) && (average_fps > 0))
+                    {
+                        suspend_timing ();
 
-                virtual_fps_count = 0;
+
+                        resume_timing ();
 
 
-                audio_fps = 0;
+                        while (throttle_counter == 0);
+
+                        throttle_counter = 0;
+                    }
+                }
+                else
+                {
+                    actual_fps_count = 0;
+    
+                    virtual_fps_count = 0;
+    
+    
+                    audio_fps = 0;
+                }
 
 
                 frame_interrupt = FALSE;
@@ -759,15 +871,33 @@ int main (int argc, char * argv [])
     
                 if ((key [KEY_TILDE]) && (! (input_mode & INPUT_MODE_CHAT)))
                 {
-                    /* Fast forward. */
+                    if (! fast_forward)
+                    {
+                        /* Fast forward. */
+    
+                        fast_forward = TRUE;
+    
+    
+                        suspend_throttling ();
+                    }
+
 
                     frame_count = frame_skip_max;
 
                     /* zero speed-throttle counter as we're bypassing it */
-                    throttle_counter = 0;
+                    /* throttle_counter = 0; */
                 }
                 else
                 {
+                    if (fast_forward)
+                    {
+                        fast_forward = FALSE;
+
+
+                        resume_throttling ();
+                    }
+
+
                     if (frame_skip_min == 0)
                     {
                         while (throttle_counter == 0)
@@ -1022,6 +1152,11 @@ int main (int argc, char * argv [])
 
 
     set_config_int ("timing", "machine_type", machine_type);
+
+
+    set_config_int ("timing", "enable_rsync", enable_rsync);
+
+    set_config_int ("timing", "rsync_grace_frames", rsync_grace_frames);
 
 
     set_config_int ("gui", "first_run", first_run);
