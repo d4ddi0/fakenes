@@ -70,6 +70,9 @@ You must read and accept the license prior to use.
 #include "mmc/vrc6.h"
 
 
+#include "mmc/ffe_f3.h"
+
+
 #define MMC_FIRST_LIST_ITEM(id)     \
     if (mmc_ ##id.number == rom -> mapper_number)       \
         rom -> current_mmc = &mmc_ ##id
@@ -170,6 +173,9 @@ void mmc_request (ROM * rom)
     MMC_NEXT_LIST_ITEM (vrc6);      /* VRC6. */
 
     MMC_NEXT_LIST_ITEM (vrc6b);     /* VRC6. */
+
+
+    MMC_NEXT_LIST_ITEM (ffe_f3);    /* FFE F3xxx. */
 
 
     MMC_LAST_LIST_ITEM ();          /* Unsupported mapper. */
