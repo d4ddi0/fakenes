@@ -290,30 +290,53 @@ void cpu_free_prg_rom (const ROM *rom)
 UINT8 * cpu_get_prg_rom_pages (ROM *rom)
 {
     int num_pages = rom -> prg_rom_pages;
+    int copycount, missing, count, next, pages_mirror_size;
 
     /* Compute a mask used to wrap invalid PRG ROM page numbers.
-     *  As PRG ROM banking uses a 8k page size, this mask is based
-     *  on a 8k page size.
+     *  As PRG ROM uses a 16k page size, this mask is based
+     *  on a 16k page size.
      */
     if (((num_pages * 2 - 1) & (num_pages - 1)) == (num_pages - 1))
     /* compute mask for even power of two */
     {
-        rom -> prg_rom_page_overflow_premask = (num_pages * 2) - 1;
-        rom -> prg_rom_page_overflow_mask =
-         rom -> prg_rom_page_overflow_premask;
+        pages_mirror_size = num_pages;
     }
     else
     /* compute mask */
     {
         int i;
 
-        /* compute the largest even power of 2 less than
+        /* compute the smallest even power of 2 greater than
            PRG ROM page count, and use that to compute the mask */
-        for (i = 0; (num_pages >> (i + 1)) > 0; i++);
+        for (i = 0; (num_pages >> i) > 0; i++);
 
-        rom -> prg_rom_page_overflow_premask = ((1 << (i + 1)) * 2) - 1;
-        rom -> prg_rom_page_overflow_mask = ((1 << i) * 2) - 1;
+        pages_mirror_size = (1 << i);
     }
+
+    rom -> prg_rom_page_overflow_mask = pages_mirror_size - 1;
+
+
+    /* identify-map all the present pages */
+    for (copycount = 0; copycount < num_pages; copycount++)
+    {
+        rom -> prg_rom_page_lookup [copycount] = copycount;
+    }
+
+
+    /* mirror-map all the not-present pages */
+    for (next = num_pages, missing = pages_mirror_size - num_pages,
+        count = 1; missing; count <<= 1, missing >>= 1)
+    {
+        if (missing & 1)
+        {
+            for (copycount = count; copycount; copycount--, next++)
+            {
+                rom -> prg_rom_page_lookup[next] =
+                    rom -> prg_rom_page_lookup[next - count];
+            }
+        }
+    }
+
 
     /* 16k PRG ROM page size */
     rom -> prg_rom = malloc (num_pages * 0x4000);

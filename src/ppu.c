@@ -173,30 +173,53 @@ void ppu_free_chr_rom (const ROM *rom)
 UINT8 * ppu_get_chr_rom_pages (ROM *rom)
 {
     int num_pages = rom -> chr_rom_pages;
+    int copycount, missing, count, next, pages_mirror_size;
 
     /* Compute a mask used to wrap invalid CHR ROM page numbers.
-     *  As CHR ROM banking uses a 1k page size, this mask is based
-     *  on a 1k page size.
+     *  As CHR ROM uses a 8k page size, this mask is based
+     *  on a 8k page size.
      */
     if (((num_pages * 2 - 1) & (num_pages - 1)) == (num_pages - 1))
     /* compute mask for even power of two */
     {
-        rom -> chr_rom_page_overflow_premask = (num_pages * 8) - 1;
-        rom -> chr_rom_page_overflow_mask =
-         rom -> chr_rom_page_overflow_premask;
+        pages_mirror_size = num_pages;
     }
     else
     /* compute mask */
     {
         int i;
 
-        /* compute the largest even power of 2 less than
+        /* compute the smallest even power of 2 greater than
            CHR ROM page count, and use that to compute the mask */
-        for (i = 0; (num_pages >> (i + 1)) > 0; i++);
+        for (i = 0; (num_pages >> i) > 0; i++);
 
-        rom -> chr_rom_page_overflow_premask = ((1 << (i + 1)) * 8) - 1;
-        rom -> chr_rom_page_overflow_mask = ((1 << i) * 8) - 1;
+        pages_mirror_size = (1 << i);
     }
+
+    rom -> chr_rom_page_overflow_mask = pages_mirror_size - 1;
+
+
+    /* identify-map all the present pages */
+    for (copycount = 0; copycount < num_pages; copycount++)
+    {
+        rom -> chr_rom_page_lookup [copycount] = copycount;
+    }
+
+
+    /* mirror-map all the not-present pages */
+    for (next = num_pages, missing = pages_mirror_size - num_pages,
+        count = 1; missing; count <<= 1, missing >>= 1)
+    {
+        if (missing & 1)
+        {
+            for (copycount = count; copycount; copycount--, next++)
+            {
+                rom -> chr_rom_page_lookup[next] =
+                    rom -> chr_rom_page_lookup[next - count];
+            }
+        }
+    }
+
 
     /* 8k CHR ROM page size */
     rom -> chr_rom = malloc (num_pages * 0x2000);
@@ -242,15 +265,9 @@ void ppu_set_ram_1k_pattern_vram_block (UINT16 block_address, int vram_block)
 
 void ppu_set_ram_1k_pattern_vrom_block (UINT16 block_address, int vrom_block)
 {
-    if ((vrom_block & ROM_CHR_ROM_PAGE_OVERFLOW_PREMASK)
-     >= (ROM_CHR_ROM_PAGES * 8))
-    {
-        vrom_block &= ROM_CHR_ROM_PAGE_OVERFLOW_MASK;
-    }
-    else
-    {
-        vrom_block &= ROM_CHR_ROM_PAGE_OVERFLOW_PREMASK;
-    }
+    vrom_block = (vrom_block & 7) + ROM_CHR_ROM_PAGE_LOOKUP
+        [(vrom_block / 8) & ROM_CHR_ROM_PAGE_OVERFLOW_MASK] * 8;
+
 
     ppu_vram_block [block_address >> 10] =
         FIRST_VROM_BLOCK + vrom_block;
@@ -273,15 +290,8 @@ void ppu_set_ram_1k_pattern_vrom_block (UINT16 block_address, int vrom_block)
 void ppu_set_ram_1k_pattern_vrom_block_ex (UINT16 block_address,
  int vrom_block, int map_type)
 {
-    if ((vrom_block & ROM_CHR_ROM_PAGE_OVERFLOW_PREMASK)
-     >= (ROM_CHR_ROM_PAGES * 8))
-    {
-        vrom_block &= ROM_CHR_ROM_PAGE_OVERFLOW_MASK;
-    }
-    else
-    {
-        vrom_block &= ROM_CHR_ROM_PAGE_OVERFLOW_PREMASK;
-    }
+    vrom_block = (vrom_block & 7) + ROM_CHR_ROM_PAGE_LOOKUP
+        [(vrom_block / 8) & ROM_CHR_ROM_PAGE_OVERFLOW_MASK] * 8;
 
     if (map_type & PPU_MAP_RAM)
     {
@@ -415,15 +425,8 @@ void ppu_set_name_table_address_rom (int table, UINT8 *address)
 
 void ppu_set_name_table_address_vrom (int table, int vrom_block)
 {
-    if ((vrom_block & ROM_CHR_ROM_PAGE_OVERFLOW_PREMASK)
-     >= (ROM_CHR_ROM_PAGES * 8))
-    {
-        vrom_block &= ROM_CHR_ROM_PAGE_OVERFLOW_MASK;
-    }
-    else
-    {
-        vrom_block &= ROM_CHR_ROM_PAGE_OVERFLOW_PREMASK;
-    }
+    vrom_block = (vrom_block & 7) + ROM_CHR_ROM_PAGE_LOOKUP
+        [(vrom_block / 8) & ROM_CHR_ROM_PAGE_OVERFLOW_MASK] * 8;
 
     ppu_set_name_table_address_rom (table, ROM_CHR_ROM + (vrom_block << 10));
 }

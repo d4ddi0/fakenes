@@ -78,14 +78,14 @@ struct _ROM
     int mapper_number;
 
                            
-    UINT8 chr_rom_page_overflow_premask;
-
     UINT8 chr_rom_page_overflow_mask;   /* CHR-ROM bank # wrapping mask. */
 
+    UINT8 chr_rom_page_lookup [256];
 
-    UINT8 prg_rom_page_overflow_premask;
 
     UINT8 prg_rom_page_overflow_mask;   /* PRG-ROM bank # wrapping mask. */
+
+    UINT8 prg_rom_page_lookup [256];
 
 
     int sram_flag;
@@ -143,12 +143,12 @@ void free_rom (const ROM *);
 #define ROM_CHR_ROM_CACHE_TAG   global_rom.chr_rom_cache_tag
 
 
-#define ROM_PRG_ROM_PAGE_OVERFLOW_PREMASK   global_rom.prg_rom_page_overflow_premask
+#define ROM_PRG_ROM_PAGE_LOOKUP             global_rom.prg_rom_page_lookup
 
 #define ROM_PRG_ROM_PAGE_OVERFLOW_MASK      global_rom.prg_rom_page_overflow_mask
 
 
-#define ROM_CHR_ROM_PAGE_OVERFLOW_PREMASK   global_rom.chr_rom_page_overflow_premask
+#define ROM_CHR_ROM_PAGE_LOOKUP             global_rom.chr_rom_page_lookup
 
 #define ROM_CHR_ROM_PAGE_OVERFLOW_MASK      global_rom.chr_rom_page_overflow_mask
 
