@@ -3335,11 +3335,19 @@ DRIVER_MENU_HANDLER (linux, vesa_vbe_af, GFX_VBEAF)
 
 DRIVER_MENU_HANDLER (linux, framebuffer, GFX_FBCON)
 
+#else
+
+DRIVER_MENU_HANDLER (linux, framebuffer, NIL)
+
 #endif
 
 #ifdef GFX_SVGALIB
 
 DRIVER_MENU_HANDLER (linux, svgalib, GFX_SVGALIB)
+
+#else
+
+DRIVER_MENU_HANDLER (linux, svgalib, NIL)
 
 #endif
 
