@@ -52,7 +52,7 @@ install : ${BINARY} ${DATAFILE}
 
 apu.o: apu.c include/misc.h include/apu.h include/cpu.h
 
-audio.o: audio.c include/audio.h include/timing.h
+audio.o: audio.c include/audio.h include/misc.h include/timing.h
 
 core.o : core.c include/core.h include/core/tables.h
 
