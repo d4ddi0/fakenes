@@ -105,7 +105,7 @@ AL_CONST MMC mmc_none =
 
 void mmc_request (ROM *rom)
 {
-    switch (ROM_MAPPER_NUMBER)
+    switch (rom -> mapper_number)
     {
         /* No banking hardware. */
 
@@ -191,21 +191,21 @@ int mmc_init (void)
     mmc_check_latches = NULL;
 
 
-    if (global_rom.current_mmc == NULL) return (1);
+    if (ROM_CURRENT_MMC == NULL) return (1);
 
     if (! gui_is_active)
     {
         printf ("Using memory mapper #%u (%s) "
             "(%d PRG, %d CHR).\n\n",
-            ROM_MAPPER_NUMBER, global_rom.current_mmc -> name,
+            ROM_MAPPER_NUMBER, ROM_CURRENT_MMC -> name,
             ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
     }
 
-    return global_rom.current_mmc -> init();
+    return ROM_CURRENT_MMC -> init();
 }
 
 
 void mmc_reset (void)
 {
-    global_rom.current_mmc -> reset();
+    ROM_CURRENT_MMC -> reset();
 }

@@ -37,22 +37,45 @@ int rom_is_loaded = FALSE;
 
 #ifdef USE_ZLIB
 
-
 #include "zlib.h"
+
+#define LR_FILE gzFile
+#define LR_OPEN(name,mode) (gzopen (name,mode))
+#define LR_READ(file,buffer,size) (gzread (file, buffer, size))
+#define LR_CLOSE(file) (gzclose (file))
+
+
+#else
+
+#define LR_FILE FILE *
+#define LR_OPEN(name,mode) (fopen (name,mode))
+#define LR_READ(file,buffer,size) (fread (file, 1, buffer, size))
+#define LR_CLOSE(file) (fclose (file))
+
+
+#endif
 
 
 int load_rom (AL_CONST UINT8 * filename, ROM * rom)
 {
-    gzFile rom_file;
+    LR_FILE rom_file;
 
     NES_HEADER nes_header;
 
     UINT8 test;
 
 
+    /* Pointers should be initialized even if not used */
+    rom -> trainer = NULL;
+    rom -> prg_rom = NULL;
+    rom -> chr_rom = NULL;
+    rom -> chr_rom_cache = NULL;
+    rom -> chr_rom_cache_tag = NULL;
+
+
     /* Open the file. */
 
-    rom_file = gzopen (filename, "rb");
+    rom_file = LR_OPEN (filename, "rb");
 
     if (! rom_file)
     {
@@ -61,13 +84,13 @@ int load_rom (AL_CONST UINT8 * filename, ROM * rom)
 
 
     /* Read the header. */
-    gzread (rom_file, &nes_header, 16);
+    LR_READ (rom_file, &nes_header, 16);
 
     /* Verify the signature. */
 
     if (strncmp((char *) nes_header.signature, "NES\x1A", 4))
     {
-        gzclose (rom_file);
+        LR_CLOSE (rom_file);
     
         return (1);
     }
@@ -77,7 +100,7 @@ int load_rom (AL_CONST UINT8 * filename, ROM * rom)
 
     if (nes_header.prg_rom_pages == 0)
     {
-        gzclose (rom_file);
+        LR_CLOSE (rom_file);
 
         return (1);
     }
@@ -117,22 +140,19 @@ int load_rom (AL_CONST UINT8 * filename, ROM * rom)
 
     /* Allocate and load trainer. */
 
-    /* Pointer should be initialized even if no trainer exists */
-    rom -> trainer = NULL;
-
     if (rom -> control_byte_1 & ROM_CTRL_TRAINER)
     {
         rom -> trainer = malloc (512);
 
         if (! rom -> trainer)
         {
-            gzclose (rom_file);
+            LR_CLOSE (rom_file);
 
             return (1);
         }
 
 
-        gzread (rom_file, rom -> trainer, 512);
+        LR_READ (rom_file, rom -> trainer, 512);
     }
 
 
@@ -140,19 +160,15 @@ int load_rom (AL_CONST UINT8 * filename, ROM * rom)
 
     if (! cpu_get_prg_rom_pages (rom))
     {
-        if (rom -> trainer)
-        {
-            free (rom -> trainer);
-        }
+        free_rom (rom);
 
-
-        gzclose (rom_file);
+        LR_CLOSE (rom_file);
 
         return (1);
     }
 
 
-    gzread (rom_file, rom ->
+    LR_READ (rom_file, rom ->
         prg_rom, (rom -> prg_rom_pages * 0x4000));
 
 
@@ -162,21 +178,14 @@ int load_rom (AL_CONST UINT8 * filename, ROM * rom)
     {
         if (! ppu_get_chr_rom_pages (rom))
         {
-            if (rom -> trainer)
-            {
-                free (rom -> trainer);
-            }
+            free_rom (rom);
 
-
-            cpu_free_prg_rom (rom);
-
-
-            gzclose (rom_file);
+            LR_CLOSE (rom_file);
 
             return (1);
         }
 
-        gzread (rom_file, rom -> chr_rom,
+        LR_READ (rom_file, rom -> chr_rom,
             (rom -> chr_rom_pages * 0x2000));
     }
 
@@ -200,179 +209,10 @@ int load_rom (AL_CONST UINT8 * filename, ROM * rom)
     }
 
 
-    gzclose (rom_file);
+    LR_CLOSE (rom_file);
 
     return (0);
 }
-
-
-#else
-
-
-int load_rom (AL_CONST UINT8 * filename, ROM * rom)
-{
-    FILE * rom_file;
-
-    NES_HEADER nes_header;
-
-    UINT8 test;
-
-
-    /* Open the file. */
-
-    rom_file = fopen (filename, "rb");
-
-    if (! rom_file)
-    {
-        return (1);
-    }
-
-
-    /* Read the header. */
-    fread (&nes_header, 1, 16, rom_file);
-
-    /* Verify the signature. */
-
-    if (strncmp((char *) nes_header.signature, "NES\x1A", 4))
-    {
-        fclose (rom_file);
-    
-        return (1);
-    }
-
-
-
-    /* Verify that PRG ROM exists */
-
-    if (nes_header.prg_rom_pages == 0)
-    {
-        fclose (rom_file);
-
-        return (1);
-    }
-
-
-    /* Check for 'DiskDude!'. */
-
-    if ((nes_header.control_byte_2 == 'D') &&
-        !(strncmp ((char *) nes_header.reserved, "iskDude!", 8)))
-    {
-        nes_header.control_byte_2 = 0;
-    }
-
-
-    /* Read page/bank count. */
-
-    rom -> prg_rom_pages = nes_header.prg_rom_pages;
-
-    rom -> chr_rom_pages = nes_header.chr_rom_pages;
-
-
-    /* Read control bytes. */
-
-    rom -> control_byte_1 = nes_header.control_byte_1;
-
-    rom -> control_byte_2 = nes_header.control_byte_2;
-
-
-    /* Derive mapper number. */
-
-    rom -> mapper_number =
-        ((rom -> control_byte_2 & 0xf0) |
-        ((rom -> control_byte_1 & 0xf0) >> 4));
-
-    mmc_request (rom);
-
-
-    /* Allocate and load trainer. */
-
-    if (rom -> control_byte_1 & ROM_CTRL_TRAINER)
-    {
-        rom -> trainer = malloc (512);
-
-        if (! rom -> trainer)
-        {
-            fclose (rom_file);
-
-            return (1);
-        }
-
-
-        fread (rom -> trainer, 1, 512, rom_file);
-    }
-
-
-    /* Allocate and load PRG-ROM. */
-
-    if (! cpu_get_prg_rom_pages (rom))
-    {
-        if (rom -> trainer)
-        {
-            free (rom -> trainer);
-        }
-
-
-        fclose (rom_file);
-
-        return (1);
-    }
-
-
-    fread (rom -> prg_rom, 1,
-        (rom -> prg_rom_pages * 0x4000), rom_file);
-
-
-    /* Allocate and load CHR-ROM. */
-
-    if (rom -> chr_rom_pages)
-    {
-        if (! ppu_get_chr_rom_pages (rom))
-        {
-            if (rom -> trainer)
-            {
-                free (rom -> trainer);
-            }
-
-
-            cpu_free_prg_rom (rom);
-
-
-            fclose (rom_file);
-
-            return (1);
-        }
-
-        fread (rom -> chr_rom, 1,
-            (rom -> chr_rom_pages * 0x2000), rom_file);
-    }
-
-
-    /* Fill in extra stuff. */
-
-    append_filename (rom ->
-        filename, "", filename, sizeof (rom -> filename));
-
-    rom -> sram_flag = (rom -> control_byte_1 & ROM_CTRL_SRAM);
-
-
-    if (rom -> control_byte_1 & ROM_CTRL_4SCREEN)
-    {
-        ppu_set_mirroring (MIRRORING_FOUR_SCREEN);
-    }
-    else
-    {
-        ppu_set_mirroring (((rom -> control_byte_1 &
-            ROM_CTRL_MIRROR) ? MIRRORING_VERTICAL : MIRRORING_HORIZONTAL));
-    }
-
-
-    fclose (rom_file);
-
-    return (0);
-}
-
-
-#endif /* ! USE_ZLIB */
 
 
 void free_rom (ROM * rom)

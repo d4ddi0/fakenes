@@ -93,6 +93,7 @@ ROM global_rom;
 #define ROM_CHR_ROM_PAGES   (global_rom.chr_rom_pages)
 
 #define ROM_MAPPER_NUMBER   (global_rom.mapper_number)
+#define ROM_CURRENT_MMC     (global_rom.current_mmc)
 
 #define ROM_PRG_ROM         (global_rom.prg_rom)
 #define ROM_PRG_ROM_PAGE_OVERFLOW_MASK (global_rom.prg_rom_page_overflow_mask)
