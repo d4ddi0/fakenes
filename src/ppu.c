@@ -315,11 +315,6 @@ UINT8 ppu_vram_read()
 
     /* VRAM Read I/O. */
 
-    if (mmc_check_latches)
-    {
-        mmc_check_latches(address);
-    }
-
     if (address >= 0x2000)
     {
         /* name tables */
@@ -331,6 +326,23 @@ UINT8 ppu_vram_read()
     else
     /* pattern tables */
     {
+        /* If the mapper's behavior is affected by PPU bus activity, *
+         *  it will need to install a handler in the function        *
+         *  pointer mmc_check_latches.                               */
+
+        /* This code is currently configured to report accesses to   *
+         *  0FD0-0FEF and 1FD0-1FEF only, for MMC2 and MMC4.         */
+
+        /* If a mapper needs to watch other PPU address ranges,      *
+         *  this code will need to be changed.                       */
+        if (mmc_check_latches)
+        {
+            if ((address & 0xFFF) >= 0xFD0 && (address & 0xFFF) <= 0xFEF)
+            {
+                mmc_check_latches(address);
+            }
+        }
+
         if (mmc_no_vrom)
         {
             buffered_vram_read = ppu_vram [address];
@@ -354,11 +366,6 @@ void ppu_vram_write(UINT8 value)
     UINT16 address = vram_address & 0x3FFF;
 
     /* VRAM Write I/O. */
-
-    if (mmc_check_latches)
-    {
-        mmc_check_latches(address);
-    }
 
     if (address >= 0x2000)
     {
@@ -385,6 +392,14 @@ void ppu_vram_write(UINT8 value)
     else
     /* pattern tables */
     {
+        if (mmc_check_latches)
+        {
+            if ((address & 0xFFF) >= 0xFD0 && (address & 0xFFF) <= 0xFEF)
+            {
+                mmc_check_latches(address);
+            }
+        }
+
         ppu_vram [address] = value;
     }
 
@@ -752,7 +767,10 @@ void ppu_render_line (int line)
     
             if (mmc_check_latches)
             {
-                mmc_check_latches(tile);
+                if ((tile & 0xFFF) >= 0xFD0 && (tile & 0xFFF) <= 0xFEF)
+                {
+                    mmc_check_latches(tile);
+                }
             }
 
             pattern1 = vram_read (tile + sub_y);
@@ -863,7 +881,10 @@ static INLINE void ppu_fetch_tile (int address, UINT8 * buffer)
 
     if (mmc_check_latches)
     {
-       mmc_check_latches(address);
+        if ((address & 0xFFF) >= 0xFD0 && (address & 0xFFF) <= 0xFEF)
+        {
+            mmc_check_latches(address);
+        }
     }
 
     for (y = 0; y < 8; y ++)
