@@ -690,6 +690,9 @@ int show_gui (int first_run)
 #endif
 
 
+    CHECK_MENU (options_video_palette_menu, 0);
+
+
     audio_suspend ();
 
 
