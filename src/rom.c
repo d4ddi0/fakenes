@@ -156,7 +156,7 @@ int load_rom (CONST UINT8 * filename, ROM * rom)
 
     /* Allocate and load CHR-ROM. */
 
-    rom -> chr_rom = malloc ((rom -> chr_rom_pages * 0x2000));
+    rom -> chr_rom = ppu_get_chr_rom_pages (rom -> chr_rom_pages);
 
     if (! rom -> chr_rom)
     {
@@ -175,8 +175,8 @@ int load_rom (CONST UINT8 * filename, ROM * rom)
     }
 
 
-    gzread (rom_file, rom ->
-        chr_rom, (rom -> chr_rom_pages * 0x2000));
+    gzread (rom_file, rom -> chr_rom,
+        (rom -> chr_rom_pages * 0x2000));
 
 
     /* Fill in extra stuff. */
@@ -315,7 +315,7 @@ int load_rom (CONST UINT8 * filename, ROM * rom)
 
     /* Allocate and load CHR-ROM. */
 
-    rom -> chr_rom = malloc ((rom -> chr_rom_pages * 0x2000));
+    rom -> chr_rom = ppu_get_chr_rom_pages (rom -> chr_rom_pages);
 
     if (! rom -> chr_rom)
     {
@@ -369,5 +369,5 @@ void free_rom (ROM * rom)
 
     free (rom -> prg_rom);
 
-    free (rom -> chr_rom);
+    ppu_free_chr_rom ();
 }

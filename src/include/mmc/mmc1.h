@@ -26,8 +26,6 @@ static int mmc1_256k_bank_num; //could be a char
 
 static unsigned int mmc1_prg_mask;
 
-static unsigned int mmc1_chr_mask;
-
 
 #define MMC1_MIRRORING_ADDRESS_BIT  1
 #define MMC1_MIRRORING_MODE_BIT     2
@@ -157,63 +155,53 @@ static void mmc1_write (UINT16 address, UINT8 value)
                 if (mmc1_register[0] & MMC1_VROM_BANK_SIZE_BIT)
                 /* 4k VROM mapping? */
                 {
-                    int mmc1_bank_number = mmc1_register[1] & mmc1_chr_mask;
-
-                    if (mmc1_bank_number > ROM_CHR_ROM_PAGES * 2)
-                    {
-                     /* not sure how to handle non-existant CHR ROM */
-                     /* ignoring high address bits */
-                     mmc1_bank_number &= mmc1_chr_mask / 2;
-                    }
-
-                    mmc1_bank_number <<= 2;
+                    int mmc1_bank_number = mmc1_register[1] * 4;
 
                     /* swap 4k of CHR-ROM */ //works!!!
-                    mmc_vrom_banks[0] = VROM_PAGE_1K (mmc1_bank_number);
-                    mmc_vrom_banks[1] = VROM_PAGE_1K (mmc1_bank_number + 1);
-                    mmc_vrom_banks[2] = VROM_PAGE_1K (mmc1_bank_number + 2);
-                    mmc_vrom_banks[3] = VROM_PAGE_1K (mmc1_bank_number + 3);
+                    ppu_set_ram_1k_pattern_vrom_block (0 << 10,
+                        mmc1_bank_number);
+                    ppu_set_ram_1k_pattern_vrom_block (1 << 10,
+                        mmc1_bank_number + 1);
+                    ppu_set_ram_1k_pattern_vrom_block (2 << 10,
+                        mmc1_bank_number + 2);
+                    ppu_set_ram_1k_pattern_vrom_block (3 << 10,
+                        mmc1_bank_number + 3);
 
-                    mmc1_bank_number = mmc1_register[2] & mmc1_chr_mask;
 
-                    if (mmc1_bank_number > ROM_CHR_ROM_PAGES * 2)
-                    {
-                        /* not sure how to handle non-existant CHR ROM */
-                        /* ignoring high address bits */
-                        mmc1_bank_number &= mmc1_chr_mask / 2;
-                    }
-
-                    mmc1_bank_number <<= 2;
+                    mmc1_bank_number = mmc1_register[2] * 4;
 
                     /* swap other 4k of CHR-ROM */ //works!!!
-                    mmc_vrom_banks[4] = VROM_PAGE_1K (mmc1_bank_number);
-                    mmc_vrom_banks[5] = VROM_PAGE_1K (mmc1_bank_number + 1);
-                    mmc_vrom_banks[6] = VROM_PAGE_1K (mmc1_bank_number + 2);
-                    mmc_vrom_banks[7] = VROM_PAGE_1K (mmc1_bank_number + 3);
+                    ppu_set_ram_1k_pattern_vrom_block (4 << 10,
+                        mmc1_bank_number);
+                    ppu_set_ram_1k_pattern_vrom_block (5 << 10,
+                        mmc1_bank_number + 1);
+                    ppu_set_ram_1k_pattern_vrom_block (6 << 10,
+                        mmc1_bank_number + 2);
+                    ppu_set_ram_1k_pattern_vrom_block (7 << 10,
+                        mmc1_bank_number + 3);
                 }
                 else
                 /* No, 8k VROM mapping */
                 {
-                    int mmc1_bank_number = mmc1_register[1] & mmc1_chr_mask & ~1;
-
-                    if (mmc1_bank_number > ROM_CHR_ROM_PAGES * 2)
-                    {
-                     /* not sure how to handle non-existant CHR ROM */
-                     /* ignoring high address bits */
-                     mmc1_bank_number &= mmc1_chr_mask / 2;
-                    }
-
-                    mmc1_bank_number <<= 2;
+                    int mmc1_bank_number = (mmc1_register[1] & ~1) * 4;
 
                     /* swap 8k of CHR-ROM */ //never called??
-                    mmc_vrom_banks[0] = VROM_PAGE_1K (mmc1_bank_number);
-                    mmc_vrom_banks[1] = VROM_PAGE_1K (mmc1_bank_number + 1);
-                    mmc_vrom_banks[2] = VROM_PAGE_1K (mmc1_bank_number + 2);
-                    mmc_vrom_banks[3] = VROM_PAGE_1K (mmc1_bank_number + 3);
-                    mmc_vrom_banks[4] = VROM_PAGE_1K (mmc1_bank_number + 4);
-                    mmc_vrom_banks[5] = VROM_PAGE_1K (mmc1_bank_number + 5);
-                    mmc_vrom_banks[6] = VROM_PAGE_1K (mmc1_bank_number + 6);
-                    mmc_vrom_banks[7] = VROM_PAGE_1K (mmc1_bank_number + 7);
+                    ppu_set_ram_1k_pattern_vrom_block (0 << 10,
+                        mmc1_bank_number);
+                    ppu_set_ram_1k_pattern_vrom_block (1 << 10,
+                        mmc1_bank_number + 1);
+                    ppu_set_ram_1k_pattern_vrom_block (2 << 10,
+                        mmc1_bank_number + 2);
+                    ppu_set_ram_1k_pattern_vrom_block (3 << 10,
+                        mmc1_bank_number + 3);
+                    ppu_set_ram_1k_pattern_vrom_block (4 << 10,
+                        mmc1_bank_number + 4);
+                    ppu_set_ram_1k_pattern_vrom_block (5 << 10,
+                        mmc1_bank_number + 5);
+                    ppu_set_ram_1k_pattern_vrom_block (6 << 10,
+                        mmc1_bank_number + 6);
+                    ppu_set_ram_1k_pattern_vrom_block (7 << 10,
+                        mmc1_bank_number + 7);
                 }
             }
             return;
@@ -244,46 +232,40 @@ static void mmc1_write (UINT16 address, UINT8 value)
                 if (mmc1_register[0] & MMC1_VROM_BANK_SIZE_BIT)
                 /* 4k VROM mapping? */
                 {
-                    int mmc1_bank_number = mmc1_register[1] & mmc1_chr_mask;
-
-                    if (mmc1_bank_number > ROM_CHR_ROM_PAGES * 2)
-                    {
-                     /* not sure how to handle non-existant CHR ROM */
-                     /* ignoring high address bits */
-                     mmc1_bank_number &= mmc1_chr_mask / 2;
-                    }
-
-                    mmc1_bank_number <<= 2;
+                    int mmc1_bank_number = mmc1_register[1] * 4;
 
                     /* swap 4k of CHR-ROM */ //works!!!
-                    mmc_vrom_banks[0] = VROM_PAGE_1K (mmc1_bank_number);
-                    mmc_vrom_banks[1] = VROM_PAGE_1K (mmc1_bank_number + 1);
-                    mmc_vrom_banks[2] = VROM_PAGE_1K (mmc1_bank_number + 2);
-                    mmc_vrom_banks[3] = VROM_PAGE_1K (mmc1_bank_number + 3);
+                    ppu_set_ram_1k_pattern_vrom_block (0 << 10,
+                        mmc1_bank_number);
+                    ppu_set_ram_1k_pattern_vrom_block (1 << 10,
+                        mmc1_bank_number + 1);
+                    ppu_set_ram_1k_pattern_vrom_block (2 << 10,
+                        mmc1_bank_number + 2);
+                    ppu_set_ram_1k_pattern_vrom_block (3 << 10,
+                        mmc1_bank_number + 3);
                 }
                 else
                 /* No, 8k VROM mapping */
                 {
-                    int mmc1_bank_number = mmc1_register[1] & mmc1_chr_mask & ~1;
-
-                    if (mmc1_bank_number > ROM_CHR_ROM_PAGES * 2)
-                    {
-                     /* not sure how to handle non-existant CHR ROM */
-                     /* ignoring high address bits */
-                     mmc1_bank_number &= mmc1_chr_mask / 2;
-                    }
-
-                    mmc1_bank_number <<= 2;
+                    int mmc1_bank_number = (mmc1_register[1] & ~1) * 4;
 
                     /* swap 8k of CHR-ROM */ //never called??
-                    mmc_vrom_banks[0] = VROM_PAGE_1K (mmc1_bank_number);
-                    mmc_vrom_banks[1] = VROM_PAGE_1K (mmc1_bank_number + 1);
-                    mmc_vrom_banks[2] = VROM_PAGE_1K (mmc1_bank_number + 2);
-                    mmc_vrom_banks[3] = VROM_PAGE_1K (mmc1_bank_number + 3);
-                    mmc_vrom_banks[4] = VROM_PAGE_1K (mmc1_bank_number + 4);
-                    mmc_vrom_banks[5] = VROM_PAGE_1K (mmc1_bank_number + 5);
-                    mmc_vrom_banks[6] = VROM_PAGE_1K (mmc1_bank_number + 6);
-                    mmc_vrom_banks[7] = VROM_PAGE_1K (mmc1_bank_number + 7);
+                    ppu_set_ram_1k_pattern_vrom_block (0 << 10,
+                        mmc1_bank_number);
+                    ppu_set_ram_1k_pattern_vrom_block (1 << 10,
+                        mmc1_bank_number + 1);
+                    ppu_set_ram_1k_pattern_vrom_block (2 << 10,
+                        mmc1_bank_number + 2);
+                    ppu_set_ram_1k_pattern_vrom_block (3 << 10,
+                        mmc1_bank_number + 3);
+                    ppu_set_ram_1k_pattern_vrom_block (4 << 10,
+                        mmc1_bank_number + 4);
+                    ppu_set_ram_1k_pattern_vrom_block (5 << 10,
+                        mmc1_bank_number + 5);
+                    ppu_set_ram_1k_pattern_vrom_block (6 << 10,
+                        mmc1_bank_number + 6);
+                    ppu_set_ram_1k_pattern_vrom_block (7 << 10,
+                        mmc1_bank_number + 7);
                 }
             }
             else
@@ -321,22 +303,17 @@ static void mmc1_write (UINT16 address, UINT8 value)
             if (mmc1_register[0] & MMC1_VROM_BANK_SIZE_BIT)
             /* 4k VROM mapping? */
             {
-                int mmc1_bank_number = mmc1_register[2] & mmc1_chr_mask;
-
-                if (mmc1_bank_number > ROM_CHR_ROM_PAGES * 2)
-                {
-                    /* not sure how to handle non-existant CHR ROM */
-                    /* ignoring high address bits */
-                    mmc1_bank_number &= mmc1_chr_mask / 2;
-                }
-
-                mmc1_bank_number <<= 2;
+                int mmc1_bank_number = mmc1_register[2] * 4;
 
                 /* swap other 4k of CHR-ROM */ //works!!!
-                mmc_vrom_banks[4] = VROM_PAGE_1K (mmc1_bank_number);
-                mmc_vrom_banks[5] = VROM_PAGE_1K (mmc1_bank_number + 1);
-                mmc_vrom_banks[6] = VROM_PAGE_1K (mmc1_bank_number + 2);
-                mmc_vrom_banks[7] = VROM_PAGE_1K (mmc1_bank_number + 3);
+                ppu_set_ram_1k_pattern_vrom_block (4 << 10,
+                    mmc1_bank_number);
+                ppu_set_ram_1k_pattern_vrom_block (5 << 10,
+                    mmc1_bank_number + 1);
+                ppu_set_ram_1k_pattern_vrom_block (6 << 10,
+                    mmc1_bank_number + 2);
+                ppu_set_ram_1k_pattern_vrom_block (7 << 10,
+                    mmc1_bank_number + 3);
             }
 
             return;
@@ -409,7 +386,7 @@ static INLINE void mmc1_reset (void)
 
         for (index = 0; index < 8; index ++)
         {
-            mmc_vrom_banks [index] = VROM_PAGE_1K (index);
+            ppu_set_ram_1k_pattern_vrom_block (index << 10, index);
         }
     }    
 }
@@ -450,28 +427,14 @@ static INLINE int mmc1_init (void)
     {
         /* No VROM is present. */
 
+        ppu_set_ram_8k_pattern_vram ();
+
         mmc_no_vrom = TRUE;
     }
     else
     {
         mmc_no_vrom = FALSE;
     }
-
-
-    if (ROM_CHR_ROM_PAGES != 0)
-    {
-        if (ROM_CHR_ROM_PAGES == 1) mmc1_chr_mask = 1;
-        else if (ROM_CHR_ROM_PAGES == 2) mmc1_chr_mask = 2;
-        else if (ROM_CHR_ROM_PAGES <= 4) mmc1_chr_mask = 4;
-        else if (ROM_CHR_ROM_PAGES <= 8) mmc1_chr_mask = 8;
-        /* max 128K CHR ROM */
-        else mmc1_chr_mask = 16;
-
-        /* Convert 8k mask to 4k mask. */
-
-        mmc1_chr_mask = ((mmc1_chr_mask * 2) - 1);
-    }
-
 
 
     mmc1_reset ();

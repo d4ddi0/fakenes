@@ -67,9 +67,6 @@ int mmc_disable_irqs = FALSE;
 
 UINT8 * mmc_rom_banks [4];
 
-UINT8 * mmc_vrom_banks [8];
-
-
 #include "mmc/mmc1.h"
 
 #include "mmc/mmc2.h"
@@ -140,7 +137,7 @@ int mmc_init (void)
 
                 for (index = 0; index < 8; index ++)
                 {
-                    mmc_vrom_banks [index] = VROM_PAGE_1K (index);
+                    ppu_set_ram_1k_pattern_vrom_block (index << 10, index);
                 }
                 
 
@@ -149,6 +146,8 @@ int mmc_init (void)
             else
             {
                 /* No VROM is present. */
+
+                ppu_set_ram_8k_pattern_vram ();
 
                 mmc_no_vrom = TRUE;
             }

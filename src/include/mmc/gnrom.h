@@ -7,8 +7,6 @@
 
 static int gnrom_prg_mask = 0;
 
-static unsigned int gnrom_chr_mask = 0;
-
 
 static void gnrom_write (UINT16 address, UINT8 value)
 {
@@ -17,7 +15,7 @@ static void gnrom_write (UINT16 address, UINT8 value)
     int chr_bank, prg_bank;
 
 
-    chr_bank = ((value & 0x0f) & gnrom_chr_mask);
+    chr_bank = (value & 0x0f);
 
     prg_bank = (((value & 0xf0) >> 4) & gnrom_prg_mask);
 
@@ -43,7 +41,7 @@ static void gnrom_write (UINT16 address, UINT8 value)
 
     for (index = 0; index < 8; index ++)
     {
-        mmc_vrom_banks [index] = VROM_PAGE_1K ((chr_bank + index));
+        ppu_set_ram_1k_pattern_vrom_block (index << 10, chr_bank + index);
     }
 }
 
@@ -67,7 +65,7 @@ static INLINE void gnrom_reset (void)
 
     for (index = 0; index < 8; index ++)
     {
-        mmc_vrom_banks [index] = VROM_PAGE_1K (index);
+        ppu_set_ram_1k_pattern_vrom_block (index << 10, index);
     }
 }
 
@@ -106,28 +104,6 @@ static INLINE int gnrom_init (void)
     /* Convert mask to 16k mask. */
 
     gnrom_prg_mask --;
-
-
-    if (ROM_CHR_ROM_PAGES == 1) gnrom_chr_mask = 1;
-    else if (ROM_CHR_ROM_PAGES == 2) gnrom_chr_mask = 2;
-    else if (ROM_CHR_ROM_PAGES <= 4) gnrom_chr_mask = 4;
-    else if (ROM_CHR_ROM_PAGES <= 8) gnrom_chr_mask = 8;
-    else if (ROM_CHR_ROM_PAGES <= 16) gnrom_chr_mask = 16;
-    else if (ROM_CHR_ROM_PAGES <= 32) gnrom_chr_mask = 32;
-    else if (ROM_CHR_ROM_PAGES <= 64) gnrom_chr_mask = 64;
-    else if (ROM_CHR_ROM_PAGES <= 128) gnrom_chr_mask = 128;
-    else gnrom_chr_mask = 256;
-
-
-    if (ROM_CHR_ROM_PAGES != gnrom_chr_mask)
-    {
-        /* Bank count not even power of 2, unhandled. */
-
-        return (1);
-    }
-
-
-    gnrom_chr_mask --;
 
 
     gnrom_reset ();

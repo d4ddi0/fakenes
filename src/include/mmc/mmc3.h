@@ -22,8 +22,6 @@ static int mmc3_irq_latch = 0;
 
 static unsigned int mmc3_prg_mask;
 
-static unsigned int mmc3_chr_mask;
-
 
 #define MMC3_PRG_ADDRESS_BIT 0x40
 
@@ -114,15 +112,16 @@ static void mmc3_write (UINT16 address, UINT8 value)
 
                     /* 2 1k pages at $0000 or $0800. */
 
-                    scrap = (mmc3_command * 2) ^ mmc3_chr_address;
+                    if (ROM_CHR_ROM_PAGES > 0)
+                    {
+                        scrap = (mmc3_command * 2) ^ mmc3_chr_address;
 
+                        ppu_set_ram_1k_pattern_vrom_block (scrap << 10,
+                            (value & ~1));
 
-                    mmc_vrom_banks [scrap] =
-                        VROM_PAGE_1K ((value & ~1) & mmc3_chr_mask);
-
-                    mmc_vrom_banks [++ scrap] =
-                        VROM_PAGE_1K ((value | 1) & mmc3_chr_mask);
-
+                        ppu_set_ram_1k_pattern_vrom_block (++scrap << 10,
+                            (value | 1));
+                    }
 
                     break;
 
@@ -137,12 +136,13 @@ static void mmc3_write (UINT16 address, UINT8 value)
 
                     /* 1 1k page at $1000 to $1c00. */
 
-                    scrap = (mmc3_command + 2) ^ mmc3_chr_address;
+                    if (ROM_CHR_ROM_PAGES > 0)
+                    {
+                        scrap = (mmc3_command + 2) ^ mmc3_chr_address;
 
-
-                    mmc_vrom_banks [scrap] =
-                        VROM_PAGE_1K (value & mmc3_chr_mask);
-
+                        ppu_set_ram_1k_pattern_vrom_block (scrap << 10,
+                            value);
+                    }
 
                     break;
 
@@ -277,7 +277,7 @@ static INLINE void mmc3_reset (void)
 
         for (index = 0; index < 8; index ++)
         {
-            mmc_vrom_banks [index] = VROM_PAGE_1K (index);
+            ppu_set_ram_1k_pattern_vrom_block (index << 10, index);
         }
     }    
 }
@@ -319,40 +319,14 @@ static INLINE int mmc3_init (void)
     {
         /* No VROM is present. */
 
+        ppu_set_ram_8k_pattern_vram ();
+
         mmc_no_vrom = TRUE;
     }
     else
     {
         mmc_no_vrom = FALSE;
     }
-
-
-    if (ROM_CHR_ROM_PAGES == 0)
-    {
-        mmc3_chr_mask = 1;
-    }
-    else
-    {
-        if (ROM_CHR_ROM_PAGES == 1) mmc3_chr_mask = 1;
-        else if (ROM_CHR_ROM_PAGES == 2) mmc3_chr_mask = 2;
-        else if (ROM_CHR_ROM_PAGES <= 4) mmc3_chr_mask = 4;
-        else if (ROM_CHR_ROM_PAGES <= 8) mmc3_chr_mask = 8;
-        else if (ROM_CHR_ROM_PAGES <= 16) mmc3_chr_mask = 16;
-        else if (ROM_CHR_ROM_PAGES <= 32) mmc3_chr_mask = 32;
-        else mmc3_chr_mask = 256;
-
-
-        if (ROM_CHR_ROM_PAGES != mmc3_chr_mask)
-        {
-            /* Bank count not even power of 2, unhandled. */
-
-            return (1);
-        }
-    }
-
-    /* Convert 8k mask to 1k mask. */
-
-    mmc3_chr_mask = ((mmc3_chr_mask * 8) - 1);
 
 
     mmc3_reset ();

@@ -23,6 +23,14 @@ extern "C" {
 #include "misc.h"
 
 
+void ppu_free_chr_rom (void);
+UINT8 * ppu_get_chr_rom_pages (int num_pages);
+void ppu_cache_chr_rom_pages (void);
+
+void ppu_set_ram_1k_pattern_vram_block (UINT16 block_address, int vram_block);
+void ppu_set_ram_1k_pattern_vrom_block (UINT16 block_address, int vrom_block);
+void ppu_set_ram_8k_pattern_vram (void);
+
 int ppu_init (void);
 void ppu_exit (void);
 

@@ -38,11 +38,35 @@ All rights reserved.  See 'LICENSE' for details.
 
 /* VRAM and sprite RAM. */
 
-static UINT8 ppu_vram [12 * 1024];
+static UINT8 * ppu_vram_block_read_address [8];
+static UINT8 * ppu_vram_block_write_address [8];
+
+/*
+ vram block identifiers
+  0-7 = pattern VRAM
+  8+  = pattern VROM
+*/
+#define FIRST_VROM_BLOCK 8
+static int ppu_vram_block [8];
+
+
+static UINT8 ppu_vram_dummy_write [1024];
+
+static UINT8 ppu_pattern_vram [8 * 1024];
+static UINT8 ppu_pattern_vram_cache [8 * 1024 / 2 * 8];
+
+
+static UINT8 ppu_name_table_vram [4 * 1024];
+static UINT8 *name_tables_read [4];
+static UINT8 *name_tables_write [4];
+
+
+static UINT8 ppu_palette [32];
+
 
 static UINT8 ppu_spr_ram [256];
 
-static UINT8 ppu_palette [32];
+
 #define ppu_background_palette ppu_palette
 #define ppu_sprite_palette (ppu_palette + 16)
 
@@ -113,30 +137,215 @@ static int first_line_this_frame = TRUE;
 static int background_tileset = 0;
 static int sprite_tileset = 0;
 
-static UINT8 *name_tables[4];
-
 static INLINE UINT8 vram_read (UINT16 address)
 {
     if (address < 0x2000)
     {
-        if (mmc_no_vrom)
-        {
-            return (ppu_vram [address]);
-        }
-        else
-        {
-            return (READ_VROM (address));
-        }
+        return ppu_vram_block_read_address [address >> 10] [address & 0x3FF];
     }
     else
     {
-        return (ppu_vram [address]);
+        return name_tables_read[(address >> 10) & 3]
+            [address & 0x3FF];
     }
+}
+
+
+static UINT8 ppu_chr_rom_pages;
+static UINT8 ppu_chr_rom_page_overflow_mask;
+static UINT8 * ppu_chr_rom = NULL;
+static UINT8 * ppu_chr_rom_cache = NULL;
+
+
+void ppu_free_chr_rom (void)
+{
+    if (ppu_chr_rom) free (ppu_chr_rom);
+    if (ppu_chr_rom_cache) free (ppu_chr_rom_cache);
+
+    ppu_chr_rom = NULL;
+    ppu_chr_rom_cache = NULL;
+}
+
+
+UINT8 * ppu_get_chr_rom_pages (int num_pages)
+{
+    ppu_chr_rom_pages = num_pages;
+
+    /* Compute a mask used to wrap invalid CHR ROM page numbers.
+     *  As CHR ROM banking uses a 1k page size, this mask is based
+     *  on a 1k page size.
+     */
+    if (((num_pages * 2 - 1) & (num_pages - 1)) == (num_pages - 1) ||
+        (num_pages == 1))
+    /* compute mask for even power of two */
+    {
+        ppu_chr_rom_page_overflow_mask = (num_pages * 8) - 1;
+    }
+    else
+    /* compute mask */
+    {
+        int i;
+
+        /* compute the largest even power of 2 less than
+           CHR ROM page count, and use that to compute the mask */
+        for (i = 0; (ppu_chr_rom_pages >> (i + 1)) > 0; i++);
+
+        ppu_chr_rom_page_overflow_mask = ((1 << i) * 8) - 1;
+    }
+
+    /* 8k CHR ROM page size */
+    ppu_chr_rom = malloc (num_pages * 0x2000);
+
+    /* 2-bit planar tiles converted to 8-bit chunky */
+    ppu_chr_rom_cache = malloc ((num_pages * 0x2000) / 2 * 8);
+
+    if (ppu_chr_rom == 0 || ppu_chr_rom_cache == 0)
+    {
+        ppu_free_chr_rom ();
+
+        return NULL;
+    }
+
+    return ppu_chr_rom;
+}
+
+
+UINT32 tile_decode_table_plane_0[16];
+UINT32 tile_decode_table_plane_1[16];
+
+
+void ppu_cache_chr_rom_pages (void)
+{
+    int tile, num_tiles;
+
+    /* 8k CHR ROM page size, 2-bitplane 8x8 tiles */
+    num_tiles = (ppu_chr_rom_pages * 0x2000) / (8 * 2);
+
+    for (tile = 0; tile < num_tiles; tile++)
+    {
+        int y;
+
+        for (y = 0; y < 8; y++)
+        {
+            UINT32 pixels0_3, pixels4_7;
+
+            pixels0_3 = tile_decode_table_plane_0
+                [(ppu_chr_rom [tile * 16 + y]) >> 4];
+            pixels4_7 = tile_decode_table_plane_0
+                [(ppu_chr_rom [tile * 16 + y]) & 0x0F];
+
+            pixels0_3 |= tile_decode_table_plane_1
+                [(ppu_chr_rom [tile * 16 + y + 8]) >> 4];
+            pixels4_7 |= tile_decode_table_plane_1
+                [(ppu_chr_rom [tile * 16 + y + 8]) & 0x0F];
+            
+
+            *(UINT32 *) (&ppu_chr_rom_cache[((tile * 8 + y) * 8)]) =
+                pixels0_3;
+            *(UINT32 *) (&ppu_chr_rom_cache[((tile * 8 + y) * 8) + 4]) =
+                pixels4_7;
+        }
+    }
+}
+
+
+void ppu_set_ram_1k_pattern_vram_block (UINT16 block_address, int vram_block)
+{
+    ppu_vram_block [block_address >> 10] = vram_block;
+
+    ppu_vram_block_read_address [block_address >> 10] =
+        ppu_pattern_vram + (vram_block << 10);
+    ppu_vram_block_write_address [block_address >> 10] =
+        ppu_pattern_vram + (vram_block << 10);
+}
+
+
+void ppu_set_ram_1k_pattern_vrom_block (UINT16 block_address, int vrom_block)
+{
+    if (vrom_block >= (ppu_chr_rom_pages * 8))
+    {
+        vrom_block &= ppu_chr_rom_page_overflow_mask;
+    }
+
+    ppu_vram_block [block_address >> 10] =
+        FIRST_VROM_BLOCK + vrom_block;
+
+    ppu_vram_block_read_address [block_address >> 10] =
+        ppu_chr_rom + (vrom_block << 10);
+    ppu_vram_block_write_address [block_address >> 10] =
+        ppu_vram_dummy_write;
+}
+
+
+void ppu_set_ram_8k_pattern_vram (void)
+{
+    ppu_set_ram_1k_pattern_vram_block (0x0000, 0);
+    ppu_set_ram_1k_pattern_vram_block (0x0400, 1);
+    ppu_set_ram_1k_pattern_vram_block (0x0800, 2);
+    ppu_set_ram_1k_pattern_vram_block (0x0C00, 3);
+    ppu_set_ram_1k_pattern_vram_block (0x1000, 4);
+    ppu_set_ram_1k_pattern_vram_block (0x1400, 5);
+    ppu_set_ram_1k_pattern_vram_block (0x1800, 6);
+    ppu_set_ram_1k_pattern_vram_block (0x1C00, 7);
 }
 
 
 int ppu_init (void)
 {
+    int i;
+
+    /* calculate the tile decoding lookup tables */
+    for (i = 0; i < 16; i++)
+    {
+        int pixels0 = 0, pixels1 = 0;
+
+#ifdef LSB_FIRST
+        if (i & 8)
+        {
+            pixels0 |= (0xFC | 1);
+            pixels1 |= (0xFC | 2);
+        }
+        if (i & 4)
+        {
+            pixels0 |= (0xFC | 1) << 8;
+            pixels1 |= (0xFC | 2) << 8;
+        }
+        if (i & 2)
+        {
+            pixels0 |= (0xFC | 1) << 16;
+            pixels1 |= (0xFC | 2) << 16;
+        }
+        if (i & 1)
+        {
+            pixels0 |= (0xFC | 1) << 24;
+            pixels1 |= (0xFC | 2) << 24;
+        }
+#else
+        if (i & 8)
+        {
+            pixels0 |= (0xFC | 1) << 24;
+            pixels1 |= (0xFC | 2) << 24;
+        }
+        if (i & 4)
+        {
+            pixels0 |= (0xFC | 1) << 16;
+            pixels1 |= (0xFC | 2) << 16;
+        }
+        if (i & 2)
+        {
+            pixels0 |= (0xFC | 1) << 8;
+            pixels1 |= (0xFC | 2) << 8;
+        }
+        if (i & 1)
+        {
+            pixels0 |= (0xFC | 1);
+            pixels1 |= (0xFC | 2);
+        }
+#endif
+        tile_decode_table_plane_0 [i] = pixels0;
+        tile_decode_table_plane_1 [i] = pixels1;
+    }
+
     ppu_reset ();
 
 
@@ -156,7 +365,9 @@ void ppu_exit (void)
 
     if (dump_file)
     {
-        fwrite (ppu_vram, 1, sizeof (ppu_vram), dump_file);
+        fwrite (ppu_name_table_vram, 1, sizeof (ppu_name_table_vram),
+            dump_file);
+        fwrite (ppu_pattern_vram, 1, sizeof (ppu_pattern_vram), dump_file);
 
         fclose (dump_file);
     }
@@ -181,9 +392,16 @@ int get_ppu_mirroring (void)
  return ppu_mirroring;
 }
 
-void set_name_table_address(int table, UINT8 *address)
+void set_name_table_address (int table, UINT8 *address)
 {
-    name_tables[table] = address;
+    name_tables_read[table] = address;
+    name_tables_write[table] = address;
+}
+
+void set_name_table_address_rom (int table, UINT8 *address)
+{
+    name_tables_read[table] = address;
+    name_tables_write[table] = ppu_vram_dummy_write;
 }
 
 void set_ppu_mirroring_one_screen (void)
@@ -206,50 +424,50 @@ void set_ppu_mirroring (int mirroring)
         break;
 
      case MIRRORING_ONE_SCREEN_2000:
-        one_screen_base_address = ppu_vram + 0x2000;
+        one_screen_base_address = ppu_name_table_vram;
         set_ppu_mirroring_one_screen();
 
         break;
 
      case MIRRORING_ONE_SCREEN_2400:
-        one_screen_base_address = ppu_vram + 0x2400;
+        one_screen_base_address = ppu_name_table_vram + 0x400;
         set_ppu_mirroring_one_screen();
 
         break;
 
      case MIRRORING_ONE_SCREEN_2800:
-        one_screen_base_address = ppu_vram + 0x2800;
+        one_screen_base_address = ppu_name_table_vram + 0x800;
         set_ppu_mirroring_one_screen();
 
         break;
 
      case MIRRORING_ONE_SCREEN_2C00:
-        one_screen_base_address = ppu_vram + 0x2C00;
+        one_screen_base_address = ppu_name_table_vram + 0xC00;
         set_ppu_mirroring_one_screen();
 
         break;
 
      case MIRRORING_VERTICAL:
-        set_name_table_address(0, ppu_vram + 0x2000);
-        set_name_table_address(1, ppu_vram + 0x2400);
-        set_name_table_address(2, ppu_vram + 0x2000);
-        set_name_table_address(3, ppu_vram + 0x2400);
+        set_name_table_address(0, ppu_name_table_vram);
+        set_name_table_address(1, ppu_name_table_vram + 0x400);
+        set_name_table_address(2, ppu_name_table_vram);
+        set_name_table_address(3, ppu_name_table_vram + 0x400);
 
         break;
 
      case MIRRORING_HORIZONTAL:
-        set_name_table_address(0, ppu_vram + 0x2000);
-        set_name_table_address(1, ppu_vram + 0x2000);
-        set_name_table_address(2, ppu_vram + 0x2400);
-        set_name_table_address(3, ppu_vram + 0x2400);
+        set_name_table_address(0, ppu_name_table_vram);
+        set_name_table_address(1, ppu_name_table_vram);
+        set_name_table_address(2, ppu_name_table_vram + 0x400);
+        set_name_table_address(3, ppu_name_table_vram + 0x400);
 
         break;
 
      case MIRRORING_FOUR_SCREEN:
-        set_name_table_address(0, ppu_vram + 0x2000);
-        set_name_table_address(1, ppu_vram + 0x2400);
-        set_name_table_address(2, ppu_vram + 0x2800);
-        set_name_table_address(3, ppu_vram + 0x2C00);
+        set_name_table_address(0, ppu_name_table_vram);
+        set_name_table_address(1, ppu_name_table_vram + 0x400);
+        set_name_table_address(2, ppu_name_table_vram + 0x800);
+        set_name_table_address(3, ppu_name_table_vram + 0xC00);
 
         break;
     }
@@ -282,7 +500,8 @@ static int old_sprites_enabled = FALSE;
 
 void ppu_reset (void)
 {
-    memset (ppu_vram, NULL, sizeof (ppu_vram));
+    memset (ppu_pattern_vram, NULL, sizeof (ppu_pattern_vram));
+    memset (ppu_name_table_vram, NULL, sizeof (ppu_name_table_vram));
 
     memset (ppu_spr_ram, NULL, sizeof (ppu_spr_ram));
 
@@ -318,6 +537,11 @@ void ppu_reset (void)
     sprite_tileset = 0;
 
     ppu_clear ();
+
+    if (mmc_no_vrom)
+    {
+        ppu_set_ram_8k_pattern_vram();
+    }
 }
 
 
@@ -332,7 +556,7 @@ UINT8 ppu_vram_read()
     {
         /* name tables */
         {
-            buffered_vram_read = name_tables[(address >> 10) & 3]
+            buffered_vram_read = name_tables_read[(address >> 10) & 3]
              [address & 0x3FF];
         }
     }
@@ -356,14 +580,8 @@ UINT8 ppu_vram_read()
             }
         }
 
-        if (mmc_no_vrom)
-        {
-            buffered_vram_read = ppu_vram [address];
-        }
-        else
-        {
-            buffered_vram_read = READ_VROM (address);
-        }
+        buffered_vram_read =
+            ppu_vram_block_read_address [address >> 10] [address & 0x3FF];
     }
 
     vram_address += address_increment;
@@ -398,7 +616,7 @@ void ppu_vram_write(UINT8 value)
         else
         /* name tables */
         {
-            name_tables[(address >> 10) & 3]
+            name_tables_write[(address >> 10) & 3]
              [address & 0x3FF] = value;
         }
     }
@@ -413,7 +631,8 @@ void ppu_vram_write(UINT8 value)
             }
         }
 
-        ppu_vram [address] = value;
+        ppu_vram_block_write_address [address >> 10] [address & 0x3FF] = value;
+
     }
 
     vram_address += address_increment;
@@ -811,7 +1030,7 @@ void ppu_render_line (int line)
         int y, sub_y;
 
         name_table = (vram_address >> 10) & 3;
-        name_table_address = name_tables[name_table];
+        name_table_address = name_tables_read[name_table];
 
         y = (vram_address >> 5) & 0x1F;
         sub_y = (vram_address >> 12) & 7;
@@ -905,7 +1124,7 @@ void ppu_render_line (int line)
                     /* horizontal name table toggle */
                     {
                         name_table ^= 1;
-                        name_table_address = name_tables[name_table];
+                        name_table_address = name_tables_read[name_table];
 
                         /* handle address wrap */
                         vram_address = (vram_address - (1 << 5)) ^ (1 << 10);

@@ -15,8 +15,6 @@ static int mmc4_latch[2] = { 1, 1 };
 
 static unsigned int mmc4_prg_mask;
 
-static unsigned int mmc4_chr_mask;
-
 
 static void mmc4_check_latches (UINT16 address)
 {
@@ -46,9 +44,10 @@ static void mmc4_check_latches (UINT16 address)
     /* set new VROM banking */
     for (index = 0; index < 4; index ++)
     {
-        mmc_vrom_banks [bank * 4 + index] =
-            VROM_PAGE_1K (mmc4_vrom_bank[bank][latch] + index);
+        ppu_set_ram_1k_pattern_vrom_block ((bank * 4 + index) << 10,
+            mmc4_vrom_bank[bank][latch] + index);
     }
+
 }
 
 
@@ -73,14 +72,14 @@ static void mmc4_write (UINT16 address, UINT8 value)
 
         /* Convert 4k page # to 1k. */
 
-        mmc4_vrom_bank[0][0] = (value & mmc4_chr_mask) * 4;
+        mmc4_vrom_bank[0][0] = value * 4;
 
         if (mmc4_latch[0] == 0)
         {
             for (index = 0; index < 4; index ++)
             {
-                mmc_vrom_banks [index] =
-                    VROM_PAGE_1K (mmc4_vrom_bank[0][0] + index);
+                ppu_set_ram_1k_pattern_vrom_block (index << 10,
+                    mmc4_vrom_bank[0][0] + index);
             }
         }
     }
@@ -90,14 +89,14 @@ static void mmc4_write (UINT16 address, UINT8 value)
 
         /* Convert 4k page # to 1k. */
 
-        mmc4_vrom_bank[0][1] = (value & mmc4_chr_mask) * 4;
+        mmc4_vrom_bank[0][1] = value * 4;
 
         if (mmc4_latch[0] == 1)
         {
             for (index = 0; index < 4; index ++)
             {
-                mmc_vrom_banks [index] =
-                    VROM_PAGE_1K (mmc4_vrom_bank[0][1] + index);
+                ppu_set_ram_1k_pattern_vrom_block (index << 10,
+                    mmc4_vrom_bank[0][1] + index);
             }
         }
     }
@@ -107,14 +106,14 @@ static void mmc4_write (UINT16 address, UINT8 value)
 
         /* Convert 4k page # to 1k. */
 
-        mmc4_vrom_bank[1][0] = (value & mmc4_chr_mask) * 4;
+        mmc4_vrom_bank[1][0] = value * 4;
 
         if (mmc4_latch[1] == 0)
         {
             for (index = 0; index < 4; index ++)
             {
-                mmc_vrom_banks [index + 4] =
-                    VROM_PAGE_1K ((mmc4_vrom_bank[1][0] + index));
+                ppu_set_ram_1k_pattern_vrom_block ((index + 4) << 10,
+                    mmc4_vrom_bank[1][0] + index);
             }
         }
     }
@@ -124,14 +123,14 @@ static void mmc4_write (UINT16 address, UINT8 value)
 
         /* Convert 4k page # to 1k. */
 
-        mmc4_vrom_bank[1][1] = (value & mmc4_chr_mask) * 4;
+        mmc4_vrom_bank[1][1] = value * 4;
 
         if (mmc4_latch[1] == 1)
         {
             for (index = 0; index < 4; index ++)
             {
-                mmc_vrom_banks [index + 4] =
-                    VROM_PAGE_1K ((mmc4_vrom_bank[1][1] + index));
+                ppu_set_ram_1k_pattern_vrom_block ((index + 4) << 10,
+                    mmc4_vrom_bank[1][1] + index);
             }
         }
     }
@@ -169,16 +168,15 @@ static INLINE void mmc4_reset (void)
 
     for (index = 0; index < 4; index ++)
     {
-        mmc_vrom_banks [index] =
-            VROM_PAGE_1K ((mmc4_vrom_bank[0][1] + index));
+        ppu_set_ram_1k_pattern_vrom_block (index << 10,
+            mmc4_vrom_bank[0][1] + index);
     }
 
     for (index = 0; index < 4; index ++)
     {
-        mmc_vrom_banks [index + 4] =
-            VROM_PAGE_1K ((mmc4_vrom_bank[1][1] + index));
+        ppu_set_ram_1k_pattern_vrom_block ((index + 4) << 10,
+            mmc4_vrom_bank[1][1] + index);
     }
-
 
 }
 
@@ -219,27 +217,6 @@ static INLINE int mmc4_init (void)
     /* Convert to 16k mask. */
 
     mmc4_prg_mask = (mmc4_prg_mask - 1);
-
-
-    if (ROM_CHR_ROM_PAGES == 1) mmc4_chr_mask = 1;
-    else if (ROM_CHR_ROM_PAGES == 2) mmc4_chr_mask = 2;
-    else if (ROM_CHR_ROM_PAGES <= 4) mmc4_chr_mask = 4;
-    else if (ROM_CHR_ROM_PAGES <= 8) mmc4_chr_mask = 8;
-    else if (ROM_CHR_ROM_PAGES <= 16) mmc4_chr_mask = 16;
-    else if (ROM_CHR_ROM_PAGES <= 32) mmc4_chr_mask = 32;
-    else mmc4_chr_mask = 256;
-
-
-    if (ROM_CHR_ROM_PAGES != mmc4_chr_mask)
-    {
-        /* Bank count not even power of 2, unhandled. */
-
-        return (1);
-    }
-
-    /* Convert 8k mask to 4k mask. */
-
-    mmc4_chr_mask = ((mmc4_chr_mask * 2) - 1);
 
 
     mmc_no_vrom = FALSE;

@@ -39,7 +39,7 @@ static void dreams_write (UINT16 address, UINT8 value)
 
     for (index = 0; index < 8; index ++)
     {
-        mmc_vrom_banks [index] = VROM_PAGE_1K ((vrom_page + index));
+        ppu_set_ram_1k_pattern_vrom_block (index << 10, vrom_page + index);
     }
 }
 
@@ -59,7 +59,7 @@ static INLINE void dreams_reset (void)
 
     for (index = 0; index < 8; index ++)
     {
-        mmc_vrom_banks [index] = VROM_PAGE_1K (index);
+        ppu_set_ram_1k_pattern_vrom_block (index << 10, index);
     }
 }
 
