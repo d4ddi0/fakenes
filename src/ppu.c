@@ -478,13 +478,15 @@ static void recache_vram_set (int vram_block)
 }
 
 
+#define vram_set_needs_recache(set) (ppu_vram_set_end [set] >= 0)
+
 static void recache_vram_sets (void)
 {
     int i;
 
     for (i = 0; i < FIRST_VROM_BLOCK; i++)
     {
-        if (ppu_vram_set_end [i] >= 0)
+        if (vram_set_needs_recache(i))
         {
             recache_vram_set (i);
             clear_vram_set (i);
@@ -816,7 +818,10 @@ void ppu_vram_write(UINT8 value)
                     }
                     else
                     {
-                        recache_vram_set (vram_block);
+                        if (vram_set_needs_recache(vram_block))
+                        {
+                            recache_vram_set (vram_block);
+                        }
 
                         ppu_vram_set_end [vram_block] =
                             ppu_vram_set_begin [vram_block] = this_tile;
