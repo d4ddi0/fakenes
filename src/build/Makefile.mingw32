@@ -1,21 +1,33 @@
 
 
+# Default to x86 optimized core.
+
+ifndef ASM_CORE
+    ASM_CORE := 1
+endif
+
+
 CC = gcc
+
+NASM = nasm
 
 RM = rm -f -v
 
 
-BINARY = fakenesw.exe
-
-BINARY_DEBUG = fakenesw-debug.exe
+EXEEXT = w.exe
 
 
-IFLAGS = -Iinclude -Isupport
+BINARY = fakenes${EXEEXT}
+
+BINARY_DEBUG = fakenesd${EXEEXT}
+
+
+IFLAGS = -Iinclude/ -Isupport/
 
 ifdef DEBUG
-    OFLAGS = -O0 -g -gdb3
+    OFLAGS = -O0 -g -ggdb3
 
-    DFLAGS = -DDEBUG -DUSE_ZLIB -DLSB_FIRST
+    DFLAGS := -DDEBUG -DUSE_ZLIB -DLSB_FIRST
 else
     OFLAGS = -march=i486 -mcpu=pentiumpro -O3 -fomit-frame-pointer \
     -fno-rtti -fno-exceptions -funroll-loops -ffast-math -fforce-addr \
@@ -23,7 +35,11 @@ else
     -foptimize-sibling-calls -fstrict-aliasing -maccumulate-outgoing-args \
     -fschedule-insns -fschedule-insns2
 
-    DFLAGS = -DUSE_ZLIB -DLSB_FIRST
+    DFLAGS := -DUSE_ZLIB -DLSB_FIRST
+endif
+
+ifneq (${ASM_CORE}, 0)
+    DFLAGS := ${DFLAGS} -DNO_C_CORE
 endif
 
 WFLAGS = -Wall -Wno-unused
@@ -32,11 +48,24 @@ WFLAGS = -Wall -Wno-unused
 CFLAGS = ${IFLAGS} ${OFLAGS} ${WFLAGS} ${DFLAGS}
 
 
+NASMDFLAGS = -DC_LABEL_PREFIX=_
+
+ifdef DEBUG
+    NASMFLAGS = ${IFLAGS} -g -f win32 ${NASMDFLAGS}
+else
+    NASMFLAGS = ${IFLAGS} -O3 -f win32 ${NASMDFLAGS}
+endif
+
+
 LIBRARIES = support/resource.o -lalleg -lz -lHawkNL
 
 
-OBJECTS = apu.o audio.o core.o cpu.o data.o gui.o input.o papu.o ppu.o \
+OBJECTS := apu.o audio.o core.o cpu.o data.o gui.o input.o papu.o ppu.o \
     rom.o main.o mmc.o netplay.o video.o crc32.o support/unzip.o
+
+ifneq (${ASM_CORE}, 0)
+    OBJECTS := ${OBJECTS} corex86.o
+endif
 
 
 ifdef DEBUG
@@ -56,11 +85,23 @@ ${BINARY_DEBUG} : ${OBJECTS}
 	${CC} ${OBJECTS} -o ${BINARY_DEBUG} -g -ggdb3 ${LIBRARIES}
 
 
-.SUFFIXES : .c
+.SUFFIXES : .asm .c
+
+%.o : %.asm
+
+	${NASM} $< -o $@ ${NASMFLAGS}
+
 
 %.o : %.c
 
 	${CC} -c $< -o $@ ${CFLAGS}
+
+
+support/coreoff.inc: support/coreoff.c include/core.h include/misc.h
+
+	${CC} $< -o support/coreoff${EXEEXT} ${CFLAGS} -s
+
+	./support/coreoff${EXEEXT} > support/coreoff.inc
 
 
 include build/common.mk
@@ -71,3 +112,6 @@ clean :
 	${RM} ${OBJECTS}
 
 	${RM} ${BINARY} ${BINARY_DEBUG}
+
+
+	${RM} support/coreoff${EXEEXT} support/coreoff.inc

@@ -13,6 +13,9 @@ core.o : core.c include/core.h include/misc.h include/cpu.h \
      include/core/addr.h include/core/insns.h \
      include/core/codes.h
 
+corex86.o: corex86.asm support/coreoff.inc include/core/x86/addr.inc \
+    include/core/x86/codes.inc include/core/x86/insns.inc
+
 cpu.o : cpu.c include/cpu.h include/misc.h include/rom.h include/mmc.h \
     include/core.h include/input.h include/papu.h include/ppu.h \
     include/crc32.h

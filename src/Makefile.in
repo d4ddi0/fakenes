@@ -1,29 +1,56 @@
 
 
+ASM_CORE := @ASM_CORE@
+
+
 CC = @CC@
+
+NASM = @NASM@
 
 RM = @RM@ -f -v
 
 
+CHMOD = @CHMOD@
+
 INSTALL = @INSTALL@
 
 
-BINARY = fakenes@EXEEXT@
+EXEEXT = @EXEEXT@
 
 
-IFLAGS = -Iinclude -Isupport `allegro-config --cflags`
-
-DFLAGS = @DFLAGS@ -DPOSIX
+BINARY = fakenes${EXEEXT}
 
 
-CFLAGS = ${IFLAGS} @CFLAGS@ ${DFLAGS}
+IFLAGS = -Iinclude/ -Isupport/
+
+DFLAGS := @DFLAGS@ -DPOSIX
+
+ifneq (${ASM_CORE}, 0)
+    DFLAGS := ${DFLAGS} -DNO_C_CORE
+endif
+
+
+CFLAGS = `allegro-config --cflags` ${IFLAGS} @CFLAGS@ ${DFLAGS}
+
+
+NASMDFLAGS = -DC_LABEL_PREFIX
+
+ifdef DEBUG
+    NASMFLAGS = ${IFLAGS} -g -f elf ${NASMDFLAGS}
+else
+    NASMFLAGS = ${IFLAGS} -O3 -f elf ${NASMDFLAGS}
+endif
 
 
 LIBRARIES = `allegro-config --libs` @LIBRARIES@
 
 
-OBJECTS = apu.o audio.o core.o cpu.o data.o gui.o input.o papu.o ppu.o \
+OBJECTS := apu.o audio.o core.o cpu.o data.o gui.o input.o papu.o ppu.o \
     rom.o main.o mmc.o netplay.o video.o crc32.o support/unzip.o
+
+ifneq (${ASM_CORE}, 0)
+    OBJECTS := ${OBJECTS} corex86.o
+endif
 
 
 all : bootstrap ${BINARY}
@@ -61,11 +88,26 @@ uninstall :
 	${RM} /usr/bin/${BINARY}
 
 
-.SUFFIXES : .c
+.SUFFIXES : .asm .c
+
+%.o : %.asm
+
+	${NASM} $< -o $@ ${NASMFLAGS}
+
 
 %.o : %.c
 
 	${CC} -c $< -o $@ ${CFLAGS}
+
+
+support/coreoff.inc: support/coreoff.c include/core.h include/misc.h
+
+	${CC} $< -o support/coreoff${EXEEXT} ${CFLAGS} -s
+
+
+	${CHMOD} +x support/coreoff${EXEEXT}
+
+	./support/coreoff${EXEEXT} > support/coreoff.inc
 
 
 include build/common.mk
@@ -76,6 +118,9 @@ clean :
 	${RM} ${OBJECTS}
 
 	${RM} ${BINARY}
+
+
+	${RM} support/coreoff${EXEEXT} support/coreoff.inc
 
 
 distclean :
