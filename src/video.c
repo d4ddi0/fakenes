@@ -1698,6 +1698,14 @@ void video_set_resolution (int width, int height)
     preserve_palette = FALSE;
 
 
+    /* Sync. */
+
+    if (selected_blitter > 0)
+    {
+        selected_blitter = 0;
+    }
+
+
     if (gui_is_active)
     {
         unscare_mouse ();
@@ -1748,6 +1756,14 @@ void video_set_color_depth (int depth)
     preserve_video_buffer = FALSE;
 
     preserve_palette = FALSE;
+
+
+    /* Sync. */
+
+    if (selected_blitter > 0)
+    {
+        selected_blitter = 0;
+    }
 
 
     if (gui_is_active)
