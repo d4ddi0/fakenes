@@ -251,9 +251,9 @@ void gui_show_dialog (DIALOG * dialog, int items)
 
 static INLINE void update_menus (void)
 {
-    TOGGLE_MENU (machine_type_menu, 0, (machine_type == MACHINE_TYPE_NTSC));
+    TOGGLE_MENU (machine_speed_menu, 0, (machine_type == MACHINE_TYPE_NTSC));
 
-    TOGGLE_MENU (machine_type_menu, 2, (machine_type == MACHINE_TYPE_PAL));
+    TOGGLE_MENU (machine_speed_menu, 2, (machine_type == MACHINE_TYPE_PAL));
 
 
     TOGGLE_MENU (machine_menu, 2, video_display_status);
@@ -648,7 +648,7 @@ static int machine_menu_status (void)
 }
 
 
-static int machine_type_menu_ntsc (void)
+static int machine_speed_menu_ntsc_60_hz (void)
 {
     machine_type = MACHINE_TYPE_NTSC;
 
@@ -664,14 +664,14 @@ static int machine_type_menu_ntsc (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Emulation set to NTSC (60 Hz).");
+    gui_message (gui_fg_color, "Emulation speed set to NTSC (60 Hz).");
 
 
     return (D_O_K);
 }
 
 
-static int machine_type_menu_pal (void)
+static int machine_speed_menu_pal_50_hz (void)
 {
     machine_type = MACHINE_TYPE_PAL;
 
@@ -687,7 +687,7 @@ static int machine_type_menu_pal (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Emulation set to PAL (50 Hz).");
+    gui_message (gui_fg_color, "Emulation speed set to PAL (50 Hz).");
 
 
     return (D_O_K);

@@ -22,17 +22,17 @@ static MENU main_menu [] =
 };
 
 
-static int machine_type_menu_ntsc (void);
+static int machine_speed_menu_ntsc_60_hz (void);
 
-static int machine_type_menu_pal (void);
+static int machine_speed_menu_pal_50_hz (void);
 
 
-static MENU machine_type_menu [] =
+static MENU machine_speed_menu [] =
 {
-    { "&NTSC", machine_type_menu_ntsc, NULL, 0, NULL },
-    {      "",                   NULL, NULL, 0, NULL },
-    {  "&PAL",  machine_type_menu_pal, NULL, 0, NULL },
-    {    NULL,                   NULL, NULL, 0, NULL }
+    { "&NTSC (60 Hz)", machine_speed_menu_ntsc_60_hz, NULL, 0, NULL },
+    {              "",                          NULL, NULL, 0, NULL },
+    {  "&PAL (50 Hz)",  machine_speed_menu_pal_50_hz, NULL, 0, NULL },
+    {            NULL,                          NULL, NULL, 0, NULL }
 };
 
 
@@ -65,7 +65,7 @@ static MENU machine_menu [] =
     {        "",                NULL,               NULL, 0, NULL },
     { "&Status", machine_menu_status,               NULL, 0, NULL },
     {        "",                NULL,               NULL, 0, NULL },
-    {   "&Type",                NULL,  machine_type_menu, 0, NULL },
+    {  "S&peed",                NULL, machine_speed_menu, 0, NULL },
     {        "",                NULL,               NULL, 0, NULL },
     {  "St&ate",                NULL, machine_state_menu, 0, NULL },
     {      NULL,                NULL,               NULL, 0, NULL }
