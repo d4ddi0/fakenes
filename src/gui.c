@@ -3185,6 +3185,15 @@ static int options_video_advanced_menu_force_window (void)
 }
 
 
+static int options_menu_input (void)
+{
+    gui_show_dialog (options_input_dialog);
+
+
+    return (D_O_K);
+}
+
+
 static int help_menu_shortcuts (void)
 {
     gui_show_dialog (help_shortcuts_dialog);
@@ -3522,4 +3531,225 @@ static char * machine_patches_dialog_list_filler (int index, int * list_size)
 
         return (NIL);
     }
+}
+
+
+static int selected_player = -1;
+
+
+static int selected_player_device = 0;
+
+
+static int options_input_dialog_player_select (DIALOG * dialog)
+{
+    selected_player = (dialog -> d2 - 1);
+
+
+    selected_player_device = input_get_player_device (selected_player);
+
+
+    options_input_dialog [8].flags &= ~D_SELECTED;
+
+    options_input_dialog [9].flags &= ~D_SELECTED;
+
+    options_input_dialog [10].flags &= ~D_SELECTED;
+
+    options_input_dialog [11].flags &= ~D_SELECTED;
+
+
+    options_input_dialog [(7 + selected_player_device)].flags |= D_SELECTED;
+
+
+    scare_mouse ();
+
+    object_message (&options_input_dialog [8], MSG_DRAW, 0);
+
+    object_message (&options_input_dialog [9], MSG_DRAW, 0);
+
+    object_message (&options_input_dialog [10], MSG_DRAW, 0);
+
+    object_message (&options_input_dialog [11], MSG_DRAW, 0);
+
+    unscare_mouse ();
+
+
+    return (D_O_K);
+}
+
+
+static int options_input_dialog_device_select (DIALOG * dialog)
+{
+    if (selected_player < 0)
+    {
+        alert ("Error", "", "Please select a player to modify first.", "&OK", NIL, 'o', 0);
+
+
+        return (D_O_K);
+    }
+
+
+    selected_player_device = dialog -> d2;
+
+
+    input_set_player_device (selected_player, selected_player_device);
+
+
+    return (D_O_K);
+}
+
+
+static int options_input_dialog_set_buttons (DIALOG * dialog)
+{
+    int button;
+
+
+    int index;
+
+
+    if (selected_player < 0)
+    {
+        alert ("Error", "", "Please select a player to modify first.", "&OK", NIL, 'o', 0);
+
+
+        return (D_O_K);
+    }
+
+
+    button = dialog -> d2;
+
+
+    if ((selected_player_device == INPUT_DEVICE_JOYSTICK_1) || (selected_player_device == INPUT_DEVICE_JOYSTICK_2))
+    {
+        if ((button == INPUT_DEVICE_BUTTON_UP) || (button == INPUT_DEVICE_BUTTON_DOWN) ||
+            (button == INPUT_DEVICE_BUTTON_LEFT) || (button == INPUT_DEVICE_BUTTON_RIGHT))
+        {
+            alert ("Error", "", "Unable to set direction buttons for joystick devices.", "&OK", NIL, 'o', 0);
+    
+    
+            return (D_O_K);
+        }
+    }
+        
+
+    switch (selected_player_device)
+    {
+        case INPUT_DEVICE_KEYBOARD_1:
+
+        case INPUT_DEVICE_KEYBOARD_2:
+
+            gui_message (gui_fg_color, "Press any key.");
+    
+    
+            clear_keybuf ();
+    
+            while (! keypressed ());
+    
+    
+            index = (readkey () >> 8);
+    
+    
+            input_map_device_button (selected_player_device, button, index);
+    
+    
+            gui_message (gui_fg_color, "Button mapped to scancode %d.", index);
+
+
+            break;
+
+
+        case INPUT_DEVICE_JOYSTICK_1:
+
+            gui_message (gui_fg_color, "Press any button on joystick #1.");
+    
+    
+            clear_keybuf ();
+    
+    
+            for (;;)
+            {
+                poll_joystick ();
+    
+    
+                for (index = 0; index < joy [0].num_buttons; index ++)
+                {
+                    if (joy [0].button [index].b)
+                    {
+                        input_map_device_button (selected_player_device, button, index);
+                
+                
+                        gui_message (gui_fg_color, "Button mapped to joystick #1 button %d.", index);
+    
+    
+                        return (D_O_K);
+                    }
+                }
+    
+    
+                if (keypressed ())
+                {
+                    if ((readkey () >> 8) == KEY_ESC)
+                    {
+                        gui_message (error_color, "Button mapping canceled.");
+    
+    
+                        return (D_O_K);
+                    }
+                }
+            }
+
+
+            break;
+
+
+        case INPUT_DEVICE_JOYSTICK_2:
+
+            gui_message (gui_fg_color, "Press any button on joystick #2.");
+    
+    
+            clear_keybuf ();
+    
+    
+            for (;;)
+            {
+                poll_joystick ();
+    
+    
+                for (index = 0; index < joy [1].num_buttons; index ++)
+                {
+                    if (joy [1].button [index].b)
+                    {
+                        input_map_device_button (selected_player_device, button, index);
+                
+                
+                        gui_message (gui_fg_color, "Button mapped to joystick #1 button %d.", index);
+    
+    
+                        return (D_O_K);
+                    }
+                }
+    
+    
+                if (keypressed ())
+                {
+                    if ((readkey () >> 8) == KEY_ESC)
+                    {
+                        gui_message (error_color, "Button mapping canceled.");
+    
+    
+                        return (D_O_K);
+                    }
+                }
+            }
+
+
+            break;
+
+
+        default:
+
+            break;
+    }
+
+
+    return (D_O_K);
 }

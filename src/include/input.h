@@ -68,6 +68,47 @@ void input_update_zapper (void);
 void input_update_zapper_offsets (void);
 
 
+int input_get_player_device (int);
+
+void input_set_player_device (int, int);
+
+
+enum
+{
+    INPUT_DEVICE_NONE,
+
+
+    INPUT_DEVICE_KEYBOARD_1, INPUT_DEVICE_KEYBOARD_2,
+
+    INPUT_DEVICE_JOYSTICK_1, INPUT_DEVICE_JOYSTICK_2
+};
+
+
+void input_map_device_button (int, int, int);
+
+
+enum
+{
+    INPUT_DEVICE_BUTTON_A,
+
+    INPUT_DEVICE_BUTTON_B,
+
+
+    INPUT_DEVICE_BUTTON_START,
+
+    INPUT_DEVICE_BUTTON_SELECT,
+
+
+    INPUT_DEVICE_BUTTON_UP,
+
+    INPUT_DEVICE_BUTTON_DOWN,
+
+    INPUT_DEVICE_BUTTON_LEFT,
+
+    INPUT_DEVICE_BUTTON_RIGHT
+};
+
+
 void input_save_state (PACKFILE *, int);
 
 void input_load_state (PACKFILE *, int);

@@ -94,17 +94,6 @@ static int current_read_p1 = 0;
 static int current_read_p2 = 0;
 
 
-enum
-{
-    INPUT_DEVICE_NONE,
-
-
-    INPUT_DEVICE_KEYBOARD_1, INPUT_DEVICE_KEYBOARD_2,
-
-    INPUT_DEVICE_JOYSTICK_1, INPUT_DEVICE_JOYSTICK_2
-};
-
-
 static int input_devices [4];
 
 
@@ -309,9 +298,25 @@ void input_exit (void)
     set_config_int ("input", "player_4_device", input_devices [3]);
 
 
+    sprintf (key1_buffer, "%d %d %d %d %d %d %d %d", key1_scancodes [0], key1_scancodes [1],
+        key1_scancodes [2], key1_scancodes [3], key1_scancodes [4],
+        key1_scancodes [5], key1_scancodes [6], key1_scancodes [7]);
+
+    sprintf (key2_buffer, "%d %d %d %d %d %d %d %d", key2_scancodes [0], key2_scancodes [1],
+        key2_scancodes [2], key2_scancodes [3], key2_scancodes [4],
+        key2_scancodes [5], key2_scancodes [6], key2_scancodes [7]);
+
+
     set_config_string ("input", "key1_scancodes", key1_buffer);
 
     set_config_string ("input", "key2_scancodes", key2_buffer);
+
+
+    sprintf (joy1_buffer, "%d %d %d %d", joy1_buttons [0], joy1_buttons [1],
+        joy1_buttons [2], joy1_buttons [3]);
+
+    sprintf (joy2_buffer, "%d %d %d %d", joy2_buttons [0], joy2_buttons [1],
+        joy2_buttons [2], joy2_buttons [3]);
 
 
     set_config_string ("input", "joy1_buttons", joy1_buffer);
@@ -799,6 +804,61 @@ int input_process (void)
 
 
     return (want_exit);
+}
+
+
+int input_get_player_device (int player)
+{
+    return (input_devices [player]);
+}
+
+
+void input_set_player_device (int player, int device)
+{
+    input_devices [player] = device;
+}
+
+
+void input_map_device_button (int device, int button, int value)
+{
+    switch (device)
+    {
+        case INPUT_DEVICE_KEYBOARD_1:
+
+            key1_scancodes [button] = value;
+
+
+            break;
+
+
+        case INPUT_DEVICE_KEYBOARD_2:
+
+            key2_scancodes [button] = value;
+
+
+            break;
+
+
+        case INPUT_DEVICE_JOYSTICK_1:
+
+            joy1_buttons [button] = value;
+
+
+            break;
+
+
+        case INPUT_DEVICE_JOYSTICK_2:
+
+            joy2_buttons [button] = value;
+
+
+            break;
+
+
+        default:
+
+            break;
+    }
 }
 
 

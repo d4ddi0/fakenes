@@ -645,12 +645,17 @@ static MENU options_video_menu [] =
 };
 
 
+static int options_menu_input (void);
+
+
 static MENU options_menu [] =
 {
-    { "&Audio", NIL, options_audio_menu, 0, NIL },
-    {       "", NIL,                NIL, 0, NIL },
-    { "&Video", NIL, options_video_menu, 0, NIL },
-    {      NIL, NIL,                NIL, 0, NIL }
+    {    "&Audio",                NIL, options_audio_menu, 0, NIL },
+    {          "",                NIL,                NIL, 0, NIL },
+    {    "&Video",                NIL, options_video_menu, 0, NIL },
+    {          "",                NIL,                NIL, 0, NIL },
+    { "&Input...", options_menu_input,                NIL, 0, NIL },
+    {         NIL,                NIL,                NIL, 0, NIL }
 };
 
 

@@ -715,3 +715,53 @@ int sl_viewer (int message, DIALOG * dialog, int key)
 
     return (D_O_K);
 }
+
+
+int sl_radiobox (int message, DIALOG * dialog, int key)
+{
+    int (* handler) (DIALOG *);
+
+
+    int value;
+
+
+    int data;
+
+
+    handler = dialog -> dp2;
+
+
+    data = dialog -> d2;
+
+
+    dialog -> d2 = 1;
+
+    value = d_radio_proc (message, dialog, key);
+
+
+    dialog -> d2 = data;
+
+
+    switch (message)
+    {
+        case MSG_CLICK:
+
+        case MSG_KEY:
+
+            if (handler)
+            {
+                return (handler (dialog));
+            }
+
+
+            break;
+
+
+        default:
+
+            break;
+    }
+
+
+    return (value);
+}
