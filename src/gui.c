@@ -822,9 +822,9 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (options_video_resolution_menu, 14, ((SCREEN_W == 1600) && (SCREEN_H == 1200)));
 
 
-    TOGGLE_MENU (options_video_resolution_extended_menu, 0, ((SCREEN_W == 384) && (SCREEN_H == 288)));
+    TOGGLE_MENU (options_video_resolution_extended_menu, 0, ((SCREEN_W == 400) && (SCREEN_H == 300)));
 
-    TOGGLE_MENU (options_video_resolution_extended_menu, 2, ((SCREEN_W == 400) && (SCREEN_H == 300)));
+    TOGGLE_MENU (options_video_resolution_extended_menu, 2, ((SCREEN_W == 480) && (SCREEN_H == 360)));
 
     TOGGLE_MENU (options_video_resolution_extended_menu, 4, ((SCREEN_W == 512) && (SCREEN_H == 384)));
 
@@ -834,11 +834,13 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_video_resolution_extended_menu, 10, ((SCREEN_W == 720) && (SCREEN_H == 576)));
 
-    TOGGLE_MENU (options_video_resolution_extended_menu, 12, ((SCREEN_W == 1152) && (SCREEN_H == 900)));
+    TOGGLE_MENU (options_video_resolution_extended_menu, 12, ((SCREEN_W == 848) && (SCREEN_H == 480)));
 
-    TOGGLE_MENU (options_video_resolution_extended_menu, 14, ((SCREEN_W == 1280) && (SCREEN_H == 960)));
+    TOGGLE_MENU (options_video_resolution_extended_menu, 14, ((SCREEN_W == 1280) && (SCREEN_H == 720)));
 
-    TOGGLE_MENU (options_video_resolution_extended_menu, 16, ((SCREEN_W == 1024) && (SCREEN_H == 1024)));
+    TOGGLE_MENU (options_video_resolution_extended_menu, 16, ((SCREEN_W == 1280) && (SCREEN_H == 960)));
+
+    TOGGLE_MENU (options_video_resolution_extended_menu, 18, ((SCREEN_W == 1360) && (SCREEN_H == 768)));
 
 
     TOGGLE_MENU (options_video_colors_menu, 0, (video_get_color_depth () == 8));
@@ -3488,9 +3490,9 @@ RESOLUTION_MENU_HANDLER (1280, 1024)
 RESOLUTION_MENU_HANDLER (1600, 1200)
 
 
-RESOLUTION_MENU_HANDLER_EX (extended, 384, 288)
-
 RESOLUTION_MENU_HANDLER_EX (extended, 400, 300)
+
+RESOLUTION_MENU_HANDLER_EX (extended, 480, 360)
 
 RESOLUTION_MENU_HANDLER_EX (extended, 512, 384)
 
@@ -3500,11 +3502,13 @@ RESOLUTION_MENU_HANDLER_EX (extended, 720, 480)
 
 RESOLUTION_MENU_HANDLER_EX (extended, 720, 576)
 
-RESOLUTION_MENU_HANDLER_EX (extended, 1152, 900)
+RESOLUTION_MENU_HANDLER_EX (extended, 848, 480)
+
+RESOLUTION_MENU_HANDLER_EX (extended, 1280, 720)
 
 RESOLUTION_MENU_HANDLER_EX (extended, 1280, 960)
 
-RESOLUTION_MENU_HANDLER_EX (extended, 1024, 1024)
+RESOLUTION_MENU_HANDLER_EX (extended, 1360, 768)
 
 
 static int options_video_colors_menu_paletted_8_bit (void)
