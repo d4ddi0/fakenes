@@ -44,7 +44,7 @@ static const char vrc6_mirroring_table [] =
     MIRRORING_ONE_SCREEN_2000, MIRRORING_ONE_SCREEN_2400
 };
 
-static const UINT8 vrc6_mirroring_mask = 0xff;
+static const UINT8 vrc6_mirroring_mask = 0x0c;
 
 
 static char vrc6_enable_irqs = FALSE;
@@ -66,10 +66,10 @@ static int vrc6_irq_tick (int line)
 
             return (TRUE);
         }
-    }
-    else
-    {
-        vrc6_irq_counter ++;
+        else
+        {
+            vrc6_irq_counter ++;
+        }
     }
 
 
