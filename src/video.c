@@ -23,6 +23,8 @@ All rights reserved.  See 'LICENSE' for details.
 
 #include "video.h"
 
+#include "rom.h"
+
 
 #include "data.h"
 
@@ -201,8 +203,11 @@ void video_blit (void)
         textprintf (video_buffer,
             font, 20, 200, 33, "%02d Hz", timing_hertz);
 
-        textprintf (video_buffer,
-            font, 20, 216, 33, "PC: $%04X", * cpu_active_pc);
+        if (rom_is_loaded)
+        {
+            textprintf (video_buffer,
+                font, 20, 216, 33, "PC: $%04X", * cpu_active_pc);
+        }
     }
 
 
