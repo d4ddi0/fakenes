@@ -79,7 +79,7 @@ behavior, for the Ricoh RP2A03G CPU.
     Rg=Read(address.word); \
     if (address.bytes.low < Index) \
     { \
-        R->ICount -= CYCLE_LENGTH; R->Cycles += CYCLE_LENGTH; \
+        R->Cycles += CYCLE_LENGTH; \
         address.word += 0x100; \
         Rg = Read(address.word); \
     }
