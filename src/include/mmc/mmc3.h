@@ -289,13 +289,6 @@ static INLINE void mmc3_reset (void)
 
 static INLINE int mmc3_init (void)
 {
-    if (! gui_is_active)
-    {
-        printf ("Using memory mapper #4 (MMC3) "
-            "(%d PRG, %d CHR).\n\n", ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
-    }
-
-
     if (ROM_CHR_ROM_PAGES == 0)
     {
         /* No VROM is present. */
@@ -315,3 +308,10 @@ static INLINE int mmc3_init (void)
 
     return (0);
 }
+
+AL_CONST MMC mmc_mmc3 =
+{
+ "MMC3",
+ mmc3_init,
+ mmc3_reset
+};

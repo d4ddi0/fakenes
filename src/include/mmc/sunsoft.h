@@ -173,13 +173,6 @@ static INLINE void sunsoft_reset (void)
 
 static INLINE int sunsoft_init (void)
 {
-    if (! gui_is_active)
-    {
-        printf ("Using memory mapper #68 (Sunsoft) "
-            "(%d PRG, %d CHR).\n\n", ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
-    }
-
-
     sunsoft_name_table_banks [0] = sunsoft_name_table_banks [1] = 0;
 
     sunsoft_name_table_control = ((ppu_get_mirroring () == MIRRORING_VERTICAL) ? 0 : 1);
@@ -197,3 +190,10 @@ static INLINE int sunsoft_init (void)
 
     return (0);
 }
+
+AL_CONST MMC mmc_sunsoft =
+{
+ "Sunsoft mapper #4",
+ sunsoft_init,
+ sunsoft_reset
+};

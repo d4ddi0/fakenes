@@ -116,13 +116,6 @@ static INLINE void nina_reset (void)
 
 static INLINE int nina_init (void)
 {
-    if (! gui_is_active)
-    {
-        printf ("Using memory mapper #34 (Nina-1) "
-            "(%d PRG, %d CHR).\n\n", ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
-    }
-
-
     /* Check if CHR-ROM is present. */
 
     if (ROM_CHR_ROM_PAGES == 0)
@@ -147,3 +140,10 @@ static INLINE int nina_init (void)
 
     return (0);
 }
+
+AL_CONST MMC mmc_nina =
+{
+ "Nina-1",
+ nina_init,
+ nina_reset
+};

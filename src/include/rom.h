@@ -25,6 +25,9 @@ extern "C" {
 
 #include "misc.h"
 
+typedef struct _ROM ROM;
+
+#include "mmc.h"
 
 #define ROM_CTRL_MIRROR    1
 #define ROM_CTRL_SRAM      2
@@ -32,8 +35,10 @@ extern "C" {
 #define ROM_CTRL_4SCREEN   8
 
 
-typedef struct _ROM
+struct _ROM
 {
+                           /* Memory mapper                        */
+    AL_CONST MMC * current_mmc;
     UINT8 * trainer;       /* Trainer buffer                       */
 
     UINT8 * prg_rom;       /* PRG-ROM buffer                       */
@@ -58,7 +63,7 @@ typedef struct _ROM
     UINT8 sram_flag;       /* SRAM supported (extension)           */
     UINT8 filename [256];  /* Filename (extension)                 */
 
-} ROM;
+};
 
 
 typedef struct _NES_HEADER

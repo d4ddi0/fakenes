@@ -58,13 +58,6 @@ static INLINE void gnrom_reset (void)
 
 static INLINE int gnrom_init (void)
 {
-    if (! gui_is_active)
-    {
-        printf ("Using memory mapper #66 (GNROM) "
-            "(%d PRG, %d CHR).\n\n", ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
-    }
-
-
     /* Set initial mappings. */
 
     gnrom_reset ();
@@ -77,3 +70,10 @@ static INLINE int gnrom_init (void)
 
     return (0);
 }
+
+AL_CONST MMC mmc_gnrom =
+{
+ "GNROM",
+ gnrom_init,
+ gnrom_reset
+};

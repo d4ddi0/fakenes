@@ -391,12 +391,6 @@ static INLINE void mmc1_reset (void)
 
 static INLINE int mmc1_init (void)
 {
-    if (! gui_is_active)
-    {
-        printf ("Using memory mapper #1 (MMC1) "
-            "(%d PRG, %d CHR).\n\n", ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
-    }
-
     if (ROM_CHR_ROM_PAGES == 0)
     {
         /* No VROM is present. */
@@ -411,3 +405,10 @@ static INLINE int mmc1_init (void)
 
     return 0;
 }
+
+AL_CONST MMC mmc_mmc1 =
+{
+ "MMC1",
+ mmc1_init,
+ mmc1_reset
+};

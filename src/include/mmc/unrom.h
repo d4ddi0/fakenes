@@ -28,13 +28,6 @@ static INLINE void unrom_reset (void)
 
 static INLINE int unrom_init (void)
 {
-    if (! gui_is_active)
-    {
-        printf ("Using memory mapper #2 (UNROM) "
-            "(%d PRG, no CHR).\n\n", ROM_PRG_ROM_PAGES);
-    }
-
-
     /* No VROM hardware. */
 
     ppu_set_ram_8k_pattern_vram ();
@@ -52,3 +45,10 @@ static INLINE int unrom_init (void)
 
     return (0);
 }
+
+AL_CONST MMC mmc_unrom =
+{
+ "UNROM",
+ unrom_init,
+ unrom_reset
+};

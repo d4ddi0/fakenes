@@ -45,13 +45,6 @@ static INLINE void cnrom_reset (void)
 
 static INLINE int cnrom_init (void)
 {
-    if (! gui_is_active)
-    {
-        printf ("Using memory mapper #3 (CNROM) "
-            "(%d PRG, %d CHR).\n\n", ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
-    }
-
-
     /* Set initial mappings. */
 
     cnrom_reset ();
@@ -64,3 +57,10 @@ static INLINE int cnrom_init (void)
 
     return (0);
 }
+
+AL_CONST MMC mmc_cnrom =
+{
+ "CNROM",
+ cnrom_init,
+ cnrom_reset
+};

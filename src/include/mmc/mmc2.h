@@ -184,12 +184,6 @@ static INLINE void mmc2_reset (void)
 
 static INLINE int mmc2_init (void)
 {
-    if (! gui_is_active)
-    {
-        printf ("Using memory mapper #9 (MMC2) (%d PRG, "
-            "%d CHR).\n\n", ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
-    }
-
     /* Mapper requires at least 32k of PRG ROM, and some CHR ROM */
     if (ROM_PRG_ROM_PAGES < 2 || ROM_CHR_ROM_PAGES < 1)
     {
@@ -207,3 +201,10 @@ static INLINE int mmc2_init (void)
 
     return (0);
 }
+
+AL_CONST MMC mmc_mmc2 =
+{
+ "MMC2",
+ mmc2_init,
+ mmc2_reset
+};

@@ -26,6 +26,8 @@ All rights reserved.  See 'LICENSE' for details.
 
 #include "rom.h"
 
+#include "cpu.h"
+
 
 #include "misc.h"
 
@@ -109,6 +111,8 @@ int load_rom (AL_CONST UINT8 * filename, ROM * rom)
     rom -> mapper_number =
         ((rom -> control_byte_2 & 0xf0) |
         ((rom -> control_byte_1 & 0xf0) >> 4));
+
+    mmc_request (rom);
 
 
     /* Allocate and load trainer. */
@@ -276,6 +280,8 @@ int load_rom (AL_CONST UINT8 * filename, ROM * rom)
     rom -> mapper_number =
         ((rom -> control_byte_2 & 0xf0) |
         ((rom -> control_byte_1 & 0xf0) >> 4));
+
+    mmc_request (rom);
 
 
     /* Allocate and load trainer. */

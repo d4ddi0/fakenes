@@ -59,13 +59,6 @@ static INLINE void dreams_reset (void)
 
 static INLINE int dreams_init (void)
 {
-    if (! gui_is_active)
-    {
-        printf ("Using memory mapper #11 (Color Dreams) "
-            "(%d PRG, %d CHR).\n\n", ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
-    }
-
-
     /* Set initial mappings. */
 
     dreams_reset ();
@@ -78,3 +71,10 @@ static INLINE int dreams_init (void)
 
     return (0);
 }
+
+AL_CONST MMC mmc_dreams =
+{
+ "Color Dreams",
+ dreams_init,
+ dreams_reset
+};

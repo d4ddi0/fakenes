@@ -32,16 +32,20 @@ int mmc_init (void);
 void mmc_reset (void);
 
 
-void (* mmc_write) (UINT16, UINT8);
+void mmc_request (ROM *rom);
 
+
+typedef struct _MMC
+{
+ AL_CONST char *name;
+
+ int (* init) (void);
+ void (* reset) (void);
+} MMC;
 
 int (* mmc_scanline_start) (int);
 
 void (* mmc_check_latches) (UINT16);
-
-
-#define READ_ROM(offset)   \
-    (cpu_block_2k_read_address [(offset >> 11)] [offset & 0x7ff])
 
 
 #ifdef __cplusplus

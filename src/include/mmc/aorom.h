@@ -45,13 +45,6 @@ static INLINE void aorom_reset (void)
 
 static INLINE int aorom_init (void)
 {
-    if (! gui_is_active)
-    {
-        printf ("Using memory mapper #7 (AOROM) "
-            "(%d PRG, no CHR).\n\n", ROM_PRG_ROM_PAGES);
-    }
-
-
     /* No VROM hardware. */
 
     ppu_set_ram_8k_pattern_vram ();
@@ -74,3 +67,10 @@ static INLINE int aorom_init (void)
 
     return (0);
 }
+
+AL_CONST MMC mmc_aorom =
+{
+ "AOROM",
+ aorom_init,
+ aorom_reset
+};

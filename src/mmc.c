@@ -63,6 +63,118 @@ You must read and accept the license prior to use.
 #include "mmc/sunsoft.h"
 
 
+int none_init (void)
+{
+    /* Select first 32k page. */
+
+    cpu_set_read_address_32k_rom_block (0x8000, 0);
+            
+
+    if (ROM_CHR_ROM_PAGES > 0)
+    {
+        int index;
+
+        /* Select first 8k page. */
+
+        for (index = 0; index < 8; index ++)
+        {
+            ppu_set_ram_1k_pattern_vrom_block ((index << 10), index);
+        }
+    }
+    else
+    {
+        /* No VROM is present. */
+
+        ppu_set_ram_8k_pattern_vram ();
+    }
+
+
+    return (0);
+}
+
+void none_reset (void)
+{
+}
+
+AL_CONST MMC mmc_none =
+{
+ "No mapper",
+ none_init,
+ none_reset
+};
+
+void mmc_request (ROM *rom)
+{
+    switch (ROM_MAPPER_NUMBER)
+    {
+        /* No banking hardware. */
+
+        case 0: rom -> current_mmc = &mmc_none; break;
+
+
+        /* MMC1. */
+
+        case 1: rom -> current_mmc = &mmc_mmc1; break;
+
+
+        /* UNROM. */
+
+        case 2: rom -> current_mmc = &mmc_unrom; break;
+
+
+        /* CNROM. */
+
+        case 3: rom -> current_mmc = &mmc_cnrom; break;
+
+
+        /* MMC3. */
+
+        case 4: rom -> current_mmc = &mmc_mmc3; break;
+
+
+        /* AOROM. */
+
+        case 7: rom -> current_mmc = &mmc_aorom; break;
+
+
+        /* MMC2. */
+
+        case 9: rom -> current_mmc = &mmc_mmc2; break;
+
+
+        /* MMC4. */
+
+        case 10: rom -> current_mmc = &mmc_mmc4; break;
+
+
+        /* Color Dreams. */
+
+        case 11: rom -> current_mmc = &mmc_dreams; break;
+
+
+        /* Nina-1. */
+
+        case 34: rom -> current_mmc = &mmc_nina; break;
+
+
+        /* GNROM */
+	
+        case 66: rom -> current_mmc = &mmc_gnrom; break;
+
+
+        /* Sunsoft. */
+
+        case 68: rom -> current_mmc = &mmc_sunsoft; break;
+
+
+        /* Unsupported mapper. */
+
+        default: rom -> current_mmc = NULL; break;
+
+    }
+}
+
+
 int mmc_init (void)
 {
     int index;
@@ -79,166 +191,21 @@ int mmc_init (void)
     mmc_check_latches = NULL;
 
 
-    switch (ROM_MAPPER_NUMBER)
+    if (global_rom.current_mmc == NULL) return (1);
+
+    if (! gui_is_active)
     {
-        /* No banking hardware. */
-
-        case 0:
-
-            /* Select first 32k page. */
-
-            cpu_set_read_address_32k_rom_block (0x8000, 0);
-            
-
-            if (ROM_CHR_ROM_PAGES > 0)
-            {
-                /* Select first 8k page. */
-
-                for (index = 0; index < 8; index ++)
-                {
-                    ppu_set_ram_1k_pattern_vrom_block ((index << 10), index);
-                }
-            }
-            else
-            {
-                /* No VROM is present. */
-
-                ppu_set_ram_8k_pattern_vram ();
-            }
-
-
-            return (0);
-
-
-            break;
-
-
-        /* MMC1. */
-
-        case 1: return (mmc1_init ()); break;
-
-
-        /* UNROM. */
-
-        case 2: return (unrom_init ()); break;
-
-
-        /* CNROM. */
-
-        case 3: return (cnrom_init ()); break;
-
-
-        /* MMC3. */
-
-        case 4: return (mmc3_init ()); break;
-
-
-        /* AOROM. */
-
-        case 7: return (aorom_init ()); break;
-
-
-        /* MMC2. */
-
-        case 9: return (mmc2_init ()); break;
-
-
-        /* MMC4. */
-
-        case 10: return (mmc4_init ()); break;
-
-
-        /* Color Dreams. */
-
-        case 11: return (dreams_init ()); break;
-
-
-        /* Nina-1. */
-
-        case 34: return (nina_init ()); break;
-
-
-        /* GNROM */
-	
-        case 66: return (gnrom_init ()); break;
-
-
-        /* Sunsoft. */
-
-        case 68: return (sunsoft_init ()); break;
-
-
-        default:
-
-            return (1);
-
-
-            break;
+        printf ("Using memory mapper #%u (%s) "
+            "(%d PRG, %d CHR).\n\n",
+            ROM_MAPPER_NUMBER, global_rom.current_mmc -> name,
+            ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
     }
+
+    return global_rom.current_mmc -> init();
 }
 
 
 void mmc_reset (void)
 {
-    switch (ROM_MAPPER_NUMBER)
-    {
-        /* MMC1. */
-
-        case 1: mmc1_reset (); break;
-
-
-        /* UNROM. */
-
-        case 2: unrom_reset (); break;
-
-
-        /* CNROM. */
-
-        case 3: cnrom_reset (); break;
-
-
-        /* MMC3. */
-
-        case 4: mmc3_reset (); break;
-
-
-        /* AOROM. */
-
-        case 7: aorom_reset (); break;
-
-
-        /* MMC2. */
-
-        case 9: mmc2_reset (); break;
-
-
-        /* MMC4. */
-
-        case 10: mmc4_reset (); break;
-
-
-        /* Color Dreams. */
-
-        case 11: dreams_reset (); break;
-
-
-        /* Nina-1. */
-
-        case 34: nina_reset (); break;
-
-
-        /* GNROM */
-	
-        case 66: gnrom_reset (); break;
-
-
-        /* Sunsoft. */
-
-        case 68: sunsoft_reset (); break;
-
-
-        default:
-
-            break;
-    }
+    global_rom.current_mmc -> reset();
 }

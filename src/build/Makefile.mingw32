@@ -56,7 +56,7 @@ fakenesd.exe : ${OBJECTS}
 
 
 apu.o: apu.c include/apu.h include/apu_ex.h include/cpu.h include/misc.h \
-       include/rom.h
+       include/rom.h include/mmc.h
 
 audio.o: audio.c include/audio.h include/misc.h include/timing.h
 
@@ -68,10 +68,12 @@ cpu.o : cpu.c include/cpu.h include/core.h include/input.h include/misc.h \
 gui.o : gui.c include/apu.h include/audio.h include/cpu.h include/data.h \
         include/gui.h include/misc.h include/papu.h include/ppu.h \
         include/rom.h include/timing.h include/video.h \
-        include/gui/dialogs.h include/gui/menus.h include/gui/objects.h
+        include/gui/dialogs.h include/gui/menus.h include/gui/objects.h \
+        include/mmc.h
 
 input.o : input.c include/gui.h include/input.h include/misc.h \
-          include/ppu.h include/rom.h include/timing.h include/video.h
+          include/ppu.h include/rom.h include/timing.h include/video.h \
+          include/mmc.h
 
 main.o : main.c include/audio.h include/build.h include/cpu.h \
          include/data.h include/gui.h include/input.h include/misc.h \
@@ -92,11 +94,11 @@ ppu.o : ppu.c include/cpu.h include/input.h include/misc.h include/mmc.h \
         include/ppu.h include/rom.h include/timing.h include/video.h \
         include/ppu/tiles.h include/ppu/backgrnd.h include/ppu/sprites.h
 
-rom.o : rom.c include/ppu.h include/rom.h include/misc.h
+rom.o : rom.c include/ppu.h include/rom.h include/misc.h include/mmc.h
 
 video.o : video.c include/cpu.h include/data.h include/input.h \
           include/misc.h include/ppu.h include/rom.h include/timing.h \
-          include/video.h
+          include/video.h include/mmc.h
 
 
 clean :

@@ -180,13 +180,6 @@ static INLINE void mmc4_reset (void)
 
 static INLINE int mmc4_init (void)
 {
-    if (! gui_is_active)
-    {
-        printf ("Using memory mapper #10 (MMC4) (%d PRG, "
-            "%d CHR).\n\n", ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
-    }
-
-
     mmc4_reset ();
 
     cpu_set_write_handler_8k (0xA000, mmc4_write);
@@ -198,3 +191,10 @@ static INLINE int mmc4_init (void)
 
     return (0);
 }
+
+AL_CONST MMC mmc_mmc4 =
+{
+ "MMC4",
+ mmc4_init,
+ mmc4_reset
+};
