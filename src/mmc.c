@@ -85,6 +85,8 @@ UINT8 * mmc_rom_banks [4];
 
 #include "mmc/dreams.h"
 
+#include "mmc/nina.h"
+
 #include "mmc/sunsoft.h"
 
 
@@ -191,6 +193,11 @@ int mmc_init (void)
         case 11: return (dreams_init ()); break;
 
 
+        /* Nina-1. */
+
+        case 34: return (nina_init ()); break;
+
+
         /* GNROM */
 	
         case 66: return (gnrom_init ()); break;
@@ -253,6 +260,11 @@ void mmc_reset (void)
         /* Color Dreams. */
 
         case 11: dreams_reset (); break;
+
+
+        /* Nina-1. */
+
+        case 34: nina_reset (); break;
 
 
         /* GNROM */
