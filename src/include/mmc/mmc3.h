@@ -174,7 +174,7 @@ static void mmc3_write (UINT16 address, UINT8 value)
 
             /* Mirroring select. */
 
-            if (! (global_rom.control_byte_1 & ROM_CTRL_4SCREEN))
+            if (! (global_rom.control_byte_1 & ROM_CTRL_FOUR_SCREEN))
             {
                 ppu_set_mirroring (((value & 1) ?
                     MIRRORING_HORIZONTAL : MIRRORING_VERTICAL));

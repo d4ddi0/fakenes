@@ -32,15 +32,18 @@ int mmc_init (void);
 void mmc_reset (void);
 
 
-void mmc_request (ROM *rom);
+void mmc_request (const ROM * rom);
 
 
 typedef struct _MMC
 {
- AL_CONST char *name;
+    const UINT8 * name;
 
- int (* init) (void);
- void (* reset) (void);
+
+    int (* init) (void);
+
+    void (* reset) (void);
+
 } MMC;
 
 

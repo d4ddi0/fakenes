@@ -105,7 +105,7 @@ AL_CONST MMC mmc_none =
  none_reset
 };
 
-void mmc_request (ROM *rom)
+void mmc_request (const ROM *rom)
 {
     switch (rom -> mapper_number)
     {
