@@ -15,8 +15,7 @@ else
     OFLAGS = -O3 -march=i486 -fomit-frame-pointer -fno-rtti \
     -fno-exceptions -funroll-loops -ffast-math -g3 \
     -fstrength-reduce -fthread-jumps -fexpensive-optimizations \
-    -fschedule-insns -fschedule-insns2 \
-    -fmove-all-movables -freduce-all-givs
+    -fschedule-insns -fschedule-insns2
 
     DFLAGS = -DLSB_FIRST
 endif
