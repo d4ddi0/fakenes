@@ -155,7 +155,7 @@ static INLINE void ppu_render_sprite (int sprite, int line)
         }
     }
 
-    cache_address = ppu_vram_block_cache_address [address >> 10] +
+    cache_address = ppu_vram_block_sprite_cache_address [address >> 10] +
         ((address & 0x3FF) / 2 * 8) + (y * 8);
 
     attribute = attribute_table [ppu_spr_ram [sprite + 2] & 3];

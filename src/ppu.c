@@ -51,8 +51,10 @@ You must read and accept the license prior to use.
 /* VRAM and sprite RAM. */
 
 static UINT8 * ppu_vram_block_read_address [8];
-static UINT8 * ppu_vram_block_cache_address [8];
-static UINT8 * ppu_vram_block_cache_tag_address [8];
+static UINT8 * ppu_vram_block_background_cache_address [8];
+static UINT8 * ppu_vram_block_background_cache_tag_address [8];
+static UINT8 * ppu_vram_block_sprite_cache_address [8];
+static UINT8 * ppu_vram_block_sprite_cache_tag_address [8];
 static UINT8 * ppu_vram_block_write_address [8];
 
 /*
@@ -132,7 +134,11 @@ static int first_line_this_frame = TRUE;
 static int background_tileset = 0;
 static int sprite_tileset = 0;
 
+#ifdef ALLEGRO_I386
+static UINT32 attribute_table [4];
+#else
 static UINT8 attribute_table [4];
+#endif
 
 static INT8 background_pixels [8 + 256 + 8];
 
@@ -224,10 +230,12 @@ void ppu_set_ram_1k_pattern_vram_block (UINT16 block_address, int vram_block)
     ppu_vram_block_write_address [block_address >> 10] =
         ppu_pattern_vram + (vram_block << 10);
 
-    ppu_vram_block_cache_address [block_address >> 10] =
+    ppu_vram_block_background_cache_address [block_address >> 10] =
+    ppu_vram_block_sprite_cache_address [block_address >> 10] =
         ppu_pattern_vram_cache + ((vram_block << 10) / 2 * 8);
 
-    ppu_vram_block_cache_tag_address [block_address >> 10] =
+    ppu_vram_block_background_cache_tag_address [block_address >> 10] =
+    ppu_vram_block_sprite_cache_tag_address [block_address >> 10] =
         ppu_pattern_vram_cache_tag + ((vram_block << 10) / 2);
 }
 
@@ -252,10 +260,12 @@ void ppu_set_ram_1k_pattern_vrom_block (UINT16 block_address, int vrom_block)
     ppu_vram_block_write_address [block_address >> 10] =
         ppu_vram_dummy_write;
 
-    ppu_vram_block_cache_address [block_address >> 10] =
+    ppu_vram_block_background_cache_address [block_address >> 10] =
+    ppu_vram_block_sprite_cache_address [block_address >> 10] =
         ROM_CHR_ROM_CACHE + ((vrom_block << 10) / 2 * 8);
 
-    ppu_vram_block_cache_tag_address [block_address >> 10] =
+    ppu_vram_block_background_cache_tag_address [block_address >> 10] =
+    ppu_vram_block_sprite_cache_tag_address [block_address >> 10] =
         ROM_CHR_ROM_CACHE_TAG + ((vrom_block << 10) / 2);
 }
 
@@ -280,7 +290,16 @@ int ppu_init (void)
     /* calculate the attribute lookup table */
     for (i = 0; i < 4; i++)
     {
+#ifdef ALLEGRO_I386
+        UINT32 attribute = (i << 2) | 3;
+
+        attribute |= (attribute << 8) | (attribute << 16) |
+            (attribute << 24);
+
+        attribute_table [i] = attribute;
+#else
         attribute_table [i] = (i << 2) | 3;
+#endif
     }
 
     ppu_cache_init ();
@@ -988,15 +1007,18 @@ void ppu_render_line (int line)
 {
     int i;
 
-    memset (PPU_GET_LINE_ADDRESS (video_buffer, line),
-        ppu_background_palette [0], 256);
+    if (!PPU_BACKGROUND_ENABLED)
+    {
+        memset (PPU_GET_LINE_ADDRESS (video_buffer, line),
+            ppu_background_palette [0], 256);
+    }
 
     if (!PPU_BACKGROUND_ENABLED && !PPU_SPRITES_ENABLED)
     {
         return;
     }
 
-    if (PPU_SPRITES_ENABLED)
+    if (!PPU_BACKGROUND_ENABLED && PPU_SPRITES_ENABLED)
     {
         /* used for sprite pixel allocation and collision detection */
         memset (background_pixels + 8, 0, 256);

@@ -7,35 +7,52 @@
 /* Y = y line offset in tile        */
 
 /* dummy reads for write-back cache line loading */
-static INLINE UINT8 video_dummy_read(int line)
+static void dummy_read_line(UINT8 *buffer)
 {
-    return
-        PPU_GETPIXEL(video_buffer, 0, line) |
-        PPU_GETPIXEL(video_buffer, 16*2, line) |
-        PPU_GETPIXEL(video_buffer, 16*4, line) |
-        PPU_GETPIXEL(video_buffer, 16*6, line) |
-        PPU_GETPIXEL(video_buffer, 16*8, line) |
-        PPU_GETPIXEL(video_buffer, 16*10, line) |
-        PPU_GETPIXEL(video_buffer, 16*12, line) |
-        PPU_GETPIXEL(video_buffer, 16*14, line) |
-        PPU_GETPIXEL(video_buffer, 16, line) |
-        PPU_GETPIXEL(video_buffer, 16*3, line) |
-        PPU_GETPIXEL(video_buffer, 16*5, line) |
-        PPU_GETPIXEL(video_buffer, 16*7, line) |
-        PPU_GETPIXEL(video_buffer, 16*9, line) |
-        PPU_GETPIXEL(video_buffer, 16*11, line) |
-        PPU_GETPIXEL(video_buffer, 16*13, line) |
-        PPU_GETPIXEL(video_buffer, 16*15, line);
+    if ((cpu_family == 4 &&
+        (cpu_model == 7 || cpu_model == 8 || cpu_model == 15)) ||
+        (cpu_family == 5 && cpu_model == 5))
+    {
+        buffer [0] |=
+            buffer [16] |
+            buffer [16*2] |
+            buffer [16*3] |
+            buffer [16*4] |
+            buffer [16*5] |
+            buffer [16*6] |
+            buffer [16*7] |
+            buffer [16*8] |
+            buffer [16*9] |
+            buffer [16*10] |
+            buffer [16*11] |
+            buffer [16*12] |
+            buffer [16*13] |
+            buffer [16*14] |
+            buffer [16*15];
+    }
+
+    if (cpu_family == 5)
+    {
+        buffer [0] |=
+            buffer [16*2] |
+            buffer [16*4] |
+            buffer [16*6] |
+            buffer [16*8] |
+            buffer [16*10] |
+            buffer [16*12] |
+            buffer [16*14];
+    }
 }
+
 
 static void ppu_render_background (int line)
 {
     int attribute_address;
     int name_table;
     UINT8 *name_table_address;
-    UINT8 attribute_byte = 0;
     UINT8 *plot_buffer = PPU_GET_LINE_ADDRESS(video_buffer, line);
     int plot_pixel = 0;
+    UINT8 attribute_byte = 0;
 
     int x, sub_x;
     int y, sub_y;
@@ -43,8 +60,19 @@ static void ppu_render_background (int line)
     if (ppu_enable_background_layer)
     {
         /* dummy reads for write-back cache line loading */
-        ppu_vram_dummy_write [0] = video_dummy_read(line);
+        dummy_read_line(plot_buffer);
     }
+
+    dummy_read_line(background_pixels + 8);
+
+    memset (plot_buffer, ppu_background_palette [0], 256);
+
+    if (PPU_SPRITES_ENABLED)
+    {
+        /* used for sprite pixel allocation and collision detection */
+        memset (background_pixels + 8, 0, 256);
+    }
+
 
     name_table = (vram_address >> 10) & 3;
     name_table_address = name_tables_read[name_table];
@@ -73,16 +101,17 @@ static void ppu_render_background (int line)
     /* Draw the background. */
     for (x = 0; x < (256 / 8) + 1; x ++)
     {
-        UINT8 attribute, cache_tag;
         int tile_name, tile_address;
         UINT8 *cache_address;
         int cache_bank, cache_index;
+        UINT8 cache_tag;
+        UINT8 attribute;
 
         if (!(vram_address & 3))
         /* fetch and shift attribute byte */
         {
             attribute_byte =
-            name_table_address [0x3C0 + attribute_address];
+                name_table_address [0x3C0 + attribute_address];
             if (y & 2) attribute_byte >>= 4;
         }
 
@@ -101,13 +130,14 @@ static void ppu_render_background (int line)
         cache_bank = tile_address >> 10;
         cache_index = ((tile_address & 0x3FF) / 2) + sub_y;
 
-        cache_tag = ppu_vram_block_cache_tag_address [cache_bank]
+        cache_tag = ppu_vram_block_background_cache_tag_address [cache_bank]
             [cache_index];
 
         if (cache_tag)
         /* some non-transparent pixels */
         {
-            cache_address = ppu_vram_block_cache_address [cache_bank] +
+            cache_address =
+                ppu_vram_block_background_cache_address [cache_bank] +
                 cache_index * 8;
 
             attribute = attribute_table [attribute_byte & 3];
@@ -147,38 +177,54 @@ static void ppu_render_background (int line)
             if (cache_tag != 0xFF)
             /* some transparent pixels */
             {
-                for (; sub_x < 8; sub_x ++, plot_pixel ++)
+                if (ppu_enable_background_layer)
                 {
-                    UINT8 color = cache_address[sub_x] & attribute;
-
-                    if (color == 0) continue;
-
-                    background_pixels [8 + plot_pixel] = color;
-
-                    if (ppu_enable_background_layer)
+                    for (; sub_x < 8; sub_x ++, plot_pixel ++)
                     {
-                        color = ppu_background_palette [color];
+                        UINT8 color = cache_address [sub_x] & attribute;
 
-                        plot_buffer [plot_pixel] = color;
+                        if (color == 0) continue;
+
+                        background_pixels [8 + plot_pixel] = color;
+
+                        plot_buffer [plot_pixel] =
+                            ppu_background_palette [color];
+                    }
+                }
+                else
+                {
+                    for (; sub_x < 8; sub_x ++, plot_pixel ++)
+                    {
+                        UINT8 color = cache_address [sub_x] & attribute;
+
+                        if (color == 0) continue;
+
+                        background_pixels [8 + plot_pixel] = color;
                     }
                 }
             }
             else
             /* no transparent pixels */
             {
-                for (; sub_x < 8; sub_x ++, plot_pixel ++)
+                if (ppu_enable_background_layer)
                 {
-                    UINT8 color = cache_address[sub_x] & attribute;
-
-                    background_pixels [8 + plot_pixel] = color;
-
-                    if (ppu_enable_background_layer)
+                    for (; sub_x < 8; sub_x ++, plot_pixel ++)
                     {
-                        color = ppu_background_palette [color];
+                        UINT8 color = cache_address [sub_x] & attribute;
 
-                        plot_buffer [plot_pixel] = color;
-/*                      PPU_PUTPIXEL (video_buffer,
-                            ((x * 8) + sub_x - x_offset), line, color);*/
+                        background_pixels [8 + plot_pixel] = color;
+
+                        plot_buffer [plot_pixel] =
+                            ppu_background_palette [color];
+                    }
+                }
+                else
+                {
+                    for (; sub_x < 8; sub_x ++, plot_pixel ++)
+                    {
+                        UINT8 color = cache_address [sub_x] & attribute;
+
+                        background_pixels [8 + plot_pixel] = color;
                     }
                 }
             }
