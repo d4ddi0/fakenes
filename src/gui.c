@@ -480,36 +480,6 @@ static INLINE void update_menus (void)
     }
 
 
-    /* Yuck. */
-
-    if (video_get_color_depth () == 8)
-    {
-        int filters;
-
-
-        filters = video_get_filter_list ();
-
-
-        filters &= ~VIDEO_FILTER_SCANLINES_LOW;
-
-        filters &= ~VIDEO_FILTER_SCANLINES_MEDIUM;
-
-
-        video_set_filter_list (filters);
-
-
-        DISABLE_MENU (options_video_filters_scanlines_menu, 2);
-
-        DISABLE_MENU (options_video_filters_scanlines_menu, 4);
-    }
-    else
-    {
-        ENABLE_MENU (options_video_filters_scanlines_menu, 2);
-
-        ENABLE_MENU (options_video_filters_scanlines_menu, 4);
-    }
-
-
     TOGGLE_MENU (main_replay_select_menu, 0, (replay_index == 0));
 
     TOGGLE_MENU (main_replay_select_menu, 2, (replay_index == 1));
@@ -786,11 +756,11 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (options_video_blitter_menu, 16, (video_get_blitter () == VIDEO_BLITTER_SUPER_2XSCL));
 
 
-    TOGGLE_MENU (options_video_filters_scanlines_menu, 0, (video_get_filter_list () & VIDEO_FILTER_SCANLINES_HIGH));
+    TOGGLE_MENU (options_video_filters_menu, 0, (video_get_filter_list () & VIDEO_FILTER_SCANLINES_LOW));
 
-    TOGGLE_MENU (options_video_filters_scanlines_menu, 2, (video_get_filter_list () & VIDEO_FILTER_SCANLINES_MEDIUM));
+    TOGGLE_MENU (options_video_filters_menu, 2, (video_get_filter_list () & VIDEO_FILTER_SCANLINES_MEDIUM));
 
-    TOGGLE_MENU (options_video_filters_scanlines_menu, 4, (video_get_filter_list () & VIDEO_FILTER_SCANLINES_LOW));
+    TOGGLE_MENU (options_video_filters_menu, 4, (video_get_filter_list () & VIDEO_FILTER_SCANLINES_HIGH));
 
 
     TOGGLE_MENU (options_video_menu, 10, video_enable_vsync);
@@ -3692,89 +3662,7 @@ static int options_video_blitter_menu_super_2xscl (void)
 }
 
 
-static int options_video_filters_scanlines_menu_high (void)
-{
-    int filters;
-
-
-    filters = video_get_filter_list ();
-
-
-    if (filters & VIDEO_FILTER_SCANLINES_HIGH)
-    {
-        video_set_filter_list ((filters & ~VIDEO_FILTER_SCANLINES_HIGH));
-    }
-    else
-    {
-        filters &= ~VIDEO_FILTER_SCANLINES_MEDIUM;
-
-        filters &= ~VIDEO_FILTER_SCANLINES_LOW;
-
-
-        video_set_filter_list ((filters | VIDEO_FILTER_SCANLINES_HIGH));
-    }
-
-
-    update_menus ();
-
-
-    clear (screen);
-
-    video_blit (screen);
-
-
-    draw_logo ();
-
-
-    gui_message (gui_fg_color, "Toggled scanlines video filter to high.");
-
-
-    return (D_REDRAW);
-}
-
-
-static int options_video_filters_scanlines_menu_medium (void)
-{
-    int filters;
-
-
-    filters = video_get_filter_list ();
-
-
-    if (filters & VIDEO_FILTER_SCANLINES_MEDIUM)
-    {
-        video_set_filter_list ((filters & ~VIDEO_FILTER_SCANLINES_MEDIUM));
-    }
-    else
-    {
-        filters &= ~VIDEO_FILTER_SCANLINES_HIGH;
-
-        filters &= ~VIDEO_FILTER_SCANLINES_LOW;
-
-
-        video_set_filter_list ((filters | VIDEO_FILTER_SCANLINES_MEDIUM));
-    }
-
-
-    update_menus ();
-
-
-    clear (screen);
-
-    video_blit (screen);
-
-
-    draw_logo ();
-
-
-    gui_message (gui_fg_color, "Toggled scanlines video filter to medium.");
-
-
-    return (D_REDRAW);
-}
-
-
-static int options_video_filters_scanlines_menu_low (void)
+static int options_video_filters_menu_scanlines_25_percent (void)
 {
     int filters;
 
@@ -3808,7 +3696,89 @@ static int options_video_filters_scanlines_menu_low (void)
     draw_logo ();
 
 
-    gui_message (gui_fg_color, "Toggled scanlines video filter to low.");
+    gui_message (gui_fg_color, "Toggled scanlines video filter (25% opacity).");
+
+
+    return (D_REDRAW);
+}
+
+
+static int options_video_filters_menu_scanlines_50_percent (void)
+{
+    int filters;
+
+
+    filters = video_get_filter_list ();
+
+
+    if (filters & VIDEO_FILTER_SCANLINES_MEDIUM)
+    {
+        video_set_filter_list ((filters & ~VIDEO_FILTER_SCANLINES_MEDIUM));
+    }
+    else
+    {
+        filters &= ~VIDEO_FILTER_SCANLINES_HIGH;
+
+        filters &= ~VIDEO_FILTER_SCANLINES_LOW;
+
+
+        video_set_filter_list ((filters | VIDEO_FILTER_SCANLINES_MEDIUM));
+    }
+
+
+    update_menus ();
+
+
+    clear (screen);
+
+    video_blit (screen);
+
+
+    draw_logo ();
+
+
+    gui_message (gui_fg_color, "Toggled scanlines video filter (50% opacity).");
+
+
+    return (D_REDRAW);
+}
+
+
+static int options_video_filters_menu_scanlines_100_percent (void)
+{
+    int filters;
+
+
+    filters = video_get_filter_list ();
+
+
+    if (filters & VIDEO_FILTER_SCANLINES_HIGH)
+    {
+        video_set_filter_list ((filters & ~VIDEO_FILTER_SCANLINES_HIGH));
+    }
+    else
+    {
+        filters &= ~VIDEO_FILTER_SCANLINES_MEDIUM;
+
+        filters &= ~VIDEO_FILTER_SCANLINES_LOW;
+
+
+        video_set_filter_list ((filters | VIDEO_FILTER_SCANLINES_HIGH));
+    }
+
+
+    update_menus ();
+
+
+    clear (screen);
+
+    video_blit (screen);
+
+
+    draw_logo ();
+
+
+    gui_message (gui_fg_color, "Toggled scanlines video filter (100% opacity).");
 
 
     return (D_REDRAW);

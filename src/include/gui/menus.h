@@ -867,28 +867,21 @@ static MENU options_video_blitter_menu [] =
 };
 
 
-static int options_video_filters_scanlines_menu_high (void);
+static int options_video_filters_menu_scanlines_25_percent (void);
 
-static int options_video_filters_scanlines_menu_medium (void);
+static int options_video_filters_menu_scanlines_50_percent (void);
 
-static int options_video_filters_scanlines_menu_low (void);
-
-
-static MENU options_video_filters_scanlines_menu [] =
-{
-    {  "&High (100%)",   options_video_filters_scanlines_menu_high, NIL, 0, NIL },
-    {              "",                                         NIL, NIL, 0, NIL },
-    { "&Medium (50%)", options_video_filters_scanlines_menu_medium, NIL, 0, NIL },
-    {              "",                                         NIL, NIL, 0, NIL },
-    {    "&Low (25%)",    options_video_filters_scanlines_menu_low, NIL, 0, NIL },
-    {             NIL,                                         NIL, NIL, 0, NIL }
-};
+static int options_video_filters_menu_scanlines_100_percent (void);
 
 
 static MENU options_video_filters_menu [] =
 {
-    { "&Scanlines", NIL, options_video_filters_scanlines_menu, 0, NIL },
-    {          NIL, NIL,                                  NIL, 0, NIL }
+    {  "&Scanlines (25%)",  options_video_filters_menu_scanlines_25_percent, NIL, 0, NIL },
+    {                  "",                                              NIL, NIL, 0, NIL },
+    {  "S&canlines (50%)",  options_video_filters_menu_scanlines_50_percent, NIL, 0, NIL },
+    {                  "",                                              NIL, NIL, 0, NIL },
+    { "Sc&anlines (100%)", options_video_filters_menu_scanlines_100_percent, NIL, 0, NIL },
+    {                 NIL,                                              NIL, NIL, 0, NIL }
 };
 
 
