@@ -82,6 +82,28 @@ static MENU machine_state_select_menu [] =
 };
 
 
+static int machine_state_autosave_menu_disabled (void);
+
+static int machine_state_autosave_menu_10_seconds (void);
+
+static int machine_state_autosave_menu_30_seconds (void);
+
+static int machine_state_autosave_menu_60_seconds (void);
+
+
+static MENU machine_state_autosave_menu [] =
+{
+    {      "&Disabled",   machine_state_autosave_menu_disabled, NULL, 0, NULL },
+    {               "",                                   NULL, NULL, 0, NULL },
+    { "&1: 10 Seconds", machine_state_autosave_menu_10_seconds, NULL, 0, NULL },
+    {               "",                                   NULL, NULL, 0, NULL },
+    { "&2: 30 Seconds", machine_state_autosave_menu_30_seconds, NULL, 0, NULL },
+    {               "",                                   NULL, NULL, 0, NULL },
+    { "&3: 60 Seconds", machine_state_autosave_menu_60_seconds, NULL, 0, NULL },
+    {             NULL,                                   NULL, NULL, 0, NULL }
+};
+
+
 static int machine_state_menu_select (void);
 
 static int machine_state_menu_save (void);
@@ -91,12 +113,14 @@ static int machine_state_menu_restore (void);
 
 static MENU machine_state_menu [] =
 {
-    {  "S&elect",                       NULL, machine_state_select_menu, 0, NULL },
-    {         "",                       NULL,                      NULL, 0, NULL },
-    {    "&Save",    machine_state_menu_save,                      NULL, 0, NULL },
-    {         "",                       NULL,                      NULL, 0, NULL },
-    { "&Restore", machine_state_menu_restore,                      NULL, 0, NULL },
-    {       NULL,                       NULL,                      NULL, 0, NULL }
+    {   "S&elect",                       NULL,   machine_state_select_menu, 0, NULL },
+    {          "",                       NULL,                        NULL, 0, NULL },
+    {     "&Save",    machine_state_menu_save,                        NULL, 0, NULL },
+    {          "",                       NULL,                        NULL, 0, NULL },
+    {  "&Restore", machine_state_menu_restore,                        NULL, 0, NULL },
+    {          "",                       NULL,                        NULL, 0, NULL },
+    { "&Autosave",                       NULL, machine_state_autosave_menu, 0, NULL },
+    {        NULL,                       NULL,                        NULL, 0, NULL }
 };
 
 

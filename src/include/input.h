@@ -43,6 +43,11 @@ int input_zapper_trigger;
 int input_zapper_on_screen;
 
 
+int input_autosave_interval;
+
+int input_autosave_triggered;
+
+
 int input_init (void);
 
 void input_exit (void);

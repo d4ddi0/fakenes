@@ -247,6 +247,11 @@ static INLINE void load_joystick_layouts (void)
 }
 
 
+int input_autosave_interval = 0;
+
+int input_autosave_triggered = FALSE;
+
+
 int input_init (void)
 {
     install_keyboard ();
@@ -268,6 +273,9 @@ int input_init (void)
 
 
     input_enable_zapper = get_config_int ("input", "enable_zapper", FALSE);
+
+
+    input_autosave_interval = get_config_int ("timing", "autosave_interval", 0);
 
 
     load_keyboard_layouts ();
@@ -310,6 +318,9 @@ void input_exit (void)
 
 
     set_config_int ("input", "enable_zapper", input_enable_zapper);
+
+
+    set_config_int ("timing", "autosave_interval", input_autosave_interval);
 }
 
 
@@ -605,6 +616,9 @@ static INLINE void do_joystick_2 (int player)
 }
 
 
+static int frames = 0;
+
+
 int input_process (void)
 {
     int player;
@@ -613,6 +627,26 @@ int input_process (void)
     int want_exit = FALSE;
 
     int want_poll = TRUE;
+
+
+    if (input_autosave_interval > 0)
+    {
+        if (++ frames == input_autosave_interval)
+        {
+            input_autosave_triggered = TRUE;
+
+
+            /* Simulate keypress. */
+
+            gui_handle_keypress ((KEY_F3 << 8));
+
+
+            input_autosave_triggered = FALSE;
+
+
+            frames = 0;
+        }
+    }
 
 
     while (keypressed ())

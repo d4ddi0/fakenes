@@ -532,6 +532,15 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (machine_state_select_menu, 18, (machine_state_index == 9));
 
 
+    TOGGLE_MENU (machine_state_autosave_menu, 0, (input_autosave_interval == 0));
+
+    TOGGLE_MENU (machine_state_autosave_menu, 2, (input_autosave_interval == 600));
+
+    TOGGLE_MENU (machine_state_autosave_menu, 4, (input_autosave_interval == 1800));
+
+    TOGGLE_MENU (machine_state_autosave_menu, 6, (input_autosave_interval == 3600));
+
+
     TOGGLE_MENU (netplay_protocol_menu, 0, (netplay_protocol == NETPLAY_PROTOCOL_TCPIP));
 
     TOGGLE_MENU (netplay_protocol_menu, 2, (netplay_protocol == NETPLAY_PROTOCOL_SPX));
@@ -1228,6 +1237,10 @@ static int machine_state_menu_save (void)
             return (D_O_K);
         }
     }
+    else if (input_autosave_triggered)
+    {
+        strcat (buffer2, "Autosave");
+    }
     else
     {
         /* Save using last title. */
@@ -1311,8 +1324,11 @@ static int machine_state_menu_save (void)
     
         pack_fclose (file);
     
-    
-        gui_message (gui_fg_color, "Machine state saved in state slot %d.", machine_state_index);
+
+        if (! input_autosave_triggered)
+        {
+            gui_message (gui_fg_color, "Machine state saved in state slot %d.", machine_state_index);
+        }
 
 
         /* Update save state titles. */
@@ -1478,6 +1494,62 @@ static int machine_state_menu_restore (void)
 
         return (D_O_K);
     }
+}
+
+
+static int machine_state_autosave_menu_disabled (void)
+{
+    input_autosave_interval = 0;
+
+    update_menus ();
+
+
+    gui_message (gui_fg_color, "Machine state autosave disabled.");
+
+
+    return (D_O_K);
+}
+
+
+static int machine_state_autosave_menu_10_seconds (void)
+{
+    input_autosave_interval = 600;
+
+    update_menus ();
+
+
+    gui_message (gui_fg_color, "Machine state autosave set to 10 seconds.");
+
+
+    return (D_O_K);
+}
+
+
+static int machine_state_autosave_menu_30_seconds (void)
+{
+    input_autosave_interval = 1800;
+
+    update_menus ();
+
+
+    gui_message (gui_fg_color, "Machine state autosave set to 30 seconds.");
+
+
+    return (D_O_K);
+}
+
+
+static int machine_state_autosave_menu_60_seconds (void)
+{
+    input_autosave_interval = 3600;
+
+    update_menus ();
+
+
+    gui_message (gui_fg_color, "Machine state autosave set to 60 seconds.");
+
+
+    return (D_O_K);
 }
 
 
