@@ -204,10 +204,15 @@ int sl_frame (int message, DIALOG * dialog, int key)
 
 
         case MSG_CLICK:
+        {
 
-            move_x = mouse_x;
+            int box_was_drawn = FALSE;
 
-            move_y = mouse_y;
+            int old_x = mouse_x, old_y = mouse_y;
+
+            move_x = old_x;
+
+            move_y = old_y;
 
 
             while (mouse_b & 1)
@@ -217,23 +222,43 @@ int sl_frame (int message, DIALOG * dialog, int key)
 
                 if (dialog -> dp)
                 {
-                    if ((move_x != mouse_x) || (move_y != mouse_y))
+                    int current_x = mouse_x, current_y = mouse_y;
+
+                    if ((move_x != current_x) || (move_y != current_y))
                     {
                         scare_mouse ();
 
 
-                        rect (dialog -> dp, move_x, move_y, (move_x + dialog -> w), (move_y + dialog -> h), gui_fg_color);
+                        if (box_was_drawn)
+                        {
+                            rect (dialog -> dp,
+                                (dialog -> x + move_x - old_x),
+                                (dialog -> y + move_y - old_y),
+                                (dialog -> x + move_x - old_x +
+                                dialog -> w - 1),
+                                (dialog -> y + move_y - old_y +
+                                dialog -> h - 1),
+                                gui_fg_color);
+                        }
 
-                        rect (dialog -> dp, mouse_x, mouse_y, (mouse_x + dialog -> w), (mouse_y + dialog -> h), gui_fg_color);
+
+                        move_x = current_x;
+
+                        move_y = current_y;
+
+                        rect (dialog -> dp,
+                            (dialog -> x + move_x - old_x),
+                            (dialog -> y + move_y - old_y),
+                            (dialog -> x + move_x - old_x + dialog -> w - 1),
+                            (dialog -> y + move_y - old_y + dialog -> h - 1),
+                            gui_fg_color);
+
+                        box_was_drawn = TRUE;
 
 
                         unscare_mouse ();
                     }
 
-
-                    move_x = mouse_x;
-
-                    move_y = mouse_y;
                 }
 
 
@@ -241,9 +266,9 @@ int sl_frame (int message, DIALOG * dialog, int key)
             }
 
 
-            dialog_x = move_x;
+            dialog_x = dialog -> x + move_x - old_x;
 
-            dialog_y = move_y;
+            dialog_y = dialog -> y + move_y - old_y;
 
 
             restart_dialog = TRUE;
@@ -259,6 +284,8 @@ int sl_frame (int message, DIALOG * dialog, int key)
 
 
             break;
+
+        }
 
 
         default:
