@@ -629,9 +629,16 @@ int input_process (void)
     int want_poll = TRUE;
 
 
+
     if (input_autosave_interval > 0)
     {
-        if (++ frames == input_autosave_interval)
+        int speed;
+    
+    
+        speed = ((machine_type == MACHINE_TYPE_NTSC) ? 60 : 50);
+
+
+        if (++ frames == (input_autosave_interval * speed))
         {
             input_autosave_triggered = TRUE;
 

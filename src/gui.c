@@ -537,11 +537,11 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (machine_state_autosave_menu, 0, (input_autosave_interval == 0));
 
-    TOGGLE_MENU (machine_state_autosave_menu, 2, (input_autosave_interval == 600));
+    TOGGLE_MENU (machine_state_autosave_menu, 2, (input_autosave_interval == 10));
 
-    TOGGLE_MENU (machine_state_autosave_menu, 4, (input_autosave_interval == 1800));
+    TOGGLE_MENU (machine_state_autosave_menu, 4, (input_autosave_interval == 30));
 
-    TOGGLE_MENU (machine_state_autosave_menu, 6, (input_autosave_interval == 3600));
+    TOGGLE_MENU (machine_state_autosave_menu, 6, (input_autosave_interval == 60));
 
 
     TOGGLE_MENU (netplay_protocol_menu, 0, (netplay_protocol == NETPLAY_PROTOCOL_TCPIP));
@@ -1523,7 +1523,7 @@ static int machine_state_autosave_menu_disabled (void)
 
 static int machine_state_autosave_menu_10_seconds (void)
 {
-    input_autosave_interval = 600;
+    input_autosave_interval = 10;
 
     update_menus ();
 
@@ -1537,7 +1537,7 @@ static int machine_state_autosave_menu_10_seconds (void)
 
 static int machine_state_autosave_menu_30_seconds (void)
 {
-    input_autosave_interval = 1800;
+    input_autosave_interval = 30;
 
     update_menus ();
 
@@ -1551,7 +1551,7 @@ static int machine_state_autosave_menu_30_seconds (void)
 
 static int machine_state_autosave_menu_60_seconds (void)
 {
-    input_autosave_interval = 3600;
+    input_autosave_interval = 60;
 
     update_menus ();
 
