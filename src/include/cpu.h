@@ -317,6 +317,7 @@ static INLINE void Wr6502 (word Addr, byte Value)
 
 
 int cpu_get_cycles_line (void);
+void cpu_consume_cycles (int cycles);
 int cpu_get_cycles (int);
 
 #ifdef __cplusplus

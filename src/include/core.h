@@ -11,6 +11,9 @@
 /**     commercially. Please, notify me, if you make any    **/   
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 13.January  2002 TRAC      Added option to allow CPU      */
+/*                            cycles to take more than one   */
+/*                            cycle-counter cycle.           */
 /* 07.January  2002 TRAC      Altered context struct for     */
 /*                            new method of flag emulation.  */
 /* 11.December 2001 TRAC      Added INLINE_MEMORY_HANDLERS.  */
@@ -25,6 +28,8 @@
 
 
                                /* Compilation options:       */
+#define CYCLE_LENGTH 3         /* Number of cycles that one  */
+                               /* CPU cycle uses.            */
 #define INLINE_MEMORY_HANDLERS /* Uses Rd6502/Wr6502/Op6502  */
                                /*  #include'd from cpu.h     */
 #define RETURN_ON_TRIP         /* Run6502 returns on trip    */

@@ -11,6 +11,7 @@
 /**     commercially. Please, notify me, if you make any    **/
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 09.January  2002 TRAC      Added opcodes 04, 0F, 80.      */
 /* 07.January  2002 TRAC      Altered method of flag         */
 /*                            emulation.                     */
 /* 10.December 2001 TRAC      Added opcodes 07 and 74.       */
@@ -118,6 +119,7 @@ case 0xBA: R->X=R->S;break;                  /* TSX */
 case 0x24: MR_Zp(I);M_BIT(I);break;       /* BIT $ss ZP */
 case 0x2C: MR_Ab(I);M_BIT(I);break;       /* BIT $ssss ABS */
 
+case 0x04: MR_Zp(I);break;                /* NOP $ss ZP */
 case 0x05: MR_Zp(I);M_ORA(I);break;       /* ORA $ss ZP */
 case 0x06: MM_Zp(M_ASL);break;            /* ASL $ss ZP */
 case 0x07: MM_Zp(M_SLO);break;            /* SLO $ss ZP */
@@ -142,6 +144,7 @@ case 0xE6: MM_Zp(M_INC);break;            /* INC $ss ZP */
 
 case 0x0D: MR_Ab(I);M_ORA(I);break;       /* ORA $ssss ABS */
 case 0x0E: MM_Ab(M_ASL);break;            /* ASL $ssss ABS */
+case 0x0F: MM_Ab(M_SLO);break;            /* SLO $ssss ABS */
 case 0x2D: MR_Ab(I);M_AND(I);break;       /* AND $ssss ABS */
 case 0x2E: MM_Ab(M_ROL);break;            /* ROL $ssss ABS */
 case 0x4D: MR_Ab(I);M_EOR(I);break;       /* EOR $ssss ABS */
@@ -165,6 +168,7 @@ case 0x09: MR_Im(I);M_ORA(I);break;       /* ORA #$ss IMM */
 case 0x29: MR_Im(I);M_AND(I);break;       /* AND #$ss IMM */
 case 0x49: MR_Im(I);M_EOR(I);break;       /* EOR #$ss IMM */
 case 0x69: MR_Im(I);M_ADC(I);break;       /* ADC #$ss IMM */
+case 0x80: MR_Im(I);break;                /* NOP #$ss IMM */
 case 0xA0: MR_Im(R->Y);M_FL(R->Y);break;  /* LDY #$ss IMM */
 case 0xA2: MR_Im(R->X);M_FL(R->X);break;  /* LDX #$ss IMM */
 case 0xA9: MR_Im(R->A);M_FL(R->A);break;  /* LDA #$ss IMM */

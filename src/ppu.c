@@ -134,8 +134,8 @@ static int want_vblank_nmi = TRUE;
 static int vblank_occured = FALSE;
 static int vram_writable = FALSE;
 
-static int hit_first_sprite = FALSE;
-
+static UINT8 hit_first_sprite = 0;
+static int first_sprite_this_line = 0;
 
 static int background_clip_enabled = FALSE;
 static int sprites_clip_enabled = FALSE;
@@ -821,6 +821,7 @@ UINT8 ppu_read (UINT16 address)
     int data = 0;
 
 
+//  printf("%04Xr@%d,%d\n", address, cpu_get_cycles_line(), ppu_scanline);
     if (address == 0x4014)
     {
         return (0);
@@ -859,13 +860,15 @@ UINT8 ppu_read (UINT16 address)
                 data |= sprite_overflow_on_line [ppu_scanline];
             }
 
-            if (hit_first_sprite)
+            if (!hit_first_sprite && first_sprite_this_line)
             {
-                if (cpu_get_cycles_line() > (hit_first_sprite / 3))
+                if (cpu_get_cycles_line() > ((first_sprite_this_line - 1) / 3))
                 {
-                    data |= SPRITE_0_COLLISION_BIT;
+                    hit_first_sprite = SPRITE_0_COLLISION_BIT;
                 }
             }
+
+            data |= hit_first_sprite;
 
 
             address_write = FALSE;
@@ -910,6 +913,7 @@ UINT8 ppu_read (UINT16 address)
 void ppu_write (UINT16 address, UINT8 value)
 {
 
+    printf("%04Xw@%d,%d,%02X\n", address, cpu_get_cycles_line(), ppu_scanline, value);
     if (address == 0x4014)
     {
         /* Sprite RAM DMA. */
@@ -1078,9 +1082,13 @@ static void do_spr_ram_dma(UINT8 page)
     int index;
     unsigned address = page * 0x100;
 
+    cpu_consume_cycles(2);
+
     for (index = 0; index < 256; index ++)
     {
         int value = cpu_read (address + index);
+
+        cpu_consume_cycles(2);
 
         if (ppu_spr_ram [spr_ram_address] != value)
         {
@@ -1110,7 +1118,11 @@ void ppu_start_line(void)
          | (address_temp & (0x1F | (1 << 10)));
     }
 
-    if (hit_first_sprite) hit_first_sprite = 1;
+    if (first_sprite_this_line)
+    {
+        hit_first_sprite = SPRITE_0_COLLISION_BIT;
+        first_sprite_this_line = 0;
+    }
 }
 
 void ppu_end_line(void)
@@ -1148,14 +1160,16 @@ void ppu_clear (void)
     vram_writable = FALSE;
 
     first_line_this_frame = TRUE;
-    vram_address_start_new_frame();
 
-    hit_first_sprite = FALSE;
+    hit_first_sprite = 0;
+    first_sprite_this_line = 0;
 }
 
 
 void ppu_start_frame (void)
 {
+    vram_address_start_new_frame();
+
     if (input_zapper_enable)
     {
         input_zapper_get_position ();
@@ -1592,7 +1606,7 @@ static INLINE void ppu_render_sprite (int sprite, int line)
                 if (background_pixels [8 + (x + sub_x)])
                 {
                     background_pixels [8 + (x + sub_x)] = color + 16;
-                    hit_first_sprite = (x + sub_x) + 1;
+                    first_sprite_this_line = (x + sub_x) + 1 + 22;
                     continue;
                 }
                 else
@@ -1634,7 +1648,7 @@ static INLINE void ppu_render_sprite (int sprite, int line)
                 /* Sprite 0 collision. */
                 if (background_pixels [8 + (x + sub_x)])
                 {
-                    hit_first_sprite = (x + sub_x) + 1;
+                    first_sprite_this_line = (x + sub_x) + 1 + 22;
                 }
 
                 /* Sprite 0 will always get its pixels... */

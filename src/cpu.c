@@ -342,7 +342,13 @@ int cpu_execute (int cycles)
 
 int cpu_get_cycles_line (void)
 {
-    return (cpu_context.IPeriod - cpu_context.ICount);
+    return (cpu_context.IPeriod - cpu_context.ICount) / 3;
+}
+
+void cpu_consume_cycles (int cycles)
+{
+    cpu_context.ICount -= cycles * 3;
+    cpu_context.Cycles += cycles * 3;
 }
 
 int cpu_get_cycles (int reset)
@@ -356,7 +362,7 @@ int cpu_get_cycles (int reset)
     }
 
 
-    return (cycles);
+    return (cycles / 3);
 }
 
 

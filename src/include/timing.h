@@ -39,7 +39,7 @@ void suspend_timing (void);
 void resume_timing (void);
 
 
-#define SCANLINE_CLOCKS         114
+#define SCANLINE_CLOCKS         341
 
 
 #define TOTAL_LINES_NTSC        262

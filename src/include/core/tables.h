@@ -12,10 +12,13 @@
 /**     commercially. Please, notify me, if you make any    **/   
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 13.January  2002 TRAC      Added option to allow CPU      */
+/*                            cycles to take more than one   */
+/*                            cycle-counter cycle.           */
 /* 26.November 2001 stainless Integrated into FakeNES.       */
 /*************************************************************/
 
-static byte Cycles[256] =
+static byte BaseCycles[256] =
 {
   7,6,2,8,3,3,5,5,3,2,2,2,4,4,6,6,
   2,5,2,8,4,4,6,6,2,4,2,7,5,5,7,7,
@@ -34,6 +37,8 @@ static byte Cycles[256] =
   2,6,2,8,3,3,5,5,2,2,2,2,4,4,6,6,
   2,5,2,8,4,4,6,6,2,4,2,7,5,5,7,7
 };
+
+static byte Cycles[256];
 
 byte ZNTable[256] =
 {

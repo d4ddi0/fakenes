@@ -13,6 +13,13 @@
 /**     commercially. Please, notify me, if you make any    **/   
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 13.January  2002 TRAC      Fixed bugs where additive      */
+/*                            cycle counting lost cycles.    */
+/* 13.January  2002 TRAC      Added option to allow CPU      */
+/*                            cycles to take more than one   */
+/*                            cycle-counter cycle.           */
+/* 08.January  2002 TRAC      Corrected RMW instruction bus  */
+/*                            behavior.                      */
 /* 07.January  2002 TRAC      Altered method of flag         */
 /*                            emulation.                     */
 /* 10.December 2001 TRAC      Added M_SLO.                   */
@@ -103,10 +110,10 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 /** Modifying Memory *****************************************/
 /** These macros calculate address and modify it.           **/
 /*************************************************************/
-#define MM_Ab(Cmd)      MC_Ab(J);I=Rd6502(J.W);Cmd(I);Wr6502(J.W,I)
-#define MM_Zp(Cmd)      MC_Zp(J);I=Rd6502(J.W);Cmd(I);Wr6502(J.W,I)
-#define MM_Zx(Cmd)      MC_Zx(J);I=Rd6502(J.W);Cmd(I);Wr6502(J.W,I)
-#define MM_Ax(Cmd)      MC_Ax(J);I=Rd6502(J.W);Cmd(I);Wr6502(J.W,I)
+#define MM_Ab(Cmd)      MC_Ab(J);I=Rd6502(J.W);Wr6502(J.W,I);Cmd(I);Wr6502(J.W,I)
+#define MM_Zp(Cmd)      MC_Zp(J);I=Rd6502(J.W);Wr6502(J.W,I);Cmd(I);Wr6502(J.W,I)
+#define MM_Zx(Cmd)      MC_Zx(J);I=Rd6502(J.W);Wr6502(J.W,I);Cmd(I);Wr6502(J.W,I)
+#define MM_Ax(Cmd)      MC_Ax(J);I=Rd6502(J.W);Wr6502(J.W,I);Cmd(I);Wr6502(J.W,I)
 
 /** Other Macros *********************************************/
 /** Calculating flags, stack, jumps, arithmetics, etc.      **/
@@ -120,7 +127,8 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 
 #define M_PUSH(Rg)	Wr6502(0x0100|R->S,Rg);R->S--
 #define M_POP(Rg)   R->S++;Rg=Rd6502(0x0100|R->S)
-#define M_JR		R->PC.W+=(offset)Op6502(R->PC.W)+1;R->ICount--
+#define M_JR            R->PC.W+=(offset)Op6502(R->PC.W)+1; \
+                        R->ICount-=CYCLE_LENGTH;R->Cycles+=CYCLE_LENGTH
 
 #define M_ADC(Rg) \
     K.W=R->A+Rg+(R->C?1:0); \
@@ -169,6 +177,14 @@ INLINE byte Op6502(register word A) { return(Page[A>>13][A&0x1FFF]); }
 /*************************************************************/
 void Reset6502(M6502 *R)
 {
+  int i;
+
+  /* Initialize the instruction cycle count table. */
+  for (i = 0; i < 256; i++)
+  {
+      Cycles[i] = BaseCycles[i] * CYCLE_LENGTH;
+  }
+
   R->A=R->X=R->Y=0x00;
 
   R->P=Z_FLAG|R_FLAG;
@@ -226,7 +242,8 @@ void Int6502(M6502 *R,byte Type)
 
   if((Type==INT_NMI)||((Type==INT_IRQ)&&!(R->I)))
   {
-    R->ICount-=7;
+    R->ICount-=7*CYCLE_LENGTH;
+    R->Cycles+=7*CYCLE_LENGTH;
     M_PUSH(R->PC.B.h);
     M_PUSH(R->PC.B.l);
     M_FIX_P();
