@@ -957,7 +957,7 @@ int show_gui (int first_run)
         DISABLE_MENU (main_menu, 10);
 
 
-        DISABLE_MENU (options_menu, 10);
+        DISABLE_MENU (options_menu, 12);
     }
 
 
@@ -1804,7 +1804,7 @@ static int main_menu_load_rom (void)
                 ENABLE_MENU (main_menu, 10);
     
 
-                ENABLE_MENU (options_menu, 10);
+                ENABLE_MENU (options_menu, 12);
             }
 
 
