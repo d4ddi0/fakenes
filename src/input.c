@@ -37,7 +37,7 @@ All rights reserved.  See 'LICENSE' for details.
 #include "timing.h"
 
 
-int input_zapper_enable = FALSE;
+int input_enable_zapper = FALSE;
 
 
 static int buttons [4] [8];
@@ -110,20 +110,27 @@ static int input_devices [4];
 static int zapper_mask = 0;
 
 
-void input_zapper_get_position (void)
+void input_update_zapper_offsets (void)
 {
-    input_zapper_x = mouse_x;
-    input_zapper_y = mouse_y;
-    input_zapper_button = mouse_b & 1;
-    input_zapper_on_screen = (input_zapper_x < 256) && (input_zapper_y < 240);
+    input_zapper_x_offset = mouse_x;
 
-    if (!input_zapper_on_screen)
+    input_zapper_y_offset = mouse_y;
+
+
+    input_zapper_trigger = (mouse_b & 1);
+
+
+    input_zapper_is_visible =
+        ((input_zapper_x_offset < 256) && (input_zapper_y_offset < 240));
+
+    if (! input_zapper_is_visible)
     {
-        input_zapper_update ();
+        input_update_zapper ();
     }
 }
 
-void input_zapper_update (void)
+
+void input_update_zapper (void)
 {
     int pixel;
 
@@ -131,7 +138,7 @@ void input_zapper_update (void)
     zapper_mask = 0x08;
 
 
-    if (input_zapper_button)
+    if (input_zapper_trigger)
     {
         /* Left button. */
 
@@ -139,10 +146,10 @@ void input_zapper_update (void)
     }
 
 
-    if (input_zapper_on_screen)
+    if (input_zapper_is_visible)
     {
-        pixel = (_getpixel
-            (video_buffer, input_zapper_x, input_zapper_y) - 1);
+        pixel = (_getpixel (video_buffer,
+            input_zapper_x_offset, input_zapper_y_offset) - 1);
 
 
         if ((pixel == 32) || (pixel == 48))
@@ -247,7 +254,7 @@ int input_init (void)
         ("input", "player_4_device", INPUT_DEVICE_NONE);
 
 
-    input_zapper_enable =
+    input_enable_zapper =
         get_config_int ("input", "enable_zapper", FALSE);
 
 
@@ -290,15 +297,7 @@ void input_exit (void)
     set_config_string ("input", "joy2_buttons", joy2_buffer);
 
 
-    set_config_int ("input", "enable_zapper", input_zapper_enable);
-}
-
-
-void input_strobe_reset (void)
-{
-    current_read_p1 = 0;
-
-    current_read_p2 = 0;
+    set_config_int ("input", "enable_zapper", input_enable_zapper);
 }
 
 
@@ -319,7 +318,9 @@ void input_reset (void)
     last_write = 0;
 
 
-    input_strobe_reset ();
+    current_read_p1 = 0;
+
+    current_read_p2 = 0;
 }
 
 
@@ -328,7 +329,7 @@ UINT8 input_read (UINT16 address)
     int index;
 
 
-    if (! input_zapper_enable)
+    if (! input_enable_zapper)
     {
         zapper_mask = 0;
     }
@@ -460,7 +461,9 @@ void input_write (UINT16 address, UINT8 value)
             {
                 /* Full strobe. */
 
-                input_strobe_reset ();
+                current_read_p1 = 0;
+            
+                current_read_p2 = 0;
             }
 
 
@@ -730,7 +733,7 @@ int input_process (void)
 
             case KEY_F5:
 
-                input_zapper_enable = (! input_zapper_enable);
+                input_enable_zapper = (! input_enable_zapper);
 
 
                 break;

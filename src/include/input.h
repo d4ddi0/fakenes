@@ -6,7 +6,7 @@ FakeNES - A portable, open-source NES emulator.
 
 input.h: Declarations for the input emulation.
 
-Copyright (c) 2001, Randy McDowell and Ian Smith.
+Copyright (c) 2002, Randy McDowell and Ian Smith.
 All rights reserved.  See 'LICENSE' for details.
 
 */
@@ -23,7 +23,18 @@ extern "C" {
 #include "misc.h"
 
 
-int input_zapper_enable;
+int input_enable_zapper;
+
+
+int input_zapper_x_offset;
+
+int input_zapper_y_offset;
+
+
+int input_zapper_trigger;
+
+
+int input_zapper_is_visible;
 
 
 int input_init (void);
@@ -32,8 +43,6 @@ void input_exit (void);
 
 
 void input_reset (void);
-
-void input_strobe_reset (void);
 
 
 UINT8 input_read (UINT16);
@@ -44,11 +53,9 @@ void input_write (UINT16, UINT8);
 int input_process (void);
 
 
-int input_zapper_x, input_zapper_y, input_zapper_button;
-int input_zapper_on_screen;
+void input_update_zapper (void);
 
-void input_zapper_get_position (void);
-void input_zapper_update (void);
+void input_update_zapper_offsets (void);
 
 
 #ifdef __cplusplus
