@@ -36,6 +36,9 @@ UINT8 papu_read (UINT16 address);
 void papu_write (UINT16 address, UINT8 value);
 
 
+void papu_process_frame (void);
+
+
 #ifdef __cplusplus
 }
 #endif

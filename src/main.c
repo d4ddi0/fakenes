@@ -132,6 +132,8 @@ END_OF_STATIC_FUNCTION (fps_interrupt);
 static void throttle_interrupt (void)
 {
     throttle_counter ++;
+
+    papu_process_frame ();
 }
 
 END_OF_STATIC_FUNCTION (throttle_interrupt);
@@ -407,9 +409,6 @@ int main (int argc, char * argv [])
     {
         while (! input_process ())
         {
-            //papu_update_length_counter ();
-
-
             if (-- frame_count > 0)
             {
                 redraw_flag = FALSE;

@@ -80,9 +80,7 @@ static int ppu_mirroring;
 
 
 static int vram_address = 0;
-
-static UINT8 spr_ram_address = 0;
-
+static int buffered_vram_read = 0;
 
 static int address_write = 0;
 static int address_temp = 0;
@@ -90,19 +88,25 @@ static int x_offset = 0;
 static int address_increment = 1;
 
 
+static UINT8 spr_ram_address = 0;
+static int sprite_height = 8;
+
+
 static int want_vblank_nmi = TRUE;
 
 static int vblank_occured = FALSE;
 static int vram_writable = FALSE;
-static int mirror_mask = 0xFFF;
-static int sprite_height = 8;
 
 
 static int background_enabled = FALSE;
 static int sprites_enabled = FALSE;
+
+static int background_clip_enabled = FALSE;
+static int sprites_clip_enabled = FALSE;
+
 static int first_line_this_frame = TRUE;
+
 static int background_tileset = 0;
-static int buffered_vram_read = 0;
 static int sprite_tileset = 0;
 
 static UINT8 *name_tables[4];
@@ -537,9 +541,15 @@ void ppu_write (UINT16 address, UINT8 value)
 
             background_enabled =
                 (value & BACKGROUND_ENABLE_BIT);
+
             sprites_enabled =
                 (value & SPRITES_ENABLE_BIT);
 
+            background_clip_enabled =
+                (value & BACKGROUND_CLIP_LEFT_EDGE_BIT);
+
+            sprites_clip_enabled =
+                (value & BACKGROUND_CLIP_LEFT_EDGE_BIT);
 
             break;
 
@@ -943,6 +953,8 @@ static INLINE void ppu_render_sprite (int sprite)
 {
     int x, y, sub_x, sub_y;
 
+    int first_x, last_x, last_y;
+
     int tile, color, attribute;
 
     int address1, address2;
@@ -960,12 +972,60 @@ static INLINE void ppu_render_sprite (int sprite)
     x = ppu_spr_ram [sprite + 3];
 
 
-    /*
-    if ((y >= 240) && (y <= (256 - sprite_height)))
+    /* Clip entirely off-screen sprites */
+    if (y >= 240)
     {
         return;
     }
-    */
+
+
+    /* perform horizontal clipping */
+
+    if (x <= 256 - 8)
+    /* sprite not partially off right edge */
+    {
+        last_x = 7;
+
+        if (sprites_clip_enabled && x < 8)
+        /* is sprite clipped on left-edge? */
+        {
+         if (x == 0)
+         /* sprite fully clipped? */
+         {
+          return;
+         }
+
+         /* sprite partially clipped */
+         first_x = 8 - x;
+
+        }
+        else
+        /* sprite not clipped on left edge */
+        {
+            first_x = 0;
+        }
+    }
+    else
+    /* sprite clipped on right edge */
+    {
+        first_x = 0;
+        last_x = 256 - x - 1;
+    }
+
+
+    /* perform vertical clipping */
+
+    if ( (y + sprite_height - 1) < 240)
+    /* sprite entirely on screen */
+    {
+        last_y = sprite_height - 1;
+    }
+    else
+    /* sprite is partially below bottom edge, adjust line count */
+    {
+        last_y = 240 - y - 1;
+    }
+
 
 
     tile = ppu_spr_ram [sprite + 1];
@@ -1013,19 +1073,36 @@ static INLINE void ppu_render_sprite (int sprite)
     flip_v = (ppu_spr_ram [sprite + 2] & SPRITE_V_FLIP_BIT);
 
 
-    for (sub_y = 0; sub_y < sprite_height; sub_y ++)
+    for (sub_y = 0; sub_y <= last_y; sub_y ++)
     {
-        for (sub_x = 0; sub_x < 8; sub_x ++)
+        for (sub_x = first_x; sub_x <= last_x; sub_x ++)
         {
-            /* Clipping. */
-
-            if (((x + sub_x) >= 256) || ((y + sub_y) >= 240))
+            if (flip_h)
             {
-                continue;
+                if (flip_v)
+                {
+                    color = sprite_buffer
+                        [( (sprite_height - 1 - sub_y) * 8) + (7 - sub_x)];
+                }
+                else
+                {
+                    color = sprite_buffer
+                        [(sub_y * 8) + (7 - sub_x)];
+                }
             }
-
-
-            color = sprite_buffer [(sub_y * 8) + sub_x];
+            else
+            {
+                if (flip_v)
+                {
+                    color = sprite_buffer
+                        [( (sprite_height - 1 - sub_y) * 8) + sub_x];
+                }
+                else
+                {
+                    color = sprite_buffer
+                        [(sub_y * 8) + sub_x];
+                }
+            }
 
 
             /* Transparency. */
@@ -1041,32 +1118,9 @@ static INLINE void ppu_render_sprite (int sprite)
             color = ppu_sprite_palette [color];
 
 
-            if (flip_h)
-            {
-                if (flip_v)
-                {
-                    PPU_PIXEL (video_buffer, ((x + 7) - sub_x),
-                        ((y + (sprite_height - 1)) - sub_y), color);
-                }
-                else
-                {
-                    PPU_PIXEL (video_buffer,
-                        ((x + 7) - sub_x), (y + sub_y), color);
-                }
-            }
-            else
-            {
-                if (flip_v)
-                {
-                    PPU_PIXEL (video_buffer, (x + sub_x),
-                        ((y + (sprite_height - 1)) - sub_y), color);
-                }
-                else
-                {
-                    PPU_PIXEL (video_buffer,
-                        (x + sub_x), (y + sub_y), color);
-                }
-            }
+            PPU_PIXEL (video_buffer,
+                (x + sub_x), (y + sub_y) & 0xFF, color);
+
         }
     }
 }
