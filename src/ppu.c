@@ -173,8 +173,7 @@ UINT8 * ppu_get_chr_rom_pages (ROM *rom)
      *  As CHR ROM banking uses a 1k page size, this mask is based
      *  on a 1k page size.
      */
-    if (((num_pages * 2 - 1) & (num_pages - 1)) == (num_pages - 1) ||
-        (num_pages == 1))
+    if (((num_pages * 2 - 1) & (num_pages - 1)) == (num_pages - 1))
     /* compute mask for even power of two */
     {
         rom -> chr_rom_page_overflow_mask = (num_pages * 8) - 1;
