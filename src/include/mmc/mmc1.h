@@ -29,6 +29,18 @@ static unsigned int mmc1_prg_mask;
 static unsigned int mmc1_chr_mask;
 
 
+#define MMC1_MIRRORING_ADDRESS_BIT  1
+#define MMC1_MIRRORING_MODE_BIT     2
+#define MMC1_PRG_BANK_SELECT_BIT    4
+#define MMC1_PRG_BANK_SIZE_BIT      8
+#define MMC1_VROM_BANK_SIZE_BIT     0x10
+#define MMC1_USE_256K_SELECT_1_BIT  0x10
+
+#define MMC1_256K_SELECT_0_BIT      0x10
+
+#define MMC1_256K_SELECT_1_BIT      0x10
+
+
 static INLINE void mmc1_cpu_bank_sort (void)
 {
   mmc_rom_banks[0] = ROM_PAGE_16K (((mmc1_256k_bank_num * (256 / 16)) + mmc1_cpu_bank[0]) & mmc1_prg_mask);
@@ -76,25 +88,29 @@ static void mmc1_write (UINT16 address, UINT8 value)
     {
 	case 0:
         {
-	    if (mmc1_register[0] & 0x02)  
+            if (mmc1_register[0] & MMC1_MIRRORING_MODE_BIT)  
             /* standard h/v mirroring? */
             {
 		/* which way then? */
-		set_ppu_mirroring ((mmc1_register[0] & 0x01) ? MIRRORING_HORIZONTAL : MIRRORING_VERTICAL);
+                set_ppu_mirroring (
+                    (mmc1_register[0] & MMC1_MIRRORING_ADDRESS_BIT) ?
+                    MIRRORING_HORIZONTAL : MIRRORING_VERTICAL);
             }
 	    else
             /* one-screen mirroring */
             {
 	        /* which page then? */
-		set_ppu_mirroring ((mmc1_register[0] & 0x01) ? MIRRORING_ONE_SCREEN_2400 : MIRRORING_ONE_SCREEN_2000);
+                set_ppu_mirroring (
+                    (mmc1_register[0] & MMC1_MIRRORING_ADDRESS_BIT) ?
+                    MIRRORING_ONE_SCREEN_2400 : MIRRORING_ONE_SCREEN_2000);
             }
 
-            if (mmc1_register[0] & 0x08)
+            if (mmc1_register[0] & MMC1_PRG_BANK_SIZE_BIT)
             /* 16k PRG banking? */
             {
                 int mmc1_bank_number = mmc1_register[3] & 0x0F;
 
-                if (mmc1_register[0] & 0x04)
+                if (mmc1_register[0] & MMC1_PRG_BANK_SELECT_BIT)
                 /* 8000-BFFF PRG banking? */
                 {
                     mmc1_cpu_bank [0] = mmc1_bank_number;
@@ -117,24 +133,27 @@ static void mmc1_write (UINT16 address, UINT8 value)
             }
 
             /* Handle >256K addressing */
-            if (mmc1_register[0] & 0x10)
+            if (mmc1_register[0] & MMC1_USE_256K_SELECT_1_BIT)
             {
-                mmc1_256k_bank_num = (mmc1_register[1] & 0x10) >> 4;
-                if (mmc1_register[0] & 0x08)    /* Er...? */
+                mmc1_256k_bank_num =
+                    (mmc1_register[1] & MMC1_256K_SELECT_0_BIT) >> 4;
+                if (mmc1_register[0] & MMC1_PRG_BANK_SIZE_BIT)    /* Er...? */
                 {
-                    mmc1_256k_bank_num |= ((mmc1_register[2] & 0x10) >> 3);
+                    mmc1_256k_bank_num |=
+                        ((mmc1_register[2] & MMC1_256K_SELECT_1_BIT) >> 3);
                 }
             }
             else
             {
-                mmc1_256k_bank_num = (mmc1_register[1] & 0x10) ? 3 : 0;
+                mmc1_256k_bank_num =
+                    (mmc1_register[1] & MMC1_256K_SELECT_0_BIT) ? 3 : 0;
             }
 
             mmc1_cpu_bank_sort();
 
             if (ROM_CHR_ROM_PAGES > 0)
             {
-                if (mmc1_register[0] & 0x10)
+                if (mmc1_register[0] & MMC1_VROM_BANK_SIZE_BIT)
                 /* 4k VROM mapping? */
                 {
                     int mmc1_bank_number = mmc1_register[1] & mmc1_chr_mask;
@@ -202,23 +221,26 @@ static void mmc1_write (UINT16 address, UINT8 value)
 	case 1:
         {
             /* Handle >256K addressing */
-            if (mmc1_register[0] & 0x10)
+            if (mmc1_register[0] & MMC1_USE_256K_SELECT_1_BIT)
             {
-                mmc1_256k_bank_num = (mmc1_register[1] & 0x10) >> 4;
-                if (mmc1_register[0] & 0x08)    /* Er...? */
+                mmc1_256k_bank_num =
+                    (mmc1_register[1] & MMC1_256K_SELECT_0_BIT) >> 4;
+                if (mmc1_register[0] & MMC1_PRG_BANK_SIZE_BIT)    /* Er...? */
                 {
-                    mmc1_256k_bank_num |= ((mmc1_register[2] & 0x10) >> 3);
+                    mmc1_256k_bank_num |=
+                        ((mmc1_register[2] & MMC1_256K_SELECT_1_BIT) >> 3);
                 }
             }
             else
             {
-                mmc1_256k_bank_num = (mmc1_register[1] & 0x10) ? 3 : 0;
+                mmc1_256k_bank_num =
+                    (mmc1_register[1] & MMC1_256K_SELECT_0_BIT) ? 3 : 0;
             }
             mmc1_cpu_bank_sort();
 
             if (ROM_CHR_ROM_PAGES > 0)
             {
-                if (mmc1_register[0] & 0x10)
+                if (mmc1_register[0] & MMC1_VROM_BANK_SIZE_BIT)
                 /* 4k VROM mapping? */
                 {
                     int mmc1_bank_number = mmc1_register[1] & mmc1_chr_mask;
@@ -273,17 +295,20 @@ static void mmc1_write (UINT16 address, UINT8 value)
         {
             int mmc1_bank_number = mmc1_register[2];
             /* Handle >256K addressing */
-            if (mmc1_register[0] & 0x10)
+            if (mmc1_register[0] & MMC1_USE_256K_SELECT_1_BIT)
             {
-                mmc1_256k_bank_num = (mmc1_register[1] & 0x10) >> 4;
-                if (mmc1_register[0] & 0x08)    /* Er...? */
+                mmc1_256k_bank_num =
+                    (mmc1_register[1] & MMC1_256K_SELECT_0_BIT) >> 4;
+                if (mmc1_register[0] & MMC1_PRG_BANK_SIZE_BIT)    /* Er...? */
                 {
-                    mmc1_256k_bank_num |= ((mmc1_register[2] & 0x10) >> 3);
+                    mmc1_256k_bank_num |=
+                        ((mmc1_register[2] & MMC1_256K_SELECT_1_BIT) >> 3);
                 }
             }
             else
             {
-                mmc1_256k_bank_num = (mmc1_register[1] & 0x10) ? 3 : 0;
+                mmc1_256k_bank_num =
+                    (mmc1_register[1] & MMC1_256K_SELECT_0_BIT) ? 3 : 0;
             }
             mmc1_cpu_bank_sort();
 
@@ -292,7 +317,7 @@ static void mmc1_write (UINT16 address, UINT8 value)
                 return;
             }
 
-            if (mmc1_register[0] & 0x10)
+            if (mmc1_register[0] & MMC1_VROM_BANK_SIZE_BIT)
             /* 4k VROM mapping? */
             {
                 int mmc1_bank_number = mmc1_register[2] & mmc1_chr_mask;
@@ -318,12 +343,12 @@ static void mmc1_write (UINT16 address, UINT8 value)
 
         case 3:
         {
-            if (mmc1_register[0] & 0x08)
+            if (mmc1_register[0] & MMC1_PRG_BANK_SIZE_BIT)
             /* 16k PRG banking? */
             {
                 int mmc1_bank_number = mmc1_register[3] & 0x0F;
 
-                if (mmc1_register[0] & 0x04)
+                if (mmc1_register[0] & MMC1_PRG_BANK_SELECT_BIT)
                 /* 8000-BFFF PRG banking? */
                 {
                     mmc1_cpu_bank [0] = mmc1_bank_number;
