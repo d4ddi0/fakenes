@@ -482,6 +482,110 @@ static INLINE int select_blitter (void)
 }
 
 
+/* Todo: Make this deemphasis instead! (See Chris Covell's doc.) */
+
+static INLINE void color_emphasis_overlay (void)
+{
+    int y;
+
+
+    int width;
+
+    int height;
+
+
+    switch (blitter_type)
+    {
+        case VIDEO_BLITTER_NORMAL:
+
+            width = 256;
+
+
+            break;
+
+
+        case VIDEO_BLITTER_INTERPOLATED_2X:
+
+        case VIDEO_BLITTER_2XSOE:
+
+        case VIDEO_BLITTER_2XSCL:
+
+        case VIDEO_BLITTER_SUPER_2XSOE:
+
+        case VIDEO_BLITTER_SUPER_2XSCL:
+
+            width = 512;
+
+            height = 2;
+
+
+            break;
+
+
+        case VIDEO_BLITTER_INTERPOLATED_3X:
+
+            width = 768;
+
+            height = 3;
+
+
+            break;
+
+
+        default:
+
+            return;
+    }
+
+
+    set_add_blender (0, 0, 0, 255);
+
+
+    drawing_mode (DRAW_MODE_TRANS, NULL, 0, 0);
+
+
+    for (y = 0; y < PPU_DISPLAY_LINES; y ++)
+    {
+        int bits;
+
+
+        int red;
+
+        int green;
+
+        int blue;
+
+
+        int line;
+
+
+        bits = ((ppu_register_2001_cache [y] >> 5) & 0x07);
+
+
+        if (bits == 0)
+        {
+            continue;
+        }
+
+
+        blue = ((bits & 4) ? 63 : 0);
+
+        green = ((bits & 2) ? 63 : 0);
+
+        red = ((bits & 1) ? 63 : 0);
+
+
+        for (line = 0; line < height; line ++)
+        {
+            hline (screen_buffer, blit_x_offset, (blit_y_offset + ((y * height) + line)), (blit_x_offset + (width - 1)), makecol (red, green, blue));
+        }
+    }
+
+
+    solid_mode ();
+}
+
+
 static void draw_messages (void);
 
 static void erase_messages (void);
@@ -601,6 +705,9 @@ void video_blit (BITMAP * bitmap)
 
             break;
     }
+
+
+    color_emphasis_overlay ();
 
 
     if (selected_blitter > 0)

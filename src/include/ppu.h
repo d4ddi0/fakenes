@@ -31,6 +31,8 @@ You must read and accept the license prior to use.
 #include "misc.h"
 
 
+#define PPU_DISPLAY_LINES   240
+
 /* Register $2000. */
 
 #define PPU_VBLANK_NMI_FLAG_BIT     (1 << 7)
@@ -102,7 +104,7 @@ You must read and accept the license prior to use.
 UINT8 ppu_register_2000;
 
 UINT8 ppu_register_2001;
-
+UINT8 ppu_register_2001_cache [PPU_DISPLAY_LINES];
 
 int ppu_enable_sprite_layer_a;
 

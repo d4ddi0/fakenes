@@ -146,6 +146,9 @@ static INT8 background_pixels [8 + 256 + 8];
 
 static int palette_shifts = 0;
 
+UINT8 ppu_register_2001_cache [PPU_DISPLAY_LINES];
+
+
 #include "ppu/tiles.h"
 
 #include "ppu/backgrnd.h"
@@ -863,6 +866,11 @@ void ppu_write (UINT16 address, UINT8 value)
 
             ppu_register_2001 = value;
 
+            if (ppu_scanline < PPU_DISPLAY_LINES)
+            {
+                ppu_register_2001_cache [ppu_scanline] = value;
+            }
+
             palette_shifts = ((value & PPU_MONOCHROME_DISPLAY_BIT) ? 4 : 0);
 
             break;
@@ -1044,10 +1052,17 @@ void ppu_end_line(void)
 
 void ppu_clear (void)
 {
+    int index;
+
     vblank_occurred = FALSE;
 
     hit_first_sprite = 0;
     first_sprite_this_line = 0;
+
+    for (index = 0; index < PPU_DISPLAY_LINES; index ++)
+    {
+        ppu_register_2001_cache [index] = 0;
+    }
 }
 
 
