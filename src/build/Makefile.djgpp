@@ -93,7 +93,7 @@ ppu.o : ppu.c include/cpu.h include/input.h include/misc.h include/mmc.h \
 rom.o : rom.c include/misc.h include/ppu.h include/rom.h
 
 video.o : video.c include/cpu.h include/data.h include/input.h \
-          include/misc.h include/video.h include/timing.h
+          include/misc.h include/ppu.h include/video.h include/timing.h
 
 
 clean :

@@ -56,6 +56,9 @@ int background_enabled;
 int sprites_enabled;
 
 
+int ppu_clip_background;
+
+
 UINT8 * one_screen_base_address;
 
 void set_ppu_mirroring_one_screen (void);

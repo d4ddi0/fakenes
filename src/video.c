@@ -19,6 +19,8 @@ All rights reserved.  See 'LICENSE' for details.
 
 #include "input.h"
 
+#include "ppu.h"
+
 #include "video.h"
 
 
@@ -206,6 +208,14 @@ void video_blit (void)
             masked_blit (DATA_GUN_SPRITE, base_video_buffer,
                 0, 0, (mouse_x + 1), (mouse_y + 9), 16, 16);
         }
+    }
+
+
+    if (ppu_clip_background)
+    {
+        // hack
+
+        rectfill (video_buffer, 0, 0, 7, 239, 0);
     }
 
 

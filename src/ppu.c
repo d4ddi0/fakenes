@@ -24,6 +24,8 @@ All rights reserved.  See 'LICENSE' for details.
 
 #include "cpu.h"
 
+#include "input.h"
+
 #include "mmc.h"
 
 #include "ppu.h"
@@ -102,6 +104,9 @@ static int hit_first_sprite = FALSE;
 
 static int background_clip_enabled = FALSE;
 static int sprites_clip_enabled = FALSE;
+
+int ppu_clip_background = FALSE; // hack
+
 
 static int first_line_this_frame = TRUE;
 
@@ -555,6 +560,9 @@ void ppu_write (UINT16 address, UINT8 value)
             background_clip_enabled =
                 (value & BACKGROUND_CLIP_LEFT_EDGE_BIT);
 
+            ppu_clip_background = !background_clip_enabled;
+                                  
+
             sprites_clip_enabled =
                 (value & BACKGROUND_CLIP_LEFT_EDGE_BIT);
 
@@ -935,6 +943,12 @@ static void ppu_render_high_sprites (void);
 void ppu_end_render (void)
 {
     ppu_render_high_sprites ();
+
+
+    if (input_enable_zapper)
+    {
+        input_update_zapper ();
+    }
 
 
     video_blit ();
