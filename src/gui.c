@@ -720,9 +720,24 @@ int show_gui (int first_run)
 
     /* Cheap hack to make it appear in the file... */
 
-    set_config_string ("gui", "save_path", get_config_string ("gui", "save_path", "./"));
+    {
+        char save_path[256];
+        char ip_address[256];
 
-    set_config_string ("netplay", "ip_address", get_config_string ("netplay", "ip_address", "0.0.0.0"));
+
+        memset (save_path, NULL, sizeof (save_path));
+
+        strncpy(save_path, get_config_string ("gui", "save_path", "./"), sizeof (save_path) - 1);
+
+        set_config_string ("gui", "save_path", save_path);
+
+
+        memset (ip_address, NULL, sizeof (ip_address));
+
+        strncpy(ip_address, get_config_string ("netplay", "ip_address", "0.0.0.0"), sizeof (ip_address) - 1);
+
+        set_config_string ("netplay", "ip_address", ip_address);
+    }
 
 
     /* Is this needed for Zapper? */
