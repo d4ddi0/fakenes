@@ -8,6 +8,8 @@
 #include <string.h>
 
 
+#include "audio.h"
+
 #include "gui.h"
 
 #include "rom.h"
@@ -134,6 +136,9 @@ int show_gui (void)
     }
 
 
+    audio_suspend ();
+
+
     gui_message (33, "Emulation suspended.");
 
 
@@ -148,6 +153,9 @@ int show_gui (void)
 
 
     clear (screen);
+
+
+    audio_resume ();
 
 
     return (want_exit);

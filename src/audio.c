@@ -129,6 +129,24 @@ void audio_update (void)
 }
 
 
+void audio_suspend (void)
+{
+    if (audio_enable_output)
+    {
+        voice_stop (audio_stream -> voice);
+    }
+}
+
+
+void audio_resume (void)
+{
+    if (audio_enable_output)
+    {
+        voice_start (audio_stream -> voice);
+    }
+}
+
+
 void audio_start (void)
 {
     audio_buffer = get_audio_stream_buffer (audio_stream);

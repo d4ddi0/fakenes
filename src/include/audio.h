@@ -49,6 +49,11 @@ void audio_exit (void);
 void audio_update (void);
 
 
+void audio_suspend (void);
+
+void audio_resume (void);
+
+
 void audio_start (void);
 
 void audio_stop (void);

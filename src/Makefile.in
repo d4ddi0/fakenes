@@ -48,21 +48,23 @@ cpu.o : cpu.c include/core.h include/cpu.h include/input.h \
         include/misc.h include/mmc.h include/papu.h include/ppu.h \
         include/rom.h
 
-gui.o : gui.c include/data.h include/gui/dialogs.h include/gui.h \
-        include/gui2.h include/misc.h include/rom.h include/video.h \
-        include/timing.h
+gui.o : gui.c include/audio.h include/data.h include/gui/dialogs.h \
+        include/gui.h include/gui2.h include/misc.h include/rom.h \
+        include/video.h include/timing.h
 
 input.o : input.c include/gui.h include/input.h include/misc.h \
-          include/ppu.h include/video.h include/timing.h
+          include/ppu.h include/rom.h include/video.h include/timing.h
 
 main.o : main.c include/audio.h include/build.h include/cpu.h \
-         include/data.h include/input.h include/misc.h include/mmc.h \
-         include/ppu.h include/rom.h include/video.h include/timing.h
+         include/data.h include/gui.h include/input.h include/misc.h \
+         include/mmc.h include/papu.h include/ppu.h include/rom.h \
+         include/video.h include/timing.h
          
 mmc.o : mmc.c include/mmc/aorom.h include/mmc/cnrom.h include/cpu.h \
         include/mmc/dreams.h include/gui.h include/misc.h include/mmc.h \
         include/mmc/mmc1.h include/mmc/mmc2.h include/mmc/mmc3.h \
-        include/mmc/mmc4.h include/ppu.h include/rom.h include/mmc/unrom.h
+        include/mmc/mmc4.h include/ppu.h include/rom.h include/timing.h \
+        include/mmc/unrom.h
 
 papu.o : papu.c include/apu.h include/audio.h include/misc.h \
          include/papu.h
