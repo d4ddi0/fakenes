@@ -81,6 +81,9 @@ int gui_needs_restart = FALSE;
 int gui_is_active = FALSE;
 
 
+int gui_initialized = FALSE;
+
+
 static int want_exit = FALSE;
 
 
@@ -729,18 +732,37 @@ int show_gui (int first_run)
     gui_is_active = TRUE;
 
 
-    gui_menu_draw_menu = sl_draw_menu;
+    if (! gui_initialized)
+    {
+        gui_menu_draw_menu = sl_draw_menu;
+    
+        gui_menu_draw_menu_item = sl_draw_menu_item;
+    
+    
+        LOCK_VARIABLE (need_remove_message);
+    
+    
+        LOCK_FUNCTION (remove_message);
+    
 
-    gui_menu_draw_menu_item = sl_draw_menu_item;
+#ifdef ALLEGRO_DOS
+
+        DISABLE_MENU (options_video_advanced_menu, 0);
 
 
-    LOCK_VARIABLE (need_remove_message);
+        DISABLE_MENU (top_menu, 3);
+
+#endif
 
 
-    LOCK_FUNCTION (remove_message);
+        CHECK_MENU (options_video_palette_menu, 0);
+    
+
+        update_menus ();
 
 
-    update_menus ();
+        gui_initialized = TRUE;
+    }
 
 
     if (! rom_is_loaded)
@@ -761,18 +783,6 @@ int show_gui (int first_run)
 
         DISABLE_MENU (machine_state_menu, 4);
     }
-
-
-#ifdef ALLEGRO_DOS
-
-    DISABLE_MENU (options_video_advanced_menu, 0);
-
-
-    DISABLE_MENU (top_menu, 3);
-#endif
-
-
-    CHECK_MENU (options_video_palette_menu, 0);
 
 
     audio_suspend ();
