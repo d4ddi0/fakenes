@@ -9,6 +9,7 @@
 /* dummy reads for write-back cache line loading */
 static void dummy_read_line(UINT8 *buffer)
 {
+#ifdef ALLEGRO_I386
     if ((cpu_family == 4 &&
         (cpu_model == 7 || cpu_model == 8 || cpu_model == 15)) ||
         (cpu_family == 5 && cpu_model == 5))
@@ -42,6 +43,7 @@ static void dummy_read_line(UINT8 *buffer)
             buffer [16*12] |
             buffer [16*14];
     }
+#endif
 }
 
 
@@ -100,6 +102,7 @@ static void ppu_render_background (int line)
     UINT8 *plot_buffer = PPU_GET_LINE_ADDRESS(video_buffer, line);
     int plot_pixel = 0;
     UINT8 attribute_byte = 0;
+    int bg_vram_address;
 
     int x, sub_x;
     int y, sub_y;
@@ -141,6 +144,8 @@ static void ppu_render_background (int line)
             ( ( (y & 2) * 2 + (vram_address & 2)));
     }
 
+    bg_vram_address = vram_address & 0x3FF;
+
 
     /* If background clip left edge is enabled, then skip the entirety
      * of the first tile
@@ -148,13 +153,13 @@ static void ppu_render_background (int line)
     /* Draw the background. */
     for (x = 0; x < (256 / 8) + 1; x ++)
     {
-        int tile_name, tile_address;
+        unsigned tile_name, tile_address;
         UINT8 *cache_address;
-        int cache_bank, cache_index;
+        unsigned cache_bank, cache_index;
         UINT8 cache_tag;
         UINT8 attribute;
 
-        if (!(vram_address & 3))
+        if (!(bg_vram_address & 3))
         /* fetch and shift attribute byte */
         {
             attribute_byte =
@@ -162,7 +167,7 @@ static void ppu_render_background (int line)
             if (y & 2) attribute_byte >>= 4;
         }
 
-        tile_name = name_table_address [vram_address & 0x3FF];
+        tile_name = name_table_address [bg_vram_address];
         tile_address = ((tile_name * 16) + background_tileset);
 
         if (mmc_check_latches)
@@ -288,25 +293,25 @@ static void ppu_render_background (int line)
             }
         }
 
-        ++vram_address;
+        ++bg_vram_address;
 
         /* next name byte */
-        if (!(vram_address & 1))
+        if (!(bg_vram_address & 1))
         /* new attribute */
         {
-            if (!(vram_address & 2))
+            if (!(bg_vram_address & 2))
             /* new attribute byte */
             {
                 ++attribute_address;
 
-                if ((vram_address & 0x1F) == 0)
+                if ((bg_vram_address & 0x1F) == 0)
                 /* horizontal name table toggle */
                 {
                     name_table ^= 1;
                     name_table_address = name_tables_read[name_table];
 
                     /* handle address wrap */
-                    vram_address = (vram_address - (1 << 5)) ^ (1 << 10);
+                    bg_vram_address = (bg_vram_address - (1 << 5));
                     attribute_address -= (1 << 3);
                 }
             }
@@ -317,4 +322,5 @@ static void ppu_render_background (int line)
             }
         }
     }
+    vram_address = bg_vram_address + (name_table << 10) + (sub_y << 12);
 }
