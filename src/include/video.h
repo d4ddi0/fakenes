@@ -59,6 +59,9 @@ void video_set_blitter (int);
 int video_get_blitter (void);
 
 
+void video_set_resolution (int, int);
+
+
 #ifdef __cplusplus
 }
 #endif

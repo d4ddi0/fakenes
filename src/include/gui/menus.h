@@ -242,6 +242,36 @@ static MENU options_audio_menu [] =
 };
 
 
+static int options_video_resolution_menu_256_224 (void);
+
+static int options_video_resolution_menu_256_240 (void);
+
+static int options_video_resolution_menu_320_240 (void);
+
+static int options_video_resolution_menu_400_300 (void);
+
+static int options_video_resolution_menu_512_384 (void);
+
+static int options_video_resolution_menu_640_480 (void);
+
+
+static MENU options_video_resolution_menu [] =
+{
+    { "&1: 256x224", options_video_resolution_menu_256_224, NULL, 0, NULL },
+    {            "",                                  NULL, NULL, 0, NULL },
+    { "&2: 256x240", options_video_resolution_menu_256_240, NULL, 0, NULL },
+    {            "",                                  NULL, NULL, 0, NULL },
+    { "&3: 320x240", options_video_resolution_menu_320_240, NULL, 0, NULL },
+    {            "",                                  NULL, NULL, 0, NULL },
+    { "&4: 400x300", options_video_resolution_menu_400_300, NULL, 0, NULL },
+    {            "",                                  NULL, NULL, 0, NULL },
+    { "&5: 512x384", options_video_resolution_menu_512_384, NULL, 0, NULL },
+    {            "",                                  NULL, NULL, 0, NULL },
+    { "&6: 640x480", options_video_resolution_menu_640_480, NULL, 0, NULL },
+    {          NULL,                                  NULL, NULL, 0, NULL }
+};
+
+
 static int options_video_blitter_menu_normal (void);
 
 static int options_video_blitter_menu_stretched (void);
@@ -309,14 +339,16 @@ static int options_video_menu_vsync (void);
 
 static MENU options_video_menu [] =
 {
-    { "&Blitter",                       NULL, options_video_blitter_menu, 0, NULL },
-    {         "",                       NULL,                       NULL, 0, NULL },
-    {   "&VSync",   options_video_menu_vsync,                       NULL, 0, NULL },
-    {         "",                       NULL,                       NULL, 0, NULL },
-    {  "&Layers",                       NULL,  options_video_layers_menu, 0, NULL },
-    {         "",                       NULL,                       NULL, 0, NULL },
-    { "&Palette",                       NULL, options_video_palette_menu, 0, NULL },
-    {       NULL,                       NULL,                       NULL, 0, NULL }
+    { "&Resolution",                       NULL, options_video_resolution_menu, 0, NULL },
+    {            "",                       NULL,                          NULL, 0, NULL },
+    {    "&Blitter",                       NULL,    options_video_blitter_menu, 0, NULL },
+    {            "",                       NULL,                          NULL, 0, NULL },
+    {      "&VSync",   options_video_menu_vsync,                          NULL, 0, NULL },
+    {            "",                       NULL,                          NULL, 0, NULL },
+    {     "&Layers",                       NULL,     options_video_layers_menu, 0, NULL },
+    {            "",                       NULL,                          NULL, 0, NULL },
+    {    "&Palette",                       NULL,    options_video_palette_menu, 0, NULL },
+    {          NULL,                       NULL,                          NULL, 0, NULL }
 };
 
 

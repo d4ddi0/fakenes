@@ -23,6 +23,8 @@ You must read and accept the license prior to use.
 
 #include "cpu.h"
 
+#include "gui.h"
+
 #include "input.h"
 
 #include "ppu.h"
@@ -41,6 +43,8 @@ You must read and accept the license prior to use.
 
 
 static BITMAP * screen_buffer = NULL;
+
+static BITMAP * overlay_buffer = NULL;
 
 
 int video_display_status = FALSE;
@@ -80,9 +84,12 @@ static int light_level = 0;
 static int blitter_type = 0;
 
 
-#define VIDEO_COLOR_BLACK   palette_color [65]
+#define VIDEO_COLOR_BLACK   palette_color [0]
 
 #define VIDEO_COLOR_WHITE   palette_color [33]
+
+
+static int preserve_video_buffer = FALSE;
 
 
 int video_init (void)
@@ -135,19 +142,25 @@ int video_init (void)
     clear (screen_buffer);
 
 
+    overlay_buffer = create_bitmap (256, 240);
+
+
     /* Heh, recursive variable assignation. :( */
 
     video_set_blitter (blitter_type);
 
 
-    base_video_buffer = create_bitmap (((8 + 256) + 8), ((16 + 240) + 16));
+    if (! preserve_video_buffer)
+    {
+        base_video_buffer = create_bitmap (((8 + 256) + 8), ((16 + 240) + 16));
+    
+        video_buffer = create_sub_bitmap (base_video_buffer, 8, 16, 256, 240);
+    
 
-    video_buffer = create_sub_bitmap (base_video_buffer, 8, 16, 256, 240);
+        clear (base_video_buffer);
+    }
 
-
-    clear (base_video_buffer);
-
-
+    
     set_mouse_sprite (DATA_ARROW_SPRITE);
 
 
@@ -178,10 +191,15 @@ void video_exit (void)
 
     destroy_bitmap (screen_buffer);
 
+    destroy_bitmap (overlay_buffer);
 
-    destroy_bitmap (video_buffer);
 
-    destroy_bitmap (base_video_buffer);
+    if (! preserve_video_buffer)
+    {
+        destroy_bitmap (video_buffer);
+    
+        destroy_bitmap (base_video_buffer);
+    }
 
 
     set_config_int ("video", "screen_width", screen_width);
@@ -214,59 +232,86 @@ void video_exit (void)
 }
 
 
+/* Todo: Find a better way to do this. */
+
+static INLINE void display_status (BITMAP * bitmap, int color)
+{
+    textout (bitmap, font, "Video:", 16, (bitmap -> h - 114), color);
+
+    textout (bitmap, font, "Audio:", 16, (bitmap -> h - 82), color);
+
+
+    textout (bitmap, font, "Core:", 16, (bitmap -> h - 50), color);
+
+
+    textprintf (bitmap, font, 20, (bitmap -> h - 100), color, "%02d FPS", timing_fps);
+
+    textprintf (bitmap, font, 20, (bitmap -> h - 68), color, "%02d FPS", timing_audio_fps);
+
+
+    textprintf (bitmap, font, 20, (bitmap -> h - 36), color, "%02d Hz", timing_hertz);
+
+    textprintf (bitmap, font, 20, (bitmap -> h - 22), color, "PC: $%04X", * cpu_active_pc);
+}
+
+
 void video_blit (BITMAP * bitmap)
 {
-    if ((video_display_status) && (rom_is_loaded))
+    BITMAP * source_buffer;
+
+
+    if ((input_enable_zapper) && (! gui_is_active))
     {
-        textout (video_buffer, font, "Video:", 16, 120, VIDEO_COLOR_WHITE);
-
-        textout (video_buffer, font, "Audio:", 16, 152, VIDEO_COLOR_WHITE);
-
-
-        textout (video_buffer, font, "Core:", 16, 184, VIDEO_COLOR_WHITE);
-
-
-        textprintf (video_buffer, font, 20, 136, VIDEO_COLOR_WHITE, "%02d FPS", timing_fps);
-
-        textprintf (video_buffer, font, 20, 168, VIDEO_COLOR_WHITE, "%02d FPS", timing_audio_fps);
-
-
-        textprintf (video_buffer, font, 20, 200, VIDEO_COLOR_WHITE, "%02d Hz", timing_hertz);
-
-        textprintf (video_buffer, font, 20, 216, VIDEO_COLOR_WHITE, "PC: $%04X", * cpu_active_pc);
-    }
-
-
-    if ((input_enable_zapper) && (rom_is_loaded))
-    {
-        if ((mouse_x < 256) && (mouse_y < 240))
+        if (! (mouse_x < 256))
         {
-            masked_blit (DATA_GUN_SPRITE, base_video_buffer, 0, 0, (mouse_x + 1), (mouse_y + 9), 16, 16);
+            position_mouse (255, mouse_y);
         }
+
+
+        if (! (mouse_y < 239))
+        {
+            position_mouse (mouse_x, 239);
+        }
+
+
+        blit (video_buffer, overlay_buffer, 0, 0, 0, 0, 256, 240);
+
+        masked_blit (DATA_GUN_SPRITE, overlay_buffer, 0, 0, (mouse_x - 7), (mouse_y - 7), 16, 16);
+
+
+        source_buffer = overlay_buffer;
     }
-
-
-    acquire_screen ();
-
-
-    if (video_enable_vsync)
+    else
     {
-        vsync ();
+        source_buffer = video_buffer;
     }
 
 
     if (stretched_mode)
     {
-        stretch_blit (video_buffer, bitmap, 0, 0, 256, 240,
+        stretch_blit (source_buffer, screen_buffer, 0, 0, 256, 240,
             blit_x_offset, blit_y_offset, stretch_width, stretch_height);
     }
     else
     {
-        blit (video_buffer, bitmap, 0, 0, blit_x_offset, blit_y_offset, 256, 240);
+        blit (source_buffer, screen_buffer, 0, 0, blit_x_offset, blit_y_offset, 256, 240);
     }
 
 
-    release_screen ();
+    if ((video_display_status) && (! gui_is_active))
+    {
+        display_status (screen_buffer, VIDEO_COLOR_WHITE);
+    }
+
+
+    acquire_bitmap (bitmap);
+
+    blit (screen_buffer, bitmap, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
+
+    release_bitmap (bitmap);
+
+
+    clear (screen_buffer);
 }
 
 
@@ -323,14 +368,6 @@ void video_zoom_in (void)
 void video_zoom_out (void)
 {
     video_zoom (-zoom_factor_x, -zoom_factor_y);
-
-
-    video_blit (screen_buffer);
-
-    blit (screen_buffer, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
-
-
-    clear (screen_buffer);
 }
 
 
@@ -402,4 +439,57 @@ void video_set_blitter (int blitter)
 int video_get_blitter (void)
 {
     return (blitter_type);
+}
+
+
+void video_set_resolution (int width, int height)
+{
+    int old_width;
+
+    int old_height;
+
+
+    if ((width == SCREEN_W) && (height == SCREEN_H))
+    {
+        return;
+    }
+
+
+    old_width = screen_width;
+
+    old_height = screen_height;
+
+
+    screen_width = width;
+
+    screen_height = height;
+
+
+    preserve_video_buffer = TRUE;
+
+
+    video_exit ();
+
+
+    if (video_init != 0)
+    {
+        screen_width = old_width;
+
+        screen_height = old_height;
+
+
+        video_init ();
+    }
+
+
+    set_palette (internal_palette);
+
+
+    preserve_video_buffer = FALSE;
+
+
+    if (gui_is_active)
+    {
+        unscare_mouse ();
+    }
 }

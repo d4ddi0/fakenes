@@ -57,6 +57,8 @@ You must read and accept the license prior to use.
 #include "gui/dialogs.h"
 
 
+int gui_needs_restart = FALSE;
+
 int gui_is_active = FALSE;
 
 
@@ -118,16 +120,14 @@ void gui_message (int color, AL_CONST UINT8 * message, ...)
 
 static int gui_redraw_callback (int msg, DIALOG * d, int c)
 {
-    /* HACK HACK HACK HACK */
-
     if (redraw_flag)
     {
         redraw_flag = FALSE;
 
 
-        clear (screen);
-
         video_blit (screen);
+
+        vsync ();
 
 
         return (D_REDRAW);
@@ -303,7 +303,7 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (options_video_blitter_menu, 2, (video_get_blitter () == VIDEO_BLITTER_STRETCHED));
 
 
-    TOGGLE_MENU (options_video_menu, 0, video_enable_vsync);
+    TOGGLE_MENU (options_video_menu, 4, video_enable_vsync);
 
 
     TOGGLE_MENU (options_video_layers_menu, 0, ppu_enable_sprite_layer_a);
@@ -352,6 +352,8 @@ int show_gui (void)
     gui_mg_color = GUI_COLOR_GRAY;
 
 
+    gui_needs_restart = FALSE;
+
     gui_is_active = TRUE;
 
 
@@ -375,7 +377,10 @@ int show_gui (void)
     audio_suspend ();
 
 
-    gui_message (GUI_COLOR_WHITE, "Emulation suspended.");
+    video_blit (screen);
+
+
+    gui_message (GUI_COLOR_WHITE, "GUI initialized (%dx%d).", SCREEN_W, SCREEN_H);
 
 
     unscare_mouse ();
@@ -386,9 +391,6 @@ int show_gui (void)
 
 
     gui_is_active = FALSE;
-
-
-    clear (screen);
 
 
     audio_resume ();
@@ -994,6 +996,31 @@ static int options_audio_record_menu_stop (void)
 }
 
 
+#define RESOLUTION_MENU_HANDLER(width, height)         \
+    static int options_video_resolution_menu_##width##_##height (void)    \
+    {                                           \
+        video_set_resolution (width, height);   \
+                                                \
+        gui_needs_restart = TRUE;               \
+                                                \
+                                                \
+        return (D_CLOSE);                       \
+    }
+
+
+RESOLUTION_MENU_HANDLER (256, 224)
+
+RESOLUTION_MENU_HANDLER (256, 240)
+
+RESOLUTION_MENU_HANDLER (320, 240)
+
+RESOLUTION_MENU_HANDLER (400, 300)
+
+RESOLUTION_MENU_HANDLER (512, 384)
+
+RESOLUTION_MENU_HANDLER (640, 480)
+
+
 static int options_video_blitter_menu_normal (void)
 {
     video_set_blitter (VIDEO_BLITTER_NORMAL);
@@ -1001,7 +1028,7 @@ static int options_video_blitter_menu_normal (void)
     update_menus ();
 
 
-    return (0);
+    return (D_O_K);
 }
 
 
@@ -1012,7 +1039,7 @@ static int options_video_blitter_menu_stretched (void)
     update_menus ();
 
 
-    return (0);
+    return (D_O_K);
 }
 
 

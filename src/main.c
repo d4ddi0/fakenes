@@ -511,7 +511,15 @@ int main (int argc, char * argv [])
 
     if (! rom_is_loaded)
     {
-        show_gui ();
+        show:
+
+          show_gui ();
+
+
+        if (gui_needs_restart)
+        {
+            goto show;
+        }
     }
 
 
