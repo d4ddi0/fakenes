@@ -588,13 +588,17 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_video_resolution_menu, 2, ((SCREEN_W == 256) && (SCREEN_H == 240)));
 
-    TOGGLE_MENU (options_video_resolution_menu, 4, ((SCREEN_W == 320) && (SCREEN_H == 240)));
+    TOGGLE_MENU (options_video_resolution_menu, 4, ((SCREEN_W == 256) && (SCREEN_H == 256)));
 
-    TOGGLE_MENU (options_video_resolution_menu, 6, ((SCREEN_W == 400) && (SCREEN_H == 300)));
+    TOGGLE_MENU (options_video_resolution_menu, 6, ((SCREEN_W == 320) && (SCREEN_H == 240)));
 
-    TOGGLE_MENU (options_video_resolution_menu, 8, ((SCREEN_W == 512) && (SCREEN_H == 384)));
+    TOGGLE_MENU (options_video_resolution_menu, 8, ((SCREEN_W == 400) && (SCREEN_H == 300)));
 
-    TOGGLE_MENU (options_video_resolution_menu, 10, ((SCREEN_W == 640) && (SCREEN_H == 480)));
+    TOGGLE_MENU (options_video_resolution_menu, 10, ((SCREEN_W == 512) && (SCREEN_H == 384)));
+
+    TOGGLE_MENU (options_video_resolution_menu, 12, ((SCREEN_W == 640) && (SCREEN_H == 400)));
+
+    TOGGLE_MENU (options_video_resolution_menu, 14, ((SCREEN_W == 640) && (SCREEN_H == 480)));
 
 
     TOGGLE_MENU (options_video_colors_menu, 0, (video_get_color_depth () == 8));
@@ -2122,11 +2126,15 @@ RESOLUTION_MENU_HANDLER (256, 224)
 
 RESOLUTION_MENU_HANDLER (256, 240)
 
+RESOLUTION_MENU_HANDLER (256, 256)
+
 RESOLUTION_MENU_HANDLER (320, 240)
 
 RESOLUTION_MENU_HANDLER (400, 300)
 
 RESOLUTION_MENU_HANDLER (512, 384)
+
+RESOLUTION_MENU_HANDLER (640, 400)
 
 RESOLUTION_MENU_HANDLER (640, 480)
 

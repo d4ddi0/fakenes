@@ -349,11 +349,15 @@ static int options_video_resolution_menu_256_224 (void);
 
 static int options_video_resolution_menu_256_240 (void);
 
+static int options_video_resolution_menu_256_256 (void);
+
 static int options_video_resolution_menu_320_240 (void);
 
 static int options_video_resolution_menu_400_300 (void);
 
 static int options_video_resolution_menu_512_384 (void);
+
+static int options_video_resolution_menu_640_400 (void);
 
 static int options_video_resolution_menu_640_480 (void);
 
@@ -364,13 +368,17 @@ static MENU options_video_resolution_menu [] =
     {            "",                                  NULL, NULL, 0, NULL },
     { "&2: 256x240", options_video_resolution_menu_256_240, NULL, 0, NULL },
     {            "",                                  NULL, NULL, 0, NULL },
-    { "&3: 320x240", options_video_resolution_menu_320_240, NULL, 0, NULL },
+    { "&3: 256x256", options_video_resolution_menu_256_256, NULL, 0, NULL },
     {            "",                                  NULL, NULL, 0, NULL },
-    { "&4: 400x300", options_video_resolution_menu_400_300, NULL, 0, NULL },
+    { "&4: 320x240", options_video_resolution_menu_320_240, NULL, 0, NULL },
     {            "",                                  NULL, NULL, 0, NULL },
-    { "&5: 512x384", options_video_resolution_menu_512_384, NULL, 0, NULL },
+    { "&5: 400x300", options_video_resolution_menu_400_300, NULL, 0, NULL },
     {            "",                                  NULL, NULL, 0, NULL },
-    { "&6: 640x480", options_video_resolution_menu_640_480, NULL, 0, NULL },
+    { "&6: 512x384", options_video_resolution_menu_512_384, NULL, 0, NULL },
+    {            "",                                  NULL, NULL, 0, NULL },
+    { "&7: 640x400", options_video_resolution_menu_640_400, NULL, 0, NULL },
+    {            "",                                  NULL, NULL, 0, NULL },
+    { "&8: 640x480", options_video_resolution_menu_640_480, NULL, 0, NULL },
     {          NULL,                                  NULL, NULL, 0, NULL }
 };
 
