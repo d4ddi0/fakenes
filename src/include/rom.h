@@ -50,6 +50,21 @@ typedef struct _ROM
 } ROM;
 
 
+typedef struct _NES_HEADER
+{
+    UINT8 signature[4];     /* NES^Z signature                      */
+
+    UINT8 prg_rom_pages;    /* # of 16k PRG-ROM pages               */
+    UINT8 chr_rom_pages;    /* # of 8k CHR-ROM pages                */
+
+    UINT8 control_byte_1;   /* ROM Control byte #1                  */
+    UINT8 control_byte_2;   /* ROM Control byte #2                  */
+
+    UINT8 reserved[8];      /* Mapper #, derived from control bytes */
+
+} NES_HEADER;
+
+
 int load_rom (CONST UINT8 *, ROM *);
 
 void free_rom (ROM *);

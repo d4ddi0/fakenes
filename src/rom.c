@@ -43,8 +43,7 @@ int load_rom (CONST UINT8 * filename, ROM * rom)
 {
     gzFile rom_file;
 
-
-    UINT32 signature;
+    NES_HEADER nes_header;
 
     UINT8 test;
 
@@ -59,11 +58,12 @@ int load_rom (CONST UINT8 * filename, ROM * rom)
     }
 
 
-    /* Read the signature. */
+    /* Read the header. */
+    gzread (rom_file, &nes_header, 16);
 
-    gzread (rom_file, &signature, 4);
+    /* Verify the signature. */
 
-    if (signature != 0x1a53454e)
+    if (strncmp((char *) nes_header.signature, "NES\x1A", 4))
     {
         gzclose (rom_file);
     
@@ -71,21 +71,9 @@ int load_rom (CONST UINT8 * filename, ROM * rom)
     }
 
 
-    /* Read page/bank count. */
+    /* Verify that PRG ROM exists */
 
-    rom -> prg_rom_pages = gzgetc (rom_file);
-
-    rom -> chr_rom_pages = gzgetc (rom_file);
-
-
-    /* Read control bytes. */
-
-    rom -> control_byte_1 = gzgetc (rom_file);
-
-    rom -> control_byte_2 = gzgetc (rom_file);
-
-
-    if (rom -> prg_rom_pages == 0)
+    if (nes_header.prg_rom_pages == 0)
     {
         gzclose (rom_file);
 
@@ -95,24 +83,33 @@ int load_rom (CONST UINT8 * filename, ROM * rom)
 
     /* Check for 'DiskDude!'. */
 
-    test = gzgetc (rom_file);
-
-    if ((rom -> control_byte_2 == 'D') && (test == 'i'))
+    if ((nes_header.control_byte_2 == 'D') &&
+        !(strncmp ((char *) nes_header.reserved, "iskDude!", 8)))
     {
-        rom -> control_byte_2 = 0;
+        nes_header.control_byte_2 = 0;
     }
+
+
+    /* Read page/bank count. */
+
+    rom -> prg_rom_pages = nes_header.prg_rom_pages;
+
+    rom -> chr_rom_pages = nes_header.chr_rom_pages;
+
+
+    /* Read control bytes. */
+
+    rom -> control_byte_1 = nes_header.control_byte_1;
+
+    rom -> control_byte_2 = nes_header.control_byte_2;
 
 
     /* Derive mapper number. */
 
-    rom -> mapper_number = ((rom ->
-        control_byte_2 >> 4) | ((rom -> control_byte_1 & 0xf0) >> 4));
+    rom -> mapper_number =
+        ((rom -> control_byte_2 & 0xf0) |
+        ((rom -> control_byte_1 & 0xf0) >> 4));
 
-
-    /* Skip reserved bytes. */
-
-    gzseek (rom_file, 7, SEEK_CUR);
-  
 
     /* Allocate and load trainer. */
 
@@ -204,8 +201,7 @@ int load_rom (CONST UINT8 * filename, ROM * rom)
 {
     FILE * rom_file;
 
-
-    UINT32 signature;
+    NES_HEADER nes_header;
 
     UINT8 test;
 
@@ -220,11 +216,12 @@ int load_rom (CONST UINT8 * filename, ROM * rom)
     }
 
 
-    /* Read the signature. */
+    /* Read the header. */
+    fread (&nes_header, 1, 16, rom_file);
 
-    fread (&signature, 1, 4, rom_file);
+    /* Verify the signature. */
 
-    if (signature != 0x1a53454e)
+    if (strncmp((char *) nes_header.signature, "NES\x1A", 4))
     {
         fclose (rom_file);
     
@@ -232,21 +229,10 @@ int load_rom (CONST UINT8 * filename, ROM * rom)
     }
 
 
-    /* Read page/bank count. */
 
-    rom -> prg_rom_pages = fgetc (rom_file);
+    /* Verify that PRG ROM exists */
 
-    rom -> chr_rom_pages = fgetc (rom_file);
-
-
-    /* Read control bytes. */
-
-    rom -> control_byte_1 = fgetc (rom_file);
-
-    rom -> control_byte_2 = fgetc (rom_file);
-
-
-    if (rom -> prg_rom_pages == 0)
+    if (nes_header.prg_rom_pages == 0)
     {
         fclose (rom_file);
 
@@ -256,24 +242,33 @@ int load_rom (CONST UINT8 * filename, ROM * rom)
 
     /* Check for 'DiskDude!'. */
 
-    test = fgetc (rom_file);
-
-    if ((rom -> control_byte_2 == 'D') && (test == 'i'))
+    if ((nes_header.control_byte_2 == 'D') &&
+        !(strncmp ((char *) nes_header.reserved, "iskDude!", 8)))
     {
-        rom -> control_byte_2 = 0;
+        nes_header.control_byte_2 = 0;
     }
+
+
+    /* Read page/bank count. */
+
+    rom -> prg_rom_pages = nes_header.prg_rom_pages;
+
+    rom -> chr_rom_pages = nes_header.chr_rom_pages;
+
+
+    /* Read control bytes. */
+
+    rom -> control_byte_1 = nes_header.control_byte_1;
+
+    rom -> control_byte_2 = nes_header.control_byte_2;
 
 
     /* Derive mapper number. */
 
-    rom -> mapper_number = ((rom ->
-        control_byte_2 >> 4) | ((rom -> control_byte_1 & 0xf0) >> 4));
+    rom -> mapper_number =
+        ((rom -> control_byte_2 & 0xf0) |
+        ((rom -> control_byte_1 & 0xf0) >> 4));
 
-
-    /* Skip reserved bytes. */
-
-    fseek (rom_file, 7, SEEK_CUR);
-  
 
     /* Allocate and load trainer. */
 
