@@ -313,15 +313,15 @@ static INLINE void Wr6502 (word Addr, byte Value)
 }
 
 
-static INLINE byte Rd6502Stack (word S)
+static INLINE byte Rd6502Stack (byte S)
 {
-    return (cpu_ram [S]);
+    return (cpu_ram [0x100 + S]);
 }
 
 
-static INLINE void Wr6502Stack (word S, byte Value)
+static INLINE void Wr6502Stack (byte S, byte Value)
 {
-    cpu_ram [S] = Value;
+    cpu_ram [0x100 + S] = Value;
 }
 
 

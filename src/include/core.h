@@ -140,8 +140,8 @@ void Wr6502(register word Addr,register byte Value);
 byte Rd6502(register word Addr);
 byte Op6502(register word Addr);
 #ifdef FAST_STACK
-byte Rd6502Stack(register word S);
-void Wr6502Stack(register word S,register byte Value);
+byte Rd6502Stack(register byte S);
+void Wr6502Stack(register byte S,register byte Value);
 #endif
 #else
 #include "cpu.h"
