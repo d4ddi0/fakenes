@@ -516,7 +516,17 @@ int main (int argc, char * argv [])
     }
 #else
 
+
+#ifdef ALLEGRO_WINDOWS
+
+    set_config_file ("fakenesw.cfg");
+
+#else
+
     set_config_file ("fakenes.cfg");
+
+#endif
+
 
 #endif
 
