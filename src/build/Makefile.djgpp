@@ -44,7 +44,7 @@ endif
 
 fakenes.exe : ${OBJECTS}
 
-	${CC} ${OBJECTS} -o fakenes.exe -g ${LIBRARIES}
+    ${CC} ${OBJECTS} -o fakenes.exe -s ${LIBRARIES}
 
 
 fakenesd.exe : ${OBJECTS}
