@@ -29,7 +29,7 @@ IFLAGS = -Iinclude/ -Isupport/
 ifdef DEBUG
     OFLAGS = -O0 -g -ggdb3
 
-    DFLAGS := -DDEBUG -DUSE_ZLIB -DLSB_FIRST
+    DFLAGS := -DDEBUG -DUSE_ZLIB -DUSE_HAWKNL -DLSB_FIRST
 else
     OFLAGS = -march=i486 -mcpu=pentiumpro -O3 -fomit-frame-pointer \
     -fno-rtti -fno-exceptions -funroll-loops -ffast-math -fforce-addr \
@@ -37,7 +37,7 @@ else
     -foptimize-sibling-calls -fstrict-aliasing -maccumulate-outgoing-args \
     -fschedule-insns -fschedule-insns2
 
-    DFLAGS := -DUSE_ZLIB -DLSB_FIRST
+    DFLAGS := -DUSE_ZLIB -DUSE_HAWKNL -DLSB_FIRST
 endif
 
 ifneq (${ASM_CORE}, 0)
@@ -50,7 +50,7 @@ WFLAGS = -Wall -Wno-unused
 CFLAGS = ${IFLAGS} ${OFLAGS} ${WFLAGS} ${DFLAGS}
 
 
-NASMDFLAGS = -DC_LABEL_PREFIX=_
+NASMDFLAGS = -DC_LABELS_PREFIX=_
 
 ifdef DEBUG
     NASMFLAGS = ${IFLAGS} -g -f win32 ${NASMDFLAGS}
