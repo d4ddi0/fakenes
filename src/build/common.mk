@@ -1,5 +1,4 @@
 
-
 apu${OBJEXT} : apu.c include/apu.h include/misc.h include/cpu.h include/core.h \
   include/rom.h include/mmc.h include/cpu_in.h include/apu_ex.h \
   include/apu/vrc6.h include/apu/vrc7.h include/apu/fds.h \
@@ -42,9 +41,9 @@ gui${OBJEXT} : gui.c include/apu.h include/misc.h include/audio.h include/cpu.h 
   include/genie.h include/netplay.h include/timing.h \
   include/gui/objects.h include/gui/menus.h include/gui/dialogs.h
 
-input${OBJEXT} : input.c include/gui.h include/misc.h include/input.h \
-  include/ppu.h include/rom.h include/mmc.h include/video.h \
-  include/timing.h
+input${OBJEXT} : input.c include/audio.h include/gui.h include/misc.h \
+  include/input.h include/ppu.h include/rom.h include/mmc.h \
+  include/video.h include/timing.h
 
 main${OBJEXT} : main.c include/build.h include/audio.h include/cpu.h \
   include/core.h include/misc.h include/rom.h include/mmc.h \
@@ -64,7 +63,7 @@ mmc${OBJEXT} : mmc.c include/cpu.h include/core.h include/misc.h include/rom.h \
 netplay${OBJEXT} : netplay.c include/misc.h include/netplay.h
 
 papu${OBJEXT} : papu.c include/audio.h include/apu.h include/misc.h \
-  include/papu.h include/timing.h
+  include/input.h include/papu.h include/timing.h
 
 ppu${OBJEXT} : ppu.c include/cpu.h include/core.h include/misc.h include/rom.h \
   include/mmc.h include/cpu_in.h include/input.h include/ppu.h \
