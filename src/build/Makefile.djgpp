@@ -36,14 +36,17 @@ TARGET_CPU ?= i686
 MFLAGS := -march=${TARGET_ARCH} -mcpu=${TARGET_CPU}
 ifdef DEBUG
     OFLAGS = -O0 -g -ggdb3
-    DFLAGS = -DDEBUG -DUSE_ZLIB -DLSB_FIRST
+    DFLAGS = -DDEBUG -DLSB_FIRST
 else
     OFLAGS = -O3 -fomit-frame-pointer -fno-rtti -fno-exceptions \
     -funroll-loops -ffast-math -fforce-addr -fforce-mem -fstrength-reduce \
     -fthread-jumps -fexpensive-optimizations -foptimize-sibling-calls \
     -fstrict-aliasing -maccumulate-outgoing-args -fschedule-insns \
     -fschedule-insns2
-    DFLAGS = -DUSE_ZLIB -DLSB_FIRST
+    DFLAGS = -DLSB_FIRST
+endif
+ifndef NO_ZLIB
+    DFLAGS += -DUSE_ZLIB
 endif
 ifneq (${ASM_CORE}, 0)
     DFLAGS += -DNO_C_CORE
@@ -81,6 +84,9 @@ endif
 
 # Libraries.
 LIBRARIES = -lalleg -lz
+ifndef NO_ZLIB
+    LIBRARIES += -lz
+endif
 
 # Targets.
 .PHONY: all bootstrap clean distclean
