@@ -113,6 +113,9 @@ int load_rom (CONST UINT8 * filename, ROM * rom)
 
     /* Allocate and load trainer. */
 
+    /* Pointer should be initialized even if no trainer exists */
+    rom -> trainer = NULL;
+
     if (rom -> control_byte_1 & ROM_CTRL_TRAINER)
     {
         rom -> trainer = malloc (512);
