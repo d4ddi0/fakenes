@@ -38,7 +38,7 @@ static void ffe_f3_write (UINT16 address, UINT8 value)
 
     /* Extract ROM page # (xxxxx000). */
 
-    prg_page = ((value &= FFE_F3_PRG_ROM_MASK) >> 3);
+    prg_page = ((value & FFE_F3_PRG_ROM_MASK) >> 3);
 
 
     /* Select requested 16k ROM page at $8000. */

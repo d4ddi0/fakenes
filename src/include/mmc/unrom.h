@@ -5,6 +5,9 @@
 /* This mapper is fully supported. */
 
 
+#include "mmc/shared.h"
+
+
 static int unrom_init (void);
 
 static void unrom_reset (void);
@@ -20,7 +23,7 @@ const MMC mmc_unrom =
 
 static void unrom_write (UINT16 address, UINT8 value)
 {
-    /* Select requested 16k page. */
+    /* Select requested 16k ROM page. */
 
     cpu_set_read_address_16k_rom_block (0x8000, value);
 }
@@ -28,14 +31,14 @@ static void unrom_write (UINT16 address, UINT8 value)
 
 static void unrom_reset (void)
 {
-    /* Select first 16k page in lower 16k. */
+    /* Select first 16k ROM page in lower 16k. */
 
-    cpu_set_read_address_16k (0x8000, ROM_PAGE_16K (0));
+    cpu_set_read_address_16k_rom_block (0x8000, MMC_FIRST_ROM_BLOCK);
 
 
-    /* Select last 16k page in upper 16k. */
+    /* Select last 16k ROM page in upper 16k. */
 
-    cpu_set_read_address_16k (0xC000, LAST_ROM_PAGE);
+    cpu_set_read_address_16k_rom_block (0xC000, MMC_LAST_ROM_BLOCK);
 }
 
 

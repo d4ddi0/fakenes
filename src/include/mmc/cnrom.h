@@ -5,6 +5,9 @@
 /* This mapper is fully supported. */
 
 
+#include "mmc/shared.h"
+
+
 static int cnrom_init (void);
 
 static void cnrom_reset (void);
@@ -28,7 +31,7 @@ static void cnrom_write (UINT16 address, UINT8 value)
     value *= 8;
 
 
-    /* Select requested 8k page. */
+    /* Select requested 8k CHR-ROM page. */
 
     for (index = 0; index < 8; index ++)
     {
@@ -42,12 +45,12 @@ static void cnrom_reset (void)
     int index;
 
 
-    /* Select first 32k page. */
+    /* Select first 32k ROM page. */
 
-    cpu_set_read_address_32k_rom_block (0x8000, 0);
+    cpu_set_read_address_32k_rom_block (0x8000, MMC_FIRST_ROM_BLOCK);
 
 
-    /* Select first 8k page. */
+    /* Select first 8k CHR-ROM page. */
 
     for (index = 0; index < 8; index ++)
     {
