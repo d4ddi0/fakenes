@@ -871,43 +871,6 @@ static INLINE int mix (int color_a, int color_b)
 }
 
 
-static INLINE int mix_half (int color_a, int color_b)
-{
-    int r;
-
-    int g;
-
-    int b;
-
-
-    /* 0 - 63 --> 0 - 127. */
-
-    r = ((internal_palette [color_a].r * 2) + (internal_palette [color_b].r * 2));
-
-    g = ((internal_palette [color_a].g * 2) + (internal_palette [color_b].g * 2));
-
-    b = ((internal_palette [color_a].b * 2) + (internal_palette [color_b].b * 2));
-
-
-    if (color_depth == 32)
-    {
-        return (makecol32 (r, g, b));
-    }
-    else if (color_depth == 16)
-    {
-        return (makecol16 (r, g, b));
-    }
-    else if (color_depth == 15)
-    {
-        return (makecol15 (r, g, b));
-    }
-    else
-    {
-        return (makecol (r, g, b));
-    }
-}
-
-
 static INLINE void blit_interpolated_2x (BITMAP * source, BITMAP * target, int x, int y)
 {
     int x_base;
@@ -980,12 +943,12 @@ static INLINE void blit_interpolated_2x (BITMAP * source, BITMAP * target, int x
             FAST_PUTPIXEL16 (target, x_base, y_base, palette_color [center_pixel]);
 
 
-            FAST_PUTPIXEL16 (target, (x_base + 1), y_base, mix_half (center_pixel, east_pixel));
+            FAST_PUTPIXEL16 (target, (x_base + 1), y_base, mix (center_pixel, east_pixel));
 
-            FAST_PUTPIXEL16 (target, x_base, (y_base + 1), mix_half (center_pixel, south_pixel));
+            FAST_PUTPIXEL16 (target, x_base, (y_base + 1), mix (center_pixel, south_pixel));
 
 
-            FAST_PUTPIXEL16 (target, (x_base + 1), (y_base + 1), mix_half (center_pixel, south_east_pixel));
+            FAST_PUTPIXEL16 (target, (x_base + 1), (y_base + 1), mix (center_pixel, south_east_pixel));
         }
     }
 }
@@ -1063,12 +1026,12 @@ static INLINE void blit_interpolated_2x_32 (BITMAP * source, BITMAP * target, in
             FAST_PUTPIXEL32 (target, x_base, y_base, palette_color [center_pixel]);
 
 
-            FAST_PUTPIXEL32 (target, (x_base + 1), y_base, mix_half (center_pixel, east_pixel));
+            FAST_PUTPIXEL32 (target, (x_base + 1), y_base, mix (center_pixel, east_pixel));
 
-            FAST_PUTPIXEL32 (target, x_base, (y_base + 1), mix_half (center_pixel, south_pixel));
+            FAST_PUTPIXEL32 (target, x_base, (y_base + 1), mix (center_pixel, south_pixel));
 
 
-            FAST_PUTPIXEL32 (target, (x_base + 1), (y_base + 1), mix_half (center_pixel, south_east_pixel));
+            FAST_PUTPIXEL32 (target, (x_base + 1), (y_base + 1), mix (center_pixel, south_east_pixel));
         }
     }
 }
@@ -1125,21 +1088,21 @@ static INLINE void blit_interpolated_3x (BITMAP * source, BITMAP * target, int x
             MAGIC_PUTPIXEL (target, (x_base + 1), (y_base + 1), palette_color [pixels [0]]);
 
 
-            MAGIC_PUTPIXEL (target, x_base, y_base, mix_half (pixels [0], pixels [1]));
+            MAGIC_PUTPIXEL (target, x_base, y_base, mix (pixels [0], pixels [1]));
 
-            MAGIC_PUTPIXEL (target, (x_base + 1), y_base, mix_half (pixels [0], pixels [2]));
+            MAGIC_PUTPIXEL (target, (x_base + 1), y_base, mix (pixels [0], pixels [2]));
                                                               
-            MAGIC_PUTPIXEL (target, (x_base + 2), y_base, mix_half (pixels [0], pixels [3]));
+            MAGIC_PUTPIXEL (target, (x_base + 2), y_base, mix (pixels [0], pixels [3]));
 
-            MAGIC_PUTPIXEL (target, (x_base + 2), (y_base + 1), mix_half (pixels [0], pixels [4]));
+            MAGIC_PUTPIXEL (target, (x_base + 2), (y_base + 1), mix (pixels [0], pixels [4]));
 
-            MAGIC_PUTPIXEL (target, (x_base + 2), (y_base + 2), mix_half (pixels [0], pixels [5]));
+            MAGIC_PUTPIXEL (target, (x_base + 2), (y_base + 2), mix (pixels [0], pixels [5]));
                                                                     
-            MAGIC_PUTPIXEL (target, (x_base + 1), (y_base + 2), mix_half (pixels [0], pixels [6]));
+            MAGIC_PUTPIXEL (target, (x_base + 1), (y_base + 2), mix (pixels [0], pixels [6]));
                  
-            MAGIC_PUTPIXEL (target, x_base, (y_base + 2), mix_half (pixels [0], pixels [7]));
-
-            MAGIC_PUTPIXEL (target, x_base, (y_base + 1), mix_half (pixels [0], pixels [8]));
+            MAGIC_PUTPIXEL (target, x_base, (y_base + 2), mix (pixels [0], pixels [7]));
+                                                             
+            MAGIC_PUTPIXEL (target, x_base, (y_base + 1), mix (pixels [0], pixels [8]));
         }
     }
 }
