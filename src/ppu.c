@@ -75,6 +75,10 @@ static int ppu_mirroring;
 #define VRAM_WRITE_FLAG_BIT     (1 << 4)
 
 
+#define PPU_PIXEL(bitmap, x, y, color) \
+    bitmap -> line [y] [x] = color
+
+
 static int vram_address = 0;
 
 static UINT8 spr_ram_address = 0;
@@ -791,7 +795,7 @@ void ppu_render_line (int line)
                         color = ppu_background_palette [attribute + color];
         
         
-                        _putpixel (video_buffer,
+                        PPU_PIXEL (video_buffer,
                             ((x * 8) + sub_x - x_offset), line, color);
                     }
 
@@ -1032,12 +1036,12 @@ static INLINE void ppu_render_sprite (int sprite)
             {
                 if (flip_v)
                 {
-                    _putpixel (video_buffer, ((x + 7) - sub_x),
+                    PPU_PIXEL (video_buffer, ((x + 7) - sub_x),
                         ((y + (sprite_height - 1)) - sub_y), color);
                 }
                 else
                 {
-                    _putpixel (video_buffer,
+                    PPU_PIXEL (video_buffer,
                         ((x + 7) - sub_x), (y + sub_y), color);
                 }
             }
@@ -1045,12 +1049,12 @@ static INLINE void ppu_render_sprite (int sprite)
             {
                 if (flip_v)
                 {
-                    _putpixel (video_buffer, (x + sub_x),
+                    PPU_PIXEL (video_buffer, (x + sub_x),
                         ((y + (sprite_height - 1)) - sub_y), color);
                 }
                 else
                 {
-                    _putpixel (video_buffer,
+                    PPU_PIXEL (video_buffer,
                         (x + sub_x), (y + sub_y), color);
                 }
             }
