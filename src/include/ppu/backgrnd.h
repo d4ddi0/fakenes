@@ -45,6 +45,53 @@ static void dummy_read_line(UINT8 *buffer)
 }
 
 
+#define PBT_NO_MASK
+#define PBT_MASK { if (color == 0) continue; }
+#define PBT_NO_DISPLAY(OFFSET)
+#define PBT_DISPLAY(OFFSET) \
+    { \
+        plot_buffer [plot_pixel + OFFSET] = \
+            ppu_background_palette [color]; \
+    }
+
+#define PLOT_BACKGROUND_TILE_PIXEL(OFFSET,MASK,DISPLAY) \
+    do \
+    { \
+        color = cache_address [sub_x + (OFFSET)] & attribute; \
+ \
+        MASK \
+ \
+        background_pixels [8 + plot_pixel + (OFFSET)] = color; \
+ \
+        DISPLAY(OFFSET) \
+    } while (FALSE);
+
+
+#define PLOT_BACKGROUND_TILE_LOOP(MASK,DISPLAY) \
+    for (; sub_x < 8; sub_x ++, plot_pixel ++) \
+    { \
+        UINT8 color; \
+ \
+        PLOT_BACKGROUND_TILE_PIXEL(0,MASK,DISPLAY) \
+    }
+
+
+#define PLOT_BACKGROUND_TILE_FULL(MASK,DISPLAY) \
+    { \
+        UINT8 color; \
+ \
+        PLOT_BACKGROUND_TILE_PIXEL(0,MASK,DISPLAY) \
+        PLOT_BACKGROUND_TILE_PIXEL(1,MASK,DISPLAY) \
+        PLOT_BACKGROUND_TILE_PIXEL(2,MASK,DISPLAY) \
+        PLOT_BACKGROUND_TILE_PIXEL(3,MASK,DISPLAY) \
+        PLOT_BACKGROUND_TILE_PIXEL(4,MASK,DISPLAY) \
+        PLOT_BACKGROUND_TILE_PIXEL(5,MASK,DISPLAY) \
+        PLOT_BACKGROUND_TILE_PIXEL(6,MASK,DISPLAY) \
+        PLOT_BACKGROUND_TILE_PIXEL(7,MASK,DISPLAY) \
+        plot_pixel += 8; \
+    }
+
+
 static void ppu_render_background (int line)
 {
     int attribute_address;
@@ -174,57 +221,57 @@ static void ppu_render_background (int line)
                 }
             }
 
-            if (cache_tag != 0xFF)
-            /* some transparent pixels */
+            if (sub_x == 0)
             {
-                if (ppu_enable_background_layer)
+                if (cache_tag != 0xFF)
+                /* some transparent pixels */
                 {
-                    for (; sub_x < 8; sub_x ++, plot_pixel ++)
+                    if (ppu_enable_background_layer)
                     {
-                        UINT8 color = cache_address [sub_x] & attribute;
-
-                        if (color == 0) continue;
-
-                        background_pixels [8 + plot_pixel] = color;
-
-                        plot_buffer [plot_pixel] =
-                            ppu_background_palette [color];
+                        PLOT_BACKGROUND_TILE_FULL(PBT_MASK,PBT_DISPLAY)
+                    }
+                    else
+                    {
+                        PLOT_BACKGROUND_TILE_FULL(PBT_MASK,PBT_NO_DISPLAY)
                     }
                 }
                 else
+                /* no transparent pixels */
                 {
-                    for (; sub_x < 8; sub_x ++, plot_pixel ++)
+                    if (ppu_enable_background_layer)
                     {
-                        UINT8 color = cache_address [sub_x] & attribute;
-
-                        if (color == 0) continue;
-
-                        background_pixels [8 + plot_pixel] = color;
+                        PLOT_BACKGROUND_TILE_FULL(PBT_NO_MASK,PBT_DISPLAY)
+                    }
+                    else
+                    {
+                        PLOT_BACKGROUND_TILE_FULL(PBT_NO_MASK,PBT_NO_DISPLAY)
                     }
                 }
             }
             else
-            /* no transparent pixels */
             {
-                if (ppu_enable_background_layer)
+                if (cache_tag != 0xFF)
+                /* some transparent pixels */
                 {
-                    for (; sub_x < 8; sub_x ++, plot_pixel ++)
+                    if (ppu_enable_background_layer)
                     {
-                        UINT8 color = cache_address [sub_x] & attribute;
-
-                        background_pixels [8 + plot_pixel] = color;
-
-                        plot_buffer [plot_pixel] =
-                            ppu_background_palette [color];
+                        PLOT_BACKGROUND_TILE_LOOP(PBT_MASK,PBT_DISPLAY)
+                    }
+                    else
+                    {
+                        PLOT_BACKGROUND_TILE_LOOP(PBT_MASK,PBT_NO_DISPLAY)
                     }
                 }
                 else
+                /* no transparent pixels */
                 {
-                    for (; sub_x < 8; sub_x ++, plot_pixel ++)
+                    if (ppu_enable_background_layer)
                     {
-                        UINT8 color = cache_address [sub_x] & attribute;
-
-                        background_pixels [8 + plot_pixel] = color;
+                        PLOT_BACKGROUND_TILE_LOOP(PBT_NO_MASK,PBT_DISPLAY)
+                    }
+                    else
+                    {
+                        PLOT_BACKGROUND_TILE_LOOP(PBT_NO_MASK,PBT_NO_DISPLAY)
                     }
                 }
             }

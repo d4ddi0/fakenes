@@ -1,6 +1,18 @@
 static UINT32 tile_decode_table_plane_0[16];
 static UINT32 tile_decode_table_plane_1[16];
 
+#define VRAM_CACHE_TILE_ADDRESS(TILE,Y) \
+ (ppu_pattern_vram_cache + (TILE * 8 + Y) * 8)
+
+#define VRAM_CACHE_TILE_TAG_ADDRESS(TILE,Y) \
+ (ppu_pattern_vram_cache_tag + (TILE * 8 + Y))
+
+#define CHR_ROM_CACHE_TILE_ADDRESS(TILE,Y) \
+ (ROM_CHR_ROM_CACHE + (TILE * 8 + Y) * 8)
+
+#define CHR_ROM_CACHE_TILE_TAG_ADDRESS(TILE,Y) \
+ (ROM_CHR_ROM_CACHE_TAG + (TILE * 8 + Y))
+
 static void ppu_cache_init (void)
 {
     int i;
@@ -91,12 +103,12 @@ void ppu_cache_all_vram (void)
                 [(ppu_pattern_vram [tile * 16 + y + 8]) & 0x0F];
             
 
-            *(UINT32 *) (&ppu_pattern_vram_cache [((tile * 8 + y) * 8)]) =
+            *(UINT32 *) VRAM_CACHE_TILE_ADDRESS(tile,y) =
                 pixels0_3;
-            *(UINT32 *) (&ppu_pattern_vram_cache [((tile * 8 + y) * 8) + 4]) =
+            *(UINT32 *) (VRAM_CACHE_TILE_ADDRESS(tile,y) + 4) =
                 pixels4_7;
 
-            ppu_pattern_vram_cache_tag [tile * 8 + y] =
+            *VRAM_CACHE_TILE_TAG_ADDRESS(tile,y) =
                 ppu_pattern_vram [tile * 16 + y] |
                 ppu_pattern_vram [tile * 16 + y + 8];
         }
@@ -137,12 +149,12 @@ void ppu_cache_chr_rom_pages (void)
                 [(ROM_CHR_ROM [tile * 16 + y + 8]) & 0x0F];
             
 
-            *(UINT32 *) (&ROM_CHR_ROM_CACHE [((tile * 8 + y) * 8)]) =
+            *(UINT32 *) CHR_ROM_CACHE_TILE_ADDRESS(tile,y) =
                 pixels0_3;
-            *(UINT32 *) (&ROM_CHR_ROM_CACHE [((tile * 8 + y) * 8) + 4]) =
+            *(UINT32 *) (CHR_ROM_CACHE_TILE_ADDRESS(tile,y) + 4) =
                 pixels4_7;
 
-            ROM_CHR_ROM_CACHE_TAG [tile * 8 + y] =
+            *CHR_ROM_CACHE_TILE_TAG_ADDRESS(tile,y) =
                 ROM_CHR_ROM [tile * 16 + y] |
                 ROM_CHR_ROM [tile * 16 + y + 8];
         }
@@ -176,12 +188,12 @@ static void recache_vram_set (int vram_block)
                 [(ppu_pattern_vram [tile * 16 + y + 8]) & 0x0F];
             
 
-            *(UINT32 *) (&ppu_pattern_vram_cache [((tile * 8 + y) * 8)]) =
+            *(UINT32 *) VRAM_CACHE_TILE_TAG_ADDRESS(tile,y) =
                 pixels0_3;
-            *(UINT32 *) (&ppu_pattern_vram_cache [((tile * 8 + y) * 8) + 4]) =
+            *(UINT32 *) (VRAM_CACHE_TILE_TAG_ADDRESS(tile,y) + 4) =
                 pixels4_7;
 
-            ppu_pattern_vram_cache_tag [tile * 8 + y] =
+            *VRAM_CACHE_TILE_TAG_ADDRESS(tile,y) =
                 ppu_pattern_vram [tile * 16 + y] |
                 ppu_pattern_vram [tile * 16 + y + 8];
         }
