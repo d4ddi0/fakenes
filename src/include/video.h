@@ -75,6 +75,9 @@ int video_enable_vsync;
 int video_force_window;
 
 
+int video_driver;
+
+
 BITMAP * base_video_buffer;
 
 BITMAP * video_buffer;
@@ -114,6 +117,9 @@ void video_set_resolution (int, int);
 int video_get_color_depth (void);
 
 void video_set_color_depth (int);
+
+
+void video_set_driver (int);
 
 
 void video_message (const UINT8 *, ...);

@@ -84,6 +84,9 @@ int video_enable_vsync = FALSE;
 int video_force_window = FALSE;
 
 
+int video_driver = GFX_AUTODETECT;
+
+
 static int screen_height = 0;
 
 static int screen_width = 0;
@@ -204,7 +207,14 @@ int video_init (void)
     video_enable_vsync = get_config_int ("video", "enable_vsync", FALSE);
 
 
-    driver = (video_force_window ? GFX_AUTODETECT_WINDOWED : GFX_AUTODETECT);
+    if (video_driver == GFX_AUTODETECT)
+    {
+        driver = (video_force_window ? GFX_AUTODETECT_WINDOWED : GFX_AUTODETECT);
+    }
+    else
+    {
+        driver = video_driver;
+    }
 
 
     if ((color_depth != 8) && (color_depth != 15) && (color_depth != 16))
@@ -1837,6 +1847,60 @@ void video_set_color_depth (int depth)
     if (video_init () != 0)
     {
         set_config_int ("video", "color_depth", old_depth);
+
+
+        video_init ();
+    }
+
+
+    preserve_video_buffer = FALSE;
+
+    preserve_palette = FALSE;
+
+
+    /* Sync. */
+
+    if (selected_blitter > 0)
+    {
+        selected_blitter = 0;
+    }
+
+
+    if (gui_is_active)
+    {
+        unscare_mouse ();
+    }
+}
+
+
+void video_set_driver (int driver)
+{
+    int old_driver;
+
+
+    if (gfx_driver -> id == driver)
+    {
+        return;
+    }
+
+
+    old_driver = gfx_driver -> id;
+
+
+    video_driver = driver;
+
+
+    preserve_video_buffer = TRUE;
+
+    preserve_palette = TRUE;
+
+
+    video_exit ();
+
+
+    if (video_init () != 0)
+    {
+        video_driver = old_driver;
 
 
         video_init ();

@@ -645,6 +645,62 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (options_audio_advanced_menu, 0, papu_ideal_triangle);
 
 
+#ifdef ALLEGRO_DOS
+
+    TOGGLE_MENU (options_video_driver_dos_menu, 0, (gfx_driver -> id == GFX_VGA));
+
+    TOGGLE_MENU (options_video_driver_dos_menu, 2, (gfx_driver -> id == GFX_MODEX));
+
+    TOGGLE_MENU (options_video_driver_dos_menu, 4, (gfx_driver -> id == GFX_VESA1));
+
+    TOGGLE_MENU (options_video_driver_dos_menu, 6, (gfx_driver -> id == GFX_VESA2B));
+
+    TOGGLE_MENU (options_video_driver_dos_menu, 8, (gfx_driver -> id == GFX_VESA2L));
+
+    TOGGLE_MENU (options_video_driver_dos_menu, 10, (gfx_driver -> id == GFX_VESA3));
+
+    TOGGLE_MENU (options_video_driver_dos_menu, 12, (gfx_driver -> id == GFX_VBEAF));
+
+#endif
+
+
+#ifdef ALLEGRO_WINDOWS
+
+    TOGGLE_MENU (options_video_driver_windows_menu, 0, (gfx_driver -> id == GFX_DIRECTX));
+
+    TOGGLE_MENU (options_video_driver_windows_menu, 2, (gfx_driver -> id == GFX_DIRECTX_OVL));
+
+    TOGGLE_MENU (options_video_driver_windows_menu, 4, (gfx_driver -> id == GFX_GDI));
+
+#endif
+
+
+#ifdef ALLEGRO_LINUX
+
+    TOGGLE_MENU (options_video_driver_linux_menu, 0, (gfx_driver -> id == GFX_VGA));
+
+    TOGGLE_MENU (options_video_driver_linux_menu, 2, (gfx_driver -> id == GFX_MODEX));
+
+    TOGGLE_MENU (options_video_driver_linux_menu, 4, (gfx_driver -> id == GFX_VBEAF));
+
+    TOGGLE_MENU (options_video_driver_linux_menu, 6, (gfx_driver -> id == GFX_FBCON));
+
+    TOGGLE_MENU (options_video_driver_linux_menu, 8, (gfx_driver -> id == GFX_SVGALIB));
+
+#endif
+
+
+#ifdef ALLEGRO_UNIX
+
+    TOGGLE_MENU (options_video_driver_unix_menu, 0, (gfx_driver -> id == GFX_XWINDOWS));
+
+    TOGGLE_MENU (options_video_driver_unix_menu, 2, (gfx_driver -> id == GFX_XDGA));
+
+    TOGGLE_MENU (options_video_driver_unix_menu, 4, (gfx_driver -> id == GFX_XDGA2));
+
+#endif
+
+
     TOGGLE_MENU (options_video_resolution_menu, 0, ((SCREEN_W == 256) && (SCREEN_H == 224)));
 
     TOGGLE_MENU (options_video_resolution_menu, 2, ((SCREEN_W == 256) && (SCREEN_H == 240)));
@@ -695,7 +751,7 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (options_video_filters_scanlines_menu, 4, (video_get_filter_list () & VIDEO_FILTER_SCANLINES_LOW));
 
 
-    TOGGLE_MENU (options_video_menu, 8, video_enable_vsync);
+    TOGGLE_MENU (options_video_menu, 10, video_enable_vsync);
 
 
     TOGGLE_MENU (options_video_advanced_menu, 0, video_force_window);
@@ -746,10 +802,44 @@ int show_gui (int first_run)
     
 #ifdef ALLEGRO_DOS
 
+        DISABLE_MENU (options_video_driver_menu, 4);
+
+        DISABLE_MENU (options_video_driver_menu, 6);
+
+        DISABLE_MENU (options_video_driver_menu, 8);
+
+
         DISABLE_MENU (options_video_advanced_menu, 0);
 
 
         DISABLE_MENU (top_menu, 3);
+
+#endif
+
+
+#ifdef ALLEGRO_WINDOWS
+
+        DISABLE_MENU (options_video_driver_menu, 2);
+
+        DISABLE_MENU (options_video_driver_menu, 6);
+
+        DISABLE_MENU (options_video_driver_menu, 8);
+
+#endif
+
+
+#ifdef ALLEGRO_UNIX
+
+        DISABLE_MENU (options_video_driver_menu, 2);
+
+        DISABLE_MENU (options_video_driver_menu, 4);
+
+
+#ifndef ALLEGRO_LINUX
+
+        DISABLE_MENU (options_video_driver_menu, 6);
+
+#endif
 
 #endif
 
@@ -2436,6 +2526,85 @@ static int options_audio_record_menu_stop (void)
 
 
     return (D_O_K);
+}
+
+
+#define DRIVER_MENU_HANDLER(system, driver, id)   \
+    static int options_video_driver_##system##_menu_##driver (void)   \
+    {                                           \
+        video_set_driver (id);                  \
+                                                \
+        gui_needs_restart = TRUE;               \
+                                                \
+                                                \
+        return (D_CLOSE);                       \
+    }
+
+
+#ifdef ALLEGRO_DOS
+
+DRIVER_MENU_HANDLER (dos, vga, GFX_VGA)
+
+DRIVER_MENU_HANDLER (dos, vga_mode_x, GFX_MODEX)
+
+DRIVER_MENU_HANDLER (dos, vesa, GFX_VESA1)
+
+DRIVER_MENU_HANDLER (dos, vesa_2_banked, GFX_VESA2B)
+
+DRIVER_MENU_HANDLER (dos, vesa_2_linear, GFX_VESA2L)
+
+DRIVER_MENU_HANDLER (dos, vesa_3, GFX_VESA3)
+
+DRIVER_MENU_HANDLER (dos, vesa_vbe_af, GFX_VBEAF)
+
+#endif
+
+
+#ifdef ALLEGRO_WINDOWS
+
+DRIVER_MENU_HANDLER (windows, directx, GFX_DIRECTX)
+
+DRIVER_MENU_HANDLER (windows, directx_overlay, GFX_DIRECTX_OVL)
+
+DRIVER_MENU_HANDLER (windows, gdi, GFX_GDI)
+
+#endif
+
+
+#ifdef ALLEGRO_LINUX
+
+DRIVER_MENU_HANDLER (linux, vga, GFX_VGA)
+
+DRIVER_MENU_HANDLER (linux, vga_mode_x, GFX_MODEX)
+
+DRIVER_MENU_HANDLER (linux, vesa_vbe_af, GFX_VBEAF)
+
+DRIVER_MENU_HANDLER (linux, framebuffer, GFX_FBCON)
+
+DRIVER_MENU_HANDLER (linux, svgalib, GFX_SVGALIB)
+
+#endif
+
+
+#ifdef ALLEGRO_UNIX
+
+DRIVER_MENU_HANDLER (unix, x_windows, GFX_XWINDOWS)
+
+DRIVER_MENU_HANDLER (unix, x_dga, GFX_XDGA)
+
+DRIVER_MENU_HANDLER (unix, x_dga_2, GFX_XDGA2)
+
+#endif
+
+
+static int options_video_driver_menu_automatic (void)
+{
+    video_set_driver (GFX_AUTODETECT);
+
+    gui_needs_restart = TRUE;
+
+
+    return (D_CLOSE);
 }
 
 

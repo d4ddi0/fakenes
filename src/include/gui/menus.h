@@ -440,6 +440,164 @@ static MENU options_audio_menu [] =
 };
 
 
+#ifdef ALLEGRO_DOS
+
+static int options_video_driver_dos_menu_vga (void);
+
+static int options_video_driver_dos_menu_vga_mode_x (void);
+
+static int options_video_driver_dos_menu_vesa (void);
+
+static int options_video_driver_dos_menu_vesa_2_banked (void);
+
+static int options_video_driver_dos_menu_vesa_2_linear (void);
+
+static int options_video_driver_dos_menu_vesa_3 (void);
+
+static int options_video_driver_dos_menu_vesa_vbe_af (void);
+
+
+static MENU options_video_driver_dos_menu [] =
+{
+    {           "&VGA",           options_video_driver_dos_menu_vga, NIL, 0, NIL },
+    {               "",                                         NIL, NIL, 0, NIL },
+    {    "VGA Mode-&X",    options_video_driver_dos_menu_vga_mode_x, NIL, 0, NIL },
+    {               "",                                         NIL, NIL, 0, NIL },
+    {          "V&ESA",          options_video_driver_dos_menu_vesa, NIL, 0, NIL },
+    {               "",                                         NIL, NIL, 0, NIL },
+    { "VESA 2 &Banked", options_video_driver_dos_menu_vesa_2_banked, NIL, 0, NIL },
+    {               "",                                         NIL, NIL, 0, NIL },
+    { "VESA 2 &Linear", options_video_driver_dos_menu_vesa_2_linear, NIL, 0, NIL },
+    {               "",                                         NIL, NIL, 0, NIL },
+    {        "VE&SA 3",        options_video_driver_dos_menu_vesa_3, NIL, 0, NIL },
+    {               "",                                         NIL, NIL, 0, NIL },
+    {   "VESA VBE/&AF",   options_video_driver_dos_menu_vesa_vbe_af, NIL, 0, NIL },
+    {              NIL,                                         NIL, NIL, 0, NIL }
+};
+
+#else
+
+static MENU options_video_driver_dos_menu [] =
+{
+    { NIL, NIL, NIL, 0, NIL }
+};
+
+#endif
+
+
+#ifdef ALLEGRO_WINDOWS
+
+static int options_video_driver_windows_menu_directx (void);
+
+static int options_video_driver_windows_menu_directx_overlay (void);
+
+static int options_video_driver_windows_menu_gdi (void);
+
+
+static MENU options_video_driver_windows_menu [] =
+{
+    {         "&DirectX",         options_video_driver_windows_menu_directx, NIL, 0, NIL },
+    {                 "",                                               NIL, NIL, 0, NIL },
+    { "DirectX &Overlay", options_video_driver_windows_menu_directx_overlay, NIL, 0, NIL },
+    {                 "",                                               NIL, NIL, 0, NIL },
+    {             "&GDI",             options_video_driver_windows_menu_gdi, NIL, 0, NIL },
+    {                NIL,                                               NIL, NIL, 0, NIL }
+};
+
+#else
+
+static MENU options_video_driver_windows_menu [] =
+{
+    { NIL, NIL, NIL, 0, NIL }
+};
+
+#endif
+
+
+#ifdef ALLEGRO_LINUX
+
+static int options_video_driver_linux_menu_vga (void);
+
+static int options_video_driver_linux_menu_vga_mode_x (void);
+
+static int options_video_driver_linux_menu_vesa_vbe_af (void);
+
+static int options_video_driver_linux_menu_framebuffer (void);
+
+static int options_video_driver_linux_menu_svgalib (void);
+
+
+static MENU options_video_driver_linux_menu [] =
+{
+    {         "&VGA",         options_video_driver_linux_menu_vga, NIL, 0, NIL },
+    {             "",                                         NIL, NIL, 0, NIL },
+    {  "VGA Mode-&X",  options_video_driver_linux_menu_vga_mode_x, NIL, 0, NIL },
+    {             "",                                         NIL, NIL, 0, NIL },
+    { "VESA VBE/&AF", options_video_driver_linux_menu_vesa_vbe_af, NIL, 0, NIL },
+    {             "",                                         NIL, NIL, 0, NIL },
+    { "&Framebuffer", options_video_driver_linux_menu_framebuffer, NIL, 0, NIL },
+    {             "",                                         NIL, NIL, 0, NIL },
+    {     "&SVGAlib",     options_video_driver_linux_menu_svgalib, NIL, 0, NIL },
+    {            NIL,                                         NIL, NIL, 0, NIL }
+};
+
+#else
+
+static MENU options_video_driver_linux_menu [] =
+{
+    { NIL, NIL, NIL, 0, NIL }
+};
+
+#endif
+
+
+#ifdef ALLEGRO_UNIX
+
+static int options_video_driver_unix_menu_x_windows (void);
+
+static int options_video_driver_unix_menu_x_dga (void);
+
+static int options_video_driver_unix_menu_x_dga_2 (void);
+
+
+static MENU options_video_driver_unix_menu [] =
+{
+    { "X &Windows", options_video_driver_unix_menu_x_windows, NIL, 0, NIL },
+    {           "",                                      NIL, NIL, 0, NIL },
+    {     "X/&DGA",     options_video_driver_unix_menu_x_dga, NIL, 0, NIL },
+    {           "",                                      NIL, NIL, 0, NIL },
+    {   "X/D&GA 2",   options_video_driver_unix_menu_x_dga_2, NIL, 0, NIL },
+    {          NIL,                                      NIL, NIL, 0, NIL }
+};
+
+#else
+
+static MENU options_video_driver_unix_menu [] =
+{
+    { NIL, NIL, NIL, 0, NIL }
+};
+
+#endif
+
+
+static int options_video_driver_menu_automatic (void);
+
+
+static MENU options_video_driver_menu [] =
+{
+    { "&Automatic", options_video_driver_menu_automatic,                               NIL, 0, NIL },
+    {           "",                                 NIL,                               NIL, 0, NIL },
+    {       "&DOS",                                 NIL,     options_video_driver_dos_menu, 0, NIL },
+    {           "",                                 NIL,                               NIL, 0, NIL },
+    {   "&Windows",                                 NIL, options_video_driver_windows_menu, 0, NIL },
+    {           "",                                 NIL,                               NIL, 0, NIL },
+    {     "&Linux",                                 NIL,   options_video_driver_linux_menu, 0, NIL },
+    {           "",                                 NIL,                               NIL, 0, NIL },
+    {      "&Unix",                                 NIL,    options_video_driver_unix_menu, 0, NIL },
+    {          NIL,                                 NIL,                               NIL, 0, NIL }
+};
+
+
 static int options_video_resolution_menu_256_224 (void);
 
 static int options_video_resolution_menu_256_240 (void);
@@ -626,6 +784,8 @@ static int options_video_menu_vsync (void);
 
 static MENU options_video_menu [] =
 {
+    {     "&Driver",                        NIL,     options_video_driver_menu, 0, NIL },
+    {            "",                        NIL,                           NIL, 0, NIL },
     { "&Resolution",                        NIL, options_video_resolution_menu, 0, NIL },
     {            "",                        NIL,                           NIL, 0, NIL },
     {     "&Colors",                        NIL,     options_video_colors_menu, 0, NIL },
