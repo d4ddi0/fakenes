@@ -50,7 +50,8 @@ install : ${BINARY} ${DATAFILE}
 	${CC} -c $< -o $@ ${CFLAGS}
 
 
-apu.o: apu.c include/apu.h include/apu_ex.h include/cpu.h include/misc.h
+apu.o: apu.c include/apu.h include/apu_ex.h include/cpu.h include/misc.h \
+       include/rom.h
 
 audio.o: audio.c include/audio.h include/misc.h include/timing.h
 
