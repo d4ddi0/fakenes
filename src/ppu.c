@@ -131,8 +131,6 @@ static int vblank_occurred = FALSE;
 static UINT8 hit_first_sprite = 0;
 static int first_sprite_this_line = 0;
 
-static int first_line_this_frame = TRUE;
-
 static int background_tileset = 0;
 static int sprite_tileset = 0;
 
@@ -1043,8 +1041,6 @@ void ppu_clear (void)
 {
     vblank_occurred = FALSE;
 
-    first_line_this_frame = TRUE;
-
     hit_first_sprite = 0;
     first_sprite_this_line = 0;
 }
@@ -1195,8 +1191,6 @@ void ppu_save_state (PACKFILE * file, int version)
 
     pack_putc(vblank_occurred, file_chunk);
 
-    pack_putc(first_line_this_frame, file_chunk);
-
     pack_putc(hit_first_sprite, file_chunk);
     pack_iputl(first_sprite_this_line, file_chunk);
 
@@ -1264,8 +1258,6 @@ void ppu_load_state (PACKFILE * file, int version)
     x_offset = pack_getc(file_chunk);
 
     vblank_occurred = pack_getc(file_chunk);
-
-    first_line_this_frame = pack_getc(file_chunk);
 
     hit_first_sprite = pack_getc(file_chunk);
     first_sprite_this_line = pack_igetl(file_chunk);
