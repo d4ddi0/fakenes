@@ -537,7 +537,7 @@ static INT32 apu_dmc(dmc_t *chan)
             chan->cur_byte = cpu_read(chan->address);
             
             /* steal a cycle from CPU*/
-            cpu_execute(1);
+            cpu_consume_cycles (1);
 
             if (0xFFFF == chan->address)
                chan->address = 0x8000;
@@ -1293,6 +1293,9 @@ void apu_setext(apu_t *src_apu, apuext_t *ext)
 
 /*
 ** $Log$
+** Revision 1.3  2002/01/15 09:29:50  esaelon
+** APU DMC disruption of NES timing fix.
+**
 ** Revision 1.2  2001/12/29 15:59:49  stainless
 ** Added dynamic low pass audio filter.
 **
