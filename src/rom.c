@@ -85,6 +85,14 @@ int load_rom (CONST UINT8 * filename, ROM * rom)
     rom -> control_byte_2 = gzgetc (rom_file);
 
 
+    if (rom -> prg_rom_pages == 0)
+    {
+        gzclose (rom_file);
+
+        return (1);
+    }
+
+
     /* Check for 'DiskDude!'. */
 
     test = gzgetc (rom_file);
@@ -236,6 +244,14 @@ int load_rom (CONST UINT8 * filename, ROM * rom)
     rom -> control_byte_1 = fgetc (rom_file);
 
     rom -> control_byte_2 = fgetc (rom_file);
+
+
+    if (rom -> prg_rom_pages == 0)
+    {
+        fclose (rom_file);
+
+        return (1);
+    }
 
 
     /* Check for 'DiskDude!'. */
