@@ -16,7 +16,7 @@ else
     -fno-exceptions -funroll-loops -finline-functions -ffast-math \
     -fforce-addr -fforce-mem -fstrength-reduce -fthread-jumps \
     -fexpensive-optimizations -foptimize-sibling-calls \
-    -maccumulate-outgoing-args -ftime-report -fmem-report -Q -s
+    -maccumulate-outgoing-args -s
 
     DFLAGS = -DUSE_ZLIB -DLSB_FIRST
 endif

@@ -15,7 +15,7 @@ else
     OFLAGS = -march=i486 -mcpu=pentium -O3 -fomit-frame-pointer -fno-rtti \
     -fno-exceptions -funroll-loops -finline-functions -ffast-math \
     -fforce-addr -fforce-mem -fstrength-reduce -fthread-jumps \
-    -fexpensive-optimizations -Q -s
+    -fexpensive-optimizations -s
 
     DFLAGS = -DUSE_ZLIB -DLSB_FIRST
 endif
