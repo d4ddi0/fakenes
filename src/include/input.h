@@ -23,7 +23,7 @@ extern "C" {
 #include "misc.h"
 
 
-int input_enable_zapper;
+int input_zapper_enable;
 
 
 int input_init (void);
@@ -45,6 +45,7 @@ int input_process (void);
 
 
 int input_zapper_x, input_zapper_y, input_zapper_button;
+int input_zapper_on_screen;
 
 void input_update_zapper_frame_start (void);
 void input_update_zapper_frame_end (void);

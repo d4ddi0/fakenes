@@ -1105,7 +1105,7 @@ void ppu_clear (void)
 
 void ppu_start_frame (void)
 {
-    if (input_enable_zapper)
+    if (input_zapper_enable)
     {
         input_update_zapper_frame_start ();
     }
@@ -1339,6 +1339,13 @@ void ppu_render_line (int line)
     {
         ppu_render_sprites (line);
     }
+
+    /* handle zapper emulation */
+    if (input_zapper_enable && (input_zapper_y == line) &&
+        input_zapper_on_screen)
+    {
+        input_update_zapper_frame_end ();
+    }
 }
 
 void ppu_stub_render_line (int line)
@@ -1346,7 +1353,8 @@ void ppu_stub_render_line (int line)
     int first_y, last_y;
 
     /* draw lines for zapper emulation */
-    if (input_enable_zapper && line == input_zapper_y)
+    if (input_zapper_enable && (input_zapper_y == line) &&
+        input_zapper_on_screen)
     {
         ppu_render_line (line);
         return;
@@ -1380,11 +1388,6 @@ void ppu_vblank (void)
     if (want_vblank_nmi)
     {
         cpu_interrupt (CPU_INTERRUPT_NMI);
-    }
-
-    if (input_enable_zapper)
-    {
-        input_update_zapper_frame_end ();
     }
 }
 

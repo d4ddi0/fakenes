@@ -37,7 +37,7 @@ All rights reserved.  See 'LICENSE' for details.
 #include "timing.h"
 
 
-int input_enable_zapper = FALSE;
+int input_zapper_enable = FALSE;
 
 
 static int buttons [4] [8];
@@ -115,6 +115,12 @@ void input_update_zapper_frame_start (void)
     input_zapper_x = mouse_x;
     input_zapper_y = mouse_y;
     input_zapper_button = mouse_b & 1;
+    input_zapper_on_screen = (input_zapper_x < 256) && (input_zapper_y < 240);
+
+    if (!input_zapper_on_screen)
+    {
+        input_update_zapper_frame_end ();
+    }
 }
 
 void input_update_zapper_frame_end (void)
@@ -125,18 +131,18 @@ void input_update_zapper_frame_end (void)
     zapper_mask = 0x08;
 
 
-    if ((input_zapper_x < 256) && (input_zapper_y < 240))
+    if (input_zapper_button)
+    {
+        /* Left button. */
+
+        zapper_mask |= 0x10;
+    }
+
+
+    if (input_zapper_on_screen)
     {
         pixel = (_getpixel
             (video_buffer, input_zapper_x, input_zapper_y) - 1);
-
-
-        if (input_zapper_button)
-        {
-            /* Left button. */
-
-            zapper_mask |= 0x10;
-        }
 
 
         if ((pixel == 32) || (pixel == 48))
@@ -241,7 +247,7 @@ int input_init (void)
         ("input", "player_4_device", INPUT_DEVICE_NONE);
 
 
-    input_enable_zapper =
+    input_zapper_enable =
         get_config_int ("input", "enable_zapper", FALSE);
 
 
@@ -284,7 +290,7 @@ void input_exit (void)
     set_config_string ("input", "joy2_buttons", joy2_buffer);
 
 
-    set_config_int ("input", "enable_zapper", input_enable_zapper);
+    set_config_int ("input", "enable_zapper", input_zapper_enable);
 }
 
 
@@ -322,7 +328,7 @@ UINT8 input_read (UINT16 address)
     int index;
 
 
-    if (! input_enable_zapper)
+    if (! input_zapper_enable)
     {
         zapper_mask = 0;
     }
@@ -708,7 +714,7 @@ int input_process (void)
 
             case KEY_F5:
 
-                input_enable_zapper = (! input_enable_zapper);
+                input_zapper_enable = (! input_zapper_enable);
 
 
                 break;
