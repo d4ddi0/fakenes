@@ -1,3 +1,33 @@
+Version 0.3.1
+====--
+
+Note: NetPlay is incomplete and replays are semi-broken in this release.
+Trying to use NetPlay in this will get you nothing!
+
+This version is experimental, and I am releasing it for Christmas so that I
+can worry about more important, such as (eventually) finishing NetPlay.
+
+Miscellaneous changes:
+  Input 'Start' and 'Select' buttons configuration reversed fix.
+  Increased chat message buffer size from 4 to 10 lines. 
+
+Build system & code changes:
+  Added CPU_TYPE and CPU_ARCH and improved some behavior.
+  Separated blitters into individual header files. 
+
+GUI changes:
+  Added numbers to the items in Video > Blitter menu.
+  Overhauled dithering functions.
+
+Video output changes:
+  (Super) 2xSCL crash in high resolutions fix.
+  Added 32-bit support.
+  Added color indexing for all non-32-bit modes. 
+  Made all blitters work in any supported color depth.
+  Renamed interpolated blitter to interpolated 2x.
+  Added interpolated 3x blitter.
+
+
 Version 0.3.0
 ====--
 
