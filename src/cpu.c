@@ -289,6 +289,7 @@ void cpu_reset (void)
     }
 
 
+    cpu_context.IPeriod = 0;
     Reset6502 (&cpu_context);
 }
 
@@ -326,7 +327,6 @@ int cpu_execute (int cycles)
     int count = 0;
 
 
-    cpu_context.IPeriod = cycles;
     cpu_context.ICount += cycles;
 
     Run6502 (&cpu_context);
