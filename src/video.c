@@ -52,17 +52,22 @@ int video_display_status = FALSE;
 int video_enable_vsync = FALSE;
 
 
+int video_force_window = FALSE;
+
+
 static int screen_height = 0;
 
 static int screen_width = 0;
 
 
-static int force_window = FALSE;
-
-
 static int stretch_width = 0;
 
 static int stretch_height = 0;
+
+
+static int first_blit_line = 0;
+
+static int last_blit_line = 0;
 
 
 static int zoom_factor_x = 0;
@@ -106,7 +111,7 @@ int video_init (void)
     screen_height = get_config_int ("video", "screen_height", 240);
 
 
-    force_window = get_config_int ("video", "force_window", FALSE);
+    video_force_window = get_config_int ("video", "force_window", FALSE);
 
 
     blitter_type = get_config_int ("video", "blitter_type", VIDEO_BLITTER_NORMAL);
@@ -117,6 +122,11 @@ int video_init (void)
     stretch_width = get_config_int ("video", "stretch_width", 512);
 
     stretch_height = get_config_int ("video", "stretch_height", 480);
+
+
+    first_blit_line = get_config_int ("video", "first_blit_line", 0);
+
+    last_blit_line = get_config_int ("video", "last_blit_line", 223);
 
 
     zoom_factor_x = get_config_int ("video", "zoom_factor_x", 256);
@@ -132,7 +142,7 @@ int video_init (void)
     video_enable_vsync = get_config_int ("video", "enable_vsync", FALSE);
 
 
-    driver = (force_window ? GFX_AUTODETECT_WINDOWED : GFX_AUTODETECT);
+    driver = (video_force_window ? GFX_AUTODETECT_WINDOWED : GFX_AUTODETECT);
 
 
     set_color_depth (8);
@@ -199,6 +209,39 @@ int video_init (void)
 }
 
 
+int video_reinit (void)
+{
+    int result;
+
+
+    preserve_video_buffer = TRUE;
+
+    preserve_palette = TRUE;
+
+
+    video_exit ();
+
+
+    result = video_init ();
+
+    if (result == 0)
+    {
+        preserve_video_buffer = FALSE;
+    
+        preserve_palette = FALSE;
+    
+    
+        if (gui_is_active)
+        {
+            unscare_mouse ();
+        }
+    }
+
+
+    return (result);
+}
+
+
 void video_exit (void)
 {
     set_gfx_mode (GFX_TEXT, 0, 0, 0, 0);
@@ -222,7 +265,7 @@ void video_exit (void)
     set_config_int ("video", "screen_height", screen_height);
 
 
-    set_config_int ("video", "force_window", force_window);
+    set_config_int ("video", "force_window", video_force_window);
 
 
     set_config_int ("video", "blitter_type", blitter_type);
@@ -234,6 +277,11 @@ void video_exit (void)
     set_config_int ("video", "stretch_width", stretch_width);
 
     set_config_int ("video", "stretch_height", stretch_height);
+
+
+    set_config_int ("video", "first_blit_line", first_blit_line);
+
+    set_config_int ("video", "last_blit_line", last_blit_line);
 
 
     set_config_int ("video", "zoom_factor_x", zoom_factor_x);
@@ -534,7 +582,7 @@ void video_blit (BITMAP * bitmap)
     {
         case VIDEO_BLITTER_NORMAL:
 
-            blit (video_buffer, screen_buffer, 0, 0, blit_x_offset, blit_y_offset, 256, 240);
+            blit (video_buffer, screen_buffer, 0, first_blit_line, blit_x_offset, blit_y_offset, 256, (last_blit_line + 1));
 
 
             break;
@@ -542,7 +590,7 @@ void video_blit (BITMAP * bitmap)
 
         case VIDEO_BLITTER_STRETCHED:
 
-            stretch_blit (video_buffer, screen_buffer, 0, 0, 256, 240,
+            stretch_blit (video_buffer, screen_buffer, 0, first_blit_line, 256, (last_blit_line + 1),
                 blit_x_offset, blit_y_offset, stretch_width, stretch_height);
 
 
@@ -759,7 +807,7 @@ void video_set_resolution (int width, int height)
     video_exit ();
 
 
-    if (video_init != 0)
+    if (video_init () != 0)
     {
         screen_width = old_width;
 

@@ -38,12 +38,17 @@ int video_display_status;
 int video_enable_vsync;
 
 
+int video_force_window;
+
+
 BITMAP * base_video_buffer;
 
 BITMAP * video_buffer;
 
 
 int video_init (void);
+
+int video_reinit (void);
 
 void video_exit (void);
 

@@ -311,6 +311,9 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (options_video_menu, 6, video_enable_vsync);
 
 
+    TOGGLE_MENU (options_video_advanced_menu, 0, video_force_window);
+
+
     TOGGLE_MENU (options_video_layers_menu, 0, ppu_enable_sprite_layer_a);
 
     TOGGLE_MENU (options_video_layers_menu, 2, ppu_enable_sprite_layer_b);
@@ -376,6 +379,12 @@ int show_gui (void)
     DISABLE_MENU (machine_state_menu, 2);
 
     DISABLE_MENU (machine_state_menu, 4);
+
+
+#ifdef ALLEGRO_DOS
+
+    DISABLE_MENU (options_video_advanced_menu, 0);
+#endif
 
 
     audio_suspend ();
@@ -1306,6 +1315,20 @@ static int options_video_palette_menu_custom (void)
     {
         gui_message (GUI_COLOR_RED, "Error opening FAKENES.PAL!");
     }
+
+
+    return (D_O_K);
+}
+
+
+static int options_video_advanced_menu_force_window (void)
+{
+    video_force_window = (! video_force_window);
+
+
+    video_reinit ();
+
+    gui_needs_restart = TRUE;
 
 
     return (D_O_K);

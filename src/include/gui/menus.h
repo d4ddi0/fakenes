@@ -348,6 +348,16 @@ static MENU options_video_palette_menu [] =
 };
 
 
+static int options_video_advanced_menu_force_window (void);
+
+
+static MENU options_video_advanced_menu [] =
+{
+    { "&Force Window", options_video_advanced_menu_force_window, NULL, 0, NULL },
+    {            NULL,                                     NULL, NULL, 0, NULL }
+};
+
+
 static int options_video_menu_vsync (void);
 
 
@@ -364,6 +374,8 @@ static MENU options_video_menu [] =
     {     "&Layers",                       NULL,     options_video_layers_menu, 0, NULL },
     {            "",                       NULL,                          NULL, 0, NULL },
     {    "&Palette",                       NULL,    options_video_palette_menu, 0, NULL },
+    {            "",                       NULL,                          NULL, 0, NULL },
+    {   "&Advanced",                       NULL,   options_video_advanced_menu, 0, NULL },
     {          NULL,                       NULL,                          NULL, 0, NULL }
 };
 
