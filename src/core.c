@@ -13,6 +13,8 @@
 /**     commercially. Please, notify me, if you make any    **/   
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 08.July     2002 TRAC      Eliminated unused Run6502      */
+/*                            return value.                  */
 /* 13.June     2002 TRAC      Altered M_FIX_P()/M_UNFIX_P(). */
 /*                            Added clear of jam on reset.   */
 /* 11.June     2002 stainless Added emulation of JAM/HLT.    */
@@ -406,12 +408,12 @@ void Int6502(M6502 *R,byte Type)
 
 /** Run6502() ************************************************/
 /** This function will run 6502 code until Loop6502() call  **/
-/** returns INT_QUIT. It will return the PC at which        **/
-/** emulation stopped, and current register values in R.    **/
+/** returns INT_QUIT. It will return the current register   **/
+/** values in R.                                            **/
 /*************************************************************/
-word Run6502(M6502 *R)
+void Run6502(M6502 *R)
 {
-  if (R->Jammed) return R->PC.W;
+  if (R->Jammed) return;
 
   for(;;)
   {
@@ -424,7 +426,7 @@ word Run6502(M6502 *R)
       if(R->PC.W==R->Trap) R->Trace=1;
       /* Call single-step debugger, exit if requested */
       if(R->Trace)
-        if(!Debug6502(R)) return(R->PC.W);
+        if(!Debug6502(R)) return;
 #endif
 
       opcode=Op6502(R->PC.W++);
@@ -456,18 +458,18 @@ word Run6502(M6502 *R)
       else
       {
 #ifdef RETURN_ON_TRIP
-        return(R->PC.W);
+        return;
 #else
         interrupt=Loop6502(R);    /* Call the periodic handler */
         R->ICount+=R->IPeriod;    /* Reset the cycle counter   */
 #endif
       }
 
-      if(interrupt==INT_QUIT) return(R->PC.W); /* Exit if INT_QUIT     */
+      if(interrupt==INT_QUIT) return;          /* Exit if INT_QUIT     */
       if(interrupt) Int6502(R,interrupt);      /* Interrupt if needed  */ 
     }
   }
 
   /* Execution stopped */
-  return(R->PC.W);
+  return;
 }

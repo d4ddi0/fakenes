@@ -11,6 +11,8 @@
 /**     commercially. Please, notify me, if you make any    **/   
 /**     changes to this file.                               **/
 /*************************************************************/
+/* 08.July     2002 TRAC      Eliminated unused Run6502      */
+/*                            return value.                  */
 /* 13.June     2002 TRAC      Improved alignment of M6502    */
 /*                            struct and eliminated obsolete */
 /*                            variables.                     */
@@ -128,10 +130,10 @@ void Int6502(register M6502 *R,register byte Type);
 
 /** Run6502() ************************************************/
 /** This function will run 6502 code until Loop6502() call  **/
-/** returns INT_QUIT. It will return the PC at which        **/
-/** emulation stopped, and current register values in R.    **/
+/** returns INT_QUIT. It will return the current register   **/
+/** values in R.                                            **/
 /*************************************************************/
-word Run6502(register M6502 *R);
+void Run6502(register M6502 *R);
 
 /** Rd6502()/Wr6502/Op6502() *********************************/
 /** These functions are called when access to RAM occurs.   **/
