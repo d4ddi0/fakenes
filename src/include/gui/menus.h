@@ -401,6 +401,8 @@ static MENU options_video_colors_menu [] =
 };
 
 
+static int options_video_blitter_menu_automatic (void);
+
 static int options_video_blitter_menu_normal (void);
 
 static int options_video_blitter_menu_stretched (void);
@@ -416,6 +418,8 @@ static int options_video_blitter_menu_super_2xscl (void);
 
 static MENU options_video_blitter_menu [] =
 {
+    {   "&Automatic",   options_video_blitter_menu_automatic, NULL, 0, NULL },
+    {             "",                                   NULL, NULL, 0, NULL },
     {      "&Normal",      options_video_blitter_menu_normal, NULL, 0, NULL },
     {             "",                                   NULL, NULL, 0, NULL },
     {   "&Stretched",   options_video_blitter_menu_stretched, NULL, 0, NULL },

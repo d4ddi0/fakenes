@@ -25,6 +25,9 @@ extern "C" {
 
 enum
 {
+    VIDEO_BLITTER_AUTOMATIC,
+
+
     VIDEO_BLITTER_NORMAL,
 
     VIDEO_BLITTER_STRETCHED,

@@ -109,6 +109,9 @@ static int blitter_type = 0;
 static int filter_list = 0;
 
 
+static int selected_blitter = 0;
+
+
 #define VIDEO_COLOR_BLACK   palette_color [0]
 
 #define VIDEO_COLOR_WHITE   palette_color [33]
@@ -144,7 +147,7 @@ int video_init (void)
     video_force_window = get_config_int ("video", "force_window", FALSE);
 
 
-    blitter_type = get_config_int ("video", "blitter_type", VIDEO_BLITTER_NORMAL);
+    blitter_type = get_config_int ("video", "blitter_type", VIDEO_BLITTER_AUTOMATIC);
 
     filter_list = get_config_int ("video", "filter_list", 0);
 
@@ -1175,6 +1178,26 @@ static INLINE void blit_super_2xscl (BITMAP * source, BITMAP * target, int x, in
 }
 
 
+static INLINE int select_blitter (void)
+{
+    if ((SCREEN_W >= 512) && (SCREEN_H >= 480))
+    {
+        if (color_depth != 8)
+        {
+            return (VIDEO_BLITTER_SUPER_2XSCL);
+        }
+        else
+        {
+            return (VIDEO_BLITTER_2XSCL);
+        }
+    }
+    else
+    {
+        return (VIDEO_BLITTER_NORMAL);
+    }
+}
+
+
 void video_blit (BITMAP * bitmap)
 {
     BITMAP * source_buffer;
@@ -1194,6 +1217,20 @@ void video_blit (BITMAP * bitmap)
         blit (video_buffer, mouse_sprite_remove_buffer, (input_zapper_x_offset - 7), (input_zapper_y_offset - 7), 0, 0, 16, 16);
 
         masked_blit (DATA_TO_BITMAP (GUN_SPRITE), video_buffer, 0, 0, (input_zapper_x_offset - 7), (input_zapper_y_offset - 7), 16, 16);
+    }
+
+
+    if (blitter_type == VIDEO_BLITTER_AUTOMATIC)
+    {
+        if (! (selected_blitter > 0))
+        {
+            /* Force resync. */
+
+            video_set_blitter (blitter_type);
+        }
+
+
+        blitter_type = selected_blitter;
     }
 
 
@@ -1258,6 +1295,12 @@ void video_blit (BITMAP * bitmap)
 
 
             break;
+    }
+
+
+    if (selected_blitter > 0)
+    {
+        blitter_type = VIDEO_BLITTER_AUTOMATIC;
     }
 
 
@@ -1514,6 +1557,21 @@ void video_set_palette (RGB * palette)
 void video_set_blitter (int blitter)
 {
     blitter_type = blitter;
+
+
+    if (blitter == VIDEO_BLITTER_AUTOMATIC)
+    {
+        selected_blitter = select_blitter ();
+
+
+        blitter = selected_blitter;
+    }
+    else
+    {
+        /* Clear automatic blitter. */
+
+        selected_blitter = 0;
+    }
 
 
     switch (blitter)

@@ -470,14 +470,14 @@ static INLINE void update_menus (void)
         }
 
 
-        ENABLE_MENU (options_video_blitter_menu, 4);
-
         ENABLE_MENU (options_video_blitter_menu, 6);
 
+        ENABLE_MENU (options_video_blitter_menu, 8);
 
-        DISABLE_MENU (options_video_blitter_menu, 8);
 
         DISABLE_MENU (options_video_blitter_menu, 10);
+
+        DISABLE_MENU (options_video_blitter_menu, 12);
     }
     else
     {
@@ -487,14 +487,14 @@ static INLINE void update_menus (void)
         }
 
 
-        DISABLE_MENU (options_video_blitter_menu, 4);
-
         DISABLE_MENU (options_video_blitter_menu, 6);
 
+        DISABLE_MENU (options_video_blitter_menu, 8);
 
-        ENABLE_MENU (options_video_blitter_menu, 8);
 
         ENABLE_MENU (options_video_blitter_menu, 10);
+
+        ENABLE_MENU (options_video_blitter_menu, 12);
 
 
         ENABLE_MENU (options_video_filters_scanlines_menu, 2);
@@ -614,17 +614,19 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (options_video_colors_menu, 4, (video_get_color_depth () == 16));
 
 
-    TOGGLE_MENU (options_video_blitter_menu, 0, (video_get_blitter () == VIDEO_BLITTER_NORMAL));
+    TOGGLE_MENU (options_video_blitter_menu, 0, (video_get_blitter () == VIDEO_BLITTER_AUTOMATIC));
 
-    TOGGLE_MENU (options_video_blitter_menu, 2, (video_get_blitter () == VIDEO_BLITTER_STRETCHED));
+    TOGGLE_MENU (options_video_blitter_menu, 2, (video_get_blitter () == VIDEO_BLITTER_NORMAL));
 
-    TOGGLE_MENU (options_video_blitter_menu, 4, (video_get_blitter () == VIDEO_BLITTER_2XSOE));
+    TOGGLE_MENU (options_video_blitter_menu, 4, (video_get_blitter () == VIDEO_BLITTER_STRETCHED));
 
-    TOGGLE_MENU (options_video_blitter_menu, 6, (video_get_blitter () == VIDEO_BLITTER_2XSCL));
+    TOGGLE_MENU (options_video_blitter_menu, 6, (video_get_blitter () == VIDEO_BLITTER_2XSOE));
 
-    TOGGLE_MENU (options_video_blitter_menu, 8, (video_get_blitter () == VIDEO_BLITTER_SUPER_2XSOE));
+    TOGGLE_MENU (options_video_blitter_menu, 8, (video_get_blitter () == VIDEO_BLITTER_2XSCL));
 
-    TOGGLE_MENU (options_video_blitter_menu, 10, (video_get_blitter () == VIDEO_BLITTER_SUPER_2XSCL));
+    TOGGLE_MENU (options_video_blitter_menu, 10, (video_get_blitter () == VIDEO_BLITTER_SUPER_2XSOE));
+
+    TOGGLE_MENU (options_video_blitter_menu, 12, (video_get_blitter () == VIDEO_BLITTER_SUPER_2XSCL));
 
 
     TOGGLE_MENU (options_video_filters_scanlines_menu, 0, (video_get_filter_list () & VIDEO_FILTER_SCANLINES_HIGH));
@@ -2214,6 +2216,25 @@ static int options_video_colors_menu_lots_16_bit (void)
 
 
     return (D_CLOSE);
+}
+
+
+static int options_video_blitter_menu_automatic (void)
+{
+    video_set_blitter (VIDEO_BLITTER_AUTOMATIC);
+    
+    update_menus ();
+
+
+    clear (screen);
+
+    video_blit (screen);
+
+
+    gui_message (gui_fg_color, "Video blitter set to automatic.");
+
+
+    return (D_REDRAW);
 }
 
 
