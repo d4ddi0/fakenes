@@ -1,6 +1,21 @@
 
 
-/* Mapper #34 (Nina-1). */
+/* Mapper #34 (NINA-001). */
+
+/* This mapper is fully supported. */
+
+
+static int nina_init (void);
+
+static void nina_reset (void);
+
+
+const MMC mmc_nina =
+{
+    "NINA-001",
+
+    nina_init, nina_reset
+};
 
 
 static void nina_write_low (UINT16 address, UINT8 value)
@@ -78,6 +93,12 @@ static void nina_write_low (UINT16 address, UINT8 value)
 
 
             break;
+
+
+        default:
+
+
+            break;
     }
 }
 
@@ -90,7 +111,7 @@ static void nina_write_high (UINT16 address, UINT8 value)
 }
 
 
-static INLINE void nina_reset (void)
+static void nina_reset (void)
 {
     int index;
 
@@ -114,7 +135,7 @@ static INLINE void nina_reset (void)
 }
 
 
-static INLINE int nina_init (void)
+static int nina_init (void)
 {
     /* Check if CHR-ROM is present. */
 
@@ -140,10 +161,3 @@ static INLINE int nina_init (void)
 
     return (0);
 }
-
-AL_CONST MMC mmc_nina =
-{
- "Nina-1",
- nina_init,
- nina_reset
-};
