@@ -23,7 +23,8 @@ gui.o : gui.c include/apu.h include/misc.h include/audio.h include/cpu.h \
     include/rom.h include/mmc.h include/core.h include/gui.h \
     include/input.h include/papu.h include/ppu.h include/video.h \
     include/data.h include/datafile.h include/netplay.h include/timing.h \
-    include/gui/objects.h include/gui/menus.h include/gui/dialogs.h
+    include/gui/objects.h include/gui/menus.h include/gui/dialogs.h \
+    include/version.h
 
 input.o : input.c include/gui.h include/misc.h include/input.h \
     include/ppu.h include/rom.h include/mmc.h include/video.h \
@@ -33,7 +34,7 @@ main.o : main.c include/build.h include/audio.h include/cpu.h \
     include/misc.h include/rom.h include/mmc.h include/core.h \
     include/gui.h include/input.h include/papu.h include/ppu.h \
     include/video.h include/data.h include/datafile.h include/netplay.h \
-    include/timing.h
+    include/timing.h include/version.h
 
 mmc.o : mmc.c include/cpu.h include/misc.h include/rom.h include/mmc.h \
     include/core.h include/gui.h include/papu.h include/ppu.h \

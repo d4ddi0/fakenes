@@ -48,6 +48,8 @@ You must read and accept the license prior to use.
 
 #include "misc.h"
 
+#include "version.h"
+
 
 #include "netplay.h"
 
@@ -714,7 +716,7 @@ int show_gui (int first_run)
 
     if (first_run)
     {
-        alert ("FakeNES version 0.2.0 (final) " ALLEGRO_PLATFORM_STR, "", "Get "
+        alert ("FakeNES version " VERSION_STRING " " ALLEGRO_PLATFORM_STR, "", "Get "
             "the latest from http://fakenes.sourceforge.net/.", "&OK", NULL, 0, 0);
     }
 

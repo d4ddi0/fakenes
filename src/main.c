@@ -72,6 +72,8 @@ extern int errno;
 
 #include "misc.h"
 
+#include "version.h"
+
 
 #include "netplay.h"
 
@@ -220,8 +222,10 @@ int main (int argc, char * argv [])
     int result;
 
 
-    printf ("\nFakeNES version 0.2.0 (final), by stainless and TRAC.\n"
+    printf ("\nFakeNES version " VERSION_STRING ", by stainless and TRAC.\n"
             "Assistance provided by amit and Lord_Nightmare.\n");
+
+    printf ("\nUsing Allegro version " ALLEGRO_VERSION_STR " (" ALLEGRO_PLATFORM_STR ").\n");
 
     printf ("\nOriginal concept by stainless and RobotBebop.\n"
             "Uses the Nofrendo NES APU core by Matthew Conte.\n");
