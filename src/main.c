@@ -511,14 +511,6 @@ int main (int argc, char * argv [])
     }
 
 
-    result = machine_init ();
-
-    if (result != 0)
-    {
-        return (result);
-    }
-
-
     if (audio_init () != 0)
     {
         fprintf (stderr, "PANIC: Failed to initialize audio interface!\n");
@@ -533,6 +525,14 @@ int main (int argc, char * argv [])
     papu_init ();
 
     papu_reset ();
+
+
+    result = machine_init ();
+
+    if (result != 0)
+    {
+        return (result);
+    }
 
 
     if (video_init () != 0)
