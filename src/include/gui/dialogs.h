@@ -161,7 +161,57 @@ typedef struct MENU_INFO            /* information about a popup menu */
    BITMAP *saved;                   /* saved what was underneath it */
 } MENU_INFO;
 
-int menu_alt_key(int k, MENU *m);
+
+/* menu_alt_key:
+ *  Searches a menu for keyboard shortcuts, for the alt+letter to bring
+ *  up a menu.
+ */
+static int my_menu_alt_key(int k, MENU *m)
+{
+   static unsigned char alt_table[] =
+   {
+      KEY_A, KEY_B, KEY_C, KEY_D, KEY_E, KEY_F, KEY_G, KEY_H, KEY_I, 
+      KEY_J, KEY_K, KEY_L, KEY_M, KEY_N, KEY_O, KEY_P, KEY_Q, KEY_R, 
+      KEY_S, KEY_T, KEY_U, KEY_V, KEY_W, KEY_X, KEY_Y, KEY_Z
+   };
+
+   AL_CONST char *s;
+   int c, d;
+
+   if (k & 0xFF)
+      return 0;
+
+   k >>= 8;
+
+   c = scancode_to_ascii(k);
+   if (c) {
+      k = c;
+   } else {
+      for (c=0; c<(int)sizeof(alt_table); c++) {
+	 if (k == alt_table[c]) {
+	    k = c + 'a';
+	    break;
+	 }
+      }
+
+      if (c >= (int)sizeof(alt_table))
+	 return 0;
+   }
+
+   for (c=0; m[c].text; c++) {
+      s = m[c].text;
+      while ((d = ugetxc(&s)) != 0) {
+	 if (d == '&') {
+	    d = ugetc(s);
+	    if ((d != '&') && (utolower(d) == utolower(k)))
+	       return k;
+	 }
+      }
+   }
+
+   return 0;
+}
+
 
 static void get_menu_pos(MENU_INFO *m, int c, int *x, int *y, int *w)
 {
@@ -553,7 +603,7 @@ static int my_do_menu(MENU *menu, MENU_INFO *parent, int bar, int x, int y, int 
 
 	       default:
 		  if ((!m.parent) && ((c & 0xFF) == 0))
-		     c = menu_alt_key(c, m.menu);
+             c = my_menu_alt_key(c, m.menu);
 		  for (c2=0; m.menu[c2].text; c2++) {
 		     if (menu_key_shortcut(c, m.menu[c2].text)) {
 			ret = m.sel = c2;
@@ -564,7 +614,7 @@ static int my_do_menu(MENU *menu, MENU_INFO *parent, int bar, int x, int y, int 
 		     i = m.parent;
 		     for (c2=0; i->parent; c2++)
 			i = i->parent;
-		     c = menu_alt_key(c, i->menu);
+             c = my_menu_alt_key(c, i->menu);
 		     if (c) {
 			while (c2-- > 0)
 			   simulate_keypress(27);
@@ -691,7 +741,7 @@ int gui_menu_object(int msg, DIALOG *d, int c)
 	 break;
 
       case MSG_XCHAR:
-	 x = menu_alt_key(c, d->dp);
+     x = my_menu_alt_key(c, d->dp);
 	 if (!x)
 	    break;
 
