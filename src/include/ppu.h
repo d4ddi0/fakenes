@@ -79,8 +79,14 @@ void ppu_free_chr_rom (const ROM *rom);
 UINT8 * ppu_get_chr_rom_pages (ROM *rom);
 void ppu_cache_chr_rom_pages (void);
 
+#define PPU_MAP_RAM         1
+#define PPU_MAP_BACKGROUND  2
+#define PPU_MAP_SPRITES     4
+
 void ppu_set_ram_1k_pattern_vram_block (UINT16 block_address, int vram_block);
 void ppu_set_ram_1k_pattern_vrom_block (UINT16 block_address, int vrom_block);
+void ppu_set_ram_1k_pattern_vrom_block_ex (UINT16 block_address,
+ int vrom_block, int map_type);
 void ppu_set_ram_8k_pattern_vram (void);
 
 int ppu_scanline;
@@ -133,6 +139,7 @@ void ppu_set_mirroring (int);
 void ppu_invert_mirroring (void);
 
 
+void ppu_set_name_table_internal (int, int);
 void ppu_set_name_table_address (int, UINT8 *);
 void ppu_set_name_table_address_rom (int table, UINT8 *address);
 void ppu_set_name_table_address_vrom (int table, int vrom_block);

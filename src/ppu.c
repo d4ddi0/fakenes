@@ -270,6 +270,50 @@ void ppu_set_ram_1k_pattern_vrom_block (UINT16 block_address, int vrom_block)
 }
 
 
+void ppu_set_ram_1k_pattern_vrom_block_ex (UINT16 block_address,
+ int vrom_block, int map_type)
+{
+    if ((vrom_block & ROM_CHR_ROM_PAGE_OVERFLOW_PREMASK)
+     >= (ROM_CHR_ROM_PAGES * 8))
+    {
+        vrom_block &= ROM_CHR_ROM_PAGE_OVERFLOW_MASK;
+    }
+    else
+    {
+        vrom_block &= ROM_CHR_ROM_PAGE_OVERFLOW_PREMASK;
+    }
+
+    if (map_type & PPU_MAP_RAM)
+    {
+        ppu_vram_block [block_address >> 10] =
+            FIRST_VROM_BLOCK + vrom_block;
+
+        ppu_vram_block_read_address [block_address >> 10] =
+            ROM_CHR_ROM + (vrom_block << 10);
+        ppu_vram_block_write_address [block_address >> 10] =
+            ppu_vram_dummy_write;
+    }
+
+    if (map_type & PPU_MAP_BACKGROUND)
+    {
+        ppu_vram_block_background_cache_address [block_address >> 10] =
+            ROM_CHR_ROM_CACHE + ((vrom_block << 10) / 2 * 8);
+
+        ppu_vram_block_background_cache_tag_address [block_address >> 10] =
+            ROM_CHR_ROM_CACHE_TAG + ((vrom_block << 10) / 2);
+    }
+
+    if (map_type & PPU_MAP_SPRITES)
+    {
+        ppu_vram_block_sprite_cache_address [block_address >> 10] =
+            ROM_CHR_ROM_CACHE + ((vrom_block << 10) / 2 * 8);
+
+        ppu_vram_block_sprite_cache_tag_address [block_address >> 10] =
+            ROM_CHR_ROM_CACHE_TAG + ((vrom_block << 10) / 2);
+    }
+}
+
+
 void ppu_set_ram_8k_pattern_vram (void)
 {
     ppu_set_ram_1k_pattern_vram_block (0x0000, 0);
@@ -351,6 +395,12 @@ int ppu_get_mirroring (void)
  return ppu_mirroring;
 }
 
+void ppu_set_name_table_internal (int table, int select)
+{
+    ppu_set_name_table_address (table, ppu_name_table_vram + (select << 10));
+}
+
+
 void ppu_set_name_table_address (int table, UINT8 *address)
 {
     name_tables_read[table] = address;
@@ -422,26 +472,26 @@ void ppu_set_mirroring (int mirroring)
         break;
 
      case MIRRORING_VERTICAL:
-        ppu_set_name_table_address (0, ppu_name_table_vram);
-        ppu_set_name_table_address (1, ppu_name_table_vram + 0x400);
-        ppu_set_name_table_address (2, ppu_name_table_vram);
-        ppu_set_name_table_address (3, ppu_name_table_vram + 0x400);
+        ppu_set_name_table_internal (0, 0);
+        ppu_set_name_table_internal (1, 1);
+        ppu_set_name_table_internal (2, 0);
+        ppu_set_name_table_internal (3, 1);
 
         break;
 
      case MIRRORING_HORIZONTAL:
-        ppu_set_name_table_address (0, ppu_name_table_vram);
-        ppu_set_name_table_address (1, ppu_name_table_vram);
-        ppu_set_name_table_address (2, ppu_name_table_vram + 0x400);
-        ppu_set_name_table_address (3, ppu_name_table_vram + 0x400);
+        ppu_set_name_table_internal (0, 0);
+        ppu_set_name_table_internal (1, 0);
+        ppu_set_name_table_internal (2, 1);
+        ppu_set_name_table_internal (3, 1);
 
         break;
 
      case MIRRORING_FOUR_SCREEN:
-        ppu_set_name_table_address (0, ppu_name_table_vram);
-        ppu_set_name_table_address (1, ppu_name_table_vram + 0x400);
-        ppu_set_name_table_address (2, ppu_name_table_vram + 0x800);
-        ppu_set_name_table_address (3, ppu_name_table_vram + 0xC00);
+        ppu_set_name_table_internal (0, 0);
+        ppu_set_name_table_internal (1, 1);
+        ppu_set_name_table_internal (2, 2);
+        ppu_set_name_table_internal (3, 3);
 
         break;
     }
