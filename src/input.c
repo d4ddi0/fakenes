@@ -878,9 +878,21 @@ int input_process (void)
                 suspend_timing ();
 
 
-                show:
+              show:
 
-                  want_exit = show_gui (FALSE);
+                want_exit = show_gui (FALSE);
+
+
+                if (want_exit && rom_is_loaded)
+                {
+                    if (alert ("- Confirmation -", NIL, "A ROM is currently loaded.  Really exit?", "&OK", "&Cancel", 0, 0) == 2)
+                    {
+                        want_exit = FALSE;
+
+
+                        gui_needs_restart = TRUE;
+                    }
+                }
 
 
                 if (gui_needs_restart)
