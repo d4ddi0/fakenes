@@ -224,6 +224,7 @@ int main (int argc, char * argv [])
 
     set_window_title ("FakeNES");
 
+    set_window_close_button (FALSE);
 
 #ifdef POSIX
 
