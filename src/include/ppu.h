@@ -33,6 +33,8 @@ void ppu_set_ram_1k_pattern_vram_block (UINT16 block_address, int vram_block);
 void ppu_set_ram_1k_pattern_vrom_block (UINT16 block_address, int vrom_block);
 void ppu_set_ram_8k_pattern_vram (void);
 
+int ppu_scanline;
+int ppu_frame_last_line;
 int ppu_init (void);
 void ppu_exit (void);
 

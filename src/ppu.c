@@ -34,6 +34,8 @@ All rights reserved.  See 'LICENSE' for details.
 
 #include "rom.h"
 
+#include "timing.h"
+
 
 #include "misc.h"
 
@@ -773,6 +775,47 @@ void ppu_vram_write(UINT8 value)
 }
 
 
+static UINT8 sprites_on_line [LAST_DISPLAYED_LINE + 1] [8];
+static UINT8 sprite_count_on_line [LAST_DISPLAYED_LINE + 1];
+static INT8 sprite_overflow_on_line [LAST_DISPLAYED_LINE + 1];
+
+
+static void recache_sprite_list (void)
+{
+    int line, sprite;
+
+    for (line = 0; line <= LAST_DISPLAYED_LINE; line++)
+    {
+        sprite_overflow_on_line [line] = 0;
+        sprite_count_on_line [line] = 0;
+    }
+
+    for (sprite = 0; sprite < 64; sprite++)
+    {
+        int first_y, last_y;
+
+        first_y = ppu_spr_ram [(sprite * 4) + 0] + 1;
+        last_y = first_y + sprite_height - 1;
+
+        /* vertical clipping */
+        if (last_y >= 239) last_y = 239;
+
+        for (line = first_y; line <= last_y; line++)
+        {
+            if (sprite_count_on_line [line] == 8)
+            {
+                sprite_overflow_on_line [line] = SPRITE_OVERFLOW_BIT;
+                continue;
+            }
+
+            sprites_on_line [line] [sprite_count_on_line [line]++] = sprite;
+        }
+    }
+
+    sprite_list_needs_recache = FALSE;
+}
+
+
 UINT8 ppu_read (UINT16 address)
 {
     int data = 0;
@@ -804,6 +847,16 @@ UINT8 ppu_read (UINT16 address)
                 {
                     data |= VRAM_WRITE_FLAG_BIT;
                 }
+            }
+
+            if (sprites_enabled && (ppu_scanline <= LAST_DISPLAYED_LINE))
+            {
+                if (sprite_list_needs_recache)
+                {
+                    recache_sprite_list ();
+                }
+
+                data |= sprite_overflow_on_line [ppu_scanline];
             }
 
             if (hit_first_sprite)
@@ -1117,47 +1170,6 @@ void ppu_start_render (void)
 
 
 
-static UINT8 sprites_on_line [240] [8];
-static UINT8 sprite_count_on_line [240];
-static INT8 sprite_overflow_on_line [240];
-
-
-void recache_sprite_list (void)
-{
-    int line, sprite;
-
-    for (line = 0; line < 240; line++)
-    {
-        sprite_overflow_on_line [line] = FALSE;
-        sprite_count_on_line [line] = 0;
-    }
-
-    for (sprite = 0; sprite < 64; sprite++)
-    {
-        int first_y, last_y;
-
-        first_y = ppu_spr_ram [(sprite * 4) + 0] + 1;
-        last_y = first_y + sprite_height - 1;
-
-        /* vertical clipping */
-        if (last_y >= 239) last_y = 239;
-
-        for (line = first_y; line <= last_y; line++)
-        {
-            if (sprite_count_on_line [line] == 8)
-            {
-                sprite_overflow_on_line [line] = TRUE;
-                continue;
-            }
-
-            sprites_on_line [line] [sprite_count_on_line [line]++] = sprite;
-        }
-    }
-
-    sprite_list_needs_recache = FALSE;
-}
-
-
 /* VRAM address bit layout          */
 /* -YYY VHyy yyyx xxxx              */
 /* x = x tile offset in name table  */
@@ -1167,9 +1179,9 @@ void recache_sprite_list (void)
 /* Y = y line offset in tile        */
 
 
-INT8 background_pixels [8 + 256 + 8];
+static INT8 background_pixels [8 + 256 + 8];
 
-void ppu_render_background (int line)
+static void ppu_render_background (int line)
 {
     int attribute_address;
     int name_table;

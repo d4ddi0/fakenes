@@ -13,7 +13,7 @@ ifdef DEBUG
     DFLAGS = -DDEBUG -DLSB_FIRST
 else
     OFLAGS = -O3 -march=i486 -fomit-frame-pointer -fno-rtti \
-    -fno-exceptions -funroll-loops -ffast-math -s
+    -fno-exceptions -funroll-loops -ffast-math -g3
 
     DFLAGS = -DLSB_FIRST
 endif
@@ -44,7 +44,7 @@ endif
 
 fakenes.exe : ${OBJECTS}
 
-	${CC} ${OBJECTS} -o fakenes.exe -s ${LIBRARIES}
+	${CC} ${OBJECTS} -o fakenes.exe -g3 ${LIBRARIES}
 
 
 fakenesd.exe : ${OBJECTS}
@@ -94,7 +94,7 @@ papu.o : papu.c include/apu.h include/audio.h include/misc.h \
          include/papu.h
 
 ppu.o : ppu.c include/cpu.h include/input.h include/misc.h include/mmc.h \
-        include/ppu.h include/rom.h include/video.h
+        include/ppu.h include/rom.h include/timing.h include/video.h
 
 rom.o : rom.c include/misc.h include/ppu.h include/rom.h
 

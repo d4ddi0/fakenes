@@ -173,8 +173,6 @@ void resume_timing (void)
 
 int main (int argc, char * argv [])
 {
-    int line;
-
     int result;
 
 
@@ -510,6 +508,18 @@ int main (int argc, char * argv [])
             emulated_frames ++;
     
     
+            switch (machine_type)
+            {
+                case MACHINE_TYPE_PAL:
+                    ppu_frame_last_line = TOTAL_LINES_PAL - 1;
+                    break;
+
+                case MACHINE_TYPE_NTSC:
+                default:
+                    ppu_frame_last_line = TOTAL_LINES_NTSC - 1;
+                    break;
+            }
+
             if (redraw_flag)
             {
                 /* Perform a full render. */
@@ -517,101 +527,48 @@ int main (int argc, char * argv [])
                 ppu_start_render ();
 
 
-                if (machine_type == MACHINE_TYPE_NTSC)
+                for (ppu_scanline = 0; ppu_scanline <= ppu_frame_last_line; ppu_scanline ++)
                 {
-                    /* Use NTSC timing. */
-    
-                    for (line = 0; line < TOTAL_LINES_NTSC; line ++)
+                    if (mmc_scanline_start)
                     {
-                        if (mmc_scanline_start)
+                        if (! mmc_disable_irqs)
                         {
-                            if (! mmc_disable_irqs)
+                            if (mmc_scanline_start (ppu_scanline))
                             {
-                                if (mmc_scanline_start (line))
-                                {
-                                    cpu_interrupt (CPU_INTERRUPT_IRQ);
-                                }
+                                cpu_interrupt (CPU_INTERRUPT_IRQ);
                             }
                         }
+                    }
 
 
-                        if ((line >= FIRST_DISPLAYED_LINE) &&
-                            (line <= LAST_DISPLAYED_LINE))
-                        {
-                            ppu_start_line ();
+                    if ((ppu_scanline >= FIRST_DISPLAYED_LINE) &&
+                        (ppu_scanline <= LAST_DISPLAYED_LINE))
+                    {
+                        ppu_start_line ();
 
-                            ppu_render_line (line);
+                        ppu_render_line (ppu_scanline);
 
-                            ppu_end_line ();
+                        ppu_end_line ();
 
-                            cpu_execute (SCANLINE_CLOCKS);
-                        }
-                        else if (line == FIRST_VBLANK_LINE)
-                        {
-                            ppu_end_render ();
+                        cpu_execute (SCANLINE_CLOCKS);
+                    }
+                    else if (ppu_scanline == FIRST_VBLANK_LINE)
+                    {
+                        ppu_end_render ();
 
-                            cpu_execute (SCANLINE_CLOCKS - 1);
-                        }
-                        else if (line == (TOTAL_LINES_NTSC - 1))
-                        {
-                            ppu_clear ();
+                        cpu_execute (SCANLINE_CLOCKS - 1);
+                    }
+                    else if (ppu_scanline == ppu_frame_last_line)
+                    {
+                        ppu_clear ();
 
-                            cpu_execute (SCANLINE_CLOCKS);
-                        }
-                        else
-                        {
-                            cpu_execute (SCANLINE_CLOCKS);
-                        }
+                        cpu_execute (SCANLINE_CLOCKS);
+                    }
+                    else
+                    {
+                        cpu_execute (SCANLINE_CLOCKS);
+                    }
             
-                    }
-                }
-                else
-                {
-                    /* Use PAL timing. */
-
-                    for (line = 0; line < TOTAL_LINES_PAL; line ++)
-                    {
-                        if (mmc_scanline_start)
-                        {
-                            if (! mmc_disable_irqs)
-                            {
-                                if (mmc_scanline_start (line))
-                                {
-                                    cpu_interrupt (CPU_INTERRUPT_IRQ);
-                                }
-                            }
-                        }
-
-
-                        if ((line >= FIRST_DISPLAYED_LINE) &&
-                            (line <= LAST_DISPLAYED_LINE))
-                        {
-                            ppu_start_line ();
-
-                            ppu_render_line (line);
-
-                            ppu_end_line ();
-
-                            cpu_execute (SCANLINE_CLOCKS);
-                        }
-                        else if (line == FIRST_VBLANK_LINE)
-                        {
-                            ppu_end_render ();
-
-                            cpu_execute (SCANLINE_CLOCKS - 1);
-                        }
-                        else if (line == (TOTAL_LINES_PAL - 1))
-                        {
-                            ppu_clear ();
-
-                            cpu_execute (SCANLINE_CLOCKS);
-                        }
-                        else
-                        {
-                            cpu_execute (SCANLINE_CLOCKS);
-                        }
-    
-                    }
                 }
             }
             else
@@ -620,100 +577,46 @@ int main (int argc, char * argv [])
 
                 ppu_start_frame ();
 
-                if (machine_type == MACHINE_TYPE_NTSC)
+                for (ppu_scanline = 0; ppu_scanline <= ppu_frame_last_line; ppu_scanline ++)
                 {
-                    /* Use NTSC timing. */
-    
-                    for (line = 0; line < TOTAL_LINES_NTSC; line ++)
+                    if (mmc_scanline_start)
                     {
-                        if (mmc_scanline_start)
+                        if (! mmc_disable_irqs)
                         {
-                            if (! mmc_disable_irqs)
+                            if (mmc_scanline_start (ppu_scanline))
                             {
-                                if (mmc_scanline_start (line))
-                                {
-                                    cpu_interrupt (CPU_INTERRUPT_IRQ);
-                                }
+                                cpu_interrupt (CPU_INTERRUPT_IRQ);
                             }
                         }
-    
-
-                        if ((line >= FIRST_DISPLAYED_LINE) &&
-                            (line <= LAST_DISPLAYED_LINE))
-                        {
-                            ppu_start_line ();
-
-                            ppu_stub_render_line (line);
-
-                            ppu_end_line ();
-
-                            cpu_execute (SCANLINE_CLOCKS);
-                        }
-                        else if (line == FIRST_VBLANK_LINE)
-                        {
-                            ppu_vblank ();
-
-                            cpu_execute (SCANLINE_CLOCKS - 1);
-                        }
-                        else if (line == (TOTAL_LINES_NTSC - 1))
-                        {
-                            ppu_clear ();
-
-                            cpu_execute (SCANLINE_CLOCKS);
-                        }
-                        else
-                        {
-                            cpu_execute (SCANLINE_CLOCKS);
-                        }
-            
                     }
-                }
-                else
-                {
-                    /* Use PAL timing. */
     
-                    for (line = 0; line < TOTAL_LINES_PAL; line ++)
+
+                    if ((ppu_scanline >= FIRST_DISPLAYED_LINE) &&
+                        (ppu_scanline <= LAST_DISPLAYED_LINE))
                     {
-                        if (mmc_scanline_start)
-                        {
-                            if (! mmc_disable_irqs)
-                            {
-                                if (mmc_scanline_start (line))
-                                {
-                                    cpu_interrupt (CPU_INTERRUPT_IRQ);
-                                }
-                            }
-                        }
-    
+                        ppu_start_line ();
 
-                        if ((line >= FIRST_DISPLAYED_LINE) &&
-                            (line <= LAST_DISPLAYED_LINE))
-                        {
-                            ppu_start_line ();
+                        ppu_stub_render_line (ppu_scanline);
 
-                            ppu_stub_render_line (line);
+                        ppu_end_line ();
 
-                            ppu_end_line ();
+                        cpu_execute (SCANLINE_CLOCKS);
+                    }
+                    else if (ppu_scanline == FIRST_VBLANK_LINE)
+                    {
+                        ppu_vblank ();
 
-                            cpu_execute (SCANLINE_CLOCKS);
-                        }
-                        else if (line == FIRST_VBLANK_LINE)
-                        {
-                            ppu_vblank ();
+                        cpu_execute (SCANLINE_CLOCKS - 1);
+                    }
+                    else if (ppu_scanline == ppu_frame_last_line)
+                    {
+                        ppu_clear ();
 
-                            cpu_execute (SCANLINE_CLOCKS - 1);
-                        }
-                        else if (line == (TOTAL_LINES_PAL - 1))
-                        {
-                            ppu_clear ();
-
-                            cpu_execute (SCANLINE_CLOCKS);
-                        }
-                        else
-                        {
-                            cpu_execute (SCANLINE_CLOCKS);
-                        }
-            
+                        cpu_execute (SCANLINE_CLOCKS);
+                    }
+                    else
+                    {
+                        cpu_execute (SCANLINE_CLOCKS);
                     }
                 }
             }
