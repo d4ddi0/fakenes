@@ -1,3 +1,13 @@
+0.1.5
+Miscellaneous changes
+Fixed a serious masking bug in PRG banking.
+Added support for ROM trainers.
+
+Video output changes
+Ability to implement combined filters added.
+Basic scanlines filter added.
+
+
 0.1.4
 Miscellaneous changes
 Fixed a serious bug in non-gzip ROM loading code.
