@@ -2,23 +2,18 @@
 
 CC = @CC@
 
-MKDIR = mkdir -p
-
-RM = rm -f -v
+RM = @RM@ -f -v
 
 
 INSTALL = @INSTALL@
 
 
-SUPPORT = support
-
-
 BINARY = fakenes@EXEEXT@
 
-DATAFILE = fakenes.dat
+DATAFILE = support/fakenes.dat
 
 
-IFLAGS = -Iinclude -I${SUPPORT} `allegro-config --cflags`
+IFLAGS = -Iinclude -Isupport `allegro-config --cflags`
 
 DFLAGS = @DFLAGS@ -DPOSIX
 
@@ -26,11 +21,11 @@ DFLAGS = @DFLAGS@ -DPOSIX
 CFLAGS = ${IFLAGS} @CFLAGS@ ${DFLAGS}
 
 
-LIBRARIES = `allegro-config --libs` @LIBS@
+LIBRARIES = `allegro-config --libs` @LIBRARIES@
 
 
-OBJECTS = apu.o audio.o core.o cpu.o gui.o input.o papu.o ppu.o \
-          rom.o main.o mmc.o netplay.o video.o support/unzip.o
+OBJECTS = apu.o audio.o core.o cpu.o gui.o input.o papu.o ppu.o rom.o \
+    main.o mmc.o netplay.o video.o support/unzip.o
 
 
 all : bootstrap ${BINARY}
@@ -46,47 +41,30 @@ ${BINARY} : ${OBJECTS}
 	${CC} ${OBJECTS} -o ${BINARY} ${LIBRARIES}
 
 
-install : ${BINARY} ${SUPPORT}/${DATAFILE}
+install : ${BINARY} ${DATAFILE}
 
-	@echo Creating directory \'${HOME}/.fakenes\'...
-
-	${MKDIR} ${HOME}/.fakenes
-
-
-	@echo Installing the FakeNES binaries...
+	@echo Installing the FakeNES binary and datafile...
 
 	${INSTALL} -m 0755 ${BINARY} /usr/bin
 
-	${INSTALL} -m 0644 ${SUPPORT}/${DATAFILE} ${HOME}/.fakenes
+	${INSTALL} -m 0644 ${DATAFILE} /usr/share
 
 
 	@echo Run \'${BINARY}\' once to create the configuration file.
 
-	@echo It will be stored in \'${HOME}/.fakenes\'.
+	@echo It will be stored in \'$HOME/.fakenes\'.
 
 
 uninstall :
 
 	@echo Removing FakeNES from your system...
 
-	@echo \(Configuration and SRAM files will NOT be removed.\)
+	@echo User specific generated files will NOT be removed.
 
 
 	${RM} /usr/bin/${BINARY}
 
-	${RM} ${HOME}/.fakenes/${DATAFILE}
-
-
-uninstallall :
-
-	@echo Removing FakeNES from your system...
-
-	@echo Configuration and SRAM files will be lost!
-
-
-	${RM} /usr/bin/${BINARY}
-
-	${RM} -r ${HOME}/.fakenes
+	${RM} /usr/share/${DATAFILE}
 
 
 .SUFFIXES : .c

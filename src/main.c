@@ -109,9 +109,6 @@ UINT8 * logdir = NULL;
 UINT8 * confdir = NULL;
 
 
-UINT8 * datfile = NULL;
-
-
 static DIR * tmpdir = NULL;
 
 
@@ -251,6 +248,7 @@ int main (int argc, char * argv [])
     set_window_title ("FakeNES");
 
     set_window_close_button (FALSE);
+
 
 #ifdef POSIX
 
@@ -539,48 +537,15 @@ int main (int argc, char * argv [])
 
 #ifdef POSIX
 
-    if (confdir)
+    data = load_datafile ("fakenes.dat");
+
+
+    if (! data)
     {
-        const UINT8 datfile_base [] = "/fakenes.dat";
+        printf ("Loading datafile from '/usr/share/fakenes.dat'.\n\n");
 
 
-        datfile = malloc (strlen (confdir) + sizeof (datfile_base));
-
-        if (! datfile)
-        {
-            fprintf (stderr, "Error when generating datafile path, trying cwd.\n");
-
-
-            datfile = "fakenes.dat";
-
-            data = load_datafile ("fakenes.dat");
-        }
-        else
-        {
-            strcpy (datfile, confdir);
-
-            strcat (datfile, datfile_base);
-
-
-            data = load_datafile (datfile);
-
-
-            if (! data)
-            {
-                fprintf (stderr, "Datafile not found in configuration path, trying cwd.\n");
-
-
-                datfile = "fakenes.dat";
-
-                data = load_datafile (datfile);
-            }
-        }
-    }
-    else    /* confdir unset, try cwd. */
-    {
-        datfile = "fakenes.dat";
-
-        data = load_datafile (datfile);
+        data = load_datafile ("/usr/share/fakenes.dat");
     }
 
 #else
@@ -592,13 +557,7 @@ int main (int argc, char * argv [])
 
     if (! data)
     {
-#ifdef POSIX
-
-        fprintf (stderr, "PANIC: Failed to load datafile: \"%s\".\n", datfile);
-#else
-
         fprintf (stderr, "PANIC: Failed to load datafile: fakenes.dat.\n");
-#endif
 
 
         return (1);

@@ -5,23 +5,28 @@ CC = gcc
 RM = rm -f -v
 
 
+BINARY = fakenes.exe
+
+BINARY_DEBUG = fakenesd.exe
+
+
 IFLAGS = -Iinclude -Isupport
 
 ifdef DEBUG
-    OFLAGS = -O0 -ggdb3
+    OFLAGS = -O0 -g -gdb3
 
     DFLAGS = -DDEBUG -DUSE_ZLIB -DLSB_FIRST
 else
-    OFLAGS = -march=i486 -mcpu=pentium -O3 -fomit-frame-pointer -fno-rtti \
-    -fno-exceptions -funroll-loops -finline-functions -ffast-math \
-    -fforce-addr -fforce-mem -fstrength-reduce -fthread-jumps \
-    -fexpensive-optimizations -foptimize-sibling-calls \
-    -maccumulate-outgoing-args -s
+    OFLAGS = -march=i486 -mcpu=pentiumpro -O3 -fomit-frame-pointer \
+    -fno-rtti -fno-exceptions -funroll-loops -ffast-math -fforce-addr \
+    -fforce-mem -fstrength-reduce -fthread-jumps -fexpensive-optimizations \
+    -foptimize-sibling-calls -fstrict-aliasing -maccumulate-outgoing-args \
+    -fschedule-insns -fschedule-insns2
 
     DFLAGS = -DUSE_ZLIB -DLSB_FIRST
 endif
 
-WFLAGS = -Wall -Wdisabled-optimization -Wno-unused
+WFLAGS = -Wall -Wno-unused
 
 
 CFLAGS = ${IFLAGS} ${OFLAGS} ${WFLAGS} ${DFLAGS}
@@ -31,25 +36,24 @@ LIBRARIES = -lalleg -lz
 
 
 OBJECTS = apu.o audio.o core.o cpu.o gui.o input.o papu.o ppu.o rom.o \
-          main.o mmc.o netplay.o video.o support/unzip.o
+    main.o mmc.o netplay.o video.o support/unzip.o
 
 
 ifdef DEBUG
-    all : fakenesd.exe
+    all : ${BINARY_DEBUG}
 else
-    all : fakenes.exe
+    all : ${BINARY}
 endif
 
 
-fakenes.exe : ${OBJECTS}
+${BINARY} : ${OBJECTS}
 
-	${CC} ${OBJECTS} -o fakenes.exe -s ${LIBRARIES}
+	${CC} ${OBJECTS} -o ${BINARY} -s ${LIBRARIES}
 
 
-fakenesd.exe : ${OBJECTS}
+${BINARY_DEBUG} : ${OBJECTS}
 
-	${CC} ${OBJECTS} -o fakenesd.exe -ggdb3 ${LIBRARIES}
-
+	${CC} ${OBJECTS} -o ${BINARY_DEBUG} -g -ggdb3 ${LIBRARIES}
 
 
 .SUFFIXES : .c
@@ -66,4 +70,4 @@ clean :
 
 	${RM} ${OBJECTS}
 
-	${RM} fakenes.exe fakenesd.exe
+	${RM} ${BINARY} ${BINARY_DEBUG}
