@@ -976,9 +976,10 @@ void ppu_render_line (int line)
 {
     int i;
 
+    hline (video_buffer, 0, line, 255, ppu_background_palette [0]);
+
     if (!PPU_BACKGROUND_ENABLED && !PPU_SPRITES_ENABLED)
     {
-        hline (video_buffer, 0, line, 255, 0);
         return;
     }
 
@@ -996,10 +997,6 @@ void ppu_render_line (int line)
     if (PPU_BACKGROUND_ENABLED)
     {
         ppu_render_background (line);
-    }
-    else
-    {
-        hline (video_buffer, 0, line, 255, 0);
     }
 
     if (PPU_SPRITES_ENABLED)

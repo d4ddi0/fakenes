@@ -16,16 +16,6 @@ static void ppu_render_background (int line)
     int x, sub_x;
     int y, sub_y;
 
-    if (PPU_BACKGROUND_CLIP_ENABLED)
-    {
-        hline (video_buffer, 0, line, 7, 0);
-        hline (video_buffer, 8, line, 255, ppu_background_palette [0]);
-    }
-    else
-    {
-        hline (video_buffer, 0, line, 255, ppu_background_palette [0]);
-    }
-
     /* dummy reads for write-back cache line loading */
     ppu_vram_dummy_write [0] =
         PPU_GETPIXEL(video_buffer, 0, line) |
@@ -132,11 +122,10 @@ static void ppu_render_background (int line)
 
                     background_pixels [8 + ((x * 8) + sub_x - x_offset)] = color;
 
-                    color = ppu_background_palette [color];
-
-
                     if (ppu_enable_background_layer)
                     {
+                        color = ppu_background_palette [color];
+
                         PPU_PUTPIXEL (video_buffer,
                             ((x * 8) + sub_x - x_offset), line, color);
                     }
@@ -151,11 +140,10 @@ static void ppu_render_background (int line)
 
                     background_pixels [8 + ((x * 8) + sub_x - x_offset)] = color;
 
-                    color = ppu_background_palette [color];
-
-
                     if (ppu_enable_background_layer)
                     {
+                        color = ppu_background_palette [color];
+
                         PPU_PUTPIXEL (video_buffer,
                             ((x * 8) + sub_x - x_offset), line, color);
                     }
