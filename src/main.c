@@ -235,7 +235,7 @@ int main (int argc, char * argv [])
 
     frame_skip_min = get_config_int ("timing", "frame_skip_min", 0);
 
-    frame_skip_max = get_config_int ("timing", "frame_skip_max", 4);
+    frame_skip_max = get_config_int ("timing", "frame_skip_max", 6);
 
 
     install_timer ();

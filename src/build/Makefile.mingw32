@@ -31,7 +31,7 @@ else
 endif
 
 
-OBJECTS = audio.h core.o cpu.o gui.o input.o papu.o ppu.o rom.o \
+OBJECTS = audio.o core.o cpu.o gui.o input.o papu.o ppu.o rom.o \
           main.o mmc.o video.o
 
 
