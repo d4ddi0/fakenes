@@ -8,12 +8,14 @@ RM = rm -f -v
 IFLAGS = -Iinclude
 
 ifdef DEBUG
-    OFLAGS = -O2 -g3
+    OFLAGS = -O0 -ggdb3
 
     DFLAGS = -DDEBUG -DUSE_ZLIB -DLSB_FIRST
 else
-    OFLAGS = -O3 -march=pentium -fomit-frame-pointer -funroll-loops \
-    -ffast-math -fforce-addr -s
+    OFLAGS = -march=i486 -mcpu=pentium -O3 -fomit-frame-pointer -fno-rtti \
+    -fno-exceptions -funroll-loops -finline-functions -ffast-math \
+    -fforce-addr -fforce-mem -fstrength-reduce -fthread-jumps \
+    -fexpensive-optimizations -Q -s
 
     DFLAGS = -DUSE_ZLIB -DLSB_FIRST
 endif
@@ -40,12 +42,12 @@ endif
 
 fakenes.exe : ${OBJECTS}
 
-	${CC} ${OBJECTS} -o fakenes.exe -s ${LIBRARIES} -mconsole
+	${CC} ${OBJECTS} -o fakenes.exe -s ${LIBRARIES}
 
 
 fakenesd.exe : ${OBJECTS}
 
-	${CC} ${OBJECTS} -o fakenesd.exe -g3 ${LIBRARIES} -mconsole
+	${CC} ${OBJECTS} -o fakenesd.exe -ggdb3 ${LIBRARIES}
 
 
 .SUFFIXES : .c
