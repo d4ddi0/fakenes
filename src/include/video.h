@@ -36,9 +36,6 @@ void video_exit (void);
 void video_blit (void);
 
 
-void video_clear (void);
-
-
 #ifdef __cplusplus
 }
 #endif

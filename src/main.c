@@ -469,9 +469,6 @@ int main (int argc, char * argv [])
             {
                 /* Perform a full render. */
     
-                video_clear ();
-    
-        
                 if (machine_type == MACHINE_TYPE_NTSC)
                 {
                     /* Use NTSC timing. */

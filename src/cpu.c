@@ -40,11 +40,12 @@ All rights reserved.  See 'LICENSE' for details.
 
 #ifdef UNIX
 
-extern char *confdir;
+extern char * confdir;
 
-extern char *sramdir;
+extern char * sramdir;
 
 #endif
+
 
 static UINT8 cpu_ram [65536];
 
@@ -66,19 +67,26 @@ int cpu_init (void)
     memset (cpu_sram, NULL, sizeof (cpu_sram));
 
 
+    cpu_active_pc = &cpu_context.PC.W;
+
+
     if (global_rom.sram_flag)
     {
 
 #ifdef UNIX
 
-	if(sramdir != NULL)
-	{
-	    strcpy(buffer, sramdir);
-	    strcat(buffer, "/");
-	    strcat(buffer, get_filename(global_rom.filename));
-	    replace_extension (buffer,
-		buffer, "sav", sizeof (buffer));
-	}
+        if (sramdir != NULL)
+        {
+            strcpy (buffer, sramdir);
+    
+            strcat (buffer, "/");
+    
+            strcat (buffer, get_filename (global_rom.filename));
+    
+    
+            replace_extension
+                (buffer, buffer, "sav", sizeof (buffer));
+        }
 	
 #else
 
@@ -143,16 +151,21 @@ void cpu_exit (void)
 
     if (global_rom.sram_flag)
     {
+
 #ifdef UNIX
 
-	if(sramdir != NULL)
-	{
-	    strcpy(buffer, sramdir);
-	    strcat(buffer, "/");
-	    strcat(buffer, get_filename(global_rom.filename));
-	    replace_extension (buffer,
-		buffer, "sav", sizeof (buffer));
-	}
+        if (sramdir != NULL)
+        {
+            strcpy (buffer, sramdir);
+
+            strcat (buffer, "/");
+
+            strcat (buffer, get_filename (global_rom.filename));
+
+
+            replace_extension
+                (buffer, buffer, "sav", sizeof (buffer));
+        }
 	
 #else
 
@@ -214,16 +227,11 @@ int cpu_execute (int cycles)
 
 
     cpu_context.ICount += cycles;
+
     Run6502 (&cpu_context);
 
 
     return (count);
-}
-
-
-int cpu_get_pc (void)
-{
-    return (cpu_context.PC.W);
 }
 
 

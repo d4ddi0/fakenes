@@ -61,7 +61,7 @@ int video_init (void)
 
 
     screen_width =
-        get_config_int ("video", "screen_width", 256);
+        get_config_int ("video", "screen_width", 320);
 
     screen_height =
         get_config_int ("video", "screen_height", 240);
@@ -172,7 +172,7 @@ void video_blit (void)
     if (video_status_display)
     {
         textprintf (video_buffer,
-            font, 16, 216, 33, "PC: $%04X", cpu_get_pc ());
+            font, 16, 216, 33, "PC: $%04X", * cpu_active_pc);
 
 
         textprintf (video_buffer,
@@ -183,7 +183,7 @@ void video_blit (void)
     }
 
 
-    acquire_bitmap (screen);
+    acquire_screen ();
 
 
     if (scaled_mode)
@@ -198,11 +198,5 @@ void video_blit (void)
     }
 
 
-    release_bitmap (screen);
-}
-
-
-void video_clear (void)
-{
-    clear (base_video_buffer);
+    release_screen ();
 }

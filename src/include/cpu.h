@@ -23,9 +23,9 @@ extern "C" {
 #include "misc.h"
 
 
-#define CPU_INTERRUPT_NMI   0
+#define CPU_INTERRUPT_IRQ   0
 
-#define CPU_INTERRUPT_IRQ   1
+#define CPU_INTERRUPT_NMI   1
 
 
 int cpu_init (void);
@@ -46,7 +46,7 @@ UINT8 cpu_read (UINT16 address);
 void cpu_write (UINT16 address, UINT8 value);
 
 
-int cpu_get_pc (void);
+UINT16 * cpu_active_pc;
 
 
 #ifdef __cplusplus
