@@ -715,9 +715,17 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_video_driver_linux_menu, 4, (gfx_driver -> id == GFX_VBEAF));
 
+#ifdef GFX_FBCON
+
     TOGGLE_MENU (options_video_driver_linux_menu, 6, (gfx_driver -> id == GFX_FBCON));
 
+#endif
+
+#ifdef GFX_SVGALIB
+
     TOGGLE_MENU (options_video_driver_linux_menu, 8, (gfx_driver -> id == GFX_SVGALIB));
+
+#endif
 
 #endif
 
@@ -916,7 +924,21 @@ int show_gui (int first_run)
         DISABLE_MENU (options_video_driver_menu, 4);
 
 
-#ifndef ALLEGRO_LINUX
+#ifdef ALLEGRO_LINUX
+
+#ifndef GFX_FBCON
+
+        DISABLE_MENU (options_video_driver_linux_menu, 6);
+
+#endif
+
+#ifndef GFX_SVGALIB
+
+        DISABLE_MENU (options_video_driver_linux_menu, 8);
+
+#endif
+
+#else
 
         DISABLE_MENU (options_video_driver_menu, 6);
 
@@ -3309,9 +3331,17 @@ DRIVER_MENU_HANDLER (linux, vga_mode_x, GFX_MODEX)
 
 DRIVER_MENU_HANDLER (linux, vesa_vbe_af, GFX_VBEAF)
 
+#ifdef GFX_FBCON
+
 DRIVER_MENU_HANDLER (linux, framebuffer, GFX_FBCON)
 
+#endif
+
+#ifdef GFX_SVGALIB
+
 DRIVER_MENU_HANDLER (linux, svgalib, GFX_SVGALIB)
+
+#endif
 
 #endif
 
