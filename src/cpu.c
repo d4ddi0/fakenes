@@ -302,7 +302,7 @@ UINT8 * cpu_get_prg_rom_pages (ROM *rom)
            PRG ROM page count, and use that to compute the mask */
         for (i = 0; (num_pages >> (i + 1)) > 0; i++);
 
-        rom -> prg_rom_page_overflow_premask = ((1 << i + 1) * 2) - 1;
+        rom -> prg_rom_page_overflow_premask = ((1 << (i + 1)) * 2) - 1;
         rom -> prg_rom_page_overflow_mask = ((1 << i) * 2) - 1;
     }
 
