@@ -159,8 +159,8 @@ static DIALOG help_shortcuts_dialog [] =
 
 static DIALOG help_about_dialog [] =
 {
-    {      sl_frame,   0,   0, 120, 178, 0, 0, 0,      0,            0, 0, NIL,              "About", NIL },
-    { d_button_proc, 100,   4,  16,  12, 0, 0, 0, D_EXIT,            0, 0, "X",                  NIL, NIL },
+    {      sl_frame,   0,   0, 240, 180, 0, 0, 0,      0,            0, 0, NIL,              "About", NIL },
+    { d_button_proc, 220,   4,  16,  12, 0, 0, 0, D_EXIT,            0, 0, "X",                  NIL, NIL },
     {       sl_text,   9,  29,   0,   0, 0, 0, 0,      0,            0, 0, NIL,        "Developers:", NIL },
     {       sl_text,  17,  41,   0,   0, 0, 0, 0,      0,            0, 0, NIL,     "Randy McDowell", NIL },
     {       sl_text,  17,  53,   0,   0, 0, 0, 0,      0,            0, 0, NIL,    "Charles Bilyue'", NIL },
@@ -172,5 +172,17 @@ static DIALOG help_about_dialog [] =
     {       sl_text,   9, 133,   0,   0, 0, 0, 0,      0,            0, 0, NIL,          "Remnants:", NIL },
     {       sl_text,  17, 145,   0,   0, 0, 0, 0,      0,            0, 0, NIL,          "Ian Smith", NIL },
     {       sl_text,  27, 161,   0,   0, 0, 0, 0,      0,            0, 0, NIL,     "Thank you all!", NIL },
+    {       sl_text, 129,  29,   0,   0, 0, 0, 0,      0,            0, 0, NIL, "Special thanks to:", NIL },
+    {       sl_text, 137,  41,   0,   0, 0, 0, 0,      0,            0, 0, NIL,           "xodnizel", NIL },
+    {       sl_text, 137,  53,   0,   0, 0, 0, 0,      0,            0, 0, NIL,      "Matthew Conte", NIL },
+    {       sl_text, 137,  65,   0,   0, 0, 0, 0,      0,            0, 0, NIL,    "TAKEDA, toshiya", NIL },
+    {       sl_text, 137,  77,   0,   0, 0, 0, 0,      0,            0, 0, NIL,      "YANO, takashi", NIL },
+    {       sl_text, 137,  89,   0,   0, 0, 0, 0,      0,            0, 0, NIL,             "kode54", NIL },
+    {       sl_text, 137, 101,   0,   0, 0, 0, 0,      0,            0, 0, NIL,          "pagefault", NIL },
+    {       sl_text, 137, 113,   0,   0, 0, 0, 0,      0,            0, 0, NIL,          "piinyouri", NIL },
+    {       sl_text, 137, 125,   0,   0, 0, 0, 0,      0,            0, 0, NIL,          "aprentice", NIL },
+    {       sl_text, 137, 137,   0,   0, 0, 0, 0,      0,            0, 0, NIL,            "Astxist", NIL },
+    {       sl_text, 137, 149,   0,   0, 0, 0, 0,      0,            0, 0, NIL,          "Tim Inman", NIL },
+    {       sl_text, 137, 165,   0,   0, 0, 0, 0,      0,            0, 0, NIL, "... and many more!", NIL },
     {           NIL,   0,   0,   0,   0, 0, 0, 0,      0, SL_FRAME_END, 0, NIL,                  NIL, NIL }
 };
