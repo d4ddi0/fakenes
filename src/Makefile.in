@@ -2,6 +2,8 @@
 
 CC = @CC@
 
+MKDIR = mkdir -p
+
 RM = rm -f -v
 
 
@@ -13,7 +15,7 @@ BINARY = fakenes
 DATAFILE = support/fakenes.dat
 
 
-IFLAGS = -Iinclude
+IFLAGS = -Iinclude `allegro-config --cflags`
 
 DFLAGS = @DFLAGS@ -DPOSIX
 
@@ -37,6 +39,11 @@ ${BINARY} : ${OBJECTS}
 
 
 install : ${BINARY} ${DATAFILE}
+
+	${MKDIR} ${HOME}/bin
+
+	${MKDIR} ${HOME}/.fakenes
+
 
 	${INSTALL} -m 0755 ${BINARY} ${HOME}/bin
 
