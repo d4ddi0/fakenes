@@ -127,6 +127,9 @@ typedef union
 #define NIL     0
 
 
+int disable_gui;
+
+
 FILE * log_file;
 
 

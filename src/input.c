@@ -874,46 +874,53 @@ int input_process (void)
     
                 break;
     
-    
+
             case KEY_ESC:
-    
-                suspend_timing ();
 
-
-              show:
-
-                want_exit = show_gui (FALSE);
-
-
-                if (want_exit && rom_is_loaded)
+                if (disable_gui)
                 {
-                    audio_suspend ();
-
-
-                    if (alert ("- Confirmation -", NIL, "A ROM is currently loaded.  Really exit?", "&OK", "&Cancel", 0, 0) == 2)
+                    want_exit = TRUE;
+                }
+                else
+                {
+                    suspend_timing ();
+    
+    
+                  show:
+    
+                    want_exit = show_gui (FALSE);
+    
+    
+                    if (want_exit && rom_is_loaded)
                     {
-                        want_exit = FALSE;
-
-
-                        gui_needs_restart = TRUE;
+                        audio_suspend ();
+    
+    
+                        if (alert ("- Confirmation -", NIL, "A ROM is currently loaded.  Really exit?", "&OK", "&Cancel", 0, 0) == 2)
+                        {
+                            want_exit = FALSE;
+    
+    
+                            gui_needs_restart = TRUE;
+                        }
+    
+    
+                        audio_resume ();
                     }
-
-
-                    audio_resume ();
+    
+    
+                    if (gui_needs_restart)
+                    {
+                        /* Ugh. */
+    
+                        goto show;
+                    }
+    
+    
+                    resume_timing ();
                 }
 
 
-                if (gui_needs_restart)
-                {
-                    /* Ugh. */
-
-                    goto show;
-                }
-
-
-                resume_timing ();
-    
-    
                 break;
     
     

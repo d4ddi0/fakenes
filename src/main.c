@@ -83,6 +83,9 @@ extern int errno;
 #include "timing.h"
 
 
+int disable_gui = FALSE;
+
+
 FILE * log_file = NIL;
 
 
@@ -617,6 +620,9 @@ int main (int argc, char * argv [])
     rsync_grace_frames = get_config_int ("timing", "rsync_grace_frames", 10);
 
 
+    disable_gui = get_config_int ("gui", "disable_gui", FALSE);
+
+
     first_run = get_config_int ("gui", "first_run", TRUE);
 
 
@@ -693,7 +699,19 @@ int main (int argc, char * argv [])
     }
     else
     {
-        rom_is_loaded = FALSE;
+        if (disable_gui)
+        {
+            fprintf (stderr, "The GUI is currently disabled in your configuration.\n");
+    
+            fprintf (stderr, "You must specify a path to a ROM file to load.\n");
+    
+    
+            return (1);
+        }
+        else
+        {
+            rom_is_loaded = FALSE;
+        }
     }
 
 
@@ -752,22 +770,25 @@ int main (int argc, char * argv [])
     LOCK_FUNCTION (throttle_interrupt);
 
 
-    if (! rom_is_loaded)
+    if (! disable_gui)
     {
-      show:
-
-        show_gui (first_run);
-
-
-        if (first_run)
+        if (! rom_is_loaded)
         {
-            first_run = FALSE;
-        }
-
-
-        if (gui_needs_restart)
-        {
-            goto show;
+          show:
+    
+            show_gui (first_run);
+    
+    
+            if (first_run)
+            {
+                first_run = FALSE;
+            }
+    
+    
+            if (gui_needs_restart)
+            {
+                goto show;
+            }
         }
     }
 
@@ -1157,6 +1178,9 @@ int main (int argc, char * argv [])
     set_config_int ("timing", "enable_rsync", enable_rsync);
 
     set_config_int ("timing", "rsync_grace_frames", rsync_grace_frames);
+
+
+    set_config_int ("gui", "disable_gui", disable_gui);
 
 
     set_config_int ("gui", "first_run", first_run);
