@@ -10,6 +10,11 @@ static int nina_init (void);
 static void nina_reset (void);
 
 
+static void nina_save_state (PACKFILE *, int);
+
+static void nina_load_state (PACKFILE *, int);
+
+
 const MMC mmc_nina =
 {
     34, "NINA-001",
@@ -19,8 +24,47 @@ const MMC mmc_nina =
 
     "NINA\0\0\0\0",
 
-    null_save_state, null_load_state
+    nina_save_state, nina_load_state
 };
+
+
+static UINT8 nina_prg_bank;
+static UINT8 nina_chr_bank[2];
+
+
+static void nina_update_prg_bank (void)
+{
+    /* Set requested 32k ROM page at $8000. */
+        
+    cpu_set_read_address_32k_rom_block (0x8000, nina_prg_bank);
+}
+
+
+static void nina_update_chr_bank (int bank)
+{
+    int index, page_base;
+
+    /* Verify that CHR-ROM is present. */
+
+    if (ROM_CHR_ROM_PAGES == 0)
+    {
+        return;
+    }
+
+
+    /* Convert 4k CHR-ROM page index to 1k. */
+
+    page_base = nina_chr_bank[bank] * 4;
+
+
+    /* Set requested 4k CHR-ROM page. */
+
+    for (index = 0; index < 4; index ++)
+    {
+        ppu_set_ram_1k_pattern_vrom_block (((bank << 12) + (index << 10)),
+         (page_base + index));
+    }
+}
 
 
 static void nina_write_low (UINT16 address, UINT8 value)
@@ -39,52 +83,13 @@ static void nina_write_low (UINT16 address, UINT8 value)
     switch (address)
     {
         case 0x7ffe:
-
-            /* Verify that CHR-ROM is present. */
-
-            if (ROM_CHR_ROM_PAGES == 0)
-            {
-                break;
-            }
-
-
-            /* Convert 4k CHR-ROM page index to 1k. */
-
-            value <<= 2;
-
-
-            /* Set requested 4k CHR-ROM page at PPU $0000. */
-
-            for (index = 0; index < 4; index ++)
-            {
-                ppu_set_ram_1k_pattern_vrom_block ((index << 10), (value + index));
-            }
-
-
-            break;
-
-
         case 0x7fff:
 
-            /* Verify that CHR-ROM is present. */
+            /* Set requested 4k CHR-ROM page. */
 
-            if (ROM_CHR_ROM_PAGES == 0)
-            {
-                break;
-            }
+            nina_chr_bank[address & 1] = value;
 
-
-            /* Convert 4k CHR-ROM page index to 1k. */
-
-            value <<= 2;
-
-
-            /* Set requested 4k CHR-ROM page at PPU $1000. */
-
-            for (index = 0; index < 4; index ++)
-            {
-                ppu_set_ram_1k_pattern_vrom_block (((index << 10) + 0x1000), (value + index));
-            }
+            nina_update_chr_bank (address & 1);
 
 
             break;
@@ -93,8 +98,10 @@ static void nina_write_low (UINT16 address, UINT8 value)
         case 0x7ffd:
 
             /* Set requested 32k ROM page at $8000. */
-        
-            cpu_set_read_address_32k_rom_block (0x8000, value);
+
+            nina_prg_bank = value;
+
+            nina_update_prg_bank ();
 
 
             break;
@@ -112,46 +119,31 @@ static void nina_write_high (UINT16 address, UINT8 value)
 {
     /* Set requested 32k ROM page at $8000. */
         
-    cpu_set_read_address_32k_rom_block (0x8000, value);
+    nina_prg_bank = value;
+
+    nina_update_prg_bank ();
 }
 
 
 static void nina_reset (void)
 {
-    int index;
-
-
-    /* Check if CHR-ROM is present. */
-
-    if (ROM_CHR_ROM_PAGES != 0)
-    {
-        /* Select first 8k CHR-ROM page at PPU $0000. */
-
-        for (index = 0; index < 8; index ++)
-        {
-            ppu_set_ram_1k_pattern_vrom_block ((index << 10), index);
-        }
-    }
-
-
     /* Select first 32k ROM page at $8000. */
+    nina_prg_bank = 0;
 
-    cpu_set_read_address_32k_rom_block (0x8000, 0);
+    nina_update_prg_bank ();
+
+
+    /* Select first 8k CHR-ROM page at PPU $0000. */
+    nina_chr_bank[0] = 0;
+    nina_chr_bank[1] = 1;
+
+    nina_update_chr_bank (0);
+    nina_update_chr_bank (1);
 }
 
 
 static int nina_init (void)
 {
-    /* Check if CHR-ROM is present. */
-
-    if (ROM_CHR_ROM_PAGES == 0)
-    {
-        /* No CHR-ROM hardware. */
-
-        ppu_set_ram_8k_pattern_vram ();
-    }
-
-
     /* Set initial mappings. */
 
     nina_reset ();
@@ -166,3 +158,46 @@ static int nina_init (void)
 
     return (0);
 }
+
+
+static void nina_save_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    /* Save banking */
+    pack_putc (nina_prg_bank, file_chunk);
+    pack_fwrite (nina_chr_bank, 2, file_chunk);
+
+
+    pack_fclose_chunk (file_chunk);
+}
+
+
+static void nina_load_state (PACKFILE * file, int version)
+{
+    int index;
+
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    /* Restore banking */
+    nina_prg_bank = pack_getc (file_chunk);
+    pack_fread (nina_chr_bank, 2, file_chunk);
+
+
+    nina_update_prg_bank ();
+
+    nina_update_chr_bank (0);
+    nina_update_chr_bank (1);
+
+
+    pack_fclose_chunk (file_chunk);
+}
+
