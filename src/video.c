@@ -461,6 +461,25 @@ static INLINE void display_status (BITMAP * bitmap, int color)
 #define FAST_PUTPIXEL(bitmap, x, y, color)  (bitmap -> line [y] [x] = color)
 
 
+#define BLITTER_SIZE_CHECK()                                                                                      \
+    if ((target -> w < (source -> w * 2)) || (target -> h < (source -> h * 2)))                                   \
+    {                                                                                                             \
+        /* Center error message on target. */                                                                     \
+                                                                                                                  \
+        y += ((source -> h / 2) - (((text_height (font) * 2) + (text_height (font) / 2)) / 2));                   \
+                                                                                                                  \
+                                                                                                                  \
+        textout_ex (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_WHITE, -1);        \
+                                                                                                                  \
+                                                                                                                  \
+        textprintf_ex (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),                   \
+            VIDEO_COLOR_WHITE, -1, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));  \
+                                                                                                                  \
+                                                                                                                  \
+        return;                                                                                                   \
+    }
+
+
 static INLINE void blit_2xsoe (BITMAP * source, BITMAP * target, int x, int y)
 {
     int x_base;
@@ -486,22 +505,7 @@ static INLINE void blit_2xsoe (BITMAP * source, BITMAP * target, int x, int y)
     int west_pixel;
 
 
-    if ((target -> w < (source -> w * 2)) || (target -> h < (source -> h * 2)))
-    {
-        /* Center error message on target. */
-
-        y += ((source -> h / 2) - (((text_height (font) * 2) + (text_height (font) / 2)) / 2));
-
-
-        textout_ex (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_WHITE, -1);
-
-
-        textprintf_ex (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),
-            VIDEO_COLOR_WHITE, -1, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
-
-
-        return;
-    }
+    BLITTER_SIZE_CHECK ();
 
 
     for (y_offset = 0; y_offset < source -> h; y_offset ++)
@@ -716,22 +720,7 @@ static INLINE void blit_2xscl (BITMAP * source, BITMAP * target, int x, int y)
     int west_pixel;
 
 
-    if ((target -> w < (source -> w * 2)) || (target -> h < (source -> h * 2)))
-    {
-        /* Center error message on target. */
-
-        y += ((source -> h / 2) - (((text_height (font) * 2) + (text_height (font) / 2)) / 2));
-
-
-        textout_ex (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_WHITE, -1);
-
-
-        textprintf_ex (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),
-            VIDEO_COLOR_WHITE, -1, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
-
-
-        return;
-    }
+    BLITTER_SIZE_CHECK ();
 
 
     for (y_offset = 0; y_offset < source -> h; y_offset ++)
@@ -889,22 +878,7 @@ static INLINE void blit_interpolated (BITMAP * source, BITMAP * target, int x, i
     int south_east_pixel;
 
 
-    if ((target -> w < (source -> w * 2)) || (target -> h < (source -> h * 2)))
-    {
-        /* Center error message on target. */
-
-        y += ((source -> h / 2) - (((text_height (font) * 2) + (text_height (font) / 2)) / 2));
-
-
-        textout_ex (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_WHITE, -1);
-
-
-        textprintf_ex (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),
-            VIDEO_COLOR_WHITE, -1, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
-
-
-        return;
-    }
+    BLITTER_SIZE_CHECK ();
 
 
     for (y_offset = 0; y_offset < source -> h; y_offset ++)
@@ -989,22 +963,7 @@ static INLINE void blit_super_2xsoe (BITMAP * source, BITMAP * target, int x, in
     int west_pixel;
 
 
-    if ((target -> w < (source -> w * 2)) || (target -> h < (source -> h * 2)))
-    {
-        /* Center error message on target. */
-
-        y += ((source -> h / 2) - (((text_height (font) * 2) + (text_height (font) / 2)) / 2));
-
-
-        textout_ex (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_WHITE, -1);
-
-
-        textprintf_ex (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),
-            VIDEO_COLOR_WHITE, -1, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
-
-
-        return;
-    }
+    BLITTER_SIZE_CHECK ();
 
 
     for (y_offset = 0; y_offset < source -> h; y_offset ++)
@@ -1195,22 +1154,7 @@ static INLINE void blit_super_2xscl (BITMAP * source, BITMAP * target, int x, in
     int west_pixel;
 
 
-    if ((target -> w < (source -> w * 2)) || (target -> h < (source -> h * 2)))
-    {
-        /* Center error message on target. */
-
-        y += ((source -> h / 2) - (((text_height (font) * 2) + (text_height (font) / 2)) / 2));
-
-
-        textout_ex (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_WHITE, -1);
-
-
-        textprintf_ex (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),
-            VIDEO_COLOR_WHITE, -1, "At least %dx%d pixels are required.", (source -> w * 2), (source -> h * 2));
-
-
-        return;
-    }
+    BLITTER_SIZE_CHECK ();
 
 
     for (y_offset = 0; y_offset < source -> h; y_offset ++)
