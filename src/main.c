@@ -653,6 +653,9 @@ int main (int argc, char * argv [])
 
 
                 }
+
+
+                papu_update ();
             }
             else
             {
