@@ -409,6 +409,8 @@ static int options_video_blitter_menu_2xsoe (void);
 
 static int options_video_blitter_menu_2xscl (void);
 
+static int options_video_blitter_menu_super_2xsoe (void);
+
 static int options_video_blitter_menu_super_2xscl (void);
 
 
@@ -421,6 +423,8 @@ static MENU options_video_blitter_menu [] =
     {       "&2xSOE",       options_video_blitter_menu_2xsoe, NULL, 0, NULL },
     {             "",                                   NULL, NULL, 0, NULL },
     {       "2&xSCL",       options_video_blitter_menu_2xscl, NULL, 0, NULL },
+    {             "",                                   NULL, NULL, 0, NULL },
+    { "Sup&er 2xSOE", options_video_blitter_menu_super_2xsoe, NULL, 0, NULL },
     {             "",                                   NULL, NULL, 0, NULL },
     { "Su&per 2xSCL", options_video_blitter_menu_super_2xscl, NULL, 0, NULL },
     {           NULL,                                   NULL, NULL, 0, NULL }

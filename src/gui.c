@@ -464,7 +464,7 @@ static INLINE void update_menus (void)
         DISABLE_MENU (options_video_filters_scanlines_menu, 4);
 
 
-        if (video_get_blitter () == VIDEO_BLITTER_SUPER_2XSCL)
+        if ((video_get_blitter () == VIDEO_BLITTER_SUPER_2XSOE) || (video_get_blitter () == VIDEO_BLITTER_SUPER_2XSCL))
         {
             video_set_blitter (VIDEO_BLITTER_NORMAL);
         }
@@ -476,6 +476,8 @@ static INLINE void update_menus (void)
 
 
         DISABLE_MENU (options_video_blitter_menu, 8);
+
+        DISABLE_MENU (options_video_blitter_menu, 10);
     }
     else
     {
@@ -491,6 +493,8 @@ static INLINE void update_menus (void)
 
 
         ENABLE_MENU (options_video_blitter_menu, 8);
+
+        ENABLE_MENU (options_video_blitter_menu, 10);
 
 
         ENABLE_MENU (options_video_filters_scanlines_menu, 2);
@@ -618,7 +622,9 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_video_blitter_menu, 6, (video_get_blitter () == VIDEO_BLITTER_2XSCL));
 
-    TOGGLE_MENU (options_video_blitter_menu, 8, (video_get_blitter () == VIDEO_BLITTER_SUPER_2XSCL));
+    TOGGLE_MENU (options_video_blitter_menu, 8, (video_get_blitter () == VIDEO_BLITTER_SUPER_2XSOE));
+
+    TOGGLE_MENU (options_video_blitter_menu, 10, (video_get_blitter () == VIDEO_BLITTER_SUPER_2XSCL));
 
 
     TOGGLE_MENU (options_video_filters_scanlines_menu, 0, (video_get_filter_list () & VIDEO_FILTER_SCANLINES_HIGH));
@@ -2288,6 +2294,25 @@ static int options_video_blitter_menu_2xscl (void)
 
 
     gui_message (gui_fg_color, "Video blitter set to 2xSCL engine.");
+
+
+    return (D_REDRAW);
+}
+
+
+static int options_video_blitter_menu_super_2xsoe (void)
+{
+    video_set_blitter (VIDEO_BLITTER_SUPER_2XSOE);
+
+    update_menus ();
+
+
+    clear (screen);
+
+    video_blit (screen);
+
+
+    gui_message (gui_fg_color, "Video blitter set to super 2xSOE engine.");
 
 
     return (D_REDRAW);
