@@ -97,8 +97,10 @@ static void bandai_write (UINT16 address, UINT8 value)
 {
     /* Extract write port index. */
 
-    address &= 0x000d;
+    address &= 0x000f;
 
+
+    if (address > 0x000d) return;
 
     if (address <= 7)
     {
@@ -209,11 +211,8 @@ static int bandai_init (void)
 
     /* Install write handlers. */
 
-    cpu_set_write_handler_4k (0x6000, bandai_write);
-
-    cpu_set_write_handler_4k (0x7000, bandai_write);
-
-    cpu_set_write_handler_4k (0x8000, bandai_write);
+    cpu_set_write_handler_8k (0x6000, bandai_write);
+    cpu_set_write_handler_32k (0x8000, bandai_write);
 
 
     /* Install IRQ tick handler. */
