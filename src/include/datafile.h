@@ -1,7 +1,7 @@
-/* ..\include\datafile.h
+/* include/datafile.h
  * 
- *  Converted datafile header for fakenes.dat .
- *  See ..\data.c for definitions.
+ *  Converted datafile header for support/fakenes.dat .
+ *  See data.c for definitions.
  *  Do not hand edit.
  */
 
@@ -9,8 +9,8 @@
 #error You must include allegro.h
 #endif
 
-#ifndef DAT2C_20021106_015332
-#define DAT2C_20021106_015332
+#ifndef DAT2C_20030328_052900
+#define DAT2C_20030328_052900
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,10 +26,11 @@ extern DATAFILE datafile_data[];
 #define DATAFILE_GRAYSCALE_PALETTE 3
 #define DATAFILE_GUN_SPRITE 4
 #define DATAFILE_LARGE_FONT 5
-#define DATAFILE_NESTER_PALETTE 6
-#define DATAFILE_NESTICLE_PALETTE 7
-#define DATAFILE_SMALL_FONT 8
-#define DATAFILE_COUNT 9
+#define DATAFILE_LOGO_BITMAP 6
+#define DATAFILE_NESTER_PALETTE 7
+#define DATAFILE_NESTICLE_PALETTE 8
+#define DATAFILE_SMALL_FONT 9
+#define DATAFILE_COUNT 10
 
 
 
@@ -39,7 +40,7 @@ extern DATAFILE datafile_data[];
 
 #endif /* include guard */
 
-/* end of ..\include\datafile.h */
+/* end of include/datafile.h */
 
 
 

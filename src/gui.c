@@ -674,6 +674,21 @@ static INLINE void update_menus (void)
 extern UINT8 logfile [256];
 
 
+static INLINE void draw_logo (void)
+{
+    if (! rom_is_loaded)
+    {
+        BITMAP * logo;
+
+
+        logo = DATA_TO_BITMAP (LOGO_BITMAP);
+
+
+        blit (logo, screen, 0, 0, ((SCREEN_W / 2) - (logo -> w / 2)), ((SCREEN_H / 2) - (logo -> h / 2)), logo -> w, logo -> h);
+    }
+}
+
+
 int show_gui (int first_run)
 {
     update_colors ();
@@ -736,6 +751,9 @@ int show_gui (int first_run)
     video_blit (screen);
 
 
+    draw_logo ();
+
+
     gui_message (gui_fg_color, "GUI initialized (%dx%dx%s, %s).", SCREEN_W, SCREEN_H,
         ((video_get_color_depth () == 8) ? "256" : ((video_get_color_depth () == 15) ? "32K" : "64K")), gfx_driver -> name);
 
@@ -791,6 +809,9 @@ int show_gui (int first_run)
     clear (screen);
 
     video_blit (screen);
+
+
+    draw_logo ();
 
 
     audio_resume ();
@@ -2336,6 +2357,9 @@ static int options_video_blitter_menu_automatic (void)
     video_blit (screen);
 
 
+    draw_logo ();
+
+
     gui_message (gui_fg_color, "Video blitter set to automatic.");
 
 
@@ -2355,6 +2379,9 @@ static int options_video_blitter_menu_normal (void)
     video_blit (screen);
 
 
+    draw_logo ();
+
+
     gui_message (gui_fg_color, "Video blitter set to normal.");
 
 
@@ -2372,6 +2399,9 @@ static int options_video_blitter_menu_stretched (void)
     clear (screen);
 
     video_blit (screen);
+
+
+    draw_logo ();
 
 
     if (video_get_color_depth () != 8)
@@ -2400,6 +2430,9 @@ static int options_video_blitter_menu_interpolated (void)
     video_blit (screen);
 
 
+    draw_logo ();
+
+
     gui_message (gui_fg_color, "Video blitter set to interpolated.");
 
 
@@ -2417,6 +2450,9 @@ static int options_video_blitter_menu_2xsoe (void)
     clear (screen);
 
     video_blit (screen);
+
+
+    draw_logo ();
 
 
     gui_message (gui_fg_color, "Video blitter set to 2xSOE engine.");
@@ -2438,6 +2474,9 @@ static int options_video_blitter_menu_2xscl (void)
     video_blit (screen);
 
 
+    draw_logo ();
+
+
     gui_message (gui_fg_color, "Video blitter set to 2xSCL engine.");
 
 
@@ -2457,6 +2496,9 @@ static int options_video_blitter_menu_super_2xsoe (void)
     video_blit (screen);
 
 
+    draw_logo ();
+
+
     gui_message (gui_fg_color, "Video blitter set to super 2xSOE engine.");
 
 
@@ -2474,6 +2516,9 @@ static int options_video_blitter_menu_super_2xscl (void)
     clear (screen);
 
     video_blit (screen);
+
+
+    draw_logo ();
 
 
     gui_message (gui_fg_color, "Video blitter set to super 2xSCL engine.");
@@ -2514,6 +2559,9 @@ static int options_video_filters_scanlines_menu_high (void)
     video_blit (screen);
 
 
+    draw_logo ();
+
+
     gui_message (gui_fg_color, "Toggled scanlines video filter to high.");
 
 
@@ -2552,6 +2600,9 @@ static int options_video_filters_scanlines_menu_medium (void)
     video_blit (screen);
 
 
+    draw_logo ();
+
+
     gui_message (gui_fg_color, "Toggled scanlines video filter to medium.");
 
 
@@ -2588,6 +2639,9 @@ static int options_video_filters_scanlines_menu_low (void)
     clear (screen);
 
     video_blit (screen);
+
+
+    draw_logo ();
 
 
     gui_message (gui_fg_color, "Toggled scanlines video filter to low.");
@@ -2682,6 +2736,9 @@ static int options_video_palette_menu_default (void)
     video_blit (screen);
 
 
+    draw_logo ();
+
+
     gui_message (gui_fg_color, "Video palette set to default.");
 
 
@@ -2718,6 +2775,9 @@ static int options_video_palette_menu_grayscale (void)
     video_blit (screen);
 
 
+    draw_logo ();
+
+
     gui_message (gui_fg_color, "Video palette set to grayscale.");
 
 
@@ -2751,6 +2811,9 @@ static int options_video_palette_menu_gnuboy (void)
     clear (screen);
 
     video_blit (screen);
+
+
+    draw_logo ();
 
 
     gui_message (gui_fg_color, "Video palette set to gnuboy.");
@@ -2789,6 +2852,9 @@ static int options_video_palette_menu_nester (void)
     video_blit (screen);
 
 
+    draw_logo ();
+
+
     gui_message (gui_fg_color, "Video palette set to NESter.");
 
 
@@ -2823,6 +2889,9 @@ static int options_video_palette_menu_nesticle (void)
     clear (screen);
 
     video_blit (screen);
+
+
+    draw_logo ();
 
 
     gui_message (gui_fg_color, "Video palette set to NESticle.");
@@ -2882,7 +2951,10 @@ static int options_video_palette_menu_custom (void)
     
         video_blit (screen);
     
-    
+
+        draw_logo ();
+
+
         gui_message (gui_fg_color, "Video palette set to custom.");
     
     

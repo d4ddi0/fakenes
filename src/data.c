@@ -1,6 +1,6 @@
-/* ..\data.c
+/* data.c
  * 
- *  Source for data encoded from fakenes.dat .
+ *  Source for data encoded from support/fakenes.dat .
  *  Do not hand edit.
  */
 
@@ -1538,6 +1538,496 @@ static FONT datafile_large_font = {
 
 
 
+static DATAFILE_PROPERTY datafile_logo_bitmap_prop[] = {
+    { "LOGO_BITMAP", DAT_ID('N', 'A', 'M', 'E') },
+    { 0, DAT_END }
+};
+
+static unsigned char datafile_logo_bitmap_lines[] = 
+"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€‚ƒƒƒƒƒ‚€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€€€‚‚‚‚‚‚‚‚‚‚‚‚‚‚‚‚‚‚‚‚‚‚‚"
+    "‚‚‚‚‚‚€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‚‚‚"
+    "‚‚‚‚‚‚‚‚‚‚€€€€€€€€€‚‚‚‚‚‚‚‚‚€€€‚‚‚‚‚‚‚‚‚‚‚‚‚‚‚"
+    "‚‚‚‚‚‚‚‚‚‚‚‚‚€€€€€€€‚ƒ„„„„„ƒ‚€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€‚ƒ„„„„„„„„„„„„„„„„„„„„„„„"
+    "„„„„„„ƒ‚€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‚ƒ„„„"
+    "„„„„„„„„„„ƒ‚€€€€€€‚ƒ„„„„„„„„„ƒ‚‚ƒ„„„„„„„„„„„„„„„"
+    "„„„„„„„„„„„„„ƒ‚€€€€€ƒ…‡ŠŒŒŠ‡ƒ€€‚‚€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€‚‰’“““““““““““““““““““““““"
+    "““““““’†€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‚†’“““"
+    "““““““““““’‡€€€€ƒŠ’“““““““““’Š’“““““““““““““““"
+    "“““““““““““““’Š‚€‡’““•˜™ššš™˜•“’‰…€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€‚‡Œ‘’’’’’’’’’’’’’’’’’’’’’’’"
+    "’’’’’’‘‘’‡€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‚†‹‘’’’"
+    "’’’’’’’’’’‘“’ˆ‚€ƒˆŒ‘’’’’’’’’’‘Œ‘’’’’’’’’’’’’’’’"
+    "’’’’’’’’’’’’’‘’‹‰’•˜’‰‹‹ŒŒŒ‹‹‰’••“““’‹€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€‚‡ŒŒ‹‹ŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒ"
+    "ŒŒŒŒŒ‹‡’’†‚€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€‚†‹ŽŒ‹ŒŒ"
+    "ŒŒŒŒŒŒŒŒŒ‹ƒ‰”’‡‚‡‹Œ‹‹‹ŒŒŒŒŒŒŒ‹‹‹Œ‹‹‹ŒŒŒŒŒŒŒŒŒŒŒŒŒŒ"
+    "ŒŒŒŒŒŒŒŒŒŒŒŒ‹‹ƒ’’•“‰€€Œ™›››››™Œ„€†——•“’€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€ƒ‰ŒŒ‹¨©©©©©©©©©©©©©©©©©©©©©©"
+    "©©©©©¨•‡•ˆƒ€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€„ˆŒŽ•¤©©"
+    "©©©©©©©©©¨™„‰•ƒ‰‹‹¢¨©©©©©©©¨¢‹¢¨©©©©©©©©©©©©©©"
+    "©©©©©©©©©©©©¨¢‹ƒ•’†€‡™¨©©¬°°°°°¬©¨„„„ƒ€”’‹€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€„ŠŽ–                       "
+    "     ¥¬•Ž˜Š„‚€€€€‚ƒƒƒƒ‚€€€€€€€€€€€€€‚‚‚‚‚‚‚‚‚‚‚‚"
+    "€€€€€€€‚‚‚‚‚‚‚€€‚‚‚‚‚‚‚‚‚‚‚‚‚‚‚‚‚‚‚‚‚‚…‰Ž”›   "
+    "         ª¬™€‘’Š‹˜         ˜˜               "
+    "             ¬¢ƒŽ€‡¨¬°° ›“““““ «°¬©©©¨¦„€•€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€‚„‹Ž˜š–““““““““““““““““““““““"
+    "““““˜°–™Š…ƒ€€‚ƒ„„„„ƒ‚€€€€€€€€€‚ƒ„„„„„„„„„„„„ƒ"
+    "‚€€€€‚ƒ„„„„„„„ƒ‚‚ƒ„„„„„„„„„„„„„„„„„„„„„„„Š‘•šš•“"
+    "““““““““†“°¨‹ƒ”‹Ž˜˜”“““““““”˜˜˜˜”““““““““““““““"
+    "““““““““““““†°¤„€¦¬°¦“€€“˜¨¨¨“†€›«««ª¬¦€˜’€‚€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€‚„‹Ž˜ –®¼¼¼¼¼¼¼¼¼¼¼¼¼¼¼¼¼¼¼¼¼"
+    "¼¼¼¼¡™°–š‹…ƒ€€‰ŒŽŽŒ†‚€€€€€€€‚‰’““““““““““““’"
+    "‰‚€‰’“““““““’’““““““““““““““““““““““’‘•žš µ"
+    "¼¼¼¼¼¼¼¼¨€ ¬¢„‰“ŒŽ™›™µ¼¼¼¼¼µ™š™™š™µ¼¼¼¼¼¼¼¼¼¼¼¼¼"
+    "¼¼¼¼¼¼¼¼¼¼¼µ†°¤€™¨¬¥€¨¼¼¼¼¼¼¼¼®˜†€€†€°¨€™“€ƒ€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€‚„‹ŽŸ €¨¼¸¸¸¸¸¸¸µ¨¨¨¨¨¨®¼¼¼¼"
+    "¸¸¸¼“˜°–™Š…€€Š’““””””“‘Ž‡‚€€€€€‚‡Œ‘’’’’’’’’’’’’‘"
+    "Œˆ‚‹’•‘’’’’’’’‘‘’’’’’’’’’’’’’’’’’’’’’’‘‘–¢˜††"
+    "®¸¸¸¸¸¸¸¼“†ª¬™€“ŒŽ¤š††µ¸¼¼¡€†š  š†€µ¸¸¸¸¸¸¸¼®¨¨¨"
+    "¨¨¨µ¼¼¼¸¸¸¼¡†°¤™¬°›€®¼¼¼µ¡“““¡®¼¼¼µ®¼€°©€š“€ƒ€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€„Š‘¬°““¼¸°°°°¸¼¡†““““€€†˜µ"
+    "¼¸¸¼€ ¬•Ž˜Šƒ€Š’”†‰ŒŒŒŒ‹’Ž†€€€‚‡ŒŒ‹‹ŒŒŒŒŒŒŒŒŒŒ‹‹"
+    "ŒŽŒŒ’”†€‹ŒŒŒŒŒ‹‹‹‹‹ŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒ‹‹†‘•§°«€"
+    "µ¸°°°¸¡µ¼µ†“°¨‡ƒŽ¢¬«†¡¼¼˜€˜°¬¢¢¬°†¨¸°°°°°¸¼“““"
+    "““†€€“®¼¸¸¼˜°¤¨°“€˜¼¼¼µ€†˜ ˜€µ¼¸¸¼€°©€š“€ƒ€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€ƒŒ†‹¤°““¼¸¸¶°°¸¼“˜°°°°°°«›†€"
+    "¨¼¼¨€°©Œ•ˆ€‡’–†„Ÿ  Ÿ•Œ•Œ€€€€ƒ‰ŒŒ‹¨©©©©©©©©©©¨"
+    "‹Œ‘‘ƒ„¨©©©©©¨™‹¢¨©©©©©©©©©©©©©©©©©©©©¨¦‹†Š™¬ †"
+    "¼¸¶¸¸¸µ¼¼¨€¦¬¢€Œƒ¤°““¼µ€›°¬¢…©°†¨¸°°°°¶¸¼€ °°"
+    "°°°° €¨¼¸µ€¦¬¦¬ €¨¼¼¼µ††¦°°¬°°¦†€¨¼¸¼€°©€š“€ƒ€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€‰“’„©°†¨¼µ¼¸¸¸¸¼€ ¬›› ©©©¬°“"
+    "€µ¼˜“°¨€’“†‚•‰€¬ª¦¦¥¢•‡˜’€€„ŠŽ–            "
+    "˜‰€‹¢¬°      •˜                      ¢¦‡”€¤°““"
+    "¼¸¸¼µ¼¼“¼¼†°¬•€“€©°¨¼¡†°©•€ƒ‰©«€µ¸¸¸¸¸±¼¨€°©›"
+    "›¤©©¬°“€µ¼¡†°©¬ª€“¼¸¸¼†ª¬©¤•Ÿ©¬°“€µ¼¼€°©€š“€ƒ€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€•‰Œ©«€µ¼˜¼¼µ¨¸®€°©ŒŠŒŒŒ¢¬°"
+    "†˜¼›¬™€˜’ƒ’‘€™¬°”˜°Ÿ€™“„€‚„‹Ž˜š–““““““““““–œ"
+    "šŽˆ„™¨¬ª€““““˜š–˜˜”““““““““““““““““““““Œ¥¨‡„©°†¨"
+    "¼¸¸¼“µ¼¨€˜¼µ€˜°¨‡ƒŒ©°€®¼“˜°¤€˜€™¬›†¼¼¡¼¼®¨¼˜“°¨Œ"
+    "˜›››¬°†¡¼˜°¨°˜†¼¼¸¥¼€¦¬¢‡€ƒ€‡¢¬°††µµ€°©€š“€ƒ€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€‚’˜ƒ™¬ †¼µ¼¼˜¨¼¡°©„”••••‹¢¬"
+    "›“¼€¦©‰•‹’’€‹¨°“€®¡°©€’“†€‚„‹Ž˜ ”®¼¼¼¼¼¼¼¼®” "
+    "›Œ‹¢¬° ††®¼¼¼¨˜ –™›™µ¼¼¼¼¼¼¼¼¼¼¼¼¼¼¼¼¼¼¼¦©‡‰©«€µ"
+    "¸¼¼¼¨†¼¼†€¨¼¡€¦¬¢€ƒ•¬ €¼¼€ ¬•ƒ˜”€¨°“˜¼®“¼¼¼¼›¬™™"
+    "š›š¤°˜“µ€¦¬©°€¡¼±¸Ÿ¼†°¬¨•€ƒƒ€¢¬ª†™ †°©€š“€ƒ€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€…“”€¤°““¼˜“¼µ€¨¼˜°Ÿ•œšš˜•©"
+    " “¨€°©‡“Š’”ƒ‡¦¬ €¨¼®€°©Œ•Œ€‚„‹ŽŸ¥€¼¸¸¸¸¸¼¨€¥"
+    "Ÿ•¨¬ª“€“µ¼¼¡†€“ ›¤š†“¼¸¸¸¸¼¨“““““¡¨¼¼¸¸µ€¦©‡€™¬›†¼"
+    "¸¼“¼¼€“¼¡†€µ¼†°¬•€¤°˜“¼¨€°©Œ•‡©°€¨¼“¼®€¼¼€¦©™¬"
+    "ª“˜“ ›¬ • †°©©¦€¼¼¨¼¨®®†«°¬¢€ƒ„¢¬š˜›˜°¤€™“€ƒ€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€‡“‡©°†¨µ€“¼˜€µ¼€¦¬•Ÿ¥™ššœš‹¨"
+    " –•“°¨€”“’–†„¢¬¥€“¼¸¼€ ¬•‡˜Ž‚ƒŒ‘¬¦€¼¸¸¸¸¸¼€“°¬"
+    "¢¬° ††¨¼¼¡†€˜«°¬™¤°˜“¼¸¸¶¸¼““   ˜“€€¨¼¼¡†°©‡€¨°“˜¼"
+    "¼¨€¨¼˜€˜µ†††¼µ€˜°¨‡©°†¡¼˜“°¨€’•‰©¦€¼®€¨¼€¼¨€°©¬°"
+    "“•¡“°›¤ ™š˜°¤© ¼¼˜¼µ†µ®†€˜°¬¨¢€¢£œžž§•ƒ˜’€‚€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€•‰©¦€µ˜†˜¼€€¼¨€°©¬«Ÿœ Œ™"
+    "¢¥¦ª¬™€˜’•‰€¬ª†¼¼¸¼“˜°Ÿˆ™„ƒ’‘€¬›¼µ¼¼µ¼¨€°¬¨"
+    "¬°˜€“µ¼¡†€˜«°¬¨™Œ©°¡¼µ¼¸¸¼€ ¬©¬°°°“€µ¼˜°¤€‡©°€¨¼"
+    "¼˜“†µµ€†¦™€“¼¡€¦¬©«€µ¼›¬™€˜˜€™¬›¼¨®€†¼““°¬°“"
+    "€¨““°›•Ÿ¢£¢§•© “¼¼˜®¼˜“¼¼¡€†›°¬¨‡”••–••€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€ƒ˜ƒ™¬›¼†“¨¡€€¼˜“°¨¬°§° Ž‹"
+    "™›››™„‰•’‘€™¬°†µ¼¸¼¨¡° ˆ’†‚†“’€¨°˜¼˜¼¼˜¼˜“°¬°"
+    "¦†€¡¼µ€˜«°¬¨•„€Œ©°€®¼˜¼µ¨®€°©™™™¥¬°†˜µ€¦¬•ƒ©¦€¼¸"
+    "¼†›†¼§˜€¨¼°¨¬ †¼¼€¦©‰•’€¨°“˜µ€€®˜“¼† ¬°“€"
+    "¨¼€ ¬™•–––•Œ© “¼¼®¼¼†µ¼µ˜€†›°¬¨‹‹‘‘†€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€…‘”„¤°“˜¨€£˜“¼›¬°«“€®˜°ŸˆŒ"
+    "ŽŽŽŒ‰”’’€‹¨°“€®¼«¸¼§° Ž‘ˆƒ‚Š•Œ©°€®¡˜¼¡˜¼†›¬°˜"
+    "€µ¼¡€†¦°¬¨•„€ƒ•¬ €¼¡¨¼˜¦š°¨§š™š§¬›• †°©‡€¬›¼¸"
+    "µ€«¦€¡®•Ÿ™“†¼®€›¬°““¼¨€°©‡•Œ©°€¨˜†€¼€““µ€«¦†€¨"
+    "¼®€°©ŒŒŒ© €¼¸¼“¼µŒ†¡¼¼µ˜€¦°¬¦‹ƒ‘‘‡‚€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€‰“Š¤°†¦“§““µ€¦ ˜††¨¼›¬‡“"
+    "“”””““’”ƒ‡¦¬ €¨¼¸¨®¼€£œ¢”Ž“ŠƒƒŒ˜‹•¬ €¼†¨¼†¨µ€«ª€"
+    "¡¼®†€˜°¬¨•„€•—„¤°˜“¼†¨µ€®›¬¬¥“›“ª¤ ™š˜°¤€€¨°˜¼¼"
+    "¨†°°˜ª†˜›–“€¡¼˜€ª°†¨¼““°¨€”˜‡•¬ €¼†›†¡€¦¦†€µ¼"
+    "¼¡°©€’“““”’Œ©°€¡¼¼µ€“µ°Œ€€˜®¼®€¥¬¦‹€’’Š‚€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€•†¤£†°†›š†¨¨€€€“¡µ¼¼€¦©†•"
+    "ŽŒ’–†‡¢¬¥€“¼®¼¨“¼€˜˜™Ÿ••„…—‹›°˜“®€¨¨€¦¦†›€†®"
+    "¼˜€«°¬¢‡€••“’‡¤°†¡¨€¦™€¼€¦¬ª†¦“°›Ÿ¢£¢§•ƒŒ©°€®¼¼"
+    "““°¬°Œ°Œ˜•¡•“€µ¼†¦€µ¼† ¬™€˜™€Ÿ°˜“®€“˜–˜€®¡“¡®¼¼¸"
+    "¼“˜°Ÿ€™“Š‘“’€¨°˜†µ¼¼¨€†™°™™€®¼®€ ¬¦‡ƒ•€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€ƒ’˜€¬›¦†˜›˜›€µ¼¼¼¼¼¼¸¼¨€°©‡“"
+    "‰„‚„•‰€§ª†¼˜“¼¨€¼€™žšœ•’‘‡‡’›°“Ÿ”†°€µ“€˜¼µ"
+    "†€›°¬¨•€ƒ“•’“‰¤«†°†°Œ€¨€° ††µ““°›•–––•Š‡•¬ €¼¸¼"
+    "€ ¬§¦‹– •“”£†˜¼®€›¼µ€«©Œ‰•’€©°Ÿš“¡“ †¼¼¼¼¸¸¸¸"
+    "¼€ ¬•‡˜“‘’•˜€•¬ª††µ¼¼®†€†žŸ€“µ¼“€¥¬¢€“’ƒ€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€†“’€¨°š–““ž“›¼“˜¨¼¼¸¸¼˜“°¨€”“"
+    "…€’‘€™¬°Œµ¨€€¼¨€¨€™ž›™‰•Š‰›£“¡“†°†€¼††®¼¼¼"
+    "†°¨„€–’†Ž•‡˜§žŒª††¦†–›“€“µ¼† ¬™€Ÿ°˜“¼¸®"
+    "€°©Œž£–¡•®˜€†¼¼˜€˜¼¨†°©„’•‰Œ©°€®†›“Ÿ“““®“˜®¼¼¸¸"
+    "®€°©Œ—•—“ƒƒ„„¢¬ª††¡¼¼¼¡†€™§ †††µ¼†°¨‡’“„‚€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€Œ•Œ©°€®†›“¡“†˜®€“€†¨¼¸¼›¬™€˜’"
+    "‚€‹’’€‹¨°“†ª°†“€®¨“›“™žšž§™ƒ˜’Œ‘‹•š›˜ž•“™†®¡¼¼˜“¼"
+    "µ€›¬¢€•’‹…—ˆœ¦”˜š˜–““†€“®¼¼®€«©Œ‰”“““’„©°¡¼¼¡"
+    "°©€ ¦••¥¼“€¡¼¼†¨¼““°¤€—˜ƒ™¬ €¼€˜š›˜€¨¡€µ¼¼"
+    "¡°©€†‡¢¤¤¤¢¬ª˜€†®¼¼¼¡†€™°Œ††¼µ€¦©Œ’“„‚€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€’˜‡•¬ €¼€šš“€µ¡°«“€¨¼µ€¦©‰•"
+    "€Š’”ƒ‡¦¬ €¨µŒ†°Ÿ£“™˜˜˜˜“°¤€—“—‹–š˜š˜š““˜¼¸¼€€¨"
+    "¼˜†°¬•€•’‡€‡“Š£“¡•™˜›“¨¼¼¼¼¸¼¡°©„’—‘•‰Œ©«€®¸¼“"
+    "˜°Ÿ€ƒ˜Ÿ ”—£“€®µ†¼¼®¼¼€ ¬™ƒ˜—€¤°““¨€† •›†¼˜°¦††µ¼"
+    "˜°Ÿ‡•–––•¢¬°°°¬¢¬°«€®¼¼¼¡€†•°Œ€¡¼ ©Œ’“„‚€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€„“™€Ÿ°˜“¨€€®““¼“˜°¬°“€µ¨†°©‡“‡"
+    "‡’–†„¢¬¥€“¼“†ª°˜˜¡“œ˜ •¦†°©„’““–ž˜ •‘§€¨¨¨¼¨€“"
+    "¼µ€˜°¨„‰•‚•‰ £”¥‘š–›“¡€¡¼¼¼“˜°Ÿ„Œ‰•ƒ™¬ †¼¸¼€"
+    " ¬•‡‰Š˜œ “Ÿš¼µ†®¼¸¸®€°©Œ‰•’„©°†¦¦“€µ€†˜¼€¦¬¬ª†˜¼"
+    "€¦¬•¢§¦§¦¬¥†††°¨•¨¬°¦€“µ¼¼®†† ª†¼“ ©Œ’“„‚€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€‡“’€©°Ÿ£“¼†€¨¼€ ¬™¬°†™•“°¤€”“…"
+    "•‰€¬ª†¼˜€ ¬¬ £›™›†µ€«©Œ‰••‰›ž•Ÿ“£†¼€€µ¼˜€€"
+    "®¼¡€«¬™€‘’‹’˜€™¬›£š˜“–˜˜˜€“¼¼€ ¬™˜––•‰€¤°““¼¼¨€"
+    "°©Œ”ˆŒš¥˜®“€®¼®˜¼¸¼¡°©€’•‰Œ©«€µ“˜¼€€µ¨€°©¢¬›¨"
+    "€°©¢¬¥˜™˜ª°“µ€ ©Œ„¨¬° †€˜¼¼µ€†°€¼“ ©Œ’“„‚€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€•‰Œ©°€®¡€¡¼€†¼®€°©Œ¢¬š™š §™ƒ˜’"
+    "’Ž€™¬°†µ¨€›    §“›“€¼† ¬™ƒ˜˜€™¬›™ž†™ †˜®€†¼¼††"
+    "˜¼¼†“°¨‹ƒ”’“”€¨°“›Ÿ†™”£ ° €¡¨€°©žžž•‹‡©°†¨¼¼˜“"
+    "°¨€’“‡”¢°†¼†˜¼¼¨¼¸¼“˜°Ÿ€™˜ƒ™¬ †¼“€®µ€¼˜“°¨¨¥“›"
+    "“°¨¬°† ™°°“¨¼“ ¬™ƒ€‡¨¬°›€†µ¼¡†¦•¼“ ©Œ’“„‚€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€‚’˜ƒ™¬ €¼“†¼¼€¡¼˜°¨€¢™˜™ ™‰•’"
+    "’€¨°“€®¼““““““““®†“¡•€¼““°¤€—”€¨°“›˜€µ“€µ˜¥€˜¼µ†"
+    "†¼¼¨€ ¬¢„‰•“‡©°€¨“€µ§§©°˜˜›“°¬°“•“ ›‹©¦€µ¸¼›"
+    "¬™€˜’‘ˆ¬ª€“µ†¼¸¸¸¸¼€ ¬•‡˜”€¤°““¼“¼¨€®¼›¬™‡™¬š›"
+    "š¬¬°“€µ“˜°°“¨¼““°¤€”†€‹¢¨¬ª††µ¨£•˜¼† ©Œ’“„‚€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€†“”€¤°““¼“¡¼¼†¼¼›¬€‹ŒŠ’”"
+    "ƒ‡¦¬›€¨¼¼¼¼¼¼¼¼¼¼¼˜“£š€¼¨†°©„’‡©°€¨“¼“¼›¬›€®¼µ"
+    "†µ¸¼“†ª¬™€‘•‰©¦€¼““¼€  ° ¬ ™™š¬°˜“¡“°›€™¬›¼¸¼€¦"
+    "©‰•Ž–†„¦¬ †¦µ¨¸°¸¼¨€°©Œ•‡©°†¨¼†®¼¨¼µ€¦©‰™››"
+    "Ÿ¬°˜€¨¼€ ¬°““¼¨†°©‡ƒ“‘ƒ€¦¬«† ¦§€µ¨€«©Œ’“„‚€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€ƒˆ’•‡©°†¨¼˜¼¸¨¡¼¼€¦©†ŒŽŽŽŽŽŽ’”ƒ"
+    "„¢¬¥€˜¼¨€€€€€€€€€“¨€¨®¼µ€«©Œ‰†©¦€¼“®¼®¼€¦©°†¼¼"
+    "µ®¸¼µ†“°¨‹€“€™¬›¼†®¼€µ“˜°Ÿ•˜˜˜Ÿ¬ €¡¡“°›„¨°“˜¼¼¨€°"
+    "©‡“‡Š’”€‹¨°“Œµµ¸°¸¼˜“°¨€’–ƒ©¦€µ¼¼¸¨®¼¨†°©‡ƒ€•¨"
+    "¬°“€¡¼®€°©¬ “¼µ€¦¬¢‡€†ƒ€•¤°š¦¡¨¼†“°¨„’“„‚€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€ƒˆ’”€•¬¦€µ¼µ¼¸«¸¼¨€°©‡‹‹‹‹‹‹Œ’’ƒ„"
+    "¢¬ª†¼µ†“°°°°°°° †¼€¨¼˜¼¼† ¬™€€¬›¼¼¼¼¨€°©¬ª€˜¼"
+    "¸¸¶¸¼¨€ ¬¦‡ƒ„¨°“˜¼¼¼˜¼€ ¬•Œ¢¬° €“¼“˜°›™¬«€¨¼¼““°"
+    "¨€”“Šƒ’‘€™§ª†¼¸¶¸¼›¬™€“†€¢¬›¼¼®¼¸±¸¼““°¤™¤©¬°"
+    "«€¨¼¼¡°©© “¼¼†ª¬¨ŒŒ•¤¬° §µ˜¼˜€ª¬™€•’ƒ€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€‚†Š‰„•¨°˜¼¸¸¸¶°¸¼˜“°¨€‰‹‡………‡ƒ‡¢"
+    "¬°††µ¼†ª¬©©©©©©«€®˜¨¼®¼¼““°¨„¨°˜¼®¼¼®¼““°¨¦¬›€®"
+    "¼¸°¶¸¼“€¥¬¢‹©«€¨¼®¼®µµ€°©¤©©¬°˜€“¼¼€ ¬¢¬°“†¼¸¼† ¬"
+    "‡†‡ƒ•‰‡¢¬¦€¡¼¸¸¼€¦©‰‡‡¬°†˜¼¸¸¸¶°¸¼€ ¬©©¬°°¦˜"
+    "€†®¼¸¼“˜°Ÿ© “¼¼µ††¦°¬©©¬°°˜†•¨¨µ¼¨€›¬¦„‰•€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€„ˆ‹‘™¬° €¡¼¸°°°°¸¼“˜°¨™‰Œˆƒ‚„‰Œ‰¢¬"
+    "ª€µ¼¡€¦¬¢„€„Œ™©°¨®¨¸¸¸¼¨€«¬™¨¬ €®¼¸¸¸¸¼† ¬™¨°"
+    "¼¸¶°¸¼¼†ª¬¢¨¬›†¼¸¸¸¸¸¨†°°°°«›†€¡¼¼®€°©¬°˜€¨¼¸¼“°"
+    "¬ŠŒˆƒ‡’”ƒ‡¨°˜€®¼¼¨€°©‡”Ÿ¬°˜€µ¼¸°°°°¸¼€†   ›“†€"
+    "¡¼¼¸¸¼€ ¬•© “¼¸¼µ€ «° ˜†€¡µ®¼¼“€“°¨€”’‡€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€…‰•ª˜€“¼¸¶°°°°¸¼¡€›°•ŽŽŠ„…‹Ž˜§¥"
+    "††®¼¼“˜°¬•‰‘Ž•°›€¨¸±¶°¶¸¼†“°ª›€“¼¸¶°°¸¼€“°•¬¦€"
+    "®¼¸°¶¸¼µ†† §°›€˜¼¸°°°¸µ€†““†€†˜µ¼¸¼¡°°›†€¡¼¸¸¼¨€"
+    "¥¢–Š…€‹’“€•¬°†µ¼““°¨‹”š¥¦€¡¼¸¶°°°°¸¼µ“““““˜¨µ¼"
+    "¼¸¸¶¸®€°©Œ© ¼¸¸¼¼®“†€€€“¡µ¼¼¼®†€ °¬™€Ž’€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€‚…ŠŽ‘•˜“•¡¼¼¸¸¸¸¸¸¸¸¼˜““š–Š…‚…Œ‘™š“"
+    "µ¼¸¼˜“˜œ–‘–š““˜¼¸¸¸¸¸¸¼¨“›˜“•˜¼¼¸¸¸¸¸¼¨“˜œ•‡¨°"
+    "˜¼¸¸¸¸¸¼µ•“š““˜¼¼¸¸¸¸¸¼µ¦¡¡¦µ¼¼¼¸¸¼“˜ ”“™µ¼¸¸¸¸¼®”"
+    "“™—‘Ž‹…€•€¬ª†“¼† ¬™‹•™™“”®¼¸¸¸¸¸¸¸¸¸¼¼¼¼¼¼¼¼¸¸"
+    "¸¸¸¸¼¡°©Œ©¦€¼¼¼¼¼¼¼¼¼¼¼¼¼¼¼®€ª¬¨™€‰•ƒ€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€‚…ŠŽ‘•˜›¡¨¨¨¨¨¨¨¨¨¨¨¨¨¡˜›–‹…‚…Œ‘™š›"
+    "¦¨¨¨¨¨Ÿšœ•‘–š˜¡¨¨¨¨¨¨¨¨¨¨››˜›¡¨¨¨¨¨¨¨¨¨¨Ÿšœ•‡¬›"
+    "†¨¨¨¨¨¨¨¨¦›˜˜¡¨¨¨¨¨¨¨¨¨¨¦¡¡¦¨¨¨¨¨¨¨€  ™¡¦¨¨¨¨¨¨¨¨£"
+    "›™—‘Ž‹…‚€†’–†„¢¬ €¡€«©Œ•™›Ÿ£¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨¨"
+    "¨¨¨¨¨˜°Ÿ‡¨°€€€€€€“¨µ¼¼¼®¨“†€¦°¬¦‹€‰–’‡€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€‚…ŠŽ‘•˜“““““““““““““““““š–Š…‚…Œ‘™š“"
+    "“““““““˜œ•–š“““““““““““““š˜“““““““““““““˜œ•Œ¨ª"
+    "“““““““““““š““““““““““““““““““““““““° ”“““““““““““"
+    "“™—‘Ž‹…‚€€Š’”ƒ‹¨°˜™˜°¨„‘•™™“““““““““““““““““““““““"
+    "““““““¥¬•€¦¬°°°°° “†€€€€€“ «°¬¨„€‘•’ˆ€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€…‰• °°°°°°°°°°°°°°° •ŽŽŠ„…‹Ž˜ª"
+    "°°°°°°° ”ŽŽ• °°°°°°°°°°°° °°°°°°°°°°°° ”ƒ™¬"
+    "°°°°°°°°°°ª °°°°°°°°°°°°««°°°°°°°°°¬ «°°°°°°°°°°"
+    "¥–Š…€€€‹’‘€•¬°°°¬•ƒ”š ¦°°°°°°°°°°°°°°°°°°°°°°"
+    "°°°°°°¬™‡€€¦¨©©©©¬°°°°°°°°°¬©¨‡€†”’‡€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€„ˆ‹‘•›››››››››››››››››•‰Œˆƒ€„‰Œ‰‘˜›"
+    "››››››››”ŽŒŠ•›››››››››››››™•››››››››››››››”Ž‰„™"
+    "›››››››››››˜››››››››››››››››››››››››™™™›››››››››››"
+    "›–‘ŠŒˆ„€€€€‚•€•–––•€”˜›››››››››››››››››››››››"
+    "››››››™‡‰’€€€€€€Œ™¤©©©©©©©Ÿ™Œ„€†“•’‚€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€‚†ŠŒ‰‹‹ŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒ‹‹‰Œ†‚€‚‡Œ‰‹‹"
+    "ŒŒŒŒŒŒŒ‹‹Ž‹‰‹‹ŒŒŒŒŒŒŒŒŒŒŒ‹‹‹‹ŒŒŒŒŒŒŒŒŒŒŒŒ‹‹’”‰‹"
+    "‹ŒŒŒŒŒŒŒŒŒ‹‹‹ŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒ‹‹‹‹ŒŒŒŒŒŒŒŒŒŒŒ"
+    "‹‹‰‹‡‚€€€€€†’–ŽŽ”‹‹ŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒŒ"
+    "ŒŒŒŒŒ‹‹‰’’•˜™šš’‰ƒ€€€€€€€€€‡‰’••’‰€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€ƒ‡Œ˜™ššššššššššššššš™˜Œ‡ƒ€€€ƒˆŒ“˜™"
+    "ššššššš™˜Œ‡Œ˜™ššššššššššš™˜˜™šššššššššššš™˜Œ’•˜"
+    "™ššššššššš™˜™šššššššššššššššššššššš™˜˜™ššššššššššš"
+    "™˜‘Œ‡ƒ€€€€€€€‡’•˜™š™˜•’Œ“™ššššššššššššššššššššššš"
+    "ššššš™˜•’’““““•˜™ššššššš™˜•“’‰€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€ƒ†ŠŒŒŠ†ƒ€€€€€ƒ‡ŠŒ"
+    "ŒŠ†ƒ†ŠŒŒŒŒŠ†‡ŠŒ"
+    "ŒŒŒ"
+    "ŒŠ‡ƒ€€€€€€€€€†ˆŠŠ‹ŠŠˆ††‰Œ"
+    "ŒŠ‡€€€€„‡’“““““““““’Œ‡ƒ€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€‚ƒ„„„„„„„„„„„„„„„„„ƒ‚€€€€€€€‚ƒ„"
+    "„„„„„„„„ƒ‚€‚ƒ„„„„„„„„„„„„„ƒƒ„„„„„„„„„„„„„„ƒ‚‚ƒ"
+    "„„„„„„„„„„„ƒ„„„„„„„„„„„„„„„„„„„„„„„„ƒƒ„„„„„„„„„„„„"
+    "„ƒ‚€€€€€€€€€€‚ƒ„………„ƒ‚‚ƒ„„„„„„„„„„„„„„„„„„„„„„„„"
+    "„„„„„„ƒ‚€€‚ƒ‚€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€‚ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ‚€€€€€€€€€€€‚ƒ"
+    "ƒƒƒƒƒƒƒƒ‚€€€€€‚ƒƒƒƒƒƒƒƒƒƒƒƒƒ‚‚ƒƒƒƒƒƒƒƒƒƒƒƒƒƒ‚€€€€‚"
+    "ƒƒƒƒƒƒƒƒƒƒƒ‚ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ‚‚ƒƒƒƒƒƒƒƒƒƒƒƒ"
+    "ƒ‚€€€€€€€€€€€€€€‚ƒƒƒ‚€€€€‚ƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒƒ"
+    "ƒƒƒƒƒƒ‚€€€€€€€€€€‚ƒƒƒƒƒƒƒƒƒ‚€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+"€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€€"
+    "€€€€€€"
+;
+
+static BITMAP datafile_logo_bitmap = {
+    256, 67, /* width, height */
+    0, 0, 0, 0, 0, /* clip */
+    (GFX_VTABLE *)8, /* bpp */
+    0, 0, /* write_bank, read_bank */
+    datafile_logo_bitmap_lines, /* data */
+    0, 0, 0, 0, 0,
+    { /* line[] array */
+      datafile_logo_bitmap_lines + 0,
+      datafile_logo_bitmap_lines + 256,
+      datafile_logo_bitmap_lines + 512,
+      datafile_logo_bitmap_lines + 768,
+      datafile_logo_bitmap_lines + 1024,
+      datafile_logo_bitmap_lines + 1280,
+      datafile_logo_bitmap_lines + 1536,
+      datafile_logo_bitmap_lines + 1792,
+      datafile_logo_bitmap_lines + 2048,
+      datafile_logo_bitmap_lines + 2304,
+      datafile_logo_bitmap_lines + 2560,
+      datafile_logo_bitmap_lines + 2816,
+      datafile_logo_bitmap_lines + 3072,
+      datafile_logo_bitmap_lines + 3328,
+      datafile_logo_bitmap_lines + 3584,
+      datafile_logo_bitmap_lines + 3840,
+      datafile_logo_bitmap_lines + 4096,
+      datafile_logo_bitmap_lines + 4352,
+      datafile_logo_bitmap_lines + 4608,
+      datafile_logo_bitmap_lines + 4864,
+      datafile_logo_bitmap_lines + 5120,
+      datafile_logo_bitmap_lines + 5376,
+      datafile_logo_bitmap_lines + 5632,
+      datafile_logo_bitmap_lines + 5888,
+      datafile_logo_bitmap_lines + 6144,
+      datafile_logo_bitmap_lines + 6400,
+      datafile_logo_bitmap_lines + 6656,
+      datafile_logo_bitmap_lines + 6912,
+      datafile_logo_bitmap_lines + 7168,
+      datafile_logo_bitmap_lines + 7424,
+      datafile_logo_bitmap_lines + 7680,
+      datafile_logo_bitmap_lines + 7936,
+      datafile_logo_bitmap_lines + 8192,
+      datafile_logo_bitmap_lines + 8448,
+      datafile_logo_bitmap_lines + 8704,
+      datafile_logo_bitmap_lines + 8960,
+      datafile_logo_bitmap_lines + 9216,
+      datafile_logo_bitmap_lines + 9472,
+      datafile_logo_bitmap_lines + 9728,
+      datafile_logo_bitmap_lines + 9984,
+      datafile_logo_bitmap_lines + 10240,
+      datafile_logo_bitmap_lines + 10496,
+      datafile_logo_bitmap_lines + 10752,
+      datafile_logo_bitmap_lines + 11008,
+      datafile_logo_bitmap_lines + 11264,
+      datafile_logo_bitmap_lines + 11520,
+      datafile_logo_bitmap_lines + 11776,
+      datafile_logo_bitmap_lines + 12032,
+      datafile_logo_bitmap_lines + 12288,
+      datafile_logo_bitmap_lines + 12544,
+      datafile_logo_bitmap_lines + 12800,
+      datafile_logo_bitmap_lines + 13056,
+      datafile_logo_bitmap_lines + 13312,
+      datafile_logo_bitmap_lines + 13568,
+      datafile_logo_bitmap_lines + 13824,
+      datafile_logo_bitmap_lines + 14080,
+      datafile_logo_bitmap_lines + 14336,
+      datafile_logo_bitmap_lines + 14592,
+      datafile_logo_bitmap_lines + 14848,
+      datafile_logo_bitmap_lines + 15104,
+      datafile_logo_bitmap_lines + 15360,
+      datafile_logo_bitmap_lines + 15616,
+      datafile_logo_bitmap_lines + 15872,
+      datafile_logo_bitmap_lines + 16128,
+      datafile_logo_bitmap_lines + 16384,
+      datafile_logo_bitmap_lines + 16640,
+      datafile_logo_bitmap_lines + 16896,
+      0 }
+};
+
+
+
 static DATAFILE_PROPERTY datafile_nester_palette_prop[] = {
     { "NESTER_PALETTE", DAT_ID('N', 'A', 'M', 'E') },
     { 0, DAT_END }
@@ -2670,6 +3160,7 @@ DATAFILE datafile_data[] = {
     { &datafile_grayscale_palette, DAT_ID('P', 'A', 'L', ' '), 1024, datafile_grayscale_palette_prop },
     { &datafile_gun_sprite, DAT_ID('B', 'M', 'P', ' '), 262, datafile_gun_sprite_prop },
     { &datafile_large_font, DAT_ID('F', 'O', 'N', 'T'), 1153, datafile_large_font_prop },
+    { &datafile_logo_bitmap, DAT_ID('B', 'M', 'P', ' '), 17158, datafile_logo_bitmap_prop },
     { &datafile_nester_palette, DAT_ID('P', 'A', 'L', ' '), 1024, datafile_nester_palette_prop },
     { &datafile_nesticle_palette, DAT_ID('P', 'A', 'L', ' '), 1024, datafile_nesticle_palette_prop },
     { &datafile_small_font, DAT_ID('F', 'O', 'N', 'T'), 963, datafile_small_font_prop },
@@ -2688,7 +3179,7 @@ static void _construct_me(void)
 
 
 
-/* end of ..\data.c */
+/* end of data.c */
 
 
 
