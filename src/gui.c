@@ -557,14 +557,33 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (options_audio_menu, 0, audio_enable_output);
 
 
-    TOGGLE_MENU (options_audio_mixing_menu, 0, (! audio_pseudo_stereo));
+    TOGGLE_MENU (options_audio_mixing_speed_menu, 0, (audio_sample_rate == 8000));
+
+    TOGGLE_MENU (options_audio_mixing_speed_menu, 2, (audio_sample_rate == 11025));
+
+    TOGGLE_MENU (options_audio_mixing_speed_menu, 4, (audio_sample_rate == 16000));
+
+    TOGGLE_MENU (options_audio_mixing_speed_menu, 6, (audio_sample_rate == 22050));
+
+    TOGGLE_MENU (options_audio_mixing_speed_menu, 8, (audio_sample_rate == 32000));
+
+    TOGGLE_MENU (options_audio_mixing_speed_menu, 10, (audio_sample_rate == 44100));
+
+    TOGGLE_MENU (options_audio_mixing_speed_menu, 12, (audio_sample_rate == 48000));
+
+    TOGGLE_MENU (options_audio_mixing_speed_menu, 14, (audio_sample_rate == 80000));
+
+    TOGGLE_MENU (options_audio_mixing_speed_menu, 16, (audio_sample_rate == 96000));
 
 
-    TOGGLE_MENU (options_audio_mixing_stereo_menu, 0, (audio_pseudo_stereo == 1));
+    TOGGLE_MENU (options_audio_mixing_channels_menu, 0, (! audio_pseudo_stereo));
 
-    TOGGLE_MENU (options_audio_mixing_stereo_menu, 2, (audio_pseudo_stereo == 2));
 
-    TOGGLE_MENU (options_audio_mixing_stereo_menu, 4, (audio_pseudo_stereo == 3));
+    TOGGLE_MENU (options_audio_mixing_channels_stereo_menu, 0, (audio_pseudo_stereo == 1));
+
+    TOGGLE_MENU (options_audio_mixing_channels_stereo_menu, 2, (audio_pseudo_stereo == 2));
+
+    TOGGLE_MENU (options_audio_mixing_channels_stereo_menu, 4, (audio_pseudo_stereo == 3));
 
 
     TOGGLE_MENU (options_audio_mixing_quality_menu, 0, (audio_sample_size == 8));
@@ -1829,7 +1848,50 @@ static int options_audio_menu_enabled (void)
 }
 
 
-static int options_audio_mixing_menu_normal (void)
+#define MIXING_SPEED_MENU_HANDLER(speed)        \
+    static int options_audio_mixing_speed_menu_##speed##_hz (void)  \
+    {                                           \
+        audio_sample_rate = speed;              \
+                                                \
+                                                \
+        audio_exit ();                          \
+                                                \
+        audio_init ();                          \
+                                                \
+                                                \
+        papu_reinit ();                         \
+                                                \
+                                                \
+        update_menus ();                        \
+                                                \
+                                                \
+        gui_message (gui_fg_color, "Audio mixing speed set to %d Hz.", speed);  \
+                                                \
+                                                \
+        return (D_O_K);                         \
+    }
+
+
+MIXING_SPEED_MENU_HANDLER (8000)
+
+MIXING_SPEED_MENU_HANDLER (11025)
+
+MIXING_SPEED_MENU_HANDLER (16000)
+
+MIXING_SPEED_MENU_HANDLER (22050)
+
+MIXING_SPEED_MENU_HANDLER (32000)
+
+MIXING_SPEED_MENU_HANDLER (44100)
+
+MIXING_SPEED_MENU_HANDLER (48000)
+
+MIXING_SPEED_MENU_HANDLER (80000)
+
+MIXING_SPEED_MENU_HANDLER (96000)
+
+
+static int options_audio_mixing_channels_menu_mono (void)
 {
     audio_pseudo_stereo = FALSE;
 
@@ -1845,14 +1907,14 @@ static int options_audio_mixing_menu_normal (void)
     update_menus ();
 
 
-    gui_message (gui_fg_color, "Audio mixing set to normal (mono).");
+    gui_message (gui_fg_color, "Audio mixing channels set to mono.");
 
 
     return (D_O_K);
 }
 
 
-static int options_audio_mixing_stereo_menu_classic (void)
+static int options_audio_mixing_channels_stereo_menu_classic (void)
 {
     if (! audio_pseudo_stereo)
     {
@@ -1875,14 +1937,14 @@ static int options_audio_mixing_stereo_menu_classic (void)
     update_menus ();
     
 
-    gui_message (gui_fg_color, "Audio mixing set to classic stereo.");
+    gui_message (gui_fg_color, "Audio mixing channels set to classic stereo.");
 
 
     return (D_O_K);
 }
 
 
-static int options_audio_mixing_stereo_menu_enhanced (void)
+static int options_audio_mixing_channels_stereo_menu_enhanced (void)
 {
     if (! audio_pseudo_stereo)
     {
@@ -1905,14 +1967,14 @@ static int options_audio_mixing_stereo_menu_enhanced (void)
     update_menus ();
     
 
-    gui_message (gui_fg_color, "Audio mixing set to enhanced stereo.");
+    gui_message (gui_fg_color, "Audio mixing channels set to enhanced stereo.");
 
 
     return (D_O_K);
 }
 
 
-static int options_audio_mixing_stereo_menu_accurate (void)
+static int options_audio_mixing_channels_stereo_menu_accurate (void)
 {
     if (! audio_pseudo_stereo)
     {
@@ -1935,7 +1997,7 @@ static int options_audio_mixing_stereo_menu_accurate (void)
     update_menus ();
     
 
-    gui_message (gui_fg_color, "Audio mixing set to accurate stereo.");
+    gui_message (gui_fg_color, "Audio mixing channels set to accurate stereo.");
 
 
     return (D_O_K);

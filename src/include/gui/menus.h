@@ -199,6 +199,78 @@ static MENU netplay_menu [] =
 };
 
 
+static int options_audio_mixing_channels_stereo_menu_classic (void);
+
+static int options_audio_mixing_channels_stereo_menu_enhanced (void);
+
+static int options_audio_mixing_channels_stereo_menu_accurate (void);
+
+
+static MENU options_audio_mixing_channels_stereo_menu [] =
+{
+    {  "&Classic",  options_audio_mixing_channels_stereo_menu_classic, NIL, 0, NIL },
+    {          "",                                                NIL, NIL, 0, NIL },
+    { "&Enhanced", options_audio_mixing_channels_stereo_menu_enhanced, NIL, 0, NIL },
+    {          "",                                                NIL, NIL, 0, NIL },
+    { "&Accurate", options_audio_mixing_channels_stereo_menu_accurate, NIL, 0, NIL },
+    {         NIL,                                                NIL, NIL, 0, NIL }
+};
+
+
+static int options_audio_mixing_channels_menu_mono (void);
+
+
+static MENU options_audio_mixing_channels_menu [] =
+{
+    {   "&Mono", options_audio_mixing_channels_menu_mono,                                       NIL, 0, NIL },
+    {        "",                                     NIL,                                       NIL, 0, NIL },
+    { "&Stereo",                                     NIL, options_audio_mixing_channels_stereo_menu, 0, NIL },
+    {       NIL,                                     NIL,                                       NIL, 0, NIL }
+};
+
+
+static int options_audio_mixing_speed_menu_8000_hz (void);
+
+static int options_audio_mixing_speed_menu_11025_hz (void);
+
+static int options_audio_mixing_speed_menu_16000_hz (void);
+
+static int options_audio_mixing_speed_menu_22050_hz (void);
+
+static int options_audio_mixing_speed_menu_32000_hz (void);
+
+static int options_audio_mixing_speed_menu_44100_hz (void);
+
+static int options_audio_mixing_speed_menu_48000_hz (void);
+
+static int options_audio_mixing_speed_menu_80000_hz (void);
+
+static int options_audio_mixing_speed_menu_96000_hz (void);
+
+
+static MENU options_audio_mixing_speed_menu [] =
+{
+    {  "&1: 8000 Hz",  options_audio_mixing_speed_menu_8000_hz, NIL, 0, NIL },
+    {             "",                                      NIL, NIL, 0, NIL },
+    { "&2: 11025 Hz", options_audio_mixing_speed_menu_11025_hz, NIL, 0, NIL },
+    {             "",                                      NIL, NIL, 0, NIL },
+    { "&3: 16000 Hz", options_audio_mixing_speed_menu_16000_hz, NIL, 0, NIL },
+    {             "",                                      NIL, NIL, 0, NIL },
+    { "&4: 22050 Hz", options_audio_mixing_speed_menu_22050_hz, NIL, 0, NIL },
+    {             "",                                      NIL, NIL, 0, NIL },
+    { "&5: 32000 Hz", options_audio_mixing_speed_menu_32000_hz, NIL, 0, NIL },
+    {             "",                                      NIL, NIL, 0, NIL },
+    { "&6: 44100 Hz", options_audio_mixing_speed_menu_44100_hz, NIL, 0, NIL },
+    {             "",                                      NIL, NIL, 0, NIL },
+    { "&7: 48000 Hz", options_audio_mixing_speed_menu_48000_hz, NIL, 0, NIL },
+    {             "",                                      NIL, NIL, 0, NIL },
+    { "&8: 80000 Hz", options_audio_mixing_speed_menu_80000_hz, NIL, 0, NIL },
+    {             "",                                      NIL, NIL, 0, NIL },
+    { "&9: 96000 Hz", options_audio_mixing_speed_menu_96000_hz, NIL, 0, NIL },
+    {            NIL,                                      NIL, NIL, 0, NIL }
+};
+
+
 static int options_audio_mixing_quality_menu_low_8_bit (void);
 
 static int options_audio_mixing_quality_menu_high_16_bit (void);
@@ -217,35 +289,13 @@ static MENU options_audio_mixing_quality_menu [] =
 };
 
 
-static int options_audio_mixing_stereo_menu_classic (void);
-
-static int options_audio_mixing_stereo_menu_enhanced (void);
-
-static int options_audio_mixing_stereo_menu_accurate (void);
-
-
-static MENU options_audio_mixing_stereo_menu [] =
-{
-    {  "&Classic",  options_audio_mixing_stereo_menu_classic, NIL, 0, NIL },
-    {          "",                                       NIL, NIL, 0, NIL },
-    { "&Enhanced", options_audio_mixing_stereo_menu_enhanced, NIL, 0, NIL },
-    {          "",                                       NIL, NIL, 0, NIL },
-    { "&Accurate", options_audio_mixing_stereo_menu_accurate, NIL, 0, NIL },
-    {         NIL,                                       NIL, NIL, 0, NIL }
-};
-
-
-static int options_audio_mixing_menu_normal (void);
-
-
 static MENU options_audio_mixing_menu [] =
 {
-    {  "&Normal",  options_audio_mixing_menu_normal,                               NIL, 0, NIL },
-    {         "",                               NIL,                               NIL, 0, NIL },
-    {  "&Stereo",                               NIL,  options_audio_mixing_stereo_menu, 0, NIL },
-    {         "",                               NIL,                               NIL, 0, NIL },
-    { "&Quality",                               NIL, options_audio_mixing_quality_menu, 0, NIL },
-    {        NIL,                               NIL,                               NIL, 0, NIL }
+    {    "&Speed", NIL,    options_audio_mixing_speed_menu, 0, NIL },
+    {          "", NIL,                                NIL, 0, NIL },
+    { "&Channels", NIL, options_audio_mixing_channels_menu, 0, NIL },
+    {          "", NIL,                                NIL, 0, NIL },
+    {  "&Quality", NIL,  options_audio_mixing_quality_menu, 0, NIL },
 };
 
 
