@@ -58,7 +58,14 @@ OPCODE_EPILOG
 
 
 OPCODE_PROLOG(0x40) /* RTI */
-    M_POP(R->P);R->P|=R_FLAG;M_UNFIX_P();M_POP(R->PC.B.l);M_POP(R->PC.B.h);
+    M_POP(R->P);
+    if((R->IRequest!=INT_NONE)&&(!(R->P&I_FLAG) && R->I))
+    {
+      R->AfterCLI=1;
+      R->IBackup=R->ICount;
+      R->ICount=1;
+    }
+    R->P|=R_FLAG;M_UNFIX_P();M_POP(R->PC.B.l);M_POP(R->PC.B.h);
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x60) /* RTS */
@@ -108,14 +115,14 @@ OPCODE_PROLOG(0x58) /* CLI */
 OPCODE_EPILOG
 
 OPCODE_PROLOG(0x28) /* PLP */
-    M_POP(I);
-    if((R->IRequest!=INT_NONE)&&((I^(R->I?I_FLAG:0))&~I&I_FLAG))
+    M_POP(R->P);
+    if((R->IRequest!=INT_NONE)&&(!(R->P&I_FLAG) && R->I))
     {
       R->AfterCLI=1;
       R->IBackup=R->ICount;
       R->ICount=1;
     }
-    R->P=I|R_FLAG;
+    R->P|=R_FLAG;
     M_UNFIX_P();
 OPCODE_EPILOG
 
