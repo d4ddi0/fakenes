@@ -451,15 +451,18 @@ UINT8 ppu_read (UINT16 address)
                     data |= VRAM_WRITE_FLAG_BIT;
                 }
             }
-            else
-            //{
-            //    data |= SPRITE_0_COLLISION_BIT;
-            //}
 
             if (hit_first_sprite)
             {
                 data |= SPRITE_0_COLLISION_BIT;
             }
+            /*
+            else
+            {
+                data |= SPRITE_0_COLLISION_BIT;
+            }
+            */
+
 
             address_write = FALSE;
 
@@ -735,12 +738,48 @@ void ppu_start_render (void)
 }
 
 
-void ppu_stub_render_line (int line)
+void ppu_sprite_priority_0_check(int line)
 {
-    if ((ppu_spr_ram [0] + 1) == line)
+    int first_y, last_y, y;
+    int address;
+
+    if (hit_first_sprite) return;
+
+    if (!sprites_enabled) return;
+
+    first_y = ppu_spr_ram [0] + 2;
+    last_y = first_y + sprite_height - 1;
+
+    if (line < first_y || line > last_y) return;
+
+    if (ppu_spr_ram [2] & 0x80) y = last_y - line;
+    else y = line - first_y;
+
+    address = ppu_spr_ram [1];
+
+    if (sprite_height == 8)
+    {
+        address = address * 16 + sprite_tileset + y;
+
+    }
+    else /* sprite_height == 16 */
+    {
+        if (address & 1) address = (address - 1) * 16 + 0x1000 + y;
+        else address = address * 16 + y;
+
+        if (y & 8) address += 8;
+    }
+
+    if (vram_read (address + y) | vram_read (address + y + 8))
     {
         hit_first_sprite = TRUE;
     }
+}
+
+
+void ppu_stub_render_line (int line)
+{
+    ppu_sprite_priority_0_check(line);
 }
 
 
@@ -754,10 +793,7 @@ void ppu_stub_render_line (int line)
 
 void ppu_render_line (int line)
 {
-    if ((ppu_spr_ram [0] + 1) == line)
-    {
-        hit_first_sprite = TRUE;
-    }
+    ppu_sprite_priority_0_check(line);
 
     if (background_enabled)
     {
