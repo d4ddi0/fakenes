@@ -736,7 +736,7 @@ static INLINE void blit_2xscl (BITMAP * source, BITMAP * target, int x, int y)
             center_pixel = FAST_GETPIXEL (source, x_offset, y_offset);
         
 
-            if (x_base == 0)
+            if (x_offset == 0)
             {
                 west_pixel = center_pixel;
             }
@@ -766,7 +766,7 @@ static INLINE void blit_2xscl (BITMAP * source, BITMAP * target, int x, int y)
             }
 	
 
-            if (y_base == 0)
+            if (y_offset == 0)
             {
                 north_pixel = center_pixel;
             }
@@ -1451,7 +1451,7 @@ static INLINE void blit_super_2xscl (BITMAP * source, BITMAP * target, int x, in
             center_pixel = FAST_GETPIXEL (source, x_offset, y_offset);
 
 
-            if (x_base == 0)
+            if (x_offset == 0)
             {
                 west_pixel = center_pixel;
             }
@@ -1481,7 +1481,7 @@ static INLINE void blit_super_2xscl (BITMAP * source, BITMAP * target, int x, in
             }
 	
 
-            if (y_base == 0)
+            if (y_offset == 0)
             {
                 north_pixel = center_pixel;
             }
