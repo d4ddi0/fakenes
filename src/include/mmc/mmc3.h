@@ -70,32 +70,16 @@ static void mmc3_write (UINT16 address, UINT8 value)
 
             mmc3_prg_address = scrap;
 
-            if (!mmc3_prg_address)
-            /* 8000,A000 swappable */
-            {
-                /* set address for non-swappable page */
-                cpu_set_read_address_8k (0xC000, LAST_ROM_PAGE);
+            /* set address for non-swappable page */
+            cpu_set_read_address_8k (
+                (mmc3_prg_address == 0x8000) ? 0xC000 : 0x8000,
+                LAST_ROM_PAGE);
 
-                /* set addresses for swappable pages */
-                cpu_set_read_address_8k_rom_block (0x8000,
-                    mmc3_cpu_bank[0]);
-                cpu_set_read_address_8k_rom_block (0xA000,
-                    mmc3_cpu_bank[1]);
-                
-            }
-            else
-            /* A000,C000 swappable */
-            {
-                /* set address for non-swappable page */
-                cpu_set_read_address_8k (0x8000, LAST_ROM_PAGE);
-
-                /* set addresses for swappable pages */
-                cpu_set_read_address_8k_rom_block (0xA000,
-                    mmc3_cpu_bank[1]);
-                cpu_set_read_address_8k_rom_block (0xC000,
-                    mmc3_cpu_bank[0]);
-                
-            }
+            /* set addresses for swappable pages */
+            cpu_set_read_address_8k_rom_block (mmc3_prg_address,
+                mmc3_cpu_bank[0]);
+            cpu_set_read_address_8k_rom_block (0xA000,
+                mmc3_cpu_bank[1]);
 
 
             break;
