@@ -3265,7 +3265,7 @@ static int machine_patches_dialog_add (DIALOG * dialog)
 
     if (cpu_patch_count >= MAX_PATCHES)
     {
-        alert ("Error", NIL, "The patch list is already full.", "&OK", NIL, 'o', 0);
+        alert ("- Error -", NIL, "The patch list is already full.", "&OK", NIL, 'o', 0);
 
 
         return (D_O_K);
@@ -3298,7 +3298,7 @@ static int machine_patches_dialog_add (DIALOG * dialog)
 
     if (genie_decode (buffer2, &patch -> address, &patch -> value, &patch -> match_value) != 0)
     {
-        alert ("Error", NIL, "You must enter a 6 or 8 digit Game Genie code.", "&OK", NIL, 'o', 0);
+        alert ("- Error -", NIL, "You must enter a 6 or 8 digit Game Genie code.", "&OK", NIL, 'o', 0);
 
 
         return (D_O_K);
@@ -3581,7 +3581,7 @@ static int options_input_dialog_device_select (DIALOG * dialog)
 {
     if (selected_player < 0)
     {
-        alert ("Error", "", "Please select a player to modify first.", "&OK", NIL, 'o', 0);
+        alert ("- Error -", "", "Please select a player to modify first.", "&OK", NIL, 'o', 0);
 
 
         return (D_O_K);
@@ -3608,7 +3608,7 @@ static int options_input_dialog_set_buttons (DIALOG * dialog)
 
     if (selected_player < 0)
     {
-        alert ("Error", "", "Please select a player to modify first.", "&OK", NIL, 'o', 0);
+        alert ("- Error -", "", "Please select a player to modify first.", "&OK", NIL, 'o', 0);
 
 
         return (D_O_K);
@@ -3623,7 +3623,7 @@ static int options_input_dialog_set_buttons (DIALOG * dialog)
         if ((button == INPUT_DEVICE_BUTTON_UP) || (button == INPUT_DEVICE_BUTTON_DOWN) ||
             (button == INPUT_DEVICE_BUTTON_LEFT) || (button == INPUT_DEVICE_BUTTON_RIGHT))
         {
-            alert ("Error", "", "Unable to set direction buttons for joystick devices.", "&OK", NIL, 'o', 0);
+            alert ("- Error -", "", "Unable to set direction buttons for joystick devices.", "&OK", NIL, 'o', 0);
     
     
             return (D_O_K);

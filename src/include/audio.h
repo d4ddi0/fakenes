@@ -24,7 +24,7 @@ You must read and accept the license prior to use.
 
 enum
 {
-    AUDIO_CLASSIC_STEREO_MIXING,
+    AUDIO_CLASSIC_STEREO_MIXING = 1,
 
     AUDIO_ENHANCED_STEREO_MIXING,
 
