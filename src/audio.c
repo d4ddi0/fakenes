@@ -83,12 +83,12 @@ int audio_init (void)
         {
             return (1);
         }
-    }
 
 
-    if (! gui_is_active)
-    {
-        printf ("Audio initialized: %s (%d kHz).\n\n", digi_driver -> name, (audio_sample_rate / 1000));
+        if (! gui_is_active)
+        {
+            printf ("Audio initialized: %s (%d kHz).\n\n", digi_driver -> name, (audio_sample_rate / 1000));
+        }
     }
 
 
