@@ -569,9 +569,6 @@ int main (int argc, char * argv [])
                 {
                     /* Use PAL timing. */
 
-                    ppu_start_render ();
-
-
                     for (line = 0; line < TOTAL_LINES_PAL; line ++)
                     {
                         if (mmc_scanline_start)
@@ -620,7 +617,9 @@ int main (int argc, char * argv [])
             else
             {
                 /* Perform a partial render. */
-    
+
+                ppu_start_frame ();
+
                 if (machine_type == MACHINE_TYPE_NTSC)
                 {
                     /* Use NTSC timing. */

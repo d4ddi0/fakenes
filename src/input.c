@@ -110,7 +110,14 @@ static int input_devices [4];
 static int zapper_mask = 0;
 
 
-void input_update_zapper (void)
+void input_update_zapper_frame_start (void)
+{
+    input_zapper_x = mouse_x;
+    input_zapper_y = mouse_y;
+    input_zapper_button = mouse_b & 1;
+}
+
+void input_update_zapper_frame_end (void)
 {
     int pixel;
 
@@ -118,13 +125,13 @@ void input_update_zapper (void)
     zapper_mask = 0x08;
 
 
-    if ((mouse_x < 256) && (mouse_y < 240))
+    if ((input_zapper_x < 256) && (input_zapper_y < 240))
     {
         pixel = (_getpixel
-            (video_buffer, mouse_x, mouse_y) - 1);
+            (video_buffer, input_zapper_x, input_zapper_y) - 1);
 
 
-        if (mouse_b & 1)
+        if (input_zapper_button)
         {
             /* Left button. */
 

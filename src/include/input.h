@@ -44,7 +44,10 @@ void input_write (UINT16, UINT8);
 int input_process (void);
 
 
-void input_update_zapper (void);
+int input_zapper_x, input_zapper_y, input_zapper_button;
+
+void input_update_zapper_frame_start (void);
+void input_update_zapper_frame_end (void);
 
 
 #ifdef __cplusplus

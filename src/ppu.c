@@ -1102,9 +1102,20 @@ void ppu_clear (void)
 }
 
 
+void ppu_start_frame (void)
+{
+    if (input_enable_zapper)
+    {
+        input_update_zapper_frame_start ();
+    }
+}
+
+
 void ppu_start_render (void)
 {
     clear_to_color (video_buffer, ppu_background_palette [0]);
+
+    ppu_start_frame();
 }
 
 
@@ -1308,6 +1319,15 @@ void ppu_stub_render_line (int line)
 {
     int first_y, last_y;
 
+    /* draw lines for zapper emulation */
+    if (input_enable_zapper && line == input_zapper_y)
+    {
+        ppu_render_line (line);
+        return;
+    }
+
+
+    /* draw lines for sprite 0 collision emulation */
     if (!background_enabled || !sprites_enabled) return;
 
     if (hit_first_sprite) return;
@@ -1335,17 +1355,16 @@ void ppu_vblank (void)
     {
         cpu_interrupt (CPU_INTERRUPT_NMI);
     }
+
+    if (input_enable_zapper)
+    {
+        input_update_zapper_frame_end ();
+    }
 }
 
 
 void ppu_end_render (void)
 {
-    if (input_enable_zapper)
-    {
-        input_update_zapper ();
-    }
-
-
     video_blit ();
 
     ppu_vblank ();
