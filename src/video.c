@@ -1279,11 +1279,11 @@ void video_set_palette (RGB * palette)
 
     for (index = GUI_PALETTE_START; index < (GUI_PALETTE_START + GUI_PALETTE_END); index ++)
     {
-        internal_palette [index].r = fix (((index - GUI_PALETTE_START) + light_adjustment), 0, 63);
+        internal_palette [index].r = (index - GUI_PALETTE_START);
 
-        internal_palette [index].g = fix (((index - GUI_PALETTE_START) + light_adjustment), 0, 63);
+        internal_palette [index].g = (index - GUI_PALETTE_START);
 
-        internal_palette [index].b = fix (((index - GUI_PALETTE_START) + light_adjustment), 0, 63);
+        internal_palette [index].b = (index - GUI_PALETTE_START);
     }
 
 
