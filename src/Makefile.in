@@ -27,7 +27,7 @@ all : fakenes
 
 fakenes : ${OBJECTS}
 
-	${CC} ${OBJECTS} -o fakenes -s ${LIBRARIES}
+	${CC} ${OBJECTS} -o fakenes ${LIBRARIES}
 
 
 .SUFFIXES : .c
