@@ -25,7 +25,7 @@ WFLAGS = -Wall -Wno-unused
 CFLAGS = ${IFLAGS} ${OFLAGS} ${WFLAGS} ${DFLAGS}
 
 
-LIBRARIES = support/resource.o -lalleg -lNLstatic -lz
+LIBRARIES = support/resource.o -lalleg -lz -lHawkNL
 
 
 OBJECTS = apu.o audio.o core.o cpu.o gui.o input.o papu.o ppu.o rom.o \
