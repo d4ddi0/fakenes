@@ -1,3 +1,24 @@
+0.1.3
+Miscellaneous changes
+PRG allocation, banking, and masking centralized.
+Eliminated 0-byte allocations when no CHR ROM was present.
+ROM loading code merged.
+
+Timing changes
+Minor CPU core IRQ fixes.
+
+Memory mapper support changes
+MMC interface overhauled.
+MMC3 IRQ improvements.
+MMC3 PRG banking fixed.
+
+Audio rendernig & output changes
+Default samping rate changed to 44.1 kHz.
+Default buffer length (in frames) changed to 4.
+Various recording bugs fixed.
+Linear echo effect tweaked and intensified.
+Default filter changed to weighted low pass.
+
 0.1.2
 Miscellaneous changes
 PPU source split into multiple files.
