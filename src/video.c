@@ -1341,16 +1341,6 @@ void video_set_filter_list (int filters)
     filter_list = filters;
 
 
-    if (filter_list & VIDEO_FILTER_SCANLINES_MEDIUM)
-    {
-        set_trans_blender (0, 0, 0, 127);
-    }
-    else if (filter_list & VIDEO_FILTER_SCANLINES_LOW)
-    {
-        set_trans_blender (0, 0, 0, 63);
-    }
-
-
     clear (screen_buffer);
 }
 
@@ -1375,12 +1365,15 @@ void video_filter (void)
     }
     else if (filter_list & VIDEO_FILTER_SCANLINES_MEDIUM)
     {
+        set_trans_blender (0, 0, 0, 127);
+
+
         drawing_mode (DRAW_MODE_TRANS, NIL, 0, 0);
 
 
         for (y = 0; y < screen_buffer -> h; y += 2)
         {
-            hline (screen_buffer, blit_x_offset, y, screen_buffer -> w, 0);
+            hline (screen_buffer, blit_x_offset, y, screen_buffer -> w, makecol (0, 0, 0));
         }
 
 
@@ -1388,12 +1381,15 @@ void video_filter (void)
     }
     else if (filter_list & VIDEO_FILTER_SCANLINES_LOW)
     {
+        set_trans_blender (0, 0, 0, 63);
+
+
         drawing_mode (DRAW_MODE_TRANS, NIL, 0, 0);
 
 
         for (y = 0; y < screen_buffer -> h; y += 2)
         {
-            hline (screen_buffer, blit_x_offset, y, screen_buffer -> w, 0);
+            hline (screen_buffer, blit_x_offset, y, screen_buffer -> w, makecol (0, 0, 0));
         }
 
 
