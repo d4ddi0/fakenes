@@ -482,9 +482,7 @@ static INLINE int select_blitter (void)
 }
 
 
-/* Todo: Make this deemphasis instead! (See Chris Covell's doc.) */
-
-static INLINE void color_emphasis_overlay (void)
+static INLINE void color_deemphasis_overlay (void)
 {
     int y;
 
@@ -540,7 +538,7 @@ static INLINE void color_emphasis_overlay (void)
     }
 
 
-    set_add_blender (0, 0, 0, 255);
+    set_multiply_blender (0, 0, 0, 255);
 
 
     drawing_mode (DRAW_MODE_TRANS, NULL, 0, 0);
@@ -551,11 +549,11 @@ static INLINE void color_emphasis_overlay (void)
         int bits;
 
 
-        int red;
+        int red = 255;
 
-        int green;
+        int green = 255;
 
-        int blue;
+        int blue = 255;
 
 
         int line;
@@ -569,12 +567,29 @@ static INLINE void color_emphasis_overlay (void)
         }
 
 
-        blue = ((bits & 4) ? 63 : 0);
+        if (bits & 4)   /* Blue. */
+        {
+            green = 191;
 
-        green = ((bits & 2) ? 63 : 0);
+            red = 191;
+        }
 
-        red = ((bits & 1) ? 63 : 0);
 
+        if (bits & 2)   /* Green. */
+        {
+            blue = 191;
+
+            red = 191;
+        }
+
+
+        if (bits & 1)   /* Red. */
+        {
+            blue = 191;
+
+            green = 191;
+        }
+            
 
         for (line = 0; line < height; line ++)
         {
@@ -708,7 +723,7 @@ void video_blit (BITMAP * bitmap)
     }
 
 
-    color_emphasis_overlay ();
+    color_deemphasis_overlay ();
 
 
     if (selected_blitter > 0)
