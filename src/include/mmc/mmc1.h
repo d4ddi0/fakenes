@@ -55,42 +55,13 @@ static INLINE void mmc1_cpu_bank_sort (void)
   cpu_set_read_address_16k_rom_block (0xC000, (mmc1_256k_bank_num * (256 / 16)) + mmc1_cpu_bank[1]);
 }
 
-static void mmc1_write (UINT16 address, UINT8 value)
+
+/* passed a register selection address, 0-3 */
+static void mmc1_set_register_value (unsigned address, UINT8 value)
 {
-    int mmc1_current_register;
-        
-    mmc1_current_register = (address & 0x6000) >> 13;
+    mmc1_register[address] = value;
 
-    /* just in case the write is to a different register */
-    if (mmc1_current_register != mmc1_previous_register)
-    {
-        mmc1_bit_counter = 0;
-	mmc1_bit_stream = 0x00;
-        mmc1_previous_register = mmc1_current_register;
-    }
-
-    /* check the reset flag */
-    if (value & 0x80)
-    {
-        mmc1_bit_counter = 0;
-	mmc1_bit_stream = 0x00;
-	return;
-    }
-
-    /* buffer the 5 bit writes into mmc1_bit_stream */
-    if (value & 0x01) mmc1_bit_stream |= (1 << mmc1_bit_counter); //neat idea, nester dude!
-
-    mmc1_bit_counter++;
-    if (mmc1_bit_counter < 5) return;
-
-    /* pack the buffered bits into the register */
-    mmc1_register[mmc1_current_register] = mmc1_bit_stream;
-    
-    /* clean up buffer & counter */
-    mmc1_bit_stream = 0x00;
-    mmc1_bit_counter = 0;
-
-    switch (mmc1_current_register)
+    switch (address)
     {
 	case 0:
         {
@@ -167,7 +138,7 @@ static void mmc1_write (UINT16 address, UINT8 value)
                 {
                     int mmc1_bank_number = mmc1_register[1] * 4;
 
-                    /* swap 4k of CHR-ROM */ //works!!!
+                    /* swap 4k of CHR-ROM */
                     ppu_set_ram_1k_pattern_vrom_block (0 << 10,
                         mmc1_bank_number);
                     ppu_set_ram_1k_pattern_vrom_block (1 << 10,
@@ -180,7 +151,7 @@ static void mmc1_write (UINT16 address, UINT8 value)
 
                     mmc1_bank_number = mmc1_register[2] * 4;
 
-                    /* swap other 4k of CHR-ROM */ //works!!!
+                    /* swap other 4k of CHR-ROM */
                     ppu_set_ram_1k_pattern_vrom_block (4 << 10,
                         mmc1_bank_number);
                     ppu_set_ram_1k_pattern_vrom_block (5 << 10,
@@ -235,6 +206,7 @@ static void mmc1_write (UINT16 address, UINT8 value)
                 mmc1_256k_bank_num =
                     (mmc1_register[1] & MMC1_256K_SELECT_0_BIT) ? 3 : 0;
             }
+
             mmc1_cpu_bank_sort();
 
             if (ROM_CHR_ROM_PAGES > 0)
@@ -303,6 +275,7 @@ static void mmc1_write (UINT16 address, UINT8 value)
                 mmc1_256k_bank_num =
                     (mmc1_register[1] & MMC1_256K_SELECT_0_BIT) ? 3 : 0;
             }
+
             mmc1_cpu_bank_sort();
 
             if (ROM_CHR_ROM_PAGES == 0)
@@ -360,17 +333,56 @@ static void mmc1_write (UINT16 address, UINT8 value)
                     mmc1_cpu_bank [1] = (mmc1_bank_number + 1) & 0x0F;
                 }
             }
+
             mmc1_cpu_bank_sort();
         }
     return;
     }
 }
 
+
+static void mmc1_write (UINT16 address, UINT8 value)
+{
+    int mmc1_current_register;
+        
+    mmc1_current_register = (address & 0x6000) >> 13;
+
+    /* just in case the write is to a different register */
+    if (mmc1_current_register != mmc1_previous_register)
+    {
+        mmc1_bit_counter = 0;
+	mmc1_bit_stream = 0x00;
+        mmc1_previous_register = mmc1_current_register;
+    }
+
+    /* check the reset flag */
+    if (value & 0x80)
+    {
+        mmc1_bit_counter = 0;
+	mmc1_bit_stream = 0x00;
+        mmc1_set_register_value (0, mmc1_register[0] | 0x0C);
+	return;
+    }
+
+    /* buffer the 5 bit writes into mmc1_bit_stream */
+    if (value & 0x01) mmc1_bit_stream |= (1 << mmc1_bit_counter); //neat idea, nester dude!
+
+    mmc1_bit_counter++;
+    if (mmc1_bit_counter < 5) return;
+
+    /* pack the buffered bits into the register */
+    mmc1_set_register_value (mmc1_current_register, mmc1_bit_stream);
+
+    /* clean up buffer & counter */
+    mmc1_bit_stream = 0x00;
+    mmc1_bit_counter = 0;
+}
+
 static void mmc1_reset (void)
 {
     int index;
 
-    mmc1_register[0]=0x0c;//0c
+    mmc1_register[0]=0x0c;
     mmc1_register[1]=0x00;
     mmc1_register[2]=0x00;
     mmc1_register[3]=0x00;
