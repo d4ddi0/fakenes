@@ -189,7 +189,7 @@ static void mmc3_write (UINT16 address, UINT8 value)
 
             if (! (global_rom.control_byte_1 & ROM_CTRL_4SCREEN))
             {
-                set_ppu_mirroring (((value & 1) ?
+                ppu_set_mirroring (((value & 1) ?
                     MIRRORING_HORIZONTAL : MIRRORING_VERTICAL));
             }
 

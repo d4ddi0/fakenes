@@ -741,7 +741,7 @@ int input_process (void)
 
             case KEY_F6:
 
-                invert_ppu_mirroring ();
+                ppu_invert_mirroring ();
 
 
                 break;

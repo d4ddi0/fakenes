@@ -226,9 +226,9 @@ UINT8 * ppu_get_chr_rom_pages (ROM *rom)
 }
 
 
-UINT32 tile_decode_table_plane_0[16];
-UINT32 tile_decode_table_plane_1[16];
-UINT8 attribute_table [4];
+static UINT32 tile_decode_table_plane_0[16];
+static UINT32 tile_decode_table_plane_1[16];
+static UINT8 attribute_table [4];
 
 
 void ppu_cache_chr_rom_pages (void)
@@ -432,14 +432,14 @@ int ppu_init (void)
 }
 
 
-void clear_vram_set (int vram_block)
+static void clear_vram_set (int vram_block)
 {
     ppu_vram_set_begin [vram_block] = -2;
     ppu_vram_set_end [vram_block] = -2;
 }
 
 
-void recache_vram_set (int vram_block)
+static void recache_vram_set (int vram_block)
 {
     int tile, begin, end;
 
@@ -478,7 +478,7 @@ void recache_vram_set (int vram_block)
 }
 
 
-void recache_vram_sets (void)
+static void recache_vram_sets (void)
 {
     int i;
 
@@ -528,87 +528,97 @@ void ppu_exit (void)
 }
 
 
-int get_ppu_mirroring (void)
+int ppu_get_mirroring (void)
 {
  return ppu_mirroring;
 }
 
-void set_name_table_address (int table, UINT8 *address)
+void ppu_set_name_table_address (int table, UINT8 *address)
 {
     name_tables_read[table] = address;
     name_tables_write[table] = address;
 }
 
-void set_name_table_address_rom (int table, UINT8 *address)
+void ppu_set_name_table_address_rom (int table, UINT8 *address)
 {
     name_tables_read[table] = address;
     name_tables_write[table] = ppu_vram_dummy_write;
 }
 
-void set_ppu_mirroring_one_screen (void)
+void ppu_set_name_table_address_vrom (int table, int vrom_block)
 {
-    set_name_table_address(0, one_screen_base_address);
-    set_name_table_address(1, one_screen_base_address);
-    set_name_table_address(2, one_screen_base_address);
-    set_name_table_address(3, one_screen_base_address);
+    if (vrom_block >= (ROM_CHR_ROM_PAGES * 8))
+    {
+        vrom_block &= ROM_CHR_ROM_PAGE_OVERFLOW_MASK;
+    }
+
+    ppu_set_name_table_address_rom (table, ROM_CHR_ROM + (vrom_block << 10));
 }
 
-void set_ppu_mirroring (int mirroring)
+void ppu_set_mirroring_one_screen (void)
+{
+    ppu_set_name_table_address (0, one_screen_base_address);
+    ppu_set_name_table_address (1, one_screen_base_address);
+    ppu_set_name_table_address (2, one_screen_base_address);
+    ppu_set_name_table_address (3, one_screen_base_address);
+}
+
+void ppu_set_mirroring (int mirroring)
 {
     ppu_mirroring = mirroring;
 
     switch (ppu_mirroring)
     {
      case MIRRORING_ONE_SCREEN:
-        set_ppu_mirroring_one_screen();
+        ppu_set_mirroring_one_screen();
 
         break;
 
      case MIRRORING_ONE_SCREEN_2000:
         one_screen_base_address = ppu_name_table_vram;
-        set_ppu_mirroring_one_screen();
+        ppu_set_mirroring_one_screen();
 
         break;
 
      case MIRRORING_ONE_SCREEN_2400:
         one_screen_base_address = ppu_name_table_vram + 0x400;
-        set_ppu_mirroring_one_screen();
+        ppu_set_mirroring_one_screen();
 
         break;
 
      case MIRRORING_ONE_SCREEN_2800:
         one_screen_base_address = ppu_name_table_vram + 0x800;
-        set_ppu_mirroring_one_screen();
+        ppu_set_mirroring_one_screen();
 
         break;
 
      case MIRRORING_ONE_SCREEN_2C00:
         one_screen_base_address = ppu_name_table_vram + 0xC00;
-        set_ppu_mirroring_one_screen();
+        ppu_set_mirroring_one_screen();
 
         break;
 
      case MIRRORING_VERTICAL:
-        set_name_table_address(0, ppu_name_table_vram);
-        set_name_table_address(1, ppu_name_table_vram + 0x400);
-        set_name_table_address(2, ppu_name_table_vram);
-        set_name_table_address(3, ppu_name_table_vram + 0x400);
+        ppu_set_name_table_address (0, ppu_name_table_vram);
+        ppu_set_name_table_address (1, ppu_name_table_vram + 0x400);
+        ppu_set_name_table_address (2, ppu_name_table_vram);
+        ppu_set_name_table_address (3, ppu_name_table_vram + 0x400);
 
         break;
 
      case MIRRORING_HORIZONTAL:
-        set_name_table_address(0, ppu_name_table_vram);
-        set_name_table_address(1, ppu_name_table_vram);
-        set_name_table_address(2, ppu_name_table_vram + 0x400);
-        set_name_table_address(3, ppu_name_table_vram + 0x400);
+        ppu_set_name_table_address (0, ppu_name_table_vram);
+        ppu_set_name_table_address (1, ppu_name_table_vram);
+        ppu_set_name_table_address (2, ppu_name_table_vram + 0x400);
+        ppu_set_name_table_address (3, ppu_name_table_vram + 0x400);
 
         break;
 
      case MIRRORING_FOUR_SCREEN:
-        set_name_table_address(0, ppu_name_table_vram);
-        set_name_table_address(1, ppu_name_table_vram + 0x400);
-        set_name_table_address(2, ppu_name_table_vram + 0x800);
-        set_name_table_address(3, ppu_name_table_vram + 0xC00);
+        ppu_set_name_table_address (0, ppu_name_table_vram);
+        ppu_set_name_table_address (1, ppu_name_table_vram + 0x400);
+        ppu_set_name_table_address (2, ppu_name_table_vram + 0x800);
+        ppu_set_name_table_address (3, ppu_name_table_vram + 0xC00);
 
         break;
     }
@@ -616,13 +626,13 @@ void set_ppu_mirroring (int mirroring)
 }
 
 
-void invert_ppu_mirroring (void)   /* '/' key. */
+void ppu_invert_mirroring (void)   /* '/' key. */
 {
     switch (ppu_mirroring)
     {
         case MIRRORING_HORIZONTAL:
 
-            set_ppu_mirroring (MIRRORING_VERTICAL);
+            ppu_set_mirroring (MIRRORING_VERTICAL);
 
 
             break;
@@ -630,7 +640,7 @@ void invert_ppu_mirroring (void)   /* '/' key. */
 
         case MIRRORING_VERTICAL:
 
-            set_ppu_mirroring (MIRRORING_HORIZONTAL);
+            ppu_set_mirroring (MIRRORING_HORIZONTAL);
 
 
             break;
@@ -684,7 +694,7 @@ void ppu_reset (void)
 
     background_tileset = 0;
 
-    set_ppu_mirroring(ppu_mirroring);
+    ppu_set_mirroring(ppu_mirroring);
 
     sprite_tileset = 0;
 
@@ -1266,20 +1276,20 @@ static void ppu_render_background (int line)
     ppu_vram_dummy_write [0] =
         PPU_GETPIXEL(video_buffer, 0, line) |
         PPU_GETPIXEL(video_buffer, 16, line) |
-        PPU_GETPIXEL(video_buffer, 32, line) |
-        PPU_GETPIXEL(video_buffer, 48, line) |
-        PPU_GETPIXEL(video_buffer, 64, line) |
-        PPU_GETPIXEL(video_buffer, 80, line) |
-        PPU_GETPIXEL(video_buffer, 96, line) |
-        PPU_GETPIXEL(video_buffer, 112, line) |
-        PPU_GETPIXEL(video_buffer, 128, line) |
-        PPU_GETPIXEL(video_buffer, 144, line) |
-        PPU_GETPIXEL(video_buffer, 160, line) |
-        PPU_GETPIXEL(video_buffer, 176, line) |
-        PPU_GETPIXEL(video_buffer, 192, line) |
-        PPU_GETPIXEL(video_buffer, 208, line) |
-        PPU_GETPIXEL(video_buffer, 224, line) |
-        PPU_GETPIXEL(video_buffer, 240, line);
+        PPU_GETPIXEL(video_buffer, 16*2, line) |
+        PPU_GETPIXEL(video_buffer, 16*3, line) |
+        PPU_GETPIXEL(video_buffer, 16*4, line) |
+        PPU_GETPIXEL(video_buffer, 16*5, line) |
+        PPU_GETPIXEL(video_buffer, 16*6, line) |
+        PPU_GETPIXEL(video_buffer, 16*7, line) |
+        PPU_GETPIXEL(video_buffer, 16*8, line) |
+        PPU_GETPIXEL(video_buffer, 16*9, line) |
+        PPU_GETPIXEL(video_buffer, 16*10, line) |
+        PPU_GETPIXEL(video_buffer, 16*11, line) |
+        PPU_GETPIXEL(video_buffer, 16*12, line) |
+        PPU_GETPIXEL(video_buffer, 16*13, line) |
+        PPU_GETPIXEL(video_buffer, 16*14, line) |
+        PPU_GETPIXEL(video_buffer, 16*15, line);
 
     name_table = (vram_address >> 10) & 3;
     name_table_address = name_tables_read[name_table];

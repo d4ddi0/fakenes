@@ -88,7 +88,7 @@ static void mmc1_write (UINT16 address, UINT8 value)
             /* standard h/v mirroring? */
             {
 		/* which way then? */
-                set_ppu_mirroring (
+                ppu_set_mirroring (
                     (mmc1_register[0] & MMC1_MIRRORING_ADDRESS_BIT) ?
                     MIRRORING_HORIZONTAL : MIRRORING_VERTICAL);
             }
@@ -96,7 +96,7 @@ static void mmc1_write (UINT16 address, UINT8 value)
             /* one-screen mirroring */
             {
 	        /* which page then? */
-                set_ppu_mirroring (
+                ppu_set_mirroring (
                     (mmc1_register[0] & MMC1_MIRRORING_ADDRESS_BIT) ?
                     MIRRORING_ONE_SCREEN_2400 : MIRRORING_ONE_SCREEN_2000);
             }

@@ -185,7 +185,7 @@ int load_rom (AL_CONST UINT8 * filename, ROM * rom)
     rom -> sram_flag = (rom -> control_byte_1 & ROM_CTRL_SRAM);
 
 
-    set_ppu_mirroring (((rom -> control_byte_1 &
+    ppu_set_mirroring (((rom -> control_byte_1 &
         ROM_CTRL_MIRROR) ? MIRRORING_VERTICAL : MIRRORING_HORIZONTAL));
 
 
@@ -342,7 +342,7 @@ int load_rom (AL_CONST UINT8 * filename, ROM * rom)
     rom -> sram_flag = (rom -> control_byte_1 & ROM_CTRL_SRAM);
 
 
-    set_ppu_mirroring (((rom -> control_byte_1 &
+    ppu_set_mirroring (((rom -> control_byte_1 &
         ROM_CTRL_MIRROR) ? MIRRORING_VERTICAL : MIRRORING_HORIZONTAL));
 
 

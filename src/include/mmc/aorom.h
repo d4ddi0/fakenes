@@ -15,7 +15,7 @@ static void aorom_write (UINT16 address, UINT8 value)
 
     /* Is this reversed? */
 
-    set_ppu_mirroring (((value & AOROM_MIRRORING_BIT) ?
+    ppu_set_mirroring (((value & AOROM_MIRRORING_BIT) ?
         MIRRORING_ONE_SCREEN_2400 : MIRRORING_ONE_SCREEN_2000));
 
 
@@ -64,7 +64,7 @@ static INLINE int aorom_init (void)
 
     /* Set the default mirroring. */
 
-    set_ppu_mirroring (MIRRORING_ONE_SCREEN_2000);
+    ppu_set_mirroring (MIRRORING_ONE_SCREEN_2000);
 
 
     aorom_reset ();

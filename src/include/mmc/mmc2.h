@@ -158,7 +158,7 @@ static void mmc2_write (UINT16 address, UINT8 value)
     {
         /* Mirroring select. */
 
-        set_ppu_mirroring ((value & MMC2_MIRRORING_BIT) ?
+        ppu_set_mirroring ((value & MMC2_MIRRORING_BIT) ?
              MIRRORING_HORIZONTAL : MIRRORING_VERTICAL);
     }
 }

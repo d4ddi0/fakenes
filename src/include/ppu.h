@@ -72,18 +72,20 @@ int sprites_enabled;
 
 UINT8 * one_screen_base_address;
 
-void set_ppu_mirroring_one_screen (void);
+void ppu_set_mirroring_one_screen (void);
 
 
-int get_ppu_mirroring (void);
+int ppu_get_mirroring (void);
 
-void set_ppu_mirroring (int);
-
-
-void invert_ppu_mirroring (void);
+void ppu_set_mirroring (int);
 
 
-void set_name_table_address (int, UINT8 *);
+void ppu_invert_mirroring (void);
+
+
+void ppu_set_name_table_address (int, UINT8 *);
+void ppu_set_name_table_address_rom (int table, UINT8 *address);
+void ppu_set_name_table_address_vrom (int table, int vrom_block);
 
 
 #define MIRRORING_HORIZONTAL    0
