@@ -673,7 +673,13 @@ int input_process (void)
 
     while (keypressed ())
     {
-        switch ((readkey () >> 8))
+        int index;
+
+
+        index = readkey ();
+
+
+        switch ((index >> 8))
         {
             case KEY_ESC:
 
@@ -716,22 +722,6 @@ int input_process (void)
                 {
                     frame_skip_max --;
                 }
-
-
-                break;
-
-
-            case KEY_PLUS_PAD:
-
-                video_zoom_in ();
-
-
-                break;
-
-
-            case KEY_MINUS_PAD:
-
-                video_zoom_out ();
 
 
                 break;
@@ -805,9 +795,11 @@ int input_process (void)
 
             default:
 
-
                 break;
         }
+
+
+        video_handle_keypress (index);
     }
 
 

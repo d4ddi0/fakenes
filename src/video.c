@@ -81,6 +81,11 @@ static int first_blit_line = 0;
 static int last_blit_line = 0;
 
 
+static int image_offset_x = 0;
+
+static int image_offset_y = 0;
+
+
 static int zoom_factor_x = 0;
 
 static int zoom_factor_y = 0;
@@ -141,6 +146,11 @@ int video_init (void)
     first_blit_line = get_config_int ("video", "first_blit_line", 0);
 
     last_blit_line = get_config_int ("video", "last_blit_line", 239);
+
+
+    image_offset_x = get_config_int ("video", "image_offset_x", 0);
+
+    image_offset_y = get_config_int ("video", "image_offset_y", 0);
 
 
     zoom_factor_x = get_config_int ("video", "zoom_factor_x", 256);
@@ -326,6 +336,11 @@ void video_exit (void)
     set_config_int ("video", "first_blit_line", first_blit_line);
 
     set_config_int ("video", "last_blit_line", last_blit_line);
+
+
+    set_config_int ("video", "image_offset_x", image_offset_x);
+
+    set_config_int ("video", "image_offset_y", image_offset_y);
 
 
     set_config_int ("video", "zoom_factor_x", zoom_factor_x);
@@ -1010,7 +1025,7 @@ void video_blit (BITMAP * bitmap)
 
     acquire_bitmap (bitmap);
 
-    blit (screen_buffer, bitmap, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
+    blit (screen_buffer, bitmap, 0, 0, image_offset_x, image_offset_y, SCREEN_W, SCREEN_H);
 
     release_bitmap (bitmap);
 
@@ -1072,15 +1087,60 @@ void video_zoom (int x_factor, int y_factor)
 }
 
 
-void video_zoom_in (void)
+void video_handle_keypress (int index)
 {
-    video_zoom (zoom_factor_x, zoom_factor_y);
-}
+    switch ((index >> 8))
+    {
+        case KEY_PLUS_PAD:
+
+            video_zoom (zoom_factor_x, zoom_factor_y);
 
 
-void video_zoom_out (void)
-{
-    video_zoom (-zoom_factor_x, -zoom_factor_y);
+            break;
+
+
+        case KEY_MINUS_PAD:
+
+            video_zoom (-zoom_factor_x, -zoom_factor_y);
+
+
+            break;
+
+
+        case KEY_OPENBRACE:
+
+            if ((index & 0xff) == '{')
+            {
+                image_offset_x += 8;
+            }
+            else
+            {
+                image_offset_x -= 8;
+            }
+
+
+            break;
+
+
+        case KEY_CLOSEBRACE:
+
+            if ((index & 0xff) == '}')
+            {
+                image_offset_y += 8;
+            }
+            else
+            {
+                image_offset_y -= 8;
+            }
+
+
+            break;
+
+
+        default:
+
+            break;
+    }
 }
 
 
@@ -1336,7 +1396,7 @@ void video_filter (void)
     {
         for (y = 0; y < screen_buffer -> h; y += 2)
         {
-            hline (screen_buffer, 0, y, screen_buffer -> w, 0);
+            hline (screen_buffer, blit_x_offset, y, screen_buffer -> w, 0);
         }
     }
     else if (filter_list & VIDEO_FILTER_SCANLINES_MEDIUM)
@@ -1348,7 +1408,7 @@ void video_filter (void)
 
         for (y = 0; y < screen_buffer -> h; y += 2)
         {
-            hline (screen_buffer, 0, y, screen_buffer -> w, 0);
+            hline (screen_buffer, blit_x_offset, y, screen_buffer -> w, 0);
         }
 
 
@@ -1363,7 +1423,7 @@ void video_filter (void)
 
         for (y = 0; y < screen_buffer -> h; y += 2)
         {
-            hline (screen_buffer, 0, y, screen_buffer -> w, 0);
+            hline (screen_buffer, blit_x_offset, y, screen_buffer -> w, 0);
         }
 
 
