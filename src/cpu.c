@@ -88,6 +88,8 @@ void patches_load (const char * rom_filename)
 
         if (version > 0x100)
         {
+            pop_config_state ();
+
             return;
         }
 
@@ -574,7 +576,7 @@ static int scanline_start_cycle;
 
 void cpu_start_new_scanline (void)
 {
-    scanline_start_cycle = cpu_context.Cycles + cpu_context.ICount;
+    scanline_start_cycle = cpu_context.ICount;
 }
 
 
@@ -591,6 +593,7 @@ int cpu_get_cycles (int reset)
 
     if (reset)
     {
+        cpu_context.ICount -= cpu_context.Cycles;
         cpu_context.Cycles = 0;
     }
 

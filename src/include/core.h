@@ -174,7 +174,6 @@ void FN2A03_Run(FN2A03 *R);
 */
 static INLINE void FN2A03_consume_cycles (FN2A03 *R, int cycles)
 {
-    R->ICount -= cycles * CYCLE_LENGTH;
     R->Cycles += cycles * CYCLE_LENGTH;
 }
 

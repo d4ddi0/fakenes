@@ -105,7 +105,7 @@ void FN2A03_Reset(FN2A03 *R)
   R->S=0xFF;
   R->PC.bytes.low=Read(0xFFFC);
   R->PC.bytes.high=Read(0xFFFD);   
-  R->ICount=0;
+  R->ICount=R->Cycles;
   R->IRequest=FN2A03_INT_IRQ_NONE;
   R->AfterCLI=0;
   R->Jammed=0;
@@ -140,7 +140,6 @@ UINT16 FN2A03_Exec(FN2A03 *R)
   opcode=Fetch(PC.word);
   cycles=Cycles[opcode];
   R->Cycles+=cycles;
-  R->ICount-=cycles;
 #ifdef DEBUG
   opcode_trace[opcode_count++]=opcode;
   if (opcode_count==10) opcode_count=0;
@@ -204,7 +203,6 @@ void FN2A03_Interrupt(FN2A03 *R,UINT8 Type)
     {
         UINT8 P;
 
-        R->ICount -= 7 * CYCLE_LENGTH;
         R->Cycles += 7 * CYCLE_LENGTH;
         Push16(R->PC);
         P = Pack_Flags() & ~B_FLAG;
@@ -239,7 +237,7 @@ void FN2A03_Run(FN2A03 *R)
     PAIR PC;
     PC.word=R->PC.word;
 
-    while (R->ICount>0)
+    while ((R->ICount - R->Cycles) > 0)
     {
       UINT8 opcode, cycles;
 
@@ -254,7 +252,6 @@ void FN2A03_Run(FN2A03 *R)
       opcode=Fetch(PC.word);
       cycles=Cycles[opcode];
       R->Cycles+=cycles;
-      R->ICount-=cycles;
 #ifdef DEBUG
       opcode_trace[opcode_count++]=opcode;
       if (opcode_count==10) opcode_count=0;
@@ -273,7 +270,7 @@ void FN2A03_Run(FN2A03 *R)
     if (!R->AfterCLI) return;
 
     /* If we have come after CLI, get FN2A03_INT_? from IRequest */
-    R->ICount+=R->IBackup-1;  /* Restore the ICount        */
+    R->ICount = R->IBackup;   /* Restore the ICount        */
     R->AfterCLI=0;            /* Done with AfterCLI state  */
 
     /* Process pending interrupts */
