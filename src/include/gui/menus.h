@@ -624,6 +624,8 @@ static MENU options_video_driver_linux_menu [] =
 
 #ifdef ALLEGRO_UNIX
 
+static int options_video_driver_unix_menu_x_windows (void);
+
 static int options_video_driver_unix_menu_x_windows_full (void);
 
 static int options_video_driver_unix_menu_x_dga (void);
