@@ -61,7 +61,7 @@ OPCODE_PROLOG(0x40) ; RTI
  Read_Stack ebx,al
  jz .i_flag_not_cleared
  test al,FLAG_I
- jz .i_flag_not_cleared
+ jnz .i_flag_not_cleared
  mov edx,B_IRequest
  test edx,edx
  jz .i_flag_not_cleared
@@ -179,7 +179,7 @@ OPCODE_PROLOG(0x28) ; PLP
  Read_Stack ebx,al
  jz .i_flag_not_cleared
  test al,FLAG_I
- jz .i_flag_not_cleared
+ jnz .i_flag_not_cleared
  mov edx,B_IRequest
  test edx,edx
  jz .i_flag_not_cleared
