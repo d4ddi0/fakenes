@@ -144,11 +144,12 @@ static UINT8 attribute_table [4];
 
 static INT8 background_pixels [8 + 256 + 8];
 
+static int palette_shifts = 0;
+
 #include "ppu/tiles.h"
 
 #include "ppu/backgrnd.h"
 #include "ppu/sprites.h"
-
 
 static INLINE UINT8 vram_read (UINT16 address)
 {
@@ -861,6 +862,8 @@ void ppu_write (UINT16 address, UINT8 value)
             /* Control register #2. */
 
             ppu_register_2001 = value;
+
+            palette_shifts = ((value & PPU_MONOCHROME_DISPLAY_BIT) ? 4 : 0);
 
             break;
 
