@@ -439,6 +439,11 @@ int show_gui (int first_run)
     DISABLE_MENU (machine_state_menu, 4);
 
 
+    DISABLE_MENU (options_audio_advanced_menu, 2);
+
+    DISABLE_MENU (options_audio_advanced_menu, 4);
+
+
 #ifdef ALLEGRO_DOS
 
     DISABLE_MENU (options_video_advanced_menu, 0);
@@ -458,7 +463,8 @@ int show_gui (int first_run)
 
     if (first_run)
     {
-        alert ("FakeNES version 0.1.5 (CVS)", "", "- http://fakenes.sourceforge.net/ -", "&OK", NULL, 0, 0);
+        alert ("FakeNES version 0.1.5 (CVS) " ALLEGRO_PLATFORM_STR, "", "Get "
+            "the latest from http://fakenes.sourceforge.net/.", "&OK", NULL, 0, 0);
     }
 
 
@@ -929,6 +935,12 @@ static int options_audio_effects_menu_surround_sound (void)
     papu_surround_sound = (! papu_surround_sound);
 
     update_menus ();
+
+
+    if (papu_surround_sound)
+    {
+        alert ("- Warning -", "", "Surround sound may have odd side effects.", "&OK", NULL, 0, 0);
+    }
 
 
     papu_reinit ();

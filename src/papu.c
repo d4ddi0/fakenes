@@ -61,7 +61,7 @@ int papu_enable_exsound = TRUE;
 int papu_swap_channels = 0;
 
 
-int papu_ideal_triangle = FALSE;
+int papu_ideal_triangle = TRUE;
 
 
 int papu_smooth_envelope = TRUE;
@@ -71,7 +71,7 @@ int papu_smooth_sweep = TRUE;
 
 int papu_linear_echo = TRUE;
 
-int papu_surround_sound = TRUE;
+int papu_surround_sound = FALSE;
 
 
 int papu_dithering = FALSE;
@@ -221,7 +221,7 @@ int papu_init (void)
 
     papu_linear_echo = get_config_int ("papu", "linear_echo", TRUE);
 
-    papu_surround_sound = get_config_int ("papu", "surround_sound", TRUE);
+    papu_surround_sound = get_config_int ("papu", "surround_sound", FALSE);
 
 
     if ((result = papu_reinit ()) != 0)
