@@ -5,6 +5,19 @@
 /* This mapper is fully supported. */
 
 
+static int dreams_init (void);
+
+static void dreams_reset (void);
+
+
+const MMC mmc_dreams =
+{
+    11, "Color Dreams",
+
+    dreams_init, dreams_reset
+};
+
+
 static void dreams_write (UINT16 address, UINT8 value)
 {
     int index;
@@ -38,7 +51,7 @@ static void dreams_write (UINT16 address, UINT8 value)
 }
 
 
-static INLINE void dreams_reset (void)
+static void dreams_reset (void)
 {
     int index;
 
@@ -57,7 +70,7 @@ static INLINE void dreams_reset (void)
 }
 
 
-static INLINE int dreams_init (void)
+static int dreams_init (void)
 {
     /* Set initial mappings. */
 
@@ -71,10 +84,3 @@ static INLINE int dreams_init (void)
 
     return (0);
 }
-
-AL_CONST MMC mmc_dreams =
-{
- "Color Dreams",
- dreams_init,
- dreams_reset
-};

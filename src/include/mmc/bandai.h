@@ -18,7 +18,7 @@ static void bandai_reset (void);
 
 const MMC mmc_bandai =
 {
-    "Bandai",
+    16, "Bandai",
 
     bandai_init, bandai_reset
 };

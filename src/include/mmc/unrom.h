@@ -5,6 +5,19 @@
 /* This mapper is fully supported. */
 
 
+static int unrom_init (void);
+
+static void unrom_reset (void);
+
+
+const MMC mmc_unrom =
+{
+    2, "UNROM",
+
+    unrom_init, unrom_reset
+};
+
+
 static void unrom_write (UINT16 address, UINT8 value)
 {
     /* Select requested 16k page. */
@@ -13,7 +26,7 @@ static void unrom_write (UINT16 address, UINT8 value)
 }
 
 
-static INLINE void unrom_reset (void)
+static void unrom_reset (void)
 {
     /* Select first 16k page in lower 16k. */
 
@@ -26,7 +39,7 @@ static INLINE void unrom_reset (void)
 }
 
 
-static INLINE int unrom_init (void)
+static int unrom_init (void)
 {
     /* No VROM hardware. */
 
@@ -45,10 +58,3 @@ static INLINE int unrom_init (void)
 
     return (0);
 }
-
-AL_CONST MMC mmc_unrom =
-{
- "UNROM",
- unrom_init,
- unrom_reset
-};

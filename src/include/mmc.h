@@ -37,6 +37,8 @@ void mmc_request (const ROM * rom);
 
 typedef struct _MMC
 {
+    int number;
+
     const UINT8 * name;
 
 

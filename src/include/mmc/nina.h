@@ -12,7 +12,7 @@ static void nina_reset (void);
 
 const MMC mmc_nina =
 {
-    "NINA-001",
+    34, "NINA-001",
 
     nina_init, nina_reset
 };

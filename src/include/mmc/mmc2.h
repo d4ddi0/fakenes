@@ -5,6 +5,19 @@
 /* This mapper is fully supported. */
 
 
+static int mmc2_init (void);
+
+static void mmc2_reset (void);
+
+
+const MMC mmc_mmc2 =
+{
+    9, "MMC2",
+
+    mmc2_init, mmc2_reset
+};
+
+
 static int mmc2_vrom_bank[2][2] = { { 0, 0 }, { 0, 0 } };
 
 static int mmc2_latch[2] = { 1, 1 };
@@ -140,7 +153,7 @@ static void mmc2_write (UINT16 address, UINT8 value)
 }
 
 
-static INLINE void mmc2_reset (void)
+static void mmc2_reset (void)
 {
     int index;
 
@@ -182,7 +195,7 @@ static INLINE void mmc2_reset (void)
 }
 
 
-static INLINE int mmc2_init (void)
+static int mmc2_init (void)
 {
     /* Mapper requires at least 32k of PRG ROM, and some CHR ROM */
     if (ROM_PRG_ROM_PAGES < 2 || ROM_CHR_ROM_PAGES < 1)
@@ -201,10 +214,3 @@ static INLINE int mmc2_init (void)
 
     return (0);
 }
-
-AL_CONST MMC mmc_mmc2 =
-{
- "MMC2",
- mmc2_init,
- mmc2_reset
-};

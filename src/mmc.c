@@ -65,6 +65,37 @@ You must read and accept the license prior to use.
 #include "mmc/sunsoft.h"
 
 
+#define MMC_FIRST_LIST_ITEM(id)     \
+    if (mmc_ ##id.number == rom -> mapper_number)       \
+        rom -> current_mmc = &mmc_ ##id
+
+#define MMC_NEXT_LIST_ITEM(id)      \
+    else if (mmc_ ##id.number == rom -> mapper_number)  \
+        rom -> current_mmc = &mmc_ ##id
+
+#define MMC_LAST_LIST_ITEM()        \
+    else rom -> current_mmc = NULL
+
+
+static int none_init (void);
+
+static void none_reset (void);
+
+
+const MMC mmc_none =
+{
+    0, "No mapper",
+
+    none_init, none_reset
+};
+
+
+void none_reset (void)
+{
+    /* Do nothing. */
+}
+
+
 int none_init (void)
 {
     /* Select first 32k page. */
@@ -94,91 +125,44 @@ int none_init (void)
     return (0);
 }
 
-void none_reset (void)
+
+void mmc_request (const ROM * rom)
 {
-}
-
-AL_CONST MMC mmc_none =
-{
- "No mapper",
- none_init,
- none_reset
-};
-
-void mmc_request (const ROM *rom)
-{
-    switch (rom -> mapper_number)
-    {
-        /* No banking hardware. */
-
-        case 0: rom -> current_mmc = &mmc_none; break;
+    MMC_FIRST_LIST_ITEM (none);     /* No mapper. */
 
 
-        /* MMC1. */
+    /* Nintendo MMCs. */
 
-        case 1: rom -> current_mmc = &mmc_mmc1; break;
+    MMC_NEXT_LIST_ITEM (mmc1);      /* MMC1. */
 
+    MMC_NEXT_LIST_ITEM (mmc2);      /* MMC2. */
 
-        /* UNROM. */
+    MMC_NEXT_LIST_ITEM (mmc3);      /* MMC3. */
 
-        case 2: rom -> current_mmc = &mmc_unrom; break;
-
-
-        /* CNROM. */
-
-        case 3: rom -> current_mmc = &mmc_cnrom; break;
+    MMC_NEXT_LIST_ITEM (mmc4);      /* MMC4. */
 
 
-        /* MMC3. */
+    /* Other MMCs. */
 
-        case 4: rom -> current_mmc = &mmc_mmc3; break;
+    MMC_NEXT_LIST_ITEM (unrom);     /* UNROM. */
+                          
+    MMC_NEXT_LIST_ITEM (cnrom);     /* CNROM. */
 
+    MMC_NEXT_LIST_ITEM (aorom);     /* AOROM. */
 
-        /* AOROM. */
-
-        case 7: rom -> current_mmc = &mmc_aorom; break;
-
-
-        /* MMC2. */
-
-        case 9: rom -> current_mmc = &mmc_mmc2; break;
+    MMC_NEXT_LIST_ITEM (gnrom);     /* GNROM. */
 
 
-        /* MMC4. */
+    MMC_NEXT_LIST_ITEM (bandai);    /* Bandai. */
 
-        case 10: rom -> current_mmc = &mmc_mmc4; break;
+    MMC_NEXT_LIST_ITEM (dreams);    /* Color Dreams. */
 
+    MMC_NEXT_LIST_ITEM (nina);      /* NINA-001. */
 
-        /* Color Dreams. */
-
-        case 11: rom -> current_mmc = &mmc_dreams; break;
-
-
-        /* Bandai. */
-
-        case 16: rom -> current_mmc = &mmc_bandai; break;
+    MMC_NEXT_LIST_ITEM (sunsoft);   /* Sunsoft. */
 
 
-        /* Nina-1. */
-
-        case 34: rom -> current_mmc = &mmc_nina; break;
-
-
-        /* GNROM */
-	
-        case 66: rom -> current_mmc = &mmc_gnrom; break;
-
-
-        /* Sunsoft. */
-
-        case 68: rom -> current_mmc = &mmc_sunsoft; break;
-
-
-        /* Unsupported mapper. */
-
-        default: rom -> current_mmc = NULL; break;
-
-    }
+    MMC_LAST_LIST_ITEM ();          /* Unsupported mapper. */
 }
 
 
@@ -201,21 +185,24 @@ int mmc_init (void)
     mmc_check_latches = NULL;
 
 
-    if (ROM_CURRENT_MMC == NULL) return (1);
+    if (ROM_CURRENT_MMC == NULL)
+    {
+        return (1);
+    }
+
 
     if (! gui_is_active)
     {
-        printf ("Using memory mapper #%u (%s) "
-            "(%d PRG, %d CHR).\n\n",
-            ROM_MAPPER_NUMBER, ROM_CURRENT_MMC -> name,
-            ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
+        printf ("Using memory mapper #%u (%s) (%d PRG, %d CHR).\n\n", ROM_MAPPER_NUMBER,
+            ROM_CURRENT_MMC -> name, ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
     }
 
-    return ROM_CURRENT_MMC -> init();
+
+    return (ROM_CURRENT_MMC -> init ());
 }
 
 
 void mmc_reset (void)
 {
-    ROM_CURRENT_MMC -> reset();
+    ROM_CURRENT_MMC -> reset ();
 }

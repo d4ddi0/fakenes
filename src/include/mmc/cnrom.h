@@ -5,6 +5,19 @@
 /* This mapper is fully supported. */
 
 
+static int cnrom_init (void);
+
+static void cnrom_reset (void);
+
+
+const MMC mmc_cnrom =
+{
+    3, "CNROM",
+
+    cnrom_init, cnrom_reset
+};
+
+
 static void cnrom_write (UINT16 address, UINT8 value)
 {
     int index;
@@ -24,7 +37,7 @@ static void cnrom_write (UINT16 address, UINT8 value)
 }
 
 
-static INLINE void cnrom_reset (void)
+static void cnrom_reset (void)
 {
     int index;
 
@@ -43,7 +56,7 @@ static INLINE void cnrom_reset (void)
 }
 
 
-static INLINE int cnrom_init (void)
+static int cnrom_init (void)
 {
     /* Set initial mappings. */
 
@@ -57,10 +70,3 @@ static INLINE int cnrom_init (void)
 
     return (0);
 }
-
-AL_CONST MMC mmc_cnrom =
-{
- "CNROM",
- cnrom_init,
- cnrom_reset
-};

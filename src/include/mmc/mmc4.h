@@ -5,6 +5,19 @@
 /* This mapper is fully supported. */
 
 
+static int mmc4_init (void);
+
+static void mmc4_reset (void);
+
+
+const MMC mmc_mmc4 =
+{
+    10, "MMC4",
+
+    mmc4_init, mmc4_reset
+};
+
+
 static int mmc4_vrom_bank[2][2] = { { 0, 0 }, { 0, 0 } };
 
 static int mmc4_latch[2] = { 1, 1 };
@@ -141,7 +154,7 @@ static void mmc4_write (UINT16 address, UINT8 value)
 }
 
 
-static INLINE void mmc4_reset (void)
+static void mmc4_reset (void)
 {
     int index;
 
@@ -178,7 +191,7 @@ static INLINE void mmc4_reset (void)
 }
 
 
-static INLINE int mmc4_init (void)
+static int mmc4_init (void)
 {
     mmc4_reset ();
 
@@ -191,10 +204,3 @@ static INLINE int mmc4_init (void)
 
     return (0);
 }
-
-AL_CONST MMC mmc_mmc4 =
-{
- "MMC4",
- mmc4_init,
- mmc4_reset
-};

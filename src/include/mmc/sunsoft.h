@@ -5,6 +5,19 @@
 /* This mapper is fully supported. */
 
 
+static int sunsoft_init (void);
+
+static void sunsoft_reset (void);
+
+
+const MMC mmc_sunsoft =
+{
+    68, "Sunsoft mapper #4",
+
+    sunsoft_init, sunsoft_reset
+};
+
+
 static UINT8 sunsoft_name_table_banks [2];
 
 static UINT8 sunsoft_name_table_control = 0;
@@ -158,7 +171,7 @@ static void sunsoft_write (UINT16 address, UINT8 value)
 }
 
 
-static INLINE void sunsoft_reset (void)
+static void sunsoft_reset (void)
 {
     /* Select first 16k page in lower 16k. */
 
@@ -171,7 +184,7 @@ static INLINE void sunsoft_reset (void)
 }
 
 
-static INLINE int sunsoft_init (void)
+static int sunsoft_init (void)
 {
     sunsoft_name_table_banks [0] = sunsoft_name_table_banks [1] = 0;
 
@@ -190,10 +203,3 @@ static INLINE int sunsoft_init (void)
 
     return (0);
 }
-
-AL_CONST MMC mmc_sunsoft =
-{
- "Sunsoft mapper #4",
- sunsoft_init,
- sunsoft_reset
-};

@@ -5,6 +5,19 @@
 /* This mapper is fully supported. */
 
 
+static int mmc3_init (void);
+
+static void mmc3_reset (void);
+
+
+const MMC mmc_mmc3 =
+{
+    4, "MMC3",
+
+    mmc3_init, mmc3_reset
+};
+
+
 static int mmc3_command = 0;
 
 
@@ -248,7 +261,7 @@ static void mmc3_write (UINT16 address, UINT8 value)
 }
 
 
-static INLINE void mmc3_reset (void)
+static void mmc3_reset (void)
 {
     int index;
 
@@ -282,7 +295,7 @@ static INLINE void mmc3_reset (void)
 }
 
 
-static INLINE int mmc3_init (void)
+static int mmc3_init (void)
 {
     if (ROM_CHR_ROM_PAGES == 0)
     {
@@ -303,10 +316,3 @@ static INLINE int mmc3_init (void)
 
     return (0);
 }
-
-AL_CONST MMC mmc_mmc3 =
-{
- "MMC3",
- mmc3_init,
- mmc3_reset
-};

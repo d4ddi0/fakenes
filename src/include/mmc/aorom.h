@@ -5,6 +5,19 @@
 /* This mapper is fully supported. */
 
 
+static int aorom_init (void);
+
+static void aorom_reset (void);
+
+
+const MMC mmc_aorom =
+{
+    7, "AOROM",
+
+    aorom_init, aorom_reset
+};
+
+
 #define AOROM_MIRRORING_BIT (1 << 4)
 
 
@@ -31,7 +44,7 @@ static void aorom_write (UINT16 address, UINT8 value)
 }
 
 
-static INLINE void aorom_reset (void)
+static void aorom_reset (void)
 {
     int index;
 
@@ -43,7 +56,7 @@ static INLINE void aorom_reset (void)
 }
 
 
-static INLINE int aorom_init (void)
+static int aorom_init (void)
 {
     /* No VROM hardware. */
 
@@ -67,10 +80,3 @@ static INLINE int aorom_init (void)
 
     return (0);
 }
-
-AL_CONST MMC mmc_aorom =
-{
- "AOROM",
- aorom_init,
- aorom_reset
-};

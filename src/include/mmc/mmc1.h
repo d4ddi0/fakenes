@@ -5,23 +5,36 @@
 /* This mapper is only partially supported. */
 
 
+static int mmc1_init (void);
+
+static void mmc1_reset (void);
+
+
+const MMC mmc_mmc1 =
+{
+    1, "MMC1",
+
+    mmc1_init, mmc1_reset
+};
+
+
 static int mmc1_prg_address = 0;
 
 static int mmc1_chr_address = 0;
 
 
-static int mmc1_bit_stream; //could be a char
+static int mmc1_bit_stream;
 
-static int mmc1_bit_counter; //could be a char
+static int mmc1_bit_counter;
 
 
-static int mmc1_register[4]; //could be a char
+static int mmc1_register[4];
 
 static int mmc1_cpu_bank[2];
 
 static int mmc1_previous_register = 0x0000;
 
-static int mmc1_256k_bank_num; //could be a char
+static int mmc1_256k_bank_num;
 
 
 #define MMC1_MIRRORING_ADDRESS_BIT  1
@@ -353,7 +366,7 @@ static void mmc1_write (UINT16 address, UINT8 value)
     }
 }
 
-static INLINE void mmc1_reset (void)
+static void mmc1_reset (void)
 {
     int index;
 
@@ -389,7 +402,7 @@ static INLINE void mmc1_reset (void)
 }
 
 
-static INLINE int mmc1_init (void)
+static int mmc1_init (void)
 {
     if (ROM_CHR_ROM_PAGES == 0)
     {
@@ -405,10 +418,3 @@ static INLINE int mmc1_init (void)
 
     return 0;
 }
-
-AL_CONST MMC mmc_mmc1 =
-{
- "MMC1",
- mmc1_init,
- mmc1_reset
-};

@@ -5,6 +5,19 @@
 /* This mapper is fully supported. */
 
 
+static int gnrom_init (void);
+
+static void gnrom_reset (void);
+
+
+const MMC mmc_gnrom =
+{
+    66, "GNROM",
+
+    gnrom_init, gnrom_reset
+};
+
+
 static void gnrom_write (UINT16 address, UINT8 value)
 {
     int index;
@@ -37,7 +50,7 @@ static void gnrom_write (UINT16 address, UINT8 value)
 }
 
 
-static INLINE void gnrom_reset (void)
+static void gnrom_reset (void)
 {
     int index;
 
@@ -56,7 +69,7 @@ static INLINE void gnrom_reset (void)
 }
 
 
-static INLINE int gnrom_init (void)
+static int gnrom_init (void)
 {
     /* Set initial mappings. */
 
@@ -70,10 +83,3 @@ static INLINE int gnrom_init (void)
 
     return (0);
 }
-
-AL_CONST MMC mmc_gnrom =
-{
- "GNROM",
- gnrom_init,
- gnrom_reset
-};
