@@ -162,54 +162,90 @@ typedef struct MENU_INFO            /* information about a popup menu */
 } MENU_INFO;
 
 
-/* menu_alt_key:
- *  Searches a menu for keyboard shortcuts, for the alt+letter to bring
- *  up a menu.
- */
-static int my_menu_alt_key(int k, MENU *m)
+/*
+
+menu_alt_key:
+
+Searches a menu for keyboard shortcuts,
+for the alt+letter to bring up a menu.
+
+*/
+
+
+static CONST UINT8 alt_table [26] =
 {
-   static unsigned char alt_table[] =
-   {
-      KEY_A, KEY_B, KEY_C, KEY_D, KEY_E, KEY_F, KEY_G, KEY_H, KEY_I, 
-      KEY_J, KEY_K, KEY_L, KEY_M, KEY_N, KEY_O, KEY_P, KEY_Q, KEY_R, 
-      KEY_S, KEY_T, KEY_U, KEY_V, KEY_W, KEY_X, KEY_Y, KEY_Z
-   };
+    KEY_A, KEY_B, KEY_C, KEY_D, KEY_E, KEY_F, KEY_G,
+    KEY_H, KEY_I, KEY_J, KEY_K, KEY_L, KEY_M, KEY_N,
+    KEY_O, KEY_P, KEY_Q, KEY_R, KEY_S, KEY_T, KEY_U,
+    KEY_V, KEY_W, KEY_X, KEY_Y, KEY_Z
+};
 
-   AL_CONST char *s;
-   int c, d;
 
-   if (k & 0xFF)
-      return 0;
+static INLINE int my_menu_alt_key (int key, MENU * menu)
+{
+    AL_CONST char * label;
 
-   k >>= 8;
+    int index, letter;
 
-   c = scancode_to_ascii(k);
-   if (c) {
-      k = c;
-   } else {
-      for (c=0; c<(int)sizeof(alt_table); c++) {
-	 if (k == alt_table[c]) {
-	    k = c + 'a';
-	    break;
-	 }
-      }
 
-      if (c >= (int)sizeof(alt_table))
-	 return 0;
-   }
+    if (key & 0xFF)
+    {
+        return (0);
+    }
 
-   for (c=0; m[c].text; c++) {
-      s = m[c].text;
-      while ((d = ugetxc(&s)) != 0) {
-	 if (d == '&') {
-	    d = ugetc(s);
-	    if ((d != '&') && (utolower(d) == utolower(k)))
-	       return k;
-	 }
-      }
-   }
 
-   return 0;
+    key >>= 8;
+
+    index = scancode_to_ascii (key);
+
+
+    if (index)
+    {
+        key = index;
+    }
+    else
+    {
+        for (index = 0; index < sizeof (alt_table); index ++)
+        {
+            if (key == alt_table [index])
+            {
+                key = (index + 'a');
+
+                break;
+            }
+        }
+
+
+        if (index >= sizeof (alt_table))
+        {
+            return (0);
+        }
+    }
+
+
+    for (index = 0; menu [index].text; index ++)
+    {
+        label = menu [index].text;
+
+
+        while ((letter = ugetxc (&label)) != 0)
+        {
+            if (letter == '&')
+            {
+                letter = ugetc (label);
+
+
+                if ((letter != '&') &&
+                    (utolower (letter) == utolower (key)))
+                {
+                    return (key);
+                }
+            }
+        }
+    }
+
+
+    return (0);
 }
 
 
