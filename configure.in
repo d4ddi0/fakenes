@@ -7,6 +7,13 @@ AC_MSG_WARN(ignoring --prefix if it is present)
 
 dnl Checks for programs.
 AC_PROG_CC
+
+AC_MSG_CHECKING(for executable file suffix)
+AC_MSG_RESULT("$EXEEXT")
+
+AC_MSG_CHECKING(for object file suffix)
+AC_MSG_RESULT("$OBJEXT")
+
 AC_PATH_PROGS(MAKE, make gmake, make)
 AC_PATH_PROG(NASM, nasm, nasm)
 AC_PATH_PROG(RM, rm, rm)
@@ -93,6 +100,7 @@ AC_SUBST(RM)
 AC_SUBST(CHMOD)
 
 AC_SUBST(EXEEXT)
+AC_SUBST(OBJEXT)
 
 AC_SUBST(DFLAGS)
 AC_SUBST(LIBRARIES)
