@@ -473,14 +473,7 @@ static INLINE int select_blitter (void)
 {
     if ((SCREEN_W >= 512) && (SCREEN_H >= 480))
     {
-        if (color_depth != 8)
-        {
-            return (VIDEO_BLITTER_SUPER_2XSCL);
-        }
-        else
-        {
-            return (VIDEO_BLITTER_2XSCL);
-        }
+        return (VIDEO_BLITTER_SUPER_2XSCL);
     }
     else
     {
@@ -563,14 +556,7 @@ void video_blit (BITMAP * bitmap)
 
         case VIDEO_BLITTER_INTERPOLATED_2X:
 
-            if (color_depth == 32)
-            {
-                blit_interpolated_2x_32 (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
-            }
-            else
-            {
-                blit_interpolated_2x (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
-            }
+            blit_interpolated_2x (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
 
 
             break;
@@ -602,14 +588,7 @@ void video_blit (BITMAP * bitmap)
 
         case VIDEO_BLITTER_SUPER_2XSOE:
 
-            if (color_depth == 32)
-            {
-                blit_super_2xsoe_32 (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
-            }
-            else
-            {
-                blit_super_2xsoe (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
-            }
+            blit_super_2xsoe (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
 
 
             break;
@@ -617,14 +596,7 @@ void video_blit (BITMAP * bitmap)
 
         case VIDEO_BLITTER_SUPER_2XSCL:
 
-            if (color_depth == 32)
-            {
-                blit_super_2xscl_32 (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
-            }
-            else
-            {
-                blit_super_2xscl (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
-            }
+            blit_super_2xscl (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
 
 
             break;

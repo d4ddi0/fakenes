@@ -5,24 +5,19 @@
 #define BLIT_SHARED_H_INCLUDED
 
 
-#define FAST_GETPIXEL(bitmap, x, y)             bitmap -> line [y] [x]
+#define FAST_GETPIXEL8(bitmap, x, y)             (((UINT8 *) bitmap -> line [y]) [x])
 
 
-#define SAFE_GETPIXEL(bitmap, x, y, default)                                  \
+#define SAFE_GETPIXEL8(bitmap, x, y, default)                                 \
     ((((x >= 0) && (y >= 0)) && ((x < bitmap -> w) && (y < bitmap -> h))) ?   \
-    FAST_GETPIXEL (bitmap, x, y) : default)
+    FAST_GETPIXEL8 (bitmap, x, y) : default)
 
 
-#define FAST_PUTPIXEL(bitmap, x, y, color)      (bitmap -> line [y] [x] = color)
+#define FAST_PUTPIXEL8(bitmap, x, y, color)     (((UINT8 *)  bitmap -> line [y]) [x] = color)
 
 #define FAST_PUTPIXEL16(bitmap, x, y, color)    (((UINT16 *) bitmap -> line [y]) [x] = color)
 
 #define FAST_PUTPIXEL32(bitmap, x, y, color)    (((UINT32 *) bitmap -> line [y]) [x] = color)
-
-
-#define MAGIC_PUTPIXEL(bitmap, x, y, color)     \
-    ((color_depth == 32) ?                      \
-    FAST_PUTPIXEL32 (bitmap, x, y, color) : FAST_PUTPIXEL16 (bitmap, x, y, color))
 
 
 #define BLITTER_SIZE_CHECK(width, height)                                                                         \
@@ -62,22 +57,7 @@ static INLINE int mix (int color_a, int color_b)
     b = ((internal_palette [color_a].b * 3) + internal_palette [color_b].b);
 
 
-    if (color_depth == 32)
-    {
-        return (makecol32 (r, g, b));
-    }
-    else if (color_depth == 16)
-    {
-        return (makecol16 (r, g, b));
-    }
-    else if (color_depth == 15)
-    {
-        return (makecol15 (r, g, b));
-    }
-    else
-    {
-        return (makecol (r, g, b));
-    }
+    return (video_create_color (r, g, b));
 }
 
 

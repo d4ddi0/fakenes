@@ -501,50 +501,9 @@ static INLINE void update_menus (void)
         DISABLE_MENU (options_video_filters_scanlines_menu, 2);
 
         DISABLE_MENU (options_video_filters_scanlines_menu, 4);
-
-
-        if ((video_get_blitter () == VIDEO_BLITTER_SUPER_2XSOE) || (video_get_blitter () == VIDEO_BLITTER_SUPER_2XSCL) ||
-            ((video_get_blitter () == VIDEO_BLITTER_INTERPOLATED_2X) || (video_get_blitter () == VIDEO_BLITTER_INTERPOLATED_3X)))
-        {
-            video_set_blitter (VIDEO_BLITTER_NORMAL);
-        }
-
-
-        ENABLE_MENU (options_video_blitter_menu, 10);
-
-        ENABLE_MENU (options_video_blitter_menu, 12);
-
-
-        DISABLE_MENU (options_video_blitter_menu, 6);
-
-        DISABLE_MENU (options_video_blitter_menu, 8);
-
-        DISABLE_MENU (options_video_blitter_menu, 14);
-
-        DISABLE_MENU (options_video_blitter_menu, 16);
     }
     else
     {
-        if ((video_get_blitter () == VIDEO_BLITTER_2XSOE) || (video_get_blitter () == VIDEO_BLITTER_2XSCL))
-        {
-            video_set_blitter (VIDEO_BLITTER_NORMAL);
-        }
-
-
-        DISABLE_MENU (options_video_blitter_menu, 10);
-
-        DISABLE_MENU (options_video_blitter_menu, 12);
-
-
-        ENABLE_MENU (options_video_blitter_menu, 6);
-
-        ENABLE_MENU (options_video_blitter_menu, 8);
-
-        ENABLE_MENU (options_video_blitter_menu, 14);
-
-        ENABLE_MENU (options_video_blitter_menu, 16);
-
-
         ENABLE_MENU (options_video_filters_scanlines_menu, 2);
 
         ENABLE_MENU (options_video_filters_scanlines_menu, 4);
