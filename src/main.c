@@ -691,11 +691,12 @@ int main (int argc, char * argv [])
 
         while (! input_process ())
         {
+            executed_frames ++;
+
+
             if (-- frame_count > 0)
             {
                 redraw_flag = FALSE;
-
-                executed_frames ++;
             }
             else
             {
