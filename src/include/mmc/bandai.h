@@ -16,6 +16,11 @@ static int bandai_init (void);
 static void bandai_reset (void);
 
 
+static void bandai_save_state (PACKFILE *, int);
+
+static void bandai_load_state (PACKFILE *, int);
+
+
 static const MMC mmc_bandai =
 {
     16, "Bandai",
@@ -25,7 +30,7 @@ static const MMC mmc_bandai =
 
     "BANDAI\0\0",
 
-    null_save_state, null_load_state
+    bandai_save_state, bandai_load_state
 };
 
 
@@ -45,6 +50,10 @@ static char bandai_enable_irqs = FALSE;
 static int bandai_irq_counter = 0;
 
 static PAIR bandai_irq_latch;
+
+
+static UINT8 bandai_prg_bank;
+static UINT8 bandai_chr_bank[8];
 
 
 static int bandai_irq_tick (int line)
@@ -73,6 +82,22 @@ static int bandai_irq_tick (int line)
 }
 
 
+static INLINE void bandai_update_prg_bank (void)
+{
+    cpu_set_read_address_16k_rom_block (0x8000, bandai_prg_bank);
+}
+
+
+static INLINE void bandai_update_chr_bank (int bank)
+{
+    if (ROM_CHR_ROM_PAGES > 0)
+    {
+        /* set new VROM banking */
+        ppu_set_ram_1k_pattern_vrom_block (bank << 10, bandai_chr_bank[bank]);
+    }
+}
+
+
 static void bandai_write (UINT16 address, UINT8 value)
 {
     /* Extract write port index. */
@@ -88,14 +113,10 @@ static void bandai_write (UINT16 address, UINT8 value)
 
     if (address <= 7)
     {
-        /* Calculate PPU address. */
-
-        address *= 0x0400;
-
-
         /* Set requested 1k CHR-ROM page. */
+        bandai_chr_bank[address] = value;
 
-        ppu_set_ram_1k_pattern_vrom_block (address, value);
+        bandai_update_chr_bank(address);
     }
     else
     {
@@ -109,8 +130,9 @@ static void bandai_write (UINT16 address, UINT8 value)
             case 0x8008:
 
                 /* Set requested 16k ROM page at $8000. */
-            
-                cpu_set_read_address_16k_rom_block (0x8000, value);
+                bandai_prg_bank = value;
+
+                bandai_update_prg_bank ();
 
 
                 break;
@@ -173,6 +195,9 @@ static void bandai_write (UINT16 address, UINT8 value)
 static void bandai_reset (void)
 {
     /* Select first 16k page in lower 16k. */
+    bandai_prg_bank = 0;
+
+    bandai_update_prg_bank ();
 
     cpu_set_read_address_16k (0x8000, FIRST_ROM_PAGE);
 
@@ -185,14 +210,18 @@ static void bandai_reset (void)
 
 static int bandai_init (void)
 {
-    /* Start out with VRAM. */
-
-    ppu_set_ram_8k_pattern_vram ();
-
-    mmc_pattern_vram_in_use = TRUE;
+    int index;
 
 
     /* Set initial mappings. */
+
+    for (index = 0; index < 8; index++)
+    {
+        bandai_chr_bank[index] = index;
+
+        bandai_update_chr_bank (index);
+    }
+
 
     bandai_reset ();
 
@@ -211,3 +240,62 @@ static int bandai_init (void)
 
     return (0);
 }
+
+
+static void bandai_save_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    /* Save IRQ registers */
+    pack_iputw (bandai_irq_counter, file_chunk);
+    pack_iputw (bandai_irq_latch.word, file_chunk);
+
+    pack_putc (bandai_enable_irqs, file_chunk);
+
+
+    /* Save banking */
+    pack_putc (bandai_prg_bank, file_chunk);
+    pack_fwrite (bandai_chr_bank, 8, file_chunk);
+
+
+    pack_fclose_chunk (file_chunk);
+}
+
+
+static void bandai_load_state (PACKFILE * file, int version)
+{
+    int index;
+
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    /* Restore IRQ registers */
+    bandai_irq_counter = pack_igetw (file_chunk);
+    bandai_irq_latch.word = pack_igetw (file_chunk);
+
+    bandai_enable_irqs = pack_getc (file_chunk);
+
+
+    /* Restore banking */
+    bandai_prg_bank = pack_getc (file_chunk);
+    pack_fread (bandai_chr_bank, 8, file_chunk);
+
+
+    bandai_update_prg_bank ();
+
+    for (index = 0; index < 8; index++)
+    {
+        bandai_update_chr_bank (index);
+    }
+
+
+    pack_fclose_chunk (file_chunk);
+}
+

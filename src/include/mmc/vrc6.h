@@ -18,6 +18,11 @@ static int vrc6_init (void);
 static void vrc6_reset (void);
 
 
+static void vrc6_save_state (PACKFILE *, int);
+
+static void vrc6_load_state (PACKFILE *, int);
+
+
 static const MMC mmc_vrc6 =
 {
     24, "Konami VRC6 + ExSound",
@@ -27,7 +32,7 @@ static const MMC mmc_vrc6 =
 
     "VRC6\0\0\0\0",
 
-    null_save_state, null_load_state
+    vrc6_save_state, vrc6_load_state
 };
 
 
@@ -43,7 +48,7 @@ static const MMC mmc_vrc6v =
 
     "VRC6V\0\0\0",
 
-    null_save_state, null_load_state
+    vrc6_save_state, vrc6_load_state
 };
 
 
@@ -60,9 +65,13 @@ static const UINT8 vrc6_mirroring_mask = 0x0c;
 static char vrc6_enable_irqs = FALSE;
 
 
-static int vrc6_irq_counter = 0;
+static UINT8 vrc6_irq_counter = 0;
 
-static int vrc6_irq_latch = 0;
+static UINT8 vrc6_irq_latch = 0;
+
+
+static UINT8 vrc6_prg_bank[2];
+static UINT8 vrc6_chr_bank[8];
 
 
 static int vrc6_irq_tick (int line)
@@ -88,6 +97,31 @@ static int vrc6_irq_tick (int line)
 
 
 static char vrc6_swap_address_pins = FALSE;
+
+
+static INLINE void vrc6_update_prg_bank (int bank)
+{
+    if (bank == 0)
+    /* 16k ROM page select. */
+    {
+        cpu_set_read_address_16k_rom_block (0x8000, vrc6_prg_bank[0]);
+    }
+    else
+    /* 8k ROM page select. */
+    {
+        cpu_set_read_address_8k_rom_block (0xC000, vrc6_prg_bank[1]);
+    }
+}
+
+
+static INLINE void vrc6_update_chr_bank (int bank)
+{
+    if (ROM_CHR_ROM_PAGES > 0)
+    {
+        /* set new VROM banking */
+        ppu_set_ram_1k_pattern_vrom_block (bank << 10, vrc6_chr_bank[bank]);
+    }
+}
 
 
 static void vrc6_write (UINT16 address, UINT8 value)
@@ -120,7 +154,9 @@ static void vrc6_write (UINT16 address, UINT8 value)
             {
                 /* Set requested 16k ROM page at $8000. */
             
-                cpu_set_read_address_16k_rom_block (0x8000, value);
+                vrc6_prg_bank[0] = value;
+
+                vrc6_update_prg_bank (0);
             }
 
 
@@ -155,7 +191,9 @@ static void vrc6_write (UINT16 address, UINT8 value)
             {
                 /* Set requested 8k ROM page at $C000. */
             
-                cpu_set_read_address_8k_rom_block (0xc000, value);
+                vrc6_prg_bank[1] = value;
+
+                vrc6_update_prg_bank (1);
             }
 
 
@@ -166,14 +204,10 @@ static void vrc6_write (UINT16 address, UINT8 value)
 
             if (minor < 0x0004)
             {
-                /* Calculate PPU address. */
-
-                minor *= 0x0400;
-
-
                 /* Set requested 1k CHR-ROM page. */
+                vrc6_chr_bank[minor] = value;
         
-                ppu_set_ram_1k_pattern_vrom_block (minor, value);
+                vrc6_update_chr_bank (minor);
             }
 
 
@@ -184,16 +218,11 @@ static void vrc6_write (UINT16 address, UINT8 value)
 
             if (minor < 0x0004)
             {
-                /* Calculate PPU address. */
-
-                minor *= 0x0400;
-
-                minor += 0x1000;
-
-
                 /* Set requested 1k CHR-ROM page. */
         
-                ppu_set_ram_1k_pattern_vrom_block (minor, value);
+                vrc6_chr_bank[minor + 4] = value;
+        
+                vrc6_update_chr_bank (minor + 4);
             }
 
 
@@ -251,24 +280,25 @@ static void vrc6_write (UINT16 address, UINT8 value)
 
 static void vrc6_reset (void)
 {
+    /* Reset PRG banking. */
+
     /* Select first 16k page in lower 16k. */
+    vrc6_prg_bank[0] = 0;
 
-    cpu_set_read_address_16k (0x8000, FIRST_ROM_PAGE);
-
+    vrc6_update_prg_bank (0);
 
     /* Select last 16k page in upper 16k. */
-
     cpu_set_read_address_16k (0xc000, LAST_ROM_PAGE);
+
+    vrc6_prg_bank[1] = (ROM_PRG_ROM_PAGES * 2) - 2;
+
+    vrc6_update_prg_bank (1);
 }
 
 
 static int vrc6_base_init (void)
 {
-    /* Start out with VRAM. */
-
-    ppu_set_ram_8k_pattern_vram ();
-
-    mmc_pattern_vram_in_use = TRUE;
+    int index;
 
 
     /* Set initial mappings. */
@@ -315,3 +345,64 @@ static int vrc6v_init (void)
 
     return (vrc6_base_init ());
 }
+
+
+static void vrc6_save_state (PACKFILE * file, int version)
+{
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    /* Restore IRQ registers */
+    pack_putc (vrc6_irq_counter, file_chunk);
+    pack_putc (vrc6_irq_latch, file_chunk);
+
+    pack_putc (vrc6_enable_irqs, file_chunk);
+
+
+    /* Restore banking */
+    pack_fwrite (vrc6_prg_bank, 2, file_chunk);
+    pack_fwrite (vrc6_chr_bank, 8, file_chunk);
+
+
+    pack_fclose_chunk (file_chunk);
+}
+
+
+static void vrc6_load_state (PACKFILE * file, int version)
+{
+    int index;
+
+    PACKFILE * file_chunk;
+
+
+    file_chunk = pack_fopen_chunk (file, FALSE);
+
+
+    /* Restore IRQ registers */
+    vrc6_irq_counter = pack_getc (file_chunk);
+    vrc6_irq_latch = pack_getc (file_chunk);
+
+    vrc6_enable_irqs = pack_getc (file_chunk);
+
+
+    /* Restore banking */
+    pack_fread (vrc6_prg_bank, 2, file_chunk);
+    pack_fread (vrc6_chr_bank, 8, file_chunk);
+
+
+    vrc6_update_prg_bank (0);
+    vrc6_update_prg_bank (1);
+
+
+    for (index = 0; index < 8; index++)
+    {
+        vrc6_update_chr_bank (index);
+    }
+
+
+    pack_fclose_chunk (file_chunk);
+}
+
