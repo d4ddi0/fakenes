@@ -579,7 +579,7 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_audio_mixing_speed_menu, 12, (audio_sample_rate == 48000));
 
-    TOGGLE_MENU (options_audio_mixing_speed_menu, 14, (audio_sample_rate == 80000));
+    TOGGLE_MENU (options_audio_mixing_speed_menu, 14, (audio_sample_rate == 80200));
 
     TOGGLE_MENU (options_audio_mixing_speed_menu, 16, (audio_sample_rate == 96000));
 
@@ -1958,7 +1958,7 @@ MIXING_SPEED_MENU_HANDLER (44100)
 
 MIXING_SPEED_MENU_HANDLER (48000)
 
-MIXING_SPEED_MENU_HANDLER (80000)
+MIXING_SPEED_MENU_HANDLER (80200)
 
 MIXING_SPEED_MENU_HANDLER (96000)
 

@@ -247,7 +247,7 @@ static int options_audio_mixing_speed_menu_44100_hz (void);
 
 static int options_audio_mixing_speed_menu_48000_hz (void);
 
-static int options_audio_mixing_speed_menu_80000_hz (void);
+static int options_audio_mixing_speed_menu_80200_hz (void);
 
 static int options_audio_mixing_speed_menu_96000_hz (void);
 
@@ -268,7 +268,7 @@ static MENU options_audio_mixing_speed_menu [] =
     {             "",                                      NIL, NIL, 0, NIL },
     { "&7: 48000 Hz", options_audio_mixing_speed_menu_48000_hz, NIL, 0, NIL },
     {             "",                                      NIL, NIL, 0, NIL },
-    { "&8: 80000 Hz", options_audio_mixing_speed_menu_80000_hz, NIL, 0, NIL },
+    { "&8: 80200 Hz", options_audio_mixing_speed_menu_80200_hz, NIL, 0, NIL },
     {             "",                                      NIL, NIL, 0, NIL },
     { "&9: 96000 Hz", options_audio_mixing_speed_menu_96000_hz, NIL, 0, NIL },
     {            NIL,                                      NIL, NIL, 0, NIL }
