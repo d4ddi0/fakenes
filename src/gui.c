@@ -1954,7 +1954,15 @@ static int options_video_palette_menu_default (void)
     update_colors ();
 
 
-    return (D_O_K);
+    clear (screen);
+
+    video_blit (screen);
+
+
+    gui_message (gui_fg_color, "Video palette set to default.");
+
+
+    return (D_REDRAW);
 }
 
 
@@ -1982,7 +1990,15 @@ static int options_video_palette_menu_grayscale (void)
     update_colors ();
 
 
-    return (D_O_K);
+    clear (screen);
+
+    video_blit (screen);
+
+
+    gui_message (gui_fg_color, "Video palette set to grayscale.");
+
+
+    return (D_REDRAW);
 }
 
 static int options_video_palette_menu_gnuboy (void)
@@ -2009,7 +2025,15 @@ static int options_video_palette_menu_gnuboy (void)
     update_colors ();
 
 
-    return (D_O_K);
+    clear (screen);
+
+    video_blit (screen);
+
+
+    gui_message (gui_fg_color, "Video palette set to gnuboy.");
+
+
+    return (D_REDRAW);
 }
 
 
@@ -2037,7 +2061,15 @@ static int options_video_palette_menu_nester (void)
     update_colors ();
 
 
-    return (D_O_K);
+    clear (screen);
+
+    video_blit (screen);
+
+
+    gui_message (gui_fg_color, "Video palette set to NESter.");
+
+
+    return (D_REDRAW);
 }
 
 
@@ -2065,7 +2097,15 @@ static int options_video_palette_menu_nesticle (void)
     update_colors ();
 
 
-    return (D_O_K);
+    clear (screen);
+
+    video_blit (screen);
+
+
+    gui_message (gui_fg_color, "Video palette set to NESticle.");
+
+
+    return (D_REDRAW);
 }
 
 
@@ -2115,7 +2155,15 @@ static int options_video_palette_menu_custom (void)
         current_palette = ((RGB *) &custom_palette);
 
 
-        update_colors ();
+        clear (screen);
+    
+        video_blit (screen);
+    
+    
+        gui_message (gui_fg_color, "Video palette set to custom.");
+    
+    
+        return (D_REDRAW);
     }
     else
     {
