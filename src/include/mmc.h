@@ -32,7 +32,7 @@ int mmc_init (void);
 void mmc_reset (void);
 
 
-void mmc_request (const ROM * rom);
+void mmc_request (ROM * rom);
 
 
 typedef struct _MMC

@@ -56,7 +56,7 @@ int cpu_execute (int);
 UINT16 * cpu_active_pc;
 
 
-void cpu_free_prg_rom (ROM *rom);
+void cpu_free_prg_rom (const ROM *rom);
 UINT8 * cpu_get_prg_rom_pages (ROM *rom);
 
 void enable_sram(void);

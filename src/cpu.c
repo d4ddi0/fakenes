@@ -266,11 +266,9 @@ void cpu_exit (void)
 }
 
 
-void cpu_free_prg_rom (ROM *rom)
+void cpu_free_prg_rom (const ROM *rom)
 {
     if (rom -> prg_rom) free (rom -> prg_rom);
-
-    rom -> prg_rom = NULL;
 }
 
 

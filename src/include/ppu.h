@@ -75,7 +75,7 @@ int ppu_enable_sprite_layer_a;
 int ppu_enable_sprite_layer_b;
 int ppu_enable_background_layer;
 
-void ppu_free_chr_rom (ROM *rom);
+void ppu_free_chr_rom (const ROM *rom);
 UINT8 * ppu_get_chr_rom_pages (ROM *rom);
 void ppu_cache_chr_rom_pages (void);
 

@@ -126,7 +126,7 @@ int none_init (void)
 }
 
 
-void mmc_request (const ROM * rom)
+void mmc_request (ROM * rom)
 {
     MMC_FIRST_LIST_ITEM (none);     /* No mapper. */
 

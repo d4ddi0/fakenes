@@ -156,15 +156,11 @@ static INLINE UINT8 vram_read (UINT16 address)
 }
 
 
-void ppu_free_chr_rom (ROM *rom)
+void ppu_free_chr_rom (const ROM *rom)
 {
     if (rom -> chr_rom) free (rom -> chr_rom);
     if (rom -> chr_rom_cache) free (rom -> chr_rom_cache);
     if (rom -> chr_rom_cache_tag) free (rom -> chr_rom_cache_tag);
-
-    rom -> chr_rom = NULL;
-    rom -> chr_rom_cache = NULL;
-    rom -> chr_rom_cache_tag = NULL;
 }
 
 
