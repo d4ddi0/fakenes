@@ -21,6 +21,9 @@ You must read and accept the license prior to use.
 #include "audio.h"
 
 
+#include "misc.h"
+
+
 #include "timing.h"
 
 
@@ -43,6 +46,9 @@ int audio_buffer_length = 0;
 int audio_pseudo_stereo = FALSE;
 
 
+static int disable_wait = FALSE;
+
+
 volatile int audio_fps = 0;
 
 
@@ -63,6 +69,9 @@ int audio_init (void)
 
 
     audio_pseudo_stereo = get_config_int ("audio", "pseudo_stereo", TRUE);
+
+
+    disable_wait = get_config_int ("audio", "disable_wait", TRUE);
 
 
     if (audio_enable_output)
@@ -134,6 +143,9 @@ void audio_exit (void)
 
 
     set_config_int ("audio", "pseudo_stereo", audio_pseudo_stereo);
+
+
+    set_config_int ("audio", "disable_wait", disable_wait);
 }
 
 
@@ -148,11 +160,14 @@ void audio_stop (void)
     int offset;
 
 
-    do
+    if (! disable_wait)
     {
-        offset = voice_get_position (audio_voice);
+        do
+        {
+            offset = voice_get_position (audio_voice);
+        }
+        while (offset != -1);
     }
-    while (offset != -1);
 
 
     voice_stop (audio_voice);
