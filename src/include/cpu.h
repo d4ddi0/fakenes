@@ -20,6 +20,7 @@ extern "C" {
 #endif
 
 
+#include <allegro.h>
 #include "misc.h"
 
 #include "core.h"
