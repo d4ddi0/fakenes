@@ -68,9 +68,9 @@ static UINT8 joy1_defaults [8] = { "1 0 2 3\0" };
 static UINT8 joy2_defaults [8] = { "1 0 2 3\0" };
 
 
-static UINT8 joy1_buffer [16];
+static UINT8 joy1_buffer [8];
 
-static UINT8 joy2_buffer [16];
+static UINT8 joy2_buffer [8];
 
 
 static int joy1_buttons [4];
@@ -119,7 +119,7 @@ static INLINE void _load_keycodes (void)
     if (sscanf (key1_buffer, "%d%d%d%d%d%d%d%d",
         &key1_scancodes [0], &key1_scancodes [1], &key1_scancodes [2],
         &key1_scancodes [3], &key1_scancodes [4], &key1_scancodes [5],
-        &key1_scancodes [6], &key1_scancodes [7]) < 8);
+        &key1_scancodes [6], &key1_scancodes [7]) < 8)
     {
         sscanf (key1_defaults, "%d%d%d%d%d%d%d%d",
         &key1_scancodes [0], &key1_scancodes [1], &key1_scancodes [2],
@@ -131,7 +131,7 @@ static INLINE void _load_keycodes (void)
     if (sscanf (key2_buffer, "%d%d%d%d%d%d%d%d",
         &key2_scancodes [0], &key2_scancodes [1], &key2_scancodes [2],
         &key2_scancodes [3], &key2_scancodes [4], &key2_scancodes [5],
-        &key2_scancodes [6], &key2_scancodes [7]) < 8);
+        &key2_scancodes [6], &key2_scancodes [7]) < 8)
     {
         sscanf (key2_defaults, "%d%d%d%d%d%d%d%d",
         &key2_scancodes [0], &key2_scancodes [1], &key2_scancodes [2],
@@ -156,7 +156,7 @@ static INLINE void _load_joycodes (void)
 
 
     if (sscanf (joy1_buffer, "%d%d%d%d", &joy1_buttons [0],
-        &joy1_buttons [1], &joy1_buttons [2], &joy1_buttons [3]) < 4);
+        &joy1_buttons [1], &joy1_buttons [2], &joy1_buttons [3]) < 4)
     {
         sscanf (joy1_defaults, "%d%d%d%d", &joy1_buttons [0],
         &joy1_buttons [1], &joy1_buttons [2], &joy1_buttons [3]);
@@ -164,7 +164,7 @@ static INLINE void _load_joycodes (void)
 
 
     if (sscanf (joy2_buffer, "%d%d%d%d", &joy2_buttons [0],
-        &joy2_buttons [1], &joy2_buttons [2], &joy2_buttons [3]) < 4);
+        &joy2_buttons [1], &joy2_buttons [2], &joy2_buttons [3]) < 4)
     {
         sscanf (joy2_defaults, "%d%d%d%d", &joy2_buttons [0],
         &joy2_buttons [1], &joy2_buttons [2], &joy2_buttons [3]);

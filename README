@@ -55,7 +55,7 @@ YOU MUST READ 'LICENSE' BEFORE USING.
         device #2) will be used to handle Select and Start buttons.
 
         The joystick button mappings are defined by supplying a
-        sequence of integer button #s (up to 8) separated by spaces in
+        sequence of integer button #s (up to 10) separated by spaces in
         the "[input]" section via the "joy1_buttons" and "joy2_buttons"
         items.  Please refer to your joystick device manual for
         information about button #s and where each button is located
