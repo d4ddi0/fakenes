@@ -19,7 +19,6 @@ You must read and accept the license prior to use.
 
 #define ALLEGRO_USE_CONSOLE
 
-
 #include <allegro.h>
 
 #include "build.h"
@@ -905,15 +904,7 @@ int main (int argc, char * argv [])
                     {
                         while (throttle_counter == 0)
                         {
-#ifdef USE_USLEEP
-
-                            usleep (0);
-
-#else
-
-                            yield_timeslice ();
-
-#endif
+                            rest (0);
                         }
                     }
     
