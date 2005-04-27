@@ -179,9 +179,9 @@ int video_init (void)
     video_driver = get_config_id ("video", "driver", GFX_AUTODETECT);
 
 
-    screen_width = get_config_int ("video", "screen_width", 320);
+    screen_width = get_config_int ("video", "screen_width", 640);
 
-    screen_height = get_config_int ("video", "screen_height", 240);
+    screen_height = get_config_int ("video", "screen_height", 480);
 
 
     color_depth = get_config_int ("video", "color_depth", 8);
@@ -190,7 +190,7 @@ int video_init (void)
     video_force_window = get_config_int ("video", "force_window", FALSE);
 
 
-    blitter_type = get_config_int ("video", "blitter_type", VIDEO_BLITTER_AUTOMATIC);
+    blitter_type = get_config_int ("video", "blitter_type", VIDEO_BLITTER_STRETCHED);
 
     filter_list = get_config_int ("video", "filter_list", 0);
 
@@ -222,7 +222,7 @@ int video_init (void)
 
     video_display_status = get_config_int ("video", "display_status", FALSE);
 
-    video_enable_vsync = get_config_int ("video", "enable_vsync", FALSE);
+    video_enable_vsync = get_config_int ("video", "enable_vsync", TRUE);
 
 
     if (video_driver == GFX_AUTODETECT)
