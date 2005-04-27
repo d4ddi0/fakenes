@@ -150,6 +150,38 @@ static int genie_decode_digit (UINT8 digit)
 }
 
 
+static int genie_decode_raw (const UINT8 * code, UINT16 * address, UINT8 *value, UINT8 * match_value)
+{
+    int _address;
+
+    int _value;
+
+    int _match_value;
+
+
+    if (sscanf (code, "%04x?%02x:%02x", &_address, &_match_value, &_value) < 3)
+    {
+        if (sscanf (code, "%04x:%02x", &_address, &_value) < 2)
+        {
+            return (1);
+        }
+
+
+        _match_value = cpu_read (_address);
+    }
+
+
+    *address = _address;
+
+    *value = _value;
+
+    *match_value = _match_value;
+
+
+    return (0);
+}
+
+
 static int genie_decode (const UINT8 * code, UINT16 * address, UINT8 * value, UINT8 * match_value)
 {
     int index;
@@ -162,6 +194,12 @@ static int genie_decode (const UINT8 * code, UINT16 * address, UINT8 * value, UI
 
 
     int shifts;
+
+
+    if ((strlen (code) == 7) || (strlen (code) == 10))
+    {
+        return (genie_decode_raw (code, address, value, match_value));
+    }
 
 
     length = strlen (code);

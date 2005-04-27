@@ -4617,7 +4617,7 @@ static int options_patches_dialog_add (DIALOG * dialog)
 {
     UINT8 buffer [16];
 
-    UINT8 buffer2 [9];
+    UINT8 buffer2 [11];
 
 
     CPU_PATCH * patch;
@@ -4661,7 +4661,7 @@ static int options_patches_dialog_add (DIALOG * dialog)
 
     if (genie_decode (buffer2, &patch -> address, &patch -> value, &patch -> match_value) != 0)
     {
-        alert ("- Error -", NIL, "You must enter a 6 or 8 digit Game Genie code.", "&OK", NIL, 'o', 0);
+        alert ("- Error -", NIL, "You must enter a valid Game Genie (or NESticle raw) code.", "&OK", NIL, 'o', 0);
 
 
         return (D_O_K);
