@@ -301,45 +301,45 @@ static MENU options_audio_mixing_channels_menu [] =
 };                                             
 
 
-static int options_audio_mixing_speed_menu_8000_hz (void);
+static int options_audio_mixing_frequency_menu_8000_hz (void);
 
-static int options_audio_mixing_speed_menu_11025_hz (void);
+static int options_audio_mixing_frequency_menu_11025_hz (void);
 
-static int options_audio_mixing_speed_menu_16000_hz (void);
+static int options_audio_mixing_frequency_menu_16000_hz (void);
 
-static int options_audio_mixing_speed_menu_22050_hz (void);
+static int options_audio_mixing_frequency_menu_22050_hz (void);
 
-static int options_audio_mixing_speed_menu_32000_hz (void);
+static int options_audio_mixing_frequency_menu_32000_hz (void);
 
-static int options_audio_mixing_speed_menu_44100_hz (void);
+static int options_audio_mixing_frequency_menu_44100_hz (void);
 
-static int options_audio_mixing_speed_menu_48000_hz (void);
+static int options_audio_mixing_frequency_menu_48000_hz (void);
 
-static int options_audio_mixing_speed_menu_80200_hz (void);
+static int options_audio_mixing_frequency_menu_80200_hz (void);
 
-static int options_audio_mixing_speed_menu_96000_hz (void);
+static int options_audio_mixing_frequency_menu_96000_hz (void);
 
 
-static MENU options_audio_mixing_speed_menu [] =
+static MENU options_audio_mixing_frequency_menu [] =
 {
-    {  "&1: 8000 Hz",  options_audio_mixing_speed_menu_8000_hz, NIL, 0, NIL },
-    {             "",                                      NIL, NIL, 0, NIL },
-    { "&2: 11025 Hz", options_audio_mixing_speed_menu_11025_hz, NIL, 0, NIL },
-    {             "",                                      NIL, NIL, 0, NIL },
-    { "&3: 16000 Hz", options_audio_mixing_speed_menu_16000_hz, NIL, 0, NIL },
-    {             "",                                      NIL, NIL, 0, NIL },
-    { "&4: 22050 Hz", options_audio_mixing_speed_menu_22050_hz, NIL, 0, NIL },
-    {             "",                                      NIL, NIL, 0, NIL },
-    { "&5: 32000 Hz", options_audio_mixing_speed_menu_32000_hz, NIL, 0, NIL },
-    {             "",                                      NIL, NIL, 0, NIL },
-    { "&6: 44100 Hz", options_audio_mixing_speed_menu_44100_hz, NIL, 0, NIL },
-    {             "",                                      NIL, NIL, 0, NIL },
-    { "&7: 48000 Hz", options_audio_mixing_speed_menu_48000_hz, NIL, 0, NIL },
-    {             "",                                      NIL, NIL, 0, NIL },
-    { "&8: 80200 Hz", options_audio_mixing_speed_menu_80200_hz, NIL, 0, NIL },
-    {             "",                                      NIL, NIL, 0, NIL },
-    { "&9: 96000 Hz", options_audio_mixing_speed_menu_96000_hz, NIL, 0, NIL },
-    {            NIL,                                      NIL, NIL, 0, NIL }
+    {  "&1: 8000 Hz",  options_audio_mixing_frequency_menu_8000_hz, NIL, 0, NIL },
+    {             "",                                          NIL, NIL, 0, NIL },
+    { "&2: 11025 Hz", options_audio_mixing_frequency_menu_11025_hz, NIL, 0, NIL },
+    {             "",                                          NIL, NIL, 0, NIL },
+    { "&3: 16000 Hz", options_audio_mixing_frequency_menu_16000_hz, NIL, 0, NIL },
+    {             "",                                          NIL, NIL, 0, NIL },
+    { "&4: 22050 Hz", options_audio_mixing_frequency_menu_22050_hz, NIL, 0, NIL },
+    {             "",                                          NIL, NIL, 0, NIL },
+    { "&5: 32000 Hz", options_audio_mixing_frequency_menu_32000_hz, NIL, 0, NIL },
+    {             "",                                          NIL, NIL, 0, NIL },
+    { "&6: 44100 Hz", options_audio_mixing_frequency_menu_44100_hz, NIL, 0, NIL },
+    {             "",                                          NIL, NIL, 0, NIL },
+    { "&7: 48000 Hz", options_audio_mixing_frequency_menu_48000_hz, NIL, 0, NIL },
+    {             "",                                          NIL, NIL, 0, NIL },
+    { "&8: 80200 Hz", options_audio_mixing_frequency_menu_80200_hz, NIL, 0, NIL },
+    {             "",                                          NIL, NIL, 0, NIL },
+    { "&9: 96000 Hz", options_audio_mixing_frequency_menu_96000_hz, NIL, 0, NIL },
+    {            NIL,                                          NIL, NIL, 0, NIL }
 };
 
 
@@ -373,14 +373,14 @@ static MENU options_audio_mixing_advanced_menu [] =
 
 static MENU options_audio_mixing_menu [] =
 {
-    {    "&Speed", NIL,    options_audio_mixing_speed_menu, 0, NIL },
-    {          "", NIL,                                NIL, 0, NIL },
-    { "&Channels", NIL, options_audio_mixing_channels_menu, 0, NIL },
-    {          "", NIL,                                NIL, 0, NIL },
-    {  "&Quality", NIL,  options_audio_mixing_quality_menu, 0, NIL },
-    {          "", NIL,                                NIL, 0, NIL },
-    { "&Advanced", NIL, options_audio_mixing_advanced_menu, 0, NIL },
-    {         NIL, NIL,                                NIL, 0, NIL }
+    { "&Frequency", NIL, options_audio_mixing_frequency_menu, 0, NIL },
+    {           "", NIL,                                 NIL, 0, NIL },
+    {  "&Channels", NIL,  options_audio_mixing_channels_menu, 0, NIL },
+    {           "", NIL,                                 NIL, 0, NIL },
+    {   "&Quality", NIL,   options_audio_mixing_quality_menu, 0, NIL },
+    {           "", NIL,                                 NIL, 0, NIL },
+    {  "&Advanced", NIL,  options_audio_mixing_advanced_menu, 0, NIL },
+    {          NIL, NIL,                                 NIL, 0, NIL }
 };
 
 

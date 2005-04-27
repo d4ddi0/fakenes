@@ -645,23 +645,23 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (options_audio_menu, 0, audio_enable_output);
 
 
-    TOGGLE_MENU (options_audio_mixing_speed_menu, 0, (audio_sample_rate == 8000));
+    TOGGLE_MENU (options_audio_mixing_frequency_menu, 0, (audio_sample_rate == 8000));
 
-    TOGGLE_MENU (options_audio_mixing_speed_menu, 2, (audio_sample_rate == 11025));
+    TOGGLE_MENU (options_audio_mixing_frequency_menu, 2, (audio_sample_rate == 11025));
 
-    TOGGLE_MENU (options_audio_mixing_speed_menu, 4, (audio_sample_rate == 16000));
+    TOGGLE_MENU (options_audio_mixing_frequency_menu, 4, (audio_sample_rate == 16000));
 
-    TOGGLE_MENU (options_audio_mixing_speed_menu, 6, (audio_sample_rate == 22050));
+    TOGGLE_MENU (options_audio_mixing_frequency_menu, 6, (audio_sample_rate == 22050));
 
-    TOGGLE_MENU (options_audio_mixing_speed_menu, 8, (audio_sample_rate == 32000));
+    TOGGLE_MENU (options_audio_mixing_frequency_menu, 8, (audio_sample_rate == 32000));
 
-    TOGGLE_MENU (options_audio_mixing_speed_menu, 10, (audio_sample_rate == 44100));
+    TOGGLE_MENU (options_audio_mixing_frequency_menu, 10, (audio_sample_rate == 44100));
 
-    TOGGLE_MENU (options_audio_mixing_speed_menu, 12, (audio_sample_rate == 48000));
+    TOGGLE_MENU (options_audio_mixing_frequency_menu, 12, (audio_sample_rate == 48000));
 
-    TOGGLE_MENU (options_audio_mixing_speed_menu, 14, (audio_sample_rate == 80200));
+    TOGGLE_MENU (options_audio_mixing_frequency_menu, 14, (audio_sample_rate == 80200));
 
-    TOGGLE_MENU (options_audio_mixing_speed_menu, 16, (audio_sample_rate == 96000));
+    TOGGLE_MENU (options_audio_mixing_frequency_menu, 16, (audio_sample_rate == 96000));
 
 
     TOGGLE_MENU (options_audio_mixing_channels_menu, 0, (! audio_pseudo_stereo));
@@ -2637,7 +2637,7 @@ static int options_audio_menu_enabled (void)
 
 
 #define MIXING_SPEED_MENU_HANDLER(speed)        \
-    static int options_audio_mixing_speed_menu_##speed##_hz (void)  \
+    static int options_audio_mixing_frequency_menu_##speed##_hz (void)  \
     {                                           \
         audio_sample_rate = speed;              \
                                                 \
