@@ -152,17 +152,6 @@ void audio_exit (void)
 }
 
 
-void audio_update (void)
-{
-    audio_buffer = get_audio_stream_buffer (audio_stream);
-
-    if (audio_buffer)
-    {
-        voice_stop (audio_stream -> voice);
-    }
-}
-
-
 void audio_suspend (void)
 {
     if (audio_enable_output)
@@ -181,13 +170,13 @@ void audio_resume (void)
 }
 
 
-void audio_start (void)
+void audio_poll (void)
 {
     audio_buffer = get_audio_stream_buffer (audio_stream);
 }
 
 
-void audio_stop (void)
+void audio_play (void)
 {
     voice_start (audio_stream -> voice);
 

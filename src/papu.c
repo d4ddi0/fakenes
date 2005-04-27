@@ -439,10 +439,7 @@ void papu_stop_record (void)
 }
 
 
-static int frames = 0;
-
-
-#define PAPU_BUFFER_SIZE    ((audio_sample_rate / speed) * frames)
+#define PAPU_BUFFER_SIZE    ((audio_sample_rate / speed) * audio_buffer_length)
 
 
 static int fast_forward = FALSE;
@@ -490,20 +487,13 @@ void papu_process (void)
     }
 
 
-    frames ++;
-
-
-    if (frames == audio_buffer_length)
+    if (audio_enable_output)
     {
-        if (audio_enable_output)
+        audio_poll ();
+
+
+        if (audio_buffer)
         {
-            do
-            {
-                audio_start ();
-            }
-            while (! audio_buffer);
-
-
             if (audio_pseudo_stereo)
             {
                 apu_process_stereo (audio_buffer, PAPU_BUFFER_SIZE, papu_dithering,
@@ -536,18 +526,12 @@ void papu_process (void)
             }
 
 
-            audio_stop ();
+            audio_play ();
         }
-
-
-        frames = 0;
     }
     else
     {
-        if (audio_enable_output)
-        {
-            audio_update ();
-        }
+        apu_process (NIL, (audio_sample_rate / speed), FALSE);
     }
 
 
