@@ -295,7 +295,7 @@ int video_init (void)
     }
     else
     {
-        video_set_palette (DATA_TO_RGB (DEFAULT_PALETTE));
+        video_set_palette (DATA_TO_RGB (MODERN_NTSC_PALETTE));
     }
 
 
