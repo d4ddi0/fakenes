@@ -904,7 +904,7 @@ int main (int argc, char * argv [])
                     {
                         while (throttle_counter == 0)
                         {
-                            rest (0);
+                            rest (1);
                         }
                     }
     
@@ -1136,6 +1136,9 @@ int main (int argc, char * argv [])
 
                 papu_process ();
             }
+
+
+            rest (0);
         }
     }
 
