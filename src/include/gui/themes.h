@@ -120,11 +120,11 @@ static INLINE void set_zero_4_theme (void)
 static GUI_THEME panta_theme =
 {
     {    0,    0,    0 }, /* Gradients start. */
-    {    0,  1.0,    0 }, /* Gradients end. */
+    {    0, 0.67,    0 }, /* Gradients end. */
     {    0, 0.20,    0 }, /* Background. */
     {    0, 0.33,    0 }, /* Fill. */
     {    0, 0.33,    0 }, /* Menu bar. */
-    {    0,  1.0,    0 }, /* Borders. */
+    {    0, 0.85,    0 }, /* Borders. */
     {  1.0,  1.0,  1.0 }, /* Text. */
     {    0, 0.25,    0 }, /* Light shadows. */
     {    0,    0,    0 }, /* Shadows. */

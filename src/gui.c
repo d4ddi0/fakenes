@@ -995,7 +995,7 @@ int show_gui (int first_run)
 #endif
 
 
-        CHECK_MENU (options_video_palette_menu, 0);
+        CHECK_MENU (options_video_palette_menu, 10);
     
 
         gui_theme_id = get_config_int ("gui", "theme", 0);
