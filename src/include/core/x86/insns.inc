@@ -8,8 +8,8 @@ Distributed under the Clarified Artistic License.
 
 insns.inc: CPU instructions emulation macros.
 
-Copyright (c) 2004, Randy McDowell.
-Copyright (c) 2004, Charles Bilyue'.
+Copyright (c) 2005, Randy McDowell.
+Copyright (c) 2005, Charles Bilyue'.
 
 This is free software.  See 'LICENSE' for details.
 You must read and accept the license prior to use.

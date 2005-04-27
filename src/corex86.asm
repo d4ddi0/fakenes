@@ -4,7 +4,7 @@ FakeNES - A portable, Open Source NES emulator.
 
 core.c: Implementation of the RP2A03G CPU emulation
 
-Copyright (c) 2002, Charles Bilyue' and Randy McDowell.
+Copyright (c) 2005, Charles Bilyue' and Randy McDowell.
 
 This is free software.  See 'LICENSE' for details.
 You must read and accept the license prior to use.
