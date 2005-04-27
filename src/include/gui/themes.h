@@ -6,7 +6,9 @@ enum
 
     GUI_THEME_STAINLESS_STEEL,
 
-    GUI_THEME_ZERO_4
+    GUI_THEME_ZERO_4,
+
+    GUI_THEME_PANTA
 };
 
 
@@ -115,6 +117,41 @@ static INLINE void set_zero_4_theme (void)
 }
 
 
+static GUI_THEME panta_theme =
+{
+    {    0,    0,    0 }, /* Gradients start. */
+    {    0,  1.0,    0 }, /* Gradients end. */
+    {    0, 0.20,    0 }, /* Background. */
+    {    0, 0.33,    0 }, /* Fill. */
+    {    0, 0.33,    0 }, /* Menu bar. */
+    {    0,  1.0,    0 }, /* Borders. */
+    {  1.0,  1.0,  1.0 }, /* Text. */
+    {    0, 0.25,    0 }, /* Light shadows. */
+    {    0,    0,    0 }, /* Shadows. */
+    {    0,  0.5,    0 }, /* Selected. */
+    {    0,  0.4,    0 }, /* Disabled. */
+    {  1.0,  1.0,    0 }  /* Errors. */
+};
+
+
+static INLINE void set_panta_theme (void)
+{
+    mouse_sprite = DATA_TO_BITMAP (GUI_ZERO_4_THEME_MOUSE_SPRITE);
+
+
+    background_image = DATA_TO_BITMAP (GUI_ZERO_4_THEME_BACKGROUND_IMAGE);
+
+
+    gui_image_palette = DATA_TO_RGB (GUI_ZERO_4_THEME_PALETTE);
+
+
+    gui_theme_id = GUI_THEME_PANTA;
+
+
+    gui_set_theme (&panta_theme);
+}
+
+
 static INLINE void set_theme (void)
 {
     switch (gui_theme_id)
@@ -137,9 +174,17 @@ static INLINE void set_theme (void)
 
          case GUI_THEME_ZERO_4:
 
+            set_zero_4_theme ();
+
+
+            break;
+
+
+         case GUI_THEME_PANTA:
+
          default:
 
-            set_zero_4_theme ();
+            set_panta_theme ();
 
 
             break;

@@ -246,15 +246,19 @@ static int options_gui_theme_menu_stainless_steel (void);
 
 static int options_gui_theme_menu_zero_4 (void);
 
+static int options_gui_theme_menu_panta  (void);
+
 
 static MENU options_gui_theme_menu [] =
 {
-    {         "&1: Classic",         options_gui_theme_menu_classic, NIL, 0, NIL },
-    {                    "",                                    NIL, NIL, 0, NIL },
-    { "&2: stainless Steel", options_gui_theme_menu_stainless_steel, NIL, 0, NIL },
-    {                    "",                                    NIL, NIL, 0, NIL },
-    {          "&3: Zero 4",          options_gui_theme_menu_zero_4, NIL, 0, NIL },
-    {                   NIL,                                    NIL, NIL, 0, NIL }
+    {            "&1: Classic",         options_gui_theme_menu_classic, NIL, 0, NIL },
+    {                       "",                                    NIL, NIL, 0, NIL },
+    {    "&2: stainless Steel", options_gui_theme_menu_stainless_steel, NIL, 0, NIL },
+    {                       "",                                    NIL, NIL, 0, NIL },
+    {             "&3: Zero 4",          options_gui_theme_menu_zero_4, NIL, 0, NIL },
+    {                       "",                                    NIL, NIL, 0, NIL },
+    { "&4: Panta (Unfinished)",           options_gui_theme_menu_panta, NIL, 0, NIL },
+    {                      NIL,                                    NIL, NIL, 0, NIL }
 };
 
 

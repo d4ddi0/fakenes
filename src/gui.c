@@ -636,6 +636,8 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_gui_theme_menu, 4, (last_theme == &zero_4_theme));
 
+    TOGGLE_MENU (options_gui_theme_menu, 6, (last_theme == &panta_theme));
+
 
     TOGGLE_MENU (options_system_menu, 0, (machine_type == MACHINE_TYPE_NTSC));
 
@@ -2551,6 +2553,18 @@ static int options_gui_theme_menu_stainless_steel (void)
 static int options_gui_theme_menu_zero_4 (void)
 {
     set_zero_4_theme ();
+
+
+    gui_needs_restart = TRUE;
+
+
+    return (D_CLOSE);
+}
+
+
+static int options_gui_theme_menu_panta (void)
+{
+    set_panta_theme ();
 
 
     gui_needs_restart = TRUE;
