@@ -22,6 +22,8 @@ You must read and accept the license prior to use.
 
 #include <stdio.h>
 
+#include <stdlib.h>
+
 #include <string.h>
 
 
@@ -80,13 +82,20 @@ int papu_is_recording = FALSE;
 static int filter_list = 0;
 
 
+static void * papu_buffer_base = NIL;
+
+static void * papu_buffer = NIL;
+
+
+static int papu_buffer_frame_size = 0;
+
+static int papu_buffer_size = 0;
+
+
 #define ECHO_DEPTH  3
 
 
 static void * echo_buffers [ECHO_DEPTH];
-
-
-static int echo_buffer_size = 0;
 
 
 void papu_update (void)
@@ -122,29 +131,72 @@ int papu_reinit (void)
     speed = (machine_type == MACHINE_TYPE_NTSC ? 60 : 50);
 
 
-    apu_setparams (audio_sample_rate, speed, 0, audio_sample_size);
-
-
     if (timing_half_speed)
     {
         speed /= 2;
     }
 
 
-    echo_buffer_size = ((audio_sample_rate / speed) * audio_buffer_length);
+    apu_setparams (audio_sample_rate, speed, 0, audio_sample_size);
+
+
+    if (! audio_enable_output)
+    {
+        return (0);
+    }
+
+
+    papu_buffer_frame_size = (audio_sample_rate / speed);
 
     if (audio_sample_size == 16)
     {
-        echo_buffer_size *= 2;
+        papu_buffer_frame_size *= 2;
     }
 
     if (audio_pseudo_stereo)
     {
-        echo_buffer_size *= 2;
+        papu_buffer_frame_size *= 2;
+    }                
+
+    papu_buffer_size = (papu_buffer_frame_size * audio_buffer_length);
+
+
+    if (papu_buffer_base)
+    {
+        free (papu_buffer_base);
+    }
+
+    papu_buffer = papu_buffer_base = malloc (papu_buffer_size);
+
+    if (! papu_buffer_base)
+    {
+        return (1);
     }
 
 
-    if ((! papu_linear_echo) || (! audio_enable_output))
+    if (audio_sample_size == 16)
+    {
+        UINT16 * buffer = papu_buffer_base;
+
+
+        for (index = 0; index < (papu_buffer_size / 2); index ++)
+        {
+            buffer [index] = 0x8000;
+        }
+    }
+    else
+    {
+        UINT8 * buffer = papu_buffer_base;
+
+
+        for (index = 0; index < papu_buffer_size; index ++)
+        {
+            buffer [index] = 0x80;
+        }
+    }
+
+
+    if (! papu_linear_echo)
     {
         return (0);
     }
@@ -158,13 +210,16 @@ int papu_reinit (void)
         }
 
 
-        echo_buffers [index] = malloc (echo_buffer_size);
+        echo_buffers [index] = malloc (papu_buffer_frame_size);
 
 
         /* Fix me: memory leak. */
 
         if (! echo_buffers [index])
         {
+            free (papu_buffer_base);
+
+
             return (2);
         }
     }
@@ -183,7 +238,7 @@ int papu_reinit (void)
             buffers [index] = echo_buffers [index];
 
 
-            for (offset = 0; offset < (echo_buffer_size / 2); offset ++)
+            for (offset = 0; offset < (papu_buffer_frame_size / 2); offset ++)
             {
                 buffers [index] [offset] = 0x8000;
             }
@@ -202,7 +257,7 @@ int papu_reinit (void)
             buffers [index] = echo_buffers [index];
 
 
-            for (offset = 0; offset < echo_buffer_size; offset ++)
+            for (offset = 0; offset < papu_buffer_frame_size; offset ++)
             {
                 buffers [index] [offset] = 0x80;
             }
@@ -282,6 +337,12 @@ void papu_exit (void)
 
 
     apu_destroy (&default_apu);
+
+
+    if (papu_buffer_base)
+    {
+        free (papu_buffer_base);
+    }
 
 
     for (index = 0; index < ECHO_DEPTH; index ++)
@@ -368,7 +429,7 @@ static INLINE void apply_echo (void)
     int index;
 
 
-    UINT8 * buffer = audio_buffer;
+    UINT8 * buffer = papu_buffer;
 
 
     UINT8 * buffers [ECHO_DEPTH];
@@ -383,7 +444,7 @@ static INLINE void apply_echo (void)
     }
 
 
-    for (offset = 0; offset < echo_buffer_size; offset ++)
+    for (offset = 0; offset < papu_buffer_frame_size; offset ++)
     {
         int accumulator;
 
@@ -439,10 +500,7 @@ void papu_stop_record (void)
 }
 
 
-#define PAPU_BUFFER_SIZE    ((audio_sample_rate / speed) * audio_buffer_length)
-
-
-static int fast_forward = FALSE;
+#define PAPU_FRAME_SIZE    (audio_sample_rate / speed)
 
 
 void papu_process (void)
@@ -462,76 +520,80 @@ void papu_process (void)
     }
 
 
-    if ((key [KEY_TILDE]) && (! (input_mode & INPUT_MODE_CHAT)))
-    {
-        if (! fast_forward)
-        {
-            audio_suspend ();
-
-            fast_forward = TRUE;
-        }
-
-
-        apu_process (NIL, (audio_sample_rate / speed), papu_dithering);
-
-        return;
-    }
-    else
-    {
-        if (fast_forward)
-        {
-            audio_resume ();
-
-            fast_forward = FALSE;
-        }
-    }
-
-
     if (audio_enable_output)
     {
         audio_poll ();
 
 
+        /* Purge rendering buffer if possible. */
+
         if (audio_buffer)
         {
-            if (audio_pseudo_stereo)
-            {
-                apu_process_stereo (audio_buffer, PAPU_BUFFER_SIZE, papu_dithering,
-                    audio_pseudo_stereo, papu_swap_channels, papu_spatial_stereo);
-            }
-            else
-            {
-                apu_process (audio_buffer, PAPU_BUFFER_SIZE, papu_dithering);
-            }
+            memcpy (audio_buffer, papu_buffer_base, papu_buffer_size);
 
 
-            if (papu_linear_echo)
-            {
-                for (index = 1; index < ECHO_DEPTH; index ++)
-                {
-                    memcpy (echo_buffers [(index - 1)], echo_buffers [index], echo_buffer_size);
-                }
-
-
-                memcpy (echo_buffers [(ECHO_DEPTH - 1)], audio_buffer, echo_buffer_size);
-
-
-                apply_echo ();
-            }
+            audio_play ();
 
 
             if (papu_is_recording)
             {
-                fwrite (audio_buffer, echo_buffer_size, 1, dump_file);
+                fwrite (papu_buffer_base, papu_buffer_size, 1, dump_file);
             }
 
 
-            audio_play ();
+            papu_buffer = papu_buffer_base;
         }
+
+
+        /* Check if buffer is full. (TODO: Check math.) */
+
+        if ((papu_buffer - papu_buffer_base) > (papu_buffer_size - papu_buffer_frame_size))
+        {
+            /* Scrap the oldest frame of audio in the buffer, to make room
+               for the new frame of audio. */
+
+            memcpy (papu_buffer_base, (papu_buffer_base + papu_buffer_frame_size), (papu_buffer_size - papu_buffer_frame_size));
+
+            papu_buffer -= papu_buffer_frame_size;
+        }
+
+
+        /* Emulate and render a frame. */
+
+        if (audio_pseudo_stereo)
+        {
+            apu_process_stereo (papu_buffer, PAPU_FRAME_SIZE, papu_dithering, audio_pseudo_stereo, papu_swap_channels, papu_spatial_stereo);
+        }
+        else
+        {
+            apu_process (papu_buffer, PAPU_FRAME_SIZE, papu_dithering);
+        }
+
+
+        /* Do any postprocessing. */
+
+        if (papu_linear_echo)
+        {
+            for (index = 1; index < ECHO_DEPTH; index ++)
+            {
+                memcpy (echo_buffers [(index - 1)], echo_buffers [index], papu_buffer_frame_size);
+            }
+
+
+            memcpy (echo_buffers [(ECHO_DEPTH - 1)], papu_buffer, papu_buffer_frame_size);
+
+
+            apply_echo ();
+        }
+
+
+        papu_buffer += papu_buffer_frame_size;
     }
     else
     {
-        apu_process (NIL, (audio_sample_rate / speed), FALSE);
+        /* Just emulate a frame. */
+
+        apu_process (NIL, PAPU_FRAME_SIZE, FALSE);
     }
 
 
