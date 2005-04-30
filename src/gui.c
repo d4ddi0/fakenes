@@ -682,6 +682,17 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (options_audio_mixing_quality_menu, 4, papu_dithering);
 
 
+    TOGGLE_MENU (options_audio_mixing_anti_aliasing_menu, 0, (papu_interpolate == 0));
+
+    TOGGLE_MENU (options_audio_mixing_anti_aliasing_menu, 2, (papu_interpolate == 1));
+
+    TOGGLE_MENU (options_audio_mixing_anti_aliasing_menu, 4, (papu_interpolate == 2));
+
+    TOGGLE_MENU (options_audio_mixing_anti_aliasing_menu, 6, (papu_interpolate == 3));
+
+    TOGGLE_MENU (options_audio_mixing_anti_aliasing_menu, 8, (papu_interpolate == 4));
+
+
     TOGGLE_MENU (options_audio_mixing_advanced_menu, 0, papu_swap_channels);
 
 
@@ -2868,6 +2879,96 @@ static int options_audio_mixing_quality_menu_dithering (void)
     {
         gui_message (GUI_TEXT_COLOR, "Audio random noise dithering enabled.");
     }
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_mixing_anti_aliasing_menu_disabled (void)
+{
+    papu_interpolate = 0;
+
+
+    papu_reinit ();
+
+
+    update_menus ();
+
+
+    gui_message (GUI_TEXT_COLOR, "Audio anti-aliasing disabled.");
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_mixing_anti_aliasing_menu_bilinear_2x (void)
+{
+    papu_interpolate = 1;
+
+
+    papu_reinit ();
+
+
+    update_menus ();
+
+
+    gui_message (GUI_TEXT_COLOR, "Audio anti-aliasing method set to bilinear 2X.");
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_mixing_anti_aliasing_menu_bilinear_4x (void)
+{
+    papu_interpolate = 2;
+
+
+    papu_reinit ();
+
+
+    update_menus ();
+
+
+    gui_message (GUI_TEXT_COLOR, "Audio anti-aliasing method set to bilinear 4X.");
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_mixing_anti_aliasing_menu_bilinear_8x (void)
+{
+    papu_interpolate = 3;
+
+
+    papu_reinit ();
+
+
+    update_menus ();
+
+
+    gui_message (GUI_TEXT_COLOR, "Audio anti-aliasing method set to bilinear 8X.");
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_mixing_anti_aliasing_menu_bilinear_16x (void)
+{
+    papu_interpolate = 4;
+
+
+    papu_reinit ();
+
+
+    update_menus ();
+
+
+    gui_message (GUI_TEXT_COLOR, "Audio anti-aliasing method set to bilinear 16X.");
 
 
     return (D_O_K);

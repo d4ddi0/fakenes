@@ -365,6 +365,32 @@ static MENU options_audio_mixing_quality_menu [] =
 };
 
 
+static int options_audio_mixing_anti_aliasing_menu_disabled (void);
+
+static int options_audio_mixing_anti_aliasing_menu_bilinear_2x (void);
+
+static int options_audio_mixing_anti_aliasing_menu_bilinear_4x (void);
+
+static int options_audio_mixing_anti_aliasing_menu_bilinear_8x (void);
+
+static int options_audio_mixing_anti_aliasing_menu_bilinear_16x (void);
+
+
+static MENU options_audio_mixing_anti_aliasing_menu [] =
+{
+    {         "&Disabled",     options_audio_mixing_anti_aliasing_menu_disabled, NIL, 0, NIL },
+    {                  "",                                                  NIL, NIL, 0, NIL },
+    {  "&1: Bi-linear 2X",  options_audio_mixing_anti_aliasing_menu_bilinear_2x, NIL, 0, NIL },
+    {                  "",                                                  NIL, NIL, 0, NIL },
+    {  "&2: Bi-linear 4X",  options_audio_mixing_anti_aliasing_menu_bilinear_4x, NIL, 0, NIL },
+    {                  "",                                                  NIL, NIL, 0, NIL },
+    {  "&3: Bi-linear 8X",  options_audio_mixing_anti_aliasing_menu_bilinear_8x, NIL, 0, NIL },
+    {                  "",                                                  NIL, NIL, 0, NIL },
+    { "&4: Bi-linear 16X", options_audio_mixing_anti_aliasing_menu_bilinear_16x, NIL, 0, NIL },
+    {                 NIL,                                                  NIL, NIL, 0, NIL }
+};
+
+
 static int options_audio_mixing_advanced_menu_reverse_stereo (void);
 
 
@@ -377,14 +403,16 @@ static MENU options_audio_mixing_advanced_menu [] =
 
 static MENU options_audio_mixing_menu [] =
 {
-    { "&Frequency", NIL, options_audio_mixing_frequency_menu, 0, NIL },
-    {           "", NIL,                                 NIL, 0, NIL },
-    {  "&Channels", NIL,  options_audio_mixing_channels_menu, 0, NIL },
-    {           "", NIL,                                 NIL, 0, NIL },
-    {   "&Quality", NIL,   options_audio_mixing_quality_menu, 0, NIL },
-    {           "", NIL,                                 NIL, 0, NIL },
-    {  "&Advanced", NIL,  options_audio_mixing_advanced_menu, 0, NIL },
-    {          NIL, NIL,                                 NIL, 0, NIL }
+    {     "&Frequency", NIL,     options_audio_mixing_frequency_menu, 0, NIL },
+    {               "", NIL,                                     NIL, 0, NIL },
+    {      "&Channels", NIL,      options_audio_mixing_channels_menu, 0, NIL },
+    {               "", NIL,                                     NIL, 0, NIL },
+    {       "&Quality", NIL,       options_audio_mixing_quality_menu, 0, NIL },
+    {               "", NIL,                                     NIL, 0, NIL },
+    { "&Anti-aliasing", NIL, options_audio_mixing_anti_aliasing_menu, 0, NIL },
+    {               "", NIL,                                     NIL, 0, NIL },
+    {      "&Advanced", NIL,      options_audio_mixing_advanced_menu, 0, NIL },
+    {              NIL, NIL,                                     NIL, 0, NIL }
 };
 
 

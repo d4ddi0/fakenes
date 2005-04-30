@@ -178,8 +178,6 @@ void audio_poll (void)
 
 void audio_play (void)
 {
-    voice_start (audio_stream -> voice);
-
     free_audio_stream_buffer (audio_stream);
 
 

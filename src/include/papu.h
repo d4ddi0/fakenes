@@ -66,6 +66,8 @@ int papu_ideal_triangle;
 
 int papu_linear_echo;
 
+int papu_interpolate;
+
 
 int papu_spatial_stereo;
 

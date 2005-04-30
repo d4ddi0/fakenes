@@ -20,6 +20,8 @@ You must read and accept the license prior to use.
 #include <allegro.h>
 
 
+#include <math.h>
+
 #include <stdio.h>
 
 #include <stdlib.h>
@@ -70,6 +72,8 @@ int papu_ideal_triangle = TRUE;
 int papu_linear_echo = TRUE;
 
 
+int papu_interpolate = 0;
+
 int papu_spatial_stereo = 0;
 
 
@@ -92,10 +96,16 @@ static int papu_buffer_frame_size = 0;
 static int papu_buffer_size = 0;
 
 
+static int papu_frame_size = 0;
+
+
 #define ECHO_DEPTH  3
 
 
 static void * echo_buffers [ECHO_DEPTH];
+
+
+#define INTERPOLATION_POINTS    (pow (2, papu_interpolate))
 
 
 void papu_update (void)
@@ -124,6 +134,8 @@ int papu_reinit (void)
 {
     int speed;
 
+    int rate;
+
 
     int index;
 
@@ -137,7 +149,14 @@ int papu_reinit (void)
     }
 
 
-    apu_setparams (audio_sample_rate, speed, 0, audio_sample_size);
+    rate = audio_sample_rate;
+
+    if (papu_interpolate > 0)
+    {
+        rate *= INTERPOLATION_POINTS;
+    }
+
+    apu_setparams (rate, speed, 0, audio_sample_size);
 
 
     if (! audio_enable_output)
@@ -146,7 +165,7 @@ int papu_reinit (void)
     }
 
 
-    papu_buffer_frame_size = (audio_sample_rate / speed);
+    papu_buffer_frame_size = papu_frame_size = (rate / speed);
 
     if (audio_sample_size == 16)
     {
@@ -157,6 +176,7 @@ int papu_reinit (void)
     {
         papu_buffer_frame_size *= 2;
     }                
+
 
     papu_buffer_size = (papu_buffer_frame_size * audio_buffer_length);
 
@@ -288,6 +308,8 @@ int papu_init (void)
     papu_linear_echo = get_config_int ("papu", "linear_echo", FALSE);
 
 
+    papu_interpolate = get_config_int ("audio", "interpolate", 0);
+
     papu_spatial_stereo = get_config_int ("audio", "spatial_stereo", FALSE);
 
 
@@ -379,6 +401,8 @@ void papu_exit (void)
     set_config_int ("papu", "linear_echo", papu_linear_echo);
 
 
+    set_config_int ("audio", "interpolate", papu_interpolate);
+
     set_config_int ("audio", "spatial_stereo", papu_spatial_stereo);
 
 
@@ -469,6 +493,149 @@ static INLINE void apply_echo (void)
 }
 
 
+static INLINE void interpolate (void)
+{
+    int total_points = INTERPOLATION_POINTS;
+
+
+    int points = 0;
+
+
+    void * start;
+
+
+    if (papu_interpolate <= 0)
+    {
+        return;
+    }
+
+
+    start = (papu_buffer_base + ((papu_buffer - papu_buffer_base) / total_points));
+
+
+    if (audio_pseudo_stereo)
+    {
+        int bytes = 0;
+
+
+        void * read_buffer = papu_buffer;
+
+        void * write_buffer = start;
+
+
+        int total_left = 0;
+
+        int total_right = 0;
+
+
+        while (bytes < papu_buffer_frame_size)
+        {
+            if (audio_sample_size == 16)
+            {
+                total_left += * ((UINT16 *) read_buffer) ++;
+
+                total_right += * ((UINT16 *) read_buffer) ++;
+
+
+                bytes += 4;
+            }
+            else
+            {
+                total_left += * ((UINT8 *) read_buffer) ++;
+
+                total_right += * ((UINT8 *) read_buffer) ++;
+
+
+                bytes += 2;
+            }
+
+
+            if (++ points == total_points)
+            {
+                points = 0;
+
+
+                total_left = (((double) total_left / total_points) + 0.5);
+
+                total_right = (((double) total_right / total_points) + 0.5);
+
+
+                if (audio_sample_size == 16)
+                {
+                    * ((UINT16 *) write_buffer) ++ = total_left;
+
+                    * ((UINT16 *) write_buffer) ++ = total_right;
+                }
+                else
+                {
+                    * ((UINT8 *) write_buffer) ++ = total_left;
+
+                    * ((UINT8 *) write_buffer) ++ = total_right;
+                }
+
+
+                total_left = 0;
+
+                total_right = 0;
+            }
+        }
+    }
+    else
+    {
+        int bytes = 0;
+
+
+        void * read_buffer = papu_buffer;
+
+        void * write_buffer = start;
+
+
+        int total = 0;
+
+
+        while (bytes < papu_buffer_frame_size)
+        {
+            if (audio_sample_size == 16)
+            {
+                total += * ((UINT16 *) read_buffer) ++;
+
+
+                bytes += 2;
+            }
+            else
+            {
+                total += * ((UINT8 *) read_buffer) ++;
+
+
+                bytes ++;
+            }
+
+
+            if (++ points == total_points)
+            {
+                points = 0;
+
+
+                total = (((double) total / total_points) + 0.5);
+
+
+                if (audio_sample_size == 16)
+                {
+                    * ((UINT16 *) write_buffer) ++ = total;
+                }
+                else
+                {
+                    * ((UINT8 *) write_buffer) ++ = total;
+                }
+
+
+                total = 0;
+            }
+        }
+    }
+}
+
+
 static FILE * dump_file = NIL;
 
 
@@ -500,9 +667,6 @@ void papu_stop_record (void)
 }
 
 
-#define PAPU_FRAME_SIZE    (audio_sample_rate / speed)
-
-
 void papu_process (void)
 {
     int speed;
@@ -529,7 +693,20 @@ void papu_process (void)
 
         if (audio_buffer)
         {
-            memcpy (audio_buffer, papu_buffer_base, papu_buffer_size);
+            int size;
+
+
+            if (papu_interpolate > 0)
+            {
+                size = (papu_buffer_size / INTERPOLATION_POINTS);
+            }
+            else
+            {
+                size = papu_buffer_size;
+            }
+
+
+            memcpy (audio_buffer, papu_buffer_base, size);
 
 
             audio_play ();
@@ -537,7 +714,7 @@ void papu_process (void)
 
             if (papu_is_recording)
             {
-                fwrite (papu_buffer_base, papu_buffer_size, 1, dump_file);
+                fwrite (papu_buffer_base, size, 1, dump_file);
             }
 
 
@@ -562,11 +739,11 @@ void papu_process (void)
 
         if (audio_pseudo_stereo)
         {
-            apu_process_stereo (papu_buffer, PAPU_FRAME_SIZE, papu_dithering, audio_pseudo_stereo, papu_swap_channels, papu_spatial_stereo);
+            apu_process_stereo (papu_buffer, papu_frame_size, papu_dithering, audio_pseudo_stereo, papu_swap_channels, papu_spatial_stereo);
         }
         else
         {
-            apu_process (papu_buffer, PAPU_FRAME_SIZE, papu_dithering);
+            apu_process (papu_buffer, papu_frame_size, papu_dithering);
         }
 
 
@@ -587,13 +764,19 @@ void papu_process (void)
         }
 
 
+        if (papu_interpolate > 0)
+        {
+            interpolate ();
+        }
+
+
         papu_buffer += papu_buffer_frame_size;
     }
     else
     {
         /* Just emulate a frame. */
 
-        apu_process (NIL, PAPU_FRAME_SIZE, FALSE);
+        apu_process (NIL, papu_frame_size, FALSE);
     }
 
 
