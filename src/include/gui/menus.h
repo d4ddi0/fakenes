@@ -289,18 +289,21 @@ static int options_audio_mixing_channels_menu_pseudo_stereo_mode_1 (void);
 
 static int options_audio_mixing_channels_menu_pseudo_stereo_mode_2 (void);
 
-static int options_audio_mixing_channels_menu_pseudo_stereo_mode_3 (void);
+static int options_audio_mixing_channels_menu_stereo (void);
 
+static int options_audio_mixing_channels_menu_swap_channels (void);
 
 static MENU options_audio_mixing_channels_menu [] =
 {
     {                   "&Mono",                 options_audio_mixing_channels_menu_mono, NIL, 0, NIL },
     {                        "",                                                     NIL, NIL, 0, NIL },
-    { "Pseudo &Stereo (Mode 1)", options_audio_mixing_channels_menu_pseudo_stereo_mode_1, NIL, 0, NIL },
+    { "&Pseudo Stereo (Mode 1)", options_audio_mixing_channels_menu_pseudo_stereo_mode_1, NIL, 0, NIL },
     {                        "",                                                     NIL, NIL, 0, NIL },
-    { "Pseudo S&tereo (Mode 2)", options_audio_mixing_channels_menu_pseudo_stereo_mode_2, NIL, 0, NIL },
+    { "P&seudo Stereo (Mode 2)", options_audio_mixing_channels_menu_pseudo_stereo_mode_2, NIL, 0, NIL },
     {                        "",                                                     NIL, NIL, 0, NIL },
-    { "Pseudo St&ereo (Mode 3)", options_audio_mixing_channels_menu_pseudo_stereo_mode_3, NIL, 0, NIL },
+    {                 "S&tereo",               options_audio_mixing_channels_menu_stereo, NIL, 0, NIL },
+    {                        "",                                                     NIL, NIL, 0, NIL },
+    {          "S&wap Channels",        options_audio_mixing_channels_menu_swap_channels, NIL, 0, NIL },
     {                       NIL,                                                     NIL, NIL, 0, NIL }
 };                                             
 
@@ -391,16 +394,6 @@ static MENU options_audio_mixing_anti_aliasing_menu [] =
 };
 
 
-static int options_audio_mixing_advanced_menu_reverse_stereo (void);
-
-
-static MENU options_audio_mixing_advanced_menu [] =
-{
-    { "&Reverse Stereo", options_audio_mixing_advanced_menu_reverse_stereo, NIL, 0, NIL },
-    {               NIL,                                               NIL, NIL, 0, NIL }
-};
-
-
 static MENU options_audio_mixing_menu [] =
 {
     {     "&Frequency", NIL,     options_audio_mixing_frequency_menu, 0, NIL },
@@ -410,8 +403,6 @@ static MENU options_audio_mixing_menu [] =
     {       "&Quality", NIL,       options_audio_mixing_quality_menu, 0, NIL },
     {               "", NIL,                                     NIL, 0, NIL },
     { "&Anti-aliasing", NIL, options_audio_mixing_anti_aliasing_menu, 0, NIL },
-    {               "", NIL,                                     NIL, 0, NIL },
-    {      "&Advanced", NIL,      options_audio_mixing_advanced_menu, 0, NIL },
     {              NIL, NIL,                                     NIL, 0, NIL }
 };
 

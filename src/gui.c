@@ -551,7 +551,7 @@ static INLINE void update_menus (void)
         papu_spatial_stereo = FALSE;
         
 
-        DISABLE_MENU (options_audio_mixing_advanced_menu, 0);
+        DISABLE_MENU (options_audio_mixing_channels_menu, 8);
 
 
         DISABLE_MENU (options_audio_effects_menu, 2);
@@ -562,7 +562,7 @@ static INLINE void update_menus (void)
     }
     else
     {
-        ENABLE_MENU (options_audio_mixing_advanced_menu, 0);
+        ENABLE_MENU (options_audio_mixing_channels_menu, 8);
 
 
         ENABLE_MENU (options_audio_effects_menu, 2);
@@ -674,6 +674,8 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_audio_mixing_channels_menu, 6, (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_3));
 
+    TOGGLE_MENU (options_audio_mixing_channels_menu, 8, papu_swap_channels);
+
 
     TOGGLE_MENU (options_audio_mixing_quality_menu, 0, (audio_sample_size == 8));
 
@@ -691,9 +693,6 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (options_audio_mixing_anti_aliasing_menu, 6, (papu_interpolate == 3));
 
     TOGGLE_MENU (options_audio_mixing_anti_aliasing_menu, 8, (papu_interpolate == 4));
-
-
-    TOGGLE_MENU (options_audio_mixing_advanced_menu, 0, papu_swap_channels);
 
 
     TOGGLE_MENU (options_audio_effects_menu, 0, papu_linear_echo);
@@ -2787,7 +2786,7 @@ static int options_audio_mixing_channels_menu_pseudo_stereo_mode_2 (void)
 }
 
 
-static int options_audio_mixing_channels_menu_pseudo_stereo_mode_3 (void)
+static int options_audio_mixing_channels_menu_stereo (void)
 {
     if (! audio_pseudo_stereo)
     {
@@ -2810,7 +2809,29 @@ static int options_audio_mixing_channels_menu_pseudo_stereo_mode_3 (void)
     update_menus ();
     
 
-    gui_message (GUI_TEXT_COLOR, "Audio channels set to pseudo stereo (mode 3).");
+    gui_message (GUI_TEXT_COLOR, "Audio channels set to stereo.");
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_mixing_channels_menu_swap_channels (void)
+{
+    papu_swap_channels = (! papu_swap_channels);
+
+
+    update_menus ();
+
+
+    if (! papu_swap_channels)
+    {
+        gui_message (GUI_TEXT_COLOR, "Audio stereo channel swapping disabled.");
+    }
+    else
+    {
+        gui_message (GUI_TEXT_COLOR, "Audio stereo channel swapping enabled.");
+    }
 
 
     return (D_O_K);
@@ -2969,28 +2990,6 @@ static int options_audio_mixing_anti_aliasing_menu_bilinear_16x (void)
 
 
     gui_message (GUI_TEXT_COLOR, "Audio anti-aliasing method set to bilinear 16X.");
-
-
-    return (D_O_K);
-}
-
-
-static int options_audio_mixing_advanced_menu_reverse_stereo (void)
-{
-    papu_swap_channels = (! papu_swap_channels);
-
-
-    update_menus ();
-
-
-    if (! papu_swap_channels)
-    {
-        gui_message (GUI_TEXT_COLOR, "Audio reverse stereo disabled.");
-    }
-    else
-    {
-        gui_message (GUI_TEXT_COLOR, "Audio reverse stereo enabled.");
-    }
 
 
     return (D_O_K);
