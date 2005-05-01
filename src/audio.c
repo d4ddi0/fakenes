@@ -67,7 +67,11 @@ int audio_init (void)
     audio_sample_size = get_config_int ("audio", "sample_size", 16);
 
 
-    audio_buffer_length = get_config_int ("audio", "buffer_length", 6);
+    /* No longer supported. */
+
+    /* audio_buffer_length = get_config_int ("audio", "buffer_length", 6); */
+
+    audio_buffer_length = 1;
 
 
     audio_pseudo_stereo = get_config_int ("audio", "pseudo_stereo", FALSE);
