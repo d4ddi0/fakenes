@@ -62,7 +62,7 @@ int audio_init (void)
     audio_enable_output = get_config_int ("audio", "enable_output", TRUE);
 
 
-    audio_sample_rate = get_config_int ("audio", "sample_rate", 96000);
+    audio_sample_rate = get_config_int ("audio", "sample_rate", 48000);
 
     audio_sample_size = get_config_int ("audio", "sample_size", 16);
 
@@ -74,7 +74,7 @@ int audio_init (void)
     audio_buffer_length = 1;
 
 
-    audio_pseudo_stereo = get_config_int ("audio", "pseudo_stereo", FALSE);
+    audio_pseudo_stereo = get_config_int ("audio", "pseudo_stereo", 3);
 
 
     if (audio_enable_output)
