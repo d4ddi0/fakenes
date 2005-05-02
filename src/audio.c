@@ -51,6 +51,9 @@ int audio_buffer_length = 0;
 int audio_pseudo_stereo = FALSE;
 
 
+int audio_hard_sync = FALSE;
+
+
 volatile int audio_fps = 0;
 
 
@@ -75,6 +78,9 @@ int audio_init (void)
 
 
     audio_pseudo_stereo = get_config_int ("audio", "pseudo_stereo", 3);
+
+
+    audio_hard_sync = get_config_int ("audio", "hard_sync", FALSE);
 
 
     if (audio_enable_output)
@@ -153,6 +159,9 @@ void audio_exit (void)
 
 
     set_config_int ("audio", "pseudo_stereo", audio_pseudo_stereo);
+
+
+    set_config_int ("audio", "hard_sync", audio_hard_sync);
 }
 
 
@@ -176,7 +185,18 @@ void audio_resume (void)
 
 void audio_poll (void)
 {
-    audio_buffer = get_audio_stream_buffer (audio_stream);
+    if (audio_hard_sync)
+    {
+        do
+        {
+            audio_buffer = get_audio_stream_buffer (audio_stream);
+        }
+        while (! audio_buffer);
+    }
+    else
+    {
+        audio_buffer = get_audio_stream_buffer (audio_stream);
+    }
 }
 
 

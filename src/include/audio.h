@@ -46,6 +46,9 @@ int audio_buffer_length;
 int audio_pseudo_stereo;
 
 
+int audio_hard_sync;
+
+
 volatile int audio_fps;
 
 

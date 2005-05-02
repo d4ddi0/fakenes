@@ -667,61 +667,50 @@ void papu_stop_record (void)
 }
 
 
-void papu_process (void)
+static INLINE void purge (void)
 {
-    int speed;
+    int size;
 
 
-    int index;
-
-
-    speed = (machine_type == MACHINE_TYPE_NTSC ? 60 : 50);
-
-
-    if (timing_half_speed)
+    if (papu_interpolate > 0)
     {
-        speed /= 2;
+        size = (papu_buffer_size / INTERPOLATION_POINTS);
+    }
+    else
+    {
+        size = papu_buffer_size;
     }
 
 
+    if (papu_is_recording)
+    {
+        fwrite (papu_buffer_base, size, 1, dump_file);
+    }
+
+
+    papu_buffer = papu_buffer_base;
+
+
+    audio_poll ();
+
+
+    if (! audio_buffer)
+    {
+        return;
+    }
+
+
+    memcpy (audio_buffer, papu_buffer_base, size);
+
+
+    audio_play ();
+}
+
+
+void papu_process (void)
+{
     if (audio_enable_output)
     {
-        audio_poll ();
-
-
-        /* Purge rendering buffer if possible. */
-
-        if (audio_buffer)
-        {
-            int size;
-
-
-            if (papu_interpolate > 0)
-            {
-                size = (papu_buffer_size / INTERPOLATION_POINTS);
-            }
-            else
-            {
-                size = papu_buffer_size;
-            }
-
-
-            memcpy (audio_buffer, papu_buffer_base, size);
-
-
-            audio_play ();
-
-
-            if (papu_is_recording)
-            {
-                fwrite (papu_buffer_base, size, 1, dump_file);
-            }
-
-
-            papu_buffer = papu_buffer_base;
-        }
-
-
         /* Check if buffer is full. (TODO: Check math.) */
 
         if ((papu_buffer - papu_buffer_base) > (papu_buffer_size - papu_buffer_frame_size))
@@ -751,6 +740,9 @@ void papu_process (void)
 
         if (papu_linear_echo)
         {
+            int index;
+
+
             for (index = 1; index < ECHO_DEPTH; index ++)
             {
                 memcpy (echo_buffers [(index - 1)], echo_buffers [index], papu_buffer_frame_size);
@@ -771,6 +763,9 @@ void papu_process (void)
 
 
         papu_buffer += papu_buffer_frame_size;
+
+
+        purge ();
     }
     else
     {

@@ -483,10 +483,14 @@ static MENU options_audio_channels_menu [] =
 
 static int options_audio_advanced_menu_ideal_triangle (void);
 
+static int options_audio_advanced_menu_hard_sync (void);
+
 
 static MENU options_audio_advanced_menu [] =
 {
     { "&Ideal Triangle", options_audio_advanced_menu_ideal_triangle, NIL, 0, NIL },
+    {                "",                                        NIL, NIL,          0, NIL },
+    {      "&Hard Sync",      options_audio_advanced_menu_hard_sync, NIL, 0, NIL },
     {               NIL,                                        NIL, NIL, 0, NIL }
 };
 

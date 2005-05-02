@@ -728,6 +728,8 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_audio_advanced_menu, 0, papu_ideal_triangle);
 
+    TOGGLE_MENU (options_audio_advanced_menu, 2, audio_hard_sync);
+
 
 #ifdef ALLEGRO_DOS
 
@@ -3404,6 +3406,28 @@ static int options_audio_advanced_menu_ideal_triangle (void)
     else
     {
         gui_message (GUI_TEXT_COLOR, "Audio ideal triangle emulation enabled.");
+    }
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_advanced_menu_hard_sync (void)
+{
+    audio_hard_sync = (! audio_hard_sync);
+
+
+    update_menus ();
+
+
+    if (! audio_hard_sync)
+    {
+        gui_message (GUI_TEXT_COLOR, "Audio hard synchronization disabled.");
+    }
+    else
+    {
+        gui_message (GUI_TEXT_COLOR, "Audio hard synchronization enabled.");
     }
 
 
