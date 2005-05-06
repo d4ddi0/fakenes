@@ -155,6 +155,9 @@ static PALETTE internal_palette;
 static RGB * last_palette = NIL;
 
 
+static int using_custom_font = FALSE;
+
+
 #include "blit/2xsoe.h"
 
 #include "blit/2xscl.h"
@@ -323,11 +326,23 @@ int video_init (void)
 
         if (! font)
         {
+            using_custom_font = FALSE;
+
+
             font = DATA_TO_FONT (SMALL_FONT_CLEAN);
+        }
+        else
+        {
+            using_custom_font = TRUE;
         }
     }
     else
     {
+        /* Reset just in case. */
+
+        using_custom_font = FALSE;
+
+
         font = DATA_TO_FONT (SMALL_FONT_CLEAN);;
     }
 
@@ -405,7 +420,7 @@ void video_exit (void)
     }
 
 
-    if (font != small_font)
+    if (using_custom_font)
     {
         destroy_font (font);
     }
