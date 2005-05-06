@@ -1555,7 +1555,7 @@ int show_gui (int first_run)
 
     set_mouse_sprite_focus (8, 8);
 
-    unscare_mouse ();
+    show_mouse (screen);
 
 
     if (first_run)
@@ -1568,7 +1568,7 @@ int show_gui (int first_run)
     do_dialog (main_dialog, -1);
 
 
-    scare_mouse ();
+    show_mouse (NULL);
 
 
     /* Cheap hack to make it appear in the file... */

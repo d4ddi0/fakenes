@@ -300,11 +300,6 @@ int video_init (void)
     }
 
 
-    show_mouse (screen);
-
-    scare_mouse ();
-
-
     if (preserve_palette)
     {
         video_set_palette (NIL);
@@ -378,7 +373,7 @@ int video_reinit (void)
     
         if (gui_is_active)
         {
-            unscare_mouse ();
+            show_mouse (screen);
         }
     }
 
@@ -1449,7 +1444,7 @@ void video_set_resolution (int width, int height)
 
     if (gui_is_active)
     {
-        unscare_mouse ();
+        show_mouse (screen);
     }
 }
 
@@ -1509,7 +1504,7 @@ void video_set_color_depth (int depth)
 
     if (gui_is_active)
     {
-        unscare_mouse ();
+        show_mouse (screen);
     }
 }
 
@@ -1563,7 +1558,7 @@ void video_set_driver (int driver)
 
     if (gui_is_active)
     {
-        unscare_mouse ();
+        show_mouse (screen);
     }
 }
 
