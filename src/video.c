@@ -87,6 +87,14 @@ int video_force_window = FALSE;
 int video_driver = 0;
 
 
+BITMAP * base_video_buffer = NIL;
+
+BITMAP * video_buffer = NIL;
+
+
+FONT * small_font = NIL;
+
+
 static int screen_height = 0;
 
 static int screen_width = 0;
@@ -167,6 +175,9 @@ int video_init (void)
     int driver;
 
 
+    const UINT8 * font_file;
+
+
     LOCK_VARIABLE (video_message_duration);
 
 
@@ -204,7 +215,10 @@ int video_init (void)
 
     last_blit_line = get_config_int ("video", "last_blit_line", 239);
 
-    if (last_blit_line < first_blit_line) last_blit_line = first_blit_line;
+    if (last_blit_line < first_blit_line)
+    {
+        last_blit_line = first_blit_line;
+    }
 
 
     image_offset_x = get_config_int ("video", "image_offset_x", 0);
@@ -265,8 +279,7 @@ int video_init (void)
     mouse_sprite_remove_buffer = create_bitmap_ex (8, 16, 16);
 
 
-
-    /* Heh, recursive variable assignation. :( */
+    /* Heh, redundant variable assignment. :( */
 
     video_set_blitter (blitter_type);
 
@@ -299,7 +312,24 @@ int video_init (void)
     }
 
 
-    font = DATA_TO_FONT (SMALL_FONT);
+    small_font = DATA_TO_FONT (SMALL_FONT);
+
+
+    font_file = get_config_string ("gui", "font", "");
+
+    if ((strlen (font_file) > 1) && (exists (font_file)))
+    {
+        font = load_font (font_file, NIL, NIL);
+
+        if (! font)
+        {
+            font = DATA_TO_FONT (SMALL_FONT_CLEAN);
+        }
+    }
+    else
+    {
+        font = DATA_TO_FONT (SMALL_FONT_CLEAN);;
+    }
 
 
     set_display_switch_mode (SWITCH_PAUSE);
@@ -375,6 +405,12 @@ void video_exit (void)
     }
 
 
+    if (font != small_font)
+    {
+        destroy_font (font);
+    }
+
+
     set_config_id ("video", "driver", video_driver);
 
 
@@ -438,39 +474,39 @@ static INLINE void shadow_textout (BITMAP * bitmap, FONT * font, const UINT8 * t
 
 static INLINE void display_status (BITMAP * bitmap, int color)
 {
-    shadow_textout (bitmap, font, "Video:", 16, (bitmap -> h - 114), color);
+    shadow_textout (bitmap, small_font, "Video:", 16, (bitmap -> h - 114), color);
 
-    shadow_textout (bitmap, font, "Audio:", 16, (bitmap -> h - 82), color);
-
-
-    shadow_textout (bitmap, font, "Core:", 16, (bitmap -> h - 50), color);
+    shadow_textout (bitmap, small_font, "Audio:", 16, (bitmap -> h - 82), color);
 
 
-    textprintf_ex (bitmap, font, (20 + 1), ((bitmap -> h - 100) + 1), VIDEO_COLOR_BLACK, -1, "%02d FPS", timing_fps);
+    shadow_textout (bitmap, small_font, "Core:", 16, (bitmap -> h - 50), color);
 
-    textprintf_ex (bitmap, font, 20, (bitmap -> h - 100), color, -1, "%02d FPS", timing_fps);
+
+    textprintf_ex (bitmap, small_font, (20 + 1), ((bitmap -> h - 100) + 1), VIDEO_COLOR_BLACK, -1, "%02d FPS", timing_fps);
+
+    textprintf_ex (bitmap, small_font, 20, (bitmap -> h - 100), color, -1, "%02d FPS", timing_fps);
 
 
     if (audio_enable_output)
     {
-        textprintf_ex (bitmap, font, (20 + 1), ((bitmap -> h - 68) + 1), VIDEO_COLOR_BLACK, -1, "%02d FPS", timing_audio_fps);
+        textprintf_ex (bitmap, small_font, (20 + 1), ((bitmap -> h - 68) + 1), VIDEO_COLOR_BLACK, -1, "%02d FPS", timing_audio_fps);
 
-        textprintf_ex (bitmap, font, 20, (bitmap -> h - 68), color, -1, "%02d FPS", timing_audio_fps);
+        textprintf_ex (bitmap, small_font, 20, (bitmap -> h - 68), color, -1, "%02d FPS", timing_audio_fps);
     }
     else
     {
-        shadow_textout (bitmap, font, "Disabled", 20, (bitmap -> h - 68), color);
+        shadow_textout (bitmap, small_font, "Disabled", 20, (bitmap -> h - 68), color);
     }
 
 
-    textprintf_ex (bitmap, font, (20 + 1), ((bitmap -> h - 36) + 1), VIDEO_COLOR_BLACK, -1, "%02d Hz", timing_hertz);
+    textprintf_ex (bitmap, small_font, (20 + 1), ((bitmap -> h - 36) + 1), VIDEO_COLOR_BLACK, -1, "%02d Hz", timing_hertz);
 
-    textprintf_ex (bitmap, font, 20, (bitmap -> h - 36), color, -1, "%02d Hz", timing_hertz);
+    textprintf_ex (bitmap, small_font, 20, (bitmap -> h - 36), color, -1, "%02d Hz", timing_hertz);
 
 
-    textprintf_ex (bitmap, font, (20 + 1), ((bitmap -> h - 22) + 1), VIDEO_COLOR_BLACK, -1, "PC: $%04X", * cpu_active_pc);
+    textprintf_ex (bitmap, small_font, (20 + 1), ((bitmap -> h - 22) + 1), VIDEO_COLOR_BLACK, -1, "PC: $%04X", * cpu_active_pc);
 
-    textprintf_ex (bitmap, font, 20, (bitmap -> h - 22), color, -1, "PC: $%04X", * cpu_active_pc);
+    textprintf_ex (bitmap, small_font, 20, (bitmap -> h - 22), color, -1, "PC: $%04X", * cpu_active_pc);
 }
 
 

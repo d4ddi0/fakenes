@@ -92,6 +92,9 @@ BITMAP * base_video_buffer;
 BITMAP * video_buffer;
 
 
+FONT * small_font;
+
+
 int video_init (void);
 
 int video_reinit (void);

@@ -730,3 +730,24 @@ int sl_radiobox (int message, DIALOG * dialog, int key)
 
     return (value);
 }
+
+
+int sl_x_button (int message, DIALOG * dialog, int key)
+{
+    /* Note: Hack to always use small font.  Not a complete sl_ widget. */
+
+    FONT * old_font = font;
+
+
+    int result;
+
+
+    font = small_font;
+
+    result = d_button_proc (message, dialog, key);
+
+    font = old_font;
+
+
+    return (result);
+}

@@ -1,5 +1,98 @@
 
 
+static MENU * main_state_select_menu = NIL;
+
+static MENU * main_state_autosave_menu = NIL;
+
+static MENU * main_state_menu = NIL;
+
+static MENU * main_replay_select_menu = NIL;
+
+static MENU * main_replay_record_menu = NIL;
+
+static MENU * main_replay_play_menu = NIL;
+
+static MENU * main_replay_menu = NIL;
+
+static MENU * main_menu = NIL;
+
+
+static MENU * netplay_protocol_menu = NIL;
+
+static MENU * netplay_server_menu = NIL;
+
+static MENU * netplay_client_menu = NIL;
+                                 
+static MENU * netplay_menu = NIL;
+
+
+static MENU * options_gui_theme_menu = NIL;
+
+static MENU * options_gui_menu = NIL;
+
+static MENU * options_system_menu = NIL;
+
+static MENU * options_audio_mixing_channels_menu = NIL;
+
+static MENU * options_audio_mixing_frequency_menu = NIL;
+
+static MENU * options_audio_mixing_quality_menu = NIL;
+
+static MENU * options_audio_mixing_anti_aliasing_menu = NIL;
+
+static MENU * options_audio_mixing_menu = NIL;
+
+static MENU * options_audio_effects_menu = NIL;
+
+static MENU * options_audio_filters_menu = NIL;
+
+static MENU * options_audio_channels_menu = NIL;
+
+static MENU * options_audio_advanced_menu = NIL;
+
+static MENU * options_audio_record_menu = NIL;
+
+static MENU * options_audio_menu = NIL;
+
+static MENU * options_video_driver_dos_menu = NIL;
+
+static MENU * options_video_driver_windows_menu = NIL;
+
+static MENU * options_video_driver_linux_menu = NIL;
+
+static MENU * options_video_driver_unix_menu = NIL;
+
+static MENU * options_video_driver_menu = NIL;
+
+static MENU * options_video_resolution_proportionate_menu = NIL;
+
+static MENU * options_video_resolution_extended_menu = NIL;
+
+static MENU * options_video_resolution_menu = NIL;
+
+static MENU * options_video_colors_menu = NIL;
+
+static MENU * options_video_blitter_menu = NIL;
+
+static MENU * options_video_filters_menu = NIL;
+
+static MENU * options_video_layers_menu = NIL;
+
+static MENU * options_video_palette_menu = NIL;
+
+static MENU * options_video_advanced_menu = NIL;
+                                         
+static MENU * options_video_menu = NIL;
+
+static MENU * options_menu = NIL;
+
+
+static MENU * help_menu = NIL;
+
+
+static MENU * top_menu = NIL;
+
+
 static int main_state_select_menu_0 (void);
 
 static int main_state_select_menu_1 (void);
@@ -21,7 +114,7 @@ static int main_state_select_menu_8 (void);
 static int main_state_select_menu_9 (void);
 
 
-static MENU main_state_select_menu [] =
+static const MENU main_state_select_menu_base [] =
 {
     { NIL, main_state_select_menu_0, NIL, 0, NIL },
     {  "",                      NIL, NIL, 0, NIL },
@@ -55,7 +148,7 @@ static int main_state_autosave_menu_30_seconds (void);
 static int main_state_autosave_menu_60_seconds (void);
 
 
-static MENU main_state_autosave_menu [] =
+static const MENU main_state_autosave_menu_base [] =
 {
     {      "&Disabled",   main_state_autosave_menu_disabled, NIL, 0, NIL },
     {               "",                                 NIL, NIL, 0, NIL },
@@ -75,16 +168,16 @@ static int main_state_menu_save (void);
 static int main_state_menu_restore (void);
 
 
-static MENU main_state_menu [] =
+static const MENU main_state_menu_base [] =
 {
-    {   "S&elect",                     NIL,   main_state_select_menu, 0, NIL },
-    {          "",                     NIL,                         NIL, 0, NIL },
-    {     "&Save",    main_state_menu_save,                         NIL, 0, NIL },
-    {          "",                     NIL,                         NIL, 0, NIL },
-    {  "&Restore", main_state_menu_restore,                         NIL, 0, NIL },
-    {          "",                     NIL,                         NIL, 0, NIL },
-    { "&Autosave",                     NIL, main_state_autosave_menu, 0, NIL },
-    {         NIL,                     NIL,                         NIL, 0, NIL }
+    {   "S&elect",                     NIL,   (MENU *) &main_state_select_menu, 0, NIL },
+    {          "",                     NIL,                                NIL, 0, NIL },
+    {     "&Save",    main_state_menu_save,                                NIL, 0, NIL },
+    {          "",                     NIL,                                NIL, 0, NIL },
+    {  "&Restore", main_state_menu_restore,                                NIL, 0, NIL },
+    {          "",                     NIL,                                NIL, 0, NIL },
+    { "&Autosave",                     NIL, (MENU *) &main_state_autosave_menu, 0, NIL },
+    {         NIL,                     NIL,                                NIL, 0, NIL }
 };
 
 
@@ -99,7 +192,7 @@ static int main_replay_select_menu_3 (void);
 static int main_replay_select_menu_4 (void);
 
 
-static MENU main_replay_select_menu [] =
+static const MENU main_replay_select_menu_base [] =
 {
     { NIL, main_replay_select_menu_0, NIL, 0, NIL },
     {  "",                       NIL, NIL, 0, NIL },
@@ -119,7 +212,7 @@ static int main_replay_record_menu_start (void);
 static int main_replay_record_menu_stop (void);
 
 
-static MENU main_replay_record_menu [] =
+static const MENU main_replay_record_menu_base [] =
 {
     { "&Start", main_replay_record_menu_start, NIL,          0, NIL },
     {       "",                           NIL, NIL,          0, NIL },
@@ -133,7 +226,7 @@ static int main_replay_play_menu_start (void);
 static int main_replay_play_menu_stop (void);
 
 
-static MENU main_replay_play_menu [] =
+static const MENU main_replay_play_menu_base [] =
 {
     { "&Start", main_replay_play_menu_start, NIL,          0, NIL },
     {       "",                         NIL, NIL,          0, NIL },
@@ -142,14 +235,14 @@ static MENU main_replay_play_menu [] =
 };
 
 
-static MENU main_replay_menu [] =
+static const MENU main_replay_menu_base [] =
 {
-    { "&Select", NIL, main_replay_select_menu, 0, NIL },
-    {        "", NIL,                     NIL, 0, NIL },
-    { "&Record", NIL, main_replay_record_menu, 0, NIL },
-    {        "", NIL,                     NIL, 0, NIL },
-    {   "&Play", NIL,   main_replay_play_menu, 0, NIL },
-    {       NIL, NIL,                     NIL, 0, NIL }
+    { "&Select", NIL, (MENU *) &main_replay_select_menu, 0, NIL },
+    {        "", NIL,                               NIL, 0, NIL },
+    { "&Record", NIL, (MENU *) &main_replay_record_menu, 0, NIL },
+    {        "", NIL,                               NIL, 0, NIL },
+    {   "&Play", NIL,   (MENU *) &main_replay_play_menu, 0, NIL },
+    {       NIL, NIL,                               NIL, 0, NIL }
 };
 
 
@@ -166,24 +259,24 @@ static int main_menu_messages (void);
 static int main_menu_exit (void);
 
 
-static MENU main_menu [] =
+static const MENU main_menu_base [] =
 {
-    { "&Load ROM...", main_menu_load_rom,              NIL, 0, NIL },
-    {             "",                NIL,              NIL, 0, NIL },
-    {      "&Resume",   main_menu_resume,              NIL, 0, NIL },
-    {             "",                NIL,              NIL, 0, NIL },
-    {       "R&eset",    main_menu_reset,              NIL, 0, NIL },
-    {             "",                NIL,              NIL, 0, NIL },
-    {       "&State",                NIL,  main_state_menu, 0, NIL },
-    {             "",                NIL,              NIL, 0, NIL },
-    {      "Re&play",                NIL, main_replay_menu, 0, NIL },
-    {             "",                NIL,              NIL, 0, NIL },
-    {    "S&napshot", main_menu_snapshot,              NIL, 0, NIL },
-    {             "",                NIL,              NIL, 0, NIL },
-    { "&Messages...", main_menu_messages,              NIL, 0, NIL },
-    {             "",                NIL,              NIL, 0, NIL },
-    {        "E&xit",     main_menu_exit,              NIL, 0, NIL },
-    {            NIL,                NIL,              NIL, 0, NIL }
+    { "&Load ROM...", main_menu_load_rom,                        NIL, 0, NIL },
+    {             "",                NIL,                        NIL, 0, NIL },
+    {      "&Resume",   main_menu_resume,                        NIL, 0, NIL },
+    {             "",                NIL,                        NIL, 0, NIL },
+    {       "R&eset",    main_menu_reset,                        NIL, 0, NIL },
+    {             "",                NIL,                        NIL, 0, NIL },
+    {       "&State",                NIL,  (MENU *) &main_state_menu, 0, NIL },
+    {             "",                NIL,                        NIL, 0, NIL },
+    {      "Re&play",                NIL, (MENU *) &main_replay_menu, 0, NIL },
+    {             "",                NIL,                        NIL, 0, NIL },
+    {    "S&napshot", main_menu_snapshot,                        NIL, 0, NIL },
+    {             "",                NIL,                        NIL, 0, NIL },
+    { "&Messages...", main_menu_messages,                        NIL, 0, NIL },
+    {             "",                NIL,                        NIL, 0, NIL },
+    {        "E&xit",     main_menu_exit,                        NIL, 0, NIL },
+    {            NIL,                NIL,                        NIL, 0, NIL }
 };
 
 
@@ -192,7 +285,7 @@ static int netplay_protocol_menu_tcpip (void);
 static int netplay_protocol_menu_spx (void);
 
 
-static MENU netplay_protocol_menu [] =
+static const MENU netplay_protocol_menu_base [] =
 {
     { "&TCP/IP", netplay_protocol_menu_tcpip, NIL, 0, NIL },
     {        "",                         NIL, NIL, 0, NIL },
@@ -206,7 +299,7 @@ static int netplay_server_menu_start (void);
 static int netplay_server_menu_stop (void);
 
 
-static MENU netplay_server_menu [] =
+static const MENU netplay_server_menu_base [] =
 {
     { "&Start", netplay_server_menu_start, NIL,          0, NIL },
     {       "",                       NIL, NIL,          0, NIL },
@@ -220,7 +313,7 @@ static int netplay_client_menu_connect (void);
 static int netplay_client_menu_disconnect (void);
 
 
-static MENU netplay_client_menu [] =
+static const MENU netplay_client_menu_base [] =
 {
     { "&Connect...",    netplay_client_menu_connect, NIL,          0, NIL },
     {            "",                            NIL, NIL,          0, NIL },
@@ -229,14 +322,14 @@ static MENU netplay_client_menu [] =
 };
 
 
-static MENU netplay_menu [] =
+static const MENU netplay_menu_base [] =
 {
-    { "&Protocol", NIL, netplay_protocol_menu, 0, NIL },
-    {          "", NIL,                   NIL, 0, NIL },
-    {   "&Server", NIL,   netplay_server_menu, 0, NIL },
-    {          "", NIL,                   NIL, 0, NIL },
-    {   "&Client", NIL,   netplay_client_menu, 0, NIL },
-    {         NIL, NIL,                   NIL, 0, NIL }
+    { "&Protocol", NIL, (MENU *) &netplay_protocol_menu, 0, NIL },
+    {          "", NIL,                             NIL, 0, NIL },
+    {   "&Server", NIL,   (MENU *) &netplay_server_menu, 0, NIL },
+    {          "", NIL,                             NIL, 0, NIL },
+    {   "&Client", NIL,   (MENU *) &netplay_client_menu, 0, NIL },
+    {         NIL, NIL,                             NIL, 0, NIL }
 };
 
 
@@ -249,7 +342,7 @@ static int options_gui_theme_menu_zero_4 (void);
 static int options_gui_theme_menu_panta  (void);
 
 
-static MENU options_gui_theme_menu [] =
+static const MENU options_gui_theme_menu_base [] =
 {
     {            "&1: Classic",         options_gui_theme_menu_classic, NIL, 0, NIL },
     {                       "",                                    NIL, NIL, 0, NIL },
@@ -262,10 +355,10 @@ static MENU options_gui_theme_menu [] =
 };
 
 
-static MENU options_gui_menu [] =
+static const MENU options_gui_menu_base [] =
 {
-    { "&Theme", NIL, options_gui_theme_menu, 0, NIL },
-    {      NIL, NIL,                    NIL, 0, NIL }
+    { "&Theme", NIL, (MENU *) &options_gui_theme_menu, 0, NIL },
+    {      NIL, NIL,                              NIL, 0, NIL }
 };
 
 
@@ -274,7 +367,7 @@ static int options_system_menu_ntsc_60_hz (void);
 static int options_system_menu_pal_50_hz (void);
 
 
-static MENU options_system_menu [] =
+static const MENU options_system_menu_base [] =
 {
     { "&NTSC (60 Hz)", options_system_menu_ntsc_60_hz, NIL, 0, NIL },
     {              "",                            NIL, NIL, 0, NIL },
@@ -293,7 +386,8 @@ static int options_audio_mixing_channels_menu_stereo (void);
 
 static int options_audio_mixing_channels_menu_swap_channels (void);
 
-static MENU options_audio_mixing_channels_menu [] =
+
+static const MENU options_audio_mixing_channels_menu_base [] =
 {
     {                   "&Mono",                 options_audio_mixing_channels_menu_mono, NIL, 0, NIL },
     {                        "",                                                     NIL, NIL, 0, NIL },
@@ -327,7 +421,7 @@ static int options_audio_mixing_frequency_menu_80200_hz (void);
 static int options_audio_mixing_frequency_menu_96000_hz (void);
 
 
-static MENU options_audio_mixing_frequency_menu [] =
+static const MENU options_audio_mixing_frequency_menu_base [] =
 {
     {  "&1: 8000 Hz",  options_audio_mixing_frequency_menu_8000_hz, NIL, 0, NIL },
     {             "",                                          NIL, NIL, 0, NIL },
@@ -357,7 +451,7 @@ static int options_audio_mixing_quality_menu_high_16_bit (void);
 static int options_audio_mixing_quality_menu_dithering (void);
 
 
-static MENU options_audio_mixing_quality_menu [] =
+static const MENU options_audio_mixing_quality_menu_base [] =
 {
     {   "&Low (8 bits)",   options_audio_mixing_quality_menu_low_8_bit, NIL, 0, NIL },
     {                "",                                           NIL, NIL, 0, NIL },
@@ -379,7 +473,7 @@ static int options_audio_mixing_anti_aliasing_menu_bilinear_8x (void);
 static int options_audio_mixing_anti_aliasing_menu_bilinear_16x (void);
 
 
-static MENU options_audio_mixing_anti_aliasing_menu [] =
+static const MENU options_audio_mixing_anti_aliasing_menu_base [] =
 {
     {         "&Disabled",     options_audio_mixing_anti_aliasing_menu_disabled, NIL, 0, NIL },
     {                  "",                                                  NIL, NIL, 0, NIL },
@@ -394,16 +488,16 @@ static MENU options_audio_mixing_anti_aliasing_menu [] =
 };
 
 
-static MENU options_audio_mixing_menu [] =
+static const MENU options_audio_mixing_menu_base [] =
 {
-    {     "&Frequency", NIL,     options_audio_mixing_frequency_menu, 0, NIL },
-    {               "", NIL,                                     NIL, 0, NIL },
-    {      "&Channels", NIL,      options_audio_mixing_channels_menu, 0, NIL },
-    {               "", NIL,                                     NIL, 0, NIL },
-    {       "&Quality", NIL,       options_audio_mixing_quality_menu, 0, NIL },
-    {               "", NIL,                                     NIL, 0, NIL },
-    { "&Anti-aliasing", NIL, options_audio_mixing_anti_aliasing_menu, 0, NIL },
-    {              NIL, NIL,                                     NIL, 0, NIL }
+    {     "&Frequency", NIL,     (MENU *) &options_audio_mixing_frequency_menu, 0, NIL },
+    {               "", NIL,                                               NIL, 0, NIL },
+    {      "&Channels", NIL,      (MENU *) &options_audio_mixing_channels_menu, 0, NIL },
+    {               "", NIL,                                               NIL, 0, NIL },
+    {       "&Quality", NIL,       (MENU *) &options_audio_mixing_quality_menu, 0, NIL },
+    {               "", NIL,                                               NIL, 0, NIL },
+    { "&Anti-aliasing", NIL, (MENU *) &options_audio_mixing_anti_aliasing_menu, 0, NIL },
+    {              NIL, NIL,                                               NIL, 0, NIL }
 };
 
 
@@ -416,7 +510,7 @@ static int options_audio_effects_menu_spatial_stereo_mode_2 (void);
 static int options_audio_effects_menu_spatial_stereo_mode_3 (void);
 
 
-static MENU options_audio_effects_menu [] =
+static const MENU options_audio_effects_menu_base [] =
 {
     {             "&Linear Echo",           options_audio_effects_menu_linear_echo, NIL, 0, NIL },
     {                         "",                                              NIL, NIL, 0, NIL },
@@ -438,7 +532,7 @@ static int options_audio_filters_menu_low_pass_mode_3 (void);
 static int options_audio_filters_menu_high_pass (void);
 
 
-static MENU options_audio_filters_menu [] =
+static const MENU options_audio_filters_menu_base [] =
 {     
     { "&Low Pass (Mode 1)", options_audio_filters_menu_low_pass_mode_1, NIL, 0, NIL },
     {                   "",                                        NIL, NIL, 0, NIL },
@@ -464,7 +558,7 @@ static int options_audio_channels_menu_digital (void);
 static int options_audio_channels_menu_extended (void);
 
 
-static MENU options_audio_channels_menu [] =
+static const MENU options_audio_channels_menu_base [] =
 {
     { "&Square Wave A", options_audio_channels_menu_square_wave_a, NIL, 0, NIL },
     {               "",                                       NIL, NIL, 0, NIL },
@@ -486,10 +580,10 @@ static int options_audio_advanced_menu_ideal_triangle (void);
 static int options_audio_advanced_menu_hard_sync (void);
 
 
-static MENU options_audio_advanced_menu [] =
+static const MENU options_audio_advanced_menu_base [] =
 {
     { "&Ideal Triangle", options_audio_advanced_menu_ideal_triangle, NIL, 0, NIL },
-    {                "",                                        NIL, NIL,          0, NIL },
+    {                "",                                        NIL, NIL, 0, NIL },
     {      "&Hard Sync",      options_audio_advanced_menu_hard_sync, NIL, 0, NIL },
     {               NIL,                                        NIL, NIL, 0, NIL }
 };
@@ -500,7 +594,7 @@ static int options_audio_record_menu_start (void);
 static int options_audio_record_menu_stop (void);
 
 
-static MENU options_audio_record_menu [] =
+static const MENU options_audio_record_menu_base [] =
 {
     { "&Start", options_audio_record_menu_start, NIL,          0, NIL },
     {       "",                             NIL, NIL,          0, NIL },
@@ -512,22 +606,22 @@ static MENU options_audio_record_menu [] =
 static int options_audio_menu_enabled (void);
 
 
-static MENU options_audio_menu [] =
+static const MENU options_audio_menu_base [] =
 {
-    {  "&Enabled", options_audio_menu_enabled,                         NIL, 0, NIL },
-    {          "",                        NIL,                         NIL, 0, NIL },
-    {   "&Mixing",                        NIL,   options_audio_mixing_menu, 0, NIL },
-    {          "",                        NIL,                         NIL, 0, NIL },
-    {  "Effec&ts",                        NIL,  options_audio_effects_menu, 0, NIL },
-    {          "",                        NIL,                         NIL, 0, NIL },
-    {  "&Filters",                        NIL,  options_audio_filters_menu, 0, NIL },
-    {          "",                        NIL,                         NIL, 0, NIL },
-    { "&Channels",                        NIL, options_audio_channels_menu, 0, NIL },
-    {          "",                        NIL,                         NIL, 0, NIL },
-    { "&Advanced",                        NIL, options_audio_advanced_menu, 0, NIL },
-    {          "",                        NIL,                         NIL, 0, NIL },
-    {   "&Record",                        NIL,   options_audio_record_menu, 0, NIL },
-    {         NIL,                        NIL,                         NIL, 0, NIL }
+    {  "&Enabled", options_audio_menu_enabled,                                   NIL, 0, NIL },
+    {          "",                        NIL,                                   NIL, 0, NIL },
+    {   "&Mixing",                        NIL,   (MENU *) &options_audio_mixing_menu, 0, NIL },
+    {          "",                        NIL,                                   NIL, 0, NIL },
+    {  "Effec&ts",                        NIL,  (MENU *) &options_audio_effects_menu, 0, NIL },
+    {          "",                        NIL,                                   NIL, 0, NIL },
+    {  "&Filters",                        NIL,  (MENU *) &options_audio_filters_menu, 0, NIL },
+    {          "",                        NIL,                                   NIL, 0, NIL },
+    { "&Channels",                        NIL, (MENU *) &options_audio_channels_menu, 0, NIL },
+    {          "",                        NIL,                                   NIL, 0, NIL },
+    { "&Advanced",                        NIL, (MENU *) &options_audio_advanced_menu, 0, NIL },
+    {          "",                        NIL,                                   NIL, 0, NIL },
+    {   "&Record",                        NIL,   (MENU *) &options_audio_record_menu, 0, NIL },
+    {         NIL,                        NIL,                                   NIL, 0, NIL }
 };
 
 
@@ -548,7 +642,7 @@ static int options_video_driver_dos_menu_vesa_3 (void);
 static int options_video_driver_dos_menu_vesa_vbe_af (void);
 
 
-static MENU options_video_driver_dos_menu [] =
+static const MENU options_video_driver_dos_menu_base [] =
 {
     {           "&VGA",           options_video_driver_dos_menu_vga, NIL, 0, NIL },
     {               "",                                         NIL, NIL, 0, NIL },
@@ -568,7 +662,7 @@ static MENU options_video_driver_dos_menu [] =
 
 #else
 
-static MENU options_video_driver_dos_menu [] =
+static const MENU options_video_driver_dos_menu_base [] =
 {
     { NIL, NIL, NIL, 0, NIL }
 };
@@ -587,7 +681,7 @@ static int options_video_driver_windows_menu_directx_overlay (void);
 static int options_video_driver_windows_menu_gdi (void);
 
 
-static MENU options_video_driver_windows_menu [] =
+static const MENU options_video_driver_windows_menu_base [] =
 {
     {         "&DirectX",         options_video_driver_windows_menu_directx, NIL, 0, NIL },
     {                 "",                                               NIL, NIL, 0, NIL },
@@ -601,7 +695,7 @@ static MENU options_video_driver_windows_menu [] =
 
 #else
 
-static MENU options_video_driver_windows_menu [] =
+static const MENU options_video_driver_windows_menu_base [] =
 {
     { NIL, NIL, NIL, 0, NIL }
 };
@@ -622,7 +716,7 @@ static int options_video_driver_linux_menu_framebuffer (void);
 static int options_video_driver_linux_menu_svgalib (void);
 
 
-static MENU options_video_driver_linux_menu [] =
+static const MENU options_video_driver_linux_menu_base [] =
 {
     {         "&VGA",         options_video_driver_linux_menu_vga, NIL, 0, NIL },
     {             "",                                         NIL, NIL, 0, NIL },
@@ -638,7 +732,7 @@ static MENU options_video_driver_linux_menu [] =
 
 #else
 
-static MENU options_video_driver_linux_menu [] =
+static const MENU options_video_driver_linux_menu_base [] =
 {
     { NIL, NIL, NIL, 0, NIL }
 };
@@ -659,7 +753,7 @@ static int options_video_driver_unix_menu_x_dga_full (void);
 static int options_video_driver_unix_menu_x_dga_2 (void);
 
 
-static MENU options_video_driver_unix_menu [] =
+static const MENU options_video_driver_unix_menu_base [] =
 {
     {      "X &Windows",      options_video_driver_unix_menu_x_windows, NIL, 0, NIL },
     {                "",                                           NIL, NIL, 0, NIL },
@@ -675,7 +769,7 @@ static MENU options_video_driver_unix_menu [] =
 
 #else
 
-static MENU options_video_driver_unix_menu [] =
+static const MENU options_video_driver_unix_menu_base [] =
 {
     { NIL, NIL, NIL, 0, NIL }
 };
@@ -686,18 +780,18 @@ static MENU options_video_driver_unix_menu [] =
 static int options_video_driver_menu_automatic (void);
 
 
-static MENU options_video_driver_menu [] =
+static const MENU options_video_driver_menu_base [] =
 {
-    { "&Automatic", options_video_driver_menu_automatic,                               NIL, 0, NIL },
-    {           "",                                 NIL,                               NIL, 0, NIL },
-    {       "&DOS",                                 NIL,     options_video_driver_dos_menu, 0, NIL },
-    {           "",                                 NIL,                               NIL, 0, NIL },
-    {   "&Windows",                                 NIL, options_video_driver_windows_menu, 0, NIL },
-    {           "",                                 NIL,                               NIL, 0, NIL },
-    {     "&Linux",                                 NIL,   options_video_driver_linux_menu, 0, NIL },
-    {           "",                                 NIL,                               NIL, 0, NIL },
-    {      "&Unix",                                 NIL,    options_video_driver_unix_menu, 0, NIL },
-    {          NIL,                                 NIL,                               NIL, 0, NIL }
+    { "&Automatic", options_video_driver_menu_automatic,                                         NIL, 0, NIL },
+    {           "",                                 NIL,                                         NIL, 0, NIL },
+    {       "&DOS",                                 NIL,     (MENU *) &options_video_driver_dos_menu, 0, NIL },
+    {           "",                                 NIL,                                         NIL, 0, NIL },
+    {   "&Windows",                                 NIL, (MENU *) &options_video_driver_windows_menu, 0, NIL },
+    {           "",                                 NIL,                                         NIL, 0, NIL },
+    {     "&Linux",                                 NIL,   (MENU *) &options_video_driver_linux_menu, 0, NIL },
+    {           "",                                 NIL,                                         NIL, 0, NIL },
+    {      "&Unix",                                 NIL,    (MENU *) &options_video_driver_unix_menu, 0, NIL },
+    {          NIL,                                 NIL,                                         NIL, 0, NIL }
 };
 
 
@@ -722,7 +816,7 @@ static int options_video_resolution_proportionate_menu_1280_1120 (void);
 static int options_video_resolution_proportionate_menu_1280_1200 (void);
 
 
-static MENU options_video_resolution_proportionate_menu [] =
+static const MENU options_video_resolution_proportionate_menu_base [] =
 {
     {   " &1: 256x224",   options_video_resolution_proportionate_menu_256_224, NIL, 0, NIL },
     {               "",                                                   NIL, NIL, 0, NIL },
@@ -768,7 +862,7 @@ static int options_video_resolution_extended_menu_1280_960 (void);
 static int options_video_resolution_extended_menu_1360_768 (void);
 
 
-static MENU options_video_resolution_extended_menu [] =
+static const MENU options_video_resolution_extended_menu_base [] =
 {
     {  " &1: 400x300",  options_video_resolution_extended_menu_400_300, NIL, 0, NIL },
     {              "",                                             NIL, NIL, 0, NIL },
@@ -808,26 +902,26 @@ static int options_video_resolution_menu_1280_1024 (void);
 static int options_video_resolution_menu_1600_1200 (void);
 
 
-static MENU options_video_resolution_menu [] =
+static const MENU options_video_resolution_menu_base [] =
 {
-    { "&Proportionate",                                     NIL, options_video_resolution_proportionate_menu, 0, NIL },
-    {               "",                                     NIL,                                         NIL, 0, NIL },
-    {    "&1: 320x240",   options_video_resolution_menu_320_240,                                         NIL, 0, NIL },
-    {               "",                                     NIL,                                         NIL, 0, NIL },
-    {    "&2: 640x480",   options_video_resolution_menu_640_480,                                         NIL, 0, NIL },
-    {               "",                                     NIL,                                         NIL, 0, NIL },
-    {    "&3: 800x600",   options_video_resolution_menu_800_600,                                         NIL, 0, NIL },
-    {               "",                                     NIL,                                         NIL, 0, NIL },
-    {   "&4: 1024x768",  options_video_resolution_menu_1024_768,                                         NIL, 0, NIL },
-    {               "",                                     NIL,                                         NIL, 0, NIL },
-    {   "&5: 1152x864",  options_video_resolution_menu_1152_864,                                         NIL, 0, NIL },
-    {               "",                                     NIL,                                         NIL, 0, NIL },
-    {  "&6: 1280x1024", options_video_resolution_menu_1280_1024,                                         NIL, 0, NIL },
-    {               "",                                     NIL,                                         NIL, 0, NIL },
-    {  "&7: 1600x1200", options_video_resolution_menu_1600_1200,                                         NIL, 0, NIL },
-    {               "",                                     NIL,                                         NIL, 0, NIL },
-    {      "&Extended",                                     NIL,      options_video_resolution_extended_menu, 0, NIL },
-    {              NIL,                                     NIL,                                         NIL, 0, NIL }
+    { "&Proportionate",                                     NIL, (MENU *) &options_video_resolution_proportionate_menu, 0, NIL },
+    {               "",                                     NIL,                                                   NIL, 0, NIL },
+    {    "&1: 320x240",   options_video_resolution_menu_320_240,                                                   NIL, 0, NIL },
+    {               "",                                     NIL,                                                   NIL, 0, NIL },
+    {    "&2: 640x480",   options_video_resolution_menu_640_480,                                                   NIL, 0, NIL },
+    {               "",                                     NIL,                                                   NIL, 0, NIL },
+    {    "&3: 800x600",   options_video_resolution_menu_800_600,                                                   NIL, 0, NIL },
+    {               "",                                     NIL,                                                   NIL, 0, NIL },
+    {   "&4: 1024x768",  options_video_resolution_menu_1024_768,                                                   NIL, 0, NIL },
+    {               "",                                     NIL,                                                   NIL, 0, NIL },
+    {   "&5: 1152x864",  options_video_resolution_menu_1152_864,                                                   NIL, 0, NIL },
+    {               "",                                     NIL,                                                   NIL, 0, NIL },
+    {  "&6: 1280x1024", options_video_resolution_menu_1280_1024,                                                   NIL, 0, NIL },
+    {               "",                                     NIL,                                                   NIL, 0, NIL },
+    {  "&7: 1600x1200", options_video_resolution_menu_1600_1200,                                                   NIL, 0, NIL },
+    {               "",                                     NIL,                                                   NIL, 0, NIL },
+    {      "&Extended",                                     NIL,      (MENU *) &options_video_resolution_extended_menu, 0, NIL },
+    {              NIL,                                     NIL,                                                   NIL, 0, NIL }
 };
 
 
@@ -840,7 +934,7 @@ static int options_video_colors_menu_true_color_16_bit (void);
 static int options_video_colors_menu_true_color_32_bit (void);
 
 
-static MENU options_video_colors_menu [] =
+static const MENU options_video_colors_menu_base [] =
 {
     {    "&Paletted (8-bit)",    options_video_colors_menu_paletted_8_bit, NIL, 0, NIL },
     {                     "",                                         NIL, NIL, 0, NIL },
@@ -874,7 +968,7 @@ static int options_video_blitter_menu_super_2xscl (void);
 static int options_video_blitter_menu_ultra_2xscl (void);
 
 
-static MENU options_video_blitter_menu [] =
+static const MENU options_video_blitter_menu_base [] =
 {
     {          "&Automatic",       options_video_blitter_menu_automatic, NIL, 0, NIL },
     {                    "",                                        NIL, NIL, 0, NIL },
@@ -906,7 +1000,7 @@ static int options_video_filters_menu_scanlines_50_percent (void);
 static int options_video_filters_menu_scanlines_100_percent (void);
 
 
-static MENU options_video_filters_menu [] =
+static const MENU options_video_filters_menu_base [] =
 {
     {  "&Scanlines (25%)",  options_video_filters_menu_scanlines_25_percent, NIL, 0, NIL },
     {                  "",                                              NIL, NIL, 0, NIL },
@@ -924,7 +1018,7 @@ static int options_video_layers_menu_sprites_b (void);
 static int options_video_layers_menu_background (void);
 
 
-static MENU options_video_layers_menu [] =
+static const MENU options_video_layers_menu_base [] =
 {
     {  "&Sprites A",  options_video_layers_menu_sprites_a, NIL, 0, NIL },
     {            "",                                  NIL, NIL, 0, NIL },
@@ -956,7 +1050,7 @@ static int options_video_palette_menu_ega_mode_2 (void);
 static int options_video_palette_menu_custom (void);
 
 
-static MENU options_video_palette_menu [] =
+static const MENU options_video_palette_menu_base [] =
 {
     {     "NTSC &Color",     options_video_palette_menu_ntsc_color, NIL, 0, NIL },
     {                "",                                       NIL, NIL, 0, NIL },
@@ -984,7 +1078,7 @@ static MENU options_video_palette_menu [] =
 static int options_video_advanced_menu_force_window (void);
 
 
-static MENU options_video_advanced_menu [] =
+static const MENU options_video_advanced_menu_base [] =
 {
     { "&Force Window", options_video_advanced_menu_force_window, NIL, 0, NIL },
     {             NIL,                                      NIL, NIL, 0, NIL }
@@ -994,26 +1088,26 @@ static MENU options_video_advanced_menu [] =
 static int options_video_menu_vsync (void);
 
 
-static MENU options_video_menu [] =
+static const MENU options_video_menu_base [] =
 {
-    {     "&Driver",                        NIL,     options_video_driver_menu, 0, NIL },
-    {            "",                        NIL,                           NIL, 0, NIL },
-    { "&Resolution",                        NIL, options_video_resolution_menu, 0, NIL },
-    {            "",                        NIL,                           NIL, 0, NIL },
-    {     "&Colors",                        NIL,     options_video_colors_menu, 0, NIL },
-    {            "",                        NIL,                           NIL, 0, NIL },
-    {    "&Blitter",                        NIL,    options_video_blitter_menu, 0, NIL },
-    {            "",                        NIL,                           NIL, 0, NIL },
-    {    "&Filters",                        NIL,    options_video_filters_menu, 0, NIL },
-    {            "",                        NIL,                           NIL, 0, NIL },
-    {      "&VSync",   options_video_menu_vsync,                           NIL, 0, NIL },
-    {            "",                        NIL,                           NIL, 0, NIL },
-    {     "&Layers",                        NIL,     options_video_layers_menu, 0, NIL },
-    {            "",                        NIL,                           NIL, 0, NIL },
-    {    "&Palette",                        NIL,    options_video_palette_menu, 0, NIL },
-    {            "",                        NIL,                           NIL, 0, NIL },
-    {   "&Advanced",                        NIL,   options_video_advanced_menu, 0, NIL },
-    {           NIL ,                       NIL,                           NIL, 0, NIL }
+    {     "&Driver",                        NIL,     (MENU *) &options_video_driver_menu, 0, NIL },
+    {            "",                        NIL,                                     NIL, 0, NIL },
+    { "&Resolution",                        NIL, (MENU *) &options_video_resolution_menu, 0, NIL },
+    {            "",                        NIL,                                     NIL, 0, NIL },
+    {     "&Colors",                        NIL,     (MENU *) &options_video_colors_menu, 0, NIL },
+    {            "",                        NIL,                                     NIL, 0, NIL },
+    {    "&Blitter",                        NIL,    (MENU *) &options_video_blitter_menu, 0, NIL },
+    {            "",                        NIL,                                     NIL, 0, NIL },
+    {    "&Filters",                        NIL,    (MENU *) &options_video_filters_menu, 0, NIL },
+    {            "",                        NIL,                                     NIL, 0, NIL },
+    {      "&VSync",   options_video_menu_vsync,                                     NIL, 0, NIL },
+    {            "",                        NIL,                                     NIL, 0, NIL },
+    {     "&Layers",                        NIL,     (MENU *) &options_video_layers_menu, 0, NIL },
+    {            "",                        NIL,                                     NIL, 0, NIL },
+    {    "&Palette",                        NIL,    (MENU *) &options_video_palette_menu, 0, NIL },
+    {            "",                        NIL,                                     NIL, 0, NIL },
+    {   "&Advanced",                        NIL,   (MENU *) &options_video_advanced_menu, 0, NIL },
+    {           NIL ,                       NIL,                                     NIL, 0, NIL }
 };
 
 
@@ -1024,22 +1118,22 @@ static int options_menu_input (void);
 static int options_menu_patches (void);
 
 
-static MENU options_menu [] =
+static const MENU options_menu_base [] =
 {
-    {     "&Status",  options_menu_status,                 NIL, 0, NIL },
-    {            "",                  NIL,                 NIL, 0, NIL },
-    {        "&GUI",                  NIL,    options_gui_menu, 0, NIL },
-    {            "",                  NIL,                 NIL, 0, NIL },
-    {     "S&ystem",                  NIL, options_system_menu, 0, NIL },
-    {            "",                  NIL,                 NIL, 0, NIL },
-    {      "&Audio",                  NIL,  options_audio_menu, 0, NIL },
-    {            "",                  NIL,                 NIL, 0, NIL },
-    {      "&Video",                  NIL,  options_video_menu, 0, NIL },
-    {            "",                  NIL,                 NIL, 0, NIL },
-    {   "&Input...",   options_menu_input,                 NIL, 0, NIL },
-    {            "",                  NIL,                 NIL, 0, NIL },
-    { "&Patches...", options_menu_patches,                 NIL, 0, NIL },
-    {           NIL,                  NIL,                 NIL, 0, NIL }
+    {     "&Status",  options_menu_status,                           NIL, 0, NIL },
+    {            "",                  NIL,                           NIL, 0, NIL },
+    {        "&GUI",                  NIL,    (MENU *) &options_gui_menu, 0, NIL },
+    {            "",                  NIL,                           NIL, 0, NIL },
+    {     "S&ystem",                  NIL, (MENU *) &options_system_menu, 0, NIL },
+    {            "",                  NIL,                           NIL, 0, NIL },
+    {      "&Audio",                  NIL,  (MENU *) &options_audio_menu, 0, NIL },
+    {            "",                  NIL,                           NIL, 0, NIL },
+    {      "&Video",                  NIL,  (MENU *) &options_video_menu, 0, NIL },
+    {            "",                  NIL,                           NIL, 0, NIL },
+    {   "&Input...",   options_menu_input,                           NIL, 0, NIL },
+    {            "",                  NIL,                           NIL, 0, NIL },
+    { "&Patches...", options_menu_patches,                           NIL, 0, NIL },
+    {           NIL,                  NIL,                           NIL, 0, NIL }
 };
 
 
@@ -1048,7 +1142,7 @@ static int help_menu_shortcuts (void);
 static int help_menu_about (void);
 
 
-static MENU help_menu [] =
+static const MENU help_menu_base [] =
 {
     { "&Shortcuts...", help_menu_shortcuts, NIL, 0, NIL },
     {              "",                 NIL, NIL, 0, NIL },
@@ -1057,11 +1151,11 @@ static MENU help_menu [] =
 };
 
 
-static MENU top_menu [] =
+static const MENU top_menu_base [] =
 { 
-    {    "&Main", NIL,    main_menu, 0, NIL },
-    { "&Options", NIL, options_menu, 0, NIL },
-    { "&NetPlay", NIL, netplay_menu, 0, NIL },
-    {    "&Help", NIL,    help_menu, 0, NIL },
-    {        NIL, NIL,          NIL, 0, NIL }
+    {    "&Main", NIL,    (MENU *) &main_menu, 0, NIL },
+    { "&Options", NIL, (MENU *) &options_menu, 0, NIL },
+    { "&NetPlay", NIL, (MENU *) &netplay_menu, 0, NIL },
+    {    "&Help", NIL,    (MENU *) &help_menu, 0, NIL },
+    {        NIL, NIL,                    NIL, 0, NIL }
 };

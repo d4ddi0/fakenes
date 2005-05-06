@@ -740,6 +740,12 @@ int main (int argc, char * argv [])
     }
 
 
+    if (! disable_gui)
+    {
+        gui_init ();
+    }
+
+
     LOCK_VARIABLE (frame_interrupt);
 
 
@@ -1168,6 +1174,9 @@ int main (int argc, char * argv [])
 
 
     fade_out (4);
+
+
+    gui_exit ();
 
 
     video_exit ();

@@ -6624,6 +6624,599 @@ static FONT datafile_small_font = {
 
 
 
+static DATAFILE_PROPERTY datafile_small_font_clean_prop[] = {
+    { "SMALL_FONT_CLEAN", DAT_ID('N', 'A', 'M', 'E') },
+    { 0, DAT_END }
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph32 = {
+    5, 8, /* width, height */
+    "\0\0\0\0\0\0\0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph33 = {
+    5, 8, /* width, height */
+    "     \0 \0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph34 = {
+    5, 8, /* width, height */
+    "(((\0\0\0\0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph35 = {
+    5, 8, /* width, height */
+    "PP\xf8P\xf8PP\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph36 = {
+    5, 8, /* width, height */
+    " x\xa0p(\xf0 \0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph37 = {
+    5, 8, /* width, height */
+    "`h\x10 X\x18\0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph38 = {
+    5, 8, /* width, height */
+    "0@@(PP(\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph39 = {
+    5, 8, /* width, height */
+    "\x10\x10 \0\0\0\0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph40 = {
+    5, 8, /* width, height */
+    "\b\x10   \x10\b\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph41 = {
+    5, 8, /* width, height */
+    "@ \x10\x10\x10 @\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph42 = {
+    5, 8, /* width, height */
+    "\0H0x0H\0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph43 = {
+    5, 8, /* width, height */
+    "\0  \xf8  \0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph44 = {
+    5, 8, /* width, height */
+    "\0\0\0\0\0  @"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph45 = {
+    5, 8, /* width, height */
+    "\0\0\0\xf8\0\0\0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph46 = {
+    5, 8, /* width, height */
+    "\0\0\0\0\0  \0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph47 = {
+    5, 8, /* width, height */
+    "\b\b\x10\x10  @@"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph48 = {
+    5, 8, /* width, height */
+    "0HXhHH0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph49 = {
+    5, 8, /* width, height */
+    " `     \0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph50 = {
+    5, 8, /* width, height */
+    "0H\b\x10 @x\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph51 = {
+    5, 8, /* width, height */
+    "0H\b0\bH0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph52 = {
+    5, 8, /* width, height */
+    "\b\x18\x18((x\b\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph53 = {
+    5, 8, /* width, height */
+    "x@@p\b\bp\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph54 = {
+    5, 8, /* width, height */
+    "0@@pHH0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph55 = {
+    5, 8, /* width, height */
+    "x\b\b\x10\x10  \0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph56 = {
+    5, 8, /* width, height */
+    "0HH0HH0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph57 = {
+    5, 8, /* width, height */
+    "0HH8\b\b0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph58 = {
+    5, 8, /* width, height */
+    "\0  \0\0  \0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph59 = {
+    5, 8, /* width, height */
+    "\0  \0\0  @"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph60 = {
+    5, 8, /* width, height */
+    "\b\x10 @ \x10\b\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph61 = {
+    5, 8, /* width, height */
+    "\0\0\xf8\0\xf8\0\0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph62 = {
+    5, 8, /* width, height */
+    "@ \x10\b\x10 @\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph63 = {
+    5, 8, /* width, height */
+    "0H\b\x10 \0 \0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph64 = {
+    5, 8, /* width, height */
+    "\0""0HXX@0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph65 = {
+    5, 8, /* width, height */
+    "0HHxHHH\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph66 = {
+    5, 8, /* width, height */
+    "pHHpHHp\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph67 = {
+    5, 8, /* width, height */
+    "0H@@@H0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph68 = {
+    5, 8, /* width, height */
+    "pHHHHHp\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph69 = {
+    5, 8, /* width, height */
+    "x@@p@@x\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph70 = {
+    5, 8, /* width, height */
+    "x@@p@@@\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph71 = {
+    5, 8, /* width, height */
+    "0H@XHH8\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph72 = {
+    5, 8, /* width, height */
+    "HHHxHHH\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph73 = {
+    5, 8, /* width, height */
+    "p     p\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph74 = {
+    5, 8, /* width, height */
+    "\x18\b\b\bHH0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph75 = {
+    5, 8, /* width, height */
+    "HHP`PHH\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph76 = {
+    5, 8, /* width, height */
+    "@@@@@@x\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph77 = {
+    5, 8, /* width, height */
+    "HxxHHHH\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph78 = {
+    5, 8, /* width, height */
+    "HhhXXHH\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph79 = {
+    5, 8, /* width, height */
+    "0HHHHH0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph80 = {
+    5, 8, /* width, height */
+    "pHHp@@@\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph81 = {
+    5, 8, /* width, height */
+    "0HHHHH0\x18"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph82 = {
+    5, 8, /* width, height */
+    "pHHpPHH\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph83 = {
+    5, 8, /* width, height */
+    "0H@0\bH0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph84 = {
+    5, 8, /* width, height */
+    "\xf8      \0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph85 = {
+    5, 8, /* width, height */
+    "HHHHHH0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph86 = {
+    5, 8, /* width, height */
+    "HHHH000\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph87 = {
+    5, 8, /* width, height */
+    "HHHHxxH\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph88 = {
+    5, 8, /* width, height */
+    "HH00HHH\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph89 = {
+    5, 8, /* width, height */
+    "\x88\x88P    \0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph90 = {
+    5, 8, /* width, height */
+    "x\b\x10 @@x\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph91 = {
+    5, 8, /* width, height */
+    "8     8\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph92 = {
+    5, 8, /* width, height */
+    "@@  \x10\x10\b\b"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph93 = {
+    5, 8, /* width, height */
+    "p\x10\x10\x10\x10\x10p\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph94 = {
+    5, 8, /* width, height */
+    " P\x88\0\0\0\0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph95 = {
+    5, 8, /* width, height */
+    "\0\0\0\0\0\0\0\xf8"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph96 = {
+    5, 8, /* width, height */
+    "  \x10\0\0\0\0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph97 = {
+    5, 8, /* width, height */
+    "\0\0""8HHX(\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph98 = {
+    5, 8, /* width, height */
+    "@@pHHHp\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph99 = {
+    5, 8, /* width, height */
+    "\0\0""8@@@8\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph100 = {
+    5, 8, /* width, height */
+    "\b\b8HHH8\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph101 = {
+    5, 8, /* width, height */
+    "\0\0""0Hx@0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph102 = {
+    5, 8, /* width, height */
+    "\x18  p   \0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph103 = {
+    5, 8, /* width, height */
+    "\0\0""8HH8\b0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph104 = {
+    5, 8, /* width, height */
+    "@@pHHHH\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph105 = {
+    5, 8, /* width, height */
+    " \0`   p\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph106 = {
+    5, 8, /* width, height */
+    "\x10\0""0\x10\x10\x10\x10`"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph107 = {
+    5, 8, /* width, height */
+    "@@HP`PH\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph108 = {
+    5, 8, /* width, height */
+    "`     p\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph109 = {
+    5, 8, /* width, height */
+    "\0\0\xd0\xa8\xa8\xa8\x88\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph110 = {
+    5, 8, /* width, height */
+    "\0\0pHHHH\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph111 = {
+    5, 8, /* width, height */
+    "\0\0""0HHH0\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph112 = {
+    5, 8, /* width, height */
+    "\0\0pHHHp@"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph113 = {
+    5, 8, /* width, height */
+    "\0\0""8HHH8\b"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph114 = {
+    5, 8, /* width, height */
+    "\0\0X`@@@\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph115 = {
+    5, 8, /* width, height */
+    "\0\0""8@0\bp\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph116 = {
+    5, 8, /* width, height */
+    "\0 x   \x18\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph117 = {
+    5, 8, /* width, height */
+    "\0\0HHHH8\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph118 = {
+    5, 8, /* width, height */
+    "\0\0HHH00\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph119 = {
+    5, 8, /* width, height */
+    "\0\0\x88\xa8\xa8\xa8P\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph120 = {
+    5, 8, /* width, height */
+    "\0\0HH0HH\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph121 = {
+    5, 8, /* width, height */
+    "\0\0HHH8\b0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph122 = {
+    5, 8, /* width, height */
+    "\0\0x\x10 @x\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph123 = {
+    5, 8, /* width, height */
+    "\b\x10\x10 \x10\x10\b\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph124 = {
+    5, 8, /* width, height */
+    "       \0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph125 = {
+    5, 8, /* width, height */
+    "@  \x10  @\0"
+};
+
+static struct { short w,h; char data[8]; } datafile_small_font_clean_glyph126 = {
+    5, 8, /* width, height */
+    "(P\0\0\0\0\0\0"
+};
+
+static FONT_GLYPH* datafile_small_font_clean_range0_glyphs[] = {
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph32,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph33,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph34,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph35,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph36,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph37,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph38,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph39,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph40,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph41,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph42,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph43,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph44,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph45,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph46,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph47,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph48,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph49,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph50,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph51,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph52,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph53,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph54,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph55,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph56,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph57,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph58,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph59,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph60,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph61,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph62,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph63,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph64,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph65,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph66,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph67,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph68,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph69,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph70,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph71,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph72,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph73,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph74,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph75,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph76,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph77,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph78,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph79,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph80,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph81,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph82,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph83,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph84,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph85,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph86,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph87,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph88,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph89,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph90,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph91,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph92,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph93,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph94,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph95,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph96,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph97,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph98,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph99,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph100,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph101,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph102,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph103,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph104,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph105,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph106,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph107,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph108,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph109,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph110,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph111,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph112,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph113,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph114,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph115,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph116,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph117,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph118,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph119,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph120,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph121,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph122,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph123,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph124,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph125,
+    (FONT_GLYPH *)&datafile_small_font_clean_glyph126,
+    0
+};
+
+static FONT_MONO_DATA datafile_small_font_clean_range0 = {
+    32, 127, /* begin, end */
+    datafile_small_font_clean_range0_glyphs,
+    0
+};
+
+static FONT datafile_small_font_clean = {
+    &datafile_small_font_clean_range0,
+    8, /* height */
+    (FONT_VTABLE *)0 /* color flag */
+};
+
+
+
 DATAFILE datafile_data[] = {
     { &datafile_default_palette, DAT_ID('P', 'A', 'L', ' '), 1024, datafile_default_palette_prop },
     { &datafile_ega_palette_1, DAT_ID('P', 'A', 'L', ' '), 1024, datafile_ega_palette_1_prop },
@@ -6645,6 +7238,7 @@ DATAFILE datafile_data[] = {
     { &datafile_nester_palette, DAT_ID('P', 'A', 'L', ' '), 1024, datafile_nester_palette_prop },
     { &datafile_nesticle_palette, DAT_ID('P', 'A', 'L', ' '), 1024, datafile_nesticle_palette_prop },
     { &datafile_small_font, DAT_ID('F', 'O', 'N', 'T'), 963, datafile_small_font_prop },
+    { &datafile_small_font_clean, DAT_ID('F', 'O', 'N', 'T'), 1153, datafile_small_font_clean_prop },
     { 0, DAT_END, 0, 0 }
 };
 

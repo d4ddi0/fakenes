@@ -22,6 +22,8 @@ You must read and accept the license prior to use.
 
 #include <stdio.h>
 
+#include <stdlib.h>
+
 #include <string.h>
 
 
@@ -102,9 +104,6 @@ int gui_needs_restart = FALSE;
 int gui_is_active = FALSE;
 
 
-int gui_initialized = FALSE;
-
-
 static int want_exit = FALSE;
 
 
@@ -114,6 +113,446 @@ static UINT8 message_buffer [256];
 static RGB * current_palette = NIL;
 
 static PALETTE custom_palette;
+
+
+static MENU * load_menu (const MENU * menu)
+{
+    MENU * new_menu;
+
+
+    int size = 0;
+
+
+    int index = 0;
+
+
+    while (menu [index].text)
+    {
+        size += sizeof (MENU);
+
+
+        index ++;
+    }
+
+
+    /* Once more for the end marker. */
+
+    size += sizeof (MENU);
+
+
+    new_menu = malloc (size);
+
+    ASSERT (new_menu);
+
+    if (! new_menu)
+    {
+        return (NIL);
+    }
+
+
+    memcpy (new_menu, menu, size);
+
+
+    index = 0;
+
+
+    while (new_menu [index].text)
+    {
+        /* R3m3mb3r k1ds: Ug1y h4cks 4r3 n0t t3h l33t! */
+
+        if (new_menu [index].child)
+        {
+            new_menu [index].child = * (MENU * *) new_menu [index].child;
+        }
+
+
+        index ++;
+    }
+
+
+    return (new_menu);
+}
+
+
+#define ROUND(value)    (value + 0.5)
+
+
+static DIALOG * load_dialog (const DIALOG * dialog)
+{
+    DIALOG * new_dialog;
+
+
+    int size = 0;
+
+
+    int index = 0;
+
+
+    int width;
+
+    int height;
+
+
+    while (dialog [index].proc)
+    {
+        size += sizeof (DIALOG);
+
+
+        index ++;
+    }
+
+
+    /* Once more for the end marker. */
+
+    size += sizeof (DIALOG);
+
+
+    new_dialog = malloc (size);
+
+    ASSERT (new_dialog);
+
+    if (! new_dialog)
+    {
+        return (NIL);
+    }
+
+
+    memcpy (new_dialog, dialog, size);
+
+
+    /* Font scaling. */
+
+    width = text_length (font, "x");
+
+    height = text_height (font);
+
+
+    index = 0;
+
+
+    while (new_dialog [index].proc)
+    {
+        if (new_dialog [index].proc == d_menu_proc)
+        {
+            new_dialog [index].dp = * (MENU * *) new_dialog [index].dp;
+        }
+
+
+        if (font != small_font)
+        {
+            switch (index)
+            {
+                case 0: /* sl_frame. */
+    
+                    new_dialog [index].w = ROUND (((new_dialog [index].w / 5.0) * width));
+    
+                    new_dialog [index].h = (ROUND (((new_dialog [index].h / 6.0) * height)) - height);
+    
+    
+                    break;
+    
+    
+                case 1: /* sl_x_button. */
+    
+                    new_dialog [index].x = ROUND (((new_dialog [index].x / 5.0) * width));
+    
+    
+                    break;
+    
+    
+                default:
+    
+                    new_dialog [index].x = ROUND (((new_dialog [index].x / 5.0) * width));
+            
+                    new_dialog [index].y = (ROUND (((new_dialog [index].y / 6.0) * height)) - height);
+            
+                    new_dialog [index].w = ROUND (((new_dialog [index].w / 5.0) * width));
+            
+                    new_dialog [index].h = ROUND (((new_dialog [index].h / 6.0) * height));
+    
+    
+                    break;
+            }
+        }
+
+
+        index ++;
+    }
+
+
+    return (new_dialog);
+}
+
+
+static void unload_menu (MENU * menu)
+{
+    if (menu)
+    {
+        free (menu);
+    }
+}
+
+
+static void unload_dialog (DIALOG * dialog)
+{
+    if (dialog)
+    {
+        free (dialog);
+    }
+}
+
+
+#define MENU_FROM_BASE(name)    (name = load_menu (name ##_base))
+
+#define DIALOG_FROM_BASE(name)  (name = load_dialog (name ##_base))
+
+
+static void load_menus (void)
+{
+    MENU_FROM_BASE (main_state_select_menu);
+
+    MENU_FROM_BASE (main_state_autosave_menu);
+
+    MENU_FROM_BASE (main_state_menu);
+
+    MENU_FROM_BASE (main_replay_select_menu);
+
+    MENU_FROM_BASE (main_replay_record_menu);
+
+    MENU_FROM_BASE (main_replay_play_menu);
+
+    MENU_FROM_BASE (main_replay_menu);
+
+    MENU_FROM_BASE (main_menu);
+
+
+    MENU_FROM_BASE (netplay_protocol_menu);
+
+    MENU_FROM_BASE (netplay_server_menu);
+
+    MENU_FROM_BASE (netplay_client_menu);
+
+    MENU_FROM_BASE (netplay_menu);
+
+
+    MENU_FROM_BASE (options_gui_theme_menu);
+
+    MENU_FROM_BASE (options_gui_menu);
+
+    MENU_FROM_BASE (options_system_menu);
+
+    MENU_FROM_BASE (options_audio_mixing_channels_menu);
+
+    MENU_FROM_BASE (options_audio_mixing_frequency_menu);
+
+    MENU_FROM_BASE (options_audio_mixing_quality_menu);
+
+    MENU_FROM_BASE (options_audio_mixing_anti_aliasing_menu);
+
+    MENU_FROM_BASE (options_audio_mixing_menu);
+
+    MENU_FROM_BASE (options_audio_effects_menu);
+
+    MENU_FROM_BASE (options_audio_filters_menu);
+
+    MENU_FROM_BASE (options_audio_channels_menu);
+
+    MENU_FROM_BASE (options_audio_advanced_menu);
+
+    MENU_FROM_BASE (options_audio_record_menu);
+
+    MENU_FROM_BASE (options_audio_menu);
+
+    MENU_FROM_BASE (options_video_driver_dos_menu);
+
+    MENU_FROM_BASE (options_video_driver_windows_menu);
+
+    MENU_FROM_BASE (options_video_driver_linux_menu);
+
+    MENU_FROM_BASE (options_video_driver_unix_menu);
+
+    MENU_FROM_BASE (options_video_driver_menu);
+
+    MENU_FROM_BASE (options_video_resolution_proportionate_menu);
+
+    MENU_FROM_BASE (options_video_resolution_extended_menu);
+
+    MENU_FROM_BASE (options_video_resolution_menu);
+
+    MENU_FROM_BASE (options_video_colors_menu);
+
+    MENU_FROM_BASE (options_video_blitter_menu);
+
+    MENU_FROM_BASE (options_video_filters_menu);
+
+    MENU_FROM_BASE (options_video_layers_menu);
+
+    MENU_FROM_BASE (options_video_palette_menu);
+
+    MENU_FROM_BASE (options_video_advanced_menu);
+
+    MENU_FROM_BASE (options_video_menu);
+
+    MENU_FROM_BASE (options_menu);
+
+
+    MENU_FROM_BASE (help_menu);
+
+
+    MENU_FROM_BASE (top_menu);
+}
+
+
+static void load_dialogs (void)
+{
+    DIALOG_FROM_BASE (main_dialog);
+
+
+    DIALOG_FROM_BASE (main_state_save_dialog);
+
+    DIALOG_FROM_BASE (main_replay_record_start_dialog);
+
+    DIALOG_FROM_BASE (main_messages_dialog);
+
+
+    DIALOG_FROM_BASE (options_input_dialog);
+
+    DIALOG_FROM_BASE (options_patches_add_dialog);
+
+    DIALOG_FROM_BASE (options_patches_dialog);
+
+
+    DIALOG_FROM_BASE (netplay_client_connect_dialog);
+
+
+    DIALOG_FROM_BASE (help_shortcuts_dialog);
+
+    DIALOG_FROM_BASE (help_about_dialog);
+}
+
+
+static void unload_menus (void)
+{
+    unload_menu (main_state_select_menu);
+
+    unload_menu (main_state_autosave_menu);
+
+    unload_menu (main_state_menu);
+
+    unload_menu (main_replay_select_menu);
+
+    unload_menu (main_replay_record_menu);
+
+    unload_menu (main_replay_play_menu);
+
+    unload_menu (main_replay_menu);
+
+    unload_menu (main_menu);
+
+
+    unload_menu (netplay_protocol_menu);
+
+    unload_menu (netplay_server_menu);
+
+    unload_menu (netplay_client_menu);
+
+    unload_menu (netplay_menu);
+
+
+    unload_menu (options_gui_theme_menu);
+
+    unload_menu (options_gui_menu);
+
+    unload_menu (options_system_menu);
+
+    unload_menu (options_audio_mixing_channels_menu);
+
+    unload_menu (options_audio_mixing_frequency_menu);
+
+    unload_menu (options_audio_mixing_quality_menu);
+
+    unload_menu (options_audio_mixing_anti_aliasing_menu);
+
+    unload_menu (options_audio_mixing_menu);
+
+    unload_menu (options_audio_effects_menu);
+
+    unload_menu (options_audio_filters_menu);
+
+    unload_menu (options_audio_channels_menu);
+
+    unload_menu (options_audio_advanced_menu);
+
+    unload_menu (options_audio_record_menu);
+
+    unload_menu (options_audio_menu);
+
+    unload_menu (options_video_driver_dos_menu);
+
+    unload_menu (options_video_driver_windows_menu);
+
+    unload_menu (options_video_driver_linux_menu);
+
+    unload_menu (options_video_driver_unix_menu);
+
+    unload_menu (options_video_driver_menu);
+
+    unload_menu (options_video_resolution_proportionate_menu);
+
+    unload_menu (options_video_resolution_extended_menu);
+
+    unload_menu (options_video_resolution_menu);
+
+    unload_menu (options_video_colors_menu);
+
+    unload_menu (options_video_blitter_menu);
+
+    unload_menu (options_video_filters_menu);
+
+    unload_menu (options_video_layers_menu);
+
+    unload_menu (options_video_palette_menu);
+
+    unload_menu (options_video_advanced_menu);
+
+    unload_menu (options_video_menu);
+
+    unload_menu (options_menu);
+
+
+    unload_menu (help_menu);
+
+
+    unload_menu (top_menu);
+}
+
+
+static void unload_dialogs (void)
+{
+    unload_dialog (main_dialog);
+
+
+    unload_dialog (main_state_save_dialog);
+
+    unload_dialog (main_replay_record_start_dialog);
+
+    unload_dialog (main_messages_dialog);
+
+
+    unload_dialog (options_input_dialog);
+
+    unload_dialog (options_patches_add_dialog);
+
+    unload_dialog (options_patches_dialog);
+
+
+    unload_dialog (netplay_client_connect_dialog);
+
+
+    unload_dialog (help_shortcuts_dialog);
+
+    unload_dialog (help_about_dialog);
+}
 
 
 static INLINE void pack_color (GUI_COLOR * color)
@@ -932,6 +1371,103 @@ static INLINE void draw_background (void)
 }
 
 
+int gui_init (void)
+{
+    gui_menu_draw_menu = sl_draw_menu;
+
+    gui_menu_draw_menu_item = sl_draw_menu_item;
+
+
+    load_menus ();
+
+    load_dialogs ();
+
+
+#ifdef ALLEGRO_DOS
+
+    DISABLE_MENU (options_video_driver_menu, 4);
+
+    DISABLE_MENU (options_video_driver_menu, 6);
+
+    DISABLE_MENU (options_video_driver_menu, 8);
+
+
+    DISABLE_MENU (options_video_advanced_menu, 0);
+
+
+    DISABLE_MENU (top_menu, 3);
+
+#endif
+
+
+#ifdef ALLEGRO_WINDOWS
+
+    DISABLE_MENU (options_video_driver_menu, 2);
+
+    DISABLE_MENU (options_video_driver_menu, 6);
+
+    DISABLE_MENU (options_video_driver_menu, 8);
+
+#endif
+
+
+#ifdef ALLEGRO_UNIX
+
+    DISABLE_MENU (options_video_driver_menu, 2);
+
+    DISABLE_MENU (options_video_driver_menu, 4);
+
+
+#ifdef ALLEGRO_LINUX
+
+#ifndef GFX_FBCON
+
+    DISABLE_MENU (options_video_driver_linux_menu, 6);
+
+#endif
+
+#ifndef GFX_SVGALIB
+
+    DISABLE_MENU (options_video_driver_linux_menu, 8);
+
+#endif
+
+#else
+
+    DISABLE_MENU (options_video_driver_menu, 6);
+
+#endif
+
+#endif
+
+
+    CHECK_MENU (options_video_palette_menu, 10);
+
+
+    gui_theme_id = get_config_int ("gui", "theme", 0);
+
+
+    /* Cheap hack to fix palette. */
+
+    gui_is_active = TRUE;
+
+    set_theme ();
+
+    gui_is_active = FALSE;
+
+
+    return (0);
+}
+
+
+void gui_exit (void)
+{
+    unload_menus ();
+
+    unload_dialogs ();
+}
+
+
 int show_gui (int first_run)
 {
     gui_needs_restart = FALSE;
@@ -940,84 +1476,6 @@ int show_gui (int first_run)
 
 
     want_exit = FALSE;
-
-
-    if (! gui_initialized)
-    {
-        gui_menu_draw_menu = sl_draw_menu;
-    
-        gui_menu_draw_menu_item = sl_draw_menu_item;
-    
-    
-#ifdef ALLEGRO_DOS
-
-        DISABLE_MENU (options_video_driver_menu, 4);
-
-        DISABLE_MENU (options_video_driver_menu, 6);
-
-        DISABLE_MENU (options_video_driver_menu, 8);
-
-
-        DISABLE_MENU (options_video_advanced_menu, 0);
-
-
-        DISABLE_MENU (top_menu, 3);
-
-#endif
-
-
-#ifdef ALLEGRO_WINDOWS
-
-        DISABLE_MENU (options_video_driver_menu, 2);
-
-        DISABLE_MENU (options_video_driver_menu, 6);
-
-        DISABLE_MENU (options_video_driver_menu, 8);
-
-#endif
-
-
-#ifdef ALLEGRO_UNIX
-
-        DISABLE_MENU (options_video_driver_menu, 2);
-
-        DISABLE_MENU (options_video_driver_menu, 4);
-
-
-#ifdef ALLEGRO_LINUX
-
-#ifndef GFX_FBCON
-
-        DISABLE_MENU (options_video_driver_linux_menu, 6);
-
-#endif
-
-#ifndef GFX_SVGALIB
-
-        DISABLE_MENU (options_video_driver_linux_menu, 8);
-
-#endif
-
-#else
-
-        DISABLE_MENU (options_video_driver_menu, 6);
-
-#endif
-
-#endif
-
-
-        CHECK_MENU (options_video_palette_menu, 10);
-    
-
-        gui_theme_id = get_config_int ("gui", "theme", 0);
-
-
-        set_theme ();
-
-
-        gui_initialized = TRUE;
-    }
 
 
     if (mouse_sprite)

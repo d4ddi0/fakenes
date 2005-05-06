@@ -28,6 +28,10 @@ You must read and accept the license prior to use.
 #include "misc.h"
 
 
+int gui_init (void);
+
+void gui_exit (void);
+
 int show_gui (int);
 
 
