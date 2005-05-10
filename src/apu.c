@@ -1618,7 +1618,7 @@ void apu_process_stereo(void *buffer, int num_samples, int dither, int style, in
                 if (apu->mix_enable[3]) accum_right += apu_noise(&apu->apus.noise);
              }
          }
-         else
+         else if (style == 3)
          {
             /* Real NES. */
              if (apu->mix_enable[0]) accum_left += apu_rectangle(&apu->apus.rectangle[0]);
@@ -1626,6 +1626,17 @@ void apu_process_stereo(void *buffer, int num_samples, int dither, int style, in
              if (apu->mix_enable[2]) accum_right += apu_triangle(&apu->apus.triangle);
              if (apu->mix_enable[3]) accum_right += apu_noise(&apu->apus.noise);
              if (apu->mix_enable[4]) accum_right += apu_dmc(&apu->apus.dmc);
+         }
+         else
+         {
+            /* Dumb mix. */
+             if (apu->mix_enable[0]) accum_left += apu_rectangle(&apu->apus.rectangle[0]);
+             if (apu->mix_enable[1]) accum_left += apu_rectangle(&apu->apus.rectangle[1]);
+             if (apu->mix_enable[2]) accum_left += apu_triangle(&apu->apus.triangle);
+             if (apu->mix_enable[3]) accum_left += apu_noise(&apu->apus.noise);
+             if (apu->mix_enable[4]) accum_left += apu_dmc(&apu->apus.dmc);
+             accum_left >>= 1;
+             accum_right = accum_left;
          }
 
          //if (apu->ext && apu->mix_enable[5]) accum += apu->ext->process();
@@ -2082,6 +2093,9 @@ boolean sync_dmc_register(UINT32 cpu_cycles)
 
 /*
 ** $Log$
+** Revision 1.15  2005/05/10 04:02:44  stainless
+** Added 'Stereo Mix' mode that produces mono sound while allowing stereo effects.
+**
 ** Revision 1.14  2004/02/17 06:43:06  stainless
 ** Reworked Audio > Filter menu, added support for multiple audio filters.
 **

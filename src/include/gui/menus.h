@@ -378,6 +378,8 @@ static const MENU options_system_menu_base [] =
 
 static int options_audio_mixing_channels_menu_mono (void);
 
+static int options_audio_mixing_channels_menu_stereo_mix (void);
+
 static int options_audio_mixing_channels_menu_pseudo_stereo_mode_1 (void);
 
 static int options_audio_mixing_channels_menu_pseudo_stereo_mode_2 (void);
@@ -390,6 +392,8 @@ static int options_audio_mixing_channels_menu_swap_channels (void);
 static const MENU options_audio_mixing_channels_menu_base [] =
 {
     {                   "&Mono",                 options_audio_mixing_channels_menu_mono, NIL, 0, NIL },
+    {                        "",                                                     NIL, NIL, 0, NIL },
+    {             "St&ereo Mix",           options_audio_mixing_channels_menu_stereo_mix, NIL, 0, NIL },
     {                        "",                                                     NIL, NIL, 0, NIL },
     { "&Pseudo Stereo (Mode 1)", options_audio_mixing_channels_menu_pseudo_stereo_mode_1, NIL, 0, NIL },
     {                        "",                                                     NIL, NIL, 0, NIL },

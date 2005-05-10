@@ -990,7 +990,7 @@ static INLINE void update_menus (void)
         papu_spatial_stereo = FALSE;
         
 
-        DISABLE_MENU (options_audio_mixing_channels_menu, 8);
+        DISABLE_MENU (options_audio_mixing_channels_menu, 10);
 
 
         DISABLE_MENU (options_audio_effects_menu, 2);
@@ -1001,7 +1001,7 @@ static INLINE void update_menus (void)
     }
     else
     {
-        ENABLE_MENU (options_audio_mixing_channels_menu, 8);
+        ENABLE_MENU (options_audio_mixing_channels_menu, 10);
 
 
         ENABLE_MENU (options_audio_effects_menu, 2);
@@ -1113,7 +1113,9 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_audio_mixing_channels_menu, 6, (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_3));
 
-    TOGGLE_MENU (options_audio_mixing_channels_menu, 8, papu_swap_channels);
+    TOGGLE_MENU (options_audio_mixing_channels_menu, 8, (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_4));
+
+    TOGGLE_MENU (options_audio_mixing_channels_menu, 10, papu_swap_channels);
 
 
     TOGGLE_MENU (options_audio_mixing_quality_menu, 0, (audio_sample_size == 8));
@@ -3180,6 +3182,36 @@ static int options_audio_mixing_channels_menu_mono (void)
 
 
     gui_message (GUI_TEXT_COLOR, "Audio channels set to mono.");
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_mixing_channels_menu_stereo_mix (void)
+{
+    if (! audio_pseudo_stereo)
+    {
+        audio_pseudo_stereo = AUDIO_PSEUDO_STEREO_MODE_4;
+
+
+        audio_exit ();
+    
+        audio_init ();
+    
+    
+        papu_reinit ();
+    }
+    else
+    {
+        audio_pseudo_stereo = AUDIO_PSEUDO_STEREO_MODE_4;
+    }
+    
+
+    update_menus ();
+    
+
+    gui_message (GUI_TEXT_COLOR, "Audio channels set to mono with stereo mixing.");
 
 
     return (D_O_K);
