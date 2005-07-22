@@ -27,12 +27,12 @@ OFFSETS_INC = ${INCLUDE_PATH}/core/x86/offsets.inc
 # GCC flags.
 TARGET_ARCH ?= i486
 TARGET_CPU ?= i686
-MFLAGS := -march=${TARGET_ARCH} -mcpu=${TARGET_CPU}
+MFLAGS := -march=${TARGET_ARCH} -mtune=${TARGET_CPU}
 ifdef DEBUG
     OFLAGS = -O0 -g -ggdb3
     DFLAGS = -DDEBUG -DLSB_FIRST
 else
-    OFLAGS = -O3 -fomit-frame-pointer -fno-rtti -fno-exceptions \
+    OFLAGS = -O3 -fomit-frame-pointer -fno-exceptions \
     -funroll-loops -ffast-math -fforce-addr -fforce-mem -fstrength-reduce \
     -fthread-jumps -fexpensive-optimizations -foptimize-sibling-calls \
     -fstrict-aliasing -maccumulate-outgoing-args -fschedule-insns \
