@@ -126,7 +126,7 @@ static MENU * load_menu (const MENU * menu)
     int index = 0;
 
 
-    while (menu [index].text)
+    while (menu [index].text || menu [index].proc)
     {
         size += sizeof (MENU);
 
@@ -156,7 +156,7 @@ static MENU * load_menu (const MENU * menu)
     index = 0;
 
 
-    while (new_menu [index].text)
+    while (new_menu [index].text || menu [index].proc)
     {
         /* R3m3mb3r k1ds: Ug1y h4cks 4r3 n0t t3h l33t! */
 
