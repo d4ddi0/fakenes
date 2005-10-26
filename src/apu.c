@@ -1448,12 +1448,21 @@ void apu_process(void *buffer, int num_samples, int dither)
          else if (accum < -0x8000)
             accum = -0x8000;
 
-         /* unsigned 16-bit output, unsigned 8-bit */
+         /* unsigned 16-bit, unsigned 8-bit output */
          if (16 == apu->sample_bits)
-            //*((INT16 *) buffer)++ = (INT16) accum;
-            *((UINT16 *) buffer)++ = accum ^ 0x8000;
+         {
+            UINT16 *buf = buffer;
+
+            /* store sample and increment base pointer */
+            *buf++ = (accum ^ 0x8000);
+
+            /* save changes back to typeless buffer */
+            buffer = buf;
+         }
          else
          {
+            UINT8 *buf = buffer;
+
             /* Important: Don't use + 1 on this or it will actually
             be 512, we want it to be 0-511, so that there is a 50/50
             chance of the value being > 255 and causing a bit
@@ -1461,7 +1470,9 @@ void apu_process(void *buffer, int num_samples, int dither)
             if (dither)
                 accum += (rand () % 512);
 
-            *((UINT8 *) buffer)++ = (accum >> 8) ^ 0x80;
+            *buf++ = ((accum >> 8) ^ 0x80);
+
+            buffer = buf;
          }
       }
    }
@@ -1798,19 +1809,30 @@ void apu_process_stereo(void *buffer, int num_samples, int dither, int style, in
             accum_right = old_accum_left;
          }
 
-         /* signed 16-bit output, unsigned 8-bit */
-         if (16 == apu->sample_bits) {
-            //*((INT16 *) buffer)++ = (INT16) accum;
-            *((UINT16 *) buffer)++ = accum_left ^ 0x8000;
-            *((UINT16 *) buffer)++ = accum_right ^ 0x8000;
-         } else {
-            if (dither) {
+         /* signed 16-bit, unsigned 8-bit output */
+         if (16 == apu->sample_bits)
+         {
+            UINT16 *buf = buffer;
+
+            *buf++ = (accum_left ^ 0x8000);
+            *buf++ = (accum_right ^ 0x8000);
+
+            buffer = buf;
+         }
+         else
+         {
+            UINT8 *buf = buffer;
+
+            if (dither)
+            {
                 accum_left += (rand () % 512);
                 accum_right += (rand () % 512);
             }
 
-            *((UINT8 *) buffer)++ = (accum_left >> 8) ^ 0x80;
-            *((UINT8 *) buffer)++ = (accum_right >> 8) ^ 0x80;
+            *buf++ = ((accum_left >> 8) ^ 0x80);
+            *buf++ = ((accum_right >> 8) ^ 0x80);
+
+            buffer = buf;
          }
       }
    }
@@ -2093,6 +2115,9 @@ boolean sync_dmc_register(UINT32 cpu_cycles)
 
 /*
 ** $Log$
+** Revision 1.16  2005/10/26 21:09:06  stainless
+** Casts are no longer used on lvalues.
+**
 ** Revision 1.15  2005/05/10 04:02:44  stainless
 ** Added 'Stereo Mix' mode that produces mono sound while allowing stereo effects.
 **

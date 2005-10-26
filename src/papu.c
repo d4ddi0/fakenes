@@ -532,18 +532,30 @@ static INLINE void interpolate (void)
         {
             if (audio_sample_size == 16)
             {
-                total_left += * ((UINT16 *) read_buffer) ++;
+                UINT16 * buffer = read_buffer;
 
-                total_right += * ((UINT16 *) read_buffer) ++;
+
+                total_left += * buffer ++;
+
+                total_right += * buffer ++;
+
+
+                read_buffer = buffer;
 
 
                 bytes += 4;
             }
             else
             {
-                total_left += * ((UINT8 *) read_buffer) ++;
+                UINT8 * buffer = read_buffer;
 
-                total_right += * ((UINT8 *) read_buffer) ++;
+
+                total_left += * buffer ++;
+
+                total_right += * buffer ++;
+
+
+                read_buffer = buffer;
 
 
                 bytes += 2;
@@ -562,15 +574,27 @@ static INLINE void interpolate (void)
 
                 if (audio_sample_size == 16)
                 {
-                    * ((UINT16 *) write_buffer) ++ = total_left;
+                    UINT16 * buffer = write_buffer;
 
-                    * ((UINT16 *) write_buffer) ++ = total_right;
+
+                    * buffer ++ = total_left;
+
+                    * buffer ++ = total_right;
+
+
+                    write_buffer = buffer;
                 }
                 else
                 {
-                    * ((UINT8 *) write_buffer) ++ = total_left;
+                    UINT8 * buffer = write_buffer;
 
-                    * ((UINT8 *) write_buffer) ++ = total_right;
+
+                    * buffer ++ = total_left;
+
+                    * buffer ++ = total_right;
+
+
+                    write_buffer = buffer;
                 }
 
 
@@ -597,14 +621,26 @@ static INLINE void interpolate (void)
         {
             if (audio_sample_size == 16)
             {
-                total += * ((UINT16 *) read_buffer) ++;
+                UINT16 * buffer = read_buffer;
+
+
+                total += * buffer ++;
+
+
+                read_buffer = buffer;
 
 
                 bytes += 2;
             }
             else
             {
-                total += * ((UINT8 *) read_buffer) ++;
+                UINT8 * buffer = read_buffer;
+
+
+                total += * buffer ++;
+
+
+                read_buffer = buffer;
 
 
                 bytes ++;
@@ -621,11 +657,23 @@ static INLINE void interpolate (void)
 
                 if (audio_sample_size == 16)
                 {
-                    * ((UINT16 *) write_buffer) ++ = total;
+                    UINT16 * buffer = write_buffer;
+
+
+                    * buffer ++ = total;
+
+
+                    write_buffer = buffer;
                 }
                 else
                 {
-                    * ((UINT8 *) write_buffer) ++ = total;
+                    UINT8 * buffer = write_buffer;
+
+
+                    * buffer ++ = total;
+
+
+                    write_buffer = buffer;
                 }
 
 
