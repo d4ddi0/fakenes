@@ -31,7 +31,7 @@ static GUI_THEME classic_theme =
 
 static INLINE void set_classic_theme (void)
 {
-    mouse_sprite = DATA_TO_BITMAP (GUI_CLASSIC_THEME_MOUSE_SPRITE);
+    gui_mouse_sprite = DATA_TO_BITMAP (GUI_CLASSIC_THEME_MOUSE_SPRITE);
 
 
     background_image = NIL;
@@ -66,7 +66,7 @@ static GUI_THEME stainless_steel_theme =
 
 static INLINE void set_stainless_steel_theme (void)
 {
-    mouse_sprite = DATA_TO_BITMAP (GUI_STAINLESS_STEEL_THEME_MOUSE_SPRITE);
+    gui_mouse_sprite = DATA_TO_BITMAP (GUI_STAINLESS_STEEL_THEME_MOUSE_SPRITE);
 
 
     background_image = DATA_TO_BITMAP (GUI_STAINLESS_STEEL_THEME_BACKGROUND_IMAGE);
@@ -101,7 +101,7 @@ static GUI_THEME zero_4_theme =
 
 static INLINE void set_zero_4_theme (void)
 {
-    mouse_sprite = DATA_TO_BITMAP (GUI_ZERO_4_THEME_MOUSE_SPRITE);
+    gui_mouse_sprite = DATA_TO_BITMAP (GUI_ZERO_4_THEME_MOUSE_SPRITE);
 
 
     background_image = DATA_TO_BITMAP (GUI_ZERO_4_THEME_BACKGROUND_IMAGE);
@@ -136,7 +136,7 @@ static GUI_THEME panta_theme =
 
 static INLINE void set_panta_theme (void)
 {
-    mouse_sprite = DATA_TO_BITMAP (GUI_ZERO_4_THEME_MOUSE_SPRITE);
+    gui_mouse_sprite = DATA_TO_BITMAP (GUI_ZERO_4_THEME_MOUSE_SPRITE);
 
 
     background_image = DATA_TO_BITMAP (GUI_ZERO_4_THEME_BACKGROUND_IMAGE);

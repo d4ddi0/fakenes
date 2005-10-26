@@ -82,7 +82,7 @@ GUI_THEME * last_theme = NIL;
 RGB * gui_image_palette = NIL;
 
 
-static BITMAP * mouse_sprite = NIL;
+static BITMAP * gui_mouse_sprite = NIL;
 
 
 static BITMAP * background_image = NIL;
@@ -1480,9 +1480,9 @@ int show_gui (int first_run)
     want_exit = FALSE;
 
 
-    if (mouse_sprite)
+    if (gui_mouse_sprite)
     {
-        set_mouse_sprite (mouse_sprite);
+        set_mouse_sprite (gui_mouse_sprite);
     }
 
 
