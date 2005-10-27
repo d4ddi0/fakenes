@@ -45,6 +45,9 @@ endif
 ifndef NO_HAWKNL
     DFLAGS += -DUSE_HAWKNL
 endif
+ifdef USE_OPENAL
+    DFLAGS += -DUSE_OPENAL
+endif
 ifneq (${ASM_CORE}, 0)
     DFLAGS += -DNO_C_CORE
 endif
@@ -59,7 +62,8 @@ endif
 NASMFLAGS := -I${INCLUDE_PATH}/ ${NASMOFLAGS} -f win32 -DC_LABELS_PREFIX=_
 
 # Objects.
-OBJECTS := ${OBJECT_PATH}/apu${OBJEXT} \
+OBJECTS := ${OBJECT_PATH}/alstream${OBJEXT} \
+    ${OBJECT_PATH}/apu${OBJEXT} \
     ${OBJECT_PATH}/audio${OBJEXT} \
     ${OBJECT_PATH}/core${OBJEXT} \
     ${OBJECT_PATH}/cpu${OBJEXT} \
@@ -89,6 +93,11 @@ endif
 ifndef NO_HAWKNL
     LIBNL ?= -lNL
     LIBRARIES += ${LIBNL}
+endif
+ifdef USE_OPENAL
+   LIBALUT ?= -lalut
+   LIBOPENAL ?= -lopenal32
+   LIBRARIES += ${LIBALUT} ${LIBOPENAL}
 endif
 
 RESOURCES := ${SOURCE_PATH}/support/resource.o

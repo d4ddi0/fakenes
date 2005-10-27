@@ -127,6 +127,18 @@ typedef union
 #define NIL     0
 
 
+#define RT_ASSERT(cond)                                              \
+{                                                                    \
+   if (! (cond))                                                     \
+   {                                                                 \
+      allegro_message ("Runtime assertion error at line %d of %s",   \
+         __LINE__, __FILE__);                                        \
+                                                                     \
+      exit (-1);                                                     \
+   }                                                                 \
+}
+
+
 int disable_gui;
 
 

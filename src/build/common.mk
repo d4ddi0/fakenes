@@ -1,4 +1,9 @@
 # Dependancies.
+${OBJECT_PATH}/alstream${OBJEXT}: \
+    ${SOURCE_PATH}/alstream.c \
+    ${INCLUDE_PATH}/alstream.h \
+    ${INCLUDE_PATH}/misc.h
+
 ${OBJECT_PATH}/apu${OBJEXT}: \
     ${SOURCE_PATH}/apu.c \
     ${INCLUDE_PATH}/apu.h \

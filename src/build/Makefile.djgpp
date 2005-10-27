@@ -42,6 +42,9 @@ endif
 ifndef NO_ZLIB
     DFLAGS += -DUSE_ZLIB
 endif
+ifdef USE_OPENAL
+    DFLAGS += -DUSE_OPENAL
+endif
 ifneq (${ASM_CORE}, 0)
     DFLAGS += -DNO_C_CORE
 endif
@@ -56,7 +59,8 @@ endif
 NASMFLAGS := -I${INCLUDE_PATH}/ ${NASMOFLAGS} -f coff -DC_LABELS_PREFIX=_
 
 # Objects.
-OBJECTS := ${OBJECT_PATH}/apu${OBJEXT} \
+OBJECTS := ${OBJECT_PATH}/alstream${OBJEXT} \
+    ${OBJECT_PATH}/apu${OBJEXT} \
     ${OBJECT_PATH}/audio${OBJEXT} \
     ${OBJECT_PATH}/core${OBJEXT} \
     ${OBJECT_PATH}/cpu${OBJEXT} \
@@ -82,6 +86,11 @@ LIBRARIES := ${LIBALLEG}
 ifndef NO_ZLIB
     LIBZ ?= -lz
     LIBRARIES += ${LIBZ}
+endif
+ifdef USE_OPENAL
+   LIBALUT ?= -lalut
+   LIBOPENAL ?= -lopenal32
+   LIBRARIES += ${LIBALUT} ${LIBOPENAL}
 endif
 
 # Targets.

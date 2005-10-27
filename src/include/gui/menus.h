@@ -32,6 +32,8 @@ static MENU * options_gui_menu = NIL;
 
 static MENU * options_system_menu = NIL;
 
+static MENU * options_audio_subsystem_menu = NIL;
+
 static MENU * options_audio_mixing_channels_menu = NIL;
 
 static MENU * options_audio_mixing_frequency_menu = NIL;
@@ -376,6 +378,24 @@ static const MENU options_system_menu_base [] =
 };
 
 
+static int options_audio_subsystem_menu_none (void);
+
+static int options_audio_subsystem_menu_allegro (void);
+
+static int options_audio_subsystem_menu_openal (void);
+
+
+static const MENU options_audio_subsystem_menu_base [] =
+{
+    {    "&None",    options_audio_subsystem_menu_none, NIL, 0, NIL },
+    {         "",                                  NIL, NIL, 0, NIL },
+    { "&Allegro", options_audio_subsystem_menu_allegro, NIL, 0, NIL },
+    {         "",                                  NIL, NIL, 0, NIL },
+    {  "&OpenAL",  options_audio_subsystem_menu_openal, NIL, 0, NIL },
+    {        NIL,                                  NIL, NIL, 0, NIL }
+};                                             
+
+
 static int options_audio_mixing_channels_menu_mono (void);
 
 static int options_audio_mixing_channels_menu_stereo_mix (void);
@@ -612,20 +632,22 @@ static int options_audio_menu_enabled (void);
 
 static const MENU options_audio_menu_base [] =
 {
-    {  "&Enabled", options_audio_menu_enabled,                                   NIL, 0, NIL },
-    {          "",                        NIL,                                   NIL, 0, NIL },
-    {   "&Mixing",                        NIL,   (MENU *) &options_audio_mixing_menu, 0, NIL },
-    {          "",                        NIL,                                   NIL, 0, NIL },
-    {  "Effec&ts",                        NIL,  (MENU *) &options_audio_effects_menu, 0, NIL },
-    {          "",                        NIL,                                   NIL, 0, NIL },
-    {  "&Filters",                        NIL,  (MENU *) &options_audio_filters_menu, 0, NIL },
-    {          "",                        NIL,                                   NIL, 0, NIL },
-    { "&Channels",                        NIL, (MENU *) &options_audio_channels_menu, 0, NIL },
-    {          "",                        NIL,                                   NIL, 0, NIL },
-    { "&Advanced",                        NIL, (MENU *) &options_audio_advanced_menu, 0, NIL },
-    {          "",                        NIL,                                   NIL, 0, NIL },
-    {   "&Record",                        NIL,   (MENU *) &options_audio_record_menu, 0, NIL },
-    {         NIL,                        NIL,                                   NIL, 0, NIL }
+    {   "&Enabled", options_audio_menu_enabled,                                    NIL, 0, NIL },
+    {           "",                        NIL,                                    NIL, 0, NIL },
+    { "&Subsystem",                        NIL, (MENU *) &options_audio_subsystem_menu, 0, NIL },
+    {           "",                        NIL,                                    NIL, 0, NIL },
+    {    "&Mixing",                        NIL,    (MENU *) &options_audio_mixing_menu, 0, NIL },
+    {           "",                        NIL,                                    NIL, 0, NIL },
+    {   "Effec&ts",                        NIL,   (MENU *) &options_audio_effects_menu, 0, NIL },
+    {           "",                        NIL,                                    NIL, 0, NIL },
+    {   "&Filters",                        NIL,   (MENU *) &options_audio_filters_menu, 0, NIL },
+    {           "",                        NIL,                                    NIL, 0, NIL },
+    {  "&Channels",                        NIL,  (MENU *) &options_audio_channels_menu, 0, NIL },
+    {           "",                        NIL,                                    NIL, 0, NIL },
+    {  "&Advanced",                        NIL,  (MENU *) &options_audio_advanced_menu, 0, NIL },
+    {           "",                        NIL,                                    NIL, 0, NIL },
+    {    "&Record",                        NIL,    (MENU *) &options_audio_record_menu, 0, NIL },
+    {          NIL,                        NIL,                                    NIL, 0, NIL }
 };
 
 

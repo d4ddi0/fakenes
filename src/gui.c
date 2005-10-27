@@ -341,6 +341,8 @@ static void load_menus (void)
 
     MENU_FROM_BASE (options_system_menu);
 
+    MENU_FROM_BASE (options_audio_subsystem_menu);
+
     MENU_FROM_BASE (options_audio_mixing_channels_menu);
 
     MENU_FROM_BASE (options_audio_mixing_frequency_menu);
@@ -464,6 +466,8 @@ static void unload_menus (void)
     unload_menu (options_gui_menu);
 
     unload_menu (options_system_menu);
+
+    unload_menu (options_audio_subsystem_menu);
 
     unload_menu (options_audio_mixing_channels_menu);
 
@@ -982,6 +986,13 @@ int gui_show_dialog (DIALOG * dialog)
 
 static INLINE void update_menus (void)
 {
+#ifndef USE_OPENAL
+
+    DISABLE_MENU (options_audio_subsystem_menu, 4);
+
+#endif
+
+
     if (! audio_pseudo_stereo)
     {
         papu_swap_channels = FALSE;
@@ -1084,6 +1095,13 @@ static INLINE void update_menus (void)
 
 
     TOGGLE_MENU (options_audio_menu, 0, audio_enable_output);
+
+
+    TOGGLE_MENU (options_audio_subsystem_menu, 0, (audio_subsystem == AUDIO_SUBSYSTEM_NONE));
+
+    TOGGLE_MENU (options_audio_subsystem_menu, 2, (audio_subsystem == AUDIO_SUBSYSTEM_ALLEGRO));
+
+    TOGGLE_MENU (options_audio_subsystem_menu, 4, (audio_subsystem == AUDIO_SUBSYSTEM_OPENAL));
 
 
     TOGGLE_MENU (options_audio_mixing_frequency_menu, 0, (audio_sample_rate == 8000));
@@ -3116,6 +3134,75 @@ static int options_audio_menu_enabled (void)
     {
         gui_message (GUI_TEXT_COLOR, "Audio rendering and output enabled.");
     }
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_subsystem_menu_none (void)
+{
+    audio_subsystem = AUDIO_SUBSYSTEM_NONE;
+
+
+    audio_exit ();
+
+    audio_init ();
+
+
+    papu_reinit ();
+
+
+    update_menus ();
+
+
+    gui_message (GUI_TEXT_COLOR, "Audio subsystem set to NONE.");
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_subsystem_menu_allegro (void)
+{
+    audio_subsystem = AUDIO_SUBSYSTEM_ALLEGRO;
+
+
+    audio_exit ();
+
+    audio_init ();
+
+
+    papu_reinit ();
+
+
+    update_menus ();
+
+
+    gui_message (GUI_TEXT_COLOR, "Audio subsystem set to Allegro.");
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_subsystem_menu_openal (void)
+{
+    audio_subsystem = AUDIO_SUBSYSTEM_OPENAL;
+
+
+    audio_exit ();
+
+    audio_init ();
+
+
+    papu_reinit ();
+
+
+    update_menus ();
+
+
+    gui_message (GUI_TEXT_COLOR, "Audio subsystem set to OpenAL.");
 
 
     return (D_O_K);

@@ -841,6 +841,7 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-zlib             build with ZIP and gzip support default=yes
   --with-hawknl           build with NetPlay support default=yes
+  --with-openal           build with OpenAL support default=yes
 
 Some influential environment variables:
   CC          C compiler command
@@ -2465,6 +2466,14 @@ else
   USE_HAWKNL=yes
 fi;
 
+# Check whether --with-openal or --without-openal was given.
+if test "${with_openal+set}" = set; then
+  withval="$with_openal"
+  USE_OPENAL=$withval
+else
+  USE_OPENAL=yes
+fi;
+
 echo "$as_me:$LINENO: checking whether to use x86 optimized core" >&5
 echo $ECHO_N "checking whether to use x86 optimized core... $ECHO_C" >&6
 
@@ -2518,12 +2527,12 @@ echo "$as_me:$LINENO: checking whether to enable ZIP and gzip support" >&5
 echo $ECHO_N "checking whether to enable ZIP and gzip support... $ECHO_C" >&6
 if [ "x$USE_ZLIB" = "xyes" ]; then
     DFLAGS="$DFLAGS -DUSE_ZLIB"
-	echo "$as_me:$LINENO: result: yes" >&5
+    echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
     LIBRARIES="$LIBRARIES -lz"
     echo if this is not what you want, use --without-zlib
 else
-	echo "$as_me:$LINENO: result: no" >&5
+    echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
     echo if this is not what you want, use --with-zlib
 fi
@@ -2532,14 +2541,28 @@ echo "$as_me:$LINENO: checking whether to enable NetPlay support" >&5
 echo $ECHO_N "checking whether to enable NetPlay support... $ECHO_C" >&6
 if [ "x$USE_HAWKNL" = "xyes" ]; then
     DFLAGS="$DFLAGS -DUSE_HAWKNL"
-	echo "$as_me:$LINENO: result: yes" >&5
+    echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
     LIBRARIES="$LIBRARIES -lNL"
     echo if this is not what you want, use --without-hawknl
 else
-	echo "$as_me:$LINENO: result: no" >&5
+    echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
     echo if this is not what you want, use --with-hawknl
+fi
+
+echo "$as_me:$LINENO: checking whether to enable OpenAL support" >&5
+echo $ECHO_N "checking whether to enable OpenAL support... $ECHO_C" >&6
+if [ "x$USE_OPENAL" = "xyes" ]; then
+    DFLAGS="$DFLAGS -DUSE_OPENAL"
+    echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+    LIBRARIES="$LIBRARIES `openal-config --libs`"
+    echo if this is not what you want, use --without-openal
+else
+    echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+    echo if this is not what you want, use --with-openal
 fi
 
 echo "$as_me:$LINENO: checking whether byte ordering is bigendian" >&5

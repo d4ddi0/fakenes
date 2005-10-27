@@ -37,6 +37,9 @@ enum
 int audio_enable_output;
 
 
+int audio_subsystem;
+
+
 int audio_sample_rate;
 
 int audio_sample_size;
@@ -49,6 +52,9 @@ int audio_pseudo_stereo;
 
 
 int audio_hard_sync;
+
+
+int audio_unsigned_samples;
 
 
 volatile int audio_fps;
@@ -70,6 +76,16 @@ void audio_resume (void);
 
 
 void * audio_buffer;
+
+
+enum
+{
+   AUDIO_SUBSYSTEM_NONE,
+
+   AUDIO_SUBSYSTEM_ALLEGRO,
+
+   AUDIO_SUBSYSTEM_OPENAL
+};
 
 
 #endif /* ! AUDIO_H_INCLUDED */

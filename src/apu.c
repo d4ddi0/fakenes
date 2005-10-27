@@ -47,6 +47,7 @@
 #include <stdlib.h> //DCR
 #include <time.h>
 #include "apu.h"
+#include "audio.h"
 #include "cpu.h"
 #include "papu.h"
 //DCR#include "log.h"
@@ -1448,13 +1449,16 @@ void apu_process(void *buffer, int num_samples, int dither)
          else if (accum < -0x8000)
             accum = -0x8000;
 
+         if (audio_unsigned_samples)
+            accum ^= 0x8000;
+
          /* unsigned 16-bit, unsigned 8-bit output */
          if (16 == apu->sample_bits)
          {
             UINT16 *buf = buffer;
 
             /* store sample and increment base pointer */
-            *buf++ = (accum ^ 0x8000);
+            *buf++ = accum;
 
             /* save changes back to typeless buffer */
             buffer = buf;
@@ -1470,7 +1474,7 @@ void apu_process(void *buffer, int num_samples, int dither)
             if (dither)
                 accum += (rand () % 512);
 
-            *buf++ = ((accum >> 8) ^ 0x80);
+            *buf++ = (accum >> 8);
 
             buffer = buf;
          }
@@ -1809,13 +1813,19 @@ void apu_process_stereo(void *buffer, int num_samples, int dither, int style, in
             accum_right = old_accum_left;
          }
 
+         if (audio_unsigned_samples)
+         {
+            accum_left ^= 0x8000;
+            accum_right ^= 0x8000;
+         }
+
          /* signed 16-bit, unsigned 8-bit output */
          if (16 == apu->sample_bits)
          {
             UINT16 *buf = buffer;
 
-            *buf++ = (accum_left ^ 0x8000);
-            *buf++ = (accum_right ^ 0x8000);
+            *buf++ = accum_left;
+            *buf++ = accum_right;
 
             buffer = buf;
          }
@@ -1829,8 +1839,8 @@ void apu_process_stereo(void *buffer, int num_samples, int dither, int style, in
                 accum_right += (rand () % 512);
             }
 
-            *buf++ = ((accum_left >> 8) ^ 0x80);
-            *buf++ = ((accum_right >> 8) ^ 0x80);
+            *buf++ = (accum_left >> 8);
+            *buf++ = (accum_right >> 8);
 
             buffer = buf;
          }
@@ -2115,8 +2125,8 @@ boolean sync_dmc_register(UINT32 cpu_cycles)
 
 /*
 ** $Log$
-** Revision 1.16  2005/10/26 21:09:06  stainless
-** Casts are no longer used on lvalues.
+** Revision 1.17  2005/10/27 01:23:11  stainless
+** Audio fixes & improvements and support for OpenAL (currently broken?)
 **
 ** Revision 1.15  2005/05/10 04:02:44  stainless
 ** Added 'Stereo Mix' mode that produces mono sound while allowing stereo effects.

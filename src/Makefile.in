@@ -41,7 +41,8 @@ endif
 NASMFLAGS := -I${INCLUDE_PATH}/ ${NASMOFLAGS} -f elf -DC_LABELS_PREFIX
 
 # Objects.
-OBJECTS := ${OBJECT_PATH}/apu${OBJEXT} \
+OBJECTS := ${OBJECT_PATH}/alstream${OBJEXT} \
+    ${OBJECT_PATH}/apu${OBJEXT} \
     ${OBJECT_PATH}/audio${OBJEXT} \
     ${OBJECT_PATH}/core${OBJEXT} \
     ${OBJECT_PATH}/cpu${OBJEXT} \

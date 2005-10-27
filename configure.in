@@ -37,6 +37,7 @@ fi
 
 AC_ARG_WITH(zlib,   [  --with-zlib             build with ZIP and gzip support [default=yes]], [USE_ZLIB=$withval], [USE_ZLIB=yes])
 AC_ARG_WITH(hawknl, [  --with-hawknl           build with NetPlay support [default=yes]], [USE_HAWKNL=$withval], [USE_HAWKNL=yes])
+AC_ARG_WITH(openal, [  --with-openal           build with OpenAL support [default=yes]], [USE_OPENAL=$withval], [USE_OPENAL=yes])
 
 dnl A hack, will probably be changed later.
 AC_MSG_CHECKING(whether to use x86 optimized core)
@@ -54,23 +55,34 @@ fi
 AC_MSG_CHECKING(whether to enable ZIP and gzip support)
 if [[ "x$USE_ZLIB" = "xyes" ]]; then
     DFLAGS="$DFLAGS -DUSE_ZLIB"
-	AC_MSG_RESULT(yes)
+    AC_MSG_RESULT(yes)
     LIBRARIES="$LIBRARIES -lz"
     echo if this is not what you want, use --without-zlib
 else
-	AC_MSG_RESULT(no)
+    AC_MSG_RESULT(no)
     echo if this is not what you want, use --with-zlib
 fi
 
 AC_MSG_CHECKING(whether to enable NetPlay support)
 if [[ "x$USE_HAWKNL" = "xyes" ]]; then
     DFLAGS="$DFLAGS -DUSE_HAWKNL"
-	AC_MSG_RESULT(yes)
+    AC_MSG_RESULT(yes)
     LIBRARIES="$LIBRARIES -lNL"
     echo if this is not what you want, use --without-hawknl
 else
-	AC_MSG_RESULT(no)
+    AC_MSG_RESULT(no)
     echo if this is not what you want, use --with-hawknl
+fi
+
+AC_MSG_CHECKING(whether to enable OpenAL support)
+if [[ "x$USE_OPENAL" = "xyes" ]]; then
+    DFLAGS="$DFLAGS -DUSE_OPENAL"
+    AC_MSG_RESULT(yes)
+    LIBRARIES="$LIBRARIES `openal-config --libs`"
+    echo if this is not what you want, use --without-openal
+else
+    AC_MSG_RESULT(no)
+    echo if this is not what you want, use --with-openal
 fi
 
 dnl Add -DLSB_FIRST to DFLAGS if on a little endian platform.
