@@ -50,6 +50,9 @@ You must read and accept the license prior to use.
 
 static BITMAP * screen_buffer = NIL;
 
+static BITMAP * page_buffer = NIL;
+
+
 static BITMAP * status_buffer = NIL;
 
 
@@ -274,9 +277,15 @@ int video_init (void)
 
     screen_buffer = create_bitmap (SCREEN_W, SCREEN_H);
 
-    status_buffer = create_sub_bitmap (screen_buffer, 0, (SCREEN_H - 128), 72, 128);
-
     clear (screen_buffer);
+
+
+    /* Note: This call doesn't have to succeed. */
+
+    page_buffer = create_video_bitmap (SCREEN_W, SCREEN_H);
+
+
+    status_buffer = create_sub_bitmap (screen_buffer, 0, (SCREEN_H - 128), 72, 128);
 
 
     mouse_sprite_remove_buffer = create_bitmap_ex (8, 16, 16);
@@ -391,6 +400,12 @@ void video_exit (void)
 
 
     destroy_bitmap (status_buffer);
+
+
+    if (page_buffer)
+    {
+        destroy_bitmap (page_buffer);
+    }
 
     destroy_bitmap (screen_buffer);
 
@@ -803,11 +818,30 @@ void video_blit (BITMAP * bitmap)
     }
 
 
-    acquire_bitmap (bitmap);
+    if (page_buffer)
+    {
+        /* Reduce screen tearing by blitting to VRAM first, then doing a
+           VRAM to VRAM blit to the visible portion of the screen, since
+           such blits are much faster.  Of course, we could just do page
+           flipping, but this way we keep things simple and compatible. */
 
-    blit (screen_buffer, bitmap, 0, 0, image_offset_x, image_offset_y, SCREEN_W, SCREEN_H);
+        acquire_bitmap (page_buffer);
 
-    release_bitmap (bitmap);
+        blit (screen_buffer, page_buffer, 0, 0, image_offset_x, image_offset_y, SCREEN_W, SCREEN_H);
+
+        release_bitmap (page_buffer);
+
+
+        blit (page_buffer, bitmap, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
+    }
+    else
+    {
+        acquire_bitmap (bitmap);
+
+        blit (screen_buffer, bitmap, 0, 0, image_offset_x, image_offset_y, SCREEN_W, SCREEN_H);
+
+        release_bitmap (bitmap);
+    }
 
 
     if (((video_message_duration > 0) || (input_mode & INPUT_MODE_CHAT)) && (! gui_is_active))
