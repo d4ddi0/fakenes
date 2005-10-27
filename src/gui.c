@@ -1023,19 +1023,6 @@ static INLINE void update_menus (void)
     }
 
 
-    if (audio_sample_size != 8)
-    {
-        papu_dithering = FALSE;
-
-
-        DISABLE_MENU (options_audio_mixing_quality_menu, 4);
-    }
-    else
-    {
-        ENABLE_MENU (options_audio_mixing_quality_menu, 4);
-    }
-
-
     TOGGLE_MENU (main_state_select_menu, 0, (machine_state_index == 0));
 
     TOGGLE_MENU (main_state_select_menu, 2, (machine_state_index == 1));
@@ -3473,11 +3460,11 @@ static int options_audio_mixing_quality_menu_dithering (void)
 
     if (! papu_dithering)
     {
-        gui_message (GUI_TEXT_COLOR, "Audio random noise dithering disabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio dithering disabled.");
     }
     else
     {
-        gui_message (GUI_TEXT_COLOR, "Audio random noise dithering enabled.");
+        gui_message (GUI_TEXT_COLOR, "Audio dithering enabled.");
     }
 
 

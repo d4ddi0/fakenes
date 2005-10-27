@@ -264,7 +264,7 @@ static void shift_register15(INT8 *buf, int count)
 ** reg2: 8 bits of freq
 ** reg3: 0-2=high freq, 7-4=vbl length counter
 */
-#define  APU_RECTANGLE_OUTPUT (chan->output_vol)
+#define  APU_RECTANGLE_OUTPUT ((chan->output_vol)<<8)
 static INT32 apu_rectangle(rectangle_t *chan)
 {
    INT32 output;
@@ -406,7 +406,7 @@ static INT32 apu_rectangle(rectangle_t *chan)
 ** reg3: 7-3=length counter, 2-0=high 3 bits of frequency
 */
 //#define  APU_TRIANGLE_OUTPUT  (chan->output_vol + (chan->output_vol >> 1))
-#define  APU_TRIANGLE_OUTPUT  ((chan->output_vol*21)>>4)
+#define  APU_TRIANGLE_OUTPUT  (((chan->output_vol*21)>>4)<<8)
 static INT32 apu_triangle(triangle_t *chan)
 {
 #ifdef APU_YANO
@@ -515,7 +515,7 @@ static INT32 apu_triangle(triangle_t *chan)
 ** reg3: 7-4=vbl length counter
 */
 //#define  APU_NOISE_OUTPUT  (chan->output_vol - (chan->output_vol >> 2))
-#define  APU_NOISE_OUTPUT  ((chan->output_vol*13)>>4)
+#define  APU_NOISE_OUTPUT  (((chan->output_vol*13)>>4)<<8)
 
 static INT32 apu_noise(noise_t *chan)
 {
@@ -704,7 +704,7 @@ INLINE void apu_dmcreload(dmc_t *chan)
 ** reg3: length, (value * 16) + 1
 */
 //#define  APU_DMC_OUTPUT (chan->output_vol - (chan->output_vol >> 3))
-#define  APU_DMC_OUTPUT ((chan->output_vol*13)>>4)
+#define  APU_DMC_OUTPUT (((chan->output_vol*13)>>4)<<8)
 static INT32 apu_dmc(dmc_t *chan)
 {
 #ifdef APU_YANO
@@ -1240,154 +1240,87 @@ void apu_getpcmdata(void **data, int *num_samples, int *sample_bits)
 }
 
 
-void apu_process(void *buffer, int num_samples, int dither)
+void apu_process (void *buffer, int num_samples, int dither)
 {
    apudata_t *d;
    UINT32 elapsed_cycles;
    static INT32 prev_sample = 0;
    INT32 next_sample, accum;
 
-   ASSERT(apu);
+   RT_ASSERT(apu);
 
    /* grab it, keep it local for speed */
-   elapsed_cycles = (UINT32) apu->elapsed_cycles;
+   elapsed_cycles = (UINT32)apu->elapsed_cycles;
 
-   if (NIL == buffer)
+   if (buffer)
    {
-      /* just go through the motions... */
-      while (num_samples--)
-      {
-         while ((FALSE == APU_QEMPTY()) && (apu->queue[apu->q_tail].timestamp <= elapsed_cycles))
-         {
-            d = apu_dequeue();
-            apu_regwrite(d->address, d->value);
-         }
-
-         while((FALSE == EX_QEMPTY()) && apu->ex_queue[apu->ex_q_tail].timestamp <= elapsed_cycles)
-         {
-            d = ex_dequeue();
-            if(apu->ex_chip & 1)
-            {
-               VRC6SoundWrite(d->address, d->value);
-            }
-            else if(apu->ex_chip & 2)
-            {
-               OPLLSoundWrite(d->address, d->value);
-            }
-            else if(apu->ex_chip & 4)
-            {
-               FDSSoundWrite(d->address, d->value);
-            }
-            else if(apu->ex_chip & 8)
-            {
-               MMC5SoundWrite(d->address, d->value);
-            }
-            else if(apu->ex_chip & 16)
-            {
-               if(d->address & 0x10000)
-               {
-                  UINT8 dummy = N106SoundRead(d->address & 0xFFFF);
-               }
-               else
-               {
-                  N106SoundWrite(d->address, d->value);
-               }
-            }
-            else if(apu->ex_chip & 32)
-            {
-               PSGSoundWrite(d->address, d->value);
-            }
-         }
-
-         elapsed_cycles += APU_FROM_FIXED(apu->cycle_rate);
-      }
-   }
-   else
-   {
-      /* bleh */
       apu->buffer = buffer; 
 
       while (num_samples--)
       {
-         while ((FALSE == APU_QEMPTY()) && (apu->queue[apu->q_tail].timestamp <= elapsed_cycles))
+         while ((!APU_QEMPTY()) &&
+                (apu->queue[apu->q_tail].timestamp <= elapsed_cycles))
          {
-            d = apu_dequeue();
-            apu_regwrite(d->address, d->value);
+            d = apu_dequeue ();
+            apu_regwrite (d->address, d->value);
          }
 
-         while((FALSE == EX_QEMPTY()) && apu->ex_queue[apu->ex_q_tail].timestamp <= elapsed_cycles)
+         while ((!EX_QEMPTY()) &&
+                (apu->ex_queue[apu->ex_q_tail].timestamp <= elapsed_cycles))
          {
             d = ex_dequeue();
-            if(apu->ex_chip & 1)
+
+            if (apu->ex_chip & 1)
+               VRC6SoundWrite (d->address, d->value);
+            else if (apu->ex_chip & 2)
+               OPLLSoundWrite (d->address, d->value);
+            else if (apu->ex_chip & 4)
+               FDSSoundWrite (d->address, d->value);
+            else if (apu->ex_chip & 8)
+               MMC5SoundWrite (d->address, d->value);
+            else if (apu->ex_chip & 16)
             {
-               VRC6SoundWrite(d->address, d->value);
-            }
-            else if(apu->ex_chip & 2)
-            {
-               OPLLSoundWrite(d->address, d->value);
-            }
-            else if(apu->ex_chip & 4)
-            {
-               FDSSoundWrite(d->address, d->value);
-            }
-            else if(apu->ex_chip & 8)
-            {
-               MMC5SoundWrite(d->address, d->value);
-            }
-            else if(apu->ex_chip & 16)
-            {
-               if(d->address & 0x10000)
-               {
-                  UINT8 dummy = N106SoundRead(d->address & 0xFFFF);
-               }
+               if (d->address & 0x10000)
+                  N106SoundRead (d->address & 0xffff);
                else
-               {
-                  N106SoundWrite(d->address, d->value);
-               }
+                  N106SoundWrite (d->address, d->value);
             }
-            else if(apu->ex_chip & 32)
-            {
-               PSGSoundWrite(d->address, d->value);
-            }
+            else if (apu->ex_chip & 32)
+               PSGSoundWrite (d->address, d->value);
          }
 
          elapsed_cycles += APU_FROM_FIXED(apu->cycle_rate);
 
          accum = 0;
-         if (apu->mix_enable[0]) accum += apu_rectangle(&apu->apus.rectangle[0]);
-         if (apu->mix_enable[1]) accum += apu_rectangle(&apu->apus.rectangle[1]);
-         if (apu->mix_enable[2]) accum += apu_triangle(&apu->apus.triangle);
-         if (apu->mix_enable[3]) accum += apu_noise(&apu->apus.noise);
-         if (apu->mix_enable[4]) accum += apu_dmc(&apu->apus.dmc);
 
-         //if (apu->ext && apu->mix_enable[5]) accum += apu->ext->process();
+         if (apu->mix_enable[0])
+            accum += apu_rectangle (&apu->apus.rectangle[0]);
+         if (apu->mix_enable[1])
+            accum += apu_rectangle (&apu->apus.rectangle[1]);
+         if (apu->mix_enable[2])
+            accum += apu_triangle (&apu->apus.triangle);
+         if (apu->mix_enable[3])
+            accum += apu_noise (&apu->apus.noise);
+         if (apu->mix_enable[4])
+            accum += apu_dmc (&apu->apus.dmc);
+
+         // if (apu->ext && apu->mix_enable[5])
+         //    accum += apu->ext->process ();
 
          if (apu->mix_enable[5])
          {
             if (apu->ex_chip & 1)
-            {
-               accum += VRC6SoundRender() >> 8;
-            }
+               accum += VRC6SoundRender ();
             else if (apu->ex_chip & 2)
-            {
-               accum += OPLLSoundRender() >> 8;
-            }
+               accum += OPLLSoundRender ();
             else if (apu->ex_chip & 4)
-            {
-               accum += FDSSoundRender() >> 8;
-            }
+               accum += FDSSoundRender ();
             else if (apu->ex_chip & 8)
-            {
-               accum += MMC5SoundRender() >> 8;
-            }
+               accum += MMC5SoundRender ();
             else if (apu->ex_chip & 16)
-            {
-               accum += N106SoundRender() >> 8;
-            }
+               accum += N106SoundRender ();
             else if (apu->ex_chip & 32)
-            {
-               accum += PSGSoundRender() >> 7;
-            }
+               accum += PSGSoundRender ();
          }
 
          /* do any filtering */
@@ -1416,49 +1349,24 @@ void apu_process(void *buffer, int num_samples, int dither)
 
          prev_sample = next_sample;
 
-         /* little extra kick for the kids */
-//         accum <<= 1;
-/* Overflow fixed by T.Yano Dec.12.2000 */
-#ifdef APU_YANO
-         // Cancel DC offset Dec.17.2000
-         {
-            static double ave, max, min;
-            double delta;
-            delta = (max-min)/32768.0;
-            max -= delta;
-            min += delta;
-            if (accum>max) max=accum;
-            if (accum<min) min=accum;
-            ave -= ave/1024.0;
-            ave += (max+min)/2048.0;
-            accum -= (INT32)ave;
-         }
-#ifdef APU_HPF_ENABLE
-         { // Just test (1/167 for 44.1k)
-            static double lpf_out;
-            lpf_out *=166.0/167.0;
-            lpf_out += accum/167.0;
-            accum -= (INT32) lpf_out;
-         }
-#endif /* APU_HPF_ENABLE */
-#endif /* APU_YANO */
-
          /* prevent clipping */
-         if (accum > 0x7FFF)
-            accum = 0x7FFF;
-         else if (accum < -0x8000)
-            accum = -0x8000;
+         if (accum > 0x7fffff)
+            accum = 0x7fffff;
+         else if (accum < -0x800000)
+            accum = -0x800000;
 
          if (audio_unsigned_samples)
-            accum ^= 0x8000;
+            accum ^= 0x800000;
 
-         /* unsigned 16-bit, unsigned 8-bit output */
-         if (16 == apu->sample_bits)
+         if (apu->sample_bits == 16)
          {
             UINT16 *buf = buffer;
 
+            if (dither)
+               accum ^= ((accum & 0x008000) << 1);
+
             /* store sample and increment base pointer */
-            *buf++ = accum;
+            *buf++ = (accum >> 8);
 
             /* save changes back to typeless buffer */
             buffer = buf;
@@ -1467,27 +1375,62 @@ void apu_process(void *buffer, int num_samples, int dither)
          {
             UINT8 *buf = buffer;
 
-            /* Important: Don't use + 1 on this or it will actually
-            be 512, we want it to be 0-511, so that there is a 50/50
-            chance of the value being > 255 and causing a bit
-            transition in the quantized result. */
             if (dither)
-                accum += (rand () % 512);
+               accum ^= ((accum & 0x000080) << 1);
 
-            *buf++ = (accum >> 8);
+            *buf++ = (accum >> 16);
 
             buffer = buf;
          }
       }
    }
+   else  /* buffer */
+   {
+      while (num_samples--)
+      {
+         while ((!APU_QEMPTY()) &&
+                (apu->queue[apu->q_tail].timestamp <= elapsed_cycles))
+         {
+            d = apu_dequeue ();
+            apu_regwrite (d->address, d->value);
+         }
+
+         while ((!EX_QEMPTY()) &&
+                (apu->ex_queue[apu->ex_q_tail].timestamp <= elapsed_cycles))
+         {
+            d = ex_dequeue();
+
+            if (apu->ex_chip & 1)
+               VRC6SoundWrite (d->address, d->value);
+            else if (apu->ex_chip & 2)
+               OPLLSoundWrite (d->address, d->value);
+            else if (apu->ex_chip & 4)
+               FDSSoundWrite (d->address, d->value);
+            else if (apu->ex_chip & 8)
+               MMC5SoundWrite (d->address, d->value);
+            else if (apu->ex_chip & 16)
+            {
+               if (d->address & 0x10000)
+                  N106SoundRead (d->address & 0xffff);
+               else
+                  N106SoundWrite (d->address, d->value);
+            }
+            else if (apu->ex_chip & 32)
+               PSGSoundWrite (d->address, d->value);
+         }
+
+         elapsed_cycles += APU_FROM_FIXED(apu->cycle_rate);
+      }
+   }
 
    /* resync cycle counter */
-   apu->elapsed_cycles = cpu_get_cycles(FALSE);
+   apu->elapsed_cycles = cpu_get_cycles (FALSE);
 }
 
 static boolean cycle_noise = TRUE;
 
-void apu_process_stereo(void *buffer, int num_samples, int dither, int style, int flip, int surround)
+void apu_process_stereo (void *buffer, int num_samples, int dither, int
+   style, int flip, int surround)
 {
    apudata_t *d;
    UINT32 elapsed_cycles;
@@ -1499,193 +1442,152 @@ void apu_process_stereo(void *buffer, int num_samples, int dither, int style, in
    INT32 next_sample_left, next_sample_right;
    INT32 prev_sample_left = 0, prev_sample_right = 0;
 
-   ASSERT(apu);
+   RT_ASSERT(apu);
 
    /* grab it, keep it local for speed */
-   elapsed_cycles = (UINT32) apu->elapsed_cycles;
+   elapsed_cycles = (UINT32)apu->elapsed_cycles;
 
-   if (NIL == buffer)
+   if (buffer)
    {
-      /* just go through the motions... */
-      while (num_samples--)
-      {
-         while ((FALSE == APU_QEMPTY()) && (apu->queue[apu->q_tail].timestamp <= elapsed_cycles))
-         {
-            d = apu_dequeue();
-            apu_regwrite(d->address, d->value);
-         }
-
-         while((FALSE == EX_QEMPTY()) && apu->ex_queue[apu->ex_q_tail].timestamp <= elapsed_cycles)
-         {
-            d = ex_dequeue();
-            if(apu->ex_chip & 1)
-            {
-               VRC6SoundWrite(d->address, d->value);
-            }
-            else if(apu->ex_chip & 2)
-            {
-               OPLLSoundWrite(d->address, d->value);
-            }
-            else if(apu->ex_chip & 4)
-            {
-               FDSSoundWrite(d->address, d->value);
-            }
-            else if(apu->ex_chip & 8)
-            {
-               MMC5SoundWrite(d->address, d->value);
-            }
-            else if(apu->ex_chip & 16)
-            {
-               if(d->address & 0x10000)
-               {
-                  UINT8 dummy = N106SoundRead(d->address & 0xFFFF);
-               }
-               else
-               {
-                  N106SoundWrite(d->address, d->value);
-               }
-            }
-            else if(apu->ex_chip & 32)
-            {
-               PSGSoundWrite(d->address, d->value);
-            }
-         }
-
-         elapsed_cycles += APU_FROM_FIXED(apu->cycle_rate);
-      }
-   }
-   else
-   {
-      /* bleh */
       apu->buffer = buffer; 
 
       while (num_samples--)
       {
-         while ((FALSE == APU_QEMPTY()) && (apu->queue[apu->q_tail].timestamp <= elapsed_cycles))
+         while ((!APU_QEMPTY()) &&
+                (apu->queue[apu->q_tail].timestamp <= elapsed_cycles))
          {
-            d = apu_dequeue();
-            apu_regwrite(d->address, d->value);
+            d = apu_dequeue ();
+            apu_regwrite (d->address, d->value);
          }
 
-         while((FALSE == EX_QEMPTY()) && apu->ex_queue[apu->ex_q_tail].timestamp <= elapsed_cycles)
+         while ((!EX_QEMPTY()) &&
+                (apu->ex_queue[apu->ex_q_tail].timestamp <= elapsed_cycles))
          {
             d = ex_dequeue();
+
             if(apu->ex_chip & 1)
+               VRC6SoundWrite (d->address, d->value);
+            else if (apu->ex_chip & 2)
+               OPLLSoundWrite (d->address, d->value);
+            else if (apu->ex_chip & 4)
+               FDSSoundWrite (d->address, d->value);
+            else if (apu->ex_chip & 8)
+               MMC5SoundWrite (d->address, d->value);
+            else if (apu->ex_chip & 16)
             {
-               VRC6SoundWrite(d->address, d->value);
-            }
-            else if(apu->ex_chip & 2)
-            {
-               OPLLSoundWrite(d->address, d->value);
-            }
-            else if(apu->ex_chip & 4)
-            {
-               FDSSoundWrite(d->address, d->value);
-            }
-            else if(apu->ex_chip & 8)
-            {
-               MMC5SoundWrite(d->address, d->value);
-            }
-            else if(apu->ex_chip & 16)
-            {
-               if(d->address & 0x10000)
-               {
-                  UINT8 dummy = N106SoundRead(d->address & 0xFFFF);
-               }
+               if (d->address & 0x10000)
+                  N106SoundRead (d->address & 0xffff);
                else
-               {
-                  N106SoundWrite(d->address, d->value);
-               }
+                  N106SoundWrite (d->address, d->value);
             }
-            else if(apu->ex_chip & 32)
-            {
-               PSGSoundWrite(d->address, d->value);
-            }
+            else if (apu->ex_chip & 32)
+               PSGSoundWrite (d->address, d->value);
          }
 
          elapsed_cycles += APU_FROM_FIXED(apu->cycle_rate);
 
          accum_centre = accum_left = accum_right = 0;
 
-         if (style == 1)
+         switch (style)
          {
-             /* FakeNES classic. */
-             if (apu->mix_enable[0]) accum_left += apu_rectangle(&apu->apus.rectangle[0]);
-             if (apu->mix_enable[1]) accum_right += apu_rectangle(&apu->apus.rectangle[1]);
-             if (apu->mix_enable[2]) accum_left += apu_triangle(&apu->apus.triangle);
-             if (apu->mix_enable[3]) accum_right += apu_noise(&apu->apus.noise);
-             if (apu->mix_enable[4]) accum_centre += apu_dmc(&apu->apus.dmc);
-         }
-         else if (style == 2)
-         {
-             /* FakeNES enhanced. (may/2002) */
-             /* Cycles the noise and centers the triangle. */
+            case 1:  /* FakeNES classic. */
+            {
+               if (apu->mix_enable[0])
+                  accum_left += apu_rectangle (&apu->apus.rectangle[0]);
+               if (apu->mix_enable[1])
+                  accum_right += apu_rectangle (&apu->apus.rectangle[1]);
+               if (apu->mix_enable[2])
+                  accum_left += apu_triangle (&apu->apus.triangle);
+               if (apu->mix_enable[3])
+                  accum_right += apu_noise (&apu->apus.noise);
+               if (apu->mix_enable[4])
+                  accum_centre += apu_dmc (&apu->apus.dmc);
 
-             if (apu->mix_enable[0]) accum_left += apu_rectangle(&apu->apus.rectangle[0]);
-             if (apu->mix_enable[1]) accum_right += apu_rectangle(&apu->apus.rectangle[1]);
+               break;
+            }
 
-             if (apu->mix_enable[2]) accum_centre += apu_triangle(&apu->apus.triangle);
-             if (apu->mix_enable[4]) accum_centre += apu_dmc(&apu->apus.dmc);
+            case 2:  /* FakeNES enhanced. (may/2002) */
+            {
+               /* Cycles the noise and centers the triangle. */
 
-             if (! cycle_noise) {
-                if (apu->mix_enable[3]) accum_left += apu_noise(&apu->apus.noise);
-             } else {
-                if (apu->mix_enable[3]) accum_right += apu_noise(&apu->apus.noise);
-             }
-         }
-         else if (style == 3)
-         {
-            /* Real NES. */
-             if (apu->mix_enable[0]) accum_left += apu_rectangle(&apu->apus.rectangle[0]);
-             if (apu->mix_enable[1]) accum_left += apu_rectangle(&apu->apus.rectangle[1]);
-             if (apu->mix_enable[2]) accum_right += apu_triangle(&apu->apus.triangle);
-             if (apu->mix_enable[3]) accum_right += apu_noise(&apu->apus.noise);
-             if (apu->mix_enable[4]) accum_right += apu_dmc(&apu->apus.dmc);
-         }
-         else
-         {
-            /* Dumb mix. */
-             if (apu->mix_enable[0]) accum_left += apu_rectangle(&apu->apus.rectangle[0]);
-             if (apu->mix_enable[1]) accum_left += apu_rectangle(&apu->apus.rectangle[1]);
-             if (apu->mix_enable[2]) accum_left += apu_triangle(&apu->apus.triangle);
-             if (apu->mix_enable[3]) accum_left += apu_noise(&apu->apus.noise);
-             if (apu->mix_enable[4]) accum_left += apu_dmc(&apu->apus.dmc);
-             accum_left >>= 1;
-             accum_right = accum_left;
+               if (apu->mix_enable[0])
+                  accum_left += apu_rectangle (&apu->apus.rectangle[0]);
+               if (apu->mix_enable[1])
+                  accum_right += apu_rectangle (&apu->apus.rectangle[1]);
+   
+               if (apu->mix_enable[2])
+                  accum_centre += apu_triangle (&apu->apus.triangle);
+               if (apu->mix_enable[4])
+                  accum_centre += apu_dmc (&apu->apus.dmc);
+
+               if (apu->mix_enable[3])
+               {
+                  if (!cycle_noise)
+                     accum_left += apu_noise (&apu->apus.noise);
+                  else
+                     accum_right += apu_noise (&apu->apus.noise);
+               }
+
+               break;
+            }
+
+            case 3:  /* Real NES. */
+            {
+               if (apu->mix_enable[0])
+                  accum_left += apu_rectangle (&apu->apus.rectangle[0]);
+               if (apu->mix_enable[1])
+                  accum_left += apu_rectangle (&apu->apus.rectangle[1]);
+               if (apu->mix_enable[2])
+                  accum_right += apu_triangle (&apu->apus.triangle);
+               if (apu->mix_enable[3])
+                  accum_right += apu_noise (&apu->apus.noise);
+               if (apu->mix_enable[4])
+                  accum_right += apu_dmc (&apu->apus.dmc);
+
+               break;
+            }
+
+            default: /* Dumb mix. */
+            {
+               if (apu->mix_enable[0])
+                  accum_left += apu_rectangle (&apu->apus.rectangle[0]);
+               if (apu->mix_enable[1])
+                  accum_left += apu_rectangle (&apu->apus.rectangle[1]);
+               if (apu->mix_enable[2])
+                  accum_left += apu_triangle (&apu->apus.triangle);
+               if (apu->mix_enable[3])
+                  accum_left += apu_noise (&apu->apus.noise);
+               if (apu->mix_enable[4])
+                  accum_left += apu_dmc (&apu->apus.dmc);
+
+               accum_left >>= 1;
+               accum_right = accum_left;
+
+               break;
+            }
          }
 
-         //if (apu->ext && apu->mix_enable[5]) accum += apu->ext->process();
+         // if (apu->ext && apu->mix_enable[5])
+         //    accum += apu->ext->process ();
 
          if (apu->mix_enable[5])
          {
             if (apu->ex_chip & 1)
-            {
-               accum_centre += VRC6SoundRender() >> 8;
-            }
+               accum_centre += VRC6SoundRender ();
             else if (apu->ex_chip & 2)
-            {
-               accum_centre += OPLLSoundRender() >> 8;
-            }
+               accum_centre += OPLLSoundRender ();
             else if (apu->ex_chip & 4)
-            {
-               accum_centre += FDSSoundRender() >> 8;
-            }
+               accum_centre += FDSSoundRender ();
             else if (apu->ex_chip & 8)
-            {
-               accum_centre += MMC5SoundRender() >> 8;
-            }
+               accum_centre += MMC5SoundRender ();
             else if (apu->ex_chip & 16)
-            {
-               accum_centre += N106SoundRender() >> 8;
-            }
+               accum_centre += N106SoundRender ();
             else if (apu->ex_chip & 32)
-            {
-               accum_centre += PSGSoundRender() >> 7;
-            }
+               accum_centre += PSGSoundRender ();
          }
 
-         accum_left += (accum_centre / 2);
-         accum_right += (accum_centre / 2);
+         accum_left += (accum_centre >> 1);
+         accum_right += (accum_centre >> 1);
 
          /* do any filtering */
          next_sample_left = accum_left;
@@ -1722,65 +1624,38 @@ void apu_process_stereo(void *buffer, int num_samples, int dither, int style, in
          prev_sample_left = next_sample_left;
          prev_sample_right = next_sample_right;
 
-         /* little extra kick for the kids */
-//         accum <<= 1;
-/* Overflow fixed by T.Yano Dec.12.2000 */
-#ifdef APU_YANO
-         // Cancel DC offset Dec.17.2000
-         {
-            static double ave_left, ave_right, max_left, max_right, min_left, min_right;
-            double delta_left, delta_right;
-            delta_left = (max_left-min_left)/32768.0;
-            delta_right = (max_right-min_right)/32768.0;
-            max_left -= delta_left;
-            max_right -= delta_right;
-            min_left += delta_left;
-            min_right += delta_right;
-            if (accum_left>max_left) max_left=accum_left;
-            if (accum_right>max_right) max_right=accum_right;
-            if (accum_left<min_left) min_left=accum_left;
-            if (accum_right<min_right) min_right=accum_right;
-            ave_left -= ave_left/1024.0;
-            ave_right -= ave_right/1024.0;
-            ave_left += (max_left+min_left)/2048.0;
-            ave_right += (max_right+min_right)/2048.0;
-            accum_left -= (INT32)ave_left;
-            accum_right -= (INT32)ave_right;
-         }
-#ifdef APU_HPF_ENABLE
-         { // Just test (1/167 for 44.1k)
-            static double lpf_out_left, lpf_out_right;
-            lpf_out_left *=166.0/167.0;
-            lpf_out_left += accum_left/167.0;
-            lpf_out_right *=166.0/167.0;
-            lpf_out_right += accum_right/167.0;
-            accum_left -= (INT32) lpf_out_left;
-            accum_right -= (INT32) lpf_out_right;
-         }
-#endif /* APU_HPF_ENABLE */
-#endif /* APU_YANO */
-
          /* surround sound */
-         if (surround == 1)
+         switch (surround)
          {
-            accum_left = ((accum_left + accum_right) >> 1);
-            accum_right = ~accum_left;
-         }
-         else if (surround == 2)
-         {
-            accum_right = ~accum_right;
-         }
-         else if (surround == 3)
-         {
-            /* thanks to kode54 */
-            old_accum_left = accum_left;
+            case 1:
+            {
+               accum_left = ((accum_left + accum_right) >> 1);
+               accum_right = ~accum_left;
 
-            scrap1 = ((accum_left + accum_right) >> 1);
+               break;
+            }
 
-            scrap2 = (accum_right - scrap1);
-            accum_left -= scrap2;
+            case 2:
+            {
+               accum_right = ~accum_right;
 
-            accum_right -= (old_accum_left - scrap1);
+               break;
+            }
+
+            case 3:
+            {
+               /* thanks to kode54 */
+               old_accum_left = accum_left;
+   
+               scrap1 = ((accum_left + accum_right) >> 1);
+   
+               scrap2 = (accum_right - scrap1);
+               accum_left -= scrap2;
+   
+               accum_right -= (old_accum_left - scrap1);
+
+               break;
+            }
          }
 
          if (surround != 1)
@@ -1789,20 +1664,20 @@ void apu_process_stereo(void *buffer, int num_samples, int dither, int style, in
              old_accum_left = accum_left;
              old_accum_right = accum_right;
     
-             accum_left += (old_accum_right / 2);
-             accum_right += (old_accum_left / 2);
+             accum_left += (old_accum_right >> 1);
+             accum_right += (old_accum_left >> 1);
          }
 
          /* prevent clipping */
-         if (accum_left > 0x7FFF)
-            accum_left = 0x7FFF;
-         else if (accum_left < -0x8000)
-            accum_left = -0x8000;
+         if (accum_left > 0x7fffff)
+            accum_left = 0x7fffff;
+         else if (accum_left < -0x800000)
+            accum_left = -0x800000;
 
-         if (accum_right > 0x7FFF)
-            accum_right = 0x7FFF;
-         else if (accum_right < -0x8000)
-            accum_right = -0x8000;
+         if (accum_right > 0x7fffff)
+            accum_right = 0x7fffff;
+         else if (accum_right < -0x800000)
+            accum_right = -0x800000;
             
          /* reverse stereo */
          if (flip)
@@ -1815,17 +1690,22 @@ void apu_process_stereo(void *buffer, int num_samples, int dither, int style, in
 
          if (audio_unsigned_samples)
          {
-            accum_left ^= 0x8000;
-            accum_right ^= 0x8000;
+            accum_left ^= 0x800000;
+            accum_right ^= 0x800000;
          }
 
-         /* signed 16-bit, unsigned 8-bit output */
-         if (16 == apu->sample_bits)
+         if (apu->sample_bits == 16)
          {
             UINT16 *buf = buffer;
 
-            *buf++ = accum_left;
-            *buf++ = accum_right;
+            if (dither)
+            {
+               accum_left ^= ((accum_left & 0x008000) << 1);
+               accum_right ^= ((accum_right & 0x008000) << 1);
+            }
+
+            *buf++ = (accum_left >> 8);
+            *buf++ = (accum_right >> 8);
 
             buffer = buf;
          }
@@ -1835,25 +1715,61 @@ void apu_process_stereo(void *buffer, int num_samples, int dither, int style, in
 
             if (dither)
             {
-                accum_left += (rand () % 512);
-                accum_right += (rand () % 512);
+               accum_left ^= ((accum_left & 0x000080) << 1);
+               accum_right ^= ((accum_right & 0x000080) << 1);
             }
 
-            *buf++ = (accum_left >> 8);
-            *buf++ = (accum_right >> 8);
+            *buf++ = (accum_left >> 16);
+            *buf++ = (accum_right >> 16);
 
             buffer = buf;
          }
       }
    }
+   else  /* buffer. */
+   {
+      while (num_samples--)
+      {
+         while ((!APU_QEMPTY()) &&
+                (apu->queue[apu->q_tail].timestamp <= elapsed_cycles))
+         {
+            d = apu_dequeue ();
+            apu_regwrite (d->address, d->value);
+         }
+
+         while ((!EX_QEMPTY()) &&
+                (apu->ex_queue[apu->ex_q_tail].timestamp <= elapsed_cycles))
+         {
+            d = ex_dequeue ();
+
+            if (apu->ex_chip & 1)
+               VRC6SoundWrite (d->address, d->value);
+            else if (apu->ex_chip & 2)
+               OPLLSoundWrite (d->address, d->value);
+            else if (apu->ex_chip & 4)
+               FDSSoundWrite (d->address, d->value);
+            else if (apu->ex_chip & 8)
+               MMC5SoundWrite (d->address, d->value);
+            else if (apu->ex_chip & 16)
+            {
+               if (d->address & 0x10000)
+                  N106SoundRead (d->address & 0xffff);
+               else
+                  N106SoundWrite (d->address, d->value);
+            }
+            else if (apu->ex_chip & 32)
+               PSGSoundWrite (d->address, d->value);
+         }
+
+         elapsed_cycles += APU_FROM_FIXED(apu->cycle_rate);
+      }
+   }
 
    /* resync cycle counter */
-   apu->elapsed_cycles = cpu_get_cycles(FALSE);
+   apu->elapsed_cycles = cpu_get_cycles (FALSE);
 
    if (style == 2)
-   {
-      cycle_noise = (! cycle_noise);
-   }
+      cycle_noise = (!cycle_noise);
 }
 
 /* set the filter type */
@@ -2125,8 +2041,8 @@ boolean sync_dmc_register(UINT32 cpu_cycles)
 
 /*
 ** $Log$
-** Revision 1.17  2005/10/27 01:23:11  stainless
-** Audio fixes & improvements and support for OpenAL (currently broken?)
+** Revision 1.18  2005/10/27 02:13:53  stainless
+** Overhauled apu_process* to use 24-bit mixing (+ code clean-up).
 **
 ** Revision 1.15  2005/05/10 04:02:44  stainless
 ** Added 'Stereo Mix' mode that produces mono sound while allowing stereo effects.

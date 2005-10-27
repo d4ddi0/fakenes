@@ -200,7 +200,7 @@ static INT32 PSGSoundRender(void)
 	accum += PSGSoundSquare(&apu->psg.square[0]);
 	accum += PSGSoundSquare(&apu->psg.square[1]);
 	accum += PSGSoundSquare(&apu->psg.square[2]);
-	return accum;
+   return accum<<1;
 }
 
 static void PSGSoundVolume(UINT32 volume)
