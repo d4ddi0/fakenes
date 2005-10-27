@@ -1112,13 +1112,13 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_audio_mixing_channels_menu, 0, (! audio_pseudo_stereo));
 
-    TOGGLE_MENU (options_audio_mixing_channels_menu, 2, (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_1));
+    TOGGLE_MENU (options_audio_mixing_channels_menu, 2, (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_4));
 
-    TOGGLE_MENU (options_audio_mixing_channels_menu, 4, (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_2));
+    TOGGLE_MENU (options_audio_mixing_channels_menu, 4, (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_1));
 
-    TOGGLE_MENU (options_audio_mixing_channels_menu, 6, (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_3));
+    TOGGLE_MENU (options_audio_mixing_channels_menu, 6, (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_2));
 
-    TOGGLE_MENU (options_audio_mixing_channels_menu, 8, (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_4));
+    TOGGLE_MENU (options_audio_mixing_channels_menu, 8, (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_3));
 
     TOGGLE_MENU (options_audio_mixing_channels_menu, 10, papu_swap_channels);
 
