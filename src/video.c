@@ -242,7 +242,7 @@ int video_init (void)
 
     video_display_status = get_config_int ("video", "display_status", FALSE);
 
-    video_enable_vsync = get_config_int ("video", "enable_vsync", TRUE);
+    video_enable_vsync = get_config_int ("video", "enable_vsync", FALSE);
 
 
     if (video_driver == GFX_AUTODETECT)
@@ -812,12 +812,6 @@ void video_blit (BITMAP * bitmap)
     }
 
 
-    if (video_enable_vsync)
-    {
-        vsync ();
-    }
-
-
     if (page_buffer)
     {
         /* Reduce screen tearing by blitting to VRAM first, then doing a
@@ -832,11 +826,21 @@ void video_blit (BITMAP * bitmap)
         release_bitmap (page_buffer);
 
 
+        if (video_enable_vsync)
+        {
+            vsync ();
+        }
+
         blit (page_buffer, bitmap, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
     }
     else
     {
         acquire_bitmap (bitmap);
+
+        if (video_enable_vsync)
+        {
+            vsync ();
+        }
 
         blit (screen_buffer, bitmap, 0, 0, image_offset_x, image_offset_y, SCREEN_W, SCREEN_H);
 
