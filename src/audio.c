@@ -72,6 +72,9 @@ int audio_buffer_length = 1;
 int audio_pseudo_stereo = FALSE;
 
 
+int audio_interpolation = FALSE;
+
+
 int audio_hard_sync = FALSE;
 
 
@@ -103,6 +106,9 @@ int audio_init (void)
     audio_pseudo_stereo = get_config_int ("audio", "pseudo_stereo", 3);
 
 
+    audio_interpolation = get_config_int ("audio", "interpolation", TRUE);
+
+
     audio_hard_sync = get_config_int ("audio", "hard_sync", FALSE);
 
 
@@ -121,6 +127,16 @@ int audio_init (void)
         {
             case AUDIO_SUBSYSTEM_ALLEGRO:
             {
+                if (audio_interpolation)
+                {
+                    set_mixer_quality (2);
+                }
+                else
+                {
+                    set_mixer_quality (1);
+                }
+
+
                 set_volume_per_voice (0);
         
             
@@ -164,6 +180,9 @@ int audio_init (void)
             case AUDIO_SUBSYSTEM_OPENAL:
             {
 #ifdef USE_OPENAL
+
+                audio_interpolation = FALSE;
+
 
                 alutInit (0, NIL);
 
@@ -262,6 +281,9 @@ void audio_exit (void)
 
 
     set_config_int ("audio", "pseudo_stereo", audio_pseudo_stereo);
+
+
+    set_config_int ("audio", "interpolation", audio_interpolation);
 
 
     set_config_int ("audio", "hard_sync", audio_hard_sync);

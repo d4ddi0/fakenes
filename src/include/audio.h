@@ -51,6 +51,9 @@ int audio_buffer_length;
 int audio_pseudo_stereo;
 
 
+int audio_interpolation;
+
+
 int audio_hard_sync;
 
 

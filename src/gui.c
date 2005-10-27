@@ -993,6 +993,16 @@ static INLINE void update_menus (void)
 #endif
 
 
+    if (audio_subsystem == AUDIO_SUBSYSTEM_OPENAL)
+    {
+        DISABLE_MENU (options_audio_mixing_quality_menu, 4);
+    }
+    else
+    {
+        ENABLE_MENU (options_audio_mixing_quality_menu, 4);
+    }
+
+
     if (! audio_pseudo_stereo)
     {
         papu_swap_channels = FALSE;
@@ -1127,7 +1137,9 @@ static INLINE void update_menus (void)
 
     TOGGLE_MENU (options_audio_mixing_quality_menu, 2, (audio_sample_size == 16));
 
-    TOGGLE_MENU (options_audio_mixing_quality_menu, 4, papu_dithering);
+    TOGGLE_MENU (options_audio_mixing_quality_menu, 4, audio_interpolation);
+
+    TOGGLE_MENU (options_audio_mixing_quality_menu, 6, papu_dithering);
 
 
     TOGGLE_MENU (options_audio_mixing_anti_aliasing_menu, 0, (papu_interpolate == 0));
@@ -3444,6 +3456,36 @@ static int options_audio_mixing_quality_menu_high_16_bit (void)
 
 
     gui_message (GUI_TEXT_COLOR, "Audio mixing quality set to high (16-bit).");
+
+
+    return (D_O_K);
+}
+
+
+static int options_audio_mixing_quality_menu_interpolation (void)
+{
+    audio_interpolation = (! audio_interpolation);
+
+
+    audio_exit ();
+
+    audio_init ();
+
+
+    papu_reinit ();
+
+
+    update_menus ();
+
+
+    if (! audio_interpolation)
+    {
+        gui_message (GUI_TEXT_COLOR, "Audio interpolation disabled.");
+    }
+    else
+    {
+        gui_message (GUI_TEXT_COLOR, "Audio interpolation enabled.");
+    }
 
 
     return (D_O_K);

@@ -472,17 +472,21 @@ static int options_audio_mixing_quality_menu_low_8_bit (void);
 
 static int options_audio_mixing_quality_menu_high_16_bit (void);
 
+static int options_audio_mixing_quality_menu_interpolation (void);
+
 static int options_audio_mixing_quality_menu_dithering (void);
 
 
 static const MENU options_audio_mixing_quality_menu_base [] =
 {
-    {   "&Low (8 bits)",   options_audio_mixing_quality_menu_low_8_bit, NIL, 0, NIL },
-    {                "",                                           NIL, NIL, 0, NIL },
-    { "&High (16 bits)", options_audio_mixing_quality_menu_high_16_bit, NIL, 0, NIL },
-    {                "",                                           NIL, NIL, 0, NIL },
-    {      "&Dithering",   options_audio_mixing_quality_menu_dithering, NIL, 0, NIL },
-    {               NIL,                                           NIL, NIL, 0, NIL }
+    {   "&Low (8 bits)",     options_audio_mixing_quality_menu_low_8_bit, NIL, 0, NIL },
+    {                "",                                             NIL, NIL, 0, NIL },
+    { "&High (16 bits)",   options_audio_mixing_quality_menu_high_16_bit, NIL, 0, NIL },
+    {                "",                                             NIL, NIL, 0, NIL },
+    {  "&Interpolation", options_audio_mixing_quality_menu_interpolation, NIL, 0, NIL },
+    {                "",                                             NIL, NIL, 0, NIL },
+    {      "&Dithering",     options_audio_mixing_quality_menu_dithering, NIL, 0, NIL },
+    {               NIL,                                             NIL, NIL, 0, NIL }
 };
 
 
