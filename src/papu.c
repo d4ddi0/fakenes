@@ -156,7 +156,7 @@ int papu_reinit (void)
         rate *= INTERPOLATION_POINTS;
     }
 
-    apu_setparams (rate, speed, 0, audio_sample_size);
+    apu_setparams (rate, speed, audio_sample_size);
 
 
     if (! audio_enable_output)
@@ -297,7 +297,7 @@ int papu_init (void)
 
     /* We must supply an initial speed, like 60. */
 
-    default_apu = apu_create (audio_sample_rate, 60, 0, audio_sample_size);
+    default_apu = apu_create (audio_sample_rate, 60, audio_sample_size);
 
     if (! default_apu)
     {
