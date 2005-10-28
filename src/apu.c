@@ -1281,7 +1281,7 @@ void apu_process (void *buffer, int num_samples, int dither)
             UINT16 *buf = buffer;
 
             if (dither)
-               accum ^= ((accum & 0x008000) << 1);
+               accum ^= ((accum & 0x000080) << 1);
 
             /* store sample and increment base pointer */
             *buf++ = (accum >> 8);
@@ -1294,7 +1294,7 @@ void apu_process (void *buffer, int num_samples, int dither)
             UINT8 *buf = buffer;
 
             if (dither)
-               accum ^= ((accum & 0x000080) << 1);
+               accum ^= ((accum & 0x008000) << 1);
 
             *buf++ = (accum >> 16);
 
@@ -1615,8 +1615,8 @@ void apu_process_stereo (void *buffer, int num_samples, int dither, int
 
             if (dither)
             {
-               accum_left ^= ((accum_left & 0x008000) << 1);
-               accum_right ^= ((accum_right & 0x008000) << 1);
+               accum_left ^= ((accum_left & 0x000080) << 1);
+               accum_right ^= ((accum_right & 0x000080) << 1);
             }
 
             *buf++ = (accum_left >> 8);
@@ -1630,8 +1630,8 @@ void apu_process_stereo (void *buffer, int num_samples, int dither, int
 
             if (dither)
             {
-               accum_left ^= ((accum_left & 0x000080) << 1);
-               accum_right ^= ((accum_right & 0x000080) << 1);
+               accum_left ^= ((accum_left & 0x008000) << 1);
+               accum_right ^= ((accum_right & 0x008000) << 1);
             }
 
             *buf++ = (accum_left >> 16);
