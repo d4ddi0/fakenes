@@ -280,9 +280,19 @@ int video_init (void)
     clear (screen_buffer);
 
 
-    /* Note: This call doesn't have to succeed. */
+    if (gfx_capabilities & GFX_HW_VRAM_BLIT)
+    {
+       /* VRAM->VRAM blits are hardware accelerated (note: This call doesn't
+          have to succeed). */
 
-    page_buffer = create_video_bitmap (SCREEN_W, SCREEN_H);
+       page_buffer = create_video_bitmap (SCREEN_W, SCREEN_H);
+    }
+    else
+    {
+       /* No hardware acceleration available. */
+
+       page_buffer = NIL;
+    }
 
 
     status_buffer = create_sub_bitmap (screen_buffer, 0, (SCREEN_H - 128), 72, 128);
@@ -347,7 +357,7 @@ int video_init (void)
         using_custom_font = FALSE;
 
 
-        font = DATA_TO_FONT (SMALL_FONT_CLEAN);;
+        font = DATA_TO_FONT (SMALL_FONT_CLEAN);
     }
 
 
