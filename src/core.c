@@ -113,7 +113,8 @@ void FN2A03_Reset(FN2A03 *R)
 
   R->A=R->X=R->Y=0x00;
 
-  R->N=R->V=R->D=R->I=R->C=0;
+  R->N=R->V=R->D=R->C=0;
+  R->I=1;
   R->Z=0;       /* 0 == set */
 
   R->S=0xFF;
