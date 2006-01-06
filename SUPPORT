@@ -1,15 +1,10 @@
+Getting Help
+---
 
+The SourceForge project page (http://www.sourceforge.net/projects/fakenes)
+offers a tracker where you can submit and view bug reports, feature
+requests, support requests, and patches.  There you will also find the
+very low-traffic fakenes-bugs mailing list.
 
-  =================
-   Getting Support
-  =================
-
-    The SourceForge project page for FakeNES offers a tracker where
-    you can submit and view bug reports, feature requests, support
-    requests, and patches.  There you will also find the low-traffic
-    fakenes-bugs mailing list.
-
-    http://www.sourceforge.net/projects/fakenes/
-
-    In addition, there is an IRC channel (#fakenes) dedicated to the
-    continuing development of FakeNES on irc.freenode.net
+In addition, there is an IRC channel (#silohware/fakenes) on Freenode
+dedicated to the continuing development of FakeNES.
