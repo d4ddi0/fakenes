@@ -395,6 +395,8 @@ static void load_menus (void)
 
     MENU_FROM_BASE (options_video_menu);
 
+    MENU_FROM_BASE (options_input_menu);
+
     MENU_FROM_BASE (options_menu);
 
 
@@ -520,6 +522,8 @@ static void unload_menus (void)
     unload_menu (options_video_advanced_menu);
 
     unload_menu (options_video_menu);
+
+    unload_menu (options_input_menu);
 
     unload_menu (options_menu);
 
@@ -1363,6 +1367,9 @@ static INLINE void update_menus (void)
     TOGGLE_MENU (options_video_layers_menu, 2, ppu_enable_sprite_layer_b);
 
     TOGGLE_MENU (options_video_layers_menu, 4, ppu_enable_background_layer);
+
+
+    TOGGLE_MENU (options_input_menu, 0, input_enable_zapper);
 
 
     TOGGLE_MENU (netplay_protocol_menu, 0, (netplay_protocol == NETPLAY_PROTOCOL_TCPIP));
@@ -5278,7 +5285,29 @@ static int options_video_advanced_menu_force_window (void)
 }
 
 
-static int options_menu_input (void)
+static int options_input_menu_enable_zapper (void)
+{
+    input_enable_zapper = (! input_enable_zapper);
+
+
+    update_menus ();
+
+
+    if (! input_enable_zapper)
+    {
+        gui_message (GUI_TEXT_COLOR, "Zapper emulation disabled.");
+    }
+    else
+    {
+        gui_message (GUI_TEXT_COLOR, "Zapper emulation enabled.");
+    }
+
+
+    return (D_O_K);
+}
+
+
+static int options_input_menu_configure (void)
 {
     gui_show_dialog (options_input_dialog);
 

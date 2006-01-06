@@ -86,6 +86,8 @@ static MENU * options_video_advanced_menu = NIL;
                                          
 static MENU * options_video_menu = NIL;
 
+static MENU * options_input_menu = NIL;
+
 static MENU * options_menu = NIL;
 
 
@@ -1141,9 +1143,21 @@ static const MENU options_video_menu_base [] =
 };
 
 
-static int options_menu_status (void);
+static int options_input_menu_enable_zapper (void);
 
-static int options_menu_input (void);
+static int options_input_menu_configure (void);
+
+
+static const MENU options_input_menu_base [] =
+{
+    { "Enable &Zapper", options_input_menu_enable_zapper, NIL, 0, NIL },
+    {               "",                              NIL, NIL, 0, NIL },
+    {  "&Configure..."    , options_input_menu_configure, NIL, 0, NIL },
+    {              NIL,                              NIL, NIL, 0, NIL }
+};
+
+
+static int options_menu_status (void);
 
 static int options_menu_patches (void);
 
@@ -1160,7 +1174,7 @@ static const MENU options_menu_base [] =
     {            "",                  NIL,                           NIL, 0, NIL },
     {      "&Video",                  NIL,  (MENU *) &options_video_menu, 0, NIL },
     {            "",                  NIL,                           NIL, 0, NIL },
-    {   "&Input...",   options_menu_input,                           NIL, 0, NIL },
+    {      "&Input",                  NIL,  (MENU *) &options_input_menu, 0, NIL },
     {            "",                  NIL,                           NIL, 0, NIL },
     { "&Patches...", options_menu_patches,                           NIL, 0, NIL },
     {           NIL,                  NIL,                           NIL, 0, NIL }
