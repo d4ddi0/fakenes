@@ -8,8 +8,8 @@ Distributed under Clarified Artistic License.
 
 papu.h: Declarations for the APU abstraction.
 
-Copyright (c) 2005, Randy McDowell.
-Copyright (c) 2005, Charles Bilyue'.
+Copyright (c) 2001-2006, Randy McDowell.
+Copyright (c) 2001-2006, Charles Bilyue'.
 
 This is free software.  See 'LICENSE' for details.
 You must read and accept the license prior to use.
