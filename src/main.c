@@ -1,22 +1,12 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
+
+   main.c: Implementation of the main emulation.
+
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
  
-
-/*
-
-FakeNES - A portable, Open Source NES emulator.
-
-Distributed under the Clarified Artistic License.
-
-main.c: Implementation of the main emulation.
-
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
-
-This is free software.  See 'LICENSE' for details.
-You must read and accept the license prior to use.
-
-*/
-
-
 #define ALLEGRO_USE_CONSOLE
 
 #include <allegro.h>
@@ -305,31 +295,28 @@ int main (int argc, char * argv [])
     }
 
 
-    printf ("\nFakeNES version " VERSION_STRING ", by Siloh and TRAC.\n"
-            "Assistance provided by amit, KCat, and Lord_Nightmare.\n");
-
-    printf ("\nUsing Allegro version " ALLEGRO_VERSION_STR " (" ALLEGRO_PLATFORM_STR ").\n");
-
-    printf ("\nOriginal concept by stainless (Siloh) and RobotBebop.\n"
-            "Uses the Nofrendo NES APU core by Matthew Conte.\n");
-
-    printf ("\nBe sure to visit http://fakenes.sourceforge.net/.\n"
-            "Report bugs to fakenes-bugs@lists.sourceforge.net.\n");
-
-    printf ("\nCopyright (c) 2001-2006, Randy McDowell.\n"
-            "Copyright (c) 2001-2006, Charles Bilyue'.\n");
-
+    printf ("\n");
+    printf ("FakeNES version " VERSION_STRING ", by Siloh and TRAC.\n");
+    printf ("Using Allegro version " ALLEGRO_VERSION_STR " (" ALLEGRO_PLATFORM_STR ").\n");
+    printf ("\n");
+    printf ("Assistance provided by amit, Astxist, ipher, KCat,\n");
+    printf ("Lord_Nightmare, Mexandrew, and others.  See the\n");
+    printf ("About box for a complete listing.\n");
+    printf ("\n");
+    printf ("Uses the Nofrendo NES APU core by Matthew Conte.\n");
+    printf ("\n");
+    printf ("Be sure to visit http://fakenes.sourceforge.net/.\n");
+    printf ("Report bugs to fakenes-bugs@lists.sourceforge.net.\n");
+    printf ("\n");
+    printf ("Copyright (c) 2001-2006, FakeNES Team.\n");
 #ifdef POSIX
-
-    printf ("\nThis is free software.  See 'LICENSE' for details.\n"
-            "You must read and accept the license prior to use.\n\n");
-
+    printf ("This is free software.  See 'LICENSE' for details.\n");
+    printf ("You must read and accept the license prior to use.\n");
 #else
-
-    printf ("\nThis is free software.  See 'LICENSE.TXT' for details.\n"
-            "You must read and accept the license prior to use.\n\n");
-
+    printf ("This is free software.  See 'LICENSE.TXT' for details.\n");
+    printf ("You must read and accept the license prior to use.\n");
 #endif
+    printf ("\n");
 
 
     allegro_init ();
