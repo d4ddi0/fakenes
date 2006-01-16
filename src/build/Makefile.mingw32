@@ -14,7 +14,11 @@ INCLUDE_PATH = ${SOURCE_PATH}/include
 OBJECT_PATH = ${SOURCE_PATH}/build/mingw32
 BINARY_PATH ?= .
 
+# Dependancies.
+DEPEND ?= ${OBJECT_PATH}/depend.mk
+
 # Extensions.
+SRCEXT := .c
 EXEEXT ?= w.exe
 OBJEXT ?= .o
 
@@ -52,6 +56,9 @@ ifneq (${ASM_CORE}, 0)
     DFLAGS += -DNO_C_CORE
 endif
 CFLAGS := -I${INCLUDE_PATH} ${MFLAGS} ${OFLAGS} -Wall -Wno-unused ${DFLAGS}
+
+# GPP flags
+CPPFLAGS := -I${INCLUDE_PATH} ${DFLAGS}
 
 # NASM flags.
 ifdef DEBUG
@@ -103,13 +110,17 @@ endif
 
 RESOURCES := ${SOURCE_PATH}/support/resource.o
 
-# Targets.
-.PHONY: all bootstrap clean distclean
+# Targets.  
+.PHONY: all depend bootstrap clean distclean
 ifdef DEBUG
     all: ${BINARY_DEBUG}
 else
     all: ${BINARY}
 endif
+depend:
+	@echo Generating dependancy list.
+	${CC} -DDEPENDANCIES_ONLY -M -MG *${SRCEXT} ${CPPFLAGS} > ${DEPEND}
+${DEPEND}: depend
 bootstrap:
 	@echo Building.
 	${MKDIR} ${OBJECT_PATH}
@@ -136,10 +147,12 @@ ${OBJECT_PATH}/%${OBJEXT}: \
 	${CC} -c $< -o $@ ${CFLAGS}
 
 include build/common.mk
+include ${DEPEND}
 
 clean:
 	${RM} ${OBJECTS} ${BINARY} ${BINARY_DEBUG}
 
 distclean: clean
+	${RM} ${DEPEND}
 	-${RMDIR} ${OBJECT_PATH}
 	${RM} ${COREOFF} ${OFFSETS_INC}

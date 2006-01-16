@@ -12,6 +12,8 @@
    in the Nintendo Famicom (Family Computer) and NES (Nintendo Entertainment
    System). */
 
+#ifndef DEPENDANCIES_ONLY  /* Avoid inclusion in dependancy information. */
+
 #define ALLEGRO_USE_CONSOLE
 #include <allegro.h>
 #include <stdio.h>
@@ -73,3 +75,5 @@ int main (void)
     return (0);
 }
 END_OF_MAIN ()
+
+#endif   /* !DEPENDANCIES_ONLY */

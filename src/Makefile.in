@@ -16,7 +16,11 @@ INCLUDE_PATH = ${SOURCE_PATH}/include
 OBJECT_PATH = ${SOURCE_PATH}/build/posix
 BINARY_PATH ?= .
 
+# Dependancies.
+DEPEND ?= ${OBJECT_PATH}/depend.mk
+
 # Extensions.
+SRCEXT := .c
 EXEEXT = @EXEEXT@
 OBJEXT = @OBJEXT@
 
@@ -67,8 +71,12 @@ endif
 LIBALLEG = `allegro-config --libs`
 LIBRARIES = ${LIBALLEG} @LIBRARIES@
 
-.PHONY: all bootstrap install uninstall clean distclean
+.PHONY: all depend bootstrap install uninstall clean distclean
 all: bootstrap ${BINARY}
+depend:
+	@echo Generating dependancy list.
+	${CC} -DDEPENDANCIES_ONLY -M -MG *${SRCEXT} ${CPPFLAGS} > ${DEPEND}
+${DEPEND}: depend
 bootstrap:
 	@echo Building.
 	${MKDIR} ${OBJECT_PATH}
@@ -104,11 +112,13 @@ uninstall:
 	@echo \'${HOME}/.fakenes\' must be removed manually.
 
 include build/common.mk
+include ${DEPEND}
 
 clean:
 	${RM} ${OBJECTS} ${BINARY}
 
 distclean: clean
+	${RM} ${DEPEND}
 	-${RMDIR} ${OBJECT_PATH}
 	${RM} ${COREOFF} ${OFFSETS_INC}
 	${RM} Makefile
