@@ -28,6 +28,8 @@ You must read and accept the license prior to use.
 #include "gui.h"
 
 
+#include "debug.h"
+
 #include "misc.h"
 
 

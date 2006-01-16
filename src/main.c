@@ -58,6 +58,8 @@ extern int errno;
 
 #include "input.h"
 
+#include "log.h"
+
 #include "mmc.h"
 
 #include "papu.h"
@@ -83,9 +85,6 @@ extern int errno;
 
 
 int disable_gui = FALSE;
-
-
-FILE * log_file = NIL;
 
 
 int machine_type = MACHINE_TYPE_NTSC;
@@ -531,16 +530,7 @@ int main (int argc, char * argv [])
     }
 
 
-    /* Overwrite if >= 64k. */
-
-    if (file_size (logfile) >= 65536)
-    {
-        log_file = fopen (logfile, "w");
-    }
-    else
-    {
-        log_file = fopen (logfile, "a");
-    }
+    log_open (logfile);
 
 #else
 
@@ -570,14 +560,7 @@ int main (int argc, char * argv [])
     replace_filename (buffer2, buffer, "messages.log", sizeof (buffer2));
 
 
-    if (file_size (buffer2) >= 65536)
-    {
-        log_file = fopen (buffer2, "w");
-    }
-    else
-    {
-        log_file = fopen (buffer2, "a");
-    }
+    log_open (buffer2);
 
 
     memset (logfile, NIL, sizeof (logfile));
@@ -605,18 +588,6 @@ int main (int argc, char * argv [])
 
 
     first_run = get_config_int ("gui", "first_run", TRUE);
-
-
-    if (log_file)
-    {
-        time_t start;
-
-
-        time (&start);
-
-
-        fprintf (log_file, "\n--- %s", asctime (localtime (&start)));
-    }
 
 
     install_timer ();
@@ -1196,10 +1167,7 @@ int main (int argc, char * argv [])
     input_exit ();
 
 
-    if (log_file)
-    {
-        fclose (log_file);
-    }
+    log_close ();
 
 
     if (rom_is_loaded)

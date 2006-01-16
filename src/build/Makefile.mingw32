@@ -70,6 +70,7 @@ OBJECTS := ${OBJECT_PATH}/alstream${OBJEXT} \
     ${OBJECT_PATH}/data${OBJEXT} \
     ${OBJECT_PATH}/gui${OBJEXT} \
     ${OBJECT_PATH}/input${OBJEXT} \
+    ${OBJECT_PATH}/log${OBJEXT} \
     ${OBJECT_PATH}/papu${OBJEXT} \
     ${OBJECT_PATH}/ppu${OBJEXT} \
     ${OBJECT_PATH}/rom${OBJEXT} \

@@ -27,14 +27,13 @@ You must read and accept the license prior to use.
 
 #include "misc.h"
 
+#include "types.h"
+
 
 #define MAX_MESSAGES        10
 
 
-#define MAX_MESSAGE_LENGTH  100
-
-
-UINT8 video_messages [MAX_MESSAGES] [(MAX_MESSAGE_LENGTH + 1)];
+USTRING video_messages [MAX_MESSAGES];
 
 
 volatile int video_message_duration;
@@ -110,7 +109,14 @@ void video_filter (void);
 void video_handle_keypress (int);
 
 
+RGB * video_palette;
+
+
 void video_set_palette (RGB *);
+
+void video_set_palette_id (int);
+
+int video_get_palette_id (void);
 
 
 int video_create_color (int, int, int);
@@ -144,7 +150,7 @@ void video_set_color_depth (int);
 void video_set_driver (int);
 
 
-void video_message (const UINT8 *, ...);
+void video_message (const UCHAR *, ...);
 
 
 static INLINE int fix (int value, int base, int limit)

@@ -33,6 +33,8 @@ You must read and accept the license prior to use.
 
 #include "input.h"
 
+#include "log.h"
+
 #include "ppu.h"
 
 #include "rom.h"
@@ -43,6 +45,8 @@ You must read and accept the license prior to use.
 #include "data.h"
 
 #include "misc.h"
+
+#include "types.h"
 
 
 #include "timing.h"
@@ -62,7 +66,7 @@ static BITMAP * mouse_sprite_remove_buffer = NIL;
 static BITMAP * stretch_buffer = NIL;
 
 
-UINT8 video_messages [MAX_MESSAGES] [(MAX_MESSAGE_LENGTH + 1)];
+USTRING video_messages[MAX_MESSAGES];
 
 
 volatile int video_message_duration = 0;
@@ -155,7 +159,9 @@ static int preserve_palette = FALSE;
 static PALETTE internal_palette;
 
 
-static RGB * last_palette = NIL;
+RGB * video_palette = NIL;
+
+static int video_palette_id = -1;
 
 
 static int using_custom_font = FALSE;
@@ -326,6 +332,8 @@ int video_init (void)
     else
     {
         video_set_palette (DATA_TO_RGB (MODERN_NTSC_PALETTE));
+
+        video_set_palette_id (DATA_INDEX (MODERN_NTSC_PALETTE));
     }
 
 
@@ -945,7 +953,7 @@ void video_handle_keypress (int index)
             }
 
 
-            video_set_palette (last_palette);
+            video_set_palette (video_palette);
 
 
             break;
@@ -959,7 +967,7 @@ void video_handle_keypress (int index)
             }
 
 
-            video_set_palette (last_palette);
+            video_set_palette (video_palette);
 
 
             break;
@@ -1024,7 +1032,7 @@ void video_set_palette (RGB * palette)
 
     if (palette)
     {
-        last_palette = palette;
+        video_palette = palette;
     
     
         memcpy (internal_palette, palette, sizeof (internal_palette));
@@ -1054,11 +1062,11 @@ void video_set_palette (RGB * palette)
             video_create_gui_gradient (&color, NIL, NIL);
     
     
-            internal_palette [index].r = (color.red * 63);
+            internal_palette [index].r = (color.r * 63);
     
-            internal_palette [index].g = (color.green * 63);
+            internal_palette [index].g = (color.g * 63);
     
-            internal_palette [index].b = (color.blue * 63);
+            internal_palette [index].b = (color.b * 63);
         }
     
     
@@ -1070,11 +1078,11 @@ void video_set_palette (RGB * palette)
             color = (index - GUI_COLORS_PALETTE_START);
     
     
-            internal_palette [index].r = (gui_theme [color].red * 63);
+            internal_palette [index].r = (gui_theme [color].r * 63);
     
-            internal_palette [index].g = (gui_theme [color].green * 63);
+            internal_palette [index].g = (gui_theme [color].g * 63);
     
-            internal_palette [index].b = (gui_theme [color].blue * 63);
+            internal_palette [index].b = (gui_theme [color].b * 63);
         }
     
     
@@ -1114,6 +1122,18 @@ void video_set_palette (RGB * palette)
 
 
     color_map = &half_transparency_map;
+}
+
+
+void video_set_palette_id (int id)
+{
+   video_palette_id = id;
+}
+
+
+int video_get_palette_id (void)
+{
+   return (video_palette_id);
 }
 
 
@@ -1277,18 +1297,18 @@ void video_create_gui_gradient (GUI_COLOR * start, GUI_COLOR * end, int slices)
 {
     if (slices)
     {
-        gradient_start [0] = (start -> red * GRADIENT_MULTIPLIER);
+        gradient_start [0] = (start -> r * GRADIENT_MULTIPLIER);
 
-        gradient_start [1] = (start -> green * GRADIENT_MULTIPLIER);
+        gradient_start [1] = (start -> g * GRADIENT_MULTIPLIER);
 
-        gradient_start [2] = (start -> blue * GRADIENT_MULTIPLIER);
+        gradient_start [2] = (start -> b * GRADIENT_MULTIPLIER);
 
 
-        gradient_end [0] = (end -> red * GRADIENT_MULTIPLIER);
+        gradient_end [0] = (end -> r * GRADIENT_MULTIPLIER);
 
-        gradient_end [1] = (end -> green * GRADIENT_MULTIPLIER);
+        gradient_end [1] = (end -> g * GRADIENT_MULTIPLIER);
 
-        gradient_end [2] = (end -> blue * GRADIENT_MULTIPLIER);
+        gradient_end [2] = (end -> b * GRADIENT_MULTIPLIER);
 
 
         gradient_delta [0] = ((gradient_end [0] - gradient_start [0]) / slices);
@@ -1302,11 +1322,11 @@ void video_create_gui_gradient (GUI_COLOR * start, GUI_COLOR * end, int slices)
     }
     else
     {
-        start -> red = ((gradient_start [0] + (gradient_delta [0] * gradient_slice)) / GRADIENT_MULTIPLIER);
+        start -> r = ((gradient_start [0] + (gradient_delta [0] * gradient_slice)) / GRADIENT_MULTIPLIER);
 
-        start -> green = ((gradient_start [1] + (gradient_delta [1] * gradient_slice)) / GRADIENT_MULTIPLIER);
+        start -> g = ((gradient_start [1] + (gradient_delta [1] * gradient_slice)) / GRADIENT_MULTIPLIER);
 
-        start -> blue = ((gradient_start [2] + (gradient_delta [2] * gradient_slice)) / GRADIENT_MULTIPLIER);
+        start -> b = ((gradient_start [2] + (gradient_delta [2] * gradient_slice)) / GRADIENT_MULTIPLIER);
 
 
         gradient_slice ++;
@@ -1673,7 +1693,7 @@ void video_filter (void)
 }
 
 
-void video_message (const UINT8 * message, ...)
+void video_message (const UCHAR *message, ...)
 {
     va_list format;
 
@@ -1681,35 +1701,26 @@ void video_message (const UINT8 * message, ...)
     int index;
 
 
-    UINT8 buffer [256];
+    USTRING buffer;
 
 
     va_start (format, message);
 
-    vsprintf (buffer, message, format);
+    uvszprintf (buffer, USTRING_SIZE, message, format);
 
     va_end (format);
 
 
     for (index = 0; index < (MAX_MESSAGES - 1); index ++)
     {
-        strncpy (&video_messages [index] [0], &video_messages [(index + 1)] [0], MAX_MESSAGE_LENGTH);
+        ustrzcpy (&video_messages [index] [0], USTRING_SIZE, &video_messages [(index + 1)] [0]);
     }
 
 
-    strncpy (&video_messages [(MAX_MESSAGES - 1)] [0], buffer, MAX_MESSAGE_LENGTH);
+    ustrzcpy (&video_messages [(MAX_MESSAGES - 1)] [0], USTRING_SIZE, buffer);
 
 
-    if (video_messages [(MAX_MESSAGES - 1)] [(MAX_MESSAGE_LENGTH - 1)])
-    {
-        video_messages [(MAX_MESSAGES - 1)] [(MAX_MESSAGE_LENGTH - 1)] = NIL;
-    }
-
-
-    if (log_file)
-    {
-        fprintf (log_file, "%s\n", buffer);
-    }
+    log_printf ("%s\n", buffer);
 }
 
 
@@ -1841,10 +1852,10 @@ static void draw_messages (void)
         UINT8 * token;
 
 
-        UINT8 buffer [(MAX_MESSAGE_LENGTH + 1)];
+        USTRING buffer;
 
 
-        memcpy (buffer, &video_messages [index] [0], MAX_MESSAGE_LENGTH);
+        memcpy (buffer, &video_messages [index] [0], USTRING_SIZE);
 
 
         for (token = strtok (&video_messages [index] [0], " "); token; token = strtok (NIL, " "))
@@ -1877,7 +1888,7 @@ static void draw_messages (void)
         }
 
 
-        memcpy (&video_messages [index] [0], buffer, MAX_MESSAGE_LENGTH);
+        memcpy (&video_messages [index] [0], buffer, USTRING_SIZE);
 
 
         x = 4;

@@ -90,8 +90,11 @@ ${OBJECT_PATH}/gui${OBJEXT}: \
     ${INCLUDE_PATH}/apu.h \
     ${INCLUDE_PATH}/misc.h \
     ${INCLUDE_PATH}/audio.h \
+    ${INCLUDE_PATH}/common.h \
+    ${INCLUDE_PATH}/log.h \
     ${INCLUDE_PATH}/cpu.h \
     ${INCLUDE_PATH}/core.h \
+    ${INCLUDE_PATH}/debug.h \
     ${INCLUDE_PATH}/rom.h \
     ${INCLUDE_PATH}/mmc.h \
     ${INCLUDE_PATH}/cpu_in.h \
@@ -106,6 +109,7 @@ ${OBJECT_PATH}/gui${OBJEXT}: \
     ${INCLUDE_PATH}/genie.h \
     ${INCLUDE_PATH}/netplay.h \
     ${INCLUDE_PATH}/timing.h \
+    ${INCLUDE_PATH}/types.h \
     ${INCLUDE_PATH}/gui/objects.h \
     ${INCLUDE_PATH}/gui/menus.h \
     ${INCLUDE_PATH}/gui/dialogs.h \
@@ -218,6 +222,7 @@ ${OBJECT_PATH}/video${OBJEXT}: \
     ${INCLUDE_PATH}/audio.h \
     ${INCLUDE_PATH}/cpu.h \
     ${INCLUDE_PATH}/core.h \
+    ${INCLUDE_PATH}/log.h \
     ${INCLUDE_PATH}/misc.h \
     ${INCLUDE_PATH}/rom.h \
     ${INCLUDE_PATH}/mmc.h \
@@ -229,6 +234,7 @@ ${OBJECT_PATH}/video${OBJEXT}: \
     ${INCLUDE_PATH}/data.h \
     ${INCLUDE_PATH}/datafile.h \
     ${INCLUDE_PATH}/timing.h \
+    ${INCLUDE_PATH}/types.h \
     ${INCLUDE_PATH}/blit/2xsoe.h \
     ${INCLUDE_PATH}/blit/shared.h \
     ${INCLUDE_PATH}/blit/2xscl.h \

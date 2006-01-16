@@ -22,6 +22,7 @@
 #include "apu.h"
 #include "audio.h"
 #include "cpu.h"
+#include "debug.h"
 #include "misc.h"
 #include "papu.h"
 

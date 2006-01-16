@@ -27,6 +27,8 @@ You must read and accept the license prior to use.
 
 #define DATA(id)                (datafile_data [DATAFILE_ ##id].dat)
 
+#define DATA_INDEX(id)          DATAFILE_##id
+
 
 #define DATA_TO_BITMAP(id)      ((BITMAP *) DATA (id))
 
