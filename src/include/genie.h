@@ -1,36 +1,22 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
 
+   genie.h: Game Genie decoder macros and functions.
 
-/*
-
-FakeNES - A portable, Open Source NES emulator.
-
-Distributed under the Clarified Artistic License.
-
-genie.h: Game Genie decoder macros and functions.
-
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
-
-This is free software.  See 'LICENSE' for details.
-You must read and accept the license prior to use.
-
-*/
-
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
 
 #ifndef GENIE_H_INCLUDED
-
 #define GENIE_H_INCLUDED
-
-
 #include <ctype.h>
-
 #include <string.h>
-
-
+#include "common.h"
 #include "cpu.h"
-
-
-#include "misc.h"
+#include "types.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 /*
@@ -248,4 +234,7 @@ static int genie_decode (const UINT8 * code, UINT16 * address, UINT8 * value, UI
 }
 
 
-#endif /* ! GENIE_H_INCLUDED */
+#ifdef __cplusplus
+}
+#endif
+#endif   /* !GENIE_H_INCLUDED */

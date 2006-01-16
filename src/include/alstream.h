@@ -1,8 +1,16 @@
-#ifndef ALSTREAM_H_INCLUDED
-#define ALSTREAM_H_INCLUDED
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
+
+   alstream.h: Declarationsf or OpenAL AUDIOSTREAMs.
+
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
 
 #ifdef USE_OPENAL
 
+#ifndef ALSTREAM_H_INCLUDED
+#define ALSTREAM_H_INCLUDED
 #include <al.h>
 #ifdef __cplusplus
 extern "C" {

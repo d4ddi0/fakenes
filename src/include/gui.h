@@ -1,24 +1,16 @@
-/*
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
 
-FakeNES - A portable, Open Source NES emulator.
+   gui.h: Declarations for the object-based GUI.
 
-Distributed under the Clarified Artistic License.
-
-gui.c: Declarations for the object-based GUI.
-
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
-
-This is free software.  See 'LICENSE' for details.
-You must read and accept the license prior to use.
-
-*/
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
 
 #ifndef GUI_H_INCLUDED
 #define GUI_H_INCLUDED
 #include <allegro.h>
 #include "common.h"
-#include "misc.h"
 #include "types.h"
 #ifdef __cplusplus
 extern "C" {

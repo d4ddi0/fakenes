@@ -1,28 +1,19 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
 
+   netplay.h: Declarations for the NetPlay engine.
 
-/*
-
-FakeNES - A portable, Open Source NES emulator.
-
-Distributed under the Clarified Artistic License.
-
-netplay.h: Declarations for the NetPlay engine.
-
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
-
-This is free software.  See 'LICENSE' for details.
-You must read and accept the license prior to use.
-
-*/
-
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
 
 #ifndef NETPLAY_H_INCLUDED
-
 #define NETPLAY_H_INCLUDED
-
-
-#include "misc.h"
+#include "common.h"
+#include "types.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 #define NETPLAY_PORT    0x2a03
@@ -62,4 +53,7 @@ int netplay_open_client (const UINT8 *);
 void netplay_close_client (void);
 
 
-#endif /* ! NETPLAY_H_INCLUDED */
+#ifdef __cplusplus
+}
+#endif
+#endif   /* !NETPLAY_H_INCLUDED */

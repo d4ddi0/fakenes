@@ -1,47 +1,24 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
 
+   mmc.c: Implementation of the MMC emulation.
 
-/*
-
-FakeNES - A portable, Open Source NES emulator.
-
-Distributed under the Clarified Artistic License.
-
-mmc.c: Implementation of the MMC emulation.
-
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
-
-This is free software.  See 'LICENSE' for details.
-You must read and accept the license prior to use.
-
-*/
-
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
 
 #include <allegro.h>
-
-
 #include <stdio.h>
-
 #include <string.h>
-
-
+#include "common.h"
 #include "cpu.h"
-
 #include "gui.h"
-
 #include "mmc.h"
-
 #include "papu.h"
-
 #include "ppu.h"
-
 #include "rom.h"
-
-
-#include "misc.h"
-
-
 #include "timing.h"
+#include "types.h"
 
 
 static int mmc_name_table_count;

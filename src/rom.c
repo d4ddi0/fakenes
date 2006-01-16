@@ -1,48 +1,29 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
 
+   rom.c: Implementation of the ROM file handling.
 
-/*
-
-FakeNES - A portable, Open Source NES emulator.
-
-Distributed under the Clarified Artistic License.
-
-rom.c: Implementation of the ROM file handling.
-
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
-
-This is free software.  See 'LICENSE' for details.
-You must read and accept the license prior to use.
-
-*/
-
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
 
 #include <stdio.h>
-
 #include <stdlib.h>
-
 #include <string.h>
-
-
-#include "ppu.h"
-
-#include "rom.h"
-
+#include "common.h"
 #include "cpu.h"
-
-
-#include "misc.h"
-
+#include "ppu.h"
+#include "rom.h"
+#include "types.h"
+#ifdef USE_ZLIB
+#include "zlib.h"
+#include "unzip.h"
+#endif
 
 int rom_is_loaded = FALSE;
 
 
 #ifdef USE_ZLIB
-
-
-#include "zlib.h"
-
-#include "unzip.h"
 
 
 #define LR_FILE     gzFile

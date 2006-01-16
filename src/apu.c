@@ -21,10 +21,11 @@
 #include <time.h>
 #include "apu.h"
 #include "audio.h"
+#include "common.h"
 #include "cpu.h"
 #include "debug.h"
-#include "misc.h"
 #include "papu.h"
+#include "types.h"
 
 /* TODO: Would like more use of the below macro where possible.  Also would
    like the function reodered into public and private sections.  Alot of

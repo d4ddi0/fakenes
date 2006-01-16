@@ -1,47 +1,24 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
 
+   input.c: Implementation of the input abstraction.
 
-/*
-
-FakeNES - A portable, Open Source NES emulator.
-
-Distributed under the Clarified Artistic License.
-
-input.c: Implementation of the input abstraction.
-
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
-
-This is free software.  See 'LICENSE' for details.
-You must read and accept the license prior to use.
-
-*/
-
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
 
 #include <allegro.h>
-
-
 #include <stdio.h>
-
 #include <string.h>
-
-
 #include "audio.h"
-
+#include "common.h"
 #include "gui.h"
-
 #include "input.h"
-
 #include "ppu.h"
-
 #include "rom.h"
-
-#include "video.h"
-
-
-#include "misc.h"
-
-
 #include "timing.h"
+#include "types.h"
+#include "video.h"
 
 
 int input_enable_zapper = FALSE;

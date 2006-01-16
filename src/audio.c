@@ -1,50 +1,24 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
 
+   audio.c: Implementation of the audio interface.
 
-/*
-
-FakeNES - A portable, Open Source NES emulator.
-
-Distributed under the Clarified Artistic License.
-
-audio.c: Implementation of the audio interface.
-
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
-
-This is free software.  See 'LICENSE' for details.
-You must read and accept the license prior to use.
-
-*/
-
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
 
 #include <allegro.h>
-
-
 #include <stdio.h>
-
-
 #include "audio.h"
-
-#include "gui.h"
-
-
+#include "common.h"
 #include "debug.h"
-
-#include "misc.h"
-
-
+#include "gui.h"
 #include "timing.h"
-
-
+#include "types.h"
 #ifdef USE_OPENAL
-
 #include <al.h>
-
 #include <alut.h>
-
-
 #include "alstream.h"
-
 #endif
 
 

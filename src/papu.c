@@ -1,48 +1,24 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
 
+   papu.c: Implementation of the APU abstraction.
 
-/*
-
-FakeNES - A portable, Open Source NES emulator.
-
-Distributed under the Clarified Artistic License.
-
-papu.c: Implementation of the APU abstraction.
-
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
-
-This is free software.  See 'LICENSE' for details.
-You must read and accept the license prior to use.
-
-*/
-
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
 
 #include <allegro.h>
-
-
 #include <math.h>
-
 #include <stdio.h>
-
 #include <stdlib.h>
-
 #include <string.h>
-
-
 #include "audio.h"
-
 #include "apu.h"
-
+#include "common.h"
 #include "input.h"
-
 #include "papu.h"
-
-
-#include "misc.h"
-
-
 #include "timing.h"
-
+#include "types.h"
 
 static apu_t * default_apu = NIL;
 

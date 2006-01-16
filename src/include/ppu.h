@@ -1,34 +1,21 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
 
+   ppu.c: Declarations for the PPU emulation.
 
-/*
-
-FakeNES - A portable, Open Source NES emulator.
-
-Distributed under the Clarified Artistic License.
-
-ppu.c: Declarations for the PPU emulation.
-
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
-
-This is free software.  See 'LICENSE' for details.
-You must read and accept the license prior to use.
-
-*/
-
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
 
 #ifndef PPU_H_INCLUDED
-
 #define PPU_H_INCLUDED
-
-
 #include <allegro.h>
-
-
+#include "common.h"
 #include "rom.h"
-
-
-#include "misc.h"
+#include "types.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 #define PPU_DISPLAY_LINES   240
@@ -223,4 +210,7 @@ void ppu_save_state (PACKFILE *, int);
 void ppu_load_state (PACKFILE *, int);
 
 
-#endif /* ! PPU_H_INCLUDED */
+#ifdef __cplusplus
+}
+#endif
+#endif   /* !PPU_H_INCLUDED */

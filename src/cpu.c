@@ -1,48 +1,25 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
 
+   cpu.c: Implementation of the CPU abstraction.
 
-/*
-
-FakeNES - A portable, Open Source NES emulator.
-
-Distributed under the Clarified Artistic License.
-
-cpu.c: Implementation of the CPU abstraction.
-
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
-
-This is free software.  See 'LICENSE' for details.
-You must read and accept the license prior to use.
-
-*/
-
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
 
 #include <allegro.h>
-
-
 #include <stdio.h>
-
 #include <string.h>
-
-
-#include "cpu.h"
-
-#include "input.h"
-
-#include "mmc.h"
-
-#include "papu.h"
-
-#include "ppu.h"
-
-#include "rom.h"
-
-
+#include "common.h"
 #include "core.h"
-
-#include "misc.h"
-
+#include "cpu.h"
 #include "crc32.h"
+#include "input.h"
+#include "mmc.h"
+#include "papu.h"
+#include "ppu.h"
+#include "rom.h"
+#include "types.h"
 
 
 static UINT8 cpu_sram [8192];

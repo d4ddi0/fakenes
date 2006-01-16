@@ -1,34 +1,23 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
 
+   rom.h: Declarations for the ROM file handling.
 
-/*
-
-FakeNES - A portable, Open Source NES emulator.
-
-Distributed under the Clarified Artistic License.
-
-rom.c: Implementation of the ROM file handling.
-
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
-
-This is free software.  See 'LICENSE' for details.
-You must read and accept the license prior to use.
-
-*/
-
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
 
 #ifndef ROM_H_INCLUDED
-
 #define ROM_H_INCLUDED
-
-
-#include "misc.h"
+#include "common.h"
+#include "mmc.h"
+#include "types.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 typedef struct _ROM ROM;
-
-
-#include "mmc.h"
 
 
 ROM global_rom;
@@ -172,4 +161,7 @@ void free_rom (const ROM *);
 #define LAST_ROM_PAGE   (ROM_PAGE_16K (ROM_PRG_ROM_PAGES - 1))
 
 
-#endif /* ! ROM_H_INCLUDED */
+#ifdef __cplusplus
+}
+#endif
+#endif   /* !ROM_H_INCLUDED */

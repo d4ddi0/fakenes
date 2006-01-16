@@ -112,8 +112,9 @@ ${BINARY_DEBUG}: bootstrap \
 	${CC} ${OBJECTS} -o ${BINARY_DEBUG} -g -ggdb3 ${LIBRARIES}
 ${OFFSETS_INC}: \
     ${SOURCE_PATH}/coreoff.c \
+    ${INCLUDE_PATH}/common.h \
     ${INCLUDE_PATH}/core.h \
-    ${INCLUDE_PATH}/misc.h
+    ${INCLUDE_PATH}/types.h
 	${CC} $< -o ${COREOFF} -I${INCLUDE_PATH} -DOUTPUT=\"${OFFSETS_INC}\" ${LIBALLEG}
 	${COREOFF}
 	${RM} ${COREOFF}

@@ -1,36 +1,22 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
 
+   cpu.h: Declarations for the CPU abstraction.
 
-/*
-
-FakeNES - A portable, Open Source NES emulator.
-
-Distributed under the Clarified Artistic License.
-
-cpu.h: Declarations for the CPU abstraction.
-
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
-
-This is free software.  See 'LICENSE' for details.
-You must read and accept the license prior to use.
-
-*/
-
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
 
 #ifndef CPU_H_INCLUDED
-
 #define CPU_H_INCLUDED
-
-
 #include <allegro.h>
-
-
+#include "common.h"
 #include "core.h"
-
 #include "rom.h"
-
-
-#include "misc.h"
+#include "types.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 /* Use macros instead of inline functions for stack
@@ -196,4 +182,7 @@ void cpu_save_state (PACKFILE *, int);
 void cpu_load_state (PACKFILE *, int);
 
 
-#endif /* ! CPU_H_INCLUDED */
+#ifdef __cplusplus
+}
+#endif
+#endif   /* !CPU_H_INCLUDED */

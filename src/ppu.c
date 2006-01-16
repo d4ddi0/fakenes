@@ -1,51 +1,26 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
+
+   ppu.c: Implementation of the PPU emulation.
+
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
  
-
-/*
-
-FakeNES - A portable, Open Source NES emulator.
-
-Distributed under the Clarified Artistic License.
-
-ppu.c: Implementation of the PPU emulation.
-
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
-
-This is free software.  See 'LICENSE' for details.
-You must read and accept the license prior to use.
-
-*/
-
-
 #include <allegro.h>
-
-
 #include <stdio.h>
-
 #include <stdlib.h>
-
 #include <string.h>
-
-
+#include "common.h"
 #include "cpu.h"
-
-#include "input.h"
-
-#include "mmc.h"
-
-#include "ppu.h"
-
-#include "rom.h"
-
-#include "video.h"
-
-
-#include "misc.h"
-
-
-#include "timing.h"
-
 #include "crc32.h"
+#include "input.h"
+#include "mmc.h"
+#include "ppu.h"
+#include "rom.h"
+#include "timing.h"
+#include "types.h"
+#include "video.h"
 
 
 /* delay for sprite 0 collision detection in PPU clocks */

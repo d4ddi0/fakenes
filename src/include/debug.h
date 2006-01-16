@@ -1,7 +1,7 @@
 #ifndef DEBUG_H_INCLUDED
 #define DEBUG_H_INCLUDED
 #include <allegro.h>
-#include "misc.h"
+#include "common.h"
 #ifdef __cplusplus
 extern "C" {
 #endif

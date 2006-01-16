@@ -8,70 +8,34 @@
    You must read and accept the license prior to use. */
  
 #define ALLEGRO_USE_CONSOLE
-
 #include <allegro.h>
-
 #include "build.h"
-
-
 #include <stdio.h>
-
 #include <stdlib.h>
-
 #include <string.h>
-
 #include <time.h>
-
-
 #ifdef POSIX
-
 #include <sys/stat.h>
-
 #include <sys/types.h>
-
-
 #include <dirent.h>
-
 #include <errno.h>
-
-
 extern int errno;
-
 #endif
-
-
 #include "audio.h"
-
+#include "common.h"
 #include "cpu.h"
-
-#include "gui.h"
-
-#include "input.h"
-
-#include "log.h"
-
-#include "mmc.h"
-
-#include "papu.h"
-
-#include "ppu.h"
-
-#include "rom.h"
-
-#include "video.h"
-
-
 #include "data.h"
-
-#include "misc.h"
-
-#include "version.h"
-
-
+#include "gui.h"
+#include "input.h"
+#include "log.h"
+#include "mmc.h"
 #include "netplay.h"
-
-
+#include "papu.h"
+#include "ppu.h"
+#include "rom.h"
 #include "timing.h"
+#include "version.h"
+#include "video.h"
 
 
 int disable_gui = FALSE;

@@ -21,7 +21,6 @@
 #include "gui.h"
 #include "input.h"
 #include "log.h"
-#include "misc.h"
 #include "mmc.h"
 #include "netplay.h"
 #include "papu.h"

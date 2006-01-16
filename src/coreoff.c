@@ -1,26 +1,23 @@
-/*
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
 
-FakeNES - A portable, Open Source NES emulator.
+   coreoff.c: FN2A03 structure offsets generator tool.
 
-coreoff.c: FN2A03 structure offsets generator tool.
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use.
 
-Copyright (c) 2001-2006, Charles Bilyue' and Randy McDowell.
-
-This is free software.  See 'LICENSE' for details.
-You must read and accept the license prior to use.
-
- This file contains autogeneration of structure offsets for the
-x86-specific emulation core functions for the Ricoh RP2A03G CPU,
-as used in the Nintendo Famicom (Family Computer) and NES (Nintendo
-Entertainment System).
-
-*/
+   This file contains autogeneration of structure offsets for the
+   x86-specific emulation core functions for the Ricoh RP2A03G CPU, as used
+   in the Nintendo Famicom (Family Computer) and NES (Nintendo Entertainment
+   System). */
 
 #define ALLEGRO_USE_CONSOLE
 #include <allegro.h>
 #include <stdio.h>
+#include "common.h"
 #include "core.h"
-#include "misc.h"
+#include "types.h"
 
 #ifndef OUTPUT
 #error OUTPUT not defined.

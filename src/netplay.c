@@ -1,29 +1,19 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
 
+   netplay.c: Implementation of the NetPlay engine.
 
-/*
-
-FakeNES - A portable, Open Source NES emulator.
-
-Distributed under the Clarified Artistic License.
-
-netplay.c: Implementation of the NetPlay engine.
-
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
-
-This is free software.  See 'LICENSE' for details.
-You must read and accept the license prior to use.
-
-*/
-
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
 
 #include <allegro.h>
-
-
-#include "misc.h"
-
-
+#include "common.h"
 #include "netplay.h"
+#include "types.h"
+#ifdef USE_HAWKNL
+#include <nl.h>
+#endif
 
 
 int netplay_protocol = NETPLAY_PROTOCOL_TCPIP;
@@ -66,9 +56,6 @@ void netplay_exit (void)
 
 
 #ifdef USE_HAWKNL
-
-
-#include <nl.h>
 
 
 static NLsocket current_socket = NL_INVALID;

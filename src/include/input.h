@@ -1,31 +1,20 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
 
+   input.h: Declarations for the input abstraction.
 
-/*
-
-FakeNES - A portable, Open Source NES emulator.
-
-Distributed under Clarified Artistic License.
-
-input.h: Declarations for the input abstraction.
-
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
-
-This is free software.  See 'LICENSE' for details.
-You must read and accept the license prior to use.
-
-*/
-
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
 
 #ifndef INPUT_H_INCLUDED
-
 #define INPUT_H_INCLUDED
-
-
 #include <allegro.h>
-
-
-#include "misc.h"
+#include "common.h"
+#include "types.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 int input_enable_zapper;
@@ -144,4 +133,7 @@ void input_save_state (PACKFILE *, int);
 void input_load_state (PACKFILE *, int);
 
 
-#endif /* ! INPUT_H_INCLUDED */
+#ifdef __cplusplus
+}
+#endif
+#endif   /* !INPUT_H_INCLUDED */

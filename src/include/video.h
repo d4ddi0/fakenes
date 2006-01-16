@@ -1,33 +1,20 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
 
+   video.h: Declarations for the video interface.
 
-/*
-
-FakeNES - A portable, Open Source NES emulator.
-
-Distributed under the Clarified Artistic License.
-
-video.h: Declarations for the video interface.
-
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
-
-This is free software.  See 'LICENSE' for details.
-You must read and accept the license prior to use.
-
-*/
-
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
 
 #ifndef VIDEO_H_INCLUDED
-
 #define VIDEO_H_INCLUDED
-
-
+#include "common.h"
 #include "gui.h"
-
-
-#include "misc.h"
-
 #include "types.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 #define MAX_MESSAGES        10
@@ -171,4 +158,7 @@ static INLINE int fix (int value, int base, int limit)
 }
 
 
-#endif /* ! VIDEO_H_INCLUDED */
+#ifdef __cplusplus
+}
+#endif
+#endif   /* !VIDEO_H_INCLUDED */

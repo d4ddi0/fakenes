@@ -1,7 +1,17 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
+
+   alstream.c: Implementation of OpenAL AUDIOSTREAMs.
+
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
+
 #include <allegro.h>
 #include <stdlib.h>
 #include <string.h>
-#include "misc.h"
+#include "common.h"
+#include "types.h"
 
 #ifdef USE_OPENAL
 

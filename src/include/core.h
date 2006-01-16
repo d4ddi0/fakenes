@@ -1,30 +1,20 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
 
+   core.h: Declarations for the RP2A03G CPU emulation.
 
-/*
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use.
 
-FakeNES - A portable, Open Source NES emulator.
+   This file contains declarations necessary for the emulation core
+   functions for the Ricoh RP2A03G CPU, as well as preprocessor definitions
+   used to control the compilation and operation of the emulation core. */
 
-Distributed under the Clarified Artistic License.
-
-core.h: Declarations for the RP2A03G CPU emulation.
-
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
-
-This is free software.  See 'LICENSE' for details.
-You must read and accept the license prior to use.
-
-This file contains declarations necessary for the emulation
-core functions for the Ricoh RP2A03G CPU, as well as
-preprocessor definitions used to control the compilation
-and operation of the emulation core.
-
-*/
-
-
-#ifndef CORE_H
-#define CORE_H
-
+#ifndef CORE_H_INCLUDED
+#define CORE_H_INCLUDED
+#include "common.h"
+#include "types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -80,8 +70,6 @@ extern "C" {
   PAIR      union       sizeof(PAIR) == 2
    { UINT16 word; struct { UINT8 low, high } bytes; }
 */
-
-#include "misc.h"
 
 typedef struct
 {
@@ -183,5 +171,4 @@ UINT8 FN2A03_Debug(FN2A03 *R);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* CORE_H */
+#endif   /* !CORE_H_INCLUDED */
