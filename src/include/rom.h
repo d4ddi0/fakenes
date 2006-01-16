@@ -10,7 +10,6 @@
 #ifndef ROM_H_INCLUDED
 #define ROM_H_INCLUDED
 #include "common.h"
-#include "mmc.h"
 #include "types.h"
 #ifdef __cplusplus
 extern "C" {
@@ -19,6 +18,7 @@ extern "C" {
 
 typedef struct _ROM ROM;
 
+#include "mmc.h"
 
 ROM global_rom;
 

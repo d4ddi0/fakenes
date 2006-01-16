@@ -11,6 +11,7 @@
 #define MMC_H_INCLUDED
 #include <allegro.h>
 #include "common.h"
+#include "rom.h"
 #include "types.h"
 #ifdef __cplusplus
 extern "C" {
