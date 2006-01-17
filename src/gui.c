@@ -1799,13 +1799,12 @@ static int main_menu_load_rom (void)
 
          if (!netplay_server_active && !netplay_client_active)
          {
-            /* TODO: FIX MENU STUFF. */
-            ENABLE_MENU (main_menu, 2);
-            ENABLE_MENU (main_menu, 4);
-            ENABLE_MENU (main_menu, 6);
-            ENABLE_MENU (main_menu, 8);
-            ENABLE_MENU (main_menu, 10);
-            ENABLE_MENU (options_menu, 12);
+            ENABLE_MENU_ITEM(main_menu_resume);
+            ENABLE_MENU_ITEM(main_menu_reset);
+            ENABLE_SUBMENU(main_state_menu);
+            ENABLE_SUBMENU(main_replay_menu);
+            ENABLE_MENU_ITEM(main_menu_snapshot);
+            ENABLE_MENU_ITEM(options_menu_patches);
          }
 
          /* Update window title. */
@@ -2664,9 +2663,8 @@ static int options_audio_record_menu_start (void)
 {
    if (papu_start_record () == 0)
    {
-      /* TODO: FIX MENU STUFF. */
-      DISABLE_MENU (options_audio_record_menu, 0);
-      ENABLE_MENU (options_audio_record_menu, 2);
+      DISABLE_MENU_ITEM(options_audio_record_menu_start);
+      ENABLE_MENU_ITEM(options_audio_record_menu_stop);
    }
 
    message_local ("Audio recording session started.");
@@ -2678,9 +2676,8 @@ static int options_audio_record_menu_stop (void)
 {
    papu_stop_record ();
 
-   /* TODO: FIX MENU STUFF */
-   ENABLE_MENU (options_audio_record_menu, 0);
-   DISABLE_MENU (options_audio_record_menu, 2);
+   ENABLE_MENU_ITEM(options_audio_record_menu_start);
+   DISABLE_MENU_ITEM(options_audio_record_menu_stop);
 
    message_local ("Audio recording session stopped.");
 
