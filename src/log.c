@@ -8,7 +8,7 @@
 
 #define MAX_LOG_SIZE 65536
 
-static PACKFILE *log_file = NULL;
+static FILE *log_file = NULL;
 
 void log_open (const char *filename)
 {
@@ -19,12 +19,12 @@ void log_open (const char *filename)
    if (file_size (filename) >= MAX_LOG_SIZE)
    {
       /* Truncate. */
-      log_file = pack_fopen (filename, "w");
+      log_file = fopen (filename, "w");
    }
    else
    {
       /* Append. */
-      log_file = pack_fopen (filename, "a");
+      log_file = fopen (filename, "a");
    }
 
    if (!log_file)
@@ -38,7 +38,7 @@ void log_open (const char *filename)
 void log_close (void)
 {
    if (log_file)
-      pack_fclose (log_file);
+      fclose (log_file);
 }
 
 void log_printf (const UCHAR *message, ...)
@@ -55,5 +55,5 @@ void log_printf (const UCHAR *message, ...)
    uvszprintf (buffer, sizeof (buffer), message, format);
    va_end (format);
 
-   pack_fputs (buffer, log_file);
+   fputs (buffer, log_file);
 }
