@@ -229,10 +229,10 @@ DEFINE_MENU_CALLBACK(options_gui_theme_menu_panta);
 
 static const MENU options_gui_theme_menu_base[] =
 {
-   { "&1: Classic",            options_gui_theme_menu_classic,         NULL, 0, NULL },
-   { "&2: stainless Steel",    options_gui_theme_menu_stainless_steel, NULL, 0, NULL },
-   { "&3: Zero 4",             options_gui_theme_menu_zero_4,          NULL, 0, NULL },
-   { "&4: Panta (Unfinished)", options_gui_theme_menu_panta,           NULL, 0, NULL },
+   { "&1: Classic",         options_gui_theme_menu_classic,         NULL, 0, NULL },
+   { "&2: stainless Steel", options_gui_theme_menu_stainless_steel, NULL, 0, NULL },
+   { "&3: Zero 4",          options_gui_theme_menu_zero_4,          NULL, 0, NULL },
+   { "&4: Panta",           options_gui_theme_menu_panta,           NULL, 0, NULL },
    MENU_ENDCAP
 };
 

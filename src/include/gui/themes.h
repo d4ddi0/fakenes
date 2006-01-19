@@ -102,9 +102,9 @@ static const GUI_THEME panta_theme =
 
 static INLINE void set_panta_theme (void)
 {
-   gui_mouse_sprite = DATA_TO_BITMAP(GUI_ZERO_4_THEME_MOUSE_SPRITE);
-   background_image = DATA_TO_BITMAP(GUI_ZERO_4_THEME_BACKGROUND_IMAGE);
-   gui_image_palette = DATA_TO_RGB(GUI_ZERO_4_THEME_PALETTE);
+   gui_mouse_sprite = DATA_TO_BITMAP(GUI_PANTA_THEME_MOUSE_SPRITE);
+   background_image = DATA_TO_BITMAP(GUI_PANTA_THEME_BACKGROUND_IMAGE);
+   gui_image_palette = DATA_TO_RGB(GUI_PANTA_THEME_PALETTE);
 
    gui_theme_id = GUI_THEME_PANTA;
    gui_set_theme (&panta_theme);
