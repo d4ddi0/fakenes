@@ -105,7 +105,7 @@ int sl_frame (int message, DIALOG *dialog, int key)
          x1 = dialog->x;
          y1 = dialog->y;
          x2 = ((x1 + dialog->w) - 1);
-         y2 = ((x2 + dialog->h) - 1);
+         y2 = ((y1 + dialog->h) - 1);
 
          /* Calculate text coordinates. */
          tx = (x1 + 6);
