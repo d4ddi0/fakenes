@@ -155,7 +155,7 @@ static const DIALOG help_shortcuts_dialog_base[] =
 
 static const DIALOG help_about_dialog_base[] =
 {
-   { sl_frame,    0,   0,   240, 180, 0, 0, 0, 0,      0, 0, NULL, "About",              NULL },
+   { sl_frame,    0,   0,   240, 201, 0, 0, 0, 0,      0, 0, NULL, "About",              NULL },
    { sl_x_button, 220, 4,   16,  12,  0, 0, 0, D_EXIT, 0, 0, "X",  NULL,                 NULL },
    { sl_text,     9,   29,  0 ,  0,   0, 0, 0, 0,      0, 0, NULL, "Developers:",        NULL },
    { sl_text,     17,  41,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "Randy McDowell",     NULL },
@@ -165,9 +165,11 @@ static const DIALOG help_about_dialog_base[] =
    { sl_text,     9,   93,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "Contributors:",      NULL },
    { sl_text,     17,  105, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "Chris Sheehan",      NULL },
    { sl_text,     17,  117, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "Amit Vainsencher",   NULL },
-   { sl_text,     9,   133, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "Remnants:",          NULL },
-   { sl_text,     17,  145, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "Ian Smith",          NULL },
-   { sl_text,     27,  161, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "Thank you all!",     NULL },
+   { sl_text,     17,  129, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "Astxist",            NULL },
+   { sl_text,     17,  141, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "Mexandrew",          NULL },
+   { sl_text,     9,   157, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "Remnants:",          NULL },
+   { sl_text,     17,  169, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "Ian Smith",          NULL },
+   { sl_text,     27,  185, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "Thank you all!",     NULL },
    { sl_text,     129, 29,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "Special thanks to:", NULL },
    { sl_text,     137, 41,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "xodnizel",           NULL },
    { sl_text,     137, 53,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "Matthew Conte",      NULL },
@@ -177,7 +179,7 @@ static const DIALOG help_about_dialog_base[] =
    { sl_text,     137, 101, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "pagefault",          NULL },
    { sl_text,     137, 113, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "piinyouri",          NULL },
    { sl_text,     137, 125, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "aprentice",          NULL },
-   { sl_text,     137, 137, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "Astxist",            NULL },
+   { sl_text,     137, 137, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "sarencele",          NULL },
    { sl_text,     137, 149, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "Tim Inman",          NULL },
    { sl_text,     137, 165, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "... and many more!", NULL },
    DIALOG_FRAME_ENDCAP
