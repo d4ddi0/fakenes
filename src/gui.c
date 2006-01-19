@@ -893,7 +893,7 @@ int gui_init (void)
    CHECK_MENU_ITEM(options_video_palette_menu_modern_ntsc);
 
    /* Load configuration */
-   gui_theme_id = get_config_int ("gui", "theme", 0);
+   gui_theme_id = get_config_int ("gui", "theme", GUI_THEME_PANTA);
 
    /* Cheap hack to fix palette. */
    gui_is_active = TRUE;
