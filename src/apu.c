@@ -1267,6 +1267,20 @@ void apu_process (void *buffer, int num_samples, int dither)
             accum <<= 2;
          }
 
+         if (apu->filter_list & PAPU_FILTER_DELTA_SIGMA_FILTER)
+         {
+            /* Delta-Sigma filter by Siloh. */
+
+            int old_accum;
+
+            old_accum = accum;
+            accum = ((accum + accum + accum + prev_sample) >> 2);
+            next_sample = accum;
+            accum += (accum - old_accum);
+            accum -= (int)ROUND(((rand () / ((float)RAND_MAX - 1)) * (accum
+               * 0.01)));
+         }
+
          prev_sample = next_sample;
 
          /* prevent clipping */
@@ -1536,6 +1550,29 @@ void apu_process_stereo (void *buffer, int num_samples, int dither, int
             accum_left <<= 2;
             accum_right -= prev_sample_right;
             accum_right <<= 2;
+         }
+
+         if (apu->filter_list & PAPU_FILTER_DELTA_SIGMA_FILTER)
+         {
+            /* Delta-Sigma filter by Siloh. */
+
+            int old_accum_left, old_accum_right;
+
+            old_accum_left = accum_left;
+            accum_left = ((accum_left + accum_left + accum_left +
+               prev_sample_left) >> 2);
+            next_sample_left = accum_left;
+            accum_left += (accum_left - old_accum_left);
+            accum_left -= (int)ROUND(((rand () / ((float)RAND_MAX - 1)) *
+               (accum_left * 0.01)));
+
+            old_accum_right = accum_right;
+            accum_right = ((accum_right + accum_right + accum_right +
+               prev_sample_right) >> 2);
+            next_sample_right = accum_right;
+            accum_right += (accum_right - old_accum_right);
+            accum_right -= (int)ROUND(((rand () / ((float)RAND_MAX - 1)) *
+               (accum_right * 0.01)));
          }
 
          prev_sample_left = next_sample_left;

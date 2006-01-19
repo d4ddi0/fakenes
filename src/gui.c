@@ -686,10 +686,11 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(options_audio_effects_menu_spatial_stereo_mode_2, (papu_spatial_stereo == PAPU_SPATIAL_STEREO_MODE_2));
    TOGGLE_MENU_ITEM(options_audio_effects_menu_spatial_stereo_mode_3, (papu_spatial_stereo == PAPU_SPATIAL_STEREO_MODE_3));
 
-   TOGGLE_MENU_ITEM(options_audio_filters_menu_low_pass_mode_1, (papu_get_filter_list () & PAPU_FILTER_LOW_PASS_MODE_1));
-   TOGGLE_MENU_ITEM(options_audio_filters_menu_low_pass_mode_2, (papu_get_filter_list () & PAPU_FILTER_LOW_PASS_MODE_2));
-   TOGGLE_MENU_ITEM(options_audio_filters_menu_low_pass_mode_3, (papu_get_filter_list () & PAPU_FILTER_LOW_PASS_MODE_3));
-   TOGGLE_MENU_ITEM(options_audio_filters_menu_high_pass,       (papu_get_filter_list () & PAPU_FILTER_HIGH_PASS));
+   TOGGLE_MENU_ITEM(options_audio_filters_menu_low_pass_mode_1,    (papu_get_filter_list () & PAPU_FILTER_LOW_PASS_MODE_1));
+   TOGGLE_MENU_ITEM(options_audio_filters_menu_low_pass_mode_2,    (papu_get_filter_list () & PAPU_FILTER_LOW_PASS_MODE_2));
+   TOGGLE_MENU_ITEM(options_audio_filters_menu_low_pass_mode_3,    (papu_get_filter_list () & PAPU_FILTER_LOW_PASS_MODE_3));
+   TOGGLE_MENU_ITEM(options_audio_filters_menu_high_pass,          (papu_get_filter_list () & PAPU_FILTER_HIGH_PASS));
+   TOGGLE_MENU_ITEM(options_audio_filters_menu_delta_sigma_filter, (papu_get_filter_list () & PAPU_FILTER_DELTA_SIGMA_FILTER));
 
    TOGGLE_MENU_ITEM(options_audio_channels_menu_square_wave_a, papu_enable_square_1);
    TOGGLE_MENU_ITEM(options_audio_channels_menu_square_wave_b, papu_enable_square_2);
@@ -2553,6 +2554,24 @@ static int options_audio_filters_menu_high_pass (void)
    update_menus ();
 
    message_local ("Toggled high pass audio filter.");
+
+   return (D_O_K);
+}
+
+static int options_audio_filters_menu_delta_sigma_filter (void)
+{
+   LIST filters;
+
+   filters = papu_get_filter_list ();
+
+   if (filters & PAPU_FILTER_DELTA_SIGMA_FILTER)
+      papu_set_filter_list ((filters & ~PAPU_FILTER_DELTA_SIGMA_FILTER));
+   else
+      papu_set_filter_list ((filters | PAPU_FILTER_DELTA_SIGMA_FILTER));
+
+   update_menus ();
+
+   message_local ("Toggled delta-sigma audio filter.");
 
    return (D_O_K);
 }

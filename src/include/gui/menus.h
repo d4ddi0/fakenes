@@ -367,13 +367,15 @@ DEFINE_MENU_CALLBACK(options_audio_filters_menu_low_pass_mode_1);
 DEFINE_MENU_CALLBACK(options_audio_filters_menu_low_pass_mode_2);
 DEFINE_MENU_CALLBACK(options_audio_filters_menu_low_pass_mode_3);
 DEFINE_MENU_CALLBACK(options_audio_filters_menu_high_pass);
+DEFINE_MENU_CALLBACK(options_audio_filters_menu_delta_sigma_filter);
 
 static const MENU options_audio_filters_menu_base[] =
 {     
-   { "&Low Pass (Mode 1)", options_audio_filters_menu_low_pass_mode_1, NULL, 0, NULL },
-   { "L&ow Pass (Mode 2)", options_audio_filters_menu_low_pass_mode_2, NULL, 0, NULL },
-   { "Lo&w Pass (Mode 3)", options_audio_filters_menu_low_pass_mode_3, NULL, 0, NULL },
-   { "&High Pass",         options_audio_filters_menu_high_pass,       NULL, 0, NULL },
+   { "&Low Pass (Mode 1)",  options_audio_filters_menu_low_pass_mode_1,    NULL, 0, NULL },
+   { "L&ow Pass (Mode 2)",  options_audio_filters_menu_low_pass_mode_2,    NULL, 0, NULL },
+   { "Lo&w Pass (Mode 3)",  options_audio_filters_menu_low_pass_mode_3,    NULL, 0, NULL },
+   { "&High Pass",          options_audio_filters_menu_high_pass,          NULL, 0, NULL },
+   { "&Delta-Sigma Filter", options_audio_filters_menu_delta_sigma_filter, NULL, 0, NULL },
    MENU_ENDCAP
 };
 
