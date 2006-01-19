@@ -231,7 +231,7 @@ int sl_frame (int message, DIALOG *dialog, int key)
          solid_mode ();
 
          dialog_x = dialog->x + mx - ox;
-         dialog_y = dialog->y + mx - oy;
+         dialog_y = dialog->y + my - oy;
    
          restart_dialog = TRUE;
    
