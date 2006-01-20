@@ -4,9 +4,12 @@ include config.mk
 
 BINARY_PATH = ..
 
-.PHONY: all clean distclean
+.PHONY: all clean depend distclean
 all:
 	${MAKE} -C src -f ${MAKEFILE} all
+
+depend:
+	${MAKE} -C src -f ${MAKEFILE} depend
 
 clean:
 	${MAKE} -C src -f ${MAKEFILE} clean

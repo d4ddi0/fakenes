@@ -33,27 +33,27 @@ TARGET_ARCH ?= i486
 TARGET_CPU ?= i686
 MFLAGS := -march=${TARGET_ARCH} -mtune=${TARGET_CPU}
 ifdef DEBUG
-    OFLAGS = -O0 -g -ggdb3
-    DFLAGS = -DDEBUG -DLSB_FIRST
+   OFLAGS = -O0 -g -ggdb3
+   DFLAGS = -DDEBUG -DLSB_FIRST
 else
-    OFLAGS = -O3 -fomit-frame-pointer -fno-exceptions \
-    -funroll-loops -ffast-math -fforce-addr -fforce-mem -fstrength-reduce \
-    -fthread-jumps -fexpensive-optimizations -foptimize-sibling-calls \
-    -fstrict-aliasing -maccumulate-outgoing-args -fschedule-insns \
-    -fschedule-insns2
-    DFLAGS = -DLSB_FIRST
+   OFLAGS = -O3 -fomit-frame-pointer -fno-exceptions \
+   -funroll-loops -ffast-math -fforce-addr -fforce-mem -fstrength-reduce \
+   -fthread-jumps -fexpensive-optimizations -foptimize-sibling-calls \
+   -fstrict-aliasing -maccumulate-outgoing-args -fschedule-insns \
+   -fschedule-insns2
+   DFLAGS = -DLSB_FIRST
 endif
 ifndef NO_ZLIB
-    DFLAGS += -DUSE_ZLIB
+   DFLAGS += -DUSE_ZLIB
 endif
 ifndef NO_HAWKNL
-    DFLAGS += -DUSE_HAWKNL
+   DFLAGS += -DUSE_HAWKNL
 endif
 ifdef USE_OPENAL
-    DFLAGS += -DUSE_OPENAL
+   DFLAGS += -DUSE_OPENAL
 endif
 ifneq (${ASM_CORE}, 0)
-    DFLAGS += -DNO_C_CORE
+   DFLAGS += -DNO_C_CORE
 endif
 CFLAGS := -I${INCLUDE_PATH} ${MFLAGS} ${OFLAGS} -Wall -Wno-unused ${DFLAGS}
 
@@ -62,45 +62,45 @@ CPPFLAGS := -I${INCLUDE_PATH} ${DFLAGS}
 
 # NASM flags.
 ifdef DEBUG
-    NASMOFLAGS = -g
+   NASMOFLAGS = -g
 else
-    NASMOFLAGS = -O3
+   NASMOFLAGS = -O3
 endif
 NASMFLAGS := -I${INCLUDE_PATH}/ ${NASMOFLAGS} -f win32 -DC_LABELS_PREFIX=_
 
 # Objects.
 OBJECTS := ${OBJECT_PATH}/alstream${OBJEXT} \
-    ${OBJECT_PATH}/apu${OBJEXT} \
-    ${OBJECT_PATH}/audio${OBJEXT} \
-    ${OBJECT_PATH}/core${OBJEXT} \
-    ${OBJECT_PATH}/cpu${OBJEXT} \
-    ${OBJECT_PATH}/data${OBJEXT} \
-    ${OBJECT_PATH}/gui${OBJEXT} \
-    ${OBJECT_PATH}/input${OBJEXT} \
-    ${OBJECT_PATH}/log${OBJEXT} \
-    ${OBJECT_PATH}/papu${OBJEXT} \
-    ${OBJECT_PATH}/ppu${OBJEXT} \
-    ${OBJECT_PATH}/rom${OBJEXT} \
-    ${OBJECT_PATH}/main${OBJEXT} \
-    ${OBJECT_PATH}/mmc${OBJEXT} \
-    ${OBJECT_PATH}/netplay${OBJEXT} \
-    ${OBJECT_PATH}/video${OBJEXT} \
-    ${OBJECT_PATH}/crc32${OBJEXT} \
-    ${OBJECT_PATH}/unzip${OBJEXT}
+   ${OBJECT_PATH}/apu${OBJEXT} \
+   ${OBJECT_PATH}/audio${OBJEXT} \
+   ${OBJECT_PATH}/core${OBJEXT} \
+   ${OBJECT_PATH}/cpu${OBJEXT} \
+   ${OBJECT_PATH}/data${OBJEXT} \
+   ${OBJECT_PATH}/gui${OBJEXT} \
+   ${OBJECT_PATH}/input${OBJEXT} \
+   ${OBJECT_PATH}/log${OBJEXT} \
+   ${OBJECT_PATH}/papu${OBJEXT} \
+   ${OBJECT_PATH}/ppu${OBJEXT} \
+   ${OBJECT_PATH}/rom${OBJEXT} \
+   ${OBJECT_PATH}/main${OBJEXT} \
+   ${OBJECT_PATH}/mmc${OBJEXT} \
+   ${OBJECT_PATH}/netplay${OBJEXT} \
+   ${OBJECT_PATH}/video${OBJEXT} \
+   ${OBJECT_PATH}/crc32${OBJEXT} \
+   ${OBJECT_PATH}/unzip${OBJEXT}
 ifneq (${ASM_CORE}, 0)
-    OBJECTS += ${OBJECT_PATH}/corex86${OBJEXT}
+   OBJECTS += ${OBJECT_PATH}/corex86${OBJEXT}
 endif
 
 # Libraries.
 LIBALLEG ?= -lalleg
 LIBRARIES := ${LIBALLEG}
 ifndef NO_ZLIB
-    LIBZ ?= -lz
-    LIBRARIES += ${LIBZ}
+   LIBZ ?= -lz
+   LIBRARIES += ${LIBZ}
 endif
 ifndef NO_HAWKNL
-    LIBNL ?= -lNL
-    LIBRARIES += ${LIBNL}
+   LIBNL ?= -lNL
+   LIBRARIES += ${LIBNL}
 endif
 ifdef USE_OPENAL
    LIBALUT ?= -lalut
@@ -110,44 +110,41 @@ endif
 
 RESOURCES := ${SOURCE_PATH}/support/resource.o
 
+# Dependancies.
+-include ${DEPEND}
+include build/common.mk
+
 # Targets.  
-.PHONY: all depend bootstrap clean distclean
+.PHONY: all clean depend distclean
 ifdef DEBUG
-    all: ${BINARY_DEBUG}
+   all: ${BINARY_DEBUG}
 else
-    all: ${BINARY}
+   all: ${BINARY}
 endif
-depend:
+${OBJECT_PATH}:
+	${MKDIR} ${OBJECT_PATH}
+${DEPEND}: ${OBJECT_PATH}
 	@echo Generating dependancy list.
 	${CC} -DDEPENDANCIES_ONLY -M -MG *${SRCEXT} ${CPPFLAGS} > ${DEPEND}
-${DEPEND}: depend
-bootstrap:
+depend: ${DEPEND}
+${BINARY}: ${OBJECTS}
 	@echo Building.
-	${MKDIR} ${OBJECT_PATH}
-${BINARY}: bootstrap \
-    ${OBJECTS}
 	${CC} ${OBJECTS} ${RESOURCES} -o ${BINARY} -s ${LIBRARIES}
-${BINARY_DEBUG}: bootstrap \
-    ${OBJECTS}
+${BINARY_DEBUG}: ${OBJECTS}
+	@echo Building.
 	${CC} ${OBJECTS} ${RESOURCES} -o ${BINARY_DEBUG} -g -ggdb3 ${LIBRARIES}
-${OFFSETS_INC}: \
-    ${SOURCE_PATH}/coreoff.c \
-    ${INCLUDE_PATH}/common.h \
-    ${INCLUDE_PATH}/core.h \
-    ${INCLUDE_PATH}/types.h
+${OFFSETS_INC}: ${SOURCE_PATH}/coreoff.c \
+      ${INCLUDE_PATH}/common.h \
+      ${INCLUDE_PATH}/core.h \
+      ${INCLUDE_PATH}/types.h
 	${CC} $< -o ${COREOFF} -I${INCLUDE_PATH} -DOUTPUT=\"${OFFSETS_INC}\" ${LIBALLEG}
 	${COREOFF}
 	${RM} ${COREOFF}
 .SUFFIXES: .asm .c
-${OBJECT_PATH}/%${OBJEXT}: \
-    %.asm
+${OBJECT_PATH}/%${OBJEXT}: %.asm
 	${NASM} $< -o $@ ${NASMFLAGS}
-${OBJECT_PATH}/%${OBJEXT}: \
-    %.c
+${OBJECT_PATH}/%${OBJEXT}: %.c
 	${CC} -c $< -o $@ ${CFLAGS}
-
-include build/common.mk
-include ${DEPEND}
 
 clean:
 	${RM} ${OBJECTS} ${BINARY} ${BINARY_DEBUG}
