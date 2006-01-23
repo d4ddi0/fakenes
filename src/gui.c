@@ -705,7 +705,7 @@ static INLINE void update_menus (void)
 #ifdef ALLEGRO_DOS
 
    TOGGLE_MENU_ITEM(options_video_driver_dos_menu_vga,           (gfx_driver->id == GFX_VGA));
-   TOGGLE_MENU_ITEM(options_video_driver_dos_menu_vga_modex,     (gfx_driver->id == GFX_MODEX));
+   TOGGLE_MENU_ITEM(options_video_driver_dos_menu_vga_mode_x,    (gfx_driver->id == GFX_MODEX));
    TOGGLE_MENU_ITEM(options_video_driver_dos_menu_vesa,          (gfx_driver->id == GFX_VESA1));
    TOGGLE_MENU_ITEM(options_video_driver_dos_menu_vesa_2_banked, (gfx_driver->id == GFX_VESA2B));
    TOGGLE_MENU_ITEM(options_video_driver_dos_menu_vesa_2_linear, (gfx_driver->id == GFX_VESA2L));
@@ -726,7 +726,7 @@ static INLINE void update_menus (void)
 #ifdef ALLEGRO_LINUX
 
    TOGGLE_MENU_ITEM(options_video_driver_linux_menu_vga,         (gfx_driver->id == GFX_VGA));
-   TOGGLE_MENU_ITEM(options_video_driver_linux_menu_vga_modex,   (gfx_driver->id == GFX_MODEX));
+   TOGGLE_MENU_ITEM(options_video_driver_linux_menu_vga_mode_x,  (gfx_driver->id == GFX_MODEX));
    TOGGLE_MENU_ITEM(options_video_driver_linux_menu_vesa_vbe_af, (gfx_driver->id == GFX_VBEAF));
 #ifdef GFX_FBCON
    TOGGLE_MENU_ITEM(options_video_driver_linux_menu_framebuffer, (gfx_driver->id == GFX_FBCON));
