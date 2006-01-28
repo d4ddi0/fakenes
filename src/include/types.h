@@ -40,7 +40,7 @@ typedef signed char INT8;
       typedef unsigned long int UINT32;
       typedef signed long int INT32;
 #  else
-#     error "No 32-bit type could be found."
+#     error No 32-bit type could be found.
 #  endif
 
 #else /* POSIX */
