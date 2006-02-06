@@ -3311,9 +3311,16 @@ static char *options_patches_dialog_list_filler (int index, int *list_size)
       text = options_patches_dialog_list_texts[index];
 
       STRING_CLEAR(text);
+      /* Temporary fix for DJGPP missing "snprintf".  Will be replaced by
+         Unicode functions when the patch system is made Unicode-safe. */
+      /*
       snprintf (text, STRING_SIZE, "$%04x -$%02x +$%02x %s ",
          patch->address, patch->match_value, patch->value, (patch->active ?
             "Active" : " Idle "));
+      */
+      sprintf (text, "$%04x -$%02x +$%02x %s ", patch->address,
+         patch->match_value, patch->value, (patch->active ? "Active" :
+            " Idle "));
 
       if (patch->title)
          strncat (text, patch->title, STRING_SIZE);
