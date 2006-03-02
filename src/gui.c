@@ -3351,6 +3351,7 @@ static int options_input_dialog_player_select (DIALOG * dialog)
    options_input_dialog[9].flags &= ~D_SELECTED;
    options_input_dialog[10].flags &= ~D_SELECTED;
    options_input_dialog[11].flags &= ~D_SELECTED;
+   options_input_dialog[12].flags &= ~D_SELECTED;
    options_input_dialog[(7 + selected_player_device)].flags |= D_SELECTED;
 
    scare_mouse ();
@@ -3358,6 +3359,7 @@ static int options_input_dialog_player_select (DIALOG * dialog)
    object_message (&options_input_dialog[9], MSG_DRAW, 0);
    object_message (&options_input_dialog[10], MSG_DRAW, 0);
    object_message (&options_input_dialog[11], MSG_DRAW, 0);
+   object_message (&options_input_dialog[12], MSG_DRAW, 0);
    unscare_mouse ();
 
    return (D_O_K);
@@ -3412,6 +3414,11 @@ static int options_input_dialog_set_buttons (DIALOG *dialog)
     
          return (D_O_K);
       }
+   }
+   else if (selected_player_device == INPUT_DEVICE_MOUSE)
+   {
+      alert ("- Error -", "", "Unable to set buttons for mouse at this"
+         " time.", "&OK", NULL, 'o', 0);
    }
 
    switch (selected_player_device)
@@ -3517,6 +3524,9 @@ static int options_input_dialog_set_buttons (DIALOG *dialog)
 
          break;
       }
+
+      case INPUT_DEVICE_MOUSE:
+         break;
 
       default:
          WARN_GENERIC();

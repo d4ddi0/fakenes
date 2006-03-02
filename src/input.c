@@ -632,6 +632,46 @@ static INLINE void do_joystick_2 (int player)
 }
 
 
+/* TODO: Move into configurable variables. */
+
+#define MOUSE_SENSETIVITY_X   (SCREEN_W / 128)
+
+#define MOUSE_SENSETIVITY_Y   (SCREEN_H / 128)
+
+
+static INLINE void do_mouse (int player)
+{
+    int mickey_x;
+
+    int mickey_y;
+
+
+    buttons [player] [0] = (mouse_b & 2); /* A. */
+
+    buttons [player] [1] = (mouse_b & 1); /* B. */
+
+
+    /* TODO: Support for mice with more than 2 buttons. */
+
+    buttons [player] [2] = (key [key1_scancodes [2]] ? 1 : 0);
+
+    buttons [player] [3] = (key [key1_scancodes [3]] ? 1 : 0);
+
+
+    get_mouse_mickeys (&mickey_x, &mickey_y);
+
+
+    buttons [player] [4] = ((mickey_y < -MOUSE_SENSETIVITY_Y) ? 1 : 0);
+
+    buttons [player] [5] = ((mickey_y > +MOUSE_SENSETIVITY_Y) ? 1 : 0);
+
+
+    buttons [player] [6] = ((mickey_x < -MOUSE_SENSETIVITY_X) ? 1 : 0);
+
+    buttons [player] [7] = ((mickey_x > +MOUSE_SENSETIVITY_X) ? 1 : 0);
+}
+
+
 static int frames = 0;
 
 
@@ -979,6 +1019,17 @@ int input_process (void)
     
     
                     do_joystick_2 (player);
+    
+    
+                    break;
+
+
+                case INPUT_DEVICE_MOUSE:
+    
+                    poll_mouse ();
+    
+    
+                    do_mouse (player);
     
     
                     break;
