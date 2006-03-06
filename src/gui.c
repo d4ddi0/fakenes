@@ -792,7 +792,10 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(options_video_blitter_menu_desii,           (video_get_blitter () == VIDEO_BLITTER_DESII));
    TOGGLE_MENU_ITEM(options_video_blitter_menu_super_2xscl,     (video_get_blitter () == VIDEO_BLITTER_SUPER_2XSCL));
    TOGGLE_MENU_ITEM(options_video_blitter_menu_ultra_2xscl,     (video_get_blitter () == VIDEO_BLITTER_ULTRA_2XSCL));
+   TOGGLE_MENU_ITEM(options_video_blitter_menu_hq2x,            (video_get_blitter () == VIDEO_BLITTER_HQ2X));
    TOGGLE_MENU_ITEM(options_video_blitter_menu_interpolated_3x, (video_get_blitter () == VIDEO_BLITTER_INTERPOLATED_3X));
+   TOGGLE_MENU_ITEM(options_video_blitter_menu_hq3x,            (video_get_blitter () == VIDEO_BLITTER_HQ3X));
+   TOGGLE_MENU_ITEM(options_video_blitter_menu_hq4x,            (video_get_blitter () == VIDEO_BLITTER_HQ4X));
    TOGGLE_MENU_ITEM(options_video_blitter_menu_stretched,       (video_get_blitter () == VIDEO_BLITTER_STRETCHED));
 
    TOGGLE_MENU_ITEM(options_video_filters_menu_scanlines_25_percent,  (video_get_filter_list () & VIDEO_FILTER_SCANLINES_LOW));
@@ -2517,7 +2520,10 @@ BLITTER_MENU_HANDLER(2xscl,           "2xSCL engine",       VIDEO_BLITTER_2XSCL)
 BLITTER_MENU_HANDLER(desii,           "des 2 engine",       VIDEO_BLITTER_DESII)
 BLITTER_MENU_HANDLER(super_2xscl,     "super 2xSCL engine", VIDEO_BLITTER_SUPER_2XSCL)
 BLITTER_MENU_HANDLER(ultra_2xscl,     "ultra 2xSCL engine", VIDEO_BLITTER_ULTRA_2XSCL)
+BLITTER_MENU_HANDLER(hq2x,            "hq2x filter",        VIDEO_BLITTER_HQ2X)
 BLITTER_MENU_HANDLER(interpolated_3x, "interpolated (3x)",  VIDEO_BLITTER_INTERPOLATED_3X)
+BLITTER_MENU_HANDLER(hq3x,            "hq3x filter",        VIDEO_BLITTER_HQ3X)
+BLITTER_MENU_HANDLER(hq4x,            "hq4x filter",        VIDEO_BLITTER_HQ4X)
 BLITTER_MENU_HANDLER(stretched,       "stretched",          VIDEO_BLITTER_STRETCHED)
 
 #undef BLITTER_MENU_HANDLER

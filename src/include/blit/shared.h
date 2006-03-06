@@ -4,6 +4,7 @@
 /* Pixel access macros. */
 
 #define FAST_GETPIXEL8(bmp, x, y)      (bmp->line[y][x])
+#define FAST_GETPIXEL32(bmp, x, y)     (((UINT32 *)bmp->line[y])[x])
 
 #define FAST_PUTPIXEL8(bmp, x, y, c)   (bmp->line[y][x] = c)
 #define FAST_PUTPIXEL16(bmp, x, y, c)  (((UINT16 *)bmp->line[y])[x] = c)

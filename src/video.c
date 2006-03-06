@@ -147,6 +147,8 @@ static int using_custom_font = FALSE;
 
 #include "blit/des.h"
 
+#include "blit/hq.h"
+
 #include "blit/interp.h"
 
 
@@ -523,9 +525,17 @@ static INLINE void display_status (BITMAP * bitmap, int color)
 
 static INLINE int select_blitter (void)
 {
+    if ((SCREEN_W >= 1024) && (SCREEN_H >= 960))
+    {
+        return (VIDEO_BLITTER_HQ4X);
+    }
+    if ((SCREEN_W >= 768) && (SCREEN_H >= 720))
+    {
+        return (VIDEO_BLITTER_HQ3X);
+    }
     if ((SCREEN_W >= 512) && (SCREEN_H >= 480))
     {
-        return (VIDEO_BLITTER_ULTRA_2XSCL);
+        return (VIDEO_BLITTER_HQ2X);
     }
     else
     {
@@ -568,6 +578,8 @@ static INLINE void color_deemphasis_overlay (void)
 
         case VIDEO_BLITTER_ULTRA_2XSCL:
 
+        case VIDEO_BLITTER_HQ2X:
+
             width = 512;
 
             height = 2;
@@ -578,9 +590,21 @@ static INLINE void color_deemphasis_overlay (void)
 
         case VIDEO_BLITTER_INTERPOLATED_3X:
 
+        case VIDEO_BLITTER_HQ3X:
+
             width = 768;
 
             height = 3;
+
+
+            break;
+
+
+        case VIDEO_BLITTER_HQ4X:
+
+            width = 1024;
+
+            height = 4;
 
 
             break;
@@ -738,9 +762,33 @@ void video_blit (BITMAP * bitmap)
             break;
 
 
+        case VIDEO_BLITTER_HQ2X:
+
+            blit_hq2x (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
+
+
+            break;
+
+
         case VIDEO_BLITTER_INTERPOLATED_3X:
 
             blit_interpolated_3x (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
+
+
+            break;
+
+
+        case VIDEO_BLITTER_HQ3X:
+
+            blit_hq3x (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
+
+
+            break;
+
+
+        case VIDEO_BLITTER_HQ4X:
+
+            blit_hq4x (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
 
 
             break;
@@ -1350,6 +1398,8 @@ void video_set_blitter (int blitter)
 
         case VIDEO_BLITTER_ULTRA_2XSCL:
 
+        case VIDEO_BLITTER_HQ2X:
+
             if (! ((SCREEN_W < 512) || (SCREEN_H < 480)))
             {
                 blit_x_offset = ((SCREEN_W / 2) - 256);
@@ -1369,6 +1419,8 @@ void video_set_blitter (int blitter)
 
         case VIDEO_BLITTER_INTERPOLATED_3X:
 
+        case VIDEO_BLITTER_HQ3X:
+
             if (! ((SCREEN_W < 768) || (SCREEN_H < 720)))
             {
                 blit_x_offset = ((SCREEN_W / 2) - 384);
@@ -1380,6 +1432,25 @@ void video_set_blitter (int blitter)
                 blit_x_offset = ((SCREEN_W / 2) - (384 / 2));
             
                 blit_y_offset = ((SCREEN_H / 2) - (360 / 2));
+            }
+
+
+            break;
+
+
+        case VIDEO_BLITTER_HQ4X:
+
+            if (! ((SCREEN_W < 1024) || (SCREEN_H < 960)))
+            {
+                blit_x_offset = ((SCREEN_W / 2) - 512);
+    
+                blit_y_offset = ((SCREEN_H / 2) - 480);
+            }
+            else
+            {
+                blit_x_offset = ((SCREEN_W / 2) - (512 / 2));
+            
+                blit_y_offset = ((SCREEN_H / 2) - (480 / 2));
             }
 
 

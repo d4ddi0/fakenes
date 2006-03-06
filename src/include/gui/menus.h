@@ -662,22 +662,28 @@ DEFINE_MENU_CALLBACK(options_video_blitter_menu_2xscl);
 DEFINE_MENU_CALLBACK(options_video_blitter_menu_desii);
 DEFINE_MENU_CALLBACK(options_video_blitter_menu_super_2xscl);
 DEFINE_MENU_CALLBACK(options_video_blitter_menu_ultra_2xscl);
+DEFINE_MENU_CALLBACK(options_video_blitter_menu_hq2x);
 DEFINE_MENU_CALLBACK(options_video_blitter_menu_interpolated_3x);
+DEFINE_MENU_CALLBACK(options_video_blitter_menu_hq3x);
+DEFINE_MENU_CALLBACK(options_video_blitter_menu_hq4x);
 DEFINE_MENU_CALLBACK(options_video_blitter_menu_stretched);
 
 static const MENU options_video_blitter_menu_base[] =
 {
-   { "&Automatic",          options_video_blitter_menu_automatic,       NULL, 0, NULL },
+   { "&Automatic",           options_video_blitter_menu_automatic,       NULL, 0, NULL },
    MENU_SPLITTER,
-   { "&1: Normal",          options_video_blitter_menu_normal,          NULL, 0, NULL },
-   { "&2: DES",             options_video_blitter_menu_des,             NULL, 0, NULL },
-   { "&3: Interpolated 2X", options_video_blitter_menu_interpolated_2x, NULL, 0, NULL },
-   { "&4: 2xSCL",           options_video_blitter_menu_2xscl,           NULL, 0, NULL },
-   { "&5: DESii",           options_video_blitter_menu_desii,           NULL, 0, NULL },
-   { "&6: Super 2xSCL",     options_video_blitter_menu_super_2xscl,     NULL, 0, NULL },
-   { "&7: Ultra 2xSCL",     options_video_blitter_menu_ultra_2xscl,     NULL, 0, NULL },
-   { "&8: Interpolated 3X", options_video_blitter_menu_interpolated_3x, NULL, 0, NULL },
-   { "&9: Stretched",       options_video_blitter_menu_stretched,       NULL, 0, NULL },
+   { " &1: Normal",          options_video_blitter_menu_normal,          NULL, 0, NULL },
+   { " &2: DES",             options_video_blitter_menu_des,             NULL, 0, NULL },
+   { " &3: Interpolated 2X", options_video_blitter_menu_interpolated_2x, NULL, 0, NULL },
+   { " &4: 2xSCL",           options_video_blitter_menu_2xscl,           NULL, 0, NULL },
+   { " &5: DESii",           options_video_blitter_menu_desii,           NULL, 0, NULL },
+   { " &6: Super 2xSCL",     options_video_blitter_menu_super_2xscl,     NULL, 0, NULL },
+   { " &7: Ultra 2xSCL",     options_video_blitter_menu_ultra_2xscl,     NULL, 0, NULL },
+   { " &8: HQ2X",            options_video_blitter_menu_hq2x,            NULL, 0, NULL },
+   { " &9: Interpolated 3X", options_video_blitter_menu_interpolated_3x, NULL, 0, NULL },
+   { "1&0: HQ3X",            options_video_blitter_menu_hq3x,            NULL, 0, NULL },
+   { "11: &HQ4X",            options_video_blitter_menu_hq4x,            NULL, 0, NULL },
+   { "12: &Stretched",       options_video_blitter_menu_stretched,       NULL, 0, NULL },
    MENU_ENDCAP
 };
 
