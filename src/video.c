@@ -143,19 +143,11 @@ static int video_palette_id = -1;
 static int using_custom_font = FALSE;
 
 
-#include "blit/2xsoe.h"
-
 #include "blit/2xscl.h"
 
-#include "blit/interp2x.h"
+#include "blit/des.h"
 
-#include "blit/interp3x.h"
-
-#include "blit/s2xsoe.h"
-
-#include "blit/s2xscl.h"
-
-#include "blit/u2xscl.h"
+#include "blit/interp.h"
 
 
 int video_init (void)
@@ -537,7 +529,7 @@ static INLINE int select_blitter (void)
     }
     else
     {
-        return (VIDEO_BLITTER_NORMAL);
+        return (VIDEO_BLITTER_DES);
     }
 }
 
@@ -556,6 +548,8 @@ static INLINE void color_deemphasis_overlay (void)
     {
         case VIDEO_BLITTER_NORMAL:
 
+        case VIDEO_BLITTER_DES:
+
             width = 256;
 
             height = 1;
@@ -566,11 +560,9 @@ static INLINE void color_deemphasis_overlay (void)
 
         case VIDEO_BLITTER_INTERPOLATED_2X:
 
-        case VIDEO_BLITTER_2XSOE:
-
         case VIDEO_BLITTER_2XSCL:
 
-        case VIDEO_BLITTER_SUPER_2XSOE:
+        case VIDEO_BLITTER_DESII:
 
         case VIDEO_BLITTER_SUPER_2XSCL:
 
@@ -698,22 +690,9 @@ void video_blit (BITMAP * bitmap)
             break;
 
 
-        case VIDEO_BLITTER_STRETCHED:
+        case VIDEO_BLITTER_DES:
 
-            /* See comment in video_set_blitter(). */
-
-            if (color_depth != 8)
-            {
-                blit (video_buffer, stretch_buffer, 0, 0, 0, 0, 256, 240);
-
-                stretch_blit (stretch_buffer, screen_buffer, 0, first_blit_line, 256, (last_blit_line - first_blit_line + 1),
-                    blit_x_offset, blit_y_offset, stretch_width, stretch_height);
-            }
-            else
-            {
-                stretch_blit (video_buffer, screen_buffer, 0, first_blit_line, 256, (last_blit_line - first_blit_line + 1),
-                    blit_x_offset, blit_y_offset, stretch_width, stretch_height);
-            }
+            blit_des (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
 
 
             break;
@@ -727,22 +706,6 @@ void video_blit (BITMAP * bitmap)
             break;
 
 
-        case VIDEO_BLITTER_INTERPOLATED_3X:
-
-            blit_interpolated_3x (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
-
-
-            break;
-
-
-        case VIDEO_BLITTER_2XSOE:
-
-            blit_2xsoe (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
-
-
-            break;
-
-
         case VIDEO_BLITTER_2XSCL:
 
             blit_2xscl (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
@@ -751,9 +714,9 @@ void video_blit (BITMAP * bitmap)
             break;
 
 
-        case VIDEO_BLITTER_SUPER_2XSOE:
+        case VIDEO_BLITTER_DESII:
 
-            blit_super_2xsoe (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
+            blit_desii (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
 
 
             break;
@@ -770,6 +733,35 @@ void video_blit (BITMAP * bitmap)
         case VIDEO_BLITTER_ULTRA_2XSCL:
 
             blit_ultra_2xscl (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
+
+
+            break;
+
+
+        case VIDEO_BLITTER_INTERPOLATED_3X:
+
+            blit_interpolated_3x (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
+
+
+            break;
+
+
+        case VIDEO_BLITTER_STRETCHED:
+
+            /* See comment in video_set_blitter(). */
+
+            if (color_depth != 8)
+            {
+                blit (video_buffer, stretch_buffer, 0, 0, 0, 0, 256, 240);
+
+                stretch_blit (stretch_buffer, screen_buffer, 0, first_blit_line, 256, (last_blit_line - first_blit_line + 1),
+                    blit_x_offset, blit_y_offset, stretch_width, stretch_height);
+            }
+            else
+            {
+                stretch_blit (video_buffer, screen_buffer, 0, first_blit_line, 256, (last_blit_line - first_blit_line + 1),
+                    blit_x_offset, blit_y_offset, stretch_width, stretch_height);
+            }
 
 
             break;
@@ -857,12 +849,10 @@ void video_blit (BITMAP * bitmap)
 
 void video_zoom (int x_factor, int y_factor)
 {
-    if (((blitter_type == VIDEO_BLITTER_2XSOE) || (blitter_type == VIDEO_BLITTER_SUPER_2XSOE)) ||
-        ((blitter_type == VIDEO_BLITTER_2XSCL) || (blitter_type == VIDEO_BLITTER_SUPER_2XSCL)) ||
-        (blitter_type == VIDEO_BLITTER_ULTRA_2XSCL) ||
-        ((blitter_type == VIDEO_BLITTER_INTERPOLATED_2X) || (blitter_type == VIDEO_BLITTER_INTERPOLATED_3X)))
+    if ((blitter_type != VIDEO_BLITTER_NORMAL) &&
+        (blitter_type != VIDEO_BLITTER_STRETCHED))
     {
-        return;
+      return;
     }
 
 
@@ -1340,6 +1330,8 @@ void video_set_blitter (int blitter)
     {
         case VIDEO_BLITTER_NORMAL:
 
+        case VIDEO_BLITTER_DES:
+
             blit_x_offset = ((SCREEN_W / 2) - (256 / 2));
         
             blit_y_offset = ((SCREEN_H / 2) - (240 / 2));
@@ -1348,37 +1340,11 @@ void video_set_blitter (int blitter)
             break;
 
 
-        case VIDEO_BLITTER_STRETCHED:
-
-            blit_x_offset = ((SCREEN_W / 2) - (stretch_width / 2));
-        
-            blit_y_offset = ((SCREEN_H / 2) - (stretch_height / 2));
-
-
-            /* Yuck, no color conversion in stretch_blit! */
-
-            if (color_depth != 8)
-            {
-                if (stretch_buffer)
-                {
-                    destroy_bitmap (stretch_buffer);
-                }
-
-
-                stretch_buffer = create_bitmap (256, 240);
-            }
-
-
-            break;
-
-
         case VIDEO_BLITTER_INTERPOLATED_2X:
 
-        case VIDEO_BLITTER_2XSOE:
+        case VIDEO_BLITTER_DESII:
 
         case VIDEO_BLITTER_2XSCL:
-
-        case VIDEO_BLITTER_SUPER_2XSOE:
 
         case VIDEO_BLITTER_SUPER_2XSCL:
 
@@ -1414,6 +1380,30 @@ void video_set_blitter (int blitter)
                 blit_x_offset = ((SCREEN_W / 2) - (384 / 2));
             
                 blit_y_offset = ((SCREEN_H / 2) - (360 / 2));
+            }
+
+
+            break;
+
+
+        case VIDEO_BLITTER_STRETCHED:
+
+            blit_x_offset = ((SCREEN_W / 2) - (stretch_width / 2));
+        
+            blit_y_offset = ((SCREEN_H / 2) - (stretch_height / 2));
+
+
+            /* Yuck, no color conversion in stretch_blit! */
+
+            if (color_depth != 8)
+            {
+                if (stretch_buffer)
+                {
+                    destroy_bitmap (stretch_buffer);
+                }
+
+
+                stretch_buffer = create_bitmap (256, 240);
             }
 
 

@@ -786,14 +786,14 @@ static INLINE void update_menus (void)
 
    TOGGLE_MENU_ITEM(options_video_blitter_menu_automatic,       (video_get_blitter () == VIDEO_BLITTER_AUTOMATIC));
    TOGGLE_MENU_ITEM(options_video_blitter_menu_normal,          (video_get_blitter () == VIDEO_BLITTER_NORMAL));
-   TOGGLE_MENU_ITEM(options_video_blitter_menu_stretched,       (video_get_blitter () == VIDEO_BLITTER_STRETCHED));
+   TOGGLE_MENU_ITEM(options_video_blitter_menu_des,             (video_get_blitter () == VIDEO_BLITTER_DES));
    TOGGLE_MENU_ITEM(options_video_blitter_menu_interpolated_2x, (video_get_blitter () == VIDEO_BLITTER_INTERPOLATED_2X));
-   TOGGLE_MENU_ITEM(options_video_blitter_menu_interpolated_3x, (video_get_blitter () == VIDEO_BLITTER_INTERPOLATED_3X));
-   TOGGLE_MENU_ITEM(options_video_blitter_menu_2xsoe,           (video_get_blitter () == VIDEO_BLITTER_2XSOE));
    TOGGLE_MENU_ITEM(options_video_blitter_menu_2xscl,           (video_get_blitter () == VIDEO_BLITTER_2XSCL));
-   TOGGLE_MENU_ITEM(options_video_blitter_menu_super_2xsoe,     (video_get_blitter () == VIDEO_BLITTER_SUPER_2XSOE));
+   TOGGLE_MENU_ITEM(options_video_blitter_menu_desii,           (video_get_blitter () == VIDEO_BLITTER_DESII));
    TOGGLE_MENU_ITEM(options_video_blitter_menu_super_2xscl,     (video_get_blitter () == VIDEO_BLITTER_SUPER_2XSCL));
    TOGGLE_MENU_ITEM(options_video_blitter_menu_ultra_2xscl,     (video_get_blitter () == VIDEO_BLITTER_ULTRA_2XSCL));
+   TOGGLE_MENU_ITEM(options_video_blitter_menu_interpolated_3x, (video_get_blitter () == VIDEO_BLITTER_INTERPOLATED_3X));
+   TOGGLE_MENU_ITEM(options_video_blitter_menu_stretched,       (video_get_blitter () == VIDEO_BLITTER_STRETCHED));
 
    TOGGLE_MENU_ITEM(options_video_filters_menu_scanlines_25_percent,  (video_get_filter_list () & VIDEO_FILTER_SCANLINES_LOW));
    TOGGLE_MENU_ITEM(options_video_filters_menu_scanlines_50_percent,  (video_get_filter_list () & VIDEO_FILTER_SCANLINES_MEDIUM));
@@ -2511,14 +2511,14 @@ static int options_video_colors_menu_true_color_32_bit (void)
 
 BLITTER_MENU_HANDLER(automatic,       "automatic",          VIDEO_BLITTER_AUTOMATIC)
 BLITTER_MENU_HANDLER(normal,          "normal",             VIDEO_BLITTER_NORMAL)
-BLITTER_MENU_HANDLER(stretched,       "stretched",          VIDEO_BLITTER_STRETCHED)
+BLITTER_MENU_HANDLER(des,             "des engine",         VIDEO_BLITTER_DES)
 BLITTER_MENU_HANDLER(interpolated_2x, "interpolated (2x)",  VIDEO_BLITTER_INTERPOLATED_2X)
-BLITTER_MENU_HANDLER(interpolated_3x, "interpolated (3x)",  VIDEO_BLITTER_INTERPOLATED_3X)
-BLITTER_MENU_HANDLER(2xsoe,           "2xSOE engine",       VIDEO_BLITTER_2XSOE)
 BLITTER_MENU_HANDLER(2xscl,           "2xSCL engine",       VIDEO_BLITTER_2XSCL)
-BLITTER_MENU_HANDLER(super_2xsoe,     "super 2xSOE engine", VIDEO_BLITTER_SUPER_2XSOE)
+BLITTER_MENU_HANDLER(desii,           "des 2 engine",       VIDEO_BLITTER_DESII)
 BLITTER_MENU_HANDLER(super_2xscl,     "super 2xSCL engine", VIDEO_BLITTER_SUPER_2XSCL)
 BLITTER_MENU_HANDLER(ultra_2xscl,     "ultra 2xSCL engine", VIDEO_BLITTER_ULTRA_2XSCL)
+BLITTER_MENU_HANDLER(interpolated_3x, "interpolated (3x)",  VIDEO_BLITTER_INTERPOLATED_3X)
+BLITTER_MENU_HANDLER(stretched,       "stretched",          VIDEO_BLITTER_STRETCHED)
 
 #undef BLITTER_MENU_HANDLER
 

@@ -21,37 +21,21 @@ static INLINE BOOL blitter_size_check (BITMAP *bmp, int width, int height)
 
    y = ((bmp->h / 2) - (text_height (font) / 2));
 
-   textout_centre_ex (bmp, font, "Your resolution too low.", (bmp->w / 2),
-      y, VIDEO_COLOR_WHITE, -1);
+   textout_centre_ex (bmp, font, "Your resolution is set too low.", (bmp->w
+      / 2), y, VIDEO_COLOR_WHITE, -1);
 
    y += (text_height (font) + 1);
 
    textprintf_centre_ex (bmp, font, (bmp->w / 2), y, VIDEO_COLOR_WHITE, -1,
-      "At least %dx%d is required.", width, height);
+      "At least %dx%d pixels are required.", width, height);
                                                                                                                 \
    return (FALSE);
 }
 
-#define BLITTER_SIZE_CHECK(width, height)                                                                         \
-    if ((target -> w < width) || (target -> h < height))                                                          \
-    {                                                                                                             \
-        /* Center error message on target. */                                                                     \
-                                                                                                                  \
-        y += ((source -> h / 2) - (((text_height (font) * 2) + (text_height (font) / 2)) / 2));                   \
-                                                                                                                  \
-                                                                                                                  \
-        textout_ex (target, font, "Target dimensions are not large enough.", x, y, VIDEO_COLOR_WHITE, -1);        \
-                                                                                                                  \
-                                                                                                                  \
-        textprintf_ex (target, font, x, ((y + text_height (font)) + (text_height (font) /  2)),                   \
-            VIDEO_COLOR_WHITE, -1, "At least %dx%d pixels are required.", width, height);                         \
-                                                                                                                  \
-                                                                                                                  \
-        return;                                                                                                   \
-    }
-
-static INLINE int mix (int color_a, int color_b)
+static INLINE int mixpal (int color_a, int color_b)
 {
+   /* Paletted mixing routine (3:1). */
+
    const RGB *ca = &internal_palette[color_a];
    const RGB *cb = &internal_palette[color_b];
    int r, g, b;
@@ -64,8 +48,31 @@ static INLINE int mix (int color_a, int color_b)
    return (video_create_color (r, g, b));
 }
 
-static INLINE int unfilter_filter (int color_a, int color_b)
+static INLINE int mix (int color_a, int color_b)
 {
+   /* True color mixing routine (3:1). */
+
+   int r, g, b;
+
+   r = (getr (color_a) * 3);
+   g = (getg (color_a) * 3);
+   b = (getb (color_a) * 3);
+
+   r += getr (color_b);
+   g += getg (color_b);
+   b += getb (color_b);
+
+   r /= 4;
+   g /= 4;
+   b /= 4;
+
+   return (video_create_color (r, g, b));
+}
+
+static INLINE int unmix (int color_a, int color_b)
+{
+   /* A variant of an unsharp mask, without the blur part. */
+
    int ra, ga, ba;
    int rb, gb, bb;
    int r, g, b;
