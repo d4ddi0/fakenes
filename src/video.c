@@ -39,7 +39,10 @@ static BITMAP * mouse_sprite_remove_buffer = NIL;
 static BITMAP * stretch_buffer = NIL;
 
 
-USTRING video_messages[MAX_MESSAGES];
+#define MAX_MESSAGES    10
+
+
+static USTRING video_messages[MAX_MESSAGES];
 
 
 volatile int video_message_duration = 0;
@@ -1759,6 +1762,9 @@ static void draw_messages (void)
     int silver;
 
 
+    BOOL box = (input_mode & INPUT_MODE_CHAT);
+
+
     height = get_messages_height ();
 
 
@@ -1780,14 +1786,17 @@ static void draw_messages (void)
     y2 = (SCREEN_H - 1);
 
 
-    drawing_mode (DRAW_MODE_TRANS, NIL, 0, 0);
-
-    rectfill (screen_buffer, x, y, x2, y2, gray);
-
-
-    solid_mode ();
-
-    rect (screen_buffer, x, y, x2, y2, VIDEO_COLOR_WHITE);
+    if (box)
+    {
+        drawing_mode (DRAW_MODE_TRANS, NIL, 0, 0);
+    
+        rectfill (screen_buffer, x, y, x2, y2, gray);
+    
+    
+        solid_mode ();
+    
+        rect (screen_buffer, x, y, x2, y2, VIDEO_COLOR_WHITE);
+    }
 
 
     x = 3;
@@ -1798,7 +1807,10 @@ static void draw_messages (void)
     x2 = ((SCREEN_W - 1) - 1);
 
 
-    hline (screen_buffer, x, y, x2, VIDEO_COLOR_BLACK);
+    if (box)
+    {
+        hline (screen_buffer, x, y, x2, VIDEO_COLOR_BLACK);
+    }
 
 
     x = 0;
@@ -1806,7 +1818,10 @@ static void draw_messages (void)
     y = ((SCREEN_H - (height_text + 5)) - 1);
 
 
-    hline (screen_buffer, x, y, x2, VIDEO_COLOR_WHITE);
+    if (box)
+    {
+        hline (screen_buffer, x, y, x2, VIDEO_COLOR_WHITE);
+    }
 
 
     x = 3;
@@ -1814,7 +1829,10 @@ static void draw_messages (void)
     y ++;
 
 
-    hline (screen_buffer, x, y, x2, VIDEO_COLOR_BLACK);
+    if (box)
+    {
+        hline (screen_buffer, x, y, x2, VIDEO_COLOR_BLACK);
+    }
 
 
     x = 4;
@@ -1878,7 +1896,7 @@ static void draw_messages (void)
     y = ((SCREEN_H - (height_text + 2)) - 1);
 
 
-    if (input_mode & INPUT_MODE_CHAT)
+    if (box)
     {
         int length;
 

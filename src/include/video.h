@@ -17,12 +17,6 @@ extern "C" {
 #endif
 
 
-#define MAX_MESSAGES        10
-
-
-USTRING video_messages [MAX_MESSAGES];
-
-
 volatile int video_message_duration;
 
 
