@@ -840,23 +840,32 @@ static INLINE void draw_background (void)
 
    if (background_image)
    {
-      BITMAP *buffer;
-
-      /* Hack to handle color conversion. */
-
-      buffer = create_bitmap (background_image->w, background_image->h);
-      if (!buffer)
+      if (background_image->h < 200)
       {
-         WARN("Failed to create background buffer");
-         return;
+         blit (background_image, bmp, 0, 0, ((bmp->w / 2) -
+            (background_image->w / 2)), ((bmp->h / 2) - (background_image->h
+               / 2)), background_image->w, background_image->h);
       }
-
-      blit (background_image, buffer, 0, 0, 0, 0, background_image->w,
-         background_image->h);
-      stretch_blit (buffer, bmp, 0, 0, buffer->w, buffer->h, 0, 0, bmp->w,
-         bmp->h);
-
-      destroy_bitmap (buffer);
+      else
+      {
+         BITMAP *buffer;
+   
+         /* Hack to handle color conversion. */
+   
+         buffer = create_bitmap (background_image->w, background_image->h);
+         if (!buffer)
+         {
+            WARN("Failed to create background buffer");
+            return;
+         }
+   
+         blit (background_image, buffer, 0, 0, 0, 0, background_image->w,
+            background_image->h);
+         stretch_blit (buffer, bmp, 0, 0, buffer->w, buffer->h, 0, 0,
+            bmp->w, bmp->h);
+   
+         destroy_bitmap (buffer);
+      }
    }
 }
 
