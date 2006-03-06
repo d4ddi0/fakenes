@@ -16,6 +16,7 @@
 #include "input.h"
 #include "ppu.h"
 #include "rom.h"
+#include "save.h"
 #include "timing.h"
 #include "types.h"
 #include "video.h"
@@ -33,11 +34,6 @@ UINT8 input_chat_text [256];
 
 
 int input_chat_offset = 0;
-
-
-PACKFILE * replay_file = NIL;
-
-PACKFILE * replay_file_chunk = NIL;
 
 
 static int wait_frames = 0;
@@ -692,25 +688,26 @@ int input_process (void)
     {
         for (player = 0; player < 4; player ++)
         {
-            UINT8 byte;
+            BOOL eof;
+
+            UINT8 data;
 
 
             int button;
 
 
-            byte = pack_getc (replay_file_chunk);
+            eof = get_replay_data (&data);
 
 
             for (button = 0; button < 8; button ++)
             {
-                buttons [player] [button] = ((byte & (1 << button)) ? 1 : 0);
+                buttons [player] [button] = ((data & (1 << button)) ? 1 : 0);
             }
 
 
-            if (pack_feof (replay_file_chunk))
+            if (eof)
             {
                 gui_stop_replay ();
-
 
                 return (FALSE);
             }
@@ -1052,7 +1049,7 @@ int input_process (void)
     
             if (input_mode & INPUT_MODE_REPLAY_RECORD)
             {
-                UINT8 byte = 0;
+                UINT8 data = 0;
     
     
                 int button;
@@ -1062,12 +1059,12 @@ int input_process (void)
                 {
                     if (buttons [player] [button])
                     {
-                        byte |= (1 << button);
+                        data |= (1 << button);
                     }
                 }
     
-    
-                pack_putc (byte, replay_file_chunk);
+
+                save_replay_data (data);
             }
         }
     }

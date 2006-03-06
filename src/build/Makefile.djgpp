@@ -75,6 +75,7 @@ OBJECTS := ${OBJECT_PATH}/alstream${OBJEXT} \
    ${OBJECT_PATH}/papu${OBJEXT} \
    ${OBJECT_PATH}/ppu${OBJEXT} \
    ${OBJECT_PATH}/rom${OBJEXT} \
+   ${OBJECT_PATH}/save${OBJEXT} \
    ${OBJECT_PATH}/main${OBJEXT} \
    ${OBJECT_PATH}/mmc${OBJEXT} \
    ${OBJECT_PATH}/netplay${OBJEXT} \

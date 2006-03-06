@@ -125,11 +125,6 @@ enum
 };
 
 
-PACKFILE * replay_file;
-
-PACKFILE * replay_file_chunk;
-
-
 void input_save_state (PACKFILE *, int);
 
 void input_load_state (PACKFILE *, int);

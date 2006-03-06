@@ -26,6 +26,7 @@
 #include "papu.h"
 #include "ppu.h"
 #include "rom.h"
+#include "save.h"
 #include "timing.h"
 #include "types.h"
 #include "version.h"
@@ -1137,285 +1138,6 @@ static int netplay_handler (int message, DIALOG *dialog, int key)
 
 /* --- Utility functions. --- */
 
-/* Max in-file title length for save states and replays. */
-#define SAVE_TITLE_SIZE    16
-
-/* Text that appears in "unused" menu slots for states and replays. */
-#define UNUSED_SLOT_TEXT   "Empty"
-
-static INLINE BOOL fnss_save (PACKFILE *file, const UCHAR *title)
-{
-   UINT16 version;
-
-   /* Core FNSS (FakeNES save state) saving code.  Returns TRUE if the save
-      suceeded or FALSE if the save failed (which can't happen). */
-
-   RT_ASSERT(file);
-   RT_ASSERT(title);
-
-   /* Set version. */
-   version = 0x0100;
-
-   /* Write signature. */
-   pack_fwrite ("FNSS", 4, file);
-   
-   /* Write version number. */
-   pack_iputw (version, file);
-   
-   /* Write title. */
-   pack_fwrite (title, SAVE_TITLE_SIZE, file);
-   
-   /* Write CRC32s. */
-   pack_iputl (global_rom.trainer_crc32, file);
-   pack_iputl (global_rom.prg_rom_crc32, file);
-   pack_iputl (global_rom.chr_rom_crc32, file);
-   
-   /* Write CPU chunk. */
-   pack_fwrite ("CPU\0", 4, file);
-   cpu_save_state (file, version);
-   
-   /* Write PPU chunk. */
-   pack_fwrite ("PPU\0", 4, file);
-   ppu_save_state (file, version);
-   
-   /* Write PAPU chunk. */
-   pack_fwrite ("PAPU", 4, file);
-   papu_save_state (file, version);
-   
-   /* Write MMC chunk. */
-   pack_fwrite ("MMC\0", 4, file);
-   mmc_save_state (file, version);
-   
-   /* Write CTRL chunk. */
-   pack_fwrite ("CTRL", 4, file);
-   input_save_state (file, version);
-
-   /* Return success. */
-   return (TRUE);
-}
-
-static INLINE BOOL fnss_load (PACKFILE *file)
-{
-   /* Core FNSS (FakeNES save state) loading code.  Returns TRUE if the load
-      suceeded or FALSE if the load failed. */
-
-   UINT8 signature[4];
-   UINT16 version;
-   UCHAR title[SAVE_TITLE_SIZE];
-   UINT32 trainer_crc;
-   UINT32 prg_rom_crc;
-   UINT32 chr_rom_crc;
-
-   RT_ASSERT(file);
-
-   /* Fetch signature. */
-   pack_fread (signature, 4, file);
-
-   /* Verify signature. */
-   if (strncmp (signature, "FNSS", 4))
-   {
-      gui_message (GUI_ERROR_COLOR, "Machine state file is invalid.");
-    
-      return (FALSE);
-   }
-
-   /* Fetch version number. */
-   version = pack_igetw (file);
-
-   /* Verify version number. */
-   if (version > 0x0100)
-   {
-      gui_message (GUI_ERROR_COLOR, "Machine state file is of a future "
-         "version.");
-    
-      return (FALSE);
-   }
-
-   /* Fetch save title. */
-   pack_fread (title, SAVE_TITLE_SIZE, file);
-
-   /* Fetch CRC32s. */
-   trainer_crc = pack_igetl (file);
-   prg_rom_crc = pack_igetl (file);
-   chr_rom_crc = pack_igetl (file);
-
-   /* Verify CRC32s. */
-   if ((trainer_crc != global_rom.trainer_crc32) ||
-       (prg_rom_crc != global_rom.prg_rom_crc32) ||
-       (chr_rom_crc != global_rom.chr_rom_crc32))
-   {
-      gui_message (GUI_ERROR_COLOR, "Machine state file is for a different "
-         "ROM.");
-    
-      return (FALSE);
-   }
-
-   /* Reset the virtual machine to it's initial state. */
-   machine_reset ();
-    
-   /* We ignore signatures for now, this will be used in the future to load
-      chunks in any order. */
-
-   /* Load CPU chunk. */
-   pack_fread (signature, 4, file);
-   cpu_load_state (file, version);
-
-   /* Load PPU chunk. */
-   pack_fread (signature, 4, file);
-   ppu_load_state (file, version);
-
-   /* Load PAPU chunk. */
-   pack_fread (signature, 4, file);
-   papu_load_state (file, version);
-
-   /* Load MMC chunk. */
-   pack_fread (signature, 4, file);
-   mmc_load_state (file, version);
-
-   /* Load CTRL chunk. */
-   pack_fread (signature, 4, file);
-   input_load_state (file, version);
-
-   /* Return success. */
-   return (TRUE);
-}
-
-static INLINE UCHAR *get_save_filename (UCHAR *filename, const UCHAR *ext,
-   int size)
-{
-   /* THis function builds a path and filename suitable for the storage of
-      save data, using the name of the ROM combined with the extension
-      'ext', and stores up to 'size' Unicode characters in 'filename'. */
-
-   USTRING path;
-
-   RT_ASSERT(filename);
-   RT_ASSERT(ext);
-
-   USTRING_CLEAR(path);
-   ustrncat (path, get_config_string ("gui", "save_path", "./"), (sizeof
-      (path) - 1));
-   put_backslash (path);
-   ustrncat (path, get_filename (global_rom.filename), (sizeof (path) - 1));
-   
-   replace_extension (path, path, ext, sizeof (path));
-
-   /* Copy to output. */
-   USTRING_CLEAR_SIZE(path, size);
-   ustrncat (filename, path, (size - 1));
-
-   return (filename);
-}
-
-static INLINE UCHAR *get_state_filename (UCHAR *filename, int index, int
-   size)
-{
-
-   /* This function generates the path and filename for the state file
-      associated with the state slot 'index'.  State files are stored in
-      the save path, and have a .fn# extension. */
-
-   USTRING ext;
-
-   RT_ASSERT(filename);
-
-   /* Build extension. */
-   uszprintf (ext, sizeof (ext), "fn%d", index);
-
-   /* Generate filename. */
-   get_save_filename (filename, ext, size);
-
-   return (filename);
-}
-
-static INLINE UCHAR *get_replay_filename (UCHAR *filename, int index, int
-   size)
-{
-   /* This function generates the path and filename for the replay file
-      associated with the replay slot 'index'.  Replay files are stored in
-      the save path, and have a .fr# extension. */
-
-   USTRING ext;
-
-   RT_ASSERT(filename);
-
-   /* Build extension. */
-   uszprintf (ext, sizeof (ext), "fr%d", index);
-
-   /* Generate filename. */
-   get_save_filename (filename, ext, size);
-
-   return (filename);
-}
-
-static INLINE UCHAR *get_save_title (const UCHAR *filename, UCHAR *title,
-   int size)
-{
-   /* This function retrives the save title from the state or replay file
-      specified in 'filename'.  Returns either the retrieved title,
-      "Untitled" if the retrieved title was zero-length, OR
-      UNUSED_SLOT_TEXT if the file could not be opened. */
-
-   PACKFILE *file;
-   USTRING save_title;
-
-   RT_ASSERT(filename);
-   RT_ASSERT(title);
-
-   USTRING_CLEAR(save_title);
-
-   file = pack_fopen (filename, "r");
-
-   if (file)
-   {
-      UINT8 signature[4];
-      UINT16 version;
-
-      /* Probably don't need to verify these... */
-      pack_fread (signature, 4, file);
-      version = pack_igetw (file);
-
-      pack_fread (save_title, SAVE_TITLE_SIZE, file);
-
-      pack_fclose (file);
-
-      if (ustrlen (save_title) == 0)
-         ustrncat (save_title, "Untitled", (sizeof (save_title) - 1));
-   }
-   else
-   {
-      ustrncat (save_title, UNUSED_SLOT_TEXT, (sizeof (save_title) - 1));
-   }
-
-   /* Copy to output. */
-   ustrzncpy (title, size, save_title, sizeof (save_title));
-
-   return (title);
-}
-
-static INLINE UCHAR *fix_save_title (UCHAR *title, int size)
-{
-   /* This function compares 'title' against UNUSED_SLOT_TEXT, and if they
-      are found to be the same, it replaces it with "Untitled" instead.
-
-      Without this function, we might end up with untitled state and replay
-      files with UNUSED_SLOT_TEXT as their title (lifted directly from their
-      cooresponding menu slot), and that would be icky.
-
-      If 'title' is found to not be equal to UNUSED_SLOT_TEXT, then it will
-      remain unchanged, but will still be returned. */
-
-   RT_ASSERT(title);
-
-   if (ustrncmp (title, UNUSED_SLOT_TEXT, size) == 0)
-   {
-      USTRING_CLEAR_SIZE(title, size);
-      ustrncat (title, "Untitled", (size - 1));
-   }
-
-   return (title);
-}
-
 static INLINE void set_autosave (int interval)
 {
    /* This function simply sets the state autosave interval to 'interval'
@@ -1531,16 +1253,12 @@ static int main_replay_menu_select (void)
    {
       UCHAR *title;
       UCHAR *text;
-      USTRING filename;
 
       title = replay_titles[index];
       text = replay_menu_texts[index];
 
-      /* Generate filename. */
-      get_replay_filename (filename, index, sizeof (filename));
-
-      /* Retrieve title. */
-      get_save_title (filename, title, USTRING_SIZE);
+      /* Get title. */
+      get_replay_title (index, title, USTRING_SIZE);
 
       /* Build menu text. */
       uszprintf (text, USTRING_SIZE, "&%d: %s", index, title);
@@ -1555,15 +1273,13 @@ static int main_replay_menu_select (void)
 static int main_replay_record_menu_start (void)
 {
    USTRING title;
-   USTRING filename;
-   PACKFILE *file;
 
    /* Duplicate title. */
-   ustrncpy (title, replay_titles[replay_index], sizeof (title));
+   ustrncpy (title, replay_titles[replay_index], USTRING_SIZE);
 
    /* Patch up duplicate. */
    fix_save_title (title, sizeof (title));
-
+                 
    if (gui_is_active)
    {
       /* Allow user to customize title before save. */
@@ -1575,57 +1291,39 @@ static int main_replay_record_menu_start (void)
          return (D_O_K);
    }
 
-   /* Generate filename. */
-   get_replay_filename (filename, replay_index, sizeof (filename));
-
-   file = pack_fopen (filename, "w");
-
-   if (file)
-   {
-      PACKFILE *chunk;
-
-      /* Save state. */
-      fnss_save (file, title);
-
-      /* Open REPL chunk. */
-      pack_fwrite ("REPL", 4, file);
-      chunk = pack_fopen_chunk (file, FALSE);
-
-      replay_file = file;
-      replay_file_chunk = chunk;
-
-      DISABLE_MENU_ITEM(main_replay_record_menu_start);
-      ENABLE_MENU_ITEM(main_replay_record_menu_stop);
-      DISABLE_MENU_ITEM(main_menu_load_rom);
-      DISABLE_SUBMENU(main_replay_select_menu);
-      DISABLE_SUBMENU(main_replay_play_menu);
-      DISABLE_SUBMENU(main_state_autosave_menu);
-      DISABLE_SUBMENU(netplay_menu);
-
-      /* Enter replay recording mode. */
-      input_mode |= INPUT_MODE_REPLAY;
-      input_mode |= INPUT_MODE_REPLAY_RECORD;
-    
-      message_local ("Replay recording session started.");
-    
-      /* Update save state titles. */
-      main_replay_menu_select ();
-
-      return (D_CLOSE);
-   }
-   else
+   /* Open replay file. */
+   if (!open_replay (replay_index, "w", title))
    {
       gui_message (GUI_ERROR_COLOR, "Failed to open new machine state "
          "file.");
+
+      return (D_O_K);
    }
 
-   return (D_O_K);
+   DISABLE_MENU_ITEM(main_replay_record_menu_start);
+   ENABLE_MENU_ITEM(main_replay_record_menu_stop);
+   DISABLE_MENU_ITEM(main_menu_load_rom);
+   DISABLE_SUBMENU(main_replay_select_menu);
+   DISABLE_SUBMENU(main_replay_play_menu);
+   DISABLE_SUBMENU(main_state_autosave_menu);
+   DISABLE_SUBMENU(netplay_menu);
+
+   /* Enter replay recording mode. */
+   input_mode |= INPUT_MODE_REPLAY;
+   input_mode |= INPUT_MODE_REPLAY_RECORD;
+ 
+   message_local ("Replay recording session started.");
+ 
+   /* Update save state titles. */
+   main_replay_menu_select ();
+
+   return (D_CLOSE);
 }
 
 static int main_replay_record_menu_stop (void)
 {
-   pack_fclose_chunk (replay_file_chunk);
-   pack_fclose (replay_file);
+   /* Close replay. */
+   close_replay ();
 
    /* Exit replay recording mode. */
    input_mode &= ~INPUT_MODE_REPLAY;
@@ -1646,49 +1344,12 @@ static int main_replay_record_menu_stop (void)
 
 static int main_replay_play_menu_start (void)
 {
-   USTRING filename;
-   PACKFILE *file;
-   UINT8 signature[4];
-
-   /* Generate filename. */
-   get_replay_filename (filename, replay_index, sizeof (filename));
-
-   file = pack_fopen (filename, "r");
-   if (!file)
+   if (!open_replay (replay_index, "r", NULL))
    {
-      gui_message (GUI_ERROR_COLOR, "Machine state file does not exist.");
+      gui_message (GUI_ERROR_COLOR, "Failed to open machine state file.");
 
       return (D_O_K);
    }
-
-   /* Load state. */
-   if (!fnss_load (file))
-   {
-      /* Load failed. */
-      pack_fclose (file);
-
-      return (D_O_K);
-   }
-
-   /* Load suceeded. */
-
-   /* Open REPL chunk. */
-   pack_fread (signature, 4, file);
-
-   /* Verify REPL chunk. */
-   if (strncmp (signature, "REPL", 4))
-   {
-      gui_message (GUI_ERROR_COLOR, "Machine state file is missing replay "
-         "chunk.");
-    
-      pack_fclose (file);
-
-      return (D_O_K);
-   }
-
-   replay_file_chunk = pack_fopen_chunk (file, FALSE);
-
-   replay_file = file;
 
    DISABLE_MENU_ITEM(main_replay_play_menu_start);
    ENABLE_MENU_ITEM(main_replay_play_menu_stop);
@@ -1710,8 +1371,8 @@ static int main_replay_play_menu_start (void)
 
 static int main_replay_play_menu_stop (void)
 {
-   pack_fclose_chunk (replay_file_chunk);
-   pack_fclose (replay_file);
+   /* Close replay. */
+   close_replay ();
 
    /* Exit replay playback mode. */
    if (!(input_mode & INPUT_MODE_CHAT))
@@ -1745,8 +1406,8 @@ static int main_menu_load_rom (void)
 
    /* Retrive path from configuration file. */
    USTRING_CLEAR(path);
-   ustrncat (path, get_config_string ("gui", "load_rom_path", "/"), (sizeof
-      (path) - 1));
+   ustrncat (path, get_config_string ("gui", "load_rom_path", "/"),
+      (sizeof (path) - 1));
 
    /* Get drawing surface. */
    bmp = gui_get_screen ();
@@ -1792,11 +1453,10 @@ static int main_menu_load_rom (void)
             /* Close currently open ROM and save data. */
 
             /* Save SRAM. */
-            if (global_rom.sram_flag)
-               sram_save (global_rom.filename);
+            save_sram ();
 
-            /* Save patch table. */
-            patches_save (global_rom.filename);
+            /* Save patches. */
+            save_patches ();
 
             free_rom (&global_rom);
          }
@@ -1883,16 +1543,12 @@ static int main_state_menu_select (void)
    {
       UCHAR *title;
       UCHAR *text;
-      USTRING filename;
 
       title = state_titles[index];
       text = state_menu_texts[index];
 
-      /* Generate filename. */
-      get_state_filename (filename, index, sizeof (filename));
-
-      /* Retrieve title. */
-      get_save_title (filename, title, USTRING_SIZE);
+      /* Get title. */
+      get_state_title (index, title, USTRING_SIZE);
 
       /* Build menu text. */
       uszprintf (text, USTRING_SIZE, "&%d: %s", index, title);
@@ -1908,7 +1564,6 @@ static int main_state_menu_save (void)
 {
    USTRING title;
    USTRING filename;
-   PACKFILE *file;
 
    /* Duplicate title. */
    ustrncpy (title, state_titles[state_index], sizeof (title));
@@ -1927,62 +1582,31 @@ static int main_state_menu_save (void)
          return (D_O_K);
    }
 
-   /* Generate filename. */
-   get_state_filename (filename, state_index, sizeof (filename));
-
-   file = pack_fopen (filename, "w");
-
-   if (file)
-   {
-      /* Save state. */
-      fnss_save (file, title);
-
-      pack_fclose (file);
-
-      /* Update state titles. */
-      main_state_menu_select ();
-
-      if (!input_autosave_triggered)
-         message_local ("Machine state saved in slot %d.", state_index);
-
-      return (D_CLOSE);
-   }
-   else
+   if (!save_state (state_index, title))
    {
       gui_message (GUI_ERROR_COLOR, "Failed to open new machine state "
          "file.");
+
+      return (D_O_K);
    }
 
-   return (D_O_K);
+   /* Update state titles. */
+   main_state_menu_select ();
+
+   if (!input_autosave_triggered)
+      message_local ("Machine state saved in slot %d.", state_index);
+
+   return (D_CLOSE);
 }
 
 static int main_state_menu_restore (void)
 {
-   USTRING filename;
-   PACKFILE *file;
-
-   /* Generate filename. */
-   get_state_filename (filename, state_index, sizeof (filename));
-
-   file = pack_fopen (filename, "r");
-   if (!file)
+   if (!load_state (state_index))
    {
-      gui_message (GUI_ERROR_COLOR, "Machine state file does not exist.");
+      gui_message (GUI_ERROR_COLOR, "Failed to open machine state file.");
 
       return (D_O_K);
    }
-
-   /* Load state. */
-   if (!fnss_load (file))
-   {
-      /* Load failed. */
-      pack_fclose (file);
-
-      return (D_O_K);
-   }
-
-   /* Load suceeded. */
-   pack_fclose (file);
 
    message_local ("Machine state loaded from slot %d.", state_index);
 
@@ -3131,7 +2755,7 @@ static int options_patches_dialog_list (DIALOG *dialog)
 
    patch = &cpu_patch_info[dialog->d1];
 
-   if (patch -> enabled)
+   if (patch->enabled)
       options_patches_dialog[5].flags |= D_SELECTED;
    else
       options_patches_dialog[5].flags &= ~D_SELECTED;
@@ -3145,13 +2769,12 @@ static int options_patches_dialog_list (DIALOG *dialog)
 
 static int options_patches_dialog_add (DIALOG *dialog)
 {
-
-   UINT8 buffer[16];
-   UINT8 buffer2[11];
+   USTRING title;
+   USTRING code;
    CPU_PATCH *patch;
    UINT8 value;
 
-   if (cpu_patch_count >= MAX_PATCHES)
+   if (cpu_patch_count >= CPU_MAX_PATCHES)
    {
       alert ("- Error -", NULL, "The patch list is already full.", "&OK",
          NULL, 'o', 0);
@@ -3159,41 +2782,39 @@ static int options_patches_dialog_add (DIALOG *dialog)
       return (D_O_K);
    }
 
-   memset (buffer, 0, sizeof (buffer));
-   options_patches_add_dialog[4].d1 = (sizeof (buffer) - 1);
-   options_patches_add_dialog[4].dp = buffer;
+   USTRING_CLEAR(title);
+   options_patches_add_dialog[4].d1 = (SAVE_TITLE_SIZE - 1);
+   options_patches_add_dialog[4].dp = title;
 
-   memset (buffer2, 0, sizeof (buffer2));
-   options_patches_add_dialog[7].d1 = (sizeof (buffer2) - 1);
-   options_patches_add_dialog[7].dp = buffer2;
+   USTRING_CLEAR(code);
+   options_patches_add_dialog[7].d1 = (11 - 1);
+   options_patches_add_dialog[7].dp = code;
 
    if (show_dialog (options_patches_add_dialog) != 8)
       return (D_O_K);
 
    patch = &cpu_patch_info[cpu_patch_count];
 
-   if (genie_decode (buffer2, &patch->address, &patch->value,
+   if (genie_decode (code, &patch->address, &patch->value,
       &patch->match_value) != 0)
    {
       alert ("- Error -", NULL, "You must enter a valid Game Genie (or "
          "NESticle raw) code.", "&OK", NULL, 'o', 0);
 
-
       return (D_O_K);
    }
 
-   if (patch->title)
-      sprintf (patch->title, "%s", buffer);
+   /* Copy title. */
+   ustrncat (patch->title, title, sizeof (title));
 
+   /* Enable patch. */
    patch->enabled = TRUE;
 
    cpu_patch_count++;
 
-   value = cpu_read (patch->address);
-
-   if (value == patch->match_value)
+   if ((value = cpu_read (patch->address)) == patch->match_value)
    {
-      /* Enable patch. */
+      /* Activate patch. */
       patch->active = TRUE;
 
       cpu_patch_table[patch->address] = (patch->value - value);
@@ -3249,7 +2870,7 @@ static int options_patches_dialog_remove (DIALOG *dialog)
    return (D_REDRAW);
 }
 
-static int options_patches_dialog_enabled (DIALOG * dialog)
+static int options_patches_dialog_enabled (DIALOG *dialog)
 {
    CPU_PATCH *patch;
 
@@ -3277,9 +2898,7 @@ static int options_patches_dialog_enabled (DIALOG * dialog)
    {
       UINT8 value;
 
-      value = cpu_read (patch->address);
-    
-      if (value == patch->match_value)
+      if ((value = cpu_read (patch->address)) == patch->match_value)
       {
          /* Enable patch. */
          patch->active = TRUE;
@@ -3295,7 +2914,7 @@ static int options_patches_dialog_enabled (DIALOG * dialog)
    return (D_O_K);
 }
 
-static STRING options_patches_dialog_list_texts[MAX_PATCHES];
+static USTRING options_patches_dialog_list_texts[CPU_MAX_PATCHES];
 
 static char *options_patches_dialog_list_filler (int index, int *list_size)
 {
@@ -3303,30 +2922,17 @@ static char *options_patches_dialog_list_filler (int index, int *list_size)
 
    if (index >= 0)
    {
-      CPU_PATCH *patch;
-      CHAR *text;
+      CPU_PATCH *patch = &cpu_patch_info[index];
+      UCHAR *text = options_patches_dialog_list_texts[index];
 
-      patch = &cpu_patch_info[index];
-
-      text = options_patches_dialog_list_texts[index];
-
-      STRING_CLEAR(text);
-      /* Temporary fix for DJGPP missing "snprintf".  Will be replaced by
-         Unicode functions when the patch system is made Unicode-safe. */
-      /*
-      snprintf (text, STRING_SIZE, "$%04x -$%02x +$%02x %s ",
+      USTRING_CLEAR(text);
+      uszprintf (text, USTRING_SIZE, "$%04x -$%02x +$%02x %s ",
          patch->address, patch->match_value, patch->value, (patch->active ?
             "Active" : " Idle "));
-      */
-      sprintf (text, "$%04x -$%02x +$%02x %s ", patch->address,
-         patch->match_value, patch->value, (patch->active ? "Active" :
-            " Idle "));
 
-      if (patch->title)
-         strncat (text, patch->title, STRING_SIZE);
-      else
-         strncat (text, "No title", STRING_SIZE);
-
+      /* Copy title. */
+      ustrncat (text, patch->title, USTRING_SIZE);
+      
       return (text);
    }
    else
@@ -3538,7 +3144,7 @@ static int options_input_dialog_set_buttons (DIALOG *dialog)
 static int options_menu_patches (void)
 {
    if (show_dialog (options_patches_dialog) == 6)
-      patches_save (global_rom.filename);
+      save_patches ();
 
    return (D_O_K);
 }

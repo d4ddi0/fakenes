@@ -19,252 +19,11 @@
 #include "papu.h"
 #include "ppu.h"
 #include "rom.h"
+#include "save.h"
 #include "types.h"
 
 
-static UINT8 cpu_sram [8192];
-
-
-static UINT8 * get_patches_filename (UINT8 * buffer, const UINT8 * rom_filename, int buffer_size)
-{
-    memset (buffer, NIL, buffer_size);
-
-
-    strcat (buffer, get_config_string ("gui", "save_path", "./"));
-
-    put_backslash (buffer);
-
-
-    strcat (buffer, get_filename (rom_filename));
-
-
-    replace_extension (buffer, buffer, "fpt", buffer_size);
-
-
-    return (buffer);
-}
-
-
-static UINT8 cpu_patch_titles [MAX_PATCHES] [16];
-
-
-void patches_load (const char * rom_filename)
-{
-    UINT8 buffer [256];
-
-
-    int index;
-
-
-    memset (cpu_patch_titles, NIL, sizeof (cpu_patch_titles));
-
-
-    for (index = 0; index < MAX_PATCHES; index ++)
-    {
-        cpu_patch_info [index].title = cpu_patch_titles [index];
-    }
-
-
-    get_patches_filename (buffer, rom_filename, sizeof (buffer));
-
-
-    if (exists (buffer))
-    {
-        int version;
-
-
-        push_config_state ();
-
-
-        set_config_file (buffer);
-
-
-        version = get_config_hex ("header", "version", 0x0100);
-
-
-        if (version > 0x100)
-        {
-            pop_config_state ();
-
-
-            return;
-        }
-
-
-        cpu_patch_count = get_config_int ("header", "patch_count", 0);
-
-
-        if (cpu_patch_count > MAX_PATCHES)
-        {
-            cpu_patch_count = MAX_PATCHES;
-        }
-        else if (cpu_patch_count < 0)
-        {
-            cpu_patch_count = 0;
-        }
-
-
-        for (index = 0; index < cpu_patch_count; index ++)
-        {
-            char * title;
-
-
-            memset (buffer, NIL, sizeof (buffer));
-
-
-            sprintf (buffer, "patch%02d", index);
-
-
-            strncat (cpu_patch_info [index].title, get_config_string (buffer, "title", "?"), 15);
-
-
-            cpu_patch_info [index].address = get_config_hex (buffer, "address", 0xffff);
-
-
-            cpu_patch_info [index].value = get_config_hex (buffer, "value", 0xff);
-
-            cpu_patch_info [index].match_value = get_config_hex (buffer, "match_value", 0xff);
-
-
-            cpu_patch_info [index].enabled = get_config_int (buffer, "enabled", FALSE);
-
-
-            cpu_patch_info [index].active = FALSE;
-        }
-
-
-        pop_config_state ();
-    }
-}
-
-
-void patches_save (const char * rom_filename)
-{
-    int index;
-
-
-    UINT8 buffer [256];
-
-
-    get_patches_filename (buffer, rom_filename, sizeof (buffer));
-
-
-    /* Delete old records. */
-
-    remove (buffer);
-
-
-    if (cpu_patch_count == 0)
-    {
-        return;
-    }
-
-
-    push_config_state ();
-
-
-    set_config_file (buffer);
-
-
-    set_config_hex ("header", "version", 0x0100);
-
-
-    set_config_int ("header", "patch_count", cpu_patch_count);
-
-
-    for (index = 0; index < cpu_patch_count; index ++)
-    {
-        memset (buffer, NIL, sizeof (buffer));
-
-
-        sprintf (buffer, "patch%02d", index);
-
-
-        if (cpu_patch_info [index].title)
-        {
-            set_config_string (buffer, "title", cpu_patch_info [index].title);
-        }
-
-
-        set_config_hex (buffer, "address", cpu_patch_info [index].address);
-
-
-        set_config_hex (buffer, "value", cpu_patch_info [index].value);
-
-        set_config_hex (buffer, "match_value", cpu_patch_info [index].match_value);
-
-
-        set_config_int (buffer, "enabled", cpu_patch_info [index].enabled);
-    }
-
-
-    pop_config_state ();
-}
-
-
-static UINT8 * get_sram_filename (UINT8 * buffer, const UINT8 * rom_filename, int buffer_size)
-{
-    memset (buffer, NIL, buffer_size);
-
-
-    strcat (buffer, get_config_string ("gui", "save_path", "./"));
-
-    put_backslash (buffer);
-
-
-    strcat (buffer, get_filename (rom_filename));
-
-
-    replace_extension (buffer, buffer, "sav", buffer_size);
-
-
-    return (buffer);
-}
-
-
-void sram_load (const char *rom_filename)
-{
-    UINT8 buffer [256];
-
-    FILE * sram_file;
-
-
-    get_sram_filename(buffer, rom_filename, sizeof(buffer));
-
-    if (exists (buffer))
-    {
-        sram_file = fopen (buffer, "rb");
-    
-
-        if (sram_file)
-        {
-            fread (cpu_sram, 1, sizeof (cpu_sram), sram_file);
-    
-            fclose (sram_file);
-        }
-    }
-}
-
-
-void sram_save (const char *rom_filename)
-{
-    UINT8 buffer [256];
-
-    FILE * sram_file;
-
-
-    get_sram_filename(buffer, rom_filename, sizeof(buffer));
-
-    sram_file = fopen (buffer, "wb");
-
-
-    if (sram_file)
-    {
-        fwrite (cpu_sram, 1, sizeof (cpu_sram), sram_file);
-
-        fclose (sram_file);
-    }
-}
+UINT8 cpu_sram [SRAM_SIZE];
 
 
 int cpu_init (void)
@@ -272,6 +31,7 @@ int cpu_init (void)
     memset (cpu_ram, NIL, sizeof (cpu_ram));
 
     memset (cpu_sram, NIL, sizeof (cpu_sram));
+
 
     /* Trainer support - copy the trainer into the memory map */
     if ((global_rom.control_byte_1 & ROM_CTRL_TRAINER))
@@ -285,7 +45,7 @@ int cpu_init (void)
 
     if (global_rom.sram_flag)
     {
-        sram_load (global_rom.filename);
+        load_sram ();
     }
 
 
@@ -359,19 +119,11 @@ void cpu_memmap_init (void)
     int index;
 
 
-    /* Clear patch information. */
-
-    cpu_patch_count = 0;
-
-
-    memset (cpu_patch_info, NIL, sizeof (cpu_patch_info));
-
-
     /* Load patches from patch table. */
 
     if (rom_is_loaded)
     {
-        patches_load (global_rom.filename);
+        load_patches ();
     }
 
 
@@ -450,13 +202,14 @@ void cpu_exit (void)
 #endif
 
 
-    if (global_rom.sram_flag)
-    {
-        sram_save (global_rom.filename);
-    }
+    /* Save SRAM. */
+
+    save_sram ();
 
 
-    patches_save (global_rom.filename);
+    /* Save patches. */
+
+    save_patches ();
 }
 
 
@@ -546,11 +299,9 @@ void disable_sram(void)
 
 void cpu_reset (void)
 {
+    /* Save SRAM. */
 
-    if (global_rom.sram_flag)
-    {
-        sram_save (global_rom.filename);
-    }
+    save_sram ();
 
 
     FN2A03_Reset (&cpu_context);

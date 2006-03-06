@@ -57,6 +57,8 @@ extern "C" {
 
 #define VIRTUAL_RAM_SIZE    65536
 
+#define SRAM_SIZE       8192
+
 
 UINT8 cpu_ram [VIRTUAL_RAM_SIZE];
 
@@ -66,10 +68,7 @@ FN2A03 cpu_context;
 
 INT8 cpu_patch_table [VIRTUAL_RAM_SIZE];
 
-
-void patches_load (const char *);
-
-void patches_save (const char *);
+UINT8 cpu_sram [SRAM_SIZE];
 
 
 /* Number of used entries in cpu_patch_info. */
@@ -83,10 +82,10 @@ int cpu_patch_count;
 
 typedef struct _CPU_PATCH
 {
-    int active;
+    BOOL active;
 
 
-    UINT8 * title;
+    USTRING title;
 
 
     UINT16 address;
@@ -97,22 +96,17 @@ typedef struct _CPU_PATCH
     UINT8 match_value;
 
 
-    int enabled;
+    BOOL enabled;
 
 } CPU_PATCH;
 
 
 /* Try to keep it fast - 15 patches limit. */
 
-#define MAX_PATCHES     15
+#define CPU_MAX_PATCHES     15
 
 
-CPU_PATCH cpu_patch_info [MAX_PATCHES];
-
-
-void sram_load (const char *);
-
-void sram_save (const char *);
+CPU_PATCH cpu_patch_info [CPU_MAX_PATCHES];
 
 
 int cpu_init (void);
