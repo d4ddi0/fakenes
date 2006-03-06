@@ -883,12 +883,15 @@ static INLINE BOOL set_menu_property (MENU *menu, void *callback, ENUM
    return (FALSE);
 }
 
-static INLINE void set_submenu_property (MENU *menu, const MENU *submenu,
+static INLINE BOOL set_submenu_property (MENU *menu, const MENU *submenu,
    ENUM property, BOOL value)
 {
-   /* This function searches through the menu specified in 'menu' to find
-      the first reference to the submenu specified in 'submenu' and sets
-      it's boolean property specified by 'property' to 'value'. */
+   /* Recursive function that searches through the menu specified in 'menu'
+      to find the first reference to the submenu specified in 'submenu' and
+      sets it's boolean property specified by 'property' to 'value'.
+      Returns TRUE if the item was found and all recursion levels should
+      break out of the search, or FALSE if the item was not found and the
+      search should continue. */
 
    int index = 0;
 
@@ -899,15 +902,29 @@ static INLINE void set_submenu_property (MENU *menu, const MENU *submenu,
    {
       MENU *item = &menu[index];
 
-      if (item->child && (item->child == submenu))
+      if (item->child)
       {
-         set_menu_object_property (item, property, value);
-
-         return;
+         if (item->child == submenu)
+         {
+            set_menu_object_property (item, property, value);
+   
+            return (TRUE);
+         }
+         else
+         {
+            /* Recurse to the next sublevel. */
+            if (set_submenu_property (item->child, submenu, property,
+               value))
+            {
+               return (TRUE);
+            }
+         }
       }
 
       index++;
    }
+
+   return (FALSE);
 }
 
 #define SET_MENU_ITEM_CHECKED(item, checked) \
