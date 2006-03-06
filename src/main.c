@@ -49,9 +49,9 @@ int frame_skip_min = 0;
 int frame_skip_max = 0;
 
 
-static int enable_rsync = FALSE;
+static int enable_resync = FALSE;
 
-static int rsync_grace_frames = 0;
+static int resync_grace_frames = 0;
 
 
 static int fast_forward = FALSE;
@@ -234,7 +234,7 @@ void resume_throttling (void)
     install_int_ex (throttle_interrupt, BPS_TO_TIMER (speed));
 
 
-    if (enable_rsync)
+    if (enable_resync)
     {
         while (throttle_counter == 0);
 
@@ -530,9 +530,9 @@ int main (int argc, char * argv [])
     machine_type = get_config_int ("timing", "machine_type", MACHINE_TYPE_NTSC);
 
 
-    enable_rsync = get_config_int ("timing", "enable_rsync", TRUE);
+    enable_resync = get_config_int ("timing", "enable_resync", TRUE);
 
-    rsync_grace_frames = get_config_int ("timing", "rsync_grace_frames", 10);
+    resync_grace_frames = get_config_int ("timing", "resync_grace_frames", 10);
 
 
     disable_gui = get_config_int ("gui", "disable_gui", FALSE);
@@ -748,9 +748,9 @@ int main (int argc, char * argv [])
                 }
 
 
-                if ((enable_rsync) && (! fast_forward))
+                if ((enable_resync) && (! fast_forward))
                 {
-                    if ((actual_fps_count < (average_fps - rsync_grace_frames)) && (average_fps > 0))
+                    if ((actual_fps_count < (average_fps - resync_grace_frames)) && (average_fps > 0))
                     {
                         suspend_timing ();
 
@@ -1079,9 +1079,9 @@ int main (int argc, char * argv [])
     set_config_int ("timing", "machine_type", machine_type);
 
 
-    set_config_int ("timing", "enable_rsync", enable_rsync);
+    set_config_int ("timing", "enable_resync", enable_resync);
 
-    set_config_int ("timing", "rsync_grace_frames", rsync_grace_frames);
+    set_config_int ("timing", "resync_grace_frames", resync_grace_frames);
 
 
     set_config_int ("gui", "disable_gui", disable_gui);
