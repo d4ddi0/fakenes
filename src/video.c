@@ -14,6 +14,7 @@
 #include "common.h"
 #include "cpu.h"
 #include "data.h"
+#include "debug.h"
 #include "gui.h"
 #include "input.h"
 #include "log.h"
@@ -233,7 +234,7 @@ int video_init (void)
     }
 
 
-    if ((color_depth != 8) && (color_depth != 15) && (color_depth != 16) && (color_depth != 32))
+    if ((color_depth != 8) && (color_depth != 15) && (color_depth != 16) && (color_depth != 24) && (color_depth != 32))
     {
         return (1);
     }
@@ -1072,7 +1073,7 @@ void video_set_palette (RGB * palette)
     set_palette (internal_palette);
 
 
-    if (color_depth < 32)
+    if (color_depth < 24)
     {
         for (r = 0; r < 64; r ++)
         {
@@ -1122,6 +1123,11 @@ int video_create_color (int r, int g, int b)
             return (solid_map [(r / 4)] [(g / 4)] [(b / 4)]);
 
 
+        case 24:
+
+            return (makecol24 (r, g, b));
+
+
         case 32:
 
             return (makecol32 (r, g, b));
@@ -1156,7 +1162,7 @@ static int dither_table [4] [4] =
 
 int video_create_color_dither (int r, int g, int b, int x, int y)
 {
-    if (color_depth < 32)
+    if (color_depth < 24)
     {
         x &= 3;
     

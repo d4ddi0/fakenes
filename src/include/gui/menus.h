@@ -641,6 +641,7 @@ static const MENU options_video_resolution_menu_base[] =
 DEFINE_MENU_CALLBACK(options_video_colors_menu_paletted_8_bit);
 DEFINE_MENU_CALLBACK(options_video_colors_menu_true_color_15_bit);
 DEFINE_MENU_CALLBACK(options_video_colors_menu_true_color_16_bit);
+DEFINE_MENU_CALLBACK(options_video_colors_menu_true_color_24_bit);
 DEFINE_MENU_CALLBACK(options_video_colors_menu_true_color_32_bit);
 
 static const MENU options_video_colors_menu_base[] =
@@ -648,7 +649,8 @@ static const MENU options_video_colors_menu_base[] =
    { "&Paletted (8-bit)",    options_video_colors_menu_paletted_8_bit,    NULL, 0, NULL },
    { "&True Color (15-bit)", options_video_colors_menu_true_color_15_bit, NULL, 0, NULL },
    { "T&rue Color (16-bit)", options_video_colors_menu_true_color_16_bit, NULL, 0, NULL },
-   { "Tr&ue Color (32-bit)", options_video_colors_menu_true_color_32_bit, NULL, 0, NULL },
+   { "Tr&ue Color (24-bit)", options_video_colors_menu_true_color_24_bit, NULL, 0, NULL },
+   { "Tru&e Color (32-bit)", options_video_colors_menu_true_color_32_bit, NULL, 0, NULL },
    MENU_ENDCAP
 };
 

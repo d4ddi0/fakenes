@@ -781,6 +781,7 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(options_video_colors_menu_paletted_8_bit,    (video_get_color_depth () == 8));
    TOGGLE_MENU_ITEM(options_video_colors_menu_true_color_15_bit, (video_get_color_depth () == 15));
    TOGGLE_MENU_ITEM(options_video_colors_menu_true_color_16_bit, (video_get_color_depth () == 16));
+   TOGGLE_MENU_ITEM(options_video_colors_menu_true_color_24_bit, (video_get_color_depth () == 24));
    TOGGLE_MENU_ITEM(options_video_colors_menu_true_color_32_bit, (video_get_color_depth () == 32));
 
    TOGGLE_MENU_ITEM(options_video_blitter_menu_automatic,       (video_get_blitter () == VIDEO_BLITTER_AUTOMATIC));
@@ -2482,6 +2483,14 @@ static int options_video_colors_menu_true_color_16_bit (void)
    return (D_CLOSE);
 }
 
+static int options_video_colors_menu_true_color_24_bit (void)
+{
+   video_set_color_depth (24);
+
+   gui_needs_restart = TRUE;
+   return (D_CLOSE);
+}
+
 static int options_video_colors_menu_true_color_32_bit (void)
 {
    video_set_color_depth (32);
@@ -2504,7 +2513,7 @@ BLITTER_MENU_HANDLER(automatic,       "automatic",          VIDEO_BLITTER_AUTOMA
 BLITTER_MENU_HANDLER(normal,          "normal",             VIDEO_BLITTER_NORMAL)
 BLITTER_MENU_HANDLER(stretched,       "stretched",          VIDEO_BLITTER_STRETCHED)
 BLITTER_MENU_HANDLER(interpolated_2x, "interpolated (2x)",  VIDEO_BLITTER_INTERPOLATED_2X)
-BLITTER_MENU_HANDLER(interpolated_3x, "interpolated (3x)",  VIDEO_BLITTER_INTERPOLATED_2X)
+BLITTER_MENU_HANDLER(interpolated_3x, "interpolated (3x)",  VIDEO_BLITTER_INTERPOLATED_3X)
 BLITTER_MENU_HANDLER(2xsoe,           "2xSOE engine",       VIDEO_BLITTER_2XSOE)
 BLITTER_MENU_HANDLER(2xscl,           "2xSCL engine",       VIDEO_BLITTER_2XSCL)
 BLITTER_MENU_HANDLER(super_2xsoe,     "super 2xSOE engine", VIDEO_BLITTER_SUPER_2XSOE)
