@@ -544,37 +544,6 @@ int main (int argc, char * argv [])
     install_timer ();
 
 
-    /*
-#ifdef POSIX
-
-    data = load_datafile ("fakenes.dat");
-
-
-    if (! data)
-    {
-        printf ("Loading datafile from '/usr/share/fakenes.dat'.\n\n");
-
-
-        data = load_datafile ("/usr/share/fakenes.dat");
-    }
-
-#else
-
-    data = load_datafile ("fakenes.dat");
-
-#endif
-
-
-    if (! data)
-    {
-        fprintf (stderr, "PANIC: Failed to load datafile: fakenes.dat.\n");
-
-
-        return (1);
-    }
-    */
-
-
     if (input_init () != 0)
     {
         fprintf (stderr, "PANIC: Failed to initialize input interface!\n");
