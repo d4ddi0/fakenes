@@ -24,7 +24,7 @@ static INLINE void blit_hq (int multiple, BITMAP *src, BITMAP *dest, int
    if ((multiple == 4) && (!blitter_size_check (dest, 1024, 960)))
       return;
 
-   /* Calculate multiples. */
+   /* Calculate sizes. */
    w = src->w;
    h = src->h;
    wm = (src->w * multiple);
