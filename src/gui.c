@@ -815,7 +815,7 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(options_video_palette_menu_ega_mode_2,     (video_get_palette_id () == DATA_INDEX(EGA_PALETTE_2)));
    TOGGLE_MENU_ITEM(options_video_palette_menu_custom,         (video_get_palette_id () == -1));
 
-   TOGGLE_MENU_ITEM(options_video_advanced_menu_force_window, video_force_window);
+   TOGGLE_MENU_ITEM(options_video_advanced_menu_force_fullscreen, video_force_fullscreen);
 
    TOGGLE_MENU_ITEM(options_video_layers_menu_sprites_a,  ppu_enable_sprite_layer_a);
    TOGGLE_MENU_ITEM(options_video_layers_menu_sprites_b,  ppu_enable_sprite_layer_b);
@@ -884,7 +884,7 @@ int gui_init (void)
    DISABLE_SUBMENU(options_video_driver_windows_menu);
    DISABLE_SUBMENU(options_video_driver_linux_menu);
    DISABLE_SUBMENU(options_video_driver_unix_menu);
-   DISABLE_MENU_ITEM(options_video_advanced_menu_force_window);
+   DISABLE_MENU_ITEM(options_video_advanced_menu_force_fullscreen);
    DISABLE_SUBMENU(netplay_menu);
 
 #endif   /* ALLEGRO_DOS */
@@ -2722,9 +2722,9 @@ static int options_video_palette_menu_custom (void)
    return (D_O_K);
 }
 
-static int options_video_advanced_menu_force_window (void)
+static int options_video_advanced_menu_force_fullscreen (void)
 {
-   video_force_window = !video_force_window;
+   video_force_fullscreen = !video_force_fullscreen;
    video_reinit ();
 
    gui_needs_restart = TRUE;

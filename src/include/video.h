@@ -67,7 +67,7 @@ int video_display_status;
 int video_enable_vsync;
 
 
-int video_force_window;
+int video_force_fullscreen;
 
 
 int video_driver;

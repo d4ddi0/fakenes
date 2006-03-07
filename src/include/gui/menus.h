@@ -738,11 +738,11 @@ static const MENU options_video_palette_menu_base[] =
    MENU_ENDCAP
 };
 
-DEFINE_MENU_CALLBACK(options_video_advanced_menu_force_window);
+DEFINE_MENU_CALLBACK(options_video_advanced_menu_force_fullscreen);
 
 static const MENU options_video_advanced_menu_base[] =
 {
-   { "&Force Window", options_video_advanced_menu_force_window, NULL, 0, NULL },
+   { "&Force Fullscreen", options_video_advanced_menu_force_fullscreen, NULL, 0, NULL },
    MENU_ENDCAP
 };
 

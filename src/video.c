@@ -64,7 +64,7 @@ int video_display_status = FALSE;
 int video_enable_vsync = FALSE;
 
 
-int video_force_window = FALSE;
+int video_force_fullscreen = FALSE;
 
 
 int video_driver = 0;
@@ -177,10 +177,10 @@ int video_init (void)
     screen_height = get_config_int ("video", "screen_height", 480);
 
 
-    color_depth = get_config_int ("video", "color_depth", 8);
+    color_depth = get_config_int ("video", "color_depth", -1);
 
 
-    video_force_window = get_config_int ("video", "force_window", FALSE);
+    video_force_fullscreen = get_config_int ("video", "force_fullscreen", FALSE);
 
 
     blitter_type = get_config_int ("video", "blitter_type", VIDEO_BLITTER_STRETCHED);
@@ -223,13 +223,44 @@ int video_init (void)
 
     if (video_driver == GFX_AUTODETECT)
     {
-        driver = (video_force_window ? GFX_AUTODETECT_WINDOWED : GFX_AUTODETECT);
+        if (video_force_fullscreen)
+        {
+            driver = GFX_AUTODETECT_FULLSCREEN;
+        }
+        else
+        {
+            int depth;
+
+            depth = desktop_color_depth ();
+
+            /* Attempt to detect a windowed environment.  This has a side
+               effect of changing the default color depth to that of the
+               desktop. */
+
+            if (depth > 0)
+            {
+                driver = GFX_AUTODETECT_WINDOWED;
+
+                if (color_depth == -1)
+                {
+                    color_depth = depth;
+                }
+            }
+        }
     }
     else
     {
         driver = video_driver;
     }
 
+
+    if (color_depth == -1)
+    {
+        /* No windowed environment present to autodetect a color depth from;
+           default to 256 colors. */
+
+        color_depth = 8;
+    }
 
     if ((color_depth != 8) && (color_depth != 15) && (color_depth != 16) && (color_depth != 24) && (color_depth != 32))
     {
@@ -435,7 +466,7 @@ void video_exit (void)
     set_config_int ("video", "color_depth", color_depth);
 
 
-    set_config_int ("video", "force_window", video_force_window);
+    set_config_int ("video", "force_fullscreen", video_force_fullscreen);
 
 
     set_config_int ("video", "blitter_type", blitter_type);
