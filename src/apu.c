@@ -1364,7 +1364,6 @@ void apu_process (void *buffer, int num_samples, int dither)
 void apu_process_stereo (void *buffer, int num_samples, int dither, int
    style, int flip, int surround)
 {
-   static int cycle_noise = TRUE;
    apudata_t *d;
    int elapsed_cycles;
    int scrap1, scrap2;
@@ -1439,7 +1438,7 @@ void apu_process_stereo (void *buffer, int num_samples, int dither, int
 
             case 2:  /* FakeNES enhanced. (may/2002) */
             {
-               /* Cycles the noise and centers the triangle. */
+               /* Centers the triangle. */
 
                if (apu->mix_enable[0])
                   accum_left += apu_rectangle (&apu->apus.rectangle[0]);
@@ -1448,16 +1447,10 @@ void apu_process_stereo (void *buffer, int num_samples, int dither, int
    
                if (apu->mix_enable[2])
                   accum_centre += apu_triangle (&apu->apus.triangle);
+               if (apu->mix_enable[3])
+                  accum_centre += apu_noise (&apu->apus.noise);
                if (apu->mix_enable[4])
                   accum_centre += apu_dmc (&apu->apus.dmc);
-
-               if (apu->mix_enable[3])
-               {
-                  if (!cycle_noise)
-                     accum_left += apu_noise (&apu->apus.noise);
-                  else
-                     accum_right += apu_noise (&apu->apus.noise);
-               }
 
                break;
             }
@@ -1721,9 +1714,6 @@ void apu_process_stereo (void *buffer, int num_samples, int dither, int
 
    /* resync cycle counter */
    apu->elapsed_cycles = cpu_get_cycles (FALSE);
-
-   if (style == 2)
-      cycle_noise = (!cycle_noise);
 }
 
 /* set the filter type */
