@@ -180,7 +180,7 @@ static INLINE UCHAR *get_save_filename (UCHAR *filename, const UCHAR *ext,
    replace_extension (path, path, ext, sizeof (path));
 
    /* Copy to output. */
-   USTRING_CLEAR_SIZE(path, size);
+   USTRING_CLEAR_SIZE(filename, size);
    ustrncat (filename, path, (size - 1));
 
    return (filename);
