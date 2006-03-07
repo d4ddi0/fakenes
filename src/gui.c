@@ -2942,8 +2942,6 @@ static USTRING options_patches_dialog_list_texts[CPU_MAX_PATCHES];
 
 static char *options_patches_dialog_list_filler (int index, int *list_size)
 {
-   RT_ASSERT(list_size);
-
    if (index >= 0)
    {
       CPU_PATCH *patch = &cpu_patch_info[index];
@@ -2961,6 +2959,8 @@ static char *options_patches_dialog_list_filler (int index, int *list_size)
    }
    else
    {
+      RT_ASSERT(list_size);
+
       *list_size = cpu_patch_count;
 
       return (NULL);
