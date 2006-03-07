@@ -23,7 +23,7 @@ BINARY := ${BINARY_PATH}/fakenes${EXEEXT}
 BINARY_DEBUG := ${BINARY_PATH}/fakenesd${EXEEXT}
 
 # GCC flags.
-TARGET_ARCH ?= i486
+TARGET_ARCH ?= i586
 TARGET_CPU ?= i686
 MFLAGS := -march=${TARGET_ARCH} -mtune=${TARGET_CPU}
 ifdef DEBUG
