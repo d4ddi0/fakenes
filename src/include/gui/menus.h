@@ -25,6 +25,7 @@ DEFINE_MENU(netplay_client_menu);
 DEFINE_MENU(netplay_menu);
 DEFINE_MENU(options_gui_theme_menu);
 DEFINE_MENU(options_gui_menu);
+DEFINE_MENU(options_system_cpu_usage_menu);
 DEFINE_MENU(options_system_menu);
 DEFINE_MENU(options_audio_subsystem_menu);
 DEFINE_MENU(options_audio_mixing_channels_menu);
@@ -242,13 +243,27 @@ static const MENU options_gui_menu_base [] =
    MENU_ENDCAP
 };
 
+DEFINE_MENU_CALLBACK(options_system_cpu_usage_menu_passive);
+DEFINE_MENU_CALLBACK(options_system_cpu_usage_menu_normal);
+DEFINE_MENU_CALLBACK(options_system_cpu_usage_menu_aggressive);
+
+static const MENU options_system_cpu_usage_menu_base[] =
+{
+   { "&Passive/Laptop", options_system_cpu_usage_menu_passive,    NULL, 0, NULL },
+   { "&Normal",         options_system_cpu_usage_menu_normal,     NULL, 0, NULL },
+   { "&Aggressive",     options_system_cpu_usage_menu_aggressive, NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
 DEFINE_MENU_CALLBACK(options_system_menu_ntsc_60_hz);
 DEFINE_MENU_CALLBACK(options_system_menu_pal_50_hz);
 
 static const MENU options_system_menu_base[] =
 {
-   { "&NTSC (60 Hz)", options_system_menu_ntsc_60_hz, NULL, 0, NULL },
-   { "&PAL (50 Hz)",  options_system_menu_pal_50_hz,  NULL, 0, NULL },
+   { "&NTSC (60 Hz)", options_system_menu_ntsc_60_hz, NULL,                                       0, NULL },
+   { "&PAL (50 Hz)",  options_system_menu_pal_50_hz,  NULL,                                       0, NULL },
+   MENU_SPLITTER,
+   { "&CPU Usage",    NULL,                           IMPORT_MENU(options_system_cpu_usage_menu), 0, NULL },
    MENU_ENDCAP
 };
 

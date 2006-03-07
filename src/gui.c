@@ -224,6 +224,7 @@ static INLINE void load_menus (void)
    MENU_FROM_BASE(netplay_menu);
    MENU_FROM_BASE(options_gui_theme_menu);
    MENU_FROM_BASE(options_gui_menu);
+   MENU_FROM_BASE(options_system_cpu_usage_menu);
    MENU_FROM_BASE(options_system_menu);
    MENU_FROM_BASE(options_audio_subsystem_menu);
    MENU_FROM_BASE(options_audio_mixing_channels_menu);
@@ -292,6 +293,7 @@ static INLINE void unload_menus (void)
    unload_menu (netplay_menu);
    unload_menu (options_gui_theme_menu);
    unload_menu (options_gui_menu);
+   unload_menu (options_system_cpu_usage_menu);
    unload_menu (options_system_menu);
    unload_menu (options_audio_subsystem_menu);
    unload_menu (options_audio_mixing_channels_menu);
@@ -645,6 +647,10 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(options_gui_theme_menu_zero_4,          (last_theme == &zero_4_theme));
    TOGGLE_MENU_ITEM(options_gui_theme_menu_panta,           (last_theme == &panta_theme));
 
+   TOGGLE_MENU_ITEM(options_system_cpu_usage_menu_passive,    (cpu_usage == CPU_USAGE_PASSIVE));
+   TOGGLE_MENU_ITEM(options_system_cpu_usage_menu_normal,     (cpu_usage == CPU_USAGE_NORMAL));
+   TOGGLE_MENU_ITEM(options_system_cpu_usage_menu_aggressive, (cpu_usage == CPU_USAGE_AGGRESSIVE));
+
    TOGGLE_MENU_ITEM(options_system_menu_ntsc_60_hz, (machine_type == MACHINE_TYPE_NTSC));
    TOGGLE_MENU_ITEM(options_system_menu_pal_50_hz,  (machine_type == MACHINE_TYPE_PAL));
 
@@ -881,6 +887,7 @@ int gui_init (void)
 
 #ifdef ALLEGRO_DOS
 
+   DISABLE_SUBMENU(options_system_cpu_usage_menu);
    DISABLE_SUBMENU(options_video_driver_windows_menu);
    DISABLE_SUBMENU(options_video_driver_linux_menu);
    DISABLE_SUBMENU(options_video_driver_unix_menu);
@@ -1790,6 +1797,36 @@ static int options_gui_theme_menu_panta (void)
 }
 
 #undef SET_THEME
+
+static int options_system_cpu_usage_menu_passive (void)
+{
+    cpu_usage = CPU_USAGE_PASSIVE;
+    update_menus ();
+
+    message_local ("System CPU usage set to passive.");
+
+    return (D_O_K);
+}
+
+static int options_system_cpu_usage_menu_normal (void)
+{
+    cpu_usage = CPU_USAGE_NORMAL;
+    update_menus ();
+
+    message_local ("System CPU usage set to normal.");
+
+    return (D_O_K);
+}
+
+static int options_system_cpu_usage_menu_aggressive (void)
+{
+    cpu_usage = CPU_USAGE_AGGRESSIVE;
+    update_menus ();
+
+    message_local ("System CPU usage set to aggressive.");
+
+    return (D_O_K);
+}
 
 static int options_system_menu_ntsc_60_hz (void)
 {

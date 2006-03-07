@@ -21,6 +21,8 @@ You must read and accept the license prior to use.
 
 #define TIMING_H_INCLUDED
 
+#include "common.h"
+#include "types.h"
 
 int machine_type;
 
@@ -30,6 +32,13 @@ enum
     MACHINE_TYPE_NTSC, MACHINE_TYPE_PAL
 };
 
+
+ENUM cpu_usage;
+
+enum
+{
+    CPU_USAGE_PASSIVE, CPU_USAGE_NORMAL, CPU_USAGE_AGGRESSIVE
+};
 
 int machine_init (void);
 

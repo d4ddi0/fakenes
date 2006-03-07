@@ -54,6 +54,9 @@ static int enable_resync = FALSE;
 static int resync_grace_frames = 0;
 
 
+ENUM cpu_usage = CPU_USAGE_NORMAL;
+
+
 static int fast_forward = FALSE;
 
 
@@ -535,6 +538,9 @@ int main (int argc, char * argv [])
     resync_grace_frames = get_config_int ("timing", "resync_grace_frames", 10);
 
 
+    cpu_usage = get_config_int ("timing", "cpu_usage", CPU_USAGE_NORMAL);
+
+
     disable_gui = get_config_int ("gui", "disable_gui", FALSE);
 
 
@@ -801,7 +807,14 @@ int main (int argc, char * argv [])
                     {
                         while (throttle_counter == 0)
                         {
-                            rest (1);
+                            if (cpu_usage == CPU_USAGE_NORMAL)
+                            {
+                                rest (0);
+                            }
+                            else if (cpu_usage == CPU_USAGE_PASSIVE)
+                            {
+                                 rest (1);
+                            }
                         }
                     }
     
@@ -1035,7 +1048,10 @@ int main (int argc, char * argv [])
             }
 
 
-            rest (0);
+            if (cpu_usage == CPU_USAGE_NORMAL)
+            {
+                rest (0);
+            }
         }
     }
 
@@ -1051,6 +1067,9 @@ int main (int argc, char * argv [])
     set_config_int ("timing", "enable_resync", enable_resync);
 
     set_config_int ("timing", "resync_grace_frames", resync_grace_frames);
+
+
+    set_config_int ("timing", "cpu_usage", cpu_usage);
 
 
     set_config_int ("gui", "disable_gui", disable_gui);
