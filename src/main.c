@@ -1048,7 +1048,8 @@ int main (int argc, char * argv [])
             }
 
 
-            if (cpu_usage == CPU_USAGE_NORMAL)
+            if ((cpu_usage == CPU_USAGE_PASSIVE) ||
+                (cpu_usage == CPU_USAGE_NORMAL))
             {
                 rest (0);
             }
