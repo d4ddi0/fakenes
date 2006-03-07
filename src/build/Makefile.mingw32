@@ -1,9 +1,5 @@
-# Options.
-ASM_CORE ?= 1
-
 # Tools.
 CC = gcc
-NASM ?= nasmw
 MKDIR = mkdir -p
 RMDIR = rmdir
 RM = rm -f
@@ -25,8 +21,6 @@ OBJEXT ?= .o
 # Binaries.
 BINARY := ${BINARY_PATH}/fakenes${EXEEXT}
 BINARY_DEBUG := ${BINARY_PATH}/fakenesd${EXEEXT}
-COREOFF = ${BINARY_PATH}/coreoff${EXEEXT}
-OFFSETS_INC = ${INCLUDE_PATH}/core/x86/offsets.inc
 
 # GCC flags.
 TARGET_ARCH ?= i486
@@ -52,21 +46,10 @@ endif
 ifdef USE_OPENAL
    DFLAGS += -DUSE_OPENAL
 endif
-ifneq (${ASM_CORE}, 0)
-   DFLAGS += -DNO_C_CORE
-endif
 CFLAGS := -I${INCLUDE_PATH} ${MFLAGS} ${OFLAGS} -Wall -Wno-unused ${DFLAGS}
 
 # GPP flags
 CPPFLAGS := -I${INCLUDE_PATH} ${DFLAGS}
-
-# NASM flags.
-ifdef DEBUG
-   NASMOFLAGS = -g
-else
-   NASMOFLAGS = -O3
-endif
-NASMFLAGS := -I${INCLUDE_PATH}/ ${NASMOFLAGS} -f win32 -DC_LABELS_PREFIX=_
 
 # Objects.
 OBJECTS := ${OBJECT_PATH}/alstream${OBJEXT} \
@@ -91,9 +74,6 @@ OBJECTS := ${OBJECT_PATH}/alstream${OBJEXT} \
    ${OBJECT_PATH}/hq3x${OBJEXT} \
    ${OBJECT_PATH}/hq4x${OBJEXT} \
    ${OBJECT_PATH}/unzip${OBJEXT}
-ifneq (${ASM_CORE}, 0)
-   OBJECTS += ${OBJECT_PATH}/corex86${OBJEXT}
-endif
 
 # Libraries.
 LIBALLEG ?= -lalleg
@@ -137,16 +117,7 @@ ${BINARY}: ${OBJECTS}
 ${BINARY_DEBUG}: ${OBJECTS}
 	@echo Building.
 	${CC} ${OBJECTS} ${RESOURCES} -o ${BINARY_DEBUG} -g -ggdb3 ${LIBRARIES}
-${OFFSETS_INC}: ${SOURCE_PATH}/coreoff.c \
-      ${INCLUDE_PATH}/common.h \
-      ${INCLUDE_PATH}/core.h \
-      ${INCLUDE_PATH}/types.h
-	${CC} $< -o ${COREOFF} -I${INCLUDE_PATH} -DOUTPUT=\"${OFFSETS_INC}\" ${LIBALLEG}
-	${COREOFF}
-	${RM} ${COREOFF}
-.SUFFIXES: .asm .c
-${OBJECT_PATH}/%${OBJEXT}: %.asm
-	${NASM} $< -o $@ ${NASMFLAGS}
+.SUFFIXES: .c
 ${OBJECT_PATH}/%${OBJEXT}: %.c
 	${CC} -c $< -o $@ ${CFLAGS}
 
