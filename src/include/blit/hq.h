@@ -37,7 +37,7 @@ static INLINE void blit_hq (int multiple, BITMAP *src, BITMAP *dest, int
    out = malloc (((wm * hm) * sizeof (int)));
    if (!out)
    {
-      free (out);
+      free (in);
       return;
    }
 
