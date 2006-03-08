@@ -333,9 +333,11 @@ int ppu_init (void)
     int i;
 
     /* compute CRC32 for CHR ROM */
-    global_rom.chr_rom_crc32 = build_crc32 (global_rom.chr_rom,
-        (global_rom.chr_rom_pages * 0x2000));
-
+    if (global_rom.chr_rom_pages > 0)
+    {
+       global_rom.chr_rom_crc32 = build_crc32 (global_rom.chr_rom,
+           (global_rom.chr_rom_pages * 0x2000));
+    }
 
     /* calculate the attribute lookup table */
     for (i = 0; i < 4; i++)
