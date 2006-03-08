@@ -246,6 +246,10 @@ int video_init (void)
                     color_depth = depth;
                 }
             }
+            else
+            {
+                driver = GFX_AUTODETECT;
+            }
         }
     }
     else
