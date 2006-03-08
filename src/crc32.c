@@ -1,83 +1,78 @@
 /* FakeNES - A free, portable, Open Source NES emulator.
    Distributed under the Clarified Artistic License.
 
-   crc32.c: Implementation of the CRC32 calculation.
+   crc32.c: CRC32 calculation routines.
 
    Copyright (c) 2001-2006, FakeNES Team.
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
 
+#include <allegro.h>
 #include "common.h"
 #include "crc32.h"
+#include "debug.h"
 #include "types.h"
 
-
-static const unsigned crc32_seed = 0xFFFFFFFF;
-static unsigned crc32_table[256];
-
-static int crc32_initialized = FALSE;
-
-
-static unsigned crc32_update (unsigned char value, unsigned crc32)
-{
-    return crc32_table[(crc32 ^ value) & 0xFF] ^ ((crc32 >> 8) & 0x00FFFFFF);
-}
-
+static BOOL initialized = FALSE;
+static const unsigned long crc32_seed = 0xffffffff;
+static unsigned long crc32_table[256];
 
 static void crc32_init (void)
 {
-    int entry, bit;
+   int index;
 
-    for (entry = 0; entry < 256; entry++)
-    {
-        unsigned value = entry;
+   for (index = 0; index < 256; index++)
+   {
+      unsigned long value = index;
+      int bit;
 
-        for (bit = 0; bit < 8; bit++)
-        {
-            if (value & 1)
-            {
-                value = (value >> 1) ^ 0xEDB88320;
-            }
-            else
-            {
-                value >>= 1;
-            }
-        }
+      for (bit = 0; bit < 8; bit++)
+      {
+         if (value & 1)
+            value = ((value >> 1) ^ 0xedb88320);
+         else
+            value >>= 1;
+      }
 
-        crc32_table[entry] = value;
-    }
+      crc32_table[index] = value;
+   }
 
-    crc32_initialized = TRUE;
+   initialized = TRUE;
 }
 
-
-static unsigned crc32_start (void)
+static INLINE unsigned long crc32_update (unsigned char value, unsigned long
+   crc32)
 {
-    return crc32_seed;
+   return ((crc32_table[((crc32 ^ value) & 0xff)] ^ ((crc32 >> 8) &
+      0x00ffffff)));
 }
 
-
-static unsigned crc32_end (unsigned crc32)
+static INLINE unsigned long crc32_start (void)
 {
-    return crc32 ^ crc32_seed;
+   return (crc32_seed);
 }
 
-
-UINT32 crc32_calculate (const UINT8 *buffer, unsigned len)
+static INLINE unsigned long crc32_end (unsigned long crc32)
 {
-    unsigned crc32;
-    int pos;
+   return ((crc32 ^ crc32_seed));
+}
 
-    if (!crc32_initialized) crc32_init ();
+unsigned long crc32 (const unsigned char *buffer, unsigned long size)
+{
+   unsigned long crc32;
+   unsigned long offset;
 
-    crc32 = crc32_start ();
+   RT_ASSERT(buffer);
 
-    for (pos = 0; pos < len; pos++)
-    {
-        crc32 = crc32_update (buffer[pos], crc32);
-    }
+   if (!initialized)
+      crc32_init ();
 
-    crc32 = crc32_end (crc32);
+   crc32 = crc32_start ();
 
-    return crc32;
+   for (offset = 0; offset < size; offset++)
+      crc32 = crc32_update (buffer[offset], crc32);
+
+   crc32 = crc32_end (crc32);
+
+   return (crc32);
 }

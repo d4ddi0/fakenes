@@ -1,7 +1,7 @@
 /* FakeNES - A free, portable, Open Source NES emulator.
    Distributed under the Clarified Artistic License.
 
-   crc32.h: Declarations for the CRC32 calculation.
+   crc32.c: Declarations for CRC32 calculation routines.
 
    Copyright (c) 2001-2006, FakeNES Team.
    This is free software.  See 'LICENSE' for details.
@@ -10,12 +10,11 @@
 #ifndef CRC32_H_INCLUDED
 #define CRC32_H_INCLUDED
 #include "common.h"
-#include "types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-UINT32 crc32_calculate (const UINT8 *, unsigned);
+unsigned long crc32 (const unsigned char *, unsigned long);
 
 #ifdef __cplusplus
 }

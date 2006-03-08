@@ -333,7 +333,7 @@ int ppu_init (void)
     int i;
 
     /* compute CRC32 for CHR ROM */
-    global_rom.chr_rom_crc32 = crc32_calculate (global_rom.chr_rom,
+    global_rom.chr_rom_crc32 = crc32 (global_rom.chr_rom,
         (global_rom.chr_rom_pages * 0x2000));
 
 
