@@ -43,6 +43,9 @@ endif
 ifdef USE_OPENAL
    DFLAGS += -DUSE_OPENAL
 endif
+ifdef TAG
+   DFLAGS += -DVERSION_TAG=\"${TAG}\"
+endif
 CFLAGS := -I${INCLUDE_PATH} ${MFLAGS} ${OFLAGS} -Wall -Wno-unused ${DFLAGS}
 
 # Objects.
@@ -97,7 +100,7 @@ ${OBJECT_PATH}:
 	${MKDIR} ${OBJECT_PATH}
 ${DEPEND}: ${OBJECT_PATH}
 	@echo Generating dependancy list.
-	${CC} -DDEPENDANCIES_ONLY -M -MG *${SRCEXT} ${CPPFLAGS} > ${DEPEND}
+	${CC} -DDEPENDANCIES_ONLY -MM -MG *${SRCEXT} ${CPPFLAGS} > ${DEPEND}
 depend: ${DEPEND}
 ${BINARY}: ${OBJECTS}
 	@echo Building.
