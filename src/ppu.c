@@ -13,7 +13,7 @@
 #include <string.h>
 #include "common.h"
 #include "cpu.h"
-#include "crc32.h"
+#include "crc.h"
 #include "input.h"
 #include "mmc.h"
 #include "ppu.h"
@@ -333,7 +333,7 @@ int ppu_init (void)
     int i;
 
     /* compute CRC32 for CHR ROM */
-    global_rom.chr_rom_crc32 = crc32 (global_rom.chr_rom,
+    global_rom.chr_rom_crc32 = build_crc32 (global_rom.chr_rom,
         (global_rom.chr_rom_pages * 0x2000));
 
 

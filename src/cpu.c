@@ -13,7 +13,7 @@
 #include "common.h"
 #include "core.h"
 #include "cpu.h"
-#include "crc32.h"
+#include "crc.h"
 #include "input.h"
 #include "mmc.h"
 #include "papu.h"
@@ -158,7 +158,7 @@ void cpu_memmap_init (void)
     if ((global_rom.control_byte_1 & ROM_CTRL_TRAINER))
     {
         /* compute CRC32 for trainer */
-        global_rom.trainer_crc32 = crc32 (global_rom.trainer,
+        global_rom.trainer_crc32 = build_crc32 (global_rom.trainer,
             ROM_TRAINER_SIZE);
     }
     else
@@ -168,7 +168,7 @@ void cpu_memmap_init (void)
 
 
     /* compute CRC32 for PRG ROM */
-    global_rom.prg_rom_crc32 = crc32 (global_rom.prg_rom,
+    global_rom.prg_rom_crc32 = build_crc32 (global_rom.prg_rom,
         (global_rom.prg_rom_pages * 0x4000));
 
 

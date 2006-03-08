@@ -1,7 +1,7 @@
 /* FakeNES - A free, portable, Open Source NES emulator.
    Distributed under the Clarified Artistic License.
 
-   crc32.c: CRC32 calculation routines.
+   crc.c: Implementation of CRC calculation routines.
 
    Copyright (c) 2001-2006, FakeNES Team.
    This is free software.  See 'LICENSE' for details.
@@ -9,15 +9,17 @@
 
 #include <allegro.h>
 #include "common.h"
-#include "crc32.h"
+#include "crc.h"
 #include "debug.h"
 #include "types.h"
 
-static BOOL initialized = FALSE;
+/* --- CRC32 routines. --- */
+
+static BOOL crc32_initialized = FALSE;
 static const unsigned long crc32_seed = 0xffffffff;
 static unsigned long crc32_table[256];
 
-static void crc32_init (void)
+static INLINE void crc32_init (void)
 {
    int index;
 
@@ -37,14 +39,7 @@ static void crc32_init (void)
       crc32_table[index] = value;
    }
 
-   initialized = TRUE;
-}
-
-static INLINE unsigned long crc32_update (unsigned char value, unsigned long
-   crc32)
-{
-   return ((crc32_table[((crc32 ^ value) & 0xff)] ^ ((crc32 >> 8) &
-      0x00ffffff)));
+   crc32_initialized = TRUE;
 }
 
 static INLINE unsigned long crc32_start (void)
@@ -52,27 +47,34 @@ static INLINE unsigned long crc32_start (void)
    return (crc32_seed);
 }
 
-static INLINE unsigned long crc32_end (unsigned long crc32)
+static INLINE unsigned long crc32_end (unsigned long crc)
 {
-   return ((crc32 ^ crc32_seed));
+   return ((crc ^ crc32_seed));
 }
 
-unsigned long crc32 (const unsigned char *buffer, unsigned long size)
+static INLINE unsigned long crc32_update (unsigned char value, unsigned long
+   crc)
 {
-   unsigned long crc32;
+   return ((crc32_table[((crc ^ value) & 0xff)] ^ ((crc >> 8) &
+      0x00ffffff)));
+}
+
+unsigned long build_crc32 (const unsigned char *buffer, unsigned long size)
+{
+   unsigned long crc;
    unsigned long offset;
 
    RT_ASSERT(buffer);
 
-   if (!initialized)
+   if (!crc32_initialized)
       crc32_init ();
 
-   crc32 = crc32_start ();
+   crc = crc32_start ();
 
    for (offset = 0; offset < size; offset++)
-      crc32 = crc32_update (buffer[offset], crc32);
+      crc = crc32_update (buffer[offset], crc);
 
-   crc32 = crc32_end (crc32);
+   crc = crc32_end (crc);
 
-   return (crc32);
+   return (crc);
 }
