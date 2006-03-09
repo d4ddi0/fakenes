@@ -35,8 +35,8 @@ else
 fi
 
 AC_ARG_WITH(zlib,   [  --with-zlib             build with ZIP and gzip support [default=yes]], [USE_ZLIB=$withval], [USE_ZLIB=yes])
-AC_ARG_WITH(hawknl, [  --with-hawknl           build with NetPlay support [default=yes]], [USE_HAWKNL=$withval], [USE_HAWKNL=yes])
-AC_ARG_WITH(openal, [  --with-openal           build with OpenAL support [default=yes]], [USE_OPENAL=$withval], [USE_OPENAL=yes])
+AC_ARG_WITH(hawknl, [  --with-hawknl           build with NetPlay support [default=no]], [USE_HAWKNL=$withval], [USE_HAWKNL=no])
+AC_ARG_WITH(openal, [  --with-openal           build with OpenAL support [default=no]], [USE_OPENAL=$withval], [USE_OPENAL=no])
 
 AC_MSG_CHECKING(whether to enable ZIP and gzip support)
 if [[ "x$USE_ZLIB" = "xyes" ]]; then

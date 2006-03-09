@@ -840,8 +840,8 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-zlib             build with ZIP and gzip support default=yes
-  --with-hawknl           build with NetPlay support default=yes
-  --with-openal           build with OpenAL support default=yes
+  --with-hawknl           build with NetPlay support default=no
+  --with-openal           build with OpenAL support default=no
 
 Some influential environment variables:
   CC          C compiler command
@@ -2423,7 +2423,7 @@ if test "${with_hawknl+set}" = set; then
   withval="$with_hawknl"
   USE_HAWKNL=$withval
 else
-  USE_HAWKNL=yes
+  USE_HAWKNL=no
 fi;
 
 # Check whether --with-openal or --without-openal was given.
@@ -2431,7 +2431,7 @@ if test "${with_openal+set}" = set; then
   withval="$with_openal"
   USE_OPENAL=$withval
 else
-  USE_OPENAL=yes
+  USE_OPENAL=no
 fi;
 
 echo "$as_me:$LINENO: checking whether to enable ZIP and gzip support" >&5

@@ -40,7 +40,7 @@ endif
 ifndef NO_ZLIB
    DFLAGS += -DUSE_ZLIB
 endif
-ifndef NO_HAWKNL
+ifdef USE_HAWKNL
    DFLAGS += -DUSE_HAWKNL
 endif
 ifdef USE_OPENAL
