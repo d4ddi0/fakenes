@@ -1,6 +1,6 @@
 static FONT *old_font = NULL;
 
-static INLINE void push_font (const FONT *new_font)
+static INLINE void push_font (FONT *new_font)
 {
    /* Saves the current font to be restored later by pop_font(). */
 
