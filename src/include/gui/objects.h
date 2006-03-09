@@ -1,11 +1,12 @@
 static FONT *old_font = NULL;
 
-static INLINE void push_font (FONT *new_font)
+static INLINE void push_font (const FONT *new_font)
 {
-   /* Saves the current font to be restored later by pop_font().  'new_font'
-      can be NULL in which case this function will do nothing. */
+   /* Saves the current font to be restored later by pop_font(). */
 
    if (!new_font)
+      return;
+   if (new_font == font)
       return;
 
    old_font = font;
@@ -18,7 +19,6 @@ static INLINE void pop_font (void)
       return;
 
    font = old_font;
-   old_font = NULL;
 }
 
 int sl_text (int message, DIALOG *dialog, int key)
