@@ -100,18 +100,23 @@ static const MENU main_state_autosave_menu_base[] =
    MENU_ENDCAP
 };
 
+DEFINE_MENU_CALLBACK(main_state_menu_quick_save);
+DEFINE_MENU_CALLBACK(main_state_menu_quick_load);
 DEFINE_MENU_CALLBACK(main_state_menu_select);
 DEFINE_MENU_CALLBACK(main_state_menu_save);
 DEFINE_MENU_CALLBACK(main_state_menu_restore);
 
 static const MENU main_state_menu_base[] =
 {
-   { "S&elect",   NULL,                    IMPORT_MENU(main_state_select_menu),   0, NULL },
+   { "&Quick Save (F2)", main_state_menu_quick_save, NULL,                                  0, NULL },
+   { "Quick &Load (F3)", main_state_menu_quick_load, NULL,                                  0, NULL },
    MENU_SPLITTER,
-   { "&Save",     main_state_menu_save,    NULL,                                  0, NULL },
-   { "&Restore",  main_state_menu_restore, NULL,                                  0, NULL },
+   { "S&elect",          NULL,                       IMPORT_MENU(main_state_select_menu),   0, NULL },
    MENU_SPLITTER,
-   { "&Autosave", NULL,                    IMPORT_MENU(main_state_autosave_menu), 0, NULL },
+   { "&Save       (F4)", main_state_menu_save,       NULL,                                  0, NULL },
+   { "&Restore    (F5)", main_state_menu_restore,    NULL,                                  0, NULL },
+   MENU_SPLITTER,
+   { "&Autosave",        NULL,                       IMPORT_MENU(main_state_autosave_menu), 0, NULL },
    MENU_ENDCAP
 };
 

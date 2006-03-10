@@ -192,14 +192,22 @@ static INLINE UCHAR *get_state_filename (UCHAR *filename, int index, int
 
    /* This function generates the path and filename for the state file
       associated with the state slot 'index'.  State files are stored in
-      the save path, and have a .fn# extension. */
+      the save path, and have a .fn# extension.  If 'index' is -1, the
+      quicksave feature is used instead, which has a dedicated state file
+      with a .fsv extension. */
 
    USTRING ext;
 
    RT_ASSERT(filename);
 
    /* Build extension. */
-   uszprintf (ext, sizeof (ext), "fn%d", index);
+   if (index == -1)
+   {
+      USTRING_CLEAR(ext);
+      ustrncat (ext, "fsv", (sizeof (ext) - 1));
+   }
+   else
+      uszprintf (ext, sizeof (ext), "fn%d", index);
 
    /* Generate filename. */
    get_save_filename (filename, ext, size);
@@ -456,6 +464,8 @@ UCHAR *get_state_title (int index, UCHAR *title, int size)
 
 BOOL save_state (int index, const UCHAR *title)
 {
+   /* index == -1 == quicksave. */
+
    USTRING filename;
    PACKFILE *file;
 
@@ -478,6 +488,8 @@ BOOL save_state (int index, const UCHAR *title)
 
 BOOL load_state (int index)
 {
+   /* index == -1 == quickload. */
+
    USTRING filename;
    PACKFILE *file;
 

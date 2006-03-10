@@ -873,22 +873,6 @@ int input_process (void)
 
         switch ((index >> 8))
         {
-            case KEY_F5:
-    
-                ppu_invert_mirroring ();
-    
-    
-                break;
-    
-    
-            case KEY_F6:
-    
-                input_enable_zapper = (! input_enable_zapper);
-    
-    
-                break;
-    
-
             case KEY_ESC:
 
                 if (disable_gui)

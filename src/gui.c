@@ -1030,7 +1030,7 @@ void gui_handle_keypress (int c)
       case KEY_F3:
       {
          /* Quick save state. */
-         main_state_menu_save ();
+         main_state_menu_quick_save ();
 
          break;
       }
@@ -1038,6 +1038,24 @@ void gui_handle_keypress (int c)
       case KEY_F4:
       {
          /* Quick load state. */
+
+         if (!(input_mode & INPUT_MODE_REPLAY))
+            main_state_menu_quick_load ();
+
+         break;
+      }
+
+      case KEY_F5:
+      {
+         /* Save state. */
+         main_state_menu_save ();
+
+         break;
+      }
+
+      case KEY_F6:
+      {
+         /* Restore state. */
 
          if (!(input_mode & INPUT_MODE_REPLAY))
             main_state_menu_restore ();
@@ -1551,6 +1569,30 @@ STATE_SELECT_MENU_HANDLER(8);
 STATE_SELECT_MENU_HANDLER(9);
 
 #undef STATE_MENU_HANDLER
+
+static int main_state_menu_quick_save (void)
+{
+   if (!save_state (-1, "QUICKSAVE"))
+   {
+      gui_message (GUI_ERROR_COLOR, "Quick Save failed.");
+
+      return (D_O_K);
+   }
+
+   return (D_CLOSE);
+}
+
+static int main_state_menu_quick_load (void)
+{
+   if (!load_state (-1))
+   {
+      gui_message (GUI_ERROR_COLOR, "Quick Load failed.");
+
+      return (D_O_K);
+   }
+
+   return (D_CLOSE);
+}
 
 static USTRING state_titles[STATE_SLOTS];
 static USTRING state_menu_texts[STATE_SLOTS];
