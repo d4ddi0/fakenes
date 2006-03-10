@@ -85,7 +85,7 @@ ifndef NO_ZLIB
    LIBZ ?= -lz
    LIBRARIES += ${LIBZ}
 endif
-ifndef NO_HAWKNL
+ifdef USE_HAWKNL
    LIBNL ?= -lNL
    LIBRARIES += ${LIBNL}
 endif
