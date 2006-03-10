@@ -152,6 +152,24 @@ static int using_custom_font = FALSE;
 #include "blit/interp.h"
 
 
+static void switch_out_callback (void)
+{
+    if (! gui_is_active)
+    {
+        audio_suspend ();
+    }
+}
+
+
+static void switch_in_callback (void)
+{
+    if (! gui_is_active)
+    {
+        audio_resume ();
+    }
+}
+
+
 int video_init (void)
 {
     int driver;
@@ -374,7 +392,21 @@ int video_init (void)
     }
 
 
-    set_display_switch_mode (SWITCH_PAUSE);
+    if (is_windowed_mode ())
+    {
+        set_display_switch_mode (SWITCH_BACKGROUND);
+    }
+    else
+    {
+        set_display_switch_mode (SWITCH_AMNESIA);
+
+
+        /* Install callbacks. */
+   
+        set_display_switch_callback (SWITCH_IN, switch_in_callback);
+   
+        set_display_switch_callback (SWITCH_OUT, switch_out_callback);
+    }
 
 
     return (0);
@@ -416,6 +448,16 @@ int video_reinit (void)
 
 void video_exit (void)
 {
+    if (! is_windowed_mode ())
+    {
+        /* Remove callbacks. */
+
+        remove_display_switch_callback (switch_in_callback);
+
+        remove_display_switch_callback (switch_out_callback);
+    }
+
+
     remove_int (video_message_timer);
 
 
