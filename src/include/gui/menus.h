@@ -142,8 +142,8 @@ DEFINE_MENU_CALLBACK(main_replay_record_menu_stop);
 
 static const MENU main_replay_record_menu_base[] =
 {
-   { "&Start", main_replay_record_menu_start, NULL, 0,          NULL },
-   { "S&top",  main_replay_record_menu_stop,  NULL, D_DISABLED, NULL },
+   { "&Start (F12)", main_replay_record_menu_start, NULL, 0,          NULL },
+   { "S&top  (F12)", main_replay_record_menu_stop,  NULL, D_DISABLED, NULL },
    MENU_ENDCAP
 };
 
@@ -175,17 +175,17 @@ DEFINE_MENU_CALLBACK(main_menu_exit);
 
 static const MENU main_menu_base[] =
 {
-   { "&Load ROM...", main_menu_load_rom, NULL,                          0, NULL },
+   { "&Load ROM...",    main_menu_load_rom, NULL,                          0, NULL },
    MENU_SPLITTER,
-   { "&Resume",      main_menu_resume,   NULL,                          0, NULL },
-   { "R&eset",       main_menu_reset,    NULL,                          0, NULL },
-   { "&State",       NULL,               IMPORT_MENU(main_state_menu),  0, NULL },
+   { "&Resume   (ESC)", main_menu_resume,   NULL,                          0, NULL },
+   { "R&eset",          main_menu_reset,    NULL,                          0, NULL },
+   { "&State",          NULL,               IMPORT_MENU(main_state_menu),  0, NULL },
    MENU_SPLITTER,
-   { "Re&play",      NULL,               IMPORT_MENU(main_replay_menu), 0, NULL },
-   { "S&napshot",    main_menu_snapshot, NULL,                          0, NULL },
-   { "&Messages...", main_menu_messages, NULL,                          0, NULL },
-   MENU_SPLITTER,
-   { "E&xit",        main_menu_exit,     NULL,                          0, NULL },
+   { "Re&play",         NULL,               IMPORT_MENU(main_replay_menu), 0, NULL },
+   { "S&napshot (F1)",  main_menu_snapshot, NULL,                          0, NULL },
+   { "&Messages...",    main_menu_messages, NULL,                          0, NULL },
+   MENU_SPLITTER,       
+   { "E&xit",           main_menu_exit,     NULL,                          0, NULL },
    MENU_ENDCAP
 };
 
@@ -725,9 +725,9 @@ DEFINE_MENU_CALLBACK(options_video_layers_menu_background);
 
 static const MENU options_video_layers_menu_base[] =
 {
-   { "&Sprites A",  options_video_layers_menu_sprites_a,  NULL, 0, NULL },
-   { "S&prites B",  options_video_layers_menu_sprites_b,  NULL, 0, NULL },
-   { "&Background", options_video_layers_menu_background, NULL, 0, NULL },
+   { "&Sprites A  (F7)", options_video_layers_menu_sprites_a,  NULL, 0, NULL },
+   { "S&prites B  (F7)", options_video_layers_menu_sprites_b,  NULL, 0, NULL },
+   { "&Background (F8)", options_video_layers_menu_background, NULL, 0, NULL },
    MENU_ENDCAP
 };
 
@@ -801,16 +801,16 @@ DEFINE_MENU_CALLBACK(options_menu_patches);
 
 static const MENU options_menu_base[] =
 {
-   { "&Status",     options_menu_status,  NULL,                             0, NULL },
+   { "&Status (F2)", options_menu_status,  NULL,                             0, NULL },
    MENU_SPLITTER,
-   { "&GUI",        NULL,                 IMPORT_MENU(options_gui_menu),    0, NULL },
-   { "S&ystem",     NULL,                 IMPORT_MENU(options_system_menu), 0, NULL },
-   { "&Audio",      NULL,                 IMPORT_MENU(options_audio_menu),  0, NULL },
-   { "&Video",      NULL,                 IMPORT_MENU(options_video_menu),  0, NULL },
-   { "&Input",      NULL,                 IMPORT_MENU(options_input_menu),  0, NULL },
+   { "&GUI",         NULL,                 IMPORT_MENU(options_gui_menu),    0, NULL },
+   { "S&ystem",      NULL,                 IMPORT_MENU(options_system_menu), 0, NULL },
+   { "&Audio",       NULL,                 IMPORT_MENU(options_audio_menu),  0, NULL },
+   { "&Video",       NULL,                 IMPORT_MENU(options_video_menu),  0, NULL },
+   { "&Input",       NULL,                 IMPORT_MENU(options_input_menu),  0, NULL },
    MENU_SPLITTER,
-   { "&Patches...", options_menu_patches, NULL,                             0, NULL },
-   MENU_ENDCAP
+   { "&Patches...",  options_menu_patches, NULL,                             0, NULL },
+   MENU_ENDCAP      
 };
 
 DEFINE_MENU_CALLBACK(help_menu_shortcuts);
