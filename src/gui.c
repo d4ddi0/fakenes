@@ -218,9 +218,6 @@ static INLINE void load_menus (void)
    MENU_FROM_BASE(main_replay_play_menu);
    MENU_FROM_BASE(main_replay_menu);
    MENU_FROM_BASE(main_menu);
-   MENU_FROM_BASE(netplay_protocol_menu);
-   MENU_FROM_BASE(netplay_server_menu);
-   MENU_FROM_BASE(netplay_client_menu);
    MENU_FROM_BASE(netplay_menu);
    MENU_FROM_BASE(options_gui_theme_menu);
    MENU_FROM_BASE(options_gui_menu);
@@ -269,7 +266,7 @@ static INLINE void load_dialogs (void)
    DIALOG_FROM_BASE(options_input_dialog);
    DIALOG_FROM_BASE(options_patches_add_dialog);
    DIALOG_FROM_BASE(options_patches_dialog);
-   DIALOG_FROM_BASE(netplay_client_connect_dialog);
+   DIALOG_FROM_BASE(netplay_dialog);
    DIALOG_FROM_BASE(help_shortcuts_dialog);
    DIALOG_FROM_BASE(help_about_dialog);
 }
@@ -288,9 +285,6 @@ static INLINE void unload_menus (void)
    unload_menu (main_replay_play_menu);
    unload_menu (main_replay_menu);
    unload_menu (main_menu);
-   unload_menu (netplay_protocol_menu);
-   unload_menu (netplay_server_menu);
-   unload_menu (netplay_client_menu);
    unload_menu (netplay_menu);
    unload_menu (options_gui_theme_menu);
    unload_menu (options_gui_menu);
@@ -339,7 +333,7 @@ static INLINE void unload_dialogs (void)
    unload_dialog (options_input_dialog);
    unload_dialog (options_patches_add_dialog);
    unload_dialog (options_patches_dialog);
-   unload_dialog (netplay_client_connect_dialog);
+   unload_dialog (netplay_dialog);
    unload_dialog (help_shortcuts_dialog);
    unload_dialog (help_about_dialog);
 }
@@ -831,9 +825,6 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(options_video_layers_menu_background, ppu_enable_background_layer);
 
    TOGGLE_MENU_ITEM(options_input_menu_enable_zapper, input_enable_zapper);
-
-   TOGGLE_MENU_ITEM(netplay_protocol_menu_tcpip, (netplay_protocol == NETPLAY_PROTOCOL_TCPIP));
-   TOGGLE_MENU_ITEM(netplay_protocol_menu_spx,   (netplay_protocol == NETPLAY_PROTOCOL_SPX));
 }
 
 static INLINE void draw_background (void)
@@ -958,7 +949,7 @@ static INLINE void cycle_video (void);
 int show_gui (BOOL first_run)
 {
    STRING save_path;
-   STRING ip_address;
+   STRING host;
 
    gui_needs_restart = FALSE;
    gui_is_active = TRUE;
@@ -991,15 +982,15 @@ int show_gui (BOOL first_run)
    run_dialog (main_dialog);
 
    /* Save configuration. */
-   memset (save_path, 0, sizeof (save_path));
+   STRING_CLEAR(save_path);
    strncpy (save_path, get_config_string ("gui", "save_path", "./"),
       sizeof (save_path) - 1);
    set_config_string ("gui", "save_path", save_path);
 
-   memset (ip_address, 0, sizeof (ip_address));
-   strncpy (ip_address, get_config_string ("netplay", "ip_address",
-      "0.0.0.0"), sizeof (ip_address) - 1);
-   set_config_string ("netplay", "ip_address", ip_address);
+   STRING_CLEAR(host);
+   strncpy (host, get_config_string ("netplay", "host", ""), (sizeof (host)
+      - 1));
+   set_config_string ("netplay", "host", host);
 
    set_config_int ("gui", "theme", gui_theme_id);
 
@@ -1154,30 +1145,6 @@ void gui_handle_keypress (int c)
 void gui_stop_replay (void)
 {
    main_replay_play_menu_stop ();
-}
-
-static BOOL client_connected = FALSE;
-
-/* TODO: Change this to a normal function, remove it from the main dialog,
-   and place a call to it in gui_heartbeat(). */
-static int netplay_handler (int message, DIALOG *dialog, int key)
-{
-   if (netplay_server_active && !client_connected)
-   {
-      client_connected = netplay_poll_server ();
-
-      if (client_connected)
-      {
-         message_local ("Accepted connection from client.");
-
-         if (main_menu_load_rom () == D_CLOSE)
-            return (D_CLOSE);
-         else
-            message_local ("NetPlay session canceled.");
-      }
-   }
-
-   return (D_O_K);
 }
 
 /* --- Utility functions. --- */
@@ -1542,12 +1509,6 @@ static int main_menu_load_rom (void)
       {
          gui_message (GUI_ERROR_COLOR, "Failed to load ROM!");
 
-         /* Shut down netplay engine. */
-         if (netplay_server_active)
-            netplay_close_server ();
-         if (netplay_client_active)
-            netplay_close_client ();
-
          return (D_O_K);
       }
       else
@@ -1580,15 +1541,12 @@ static int main_menu_load_rom (void)
          /* Initialize machine. */
          machine_init ();
 
-         if (!netplay_server_active && !netplay_client_active)
-         {
-            ENABLE_MENU_ITEM(main_menu_resume);
-            ENABLE_MENU_ITEM(main_menu_reset);
-            ENABLE_SUBMENU(main_state_menu);
-            ENABLE_SUBMENU(main_replay_menu);
-            ENABLE_MENU_ITEM(main_menu_snapshot);
-            ENABLE_MENU_ITEM(options_menu_patches);
-         }
+         ENABLE_MENU_ITEM(main_menu_resume);
+         ENABLE_MENU_ITEM(main_menu_reset);
+         ENABLE_SUBMENU(main_state_menu);
+         ENABLE_SUBMENU(main_replay_menu);
+         ENABLE_MENU_ITEM(main_menu_snapshot);
+         ENABLE_MENU_ITEM(options_menu_patches);
 
          /* Update window title. */
          uszprintf (scratch, sizeof (scratch), "FakeNES - %s", get_filename
@@ -3340,127 +3298,132 @@ static int options_menu_patches (void)
    return (D_O_K);
 }
 
-static int netplay_protocol_menu_tcpip (void)
+static int netplay_menu_start_as_server (void)
 {
-   netplay_protocol = NETPLAY_PROTOCOL_TCPIP;
-   update_menus ();
+   STRING host;
+   int port;
+   STRING port_str;
+   DIALOG *dialog;
+   DIALOG *obj_host_label;
+   DIALOG *obj_host;
+   DIALOG *obj_port;
 
-   message_local ("Netplay protocol set to TCP/IP.");
+   /* Load configuration. */
 
-   return (D_O_K);
-}
+   STRING_CLEAR(host);
+   strncat (host, "localhost", (sizeof (host) - 1));
 
-static int netplay_protocol_menu_spx (void)
-{
-   netplay_protocol = NETPLAY_PROTOCOL_SPX;
-   update_menus ();
+   port = get_config_int ("netplay", "port", NETPLAY_DEFAULT_PORT);
 
-   message_local ("Netplay protocol set to SPX.");
+   STRING_CLEAR(port_str);
+   sprintf (port_str, "%d", port);
 
-   return (D_O_K);
-}
+   /* Get dialog. */
+   dialog = netplay_dialog;
 
-static int netplay_server_menu_start (void)
-{
-   if (netplay_open_server () != 0)
-      gui_message (GUI_ERROR_COLOR, "Failed to start the netplay server!");
+   /* Get dialog objects. */
+   obj_host_label = &dialog[NETPLAY_DIALOG_HOST_LABEL];
+   obj_host       = &dialog[NETPLAY_DIALOG_HOST];
+   obj_port       = &dialog[NETPLAY_DIALOG_PORT];
 
-   /* TODO: FIX MENU STUFF */
-   DISABLE_MENU (top_menu, 0);
-   DISABLE_MENU (top_menu, 1);
-   DISABLE_MENU (top_menu, 3);
-   DISABLE_MENU (netplay_menu, 0);
-   DISABLE_MENU (netplay_menu, 4);
-   DISABLE_MENU (netplay_server_menu, 0);
-   ENABLE_MENU (netplay_server_menu, 2);
+   /* Set up dialog objects. */
+   obj_host_label->flags |= D_DISABLED;
+   obj_host->d1 = 0;
+   obj_host->dp = host;
+   obj_host->flags |= D_DISABLED;
+   obj_port->d1 = (sizeof (port_str) - 1);
+   obj_port->dp = port_str;
 
-   message_local ("Started NetPlay server, awaiting client.");
+   /* Display dialog. */
+   if (show_dialog (dialog) != NETPLAY_DIALOG_OK_BUTTON)
+      return (D_O_K);
 
-   return (D_REDRAW);
-}
+   /* Integerize port. */
+   port = atoi (port_str);
 
-static int netplay_server_menu_stop (void)
-{
-   netplay_close_server ();
+   /* Save configuration. */
+   set_config_int ("netplay", "port", port);
 
-   /* TODO: FIX MENU STUFF */
-   DISABLE_MENU (netplay_server_menu, 2);
-   ENABLE_MENU (top_menu, 0);
-   ENABLE_MENU (top_menu, 1);
-   ENABLE_MENU (top_menu, 3);
-   ENABLE_MENU (netplay_menu, 0);
-   ENABLE_MENU (netplay_menu, 4);
-   ENABLE_MENU (netplay_server_menu, 0);
+   /* Start NetPlay session. */
 
-   message_local ("Stopped NetPlay server.");
-
-   return (D_REDRAW);
-}
-
-static int netplay_client_menu_connect (void)
-{
-   if (netplay_protocol == NETPLAY_PROTOCOL_TCPIP)
+   if (!netplay_open_server (port))
    {
-      CHAR buffer[16];
-    
-      memset (buffer, 0, sizeof (buffer));
-      strncat (buffer, get_config_string ("netplay", "ip_address",
-         "0.0.0.0"), (sizeof (buffer) - 1));
-
-      netplay_client_connect_dialog[4].d1 = (sizeof (buffer) - 1);
-      netplay_client_connect_dialog[4].dp = buffer;
-    
-      if (show_dialog (netplay_client_connect_dialog) != 5)
-         return (D_O_K);
-
-      if (netplay_open_client (buffer) != 0)
-      {
-         gui_message (GUI_ERROR_COLOR, "Failed to connect to the server!");
-
-         return (D_O_K);
-      }
-
-      set_config_string ("netplay", "ip_address", buffer);
-   }
-   else
-   {
-      if (netplay_open_client (NULL) != 0)
-      {
-         gui_message (GUI_ERROR_COLOR, "Failed to connect to the server!");
-
-         return (D_O_K);
-      }
+      gui_message (GUI_ERROR_COLOR, "Failed to open server!");
+      return (D_O_K);
    }
 
-   /* TODO:FIX MENU STUFF */
-   DISABLE_MENU (top_menu, 0);
-   DISABLE_MENU (top_menu, 1);
-   DISABLE_MENU (top_menu, 3);
-   DISABLE_MENU (netplay_menu, 0);
-   DISABLE_MENU (netplay_menu, 2);
-   DISABLE_MENU (netplay_client_menu, 0);
-   ENABLE_MENU (netplay_client_menu, 2);
+   message_local ("NetPlay session opened.");
 
-   message_local ("NetPlay client connected to the server.");
+   /* End NetPlay session. */
+   netplay_close ();
+
+   message_local ("NetPlay session closed.");
 
    return (D_O_K);
 }
 
-
-static int netplay_client_menu_disconnect (void)
+static int netplay_menu_start_as_client (void)
 {
-   netplay_close_client ();
+   STRING host;
+   int port;
+   STRING port_str;
+   DIALOG *dialog;
+   DIALOG *obj_host_label;
+   DIALOG *obj_host;
+   DIALOG *obj_port;
+          
+   /* Load configuration. */
 
-   /* TODO: FIX MENU STUFF */
-   DISABLE_MENU (netplay_client_menu, 2);
-   ENABLE_MENU (top_menu, 0);
-   ENABLE_MENU (top_menu, 1);
-   ENABLE_MENU (top_menu, 3);
-   ENABLE_MENU (netplay_menu, 0);
-   ENABLE_MENU (netplay_menu, 2);
-   ENABLE_MENU (netplay_client_menu, 0);
+   STRING_CLEAR(host);
+   strncat (host, get_config_string ("netplay", "host", ""), (sizeof (host)
+      - 1));
 
-   message_local ("NetPlay client disconnected from the server.");
+   port = get_config_int ("netplay", "port", NETPLAY_DEFAULT_PORT);
+
+   STRING_CLEAR(port_str);
+   sprintf (port_str, "%d", port);
+
+   /* Get dialog. */
+   dialog = netplay_dialog;
+
+   /* Get dialog objects. */
+   obj_host_label = &dialog[NETPLAY_DIALOG_HOST_LABEL];
+   obj_host       = &dialog[NETPLAY_DIALOG_HOST];
+   obj_port       = &dialog[NETPLAY_DIALOG_PORT];
+
+   /* Set up dialog objects. */
+   obj_host_label->flags &= ~D_DISABLED;
+   obj_host->d1 = (sizeof (host) - 1);
+   obj_host->dp = host;
+   obj_host->flags &= ~D_DISABLED;
+   obj_port->d1 = (sizeof (port_str) - 1);
+   obj_port->dp = port_str;
+
+   /* Display dialog. */
+   if (show_dialog (dialog) != NETPLAY_DIALOG_OK_BUTTON)
+      return (D_O_K);
+
+   /* Integerize port. */
+   port = atoi (port_str);
+
+   /* Save configuration. */
+   set_config_string ("netplay", "host", host);
+   set_config_int    ("netplay", "port", port);
+
+   /* Start NetPlay session. */
+
+   if (!netplay_open_client (host, port))
+   {
+      gui_message (GUI_ERROR_COLOR, "Failed to connect to remote host!");
+      return (D_O_K);
+   }
+
+   message_local ("NetPlay session opened.");
+
+   /* End NetPlay session. */
+   netplay_close ();
+
+   message_local ("NetPlay session closed.");
 
    return (D_O_K);
 }

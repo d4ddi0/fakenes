@@ -12,16 +12,13 @@ DEFINE_DIALOG(main_messages_dialog);
 DEFINE_DIALOG(options_input_dialog);
 DEFINE_DIALOG(options_patches_add_dialog);
 DEFINE_DIALOG(options_patches_dialog);
-DEFINE_DIALOG(netplay_client_connect_dialog);
+DEFINE_DIALOG(netplay_dialog);
 DEFINE_DIALOG(help_shortcuts_dialog);
 DEFINE_DIALOG(help_about_dialog);
 
-static int netplay_handler (int, DIALOG *, int);
-
 static const DIALOG main_dialog_base[] =
 {
-   { netplay_handler, 0,  0,  0, 0, 0, 0, 0, 0, 0, 0, NULL,                  NULL, NULL },
-   { d_menu_proc,     16, 16, 0, 0, 0, 0, 0, 0, 0, 0, IMPORT_MENU(top_menu), NULL, NULL },
+   { d_menu_proc, 16, 16, 0, 0, 0, 0, 0, 0, 0, 0, IMPORT_MENU(top_menu), NULL, NULL },
    DIALOG_ENDCAP
 };
 
@@ -119,15 +116,37 @@ static const DIALOG options_patches_dialog_base[] =
    DIALOG_FRAME_ENDCAP
 };
 
-static const DIALOG netplay_client_connect_dialog_base[] =
+static const DIALOG netplay_dialog_base[] =
 {
-   { sl_frame,          0,   0,  156, 84, 0, 0, 0,   0,      0, 0, NULL,  "Connect",  NULL },
-   { sl_x_button,       136, 4,  16,  12, 0, 0, 0,   D_EXIT, 0, 0, "X",   NULL,       NULL },
-   { sl_text,           9,   36, 0,   0,  0, 0, 's', 0,      0, 0, NULL,  "&Server:", NULL },
-   { d_shadow_box_proc, 48,  32, 96,  16, 0, 0, 0,   0,      0, 0, NULL,  NULL,       NULL },
-   { d_edit_proc,       50,  36, 92,  12, 0, 0, 0,   0,      0, 0, NULL,  NULL,       NULL },
-   { d_button_proc,     112, 56, 32,  16, 0, 0, 'o', D_EXIT, 0, 0, "&OK", NULL,       NULL },
+   { sl_frame,          0,   0,  153, 88, 0, 0, 0,   0,      0, 0, NULL,      "NetPlay", NULL },
+   { sl_x_button,       133, 4,  16,  12, 0, 0, 0,   D_EXIT, 0, 0, "X",       NULL,      NULL },
+   { sl_text,           9,   31, 0,   0,  0, 0, 'h', 0,      0, 0, NULL,      "&Host:",  NULL },
+   { d_shadow_box_proc, 40,  27, 104, 14, 0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
+   { d_edit_proc,       42,  31, 100, 12, 0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
+   { sl_text,           9,   49, 0,   0,  0, 0, 'p', 0,      0, 0, NULL,      "&Port:",  NULL },
+   { d_shadow_box_proc, 40,  45, 40,  14, 0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
+   { d_edit_proc,       42,  49, 36,  12, 0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
+   { sl_text,           84,  49, 0,   0,  0, 0, 0,   0,      0, 0, NULL,      "TCP",     NULL },
+   { d_button_proc,     40,  66, 32,  16, 0, 0, 'o', D_EXIT, 0, 0, "&OK",     NULL,      NULL },
+   { d_button_proc,     78,  66, 48,  16, 0, 0, 'c', D_EXIT, 0, 0, "&Cancel", NULL,      NULL },
    DIALOG_FRAME_ENDCAP
+};
+
+/* Note: remember to keep this enum updated to the structure of the dialog
+   above, otherwise crashes could occur. */
+enum
+{
+   NETPLAY_DIALOG_FRAME = 0,
+   NETPLAY_DIALOG_CLOSE_BUTTON,
+   NETPLAY_DIALOG_HOST_LABEL,
+   NETPLAY_DIALOG_HOST_BOX,
+   NETPLAY_DIALOG_HOST,
+   NETPLAY_DIALOG_PORT_LABEL,
+   NETPLAY_DIALOG_PORT_BOX,
+   NETPLAY_DIALOG_PORT,
+   NETPLAY_DIALOG_TCP_TEXT,
+   NETPLAY_DIALOG_OK_BUTTON,
+   NETPLAY_DIALOG_CANCEL_BUTTON
 };
 
 static const DIALOG help_shortcuts_dialog_base[] =

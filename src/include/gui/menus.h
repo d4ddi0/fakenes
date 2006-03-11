@@ -19,9 +19,6 @@ DEFINE_MENU(main_replay_record_menu);
 DEFINE_MENU(main_replay_play_menu);
 DEFINE_MENU(main_replay_menu);
 DEFINE_MENU(main_menu);
-DEFINE_MENU(netplay_protocol_menu);
-DEFINE_MENU(netplay_server_menu);
-DEFINE_MENU(netplay_client_menu);
 DEFINE_MENU(netplay_menu);
 DEFINE_MENU(options_gui_theme_menu);
 DEFINE_MENU(options_gui_menu);
@@ -190,42 +187,13 @@ static const MENU main_menu_base[] =
    MENU_ENDCAP
 };
 
-DEFINE_MENU_CALLBACK(netplay_protocol_menu_tcpip);
-DEFINE_MENU_CALLBACK(netplay_protocol_menu_spx);
-
-static const MENU netplay_protocol_menu_base[] =
-{
-   { "&TCP/IP", netplay_protocol_menu_tcpip, NULL, 0, NULL },
-   { "&SPX",    netplay_protocol_menu_spx,   NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(netplay_server_menu_start);
-DEFINE_MENU_CALLBACK(netplay_server_menu_stop);
-
-static const MENU netplay_server_menu_base[] =
-{
-   { "&Start", netplay_server_menu_start, NULL,          0, NULL },
-   { "S&top",  netplay_server_menu_stop,  NULL, D_DISABLED, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(netplay_client_menu_connect);
-DEFINE_MENU_CALLBACK(netplay_client_menu_disconnect);
-
-static const MENU netplay_client_menu_base[] =
-{
-   { "&Connect...",    netplay_client_menu_connect, NULL,          0, NULL },
-   { "&Disconnect", netplay_client_menu_disconnect, NULL, D_DISABLED, NULL },
-   MENU_ENDCAP
-};
+DEFINE_MENU_CALLBACK(netplay_menu_start_as_server);
+DEFINE_MENU_CALLBACK(netplay_menu_start_as_client);
 
 static const MENU netplay_menu_base[] =
 {
-   { "&Protocol", NULL, IMPORT_MENU(netplay_protocol_menu), 0, NULL },
-   MENU_SPLITTER,
-   { "&Server",   NULL, IMPORT_MENU(netplay_server_menu),   0, NULL },
-   { "&Client",   NULL, IMPORT_MENU(netplay_client_menu),   0, NULL },
+   { "&Start as Server...", netplay_menu_start_as_server, NULL, 0, NULL },
+   { "Start as &Client...", netplay_menu_start_as_client, NULL, 0, NULL },
    MENU_ENDCAP
 };
 

@@ -15,43 +15,23 @@
 extern "C" {
 #endif
 
+#define NETPLAY_DEFAULT_PORT  0x2a03
 
-#define NETPLAY_PORT    0x2a03
+ENUM netplay_mode;
 
-
-int netplay_protocol;
-
+int netplay_init (void);
+void netplay_exit (void);
+BOOL netplay_open_server (int);
+BOOL netplay_open_client (const char *, int);
+void netplay_close (void);
 
 enum
 {
-    NETPLAY_PROTOCOL_TCPIP,
-
-    NETPLAY_PROTOCOL_SPX
+   NETPLAY_MODE_INACTIVE,
+   NETPLAY_MODE_SERVER_OPEN,
+   NETPLAY_MODE_SERVER_CLOSED,
+   NETPLAY_MODE_CLIENT
 };
-
-
-int netplay_server_active;
-
-int netplay_client_active;
-
-
-int netplay_init (void);
-
-void netplay_exit (void);
-
-
-int netplay_open_server (void);
-
-void netplay_close_server (void);
-
-
-int netplay_poll_server (void);
-
-
-int netplay_open_client (const UINT8 *);
-
-void netplay_close_client (void);
-
 
 #ifdef __cplusplus
 }

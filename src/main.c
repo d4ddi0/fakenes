@@ -29,6 +29,7 @@ extern int errno;
 #include "input.h"
 #include "log.h"
 #include "mmc.h"
+#include "net.h"
 #include "netplay.h"
 #include "papu.h"
 #include "ppu.h"
@@ -611,6 +612,8 @@ int main (int argc, char * argv [])
     papu_reset ();
 
 
+    net_init ();
+
     netplay_init ();
 
 
@@ -1098,6 +1101,8 @@ int main (int argc, char * argv [])
 
 
     netplay_exit ();
+
+    net_exit ();
 
 
     if (rom_is_loaded)
