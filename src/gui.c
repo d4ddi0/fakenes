@@ -1439,7 +1439,7 @@ static int main_replay_record_menu_stop (void)
 static int main_replay_play_menu_start (void)
 {
    if (!open_replay (replay_index, "r", NULL))
-   {
+   {                       
       gui_message (GUI_ERROR_COLOR, "Failed to open machine state file.");
 
       return (D_O_K);
@@ -1448,9 +1448,12 @@ static int main_replay_play_menu_start (void)
    DISABLE_MENU_ITEM(main_replay_play_menu_start);
    ENABLE_MENU_ITEM(main_replay_play_menu_stop);
    DISABLE_MENU_ITEM(main_menu_load_rom);
+   DISABLE_MENU_ITEM(main_menu_reset);
    DISABLE_SUBMENU(main_replay_select_menu);
    DISABLE_SUBMENU(main_replay_record_menu);
+   DISABLE_MENU_ITEM(main_state_menu_quick_load);
    DISABLE_MENU_ITEM(main_state_menu_restore);
+   DISABLE_MENU_ITEM(options_menu_patches);
    DISABLE_SUBMENU(netplay_menu);
 
    /* Enter replay playback mode. */
@@ -1477,9 +1480,12 @@ static int main_replay_play_menu_stop (void)
    ENABLE_MENU_ITEM(main_replay_play_menu_start);
    DISABLE_MENU_ITEM(main_replay_play_menu_stop);
    ENABLE_MENU_ITEM(main_menu_load_rom);
+   ENABLE_MENU_ITEM(main_menu_reset);
    ENABLE_SUBMENU(main_replay_select_menu);
    ENABLE_SUBMENU(main_replay_record_menu);
+   ENABLE_MENU_ITEM(main_state_menu_quick_load);
    ENABLE_MENU_ITEM(main_state_menu_restore);
+   ENABLE_MENU_ITEM(options_menu_patches);
    ENABLE_SUBMENU(netplay_menu);
 
    if (gui_is_active)
