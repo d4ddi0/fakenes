@@ -224,6 +224,7 @@ static INLINE void load_menus (void)
    MENU_FROM_BASE(netplay_menu);
    MENU_FROM_BASE(options_gui_theme_menu);
    MENU_FROM_BASE(options_gui_menu);
+   MENU_FROM_BASE(options_system_region_menu);
    MENU_FROM_BASE(options_system_cpu_usage_menu);
    MENU_FROM_BASE(options_system_menu);
    MENU_FROM_BASE(options_audio_subsystem_menu);
@@ -293,6 +294,7 @@ static INLINE void unload_menus (void)
    unload_menu (netplay_menu);
    unload_menu (options_gui_theme_menu);
    unload_menu (options_gui_menu);
+   unload_menu (options_system_region_menu);
    unload_menu (options_system_cpu_usage_menu);
    unload_menu (options_system_menu);
    unload_menu (options_audio_subsystem_menu);
@@ -651,8 +653,9 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(options_system_cpu_usage_menu_normal,     (cpu_usage == CPU_USAGE_NORMAL));
    TOGGLE_MENU_ITEM(options_system_cpu_usage_menu_aggressive, (cpu_usage == CPU_USAGE_AGGRESSIVE));
 
-   TOGGLE_MENU_ITEM(options_system_menu_ntsc_60_hz, (machine_type == MACHINE_TYPE_NTSC));
-   TOGGLE_MENU_ITEM(options_system_menu_pal_50_hz,  (machine_type == MACHINE_TYPE_PAL));
+   TOGGLE_MENU_ITEM(options_system_region_menu_automatic, (machine_region == MACHINE_REGION_AUTOMATIC));
+   TOGGLE_MENU_ITEM(options_system_region_menu_ntsc,      (machine_region == MACHINE_REGION_NTSC));
+   TOGGLE_MENU_ITEM(options_system_region_menu_pal,       (machine_region == MACHINE_REGION_PAL));
 
    TOGGLE_MENU_ITEM(options_audio_menu_enabled, audio_enable_output);
 
@@ -1257,6 +1260,60 @@ static INLINE const UCHAR *get_enabled_text_ex (BOOL value, const UCHAR
    return ((value ? enabled_text : "disabled"));
 }
 
+static void update_machine_type (void)
+{
+   /* This function resyncs machine_type to the value of machine_region. */
+
+   switch (machine_region)
+   {
+      case MACHINE_REGION_AUTOMATIC:
+      {
+         if (rom_is_loaded)
+         {
+            /* Try to determine a suitable machine type by searching for
+               country codes in the ROM's filename. */
+
+            if (ustrstr (global_rom.filename, "(E)"))
+            {
+               /* Europe. */
+               machine_type = MACHINE_TYPE_PAL;
+            }
+            else
+            {
+               /* Default to NTSC. */
+               machine_type = MACHINE_TYPE_NTSC;
+            }
+         }
+         else  
+         {
+            /* Default to NTSC. */
+            machine_type = MACHINE_TYPE_NTSC;
+         }
+
+         break;
+      }
+
+      case MACHINE_REGION_NTSC:
+      {
+         /* NTSC (60 Hz). */
+         machine_type = MACHINE_TYPE_NTSC;
+
+         break;
+      }
+
+      case MACHINE_REGION_PAL:
+      {
+         /* PAL (50 Hz). */
+         machine_type = MACHINE_TYPE_PAL;
+
+         break;
+      }
+   }
+
+   /* Cycle audio to match new emulation speeds. */
+   cycle_audio ();
+}
+
 /* --- Menu handlers. --- */
 
 /* Number of replay slots available in the menu. */
@@ -1506,6 +1563,9 @@ static int main_menu_load_rom (void)
          main_replay_menu_select ();
 
          rom_is_loaded = TRUE;
+
+         /* Fixup machine type from region. */
+         update_machine_type ();
 
          /* Initialize machine. */
          machine_init ();
@@ -1839,6 +1899,40 @@ static int options_gui_theme_menu_panta (void)
 
 #undef SET_THEME
 
+static int options_system_region_menu_automatic (void)
+{
+   machine_region = MACHINE_REGION_AUTOMATIC;
+   update_machine_type ();
+   update_menus ();
+
+   message_local ("System region set to automatic.");
+
+   return (D_O_K);
+}
+
+static int options_system_region_menu_ntsc (void)
+{
+   machine_region = MACHINE_REGION_NTSC;
+   update_machine_type ();
+   update_menus ();
+
+   message_local ("System region set to NTSC.");
+
+   return (D_O_K);
+}
+
+static int options_system_region_menu_pal (void)
+{
+   machine_region = MACHINE_REGION_PAL;
+   update_machine_type ();
+   update_menus ();
+
+   message_local ("System region set to PAL.");
+
+   return (D_O_K);
+}
+
+
 static int options_system_cpu_usage_menu_passive (void)
 {
     cpu_usage = CPU_USAGE_PASSIVE;
@@ -1867,30 +1961,6 @@ static int options_system_cpu_usage_menu_aggressive (void)
     message_local ("System CPU usage set to aggressive.");
 
     return (D_O_K);
-}
-
-static int options_system_menu_ntsc_60_hz (void)
-{
-    machine_type = MACHINE_TYPE_NTSC;
-    update_menus ();
-
-    cycle_audio ();
-
-    message_local ("System type set to NTSC (60 Hz).");
-
-    return (D_O_K);
-}
-
-static int options_system_menu_pal_50_hz (void)
-{
-   machine_type = MACHINE_TYPE_PAL;
-   update_menus ();
-
-   cycle_audio ();
-
-   message_local ("System type set to PAL (50 Hz).");
-
-   return (D_O_K);
 }
 
 static int options_audio_menu_enabled (void)

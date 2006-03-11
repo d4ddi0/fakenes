@@ -41,7 +41,7 @@ extern int errno;
 int disable_gui = FALSE;
 
 
-int machine_type = MACHINE_TYPE_NTSC;
+ENUM machine_type = MACHINE_TYPE_NTSC;
 
 
 int frame_skip_min = 0;
@@ -73,7 +73,7 @@ int timing_audio_fps = 0;
 int timing_audio_hertz = 0;
 
 
-int timing_half_speed = FALSE;
+BOOL timing_half_speed = FALSE;
 
 
 #ifdef POSIX
@@ -530,7 +530,9 @@ int main (int argc, char * argv [])
     frame_skip_max = get_config_int ("timing", "frame_skip_max", 8);
 
 
-    machine_type = get_config_int ("timing", "machine_type", MACHINE_TYPE_NTSC);
+    machine_region = get_config_int ("timing", "machine_region", MACHINE_REGION_AUTOMATIC);
+
+    /* Note: machine_type is set later by the ROM loading code. */
 
 
     enable_resync = get_config_int ("timing", "enable_resync", TRUE);
@@ -1062,7 +1064,7 @@ int main (int argc, char * argv [])
     set_config_int ("timing", "frame_skip_max", frame_skip_max);
 
 
-    set_config_int ("timing", "machine_type", machine_type);
+    set_config_int ("timing", "machine_region", machine_region);
 
 
     set_config_int ("timing", "enable_resync", enable_resync);
