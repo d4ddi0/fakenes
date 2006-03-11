@@ -950,12 +950,6 @@ static INLINE BOOL set_submenu_property (MENU *menu, const MENU *submenu,
 #define DISABLE_SUBMENU(submenu) \
    SET_SUBMENU_ENABLED(top_menu, submenu, FALSE)
 
-#define CHECK_MENU(n,i)
-#define UNCHECK_MENU(n,i)
-#define ENABLE_MENU(n,i)
-#define DISABLE_MENU(n,i)
-#define TOGGLE_MENU(n,i,x)
-
 /* Undefine helper macros. */
 #undef DEFINE_MENU
 #undef DEFINE_MENU_CALLBACK
