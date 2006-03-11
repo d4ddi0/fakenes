@@ -840,6 +840,7 @@ static const MENU top_menu_base[] =
 { 
    { "&Main",    NULL, IMPORT_MENU(main_menu),    0, NULL },
    { "&Options", NULL, IMPORT_MENU(options_menu), 0, NULL },
+   { "&NetPlay", NULL, IMPORT_MENU(netplay_menu), 0, NULL },
    { "&Help",    NULL, IMPORT_MENU(help_menu),    0, NULL },
    MENU_ENDCAP
 };

@@ -929,6 +929,10 @@ int gui_init (void)
 
 #endif   /* ALLEGRO_UNIX */
 
+#ifndef USE_HAWKNL
+   DISABLE_SUBMENU(netplay_menu);
+#endif
+
    /* Select default palette. */
    CHECK_MENU_ITEM(options_video_palette_menu_modern_ntsc);
 
