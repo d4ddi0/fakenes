@@ -977,9 +977,8 @@ int show_gui (BOOL first_run)
 
    if (first_run)
    {
-      alert ("FakeNES version " VERSION_STRING " " ALLEGRO_PLATFORM_STR, "",
-         "Get the latest from http://fakenes.sourceforge.net/.", "&OK",
-            NULL, 'o', 0);
+      /* Show welcome message. */
+      help_menu_version ();
    }
 
    run_dialog (main_dialog);
@@ -2839,6 +2838,15 @@ static int help_menu_shortcuts (void)
 static int help_menu_about (void)
 {
    show_dialog (help_about_dialog);
+
+   return (D_O_K);
+}
+
+static int help_menu_version (void)
+{
+   alert ("FakeNES version " VERSION_STRING " " ALLEGRO_PLATFORM_STR, "",
+      "Get the latest from http://fakenes.sourceforge.net/.", "&OK", NULL,
+         'o', 0);
 
    return (D_O_K);
 }

@@ -815,12 +815,14 @@ static const MENU options_menu_base[] =
 
 DEFINE_MENU_CALLBACK(help_menu_shortcuts);
 DEFINE_MENU_CALLBACK(help_menu_about);
+DEFINE_MENU_CALLBACK(help_menu_version);
 
 static const MENU help_menu_base[] =
 {
    { "&Shortcuts...", help_menu_shortcuts, NULL, 0, NULL },
    MENU_SPLITTER,
    { "&About...",     help_menu_about,     NULL, 0, NULL },
+   { "&Version...",   help_menu_version,     NULL, 0, NULL },
    MENU_ENDCAP
 };
 
