@@ -24,6 +24,8 @@ void netplay_exit (void);
 BOOL netplay_open_server (int);
 BOOL netplay_open_client (const char *, int);
 void netplay_close (void);
+void netplay_poll (void);
+void netplay_set_nickname (const UCHAR *);
 
 enum
 {

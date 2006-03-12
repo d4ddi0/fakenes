@@ -188,6 +188,12 @@ int sl_frame (int message, DIALOG *dialog, int key)
          int ox, oy; /* old */
          BITMAP *bmp;
 
+         if (dialog->flags & D_DISABLED)
+         {
+            /* Disabled frames can't be dragged. */
+            return (D_O_K);
+         }
+
          mx = ox = mouse_x;
          my = oy = mouse_y;
 

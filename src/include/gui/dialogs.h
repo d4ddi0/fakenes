@@ -13,6 +13,7 @@ DEFINE_DIALOG(options_input_dialog);
 DEFINE_DIALOG(options_patches_add_dialog);
 DEFINE_DIALOG(options_patches_dialog);
 DEFINE_DIALOG(netplay_dialog);
+DEFINE_DIALOG(lobby_dialog);
 DEFINE_DIALOG(help_shortcuts_dialog);
 DEFINE_DIALOG(help_about_dialog);
 
@@ -118,17 +119,20 @@ static const DIALOG options_patches_dialog_base[] =
 
 static const DIALOG netplay_dialog_base[] =
 {
-   { sl_frame,          0,   0,  153, 88, 0, 0, 0,   0,      0, 0, NULL,      "NetPlay", NULL },
-   { sl_x_button,       133, 4,  16,  12, 0, 0, 0,   D_EXIT, 0, 0, "X",       NULL,      NULL },
-   { sl_text,           9,   31, 0,   0,  0, 0, 'h', 0,      0, 0, NULL,      "&Host:",  NULL },
-   { d_shadow_box_proc, 40,  27, 104, 14, 0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
-   { d_edit_proc,       42,  31, 100, 12, 0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
-   { sl_text,           9,   49, 0,   0,  0, 0, 'p', 0,      0, 0, NULL,      "&Port:",  NULL },
-   { d_shadow_box_proc, 40,  45, 40,  14, 0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
-   { d_edit_proc,       42,  49, 36,  12, 0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
-   { sl_text,           84,  49, 0,   0,  0, 0, 0,   0,      0, 0, NULL,      "TCP",     NULL },
-   { d_button_proc,     40,  66, 32,  16, 0, 0, 'o', D_EXIT, 0, 0, "&OK",     NULL,      NULL },
-   { d_button_proc,     78,  66, 48,  16, 0, 0, 'c', D_EXIT, 0, 0, "&Cancel", NULL,      NULL },
+   { sl_frame,          0,   0,  153, 108, 0, 0, 0,   0,      0, 0, NULL,      "NetPlay", NULL },
+   { sl_x_button,       133, 4,  16,  12,  0, 0, 0,   D_EXIT, 0, 0, "X",       NULL,      NULL },
+   { sl_text,           9,   31, 0,   0,   0, 0, 'h', 0,      0, 0, NULL,      "&Host:",  NULL },
+   { d_shadow_box_proc, 40,  27, 104, 14,  0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
+   { d_edit_proc,       42,  31, 100, 12,  0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
+   { sl_text,           9,   49, 0,   0,   0, 0, 'p', 0,      0, 0, NULL,      "&Port:",  NULL },
+   { d_shadow_box_proc, 40,  45, 40,  14,  0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
+   { d_edit_proc,       42,  49, 36,  12,  0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
+   { sl_text,           84,  49, 0,   0,   0, 0, 0,   0,      0, 0, NULL,      "TCP",     NULL },
+   { sl_text,           9,   69, 0,   0,   0, 0, 'n', 0,      0, 0, NULL,      "&Nick:",  NULL },
+   { d_shadow_box_proc, 40,  65, 88,  14,  0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
+   { d_edit_proc,       42,  69, 84,  12,  0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
+   { d_button_proc,     61,  86, 32,  16,  0, 0, 'o', D_EXIT, 0, 0, "&OK",     NULL,      NULL },
+   { d_button_proc,     97,  86, 48,  16,  0, 0, 'c', D_EXIT, 0, 0, "&Cancel", NULL,      NULL },
    DIALOG_FRAME_ENDCAP
 };
 
@@ -145,8 +149,50 @@ enum
    NETPLAY_DIALOG_PORT_BOX,
    NETPLAY_DIALOG_PORT,
    NETPLAY_DIALOG_TCP_TEXT,
+   NETPLAY_DIALOG_NICK_LABEL,
+   NETPLAY_DIALOG_NICK_BOX,
+   NETPLAY_DIALOG_NICK,
    NETPLAY_DIALOG_OK_BUTTON,
    NETPLAY_DIALOG_CANCEL_BUTTON
+};
+
+static const DIALOG lobby_dialog_base[] =
+{
+   { sl_frame,          0,   0,   320, 240, 0, 0, 0,   D_DISABLED, 0, 0, NULL,         "Lobby",   NULL },
+   { sl_x_button,       300, 4,   16,  12,  0, 0, 0,   D_EXIT,     0, 0, "X",          NULL,      NULL },
+   { sl_viewer,         10,  27,  207, 168, 0, 0, 0,   0,          0, 0, NULL,         NULL,      NULL },
+   { sl_viewer,         223, 27,  89,  89,  0, 0, 0,   0,          0, 0, NULL,         NULL,      NULL },
+   { sl_text,           227, 124, 0,   0,   0, 0, 0,   0,          0, 0, NULL,         "Inputs:", NULL },
+   { sl_checkbox,       235, 133, 60,  8,   0, 0, '1', 0,          0, 0, "Player &1 ", NULL,      NULL },
+   { sl_checkbox,       235, 142, 60,  8,   0, 0, '2', 0,          0, 0, "Player &2 ", NULL,      NULL },
+   { sl_checkbox,       235, 151, 60,  8,   0, 0, '3', 0,          0, 0, "Player &3 ", NULL,      NULL },
+   { sl_checkbox,       235, 160, 60,  8,   0, 0, '4', 0,          0, 0, "Player &4 ", NULL,      NULL },
+   { d_shadow_box_proc, 10,  200, 302, 14,  0, 0, 0,   0,          0, 0, NULL,         NULL,      NULL },
+   { d_edit_proc,       12,  203, 298, 12,  0, 0, 0,   0,          0, 0, NULL,         NULL,      NULL },
+   { d_button_proc,     131, 219, 64,  16,  0, 0, 'l', 0,          0, 0, "&Load...",   NULL,      NULL },
+   { d_button_proc,     203, 219, 52,  16,  0, 0, 'o', D_EXIT,     0, 0, "&OK",        NULL,      NULL },
+   { d_button_proc,     259, 219, 52,  16,  0, 0, 'c', D_EXIT,     0, 0, "&Cancel",    NULL,      NULL },
+   DIALOG_FRAME_ENDCAP                                                               
+};
+
+/* Note: remember to keep this enum updated to the structure of the dialog
+   above, otherwise crashes could occur. */
+enum
+{
+   LOBBY_DIALOG_FRAME = 0,
+   LOBBY_DIALOG_CLOSE_BUTTON,
+   LOBBY_DIALOG_CHAT,
+   LOBBY_DIALOG_LIST,
+   LOBBY_DIALOG_INPUTS_TEXT,
+   LOBBY_DIALOG_PLAYER_1_CHECKBOX,
+   LOBBY_DIALOG_PLAYER_2_CHECKBOX,
+   LOBBY_DIALOG_PLAYER_3_CHECKBOX,
+   LOBBY_DIALOG_PLAYER_4_CHECKBOX,
+   LOBBY_DIALOG_MESSAGE_BOX,
+   LOBBY_DIALOG_MESSAGE,
+   LOBBY_DIALOG_LOAD_BUTTON,
+   LOBBY_DIALOG_OK_BUTTON,
+   LOBBY_DIALOG_CANCEL_BUTTON
 };
 
 static const DIALOG help_shortcuts_dialog_base[] =

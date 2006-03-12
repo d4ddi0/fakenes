@@ -83,3 +83,13 @@ void netplay_poll (void)
          break;
    }
 }
+
+void netplay_set_nickname (const UCHAR *nickname)
+{
+   /* This function sets the nickname for client 0. */
+
+   NET_CLIENT *client = &net_clients[NET_LOCAL_CLIENT];
+
+   USTRING_CLEAR(client->nickname);
+   ustrncat (client->nickname, nickname, (USTRING_SIZE - 1));
+}

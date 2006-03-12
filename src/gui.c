@@ -267,6 +267,7 @@ static INLINE void load_dialogs (void)
    DIALOG_FROM_BASE(options_patches_add_dialog);
    DIALOG_FROM_BASE(options_patches_dialog);
    DIALOG_FROM_BASE(netplay_dialog);
+   DIALOG_FROM_BASE(lobby_dialog);
    DIALOG_FROM_BASE(help_shortcuts_dialog);
    DIALOG_FROM_BASE(help_about_dialog);
 }
@@ -334,6 +335,7 @@ static INLINE void unload_dialogs (void)
    unload_dialog (options_patches_add_dialog);
    unload_dialog (options_patches_dialog);
    unload_dialog (netplay_dialog);
+   unload_dialog (lobby_dialog);
    unload_dialog (help_shortcuts_dialog);
    unload_dialog (help_about_dialog);
 }
@@ -1283,6 +1285,108 @@ static void update_machine_type (void)
 
    /* Cycle audio to match new emulation speeds. */
    cycle_audio ();
+}
+
+static void open_lobby (BOOL server)
+{
+   /* This function handles the entire GUI end of the NetPlay lobby.  It
+      does not return until the NetPlay session has been terminated. */
+
+   BITMAP *bmp;
+   DIALOG *dialog;
+   int index = 0;
+   DIALOG *obj_frame;
+   DIALOG *obj_chat;
+   DIALOG *obj_list;
+   DIALOG *obj_message;
+   DIALOG *obj_load;
+   DIALOG *obj_ok;
+   USTRING chat;
+   USTRING list;
+   USTRING message;
+   DIALOG_PLAYER *player;
+
+   bmp = gui_get_screen ();
+
+   /* Clear screen. */
+   clear_bitmap (bmp);
+
+   /* Get dialog. */
+   dialog = lobby_dialog;
+
+   /* Center dialog. */
+   centre_dialog (dialog);
+
+   while (dialog[index].d1 != SL_FRAME_END)
+   {
+      /* Update colors. */
+
+      DIALOG *object = &dialog[index];
+
+      object->fg = GUI_TEXT_COLOR;
+      object->bg = gui_bg_color;
+
+      index++;
+   }
+
+   /* Get dialog objects. */
+   obj_frame   = &dialog[LOBBY_DIALOG_FRAME];
+   obj_chat    = &dialog[LOBBY_DIALOG_CHAT];
+   obj_list    = &dialog[LOBBY_DIALOG_LIST];
+   obj_message = &dialog[LOBBY_DIALOG_MESSAGE];
+   obj_load    = &dialog[LOBBY_DIALOG_LOAD_BUTTON];
+   obj_ok      = &dialog[LOBBY_DIALOG_OK_BUTTON];
+
+   /* Set up dialog objects. */
+
+   obj_frame->dp3 = DATA_TO_FONT(LARGE_FONT);
+
+   obj_chat->bg = makecol (0, 0, 0);
+   obj_chat->fg = makecol (240, 240, 240);
+   obj_chat->d1 = (sizeof (chat) - 1);
+   obj_chat->dp = chat;
+
+   obj_list->bg = makecol (0, 0, 0);
+   obj_list->fg = makecol (240, 240, 240);
+   obj_list->d1 = (sizeof (list) - 1);
+   obj_list->dp = list;
+
+   obj_message->d1 = (sizeof (message) - 1);
+   obj_message->dp = message;
+
+   if (!server)
+      obj_load->flags |= D_DISABLED;
+
+   obj_ok->flags |= D_DISABLED;
+
+   /* Clear text buffers. */
+   USTRING_CLEAR(chat);
+   USTRING_CLEAR(list);
+   USTRING_CLEAR(message);
+
+   /* Run dialog. */
+
+   player = init_dialog (dialog, -1);
+   if (!player)
+   {
+      gui_message (GUI_ERROR_COLOR, "Failed to create dialog player!");
+      return;
+   }
+
+   while (update_dialog (player))
+   {
+      netplay_poll ();
+
+      rest (1);
+   }
+
+   shutdown_dialog (player);
+
+   /* Clear screen. */
+   clear_bitmap (bmp);
+
+   /* Draw background. */
+   draw_background ();
 }
 
 /* --- Menu handlers. --- */
@@ -3303,20 +3407,25 @@ static int netplay_menu_start_as_server (void)
    STRING host;
    int port;
    STRING port_str;
+   USTRING nick;
    DIALOG *dialog;
    DIALOG *obj_host_label;
    DIALOG *obj_host;
    DIALOG *obj_port;
+   DIALOG *obj_nick;
 
    /* Load configuration. */
 
    STRING_CLEAR(host);
-   strncat (host, "localhost", (sizeof (host) - 1));
 
    port = get_config_int ("netplay", "port", NETPLAY_DEFAULT_PORT);
 
    STRING_CLEAR(port_str);
    sprintf (port_str, "%d", port);
+
+   USTRING_CLEAR(nick);
+   ustrncat (nick, get_config_string ("netplay", "nick", ""), (sizeof (nick)
+      - 1));
 
    /* Get dialog. */
    dialog = netplay_dialog;
@@ -3325,14 +3434,21 @@ static int netplay_menu_start_as_server (void)
    obj_host_label = &dialog[NETPLAY_DIALOG_HOST_LABEL];
    obj_host       = &dialog[NETPLAY_DIALOG_HOST];
    obj_port       = &dialog[NETPLAY_DIALOG_PORT];
+   obj_nick       = &dialog[NETPLAY_DIALOG_NICK];
 
    /* Set up dialog objects. */
+
    obj_host_label->flags |= D_DISABLED;
+
    obj_host->d1 = 0;
    obj_host->dp = host;
    obj_host->flags |= D_DISABLED;
+
    obj_port->d1 = (sizeof (port_str) - 1);
    obj_port->dp = port_str;
+
+   obj_nick->d1 = (sizeof (nick) - 1);
+   obj_nick->dp = nick;
 
    /* Display dialog. */
    if (show_dialog (dialog) != NETPLAY_DIALOG_OK_BUTTON)
@@ -3342,7 +3458,8 @@ static int netplay_menu_start_as_server (void)
    port = atoi (port_str);
 
    /* Save configuration. */
-   set_config_int ("netplay", "port", port);
+   set_config_int    ("netplay", "port", port);
+   set_config_string ("netplay", "nick", nick);
 
    /* Start NetPlay session. */
 
@@ -3353,6 +3470,12 @@ static int netplay_menu_start_as_server (void)
    }
 
    message_local ("NetPlay session opened.");
+
+   /* Set nickname. */
+   netplay_set_nickname (nick);
+
+   /* Open lobby. */
+   open_lobby (TRUE);
 
    /* End NetPlay session. */
    netplay_close ();
@@ -3367,10 +3490,12 @@ static int netplay_menu_start_as_client (void)
    STRING host;
    int port;
    STRING port_str;
+   USTRING nick;
    DIALOG *dialog;
    DIALOG *obj_host_label;
    DIALOG *obj_host;
    DIALOG *obj_port;
+   DIALOG *obj_nick;
           
    /* Load configuration. */
 
@@ -3383,6 +3508,10 @@ static int netplay_menu_start_as_client (void)
    STRING_CLEAR(port_str);
    sprintf (port_str, "%d", port);
 
+   USTRING_CLEAR(nick);
+   ustrncat (nick, get_config_string ("netplay", "nick", ""), (sizeof (nick)
+      - 1));
+
    /* Get dialog. */
    dialog = netplay_dialog;
 
@@ -3390,14 +3519,21 @@ static int netplay_menu_start_as_client (void)
    obj_host_label = &dialog[NETPLAY_DIALOG_HOST_LABEL];
    obj_host       = &dialog[NETPLAY_DIALOG_HOST];
    obj_port       = &dialog[NETPLAY_DIALOG_PORT];
+   obj_nick       = &dialog[NETPLAY_DIALOG_NICK];
 
    /* Set up dialog objects. */
+
    obj_host_label->flags &= ~D_DISABLED;
+
    obj_host->d1 = (sizeof (host) - 1);
    obj_host->dp = host;
    obj_host->flags &= ~D_DISABLED;
+
    obj_port->d1 = (sizeof (port_str) - 1);
    obj_port->dp = port_str;
+
+   obj_nick->d1 = (sizeof (nick) - 1);
+   obj_nick->dp = nick;
 
    /* Display dialog. */
    if (show_dialog (dialog) != NETPLAY_DIALOG_OK_BUTTON)
@@ -3409,6 +3545,7 @@ static int netplay_menu_start_as_client (void)
    /* Save configuration. */
    set_config_string ("netplay", "host", host);
    set_config_int    ("netplay", "port", port);
+   set_config_string ("netplay", "nick", nick);
 
    /* Start NetPlay session. */
 
@@ -3419,6 +3556,12 @@ static int netplay_menu_start_as_client (void)
    }
 
    message_local ("NetPlay session opened.");
+
+   /* Set nickname. */
+   netplay_set_nickname (nick);
+
+   /* Open lobby. */
+   open_lobby (FALSE);
 
    /* End NetPlay session. */
    netplay_close ();

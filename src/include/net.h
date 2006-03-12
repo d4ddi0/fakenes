@@ -21,7 +21,7 @@ extern "C" {
 typedef struct _NET_CLIENT
 {
    BOOL active;      /* Whether slot is occupied or not. */
-   USTRING name;     /* Nickname, in Unicode. */
+   USTRING nickname; /* Nickname, in Unicode. */
    void *data;       /* Internal data (socket, etc.). */
 
 } NET_CLIENT;
