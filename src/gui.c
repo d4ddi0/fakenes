@@ -1287,12 +1287,19 @@ static void update_machine_type (void)
    cycle_audio ();
 }
 
-static void open_lobby (BOOL server)
+static int open_lobby (void)
 {
    /* This function handles the entire GUI end of the NetPlay lobby.  It
-      does not return until the NetPlay session has been terminated. */
+      does not return until the NetPlay session has been terminated.
 
-   BITMAP *bmp;
+      Returns one of the following:
+         D_O_K   - The NetPlay session has been closed, by pressing either
+                   the [ x] close button or the Cancel button.
+         D_CLOSE - The Netplay session is still open, all neccessary data
+                   has been distributed and subsequently laoded, and control
+                   should be transfered to the main loop. */
+
+   BITMAP *bmp;                       
    DIALOG *dialog;
    int index = 0;
    DIALOG *obj_frame;
@@ -1305,6 +1312,7 @@ static void open_lobby (BOOL server)
    USTRING list;
    USTRING message;
    DIALOG_PLAYER *player;
+   int object_id;
 
    bmp = gui_get_screen ();
 
@@ -1354,7 +1362,7 @@ static void open_lobby (BOOL server)
    obj_message->d1 = (sizeof (message) - 1);
    obj_message->dp = message;
 
-   if (!server)
+   if (netplay_mode != NETPLAY_MODE_SERVER_OPEN)
       obj_load->flags |= D_DISABLED;
 
    obj_ok->flags |= D_DISABLED;
@@ -1370,7 +1378,7 @@ static void open_lobby (BOOL server)
    if (!player)
    {
       gui_message (GUI_ERROR_COLOR, "Failed to create dialog player!");
-      return;
+      return (D_O_K);
    }
 
    while (update_dialog (player))
@@ -1380,13 +1388,29 @@ static void open_lobby (BOOL server)
       rest (1);
    }
 
-   shutdown_dialog (player);
+   object_id = shutdown_dialog (player);
 
-   /* Clear screen. */
-   clear_bitmap (bmp);
+   switch (object_id)
+   {
+      case LOBBY_DIALOG_OK_BUTTON:
+         return (D_CLOSE);
 
-   /* Draw background. */
-   draw_background ();
+      default:
+      {
+         /* End NetPlay session. */
+         netplay_close ();
+   
+         /* Clear screen. */
+         clear_bitmap (bmp);
+      
+         /* Draw background. */
+         draw_background ();
+      
+         message_local ("NetPlay session closed.");
+
+         return (D_O_K);
+      }
+   }
 }
 
 /* --- Menu handlers. --- */
@@ -3439,7 +3463,7 @@ static int netplay_menu_start_as_server (void)
    /* Set up dialog objects. */
 
    obj_host_label->flags |= D_DISABLED;
-
+  
    obj_host->d1 = 0;
    obj_host->dp = host;
    obj_host->flags |= D_DISABLED;
@@ -3475,14 +3499,7 @@ static int netplay_menu_start_as_server (void)
    netplay_set_nickname (nick);
 
    /* Open lobby. */
-   open_lobby (TRUE);
-
-   /* End NetPlay session. */
-   netplay_close ();
-
-   message_local ("NetPlay session closed.");
-
-   return (D_O_K);
+   return (open_lobby ());
 }
 
 static int netplay_menu_start_as_client (void)
@@ -3561,12 +3578,5 @@ static int netplay_menu_start_as_client (void)
    netplay_set_nickname (nick);
 
    /* Open lobby. */
-   open_lobby (FALSE);
-
-   /* End NetPlay session. */
-   netplay_close ();
-
-   message_local ("NetPlay session closed.");
-
-   return (D_O_K);
+   return (open_lobby ());
 }

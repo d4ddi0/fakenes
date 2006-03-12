@@ -168,7 +168,7 @@ static const DIALOG lobby_dialog_base[] =
    { sl_checkbox,       235, 151, 60,  8,   0, 0, '3', 0,          0, 0, "Player &3 ", NULL,      NULL },
    { sl_checkbox,       235, 160, 60,  8,   0, 0, '4', 0,          0, 0, "Player &4 ", NULL,      NULL },
    { d_shadow_box_proc, 10,  200, 302, 14,  0, 0, 0,   0,          0, 0, NULL,         NULL,      NULL },
-   { d_edit_proc,       12,  203, 298, 12,  0, 0, 0,   0,          0, 0, NULL,         NULL,      NULL },
+   { sl_lobby_msgbox,   12,  204, 298, 12,  0, 0, 0,   0,          0, 0, NULL,         NULL,      NULL },
    { d_button_proc,     131, 219, 64,  16,  0, 0, 'l', 0,          0, 0, "&Load...",   NULL,      NULL },
    { d_button_proc,     203, 219, 52,  16,  0, 0, 'o', D_EXIT,     0, 0, "&OK",        NULL,      NULL },
    { d_button_proc,     259, 219, 52,  16,  0, 0, 'c', D_EXIT,     0, 0, "&Cancel",    NULL,      NULL },

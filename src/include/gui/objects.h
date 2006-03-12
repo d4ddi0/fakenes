@@ -409,6 +409,52 @@ int sl_viewer (int message, DIALOG *dialog, int key)
    return (D_O_K);
 }
 
+int sl_lobby_msgbox (int message, DIALOG *dialog, int key)
+{
+   /*
+      Message input box for the NetPlay lobby dialog.  Sends a message over
+      the network (in the form of a UTF-8 coded chat packet) after the ENTER
+      key is pressed while the object is active.
+
+      Note that the 'dp' field MUST point to a USTRING, otherwise the call
+      to USTRING_CLEAR() could cause the program to crash.
+   */
+
+   RT_ASSERT(dialog);
+
+   switch (message)
+   {
+      case MSG_CHAR:
+      {
+         switch ((key >> 8))
+         {
+            case KEY_ENTER:
+            case KEY_ENTER_PAD:
+            {
+               /* Send message. */
+               netplay_send_message (dialog->dp);
+
+               /* Clear buffer. */
+               USTRING_CLEAR(dialog->dp);
+
+               /* Redraw object. */
+               return (D_REDRAW);
+            }
+
+            default:
+               return (d_edit_proc (message, dialog, key));
+         }
+
+         break;
+      }
+
+      default:
+         return (d_edit_proc (message, dialog, key));
+   }
+
+   return (D_O_K);
+}
+
 int sl_radiobox (int message, DIALOG *dialog, int key)
 {
    /*

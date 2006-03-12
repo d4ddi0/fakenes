@@ -26,6 +26,7 @@ BOOL netplay_open_client (const char *, int);
 void netplay_close (void);
 void netplay_poll (void);
 void netplay_set_nickname (const UCHAR *);
+void netplay_send_message (const UCHAR *);
 
 enum
 {
@@ -33,6 +34,11 @@ enum
    NETPLAY_MODE_SERVER_OPEN,
    NETPLAY_MODE_SERVER_CLOSED,
    NETPLAY_MODE_CLIENT
+};
+
+enum
+{
+   NETPLAY_PACKET_CHAT
 };
 
 #ifdef __cplusplus

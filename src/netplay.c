@@ -93,3 +93,7 @@ void netplay_set_nickname (const UCHAR *nickname)
    USTRING_CLEAR(client->nickname);
    ustrncat (client->nickname, nickname, (USTRING_SIZE - 1));
 }
+
+void netplay_send_message (const UCHAR *message)
+{
+}
