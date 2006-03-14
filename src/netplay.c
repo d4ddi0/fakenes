@@ -68,8 +68,11 @@ void netplay_close (void)
    netplay_mode = NETPLAY_MODE_INACTIVE;
 }
 
-void netplay_poll (void)
+void netplay_process (void)
 {
+   if (netplay_mode == NETPLAY_MODE_INACTIVE)
+      return;
+
    switch (netplay_mode)
    {
       case NETPLAY_MODE_SERVER_OPEN:
@@ -82,11 +85,14 @@ void netplay_poll (void)
       default:
          break;
    }
+
+   net_process ();
 }
 
 void netplay_set_nickname (const UCHAR *nickname)
 {
-   /* This function sets the nickname for client 0. */
+   /* This function sets the nickname for client #0, which is always the
+      local "player". */
 
    NET_CLIENT *client = &net_clients[NET_LOCAL_CLIENT];
 
@@ -96,4 +102,16 @@ void netplay_set_nickname (const UCHAR *nickname)
 
 void netplay_send_message (const UCHAR *message)
 {
+   /* This function sends a Unicode chat message over the network from
+      client #0, prefixed with the nickname set by netplay_set_nickname().
+      */
+
+   NET_CLIENT *client = &net_clients[NET_LOCAL_CLIENT];
+   USTRING text;
+
+   /* Prefix message with nickname. */
+   USTRING_CLEAR(text);
+   uszprintf (text, sizeof (text), "<%s> %s", client->nickname, message);
+
+   /* TODO: Send message over network. */
 }

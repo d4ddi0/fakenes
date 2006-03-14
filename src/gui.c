@@ -1383,7 +1383,7 @@ static int open_lobby (void)
 
    while (update_dialog (player))
    {
-      netplay_poll ();
+      netplay_process ();
 
       rest (1);
    }

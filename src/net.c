@@ -8,6 +8,7 @@
    You must read and accept the license prior to use. */
 
 #include <allegro.h>
+#include <stdio.h>
 #include <string.h>
 #include "common.h"
 #include "debug.h"
@@ -19,33 +20,68 @@
 
 ENUM net_mode = NET_MODE_INACTIVE;
 
+/* Sockets and groups. */
+
+static NLsocket net_socket = NL_INVALID;
+
+/* Packets & packet buffers. */
+
+#define NET_MAX_PACKET_SIZE         16384
+#define NET_MAX_PACKETS_PER_QUEUE   50
+
+typedef struct _NET_PACKET_BUFFER
+{
+   UINT8 data[NET_MAX_PACKET_SIZE]; /* Buffer containing the packet data.      */
+   unsigned long size;              /* Size of the packet data.                */
+   unsigned long pos;               /* Current buffer read/write offset.       */
+   ENUM pipe;                       /* Pipe to which the packet is to be sent. */
+
+} NET_PACKET_BUFFER;
+
+/* Packet queues. */
+
+typedef struct _NET_PACKET_QUEUE_NODE
+{
+   NET_PACKET_BUFFER packet;
+   struct _NET_PACKET_QUEUE_NODE *prev;
+   struct _NET_PACKET_QUEUE_NODE *next;
+
+} NET_PACKET_QUEUE_NODE;
+
+typedef struct _NET_PACKET_QUEUE
+{
+   NET_PACKET_QUEUE_NODE *first;
+   NET_PACKET_QUEUE_NODE *last;
+   int size;
+
+} NET_PACKET_QUEUE;
+
+static NET_PACKET_QUEUE net_read_queue;
+
+/* Clients. */
+
+NET_CLIENT net_clients[NET_MAX_CLIENTS];
+
 typedef struct NET_CLIENT_DATA
 {
-   NLsocket *socket;
+   NLsocket socket;
+   NET_PACKET_BUFFER read_buffer;
+   NET_PACKET_BUFFER write_buffer;
+   NET_PACKET_QUEUE write_queue;
 
 } NET_CLIENT_DATA;
 
 static NET_CLIENT_DATA net_client_data[NET_MAX_CLIENTS];
 
-static NLsocket net_socket = NL_INVALID;
+/* Function prototypes. */
 
-static void net_print_error (void)
-{
-   /* Helper function for displaying error messages. */
+static void net_print_error (void);
+static void net_enqueue (NET_PACKET_QUEUE *, const NET_PACKET_BUFFER *);
+static void net_dequeue (NET_PACKET_QUEUE *, NET_PACKET_BUFFER *);
+static void net_clear_queue (NET_PACKET_QUEUE *);
+static const PACKFILE_VTABLE *net_get_packfile_vtable (void);
 
-   NLenum error = nlGetError ();
-    
-   if (error == NL_SYSTEM_ERROR)
-   {
-      allegro_message ("Network error: System error: %s\n",
-         nlGetSystemErrorStr (nlGetSystemError ()));
-   }
-   else
-   {
-      allegro_message ("Network error: HawkNL error: %s\n", nlGetErrorStr
-         (error));
-   }
-}
+/* --- Public functions. --- */
 
 int net_init (void)
 {
@@ -99,20 +135,47 @@ int net_open (int port)
 
 void net_close (void)
 {
-   /* This function closes the socket previously opened by a call to
-      net_open(). */
+   int index;
 
-   if (net_socket != NL_INVALID)
+   if (net_mode == NET_MODE_INACTIVE)
+      return;
+
+   /* This function closes all open sockets, resets all variables, and
+      clears all buffers. */
+
+   for (index = 0; index < NET_MAX_CLIENTS; index++)
    {
-      nlClose (net_socket);
-      net_socket = NL_INVALID;
-      printf ("NET: Root socket closed.\n");
-   }
-}
+      NET_CLIENT *client = &net_clients[index];
+      NET_CLIENT_DATA *data;
 
-void net_clear (void)
-{
-   /* Clears the net state. */
+      if (!client->active)
+         continue;
+
+      data = &net_client_data[index];
+
+      if (data->socket != NL_INVALID)
+      {
+         /* Close socket. */
+         nlClose (data->socket);
+      }
+
+      /* Clear queue. */
+      net_clear_queue (&data->write_queue);
+   }
+
+   nlClose (net_socket);
+   net_socket = NL_INVALID;
+
+   printf ("NET: Root socket closed.\n");
+
+   /* Clear client data. */
+   memset (net_clients,     0, sizeof (net_clients));
+   memset (net_client_data, 0, sizeof (net_client_data));
+
+   /* Clear queue. */
+   net_clear_queue (&net_read_queue);
+
+   /* Reset net state. */
    net_mode = NET_MODE_INACTIVE;
 }
 
@@ -128,9 +191,11 @@ int net_listen (void)
 
       Any successful calls to this function automatically switch the net
       code into server mode, which must later be reset by a call to
-      net_clear() if another mode is desired. */
+      net_close() if another mode is desired. */
 
    NLsocket socket;
+   NET_CLIENT *client;
+   NET_CLIENT_DATA *data;
 
    if (nlListen (net_socket) != NL_TRUE)
    {
@@ -140,15 +205,21 @@ int net_listen (void)
 
    if (net_mode == NET_MODE_INACTIVE)
    {
-      NET_CLIENT *client = &net_clients[NET_LOCAL_CLIENT];
-
       /* Switch to server mode. */
       net_mode = NET_MODE_SERVER;
 
-      /* Set up client 0. */
+      printf ("Server initialized.\n");
 
+      /* Set up client #0. */
+
+      client = &net_clients[NET_LOCAL_CLIENT];
+      data   = &net_client_data[NET_LOCAL_CLIENT];
+
+      /* Initialize structures. */
       memset (client, 0, sizeof (NET_CLIENT));
+      memset (data,   0, sizeof (NET_CLIENT_DATA));
 
+      /* Activate client. */
       client->active = TRUE;
 
       printf ("Client #0 initialized.\n");
@@ -162,11 +233,12 @@ int net_listen (void)
       for (index = NET_FIRST_REMOTE_CLIENT; index < NET_MAX_CLIENTS;
          index++)
       {
-         NET_CLIENT      *client = &net_clients[index];
-         NET_CLIENT_DATA *data   = &net_client_data[index];
+         client = &net_clients[index];
 
          if (client->active)
             continue;
+
+         data = &net_client_data[index];
 
          /* Initialize structures. */
          memset (client, 0, sizeof (NET_CLIENT));
@@ -174,9 +246,6 @@ int net_listen (void)
          
          /* Set up data. */
          data->socket = socket;
-
-         /* Link data to client. */
-         client->data = data;
 
          /* Activate client. */
          client->active = TRUE;
@@ -207,6 +276,8 @@ int net_connect (const char *host, int port)
       connection succeeded, or FALSE if the connection failed. */
 
    NLaddress address;
+   NET_CLIENT *client;
+   NET_CLIENT_DATA *data;
 
    RT_ASSERT(host);
 
@@ -217,56 +288,345 @@ int net_connect (const char *host, int port)
    nlStringToAddr (host, &address);
    nlSetAddrPort (&address, port);
 
-   nlEnable (NL_BLOCKING_IO);
-
    /* Establish connection. */
    if (nlConnect (net_socket, &address) != NL_TRUE)
    {
       net_print_error ();
-      nlDisable (NL_BLOCKING_IO);
       return (FALSE);
    }
-
-   nlDisable (NL_BLOCKING_IO);
 
    /* Switch to client mode. */
    net_mode = NET_MODE_CLIENT;
 
+   /* Set up client #0. */
+
+   client = &net_clients[NET_LOCAL_CLIENT];
+   data   = &net_client_data[NET_LOCAL_CLIENT];
+
+   /* Initialize structures. */
+   memset (client, 0, sizeof (NET_CLIENT));
+   memset (data,   0, sizeof (NET_CLIENT_DATA));
+
+   /* Activate client. */
+   client->active = TRUE;
+
+   printf ("Client #0 initialized.\n");
+
    return (TRUE);
 }
 
-void net_disconnect (void)
+void net_process (void)
 {
-   /* This function closes a connection previously established by
-      net_listen() or net_connect(), by first sending a disconnection
-      notice, then closing the socket, and finally clearing the net state.
-      */
+   /* This function handles all of the magic of sending and recieving
+      packets. */
 
    if (net_mode == NET_MODE_INACTIVE)
       return;
-
-   net_close ();
-   net_clear ();
 }
 
-void net_die (void)
+PACKFILE *net_open_packet (ENUM pipe)
 {
-   /* This is the server equivalent of net_disconnect().
+   NET_PACKET_BUFFER *packet = NULL;
+   PACKFILE *packfile;
 
-      It literally kills the server, sending an abortion notice to all
-      clients, disconnecting each of them one by one, then closing the
-      socket, and finally clearing the net state.
+   switch (pipe)
+   {
+      case NET_PIPE_READ:
+      {
+         NET_PACKET_QUEUE *queue = &net_read_queue;
 
-      An example of when this might happen is when the NetPlay GUI dialog
-      is blatantly closed using the [ X] button at the top-right corner. */
+         /* Make sure there is data in the queue. */
+         if (queue->size == 0)
+            return (NULL);
 
-   int index;
+         packet = malloc (sizeof (NET_PACKET_BUFFER));
+         if (!packet)
+            return (NULL);
 
-   if (net_mode == NET_MODE_INACTIVE)
+         /* Grab a packet from the queue. */
+         net_dequeue (queue, packet);
+
+         break;
+      }
+
+      case NET_PIPE_WRITE:
+      {
+         packet = malloc (sizeof (NET_PACKET_BUFFER));
+         if (!packet)
+            return (NULL);
+
+         memset (packet, 0, sizeof (NET_PACKET_BUFFER));
+
+         /* Note: Packet actually gets written in net_packfile_fclose(). */
+
+         break;
+      }
+
+      default:
+         WARN_GENERIC();
+   }
+
+   /* Set pipe. */
+   packet->pipe = pipe;
+
+   /* Open the packet in the form of a PACKFILE. */
+   packfile = pack_fopen_vtable (net_get_packfile_vtable (), packet);
+   if (!packfile)
+   {
+      free (packet);
+      return (NULL);
+   }
+
+   return (packfile);
+}
+
+/* --- Private functions. --- */
+
+static void net_print_error (void)
+{
+   /* Helper function for displaying error messages. */
+
+   NLenum error = nlGetError ();
+    
+   if (error == NL_SYSTEM_ERROR)
+   {
+      allegro_message ("Network error: System error: %s\n",
+         nlGetSystemErrorStr (nlGetSystemError ()));
+   }
+   else
+   {
+      allegro_message ("Network error: HawkNL error: %s\n", nlGetErrorStr
+         (error));
+   }
+}
+
+static void net_enqueue (NET_PACKET_QUEUE *queue, const NET_PACKET_BUFFER
+   *packet)
+{
+   NET_PACKET_QUEUE_NODE *node;
+
+   RT_ASSERT(queue);
+   RT_ASSERT(packet);
+
+   if (queue->size >= NET_MAX_PACKETS_PER_QUEUE)
       return;
 
-   net_close ();
-   net_clear ();
+   node = malloc (sizeof (NET_PACKET_QUEUE_NODE));
+   if (!node)
+      return;
+
+   memcpy (&node->packet, packet, sizeof (NET_PACKET_BUFFER));
+   
+   queue->last->next = node;
+   queue->last = node;
+
+   queue->size++;
+}
+
+static void net_dequeue (NET_PACKET_QUEUE *queue, NET_PACKET_BUFFER *packet)
+{
+   NET_PACKET_QUEUE_NODE *node;
+
+   RT_ASSERT(queue);
+   RT_ASSERT(packet);
+
+   if (queue->size <= 0)
+      return;
+
+   node = queue->first;
+
+   memcpy (packet, &node->packet, sizeof (NET_PACKET_BUFFER));
+
+   queue->first = node->next;
+
+   free (node);
+   
+   queue->size--;
+}
+
+static void net_clear_queue (NET_PACKET_QUEUE *queue)
+{
+   /* This function clears a queue, freeing all of the memory used by it's
+      nodes.  This is the only safe way to clear a queue. */
+
+   NET_PACKET_QUEUE_NODE *node;
+   NET_PACKET_QUEUE_NODE *next;
+
+   RT_ASSERT(queue);
+
+   node = queue->first;
+
+   while ((node) && (next = node->next))
+   {
+      free (node);
+      node = next;
+   }
+
+   memset (queue, 0, sizeof (NET_PACKET_QUEUE));
+}
+
+static int net_packfile_fclose (void *d)
+{
+   NET_PACKET_BUFFER *packet;
+
+   RT_ASSERT(d);
+
+   packet = d;
+
+   if (packet->pipe == NET_PIPE_WRITE)
+   {
+      NET_CLIENT_DATA *data;
+
+      switch (net_mode)
+      {
+         case NET_MODE_SERVER:
+         {
+            /* Distribute packet to remote clients. */
+
+            int index;
+
+            for (index = NET_FIRST_REMOTE_CLIENT; index < NET_MAX_CLIENTS;
+               index++)
+            {
+               const NET_CLIENT *client = &net_clients[index];
+
+               if (!client->active)
+                  continue;
+
+               data = &net_client_data[index];
+
+               /* Send packet to queue. */
+               net_enqueue (&data->write_queue, packet);
+            }
+
+            /* Simulate sending to oneself. */
+            net_enqueue (&net_read_queue, packet);
+
+            break;
+         }
+
+         case NET_MODE_CLIENT:
+         {
+            data = &net_client_data[NET_LOCAL_CLIENT];
+
+            /* Send packet to queue. */
+            net_enqueue (&data->write_queue, packet);
+
+            break;
+         }
+
+         default:
+            WARN_GENERIC();
+      }
+   }
+
+   free (packet);
+
+   return (0);
+}
+
+static int net_packfile_getc (void *d)
+{
+   NET_PACKET_BUFFER *packet;
+   NLbyte value;
+
+   RT_ASSERT(d);
+
+   packet = d;
+
+   readByte(packet->data, packet->pos, value);
+
+   return (value);
+}
+
+static int net_packfile_ungetc (int c, void *d)
+{
+   RT_ASSERT(d);
+
+   /* Unsupported. */
+   return (0);
+}
+
+static long net_packfile_fread (void *p, long n, void *d)
+{
+   NET_PACKET_BUFFER *packet;
+   
+   RT_ASSERT(p);
+   RT_ASSERT(d);
+
+   packet = d;
+
+   readBlock(packet->data, packet->pos, p, n);
+
+   return (n);
+}
+
+static int net_packfile_putc (int c, void *d)
+{
+   NET_PACKET_BUFFER *packet;
+
+   RT_ASSERT(d);
+
+   packet = d;
+
+   writeByte(packet->data, packet->pos, c);
+
+   return (c);
+}
+
+static long net_packfile_fwrite (const void *p, long n, void *d)
+{
+   NET_PACKET_BUFFER *packet;
+
+   RT_ASSERT(p);
+   RT_ASSERT(d);
+
+   packet = d;
+
+   writeBlock(packet->data, packet->pos, p, n);
+
+   return (n);
+}
+
+static int net_packfile_fseek (void *d, int o)
+{
+   RT_ASSERT(d);
+
+   /* Unsupported. */
+   return (0);
+}
+
+static int net_packfile_feof (void *d)
+{
+   RT_ASSERT(d);
+
+   /* Unsupported. */
+   return (FALSE);
+}
+
+static int net_packfile_ferror (void *d)
+{
+   RT_ASSERT(d);
+      
+   /* Unsupported. */
+   return (0);
+}
+
+static PACKFILE_VTABLE net_packfile_vtable;
+
+static const PACKFILE_VTABLE *net_get_packfile_vtable (void)
+{
+   net_packfile_vtable.pf_fclose = net_packfile_fclose;
+   net_packfile_vtable.pf_getc   = net_packfile_getc;
+   net_packfile_vtable.pf_ungetc = net_packfile_ungetc;
+   net_packfile_vtable.pf_fread  = net_packfile_fread;
+   net_packfile_vtable.pf_putc   = net_packfile_putc;
+   net_packfile_vtable.pf_fwrite = net_packfile_fwrite;
+   net_packfile_vtable.pf_fseek  = net_packfile_fseek;
+   net_packfile_vtable.pf_feof   = net_packfile_feof;
+   net_packfile_vtable.pf_ferror = net_packfile_ferror;
+
+   return (&net_packfile_vtable);
 }
 
 #else /* USE_HAWKNL */
@@ -303,14 +663,14 @@ int net_connect (const char *host, int port)
    return (FALSE);
 }
 
-void net_disconnect (void)
+void net_process (void)
 {
    /* Do nothing. */
 }
 
-void net_die (void)
+PACKFILE *net_open_packet (ENUM pipe)
 {
-   /* Do nothing. */
+   return (NULL);
 }
 
 #endif   /* !USE_HAWKNL */
