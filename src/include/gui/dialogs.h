@@ -84,6 +84,32 @@ static const DIALOG options_input_dialog_base[] =
    DIALOG_FRAME_ENDCAP
 };
 
+enum
+{
+   OPTIONS_INPUT_DIALOG_FRAME = 0,
+   OPTIONS_INPUT_DIALOG_CLOSE_BUTTON,
+   OPTIONS_INPUT_DIALOG_PLAYER_LABEL,
+   OPTIONS_INPUT_DIALOG_PLAYER_1_SELECT,
+   OPTIONS_INPUT_DIALOG_PLAYER_2_SELECT,
+   OPTIONS_INPUT_DIALOG_PLAYER_3_SELECT,
+   OPTIONS_INPUT_DIALOG_PLAYER_4_SELECT,
+   OPTIONS_INPUT_DIALOG_DEVICE_LABEL,
+   OPTIONS_INPUT_DIALOG_DEVICE_1_SELECT,
+   OPTIONS_INPUT_DIALOG_DEVICE_2_SELECT,
+   OPTIONS_INPUT_DIALOG_DEVICE_3_SELECT,
+   OPTIONS_INPUT_DIALOG_DEVICE_4_SELECT,
+   OPTIONS_INPUT_DIALOG_DEVICE_5_SELECT,
+   OPTIONS_INPUT_DIALOG_SET_BUTTONS_LABEL,
+   OPTIONS_INPUT_DIALOG_SET_BUTTON_UP,
+   OPTIONS_INPUT_DIALOG_SET_BUTTON_DOWN,
+   OPTIONS_INPUT_DIALOG_SET_BUTTON_LEFT,
+   OPTIONS_INPUT_DIALOG_SET_BUTTON_RIGHT,
+   OPTIONS_INPUT_DIALOG_SET_BUTTON_START,
+   OPTIONS_INPUT_DIALOG_SET_BUTTON_SELECT,
+   OPTIONS_INPUT_DIALOG_SET_BUTTON_A,
+   OPTIONS_INPUT_DIALOG_SET_BUTTON_B
+};
+
 static const DIALOG options_patches_add_dialog_base[] =
 {
    { sl_frame,          0,   0,  156, 100, 0, 0, 0,   0,      0, 0, NULL,  "Add Patch", NULL },
@@ -96,6 +122,19 @@ static const DIALOG options_patches_add_dialog_base[] =
    { d_edit_proc,       50,  56, 57,  12,  0, 0, 0,   0,      0, 0, NULL,  NULL,        NULL },
    { d_button_proc,     112, 76, 32,  16,  0, 0, 'o', D_EXIT, 0, 0, "&OK", NULL,        NULL },
    DIALOG_FRAME_ENDCAP
+};
+
+enum
+{
+   OPTIONS_PATCHES_ADD_DIALOG_FRAME = 0,
+   OPTIONS_PATCHES_ADD_DIALOG_CLOSE_BUTTON,
+   OPTIONS_PATCHES_ADD_DIALOG_TITLE_LABEL,
+   OPTIONS_PATCHES_ADD_DIALOG_TITLE_BOX,
+   OPTIONS_PATCHES_ADD_DIALOG_TITLE,
+   OPTIONS_PATCHES_ADD_DIALOG_CODE_LABEL,
+   OPTIONS_PATCHES_ADD_DIALOG_CODE_BOX,
+   OPTIONS_PATCHES_ADD_DIALOG_CODE,
+   OPTIONS_PATCHES_ADD_DIALOG_OK_BUTTON
 };
 
 DEFINE_DIALOG_CALLBACK(options_patches_dialog_list);
@@ -117,6 +156,17 @@ static const DIALOG options_patches_dialog_base[] =
    DIALOG_FRAME_ENDCAP
 };
 
+enum
+{
+   OPTIONS_PATCHES_DIALOG_FRAME = 0,
+   OPTIONS_PATCHES_DIALOG_CLOSE_BUTTON,
+   OPTIONS_PATCHES_DIALOG_LIST,
+   OPTIONS_PATCHES_DIALOG_ADD_BUTTON,
+   OPTIONS_PATCHES_DIALOG_REMOVE_BUTTON,
+   OPTIONS_PATCHES_DIALOG_ENABLED_CHECKBOX,
+   OPTIONS_PATCHES_DIALOG_SAVE_BUTTON
+};
+
 static const DIALOG netplay_dialog_base[] =
 {
    { sl_frame,          0,   0,  153, 108, 0, 0, 0,   0,      0, 0, NULL,      "NetPlay", NULL },
@@ -136,8 +186,6 @@ static const DIALOG netplay_dialog_base[] =
    DIALOG_FRAME_ENDCAP
 };
 
-/* Note: remember to keep this enum updated to the structure of the dialog
-   above, otherwise crashes could occur. */
 enum
 {
    NETPLAY_DIALOG_FRAME = 0,
@@ -175,8 +223,6 @@ static const DIALOG lobby_dialog_base[] =
    DIALOG_FRAME_ENDCAP                                                               
 };
 
-/* Note: remember to keep this enum updated to the structure of the dialog
-   above, otherwise crashes could occur. */
 enum
 {
    LOBBY_DIALOG_FRAME = 0,

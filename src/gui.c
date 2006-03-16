@@ -1385,7 +1385,7 @@ static int open_lobby (void)
    {
       netplay_process ();
 
-      rest (1);
+      gui_heartbeat ();
    }
 
    object_id = shutdown_dialog (player);
@@ -3024,6 +3024,7 @@ static int help_menu_version (void)
 static int options_patches_dialog_list (DIALOG *dialog)
 {
    CPU_PATCH *patch;
+   DIALOG *obj_enabled;
 
    RT_ASSERT(dialog);
 
@@ -3032,13 +3033,15 @@ static int options_patches_dialog_list (DIALOG *dialog)
 
    patch = &cpu_patch_info[dialog->d1];
 
+   obj_enabled = &dialog[OPTIONS_PATCHES_DIALOG_ENABLED_CHECKBOX];
+
    if (patch->enabled)
-      options_patches_dialog[5].flags |= D_SELECTED;
+      obj_enabled->flags |= D_SELECTED;
    else
-      options_patches_dialog[5].flags &= ~D_SELECTED;
+      obj_enabled->flags &= ~D_SELECTED;
 
    scare_mouse ();
-   object_message (&options_patches_dialog[5], MSG_DRAW, 0);
+   object_message (obj_enabled, MSG_DRAW, 0);
    unscare_mouse ();
 
    return (D_O_K);
@@ -3046,6 +3049,9 @@ static int options_patches_dialog_list (DIALOG *dialog)
 
 static int options_patches_dialog_add (DIALOG *dialog)
 {
+   DIALOG *main_dialog;
+   DIALOG *obj_title;
+   DIALOG *obj_code;
    USTRING title;
    USTRING code;
    CPU_PATCH *patch;
@@ -3059,15 +3065,25 @@ static int options_patches_dialog_add (DIALOG *dialog)
       return (D_O_K);
    }
 
+   /* Get dialog. */
+   main_dialog = options_patches_add_dialog;
+
+   /* Get dialog objects. */
+   obj_title = &main_dialog[OPTIONS_PATCHES_ADD_DIALOG_TITLE];
+   obj_code  = &main_dialog[OPTIONS_PATCHES_ADD_DIALOG_CODE];
+
+   /* Set up dialog objects. */
+
    USTRING_CLEAR(title);
-   options_patches_add_dialog[4].d1 = (SAVE_TITLE_SIZE - 1);
-   options_patches_add_dialog[4].dp = title;
+   obj_title->d1 = (SAVE_TITLE_SIZE - 1);
+   obj_title->dp = title;
 
    USTRING_CLEAR(code);
-   options_patches_add_dialog[7].d1 = (11 - 1);
-   options_patches_add_dialog[7].dp = code;
+   obj_code->d1 = (11 - 1);
+   obj_code->dp = code;
 
-   if (show_dialog (options_patches_add_dialog) != 8)
+   /* Show dialog. */
+   if (show_dialog (main_dialog) != OPTIONS_PATCHES_ADD_DIALOG_OK_BUTTON)
       return (D_O_K);
 
    patch = &cpu_patch_info[cpu_patch_count];
@@ -3102,6 +3118,7 @@ static int options_patches_dialog_add (DIALOG *dialog)
 
 static int options_patches_dialog_remove (DIALOG *dialog)
 {
+   DIALOG *main_dialog;
    int start;
    CPU_PATCH *src;
    int index;
@@ -3111,7 +3128,9 @@ static int options_patches_dialog_remove (DIALOG *dialog)
    if (cpu_patch_count == 0)
       return (D_O_K);
 
-   start = options_patches_dialog[2].d1;
+   main_dialog = options_patches_dialog;
+
+   start = main_dialog[OPTIONS_PATCHES_DIALOG_LIST].d1;
    src = &cpu_patch_info[start];
 
    /* Disable patch. */
@@ -3142,13 +3161,17 @@ static int options_patches_dialog_remove (DIALOG *dialog)
    cpu_patch_count--;
 
    if (cpu_patch_count == 0)
-      options_patches_dialog[5].flags &= ~D_SELECTED;
+   {
+      main_dialog[OPTIONS_PATCHES_DIALOG_ENABLED_CHECKBOX].flags &=
+         ~D_SELECTED;
+   }
 
    return (D_REDRAW);
 }
 
 static int options_patches_dialog_enabled (DIALOG *dialog)
 {
+   DIALOG *obj_list;
    CPU_PATCH *patch;
 
    RT_ASSERT(dialog);
@@ -3160,7 +3183,9 @@ static int options_patches_dialog_enabled (DIALOG *dialog)
       return (D_O_K);
    }
 
-   patch = &cpu_patch_info[options_patches_dialog[2].d1];
+   obj_list = &options_patches_dialog[OPTIONS_PATCHES_DIALOG_LIST];
+
+   patch = &cpu_patch_info[obj_list->d1];
 
    patch->enabled = (dialog->flags & D_SELECTED);
 
@@ -3185,7 +3210,7 @@ static int options_patches_dialog_enabled (DIALOG *dialog)
    }
 
    scare_mouse ();
-   object_message (&options_patches_dialog[2], MSG_DRAW, 0);
+   object_message (obj_list, MSG_DRAW, 0);
    unscare_mouse ();
 
    return (D_O_K);
@@ -3223,26 +3248,32 @@ static char *options_patches_dialog_list_filler (int index, int *list_size)
 static int selected_player = -1;
 static int selected_player_device = 0;
 
-static int options_input_dialog_player_select (DIALOG * dialog)
+static int options_input_dialog_player_select (DIALOG *dialog)
 {
+   DIALOG *main_dialog;
+   int first, last;
+   int index;
+
    RT_ASSERT(dialog);
 
    selected_player = (dialog->d2 - 1);
    selected_player_device = input_get_player_device (selected_player);
 
-   options_input_dialog[8].flags &= ~D_SELECTED;
-   options_input_dialog[9].flags &= ~D_SELECTED;
-   options_input_dialog[10].flags &= ~D_SELECTED;
-   options_input_dialog[11].flags &= ~D_SELECTED;
-   options_input_dialog[12].flags &= ~D_SELECTED;
-   options_input_dialog[(7 + selected_player_device)].flags |= D_SELECTED;
+   main_dialog = options_input_dialog;
+
+   first = OPTIONS_INPUT_DIALOG_DEVICE_1_SELECT;
+   last  = OPTIONS_INPUT_DIALOG_DEVICE_5_SELECT;
+
+   for (index = first; index <= last; index++)
+      main_dialog[index].flags  &= ~D_SELECTED;
+
+   main_dialog[(first + selected_player_device)].flags |= D_SELECTED;
 
    scare_mouse ();
-   object_message (&options_input_dialog[8], MSG_DRAW, 0);
-   object_message (&options_input_dialog[9], MSG_DRAW, 0);
-   object_message (&options_input_dialog[10], MSG_DRAW, 0);
-   object_message (&options_input_dialog[11], MSG_DRAW, 0);
-   object_message (&options_input_dialog[12], MSG_DRAW, 0);
+
+   for (index = first; index <= last; index++)
+      object_message (&main_dialog[index],  MSG_DRAW, 0);
+
    unscare_mouse ();
 
    return (D_O_K);
@@ -3420,8 +3451,11 @@ static int options_input_dialog_set_buttons (DIALOG *dialog)
 
 static int options_menu_patches (void)
 {
-   if (show_dialog (options_patches_dialog) == 6)
+   if (show_dialog (options_patches_dialog) ==
+      OPTIONS_PATCHES_DIALOG_SAVE_BUTTON)
+   {
       save_patches ();
+   }
 
    return (D_O_K);
 }
