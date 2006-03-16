@@ -9,7 +9,7 @@ DEFINE_DIALOG(main_dialog);
 DEFINE_DIALOG(main_state_save_dialog);
 DEFINE_DIALOG(main_replay_record_start_dialog);
 DEFINE_DIALOG(main_messages_dialog);
-DEFINE_DIALOG(options_input_dialog);
+DEFINE_DIALOG(options_input_configure_dialog);
 DEFINE_DIALOG(options_patches_add_dialog);
 DEFINE_DIALOG(options_patches_dialog);
 DEFINE_DIALOG(netplay_dialog);
@@ -53,61 +53,64 @@ static const DIALOG main_messages_dialog_base[] =
    DIALOG_FRAME_ENDCAP
 };
 
-DEFINE_DIALOG_CALLBACK(options_input_dialog_player_select);
-DEFINE_DIALOG_CALLBACK(options_input_dialog_device_select);
-DEFINE_DIALOG_CALLBACK(options_input_dialog_set_buttons);
+DEFINE_DIALOG_CALLBACK(options_input_configure_dialog_player_select);
+DEFINE_DIALOG_CALLBACK(options_input_configure_dialog_device_select);
+DEFINE_DIALOG_CALLBACK(options_input_configure_dialog_set_buttons);
+DEFINE_DIALOG_CALLBACK(options_input_configure_dialog_calibrate);
 
-static const DIALOG options_input_dialog_base[] =
+static const DIALOG options_input_configure_dialog_base[] =
 {
-   { sl_frame,    0,   0,   194, 157, 0, 0, 0,   0,      0, 0,                          NULL,           "Input",                            NULL },
-   { sl_x_button, 174, 4,   16,  12,  0, 0, 0,   D_EXIT, 0, 0,                          "X",            NULL,                               NULL },
-   { sl_text,     9,   29,  0,   0,   0, 0, 0,   0,      0, 0,                          NULL,           "Player:",                          NULL },
-   { sl_radiobox, 52,  29,  24,  6,   0, 0, '1', 0,      1, 1,                          "&1",           options_input_dialog_player_select, NULL },
-   { sl_radiobox, 76,  29,  24,  6,   0, 0, '2', 0,      1, 2,                          "&2",           options_input_dialog_player_select, NULL },
-   { sl_radiobox, 100, 29,  24,  6,   0, 0, '3', 0,      1, 3,                          "&3",           options_input_dialog_player_select, NULL },
-   { sl_radiobox, 124, 29,  24,  6,   0, 0, '4', 0,      1, 4,                          "&4",           options_input_dialog_player_select, NULL },
-   { sl_text,     9,   45,  0,   0,   0, 0, 0,   0,      0, 0,                          NULL,           "Device:",                          NULL },
-   { sl_radiobox, 52,  45,  64,  6,   0, 0, 'k', 0,      2, INPUT_DEVICE_KEYBOARD_1,    "&Key Set 1",   options_input_dialog_device_select, NULL },
-   { sl_radiobox, 52,  56,  64,  6,   0, 0, 'e', 0,      2, INPUT_DEVICE_KEYBOARD_2,    "K&ey Set 2",   options_input_dialog_device_select, NULL },
-   { sl_radiobox, 118, 45,  64,  6,   0, 0, 'p', 0,      2, INPUT_DEVICE_JOYSTICK_1,    "Stick/&Pad 1", options_input_dialog_device_select, NULL },
-   { sl_radiobox, 118, 56,  64,  6,   0, 0, 't', 0,      2, INPUT_DEVICE_JOYSTICK_2,    "S&tick/Pad 2", options_input_dialog_device_select, NULL },
-   { sl_radiobox, 118, 68,  64,  6,   0, 0, 'm', 0,      2, INPUT_DEVICE_MOUSE,         "&Mouse",       options_input_dialog_device_select, NULL },
-   { sl_text,     9,   72,  0,   0,   0, 0, 0,   0,      0, 0,                          NULL,           "Set Buttons:",                     NULL },
-   { sl_button,   24,  88,  40,  12,  0, 0, 'u', 0,      0, INPUT_DEVICE_BUTTON_UP,     "&Up",          options_input_dialog_set_buttons,   NULL },
-   { sl_button,   24,  104, 40,  12,  0, 0, 'd', 0,      0, INPUT_DEVICE_BUTTON_DOWN,   "&Down",        options_input_dialog_set_buttons,   NULL },
-   { sl_button,   24,  120, 40,  12,  0, 0, 'l', 0,      0, INPUT_DEVICE_BUTTON_LEFT,   "&Left",        options_input_dialog_set_buttons,   NULL },
-   { sl_button,   24,  136, 40,  12,  0, 0, 'r', 0,      0, INPUT_DEVICE_BUTTON_RIGHT,  "&Right",       options_input_dialog_set_buttons,   NULL },
-   { sl_button,   80,  88,  48,  12,  0, 0, 's', 0,      0, INPUT_DEVICE_BUTTON_START,  "&Start",       options_input_dialog_set_buttons,   NULL },
-   { sl_button,   80,  104, 48,  12,  0, 0, 'c', 0,      0, INPUT_DEVICE_BUTTON_SELECT, "Sele&ct",      options_input_dialog_set_buttons,   NULL },
-   { sl_button,   80,  120, 32,  12,  0, 0, 'a', 0,      0, INPUT_DEVICE_BUTTON_A,      "&A",           options_input_dialog_set_buttons,   NULL },
-   { sl_button,   80,  136, 32,  12,  0, 0, 'b', 0,      0, INPUT_DEVICE_BUTTON_B,      "&B",           options_input_dialog_set_buttons,   NULL },
+   { sl_frame,    0,   0,   194, 151, 0, 0, 0,   0,      0, 0,                          NULL,           "Input",                                      NULL },
+   { sl_x_button, 174, 4,   16,  12,  0, 0, 0,   D_EXIT, 0, 0,                          "X",            NULL,                                         NULL },
+   { sl_text,     9,   28,  0,   0,   0, 0, 0,   0,      0, 0,                          NULL,           "Player:",                                    NULL },
+   { sl_radiobox, 52,  28,  24,  6,   0, 0, '1', 0,      1, 1,                          "&1",           options_input_configure_dialog_player_select, NULL },
+   { sl_radiobox, 76,  28,  24,  6,   0, 0, '2', 0,      1, 2,                          "&2",           options_input_configure_dialog_player_select, NULL },
+   { sl_radiobox, 100, 28,  24,  6,   0, 0, '3', 0,      1, 3,                          "&3",           options_input_configure_dialog_player_select, NULL },
+   { sl_radiobox, 124, 28,  24,  6,   0, 0, '4', 0,      1, 4,                          "&4",           options_input_configure_dialog_player_select, NULL },
+   { sl_text,     9,   41,  0,   0,   0, 0, 0,   0,      0, 0,                          NULL,           "Device:",                                    NULL },
+   { sl_radiobox, 52,  41,  64,  6,   0, 0, 'k', 0,      2, INPUT_DEVICE_KEYBOARD_1,    "&Key Set 1",   options_input_configure_dialog_device_select, NULL },
+   { sl_radiobox, 52,  51,  64,  6,   0, 0, 'e', 0,      2, INPUT_DEVICE_KEYBOARD_2,    "K&ey Set 2",   options_input_configure_dialog_device_select, NULL },
+   { sl_radiobox, 118, 41,  68,  6,   0, 0, 'p', 0,      2, INPUT_DEVICE_JOYSTICK_1,    "Stick/&Pad 1", options_input_configure_dialog_device_select, NULL },
+   { sl_radiobox, 118, 51,  68,  6,   0, 0, 't', 0,      2, INPUT_DEVICE_JOYSTICK_2,    "S&tick/Pad 2", options_input_configure_dialog_device_select, NULL },
+   { sl_radiobox, 52,  61,  64,  6,   0, 0, 'm', 0,      2, INPUT_DEVICE_MOUSE,         "&Mouse",       options_input_configure_dialog_device_select, NULL },
+   { sl_text,     9,   74,  0,   0,   0, 0, 0,   0,      0, 0,                          NULL,           "Set Buttons:",                               NULL },
+   { sl_button,   18,  86,  40,  12,  0, 0, 'u', 0,      0, INPUT_DEVICE_BUTTON_UP,     "&Up",          options_input_configure_dialog_set_buttons,   NULL },
+   { sl_button,   18,  101, 40,  12,  0, 0, 'd', 0,      0, INPUT_DEVICE_BUTTON_DOWN,   "&Down",        options_input_configure_dialog_set_buttons,   NULL },
+   { sl_button,   18,  116, 40,  12,  0, 0, 'l', 0,      0, INPUT_DEVICE_BUTTON_LEFT,   "&Left",        options_input_configure_dialog_set_buttons,   NULL },
+   { sl_button,   18,  131, 40,  12,  0, 0, 'r', 0,      0, INPUT_DEVICE_BUTTON_RIGHT,  "&Right",       options_input_configure_dialog_set_buttons,   NULL },
+   { sl_button,   66,  86,  48,  12,  0, 0, 's', 0,      0, INPUT_DEVICE_BUTTON_START,  "&Start",       options_input_configure_dialog_set_buttons,   NULL },
+   { sl_button,   66,  101, 48,  12,  0, 0, 'c', 0,      0, INPUT_DEVICE_BUTTON_SELECT, "Sele&ct",      options_input_configure_dialog_set_buttons,   NULL },
+   { sl_button,   66,  116, 32,  12,  0, 0, 'a', 0,      0, INPUT_DEVICE_BUTTON_A,      "&A",           options_input_configure_dialog_set_buttons,   NULL },
+   { sl_button,   66,  131, 32,  12,  0, 0, 'b', 0,      0, INPUT_DEVICE_BUTTON_B,      "&B",           options_input_configure_dialog_set_buttons,   NULL },
+   { sl_button,   122, 91,  64,  16,  0, 0, 'c', 0,      0, 0,                          "&Calibrate",   options_input_configure_dialog_calibrate,     NULL },
    DIALOG_FRAME_ENDCAP
 };
 
 enum
 {
-   OPTIONS_INPUT_DIALOG_FRAME = 0,
-   OPTIONS_INPUT_DIALOG_CLOSE_BUTTON,
-   OPTIONS_INPUT_DIALOG_PLAYER_LABEL,
-   OPTIONS_INPUT_DIALOG_PLAYER_1_SELECT,
-   OPTIONS_INPUT_DIALOG_PLAYER_2_SELECT,
-   OPTIONS_INPUT_DIALOG_PLAYER_3_SELECT,
-   OPTIONS_INPUT_DIALOG_PLAYER_4_SELECT,
-   OPTIONS_INPUT_DIALOG_DEVICE_LABEL,
-   OPTIONS_INPUT_DIALOG_DEVICE_1_SELECT,
-   OPTIONS_INPUT_DIALOG_DEVICE_2_SELECT,
-   OPTIONS_INPUT_DIALOG_DEVICE_3_SELECT,
-   OPTIONS_INPUT_DIALOG_DEVICE_4_SELECT,
-   OPTIONS_INPUT_DIALOG_DEVICE_5_SELECT,
-   OPTIONS_INPUT_DIALOG_SET_BUTTONS_LABEL,
-   OPTIONS_INPUT_DIALOG_SET_BUTTON_UP,
-   OPTIONS_INPUT_DIALOG_SET_BUTTON_DOWN,
-   OPTIONS_INPUT_DIALOG_SET_BUTTON_LEFT,
-   OPTIONS_INPUT_DIALOG_SET_BUTTON_RIGHT,
-   OPTIONS_INPUT_DIALOG_SET_BUTTON_START,
-   OPTIONS_INPUT_DIALOG_SET_BUTTON_SELECT,
-   OPTIONS_INPUT_DIALOG_SET_BUTTON_A,
-   OPTIONS_INPUT_DIALOG_SET_BUTTON_B
+   OPTIONS_INPUT_CONFIGURE_DIALOG_FRAME = 0,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_CLOSE_BUTTON,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_PLAYER_LABEL,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_PLAYER_1_SELECT,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_PLAYER_2_SELECT,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_PLAYER_3_SELECT,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_PLAYER_4_SELECT,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_LABEL,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_1_SELECT,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_2_SELECT,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_3_SELECT,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_4_SELECT,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_5_SELECT,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTONS_LABEL,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_UP,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_DOWN,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_LEFT,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_RIGHT,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_START,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_SELECT,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_A,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_B,
+   OPTIONS_INPUT_CONFIGURE_DIALOG_CALIBRATE_BUTTON
 };
 
 static const DIALOG options_patches_add_dialog_base[] =

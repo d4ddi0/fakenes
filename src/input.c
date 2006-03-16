@@ -244,7 +244,12 @@ int input_init (void)
     install_mouse ();
 
 
-    install_joystick (JOY_TYPE_AUTODETECT);
+    if (load_joystick_data (NULL) != 0)
+    {
+        /* load_joystick_data() failed; reinitialize joystick system. */
+
+        install_joystick (JOY_TYPE_AUTODETECT);
+    }
 
 
     input_devices [0] = get_config_int ("input", "player_1_device", INPUT_DEVICE_KEYBOARD_1);

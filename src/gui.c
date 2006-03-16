@@ -263,7 +263,7 @@ static INLINE void load_dialogs (void)
    DIALOG_FROM_BASE(main_state_save_dialog);
    DIALOG_FROM_BASE(main_replay_record_start_dialog);
    DIALOG_FROM_BASE(main_messages_dialog);
-   DIALOG_FROM_BASE(options_input_dialog);
+   DIALOG_FROM_BASE(options_input_configure_dialog);
    DIALOG_FROM_BASE(options_patches_add_dialog);
    DIALOG_FROM_BASE(options_patches_dialog);
    DIALOG_FROM_BASE(netplay_dialog);
@@ -331,7 +331,7 @@ static INLINE void unload_dialogs (void)
    unload_dialog (main_state_save_dialog);
    unload_dialog (main_replay_record_start_dialog);
    unload_dialog (main_messages_dialog);
-   unload_dialog (options_input_dialog);
+   unload_dialog (options_input_configure_dialog);
    unload_dialog (options_patches_add_dialog);
    unload_dialog (options_patches_dialog);
    unload_dialog (netplay_dialog);
@@ -2989,7 +2989,7 @@ static int options_input_menu_enable_zapper (void)
 
 static int options_input_menu_configure (void)
 {
-   show_dialog (options_input_dialog);
+   show_dialog (options_input_configure_dialog);
 
    return (D_O_K);
 }
@@ -3248,7 +3248,7 @@ static char *options_patches_dialog_list_filler (int index, int *list_size)
 static int selected_player = -1;
 static int selected_player_device = 0;
 
-static int options_input_dialog_player_select (DIALOG *dialog)
+static int options_input_configure_dialog_player_select (DIALOG *dialog)
 {
    DIALOG *main_dialog;
    int first, last;
@@ -3259,10 +3259,10 @@ static int options_input_dialog_player_select (DIALOG *dialog)
    selected_player = (dialog->d2 - 1);
    selected_player_device = input_get_player_device (selected_player);
 
-   main_dialog = options_input_dialog;
+   main_dialog = options_input_configure_dialog;
 
-   first = OPTIONS_INPUT_DIALOG_DEVICE_1_SELECT;
-   last  = OPTIONS_INPUT_DIALOG_DEVICE_5_SELECT;
+   first = OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_1_SELECT;
+   last  = OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_5_SELECT;
 
    for (index = first; index <= last; index++)
       main_dialog[index].flags  &= ~D_SELECTED;
@@ -3279,7 +3279,7 @@ static int options_input_dialog_player_select (DIALOG *dialog)
    return (D_O_K);
 }
 
-static int options_input_dialog_device_select (DIALOG *dialog)
+static int options_input_configure_dialog_device_select (DIALOG *dialog)
 {
    RT_ASSERT(dialog);
 
@@ -3298,7 +3298,7 @@ static int options_input_dialog_device_select (DIALOG *dialog)
    return (D_O_K);
 }
 
-static int options_input_dialog_set_buttons (DIALOG *dialog)
+static int options_input_configure_dialog_set_buttons (DIALOG *dialog)
 {
    int button;
    int index;
@@ -3444,6 +3444,73 @@ static int options_input_dialog_set_buttons (DIALOG *dialog)
 
       default:
          WARN_GENERIC();
+   }
+
+   return (D_O_K);
+}
+
+static int options_input_configure_dialog_calibrate (DIALOG *dialog)
+{
+   RT_ASSERT(dialog);
+
+   if (selected_player < 0)
+   {
+      alert ("- Error -", "", "Please select a player to modify first.",
+         "&OK", NULL, 'o', 0);
+
+      return (D_O_K);
+   }
+
+   switch (selected_player_device)
+   {
+      case INPUT_DEVICE_JOYSTICK_1:
+      case INPUT_DEVICE_JOYSTICK_2:
+      {
+         int index;
+
+         index = (selected_player_device - INPUT_DEVICE_JOYSTICK_1);
+
+         while (joy[index].flags & JOYFLAG_CALIBRATE)
+         {
+            message_local ("%s, and press any key.\n",
+               calibrate_joystick_name (index));
+
+            while (!keypressed ())
+               gui_heartbeat ();
+
+            if ((readkey () >> 8) == KEY_ESC)
+            {
+               gui_message (GUI_ERROR_COLOR, "Joystick calibration "
+                  "cancelled.");
+    
+               return (D_O_K);
+            }
+
+            if (calibrate_joystick (index) != 0)
+            {
+               alert ("- Error -", "", "An unknown error occured while "
+                  "attempting to calibrate the device.", "&OK", NULL, 'o',
+                     0);
+   
+               return (D_O_K);
+            }
+         }
+
+         alert ("- Calibration Complete - ", "", "The selected device has "
+            "been calibrated.", "&Save", NULL, 's', 0);
+
+         save_joystick_data (NULL);
+
+         break;
+      }
+
+      default:
+      {
+         alert ("- Error -", "", "The selected device does not require "
+            "calibration.", "&OK", NULL, 'o', 0);
+
+         break;
+      }
    }
 
    return (D_O_K);
