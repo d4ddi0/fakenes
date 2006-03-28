@@ -798,6 +798,7 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(options_video_blitter_menu_super_2xscl,     (video_get_blitter () == VIDEO_BLITTER_SUPER_2XSCL));
    TOGGLE_MENU_ITEM(options_video_blitter_menu_ultra_2xscl,     (video_get_blitter () == VIDEO_BLITTER_ULTRA_2XSCL));
    TOGGLE_MENU_ITEM(options_video_blitter_menu_hq2x,            (video_get_blitter () == VIDEO_BLITTER_HQ2X));
+   TOGGLE_MENU_ITEM(options_video_blitter_menu_nes_ntsc,        (video_get_blitter () == VIDEO_BLITTER_NES_NTSC));
    TOGGLE_MENU_ITEM(options_video_blitter_menu_interpolated_3x, (video_get_blitter () == VIDEO_BLITTER_INTERPOLATED_3X));
    TOGGLE_MENU_ITEM(options_video_blitter_menu_hq3x,            (video_get_blitter () == VIDEO_BLITTER_HQ3X));
    TOGGLE_MENU_ITEM(options_video_blitter_menu_hq4x,            (video_get_blitter () == VIDEO_BLITTER_HQ4X));
@@ -2774,6 +2775,7 @@ BLITTER_MENU_HANDLER(desii,           "des 2 engine",       VIDEO_BLITTER_DESII)
 BLITTER_MENU_HANDLER(super_2xscl,     "super 2xSCL engine", VIDEO_BLITTER_SUPER_2XSCL)
 BLITTER_MENU_HANDLER(ultra_2xscl,     "ultra 2xSCL engine", VIDEO_BLITTER_ULTRA_2XSCL)
 BLITTER_MENU_HANDLER(hq2x,            "hq2x filter",        VIDEO_BLITTER_HQ2X)
+BLITTER_MENU_HANDLER(nes_ntsc,        "nes_ntsc engine",    VIDEO_BLITTER_NES_NTSC)
 BLITTER_MENU_HANDLER(interpolated_3x, "interpolated (3x)",  VIDEO_BLITTER_INTERPOLATED_3X)
 BLITTER_MENU_HANDLER(hq3x,            "hq3x filter",        VIDEO_BLITTER_HQ3X)
 BLITTER_MENU_HANDLER(hq4x,            "hq4x filter",        VIDEO_BLITTER_HQ4X)

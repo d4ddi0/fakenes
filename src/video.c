@@ -151,6 +151,8 @@ static int using_custom_font = FALSE;
 
 #include "blit/interp.h"
 
+#include "blit/ntsc.h"
+
 
 static void switch_out_callback (void)
 {
@@ -665,6 +667,16 @@ static INLINE void color_deemphasis_overlay (void)
             break;
 
 
+        case VIDEO_BLITTER_NES_NTSC:
+
+            width = 602;
+
+            height = 2;
+
+
+            break;
+
+
         case VIDEO_BLITTER_INTERPOLATED_3X:
 
         case VIDEO_BLITTER_HQ3X:
@@ -842,6 +854,14 @@ void video_blit (BITMAP * bitmap)
         case VIDEO_BLITTER_HQ2X:
 
             blit_hq2x (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
+
+
+            break;
+
+
+        case VIDEO_BLITTER_NES_NTSC:
+
+            blit_nes_ntsc (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
 
 
             break;
@@ -1552,6 +1572,25 @@ void video_set_blitter (int blitter)
 
 
                 stretch_buffer = create_bitmap (256, 240);
+            }
+
+
+            break;
+
+
+        case VIDEO_BLITTER_NES_NTSC:
+
+            if (! ((SCREEN_W < 602) || (SCREEN_H < 480)))
+            {
+                blit_x_offset = ((SCREEN_W / 2) - 301);
+    
+                blit_y_offset = ((SCREEN_H / 2) - 240);
+            }
+            else
+            {
+                blit_x_offset = ((SCREEN_W / 2) - (301 / 2));
+            
+                blit_y_offset = ((SCREEN_H / 2) - (240 / 2));
             }
 
 

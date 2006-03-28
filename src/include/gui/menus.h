@@ -665,6 +665,7 @@ DEFINE_MENU_CALLBACK(options_video_blitter_menu_interpolated_3x);
 DEFINE_MENU_CALLBACK(options_video_blitter_menu_hq3x);
 DEFINE_MENU_CALLBACK(options_video_blitter_menu_hq4x);
 DEFINE_MENU_CALLBACK(options_video_blitter_menu_stretched);
+DEFINE_MENU_CALLBACK(options_video_blitter_menu_nes_ntsc);
 
 static const MENU options_video_blitter_menu_base[] =
 {
@@ -678,10 +679,11 @@ static const MENU options_video_blitter_menu_base[] =
    { " &6: Super 2xSCL",     options_video_blitter_menu_super_2xscl,     NULL, 0, NULL },
    { " &7: Ultra 2xSCL",     options_video_blitter_menu_ultra_2xscl,     NULL, 0, NULL },
    { " &8: HQ2X",            options_video_blitter_menu_hq2x,            NULL, 0, NULL },
-   { " &9: Interpolated 3X", options_video_blitter_menu_interpolated_3x, NULL, 0, NULL },
-   { "1&0: HQ3X",            options_video_blitter_menu_hq3x,            NULL, 0, NULL },
-   { "11: &HQ4X",            options_video_blitter_menu_hq4x,            NULL, 0, NULL },
-   { "12: &Stretched",       options_video_blitter_menu_stretched,       NULL, 0, NULL },
+   { " &9: nes_ntsc",        options_video_blitter_menu_nes_ntsc,        NULL, 0, NULL },
+   { "1&0: Interpolated 3X", options_video_blitter_menu_interpolated_3x, NULL, 0, NULL },
+   { "11: &HQ3X",            options_video_blitter_menu_hq3x,            NULL, 0, NULL },
+   { "11: H&Q4X",            options_video_blitter_menu_hq4x,            NULL, 0, NULL },
+   { "13: &Stretched",       options_video_blitter_menu_stretched,       NULL, 0, NULL },
    MENU_ENDCAP
 };
 
