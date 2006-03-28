@@ -528,7 +528,7 @@ int main (int argc, char * argv [])
 
     frame_skip_min = get_config_int ("timing", "frame_skip_min", 0);
 
-    frame_skip_max = get_config_int ("timing", "frame_skip_max", 8);
+    frame_skip_max = get_config_int ("timing", "frame_skip_max", 3);
 
 
     machine_region = get_config_int ("timing", "machine_region", MACHINE_REGION_AUTOMATIC);
