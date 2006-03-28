@@ -96,22 +96,12 @@ static int first_blit_line = 0;
 static int last_blit_line = 0;
 
 
-static int image_offset_x = 0;
-
-static int image_offset_y = 0;
-
-
-static int zoom_factor_x = 0;
-
-static int zoom_factor_y = 0;
-
-
 static int blit_x_offset = 0;
 
 static int blit_y_offset = 0;
 
 
-static int light_adjustment = 0;
+static int brightness = 0;
 
 
 static int blitter_type = 0;
@@ -223,17 +213,7 @@ int video_init (void)
     }
 
 
-    image_offset_x = get_config_int ("video", "image_offset_x", 0);
-
-    image_offset_y = get_config_int ("video", "image_offset_y", 0);
-
-
-    zoom_factor_x = get_config_int ("video", "zoom_factor_x", 256);
-
-    zoom_factor_y = get_config_int ("video", "zoom_factor_y", 240);
-
-
-    light_adjustment = get_config_int ("video", "light_adjustment", 0);
+    brightness = get_config_int ("video", "brightness", 0);
 
 
     video_display_status = get_config_int ("video", "display_status", FALSE);
@@ -533,17 +513,7 @@ void video_exit (void)
     set_config_int ("video", "last_blit_line", last_blit_line);
 
 
-    set_config_int ("video", "image_offset_x", image_offset_x);
-
-    set_config_int ("video", "image_offset_y", image_offset_y);
-
-
-    set_config_int ("video", "zoom_factor_x", zoom_factor_x);
-
-    set_config_int ("video", "zoom_factor_y", zoom_factor_y);
-
-
-    set_config_int ("video", "light_adjustment", light_adjustment);
+    set_config_int ("video", "brightness", brightness);
 
 
     set_config_int ("video", "display_status", video_display_status);
@@ -952,7 +922,7 @@ void video_blit (BITMAP * bitmap)
 
         acquire_bitmap (page_buffer);
 
-        blit (screen_buffer, page_buffer, 0, 0, image_offset_x, image_offset_y, SCREEN_W, SCREEN_H);
+        blit (screen_buffer, page_buffer, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
 
         release_bitmap (page_buffer);
 
@@ -973,7 +943,7 @@ void video_blit (BITMAP * bitmap)
             vsync ();
         }
 
-        blit (screen_buffer, bitmap, 0, 0, image_offset_x, image_offset_y, SCREEN_W, SCREEN_H);
+        blit (screen_buffer, bitmap, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
 
         release_bitmap (bitmap);
     }
@@ -992,61 +962,12 @@ void video_blit (BITMAP * bitmap)
 }
 
 
-void video_zoom (int x_factor, int y_factor)
-{
-    if ((blitter_type != VIDEO_BLITTER_NORMAL) &&
-        (blitter_type != VIDEO_BLITTER_STRETCHED))
-    {
-      return;
-    }
-
-
-    if (! (blitter_type == VIDEO_BLITTER_STRETCHED))
-    {
-        stretch_width = 256;
-
-        stretch_height = 240;
-    }
-
-
-    stretch_width = fix ((stretch_width + x_factor), 256, (256 * 12));
-
-    stretch_height = fix ((stretch_height + y_factor), 240, (240 * 12));
-
-
-    if ((stretch_width == 256) && (stretch_height == 240))
-    {
-        video_set_blitter (VIDEO_BLITTER_NORMAL);
-    }
-    else
-    {
-        video_set_blitter (VIDEO_BLITTER_STRETCHED);
-    }
-}
-
-
 void video_handle_keypress (int index)
 {
     if (! (input_mode & INPUT_MODE_CHAT))
     {
         switch ((index >> 8))
         {
-            case KEY_EQUALS:
-    
-                video_zoom (zoom_factor_x, zoom_factor_y);
-    
-    
-                break;
-    
-    
-            case KEY_MINUS:
-    
-                video_zoom (-zoom_factor_x, -zoom_factor_y);
-    
-    
-                break;
-
-
             default:
 
                 break;
@@ -1058,9 +979,11 @@ void video_handle_keypress (int index)
     {
         case KEY_F10:
 
-            if (light_adjustment > -63)
+            brightness -= 5;
+
+            if (brightness < -100)
             {
-                light_adjustment --;
+                brightness = -100;
             }
 
 
@@ -1072,9 +995,11 @@ void video_handle_keypress (int index)
 
         case KEY_F11:
 
-            if (light_adjustment < 63)
+            brightness += 5;
+
+            if (brightness > 100)
             {
-                light_adjustment ++;
+               brightness = 100;
             }
 
 
@@ -1141,6 +1066,9 @@ void video_set_palette (RGB * palette)
     int b;
 
 
+    int adjust;
+
+
     if (palette)
     {
         video_palette = palette;
@@ -1150,13 +1078,15 @@ void video_set_palette (RGB * palette)
     }
 
 
+    adjust = ROUND(((brightness / 100.0f) * 63.0f));
+
     for (index = NES_PALETTE_START; index < NES_PALETTE_END; index ++)
     {
-        internal_palette [index].r = fix ((internal_palette [index].r + light_adjustment), 0, 63);
+        internal_palette [index].r = fix ((internal_palette [index].r + adjust), 0, 63);
 
-        internal_palette [index].g = fix ((internal_palette [index].g + light_adjustment), 0, 63);
+        internal_palette [index].g = fix ((internal_palette [index].g + adjust), 0, 63);
 
-        internal_palette [index].b = fix ((internal_palette [index].b + light_adjustment), 0, 63);
+        internal_palette [index].b = fix ((internal_palette [index].b + adjust), 0, 63);
     }
 
 
