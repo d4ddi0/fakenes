@@ -72,8 +72,8 @@ static INLINE void blit_nes_ntsc (BITMAP *src, BITMAP *dest, int x_base, int
       {
          int xo = (x_base + x);
          int c;
-         UINT8 r, g, b;
-         int d;
+         int r, g, b;
+         int d1, d2;
          int yi;
 
          c = out[((y * wm) + x)];
@@ -82,16 +82,35 @@ static INLINE void blit_nes_ntsc (BITMAP *src, BITMAP *dest, int x_base, int
          g = (((c >> 5) & 0x3f) << 2);
          b = ((c & 0x1f) << 3);
 
-         d = video_create_color (r, g, b);
+         d1 = video_create_color (r, g, b);
+
+         if (y < (hm - 1))
+         {
+            c = out[(((y + 1) * wm) + x)];
+
+            r += (((c >> 11) & 0x1f) << 3);
+            g += (((c >> 5) & 0x3f) << 2);
+            b += ((c & 0x1f) << 3);
+
+            r /= 2;
+            g /= 2;
+            b /= 2;
+
+            d2 = video_create_color (r, g, b);
+         }
+         else
+         {
+            d2 = d1;
+         }
 
          yi = (yo + 1);
 
          switch (color_depth)
          {
             case 8:
-            {
-               FAST_PUTPIXEL8(dest, xo, yo, d);
-               FAST_PUTPIXEL8(dest, xo, yi, d);
+            {                                
+               FAST_PUTPIXEL8(dest, xo, yo, d1);
+               FAST_PUTPIXEL8(dest, xo, yi, d2);
 
                break;
             }
@@ -99,24 +118,24 @@ static INLINE void blit_nes_ntsc (BITMAP *src, BITMAP *dest, int x_base, int
             case 15:
             case 16:
             {
-               FAST_PUTPIXEL16(dest, xo, yo, d);
-               FAST_PUTPIXEL16(dest, xo, yi, d);
+               FAST_PUTPIXEL16(dest, xo, yo, d1);
+               FAST_PUTPIXEL16(dest, xo, yi, d2);
 
                break;
             }
 
             case 24:
             {
-               FAST_PUTPIXEL24(dest, xo, yo, d);
-               FAST_PUTPIXEL24(dest, xo, yi, d);
+               FAST_PUTPIXEL24(dest, xo, yo, d1);
+               FAST_PUTPIXEL24(dest, xo, yi, d2);
 
                break;
             }
 
             case 32:
             {
-               FAST_PUTPIXEL32(dest, xo, yo, d);
-               FAST_PUTPIXEL32(dest, xo, yi, d);
+               FAST_PUTPIXEL32(dest, xo, yo, d1);
+               FAST_PUTPIXEL32(dest, xo, yi, d2);
 
                break;
             }
