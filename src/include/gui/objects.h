@@ -306,27 +306,81 @@ int sl_checkbox (int message, DIALOG *dialog, int key)
       dp2 = Callback function.
    */
 
-   int (*handler) (DIALOG *);
-
    RT_ASSERT(dialog);
-
-   handler = dialog->dp2;
 
    switch (message)
    {
       case MSG_CLICK:
       case MSG_KEY:
       {
-         dialog -> flags ^= D_SELECTED;
+         int (*handler) (DIALOG *);
+
+         dialog->flags ^= D_SELECTED;
 
          scare_mouse ();
          object_message (dialog, MSG_DRAW, 0);
          unscare_mouse ();
 
+         handler = dialog->dp2;
          if (handler)
             return (handler (dialog));
 
          break;
+      }
+
+      case MSG_DRAW:
+      {
+         int x1, y1, x2, y2;
+         int c;
+         BITMAP *bmp;
+
+         x1 = dialog->x;
+         y1 = dialog->y;
+         x2 = ((dialog->x + dialog->h) - 1);
+         y2 = ((dialog->y + dialog->h) - 1);
+
+         if (dialog->flags & D_DISABLED)
+            c = GUI_DISABLED_COLOR;
+         else
+            c = GUI_TEXT_COLOR;
+
+         bmp = gui_get_screen ();
+
+         /* Draw box border shadow. */
+         rect (bmp, (x1 + 1), (y1 + 1), (x2 + 1), (y2 + 1),
+            GUI_SHADOW_COLOR);
+
+         /* Draw inside of box. */
+         rectfill (bmp, x1, y1, x2, y2, GUI_FILL_COLOR);
+
+         /* Draw box border. */
+         rect (bmp, x1, y1, x2, y2, c);
+
+         if (dialog->flags & D_SELECTED)
+         {
+            /* Draw check mark. */
+            line (bmp, x1, y1, x2, y2, c);
+            line (bmp, x2, y1, x1, y2, c);
+         }
+
+         if (dialog->flags & D_GOTFOCUS)
+         {
+            /* Draw selection focus. */
+            rect (bmp, (x1 + 2), (y1 + 2), (x2 - 2), (y2 - 2),
+               GUI_BORDER_COLOR);
+         }
+
+         y1++;
+         x2 += 4;
+
+         /* Draw text shadow. */
+         gui_textout_ex (bmp, dialog->dp, (x2 + 1), (y1 + 1),
+            GUI_SHADOW_COLOR, -1, FALSE);
+
+         /* Draw text. */
+         gui_textout_ex (bmp, dialog->dp, x2, y1, c, -1, FALSE);
+
+         return (D_O_K);
       }
 
       default:
