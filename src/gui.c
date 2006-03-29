@@ -1600,41 +1600,46 @@ static int main_menu_open (void)
          /* Load succeeded; add file to recent items list. */
 
          int index;
-         UCHAR *filename;
-         UCHAR *text;
-         MENU  *menu;
 
+         /* Move all existing entries down by 1 slot. */
          for (index = (OPEN_RECENT_SLOTS - 2); index >= 0; index--)
          {
             ustrncpy (open_recent_filenames[(index + 1)],
                open_recent_filenames[index], USTRING_SIZE);
-            ustrncpy (open_recent_menu_texts[(index + 1)],
-               open_recent_menu_texts[index], USTRING_SIZE);
          }
 
-         filename = open_recent_filenames[0];
-         text     = open_recent_menu_texts[0];
-         menu     = &main_open_recent_menu[0];
-
-         uszprintf (filename, USTRING_SIZE, "%s", path);
-         uszprintf (text,     USTRING_SIZE, "&%d: %s", (index + 1),
-            get_filename (path));
-
-         menu->flags &= ~D_DISABLED;
+         /* Add new entry to the beginning of the list. */
+         uszprintf (open_recent_filenames[0], USTRING_SIZE, "%s", path);
 
          /* Update menus. */
+
          for (index = 0; index < OPEN_RECENT_SLOTS; index++)
          {
-            filename = open_recent_filenames[index];
-            text     = open_recent_menu_texts[index];
-            menu     = &main_open_recent_menu[index];
-            
-            menu->text = text;
+            const UCHAR *filename = open_recent_filenames[index];
+            UCHAR       *text     = open_recent_menu_texts[index];
+            MENU        *menu     = &main_open_recent_menu[index];
 
-            if (filename)
+            if (filename[0])
+            {
+               /* Build menu text. */
+               uszprintf (text, USTRING_SIZE, "&%d: %s", (index + 1),
+                  get_filename (filename));
+
+               /* Enable menu. */
                menu->flags &= ~D_DISABLED;
+            }
             else
+            {
+               /* Build menu text. */
+               uszprintf (text, USTRING_SIZE, "&%d: %s", (index + 1),
+                  UNUSED_SLOT_TEXT);
+
+               /* Disable menu. */
                menu->flags |= D_DISABLED;
+            }
+
+            /* Set menu text. */
+            menu->text = text;
          }
       }
 
