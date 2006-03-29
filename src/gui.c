@@ -210,49 +210,48 @@ static INLINE void unload_dialog (DIALOG *dialog)
 
 static INLINE void load_menus (void)
 {
-   MENU_FROM_BASE(main_state_select_menu);
-   MENU_FROM_BASE(main_state_autosave_menu);
-   MENU_FROM_BASE(main_state_menu);
    MENU_FROM_BASE(main_replay_select_menu);
    MENU_FROM_BASE(main_replay_record_menu);
    MENU_FROM_BASE(main_replay_play_menu);
    MENU_FROM_BASE(main_replay_menu);
    MENU_FROM_BASE(main_menu);
-   MENU_FROM_BASE(netplay_menu);
-   MENU_FROM_BASE(options_gui_theme_menu);
-   MENU_FROM_BASE(options_gui_menu);
-   MENU_FROM_BASE(options_system_region_menu);
-   MENU_FROM_BASE(options_system_cpu_usage_menu);
-   MENU_FROM_BASE(options_system_menu);
-   MENU_FROM_BASE(options_audio_subsystem_menu);
-   MENU_FROM_BASE(options_audio_mixing_channels_menu);
-   MENU_FROM_BASE(options_audio_mixing_frequency_menu);
-   MENU_FROM_BASE(options_audio_mixing_quality_menu);
-   MENU_FROM_BASE(options_audio_mixing_anti_aliasing_menu);
-   MENU_FROM_BASE(options_audio_mixing_menu);
-   MENU_FROM_BASE(options_audio_effects_menu);
-   MENU_FROM_BASE(options_audio_filters_menu);
-   MENU_FROM_BASE(options_audio_channels_menu);
-   MENU_FROM_BASE(options_audio_advanced_menu);
-   MENU_FROM_BASE(options_audio_record_menu);
-   MENU_FROM_BASE(options_audio_menu);
-   MENU_FROM_BASE(options_video_driver_dos_menu);
-   MENU_FROM_BASE(options_video_driver_windows_menu);
-   MENU_FROM_BASE(options_video_driver_linux_menu);
-   MENU_FROM_BASE(options_video_driver_unix_menu);
-   MENU_FROM_BASE(options_video_driver_menu);
-   MENU_FROM_BASE(options_video_resolution_proportionate_menu);
-   MENU_FROM_BASE(options_video_resolution_extended_menu);
-   MENU_FROM_BASE(options_video_resolution_menu);
-   MENU_FROM_BASE(options_video_colors_menu);
-   MENU_FROM_BASE(options_video_blitter_menu);
-   MENU_FROM_BASE(options_video_filters_menu);
-   MENU_FROM_BASE(options_video_layers_menu);
-   MENU_FROM_BASE(options_video_palette_menu);
-   MENU_FROM_BASE(options_video_advanced_menu);
-   MENU_FROM_BASE(options_video_menu);
+   MENU_FROM_BASE(machine_save_state_select_menu);
+   MENU_FROM_BASE(machine_save_state_autosave_menu);
+   MENU_FROM_BASE(machine_save_state_menu);
+   MENU_FROM_BASE(machine_region_menu);
+   MENU_FROM_BASE(machine_menu);
+   MENU_FROM_BASE(audio_subsystem_menu);
+   MENU_FROM_BASE(audio_mixing_channels_menu);
+   MENU_FROM_BASE(audio_mixing_frequency_menu);
+   MENU_FROM_BASE(audio_mixing_quality_menu);
+   MENU_FROM_BASE(audio_mixing_anti_aliasing_menu);
+   MENU_FROM_BASE(audio_mixing_menu);
+   MENU_FROM_BASE(audio_effects_menu);
+   MENU_FROM_BASE(audio_filters_menu);
+   MENU_FROM_BASE(audio_channels_menu);
+   MENU_FROM_BASE(audio_advanced_menu);
+   MENU_FROM_BASE(audio_record_menu);
+   MENU_FROM_BASE(audio_menu);
+   MENU_FROM_BASE(video_driver_dos_menu);
+   MENU_FROM_BASE(video_driver_windows_menu);
+   MENU_FROM_BASE(video_driver_linux_menu);
+   MENU_FROM_BASE(video_driver_unix_menu);
+   MENU_FROM_BASE(video_driver_menu);
+   MENU_FROM_BASE(video_resolution_proportionate_menu);
+   MENU_FROM_BASE(video_resolution_extended_menu);
+   MENU_FROM_BASE(video_resolution_menu);
+   MENU_FROM_BASE(video_colors_menu);
+   MENU_FROM_BASE(video_blitter_menu);
+   MENU_FROM_BASE(video_filters_menu);
+   MENU_FROM_BASE(video_layers_menu);
+   MENU_FROM_BASE(video_palette_menu);
+   MENU_FROM_BASE(video_advanced_menu);
+   MENU_FROM_BASE(video_menu);
    MENU_FROM_BASE(options_input_menu);
+   MENU_FROM_BASE(options_cpu_usage_menu);
+   MENU_FROM_BASE(options_gui_theme_menu);
    MENU_FROM_BASE(options_menu);
+   MENU_FROM_BASE(netplay_menu);
    MENU_FROM_BASE(help_menu);
    MENU_FROM_BASE(top_menu);
 }
@@ -260,12 +259,11 @@ static INLINE void load_menus (void)
 static INLINE void load_dialogs (void)
 {
    DIALOG_FROM_BASE(main_dialog);
-   DIALOG_FROM_BASE(main_state_save_dialog);
    DIALOG_FROM_BASE(main_replay_record_start_dialog);
-   DIALOG_FROM_BASE(main_messages_dialog);
+   DIALOG_FROM_BASE(machine_save_state_save_dialog);
+   DIALOG_FROM_BASE(machine_cheat_manager_add_dialog);
+   DIALOG_FROM_BASE(machine_cheat_manager_dialog);
    DIALOG_FROM_BASE(options_input_configure_dialog);
-   DIALOG_FROM_BASE(options_patches_add_dialog);
-   DIALOG_FROM_BASE(options_patches_dialog);
    DIALOG_FROM_BASE(netplay_dialog);
    DIALOG_FROM_BASE(lobby_dialog);
    DIALOG_FROM_BASE(help_shortcuts_dialog);
@@ -278,49 +276,48 @@ static INLINE void load_dialogs (void)
 
 static INLINE void unload_menus (void)
 {
-   unload_menu (main_state_select_menu);
-   unload_menu (main_state_autosave_menu);
-   unload_menu (main_state_menu);
    unload_menu (main_replay_select_menu);
    unload_menu (main_replay_record_menu);
    unload_menu (main_replay_play_menu);
    unload_menu (main_replay_menu);
    unload_menu (main_menu);
-   unload_menu (netplay_menu);
-   unload_menu (options_gui_theme_menu);
-   unload_menu (options_gui_menu);
-   unload_menu (options_system_region_menu);
-   unload_menu (options_system_cpu_usage_menu);
-   unload_menu (options_system_menu);
-   unload_menu (options_audio_subsystem_menu);
-   unload_menu (options_audio_mixing_channels_menu);
-   unload_menu (options_audio_mixing_frequency_menu);
-   unload_menu (options_audio_mixing_quality_menu);
-   unload_menu (options_audio_mixing_anti_aliasing_menu);
-   unload_menu (options_audio_mixing_menu);
-   unload_menu (options_audio_effects_menu);
-   unload_menu (options_audio_filters_menu);
-   unload_menu (options_audio_channels_menu);
-   unload_menu (options_audio_advanced_menu);
-   unload_menu (options_audio_record_menu);
-   unload_menu (options_audio_menu);
-   unload_menu (options_video_driver_dos_menu);
-   unload_menu (options_video_driver_windows_menu);
-   unload_menu (options_video_driver_linux_menu);
-   unload_menu (options_video_driver_unix_menu);
-   unload_menu (options_video_driver_menu);
-   unload_menu (options_video_resolution_proportionate_menu);
-   unload_menu (options_video_resolution_extended_menu);
-   unload_menu (options_video_resolution_menu);
-   unload_menu (options_video_colors_menu);
-   unload_menu (options_video_blitter_menu);
-   unload_menu (options_video_filters_menu);
-   unload_menu (options_video_layers_menu);
-   unload_menu (options_video_palette_menu);
-   unload_menu (options_video_advanced_menu);
-   unload_menu (options_video_menu);
+   unload_menu (machine_save_state_select_menu);
+   unload_menu (machine_save_state_autosave_menu);
+   unload_menu (machine_save_state_menu);
+   unload_menu (machine_region_menu);
+   unload_menu (machine_menu);
+   unload_menu (audio_subsystem_menu);
+   unload_menu (audio_mixing_channels_menu);
+   unload_menu (audio_mixing_frequency_menu);
+   unload_menu (audio_mixing_quality_menu);
+   unload_menu (audio_mixing_anti_aliasing_menu);
+   unload_menu (audio_mixing_menu);
+   unload_menu (audio_effects_menu);
+   unload_menu (audio_filters_menu);
+   unload_menu (audio_channels_menu);
+   unload_menu (audio_advanced_menu);
+   unload_menu (audio_record_menu);
+   unload_menu (audio_menu);
+   unload_menu (video_driver_dos_menu);
+   unload_menu (video_driver_windows_menu);
+   unload_menu (video_driver_linux_menu);
+   unload_menu (video_driver_unix_menu);
+   unload_menu (video_driver_menu);
+   unload_menu (video_resolution_proportionate_menu);
+   unload_menu (video_resolution_extended_menu);
+   unload_menu (video_resolution_menu);
+   unload_menu (video_colors_menu);
+   unload_menu (video_blitter_menu);
+   unload_menu (video_filters_menu);
+   unload_menu (video_layers_menu);
+   unload_menu (video_palette_menu);
+   unload_menu (video_advanced_menu);
+   unload_menu (video_menu);
    unload_menu (options_input_menu);
+   unload_menu (options_cpu_usage_menu);
+   unload_menu (options_gui_theme_menu);
    unload_menu (options_menu);
+   unload_menu (netplay_menu);
    unload_menu (help_menu);
    unload_menu (top_menu);
 }
@@ -328,12 +325,11 @@ static INLINE void unload_menus (void)
 static INLINE void unload_dialogs (void)
 {
    unload_dialog (main_dialog);
-   unload_dialog (main_state_save_dialog);
    unload_dialog (main_replay_record_start_dialog);
-   unload_dialog (main_messages_dialog);
+   unload_dialog (machine_save_state_save_dialog);
+   unload_dialog (machine_cheat_manager_add_dialog);
+   unload_dialog (machine_cheat_manager_dialog);
    unload_dialog (options_input_configure_dialog);
-   unload_dialog (options_patches_add_dialog);
-   unload_dialog (options_patches_dialog);
    unload_dialog (netplay_dialog);
    unload_dialog (lobby_dialog);
    unload_dialog (help_shortcuts_dialog);
@@ -592,10 +588,10 @@ static INLINE int show_dialog (DIALOG *dialog)
 static INLINE void update_menus (void)
 {
 #ifndef USE_OPENAL
-   DISABLE_MENU_ITEM(options_audio_subsystem_menu_openal);
+   DISABLE_MENU_ITEM(audio_subsystem_menu_openal);
 #endif
 
-   SET_MENU_ITEM_ENABLED(options_audio_mixing_quality_menu_interpolation,
+   SET_MENU_ITEM_ENABLED(audio_mixing_quality_menu_interpolation,
       (audio_subsystem != AUDIO_SUBSYSTEM_OPENAL));
 
    if (!audio_pseudo_stereo)
@@ -603,34 +599,18 @@ static INLINE void update_menus (void)
       papu_swap_channels = FALSE;
       papu_spatial_stereo = FALSE;
 
-      DISABLE_MENU_ITEM(options_audio_mixing_channels_menu_swap_channels);
-      DISABLE_MENU_ITEM(options_audio_effects_menu_spatial_stereo_mode_1);
-      DISABLE_MENU_ITEM(options_audio_effects_menu_spatial_stereo_mode_2);
-      DISABLE_MENU_ITEM(options_audio_effects_menu_spatial_stereo_mode_3);
+      DISABLE_MENU_ITEM(audio_mixing_channels_menu_swap_channels);
+      DISABLE_MENU_ITEM(audio_effects_menu_spatial_stereo_mode_1);
+      DISABLE_MENU_ITEM(audio_effects_menu_spatial_stereo_mode_2);
+      DISABLE_MENU_ITEM(audio_effects_menu_spatial_stereo_mode_3);
    }
    else
    {
-      ENABLE_MENU_ITEM(options_audio_mixing_channels_menu_swap_channels);
-      ENABLE_MENU_ITEM(options_audio_effects_menu_spatial_stereo_mode_1);
-      ENABLE_MENU_ITEM(options_audio_effects_menu_spatial_stereo_mode_2);
-      ENABLE_MENU_ITEM(options_audio_effects_menu_spatial_stereo_mode_3);
+      ENABLE_MENU_ITEM(audio_mixing_channels_menu_swap_channels);
+      ENABLE_MENU_ITEM(audio_effects_menu_spatial_stereo_mode_1);
+      ENABLE_MENU_ITEM(audio_effects_menu_spatial_stereo_mode_2);
+      ENABLE_MENU_ITEM(audio_effects_menu_spatial_stereo_mode_3);
    }
-
-   TOGGLE_MENU_ITEM(main_state_select_menu_0, (state_index == 0));
-   TOGGLE_MENU_ITEM(main_state_select_menu_1, (state_index == 1));
-   TOGGLE_MENU_ITEM(main_state_select_menu_2, (state_index == 2));
-   TOGGLE_MENU_ITEM(main_state_select_menu_3, (state_index == 3));
-   TOGGLE_MENU_ITEM(main_state_select_menu_4, (state_index == 4));
-   TOGGLE_MENU_ITEM(main_state_select_menu_5, (state_index == 5));
-   TOGGLE_MENU_ITEM(main_state_select_menu_6, (state_index == 6));
-   TOGGLE_MENU_ITEM(main_state_select_menu_7, (state_index == 7));
-   TOGGLE_MENU_ITEM(main_state_select_menu_8, (state_index == 8));
-   TOGGLE_MENU_ITEM(main_state_select_menu_9, (state_index == 9));
-
-   TOGGLE_MENU_ITEM(main_state_autosave_menu_disabled,   (input_autosave_interval == 0));
-   TOGGLE_MENU_ITEM(main_state_autosave_menu_10_seconds, (input_autosave_interval == 10));
-   TOGGLE_MENU_ITEM(main_state_autosave_menu_30_seconds, (input_autosave_interval == 30));
-   TOGGLE_MENU_ITEM(main_state_autosave_menu_60_seconds, (input_autosave_interval == 60));
 
    TOGGLE_MENU_ITEM(main_replay_select_menu_0, (replay_index == 0));
    TOGGLE_MENU_ITEM(main_replay_select_menu_1, (replay_index == 1));
@@ -638,196 +618,212 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(main_replay_select_menu_3, (replay_index == 3));
    TOGGLE_MENU_ITEM(main_replay_select_menu_4, (replay_index == 4));
 
-   TOGGLE_MENU_ITEM(options_menu_status, video_display_status);
+   TOGGLE_MENU_ITEM(machine_save_state_select_menu_0, (state_index == 0));
+   TOGGLE_MENU_ITEM(machine_save_state_select_menu_1, (state_index == 1));
+   TOGGLE_MENU_ITEM(machine_save_state_select_menu_2, (state_index == 2));
+   TOGGLE_MENU_ITEM(machine_save_state_select_menu_3, (state_index == 3));
+   TOGGLE_MENU_ITEM(machine_save_state_select_menu_4, (state_index == 4));
+   TOGGLE_MENU_ITEM(machine_save_state_select_menu_5, (state_index == 5));
+   TOGGLE_MENU_ITEM(machine_save_state_select_menu_6, (state_index == 6));
+   TOGGLE_MENU_ITEM(machine_save_state_select_menu_7, (state_index == 7));
+   TOGGLE_MENU_ITEM(machine_save_state_select_menu_8, (state_index == 8));
+   TOGGLE_MENU_ITEM(machine_save_state_select_menu_9, (state_index == 9));
 
-   TOGGLE_MENU_ITEM(options_gui_theme_menu_classic,         (last_theme == &classic_theme));
-   TOGGLE_MENU_ITEM(options_gui_theme_menu_stainless_steel, (last_theme == &stainless_steel_theme));
-   TOGGLE_MENU_ITEM(options_gui_theme_menu_zero_4,          (last_theme == &zero_4_theme));
-   TOGGLE_MENU_ITEM(options_gui_theme_menu_panta,           (last_theme == &panta_theme));
+   TOGGLE_MENU_ITEM(machine_save_state_autosave_menu_disabled,   (input_autosave_interval == 0));
+   TOGGLE_MENU_ITEM(machine_save_state_autosave_menu_10_seconds, (input_autosave_interval == 10));
+   TOGGLE_MENU_ITEM(machine_save_state_autosave_menu_30_seconds, (input_autosave_interval == 30));
+   TOGGLE_MENU_ITEM(machine_save_state_autosave_menu_60_seconds, (input_autosave_interval == 60));
 
-   TOGGLE_MENU_ITEM(options_system_cpu_usage_menu_passive,    (cpu_usage == CPU_USAGE_PASSIVE));
-   TOGGLE_MENU_ITEM(options_system_cpu_usage_menu_normal,     (cpu_usage == CPU_USAGE_NORMAL));
-   TOGGLE_MENU_ITEM(options_system_cpu_usage_menu_aggressive, (cpu_usage == CPU_USAGE_AGGRESSIVE));
+   TOGGLE_MENU_ITEM(machine_region_menu_automatic, (machine_region == MACHINE_REGION_AUTOMATIC));
+   TOGGLE_MENU_ITEM(machine_region_menu_ntsc,      (machine_region == MACHINE_REGION_NTSC));
+   TOGGLE_MENU_ITEM(machine_region_menu_pal,       (machine_region == MACHINE_REGION_PAL));
 
-   TOGGLE_MENU_ITEM(options_system_region_menu_automatic, (machine_region == MACHINE_REGION_AUTOMATIC));
-   TOGGLE_MENU_ITEM(options_system_region_menu_ntsc,      (machine_region == MACHINE_REGION_NTSC));
-   TOGGLE_MENU_ITEM(options_system_region_menu_pal,       (machine_region == MACHINE_REGION_PAL));
+   TOGGLE_MENU_ITEM(audio_menu_enabled, audio_enable_output);
 
-   TOGGLE_MENU_ITEM(options_audio_menu_enabled, audio_enable_output);
+   TOGGLE_MENU_ITEM(audio_subsystem_menu_none,   (audio_subsystem == AUDIO_SUBSYSTEM_NONE));
+   TOGGLE_MENU_ITEM(audio_subsystem_menu_allegro,(audio_subsystem == AUDIO_SUBSYSTEM_ALLEGRO));
+   TOGGLE_MENU_ITEM(audio_subsystem_menu_openal, (audio_subsystem == AUDIO_SUBSYSTEM_OPENAL));
 
-   TOGGLE_MENU_ITEM(options_audio_subsystem_menu_none,   (audio_subsystem == AUDIO_SUBSYSTEM_NONE));
-   TOGGLE_MENU_ITEM(options_audio_subsystem_menu_allegro,(audio_subsystem == AUDIO_SUBSYSTEM_ALLEGRO));
-   TOGGLE_MENU_ITEM(options_audio_subsystem_menu_openal, (audio_subsystem == AUDIO_SUBSYSTEM_OPENAL));
+   TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_8000_hz,  (audio_sample_rate == 8000));
+   TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_11025_hz, (audio_sample_rate == 11025));
+   TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_16000_hz, (audio_sample_rate == 16000));
+   TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_22050_hz, (audio_sample_rate == 22050));
+   TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_32000_hz, (audio_sample_rate == 32000));
+   TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_44100_hz, (audio_sample_rate == 44100));
+   TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_48000_hz, (audio_sample_rate == 48000));
+   TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_80200_hz, (audio_sample_rate == 80200));
+   TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_96000_hz, (audio_sample_rate == 96000));
 
-   TOGGLE_MENU_ITEM(options_audio_mixing_frequency_menu_8000_hz,  (audio_sample_rate == 8000));
-   TOGGLE_MENU_ITEM(options_audio_mixing_frequency_menu_11025_hz, (audio_sample_rate == 11025));
-   TOGGLE_MENU_ITEM(options_audio_mixing_frequency_menu_16000_hz, (audio_sample_rate == 16000));
-   TOGGLE_MENU_ITEM(options_audio_mixing_frequency_menu_22050_hz, (audio_sample_rate == 22050));
-   TOGGLE_MENU_ITEM(options_audio_mixing_frequency_menu_32000_hz, (audio_sample_rate == 32000));
-   TOGGLE_MENU_ITEM(options_audio_mixing_frequency_menu_44100_hz, (audio_sample_rate == 44100));
-   TOGGLE_MENU_ITEM(options_audio_mixing_frequency_menu_48000_hz, (audio_sample_rate == 48000));
-   TOGGLE_MENU_ITEM(options_audio_mixing_frequency_menu_80200_hz, (audio_sample_rate == 80200));
-   TOGGLE_MENU_ITEM(options_audio_mixing_frequency_menu_96000_hz, (audio_sample_rate == 96000));
+   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_mono,                 !audio_pseudo_stereo);
+   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_stereo_mix,           (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_4));
+   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_pseudo_stereo_mode_1, (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_1));
+   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_pseudo_stereo_mode_2, (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_2));
+   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_stereo,               (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_3));
+   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_swap_channels,        papu_swap_channels);
 
-   TOGGLE_MENU_ITEM(options_audio_mixing_channels_menu_mono,                 !audio_pseudo_stereo);
-   TOGGLE_MENU_ITEM(options_audio_mixing_channels_menu_stereo_mix,           (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_4));
-   TOGGLE_MENU_ITEM(options_audio_mixing_channels_menu_pseudo_stereo_mode_1, (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_1));
-   TOGGLE_MENU_ITEM(options_audio_mixing_channels_menu_pseudo_stereo_mode_2, (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_2));
-   TOGGLE_MENU_ITEM(options_audio_mixing_channels_menu_stereo,               (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_3));
-   TOGGLE_MENU_ITEM(options_audio_mixing_channels_menu_swap_channels,        papu_swap_channels);
+   TOGGLE_MENU_ITEM(audio_mixing_quality_menu_low_8_bit,     (audio_sample_size == 8));
+   TOGGLE_MENU_ITEM(audio_mixing_quality_menu_high_16_bit,   (audio_sample_size == 16));
+   TOGGLE_MENU_ITEM(audio_mixing_quality_menu_interpolation, audio_interpolation);
+   TOGGLE_MENU_ITEM(audio_mixing_quality_menu_dithering,     papu_dithering);
 
-   TOGGLE_MENU_ITEM(options_audio_mixing_quality_menu_low_8_bit,     (audio_sample_size == 8));
-   TOGGLE_MENU_ITEM(options_audio_mixing_quality_menu_high_16_bit,   (audio_sample_size == 16));
-   TOGGLE_MENU_ITEM(options_audio_mixing_quality_menu_interpolation, audio_interpolation);
-   TOGGLE_MENU_ITEM(options_audio_mixing_quality_menu_dithering,     papu_dithering);
+   TOGGLE_MENU_ITEM(audio_mixing_anti_aliasing_menu_disabled,     (papu_interpolate == 0));
+   TOGGLE_MENU_ITEM(audio_mixing_anti_aliasing_menu_bilinear_2x,  (papu_interpolate == 1));
+   TOGGLE_MENU_ITEM(audio_mixing_anti_aliasing_menu_bilinear_4x,  (papu_interpolate == 2));
+   TOGGLE_MENU_ITEM(audio_mixing_anti_aliasing_menu_bilinear_8x,  (papu_interpolate == 3));
+   TOGGLE_MENU_ITEM(audio_mixing_anti_aliasing_menu_bilinear_16x, (papu_interpolate == 4));
 
-   TOGGLE_MENU_ITEM(options_audio_mixing_anti_aliasing_menu_disabled,     (papu_interpolate == 0));
-   TOGGLE_MENU_ITEM(options_audio_mixing_anti_aliasing_menu_bilinear_2x,  (papu_interpolate == 1));
-   TOGGLE_MENU_ITEM(options_audio_mixing_anti_aliasing_menu_bilinear_4x,  (papu_interpolate == 2));
-   TOGGLE_MENU_ITEM(options_audio_mixing_anti_aliasing_menu_bilinear_8x,  (papu_interpolate == 3));
-   TOGGLE_MENU_ITEM(options_audio_mixing_anti_aliasing_menu_bilinear_16x, (papu_interpolate == 4));
+   TOGGLE_MENU_ITEM(audio_effects_menu_linear_echo,           papu_linear_echo);
+   TOGGLE_MENU_ITEM(audio_effects_menu_spatial_stereo_mode_1, (papu_spatial_stereo == PAPU_SPATIAL_STEREO_MODE_1));
+   TOGGLE_MENU_ITEM(audio_effects_menu_spatial_stereo_mode_2, (papu_spatial_stereo == PAPU_SPATIAL_STEREO_MODE_2));
+   TOGGLE_MENU_ITEM(audio_effects_menu_spatial_stereo_mode_3, (papu_spatial_stereo == PAPU_SPATIAL_STEREO_MODE_3));
 
-   TOGGLE_MENU_ITEM(options_audio_effects_menu_linear_echo,           papu_linear_echo);
-   TOGGLE_MENU_ITEM(options_audio_effects_menu_spatial_stereo_mode_1, (papu_spatial_stereo == PAPU_SPATIAL_STEREO_MODE_1));
-   TOGGLE_MENU_ITEM(options_audio_effects_menu_spatial_stereo_mode_2, (papu_spatial_stereo == PAPU_SPATIAL_STEREO_MODE_2));
-   TOGGLE_MENU_ITEM(options_audio_effects_menu_spatial_stereo_mode_3, (papu_spatial_stereo == PAPU_SPATIAL_STEREO_MODE_3));
+   TOGGLE_MENU_ITEM(audio_filters_menu_low_pass_mode_1,    (papu_get_filter_list () & PAPU_FILTER_LOW_PASS_MODE_1));
+   TOGGLE_MENU_ITEM(audio_filters_menu_low_pass_mode_2,    (papu_get_filter_list () & PAPU_FILTER_LOW_PASS_MODE_2));
+   TOGGLE_MENU_ITEM(audio_filters_menu_low_pass_mode_3,    (papu_get_filter_list () & PAPU_FILTER_LOW_PASS_MODE_3));
+   TOGGLE_MENU_ITEM(audio_filters_menu_high_pass,          (papu_get_filter_list () & PAPU_FILTER_HIGH_PASS));
+   TOGGLE_MENU_ITEM(audio_filters_menu_delta_sigma_filter, (papu_get_filter_list () & PAPU_FILTER_DELTA_SIGMA_FILTER));
 
-   TOGGLE_MENU_ITEM(options_audio_filters_menu_low_pass_mode_1,    (papu_get_filter_list () & PAPU_FILTER_LOW_PASS_MODE_1));
-   TOGGLE_MENU_ITEM(options_audio_filters_menu_low_pass_mode_2,    (papu_get_filter_list () & PAPU_FILTER_LOW_PASS_MODE_2));
-   TOGGLE_MENU_ITEM(options_audio_filters_menu_low_pass_mode_3,    (papu_get_filter_list () & PAPU_FILTER_LOW_PASS_MODE_3));
-   TOGGLE_MENU_ITEM(options_audio_filters_menu_high_pass,          (papu_get_filter_list () & PAPU_FILTER_HIGH_PASS));
-   TOGGLE_MENU_ITEM(options_audio_filters_menu_delta_sigma_filter, (papu_get_filter_list () & PAPU_FILTER_DELTA_SIGMA_FILTER));
+   TOGGLE_MENU_ITEM(audio_channels_menu_square_wave_a, papu_enable_square_1);
+   TOGGLE_MENU_ITEM(audio_channels_menu_square_wave_b, papu_enable_square_2);
+   TOGGLE_MENU_ITEM(audio_channels_menu_triangle_wave, papu_enable_triangle);
+   TOGGLE_MENU_ITEM(audio_channels_menu_white_noise,   papu_enable_noise);
+   TOGGLE_MENU_ITEM(audio_channels_menu_digital,       papu_enable_dmc);
+   TOGGLE_MENU_ITEM(audio_channels_menu_extended,      papu_enable_exsound);
 
-   TOGGLE_MENU_ITEM(options_audio_channels_menu_square_wave_a, papu_enable_square_1);
-   TOGGLE_MENU_ITEM(options_audio_channels_menu_square_wave_b, papu_enable_square_2);
-   TOGGLE_MENU_ITEM(options_audio_channels_menu_triangle_wave, papu_enable_triangle);
-   TOGGLE_MENU_ITEM(options_audio_channels_menu_white_noise,   papu_enable_noise);
-   TOGGLE_MENU_ITEM(options_audio_channels_menu_digital,       papu_enable_dmc);
-   TOGGLE_MENU_ITEM(options_audio_channels_menu_extended,      papu_enable_exsound);
-
-   TOGGLE_MENU_ITEM(options_audio_advanced_menu_ideal_triangle, papu_ideal_triangle);
-   TOGGLE_MENU_ITEM(options_audio_advanced_menu_hard_sync,      audio_hard_sync);
+   TOGGLE_MENU_ITEM(audio_advanced_menu_ideal_triangle, papu_ideal_triangle);
+   TOGGLE_MENU_ITEM(audio_advanced_menu_hard_sync,      audio_hard_sync);
 
 #ifdef ALLEGRO_DOS
 
-   TOGGLE_MENU_ITEM(options_video_driver_dos_menu_vga,           (gfx_driver->id == GFX_VGA));
-   TOGGLE_MENU_ITEM(options_video_driver_dos_menu_vga_mode_x,    (gfx_driver->id == GFX_MODEX));
-   TOGGLE_MENU_ITEM(options_video_driver_dos_menu_vesa,          (gfx_driver->id == GFX_VESA1));
-   TOGGLE_MENU_ITEM(options_video_driver_dos_menu_vesa_2_banked, (gfx_driver->id == GFX_VESA2B));
-   TOGGLE_MENU_ITEM(options_video_driver_dos_menu_vesa_2_linear, (gfx_driver->id == GFX_VESA2L));
-   TOGGLE_MENU_ITEM(options_video_driver_dos_menu_vesa_3,        (gfx_driver->id == GFX_VESA3));
-   TOGGLE_MENU_ITEM(options_video_driver_dos_menu_vesa_vbe_af,   (gfx_driver->id == GFX_VBEAF));
+   TOGGLE_MENU_ITEM(video_driver_dos_menu_vga,           (gfx_driver->id == GFX_VGA));
+   TOGGLE_MENU_ITEM(video_driver_dos_menu_vga_mode_x,    (gfx_driver->id == GFX_MODEX));
+   TOGGLE_MENU_ITEM(video_driver_dos_menu_vesa,          (gfx_driver->id == GFX_VESA1));
+   TOGGLE_MENU_ITEM(video_driver_dos_menu_vesa_2_banked, (gfx_driver->id == GFX_VESA2B));
+   TOGGLE_MENU_ITEM(video_driver_dos_menu_vesa_2_linear, (gfx_driver->id == GFX_VESA2L));
+   TOGGLE_MENU_ITEM(video_driver_dos_menu_vesa_3,        (gfx_driver->id == GFX_VESA3));
+   TOGGLE_MENU_ITEM(video_driver_dos_menu_vesa_vbe_af,   (gfx_driver->id == GFX_VBEAF));
 
 #endif   /* ALLEGRO_DOS */
 
 #ifdef ALLEGRO_WINDOWS
 
-   TOGGLE_MENU_ITEM(options_video_driver_windows_menu_directx,         (gfx_driver->id == GFX_DIRECTX));
-   TOGGLE_MENU_ITEM(options_video_driver_windows_menu_directx_window,  (gfx_driver->id == GFX_DIRECTX_WIN));
-   TOGGLE_MENU_ITEM(options_video_driver_windows_menu_directx_overlay, (gfx_driver->id == GFX_DIRECTX_OVL));
-   TOGGLE_MENU_ITEM(options_video_driver_windows_menu_gdi,             (gfx_driver->id == GFX_GDI));
+   TOGGLE_MENU_ITEM(video_driver_windows_menu_directx,         (gfx_driver->id == GFX_DIRECTX));
+   TOGGLE_MENU_ITEM(video_driver_windows_menu_directx_window,  (gfx_driver->id == GFX_DIRECTX_WIN));
+   TOGGLE_MENU_ITEM(video_driver_windows_menu_directx_overlay, (gfx_driver->id == GFX_DIRECTX_OVL));
+   TOGGLE_MENU_ITEM(video_driver_windows_menu_gdi,             (gfx_driver->id == GFX_GDI));
 
 #endif   /* ALLEGRO_WINDOWS */
 
 #ifdef ALLEGRO_LINUX
 
-   TOGGLE_MENU_ITEM(options_video_driver_linux_menu_vga,         (gfx_driver->id == GFX_VGA));
-   TOGGLE_MENU_ITEM(options_video_driver_linux_menu_vga_mode_x,  (gfx_driver->id == GFX_MODEX));
-   TOGGLE_MENU_ITEM(options_video_driver_linux_menu_vesa_vbe_af, (gfx_driver->id == GFX_VBEAF));
+   TOGGLE_MENU_ITEM(video_driver_linux_menu_vga,         (gfx_driver->id == GFX_VGA));
+   TOGGLE_MENU_ITEM(video_driver_linux_menu_vga_mode_x,  (gfx_driver->id == GFX_MODEX));
+   TOGGLE_MENU_ITEM(video_driver_linux_menu_vesa_vbe_af, (gfx_driver->id == GFX_VBEAF));
 #ifdef GFX_FBCON
-   TOGGLE_MENU_ITEM(options_video_driver_linux_menu_framebuffer, (gfx_driver->id == GFX_FBCON));
+   TOGGLE_MENU_ITEM(video_driver_linux_menu_framebuffer, (gfx_driver->id == GFX_FBCON));
 #endif
 #ifdef GFX_SVGALIB
-   TOGGLE_MENU_ITEM(options_video_driver_linux_menu_svgalib,     (gfx_driver->id == GFX_SVGALIB));
+   TOGGLE_MENU_ITEM(video_driver_linux_menu_svgalib,     (gfx_driver->id == GFX_SVGALIB));
 #endif
 
 #endif   /* ALLEGRO_LINUX */
 
 #ifdef ALLEGRO_UNIX
 
-   TOGGLE_MENU_ITEM(options_video_driver_unix_menu_x_windows,      (gfx_driver->id == GFX_XWINDOWS));
-   TOGGLE_MENU_ITEM(options_video_driver_unix_menu_x_windows_full, (gfx_driver->id == GFX_XWINDOWS_FULLSCREEN));
-   TOGGLE_MENU_ITEM(options_video_driver_unix_menu_x_dga,          (gfx_driver->id == GFX_XDGA));
-   TOGGLE_MENU_ITEM(options_video_driver_unix_menu_x_dga_full,     (gfx_driver->id == GFX_XDGA_FULLSCREEN));
-   TOGGLE_MENU_ITEM(options_video_driver_unix_menu_x_dga_2,        (gfx_driver->id == GFX_XDGA2));
+   TOGGLE_MENU_ITEM(video_driver_unix_menu_x_windows,      (gfx_driver->id == GFX_XWINDOWS));
+   TOGGLE_MENU_ITEM(video_driver_unix_menu_x_windows_full, (gfx_driver->id == GFX_XWINDOWS_FULLSCREEN));
+   TOGGLE_MENU_ITEM(video_driver_unix_menu_x_dga,          (gfx_driver->id == GFX_XDGA));
+   TOGGLE_MENU_ITEM(video_driver_unix_menu_x_dga_full,     (gfx_driver->id == GFX_XDGA_FULLSCREEN));
+   TOGGLE_MENU_ITEM(video_driver_unix_menu_x_dga_2,        (gfx_driver->id == GFX_XDGA2));
 
 #endif   /* ALLEGRO_UNIX */
 
-   TOGGLE_MENU_ITEM(options_video_resolution_proportionate_menu_256_224,   ((SCREEN_W == 256)  && (SCREEN_H == 224)));
-   TOGGLE_MENU_ITEM(options_video_resolution_proportionate_menu_256_240,   ((SCREEN_W == 256)  && (SCREEN_H == 240)));
-   TOGGLE_MENU_ITEM(options_video_resolution_proportionate_menu_512_448,   ((SCREEN_W == 512)  && (SCREEN_H == 448)));
-   TOGGLE_MENU_ITEM(options_video_resolution_proportionate_menu_512_480,   ((SCREEN_W == 512)  && (SCREEN_H == 480)));
-   TOGGLE_MENU_ITEM(options_video_resolution_proportionate_menu_768_672,   ((SCREEN_W == 768)  && (SCREEN_H == 672)));
-   TOGGLE_MENU_ITEM(options_video_resolution_proportionate_menu_768_720,   ((SCREEN_W == 768)  && (SCREEN_H == 720)));
-   TOGGLE_MENU_ITEM(options_video_resolution_proportionate_menu_1024_896,  ((SCREEN_W == 1024) && (SCREEN_H == 896)));
-   TOGGLE_MENU_ITEM(options_video_resolution_proportionate_menu_1024_960,  ((SCREEN_W == 1024) && (SCREEN_H == 960)));
-   TOGGLE_MENU_ITEM(options_video_resolution_proportionate_menu_1280_1120, ((SCREEN_W == 1280) && (SCREEN_H == 1120)));
-   TOGGLE_MENU_ITEM(options_video_resolution_proportionate_menu_1280_1200, ((SCREEN_W == 1280) && (SCREEN_H == 1200)));
+   TOGGLE_MENU_ITEM(video_resolution_proportionate_menu_256_224,   ((SCREEN_W == 256)  && (SCREEN_H == 224)));
+   TOGGLE_MENU_ITEM(video_resolution_proportionate_menu_256_240,   ((SCREEN_W == 256)  && (SCREEN_H == 240)));
+   TOGGLE_MENU_ITEM(video_resolution_proportionate_menu_512_448,   ((SCREEN_W == 512)  && (SCREEN_H == 448)));
+   TOGGLE_MENU_ITEM(video_resolution_proportionate_menu_512_480,   ((SCREEN_W == 512)  && (SCREEN_H == 480)));
+   TOGGLE_MENU_ITEM(video_resolution_proportionate_menu_768_672,   ((SCREEN_W == 768)  && (SCREEN_H == 672)));
+   TOGGLE_MENU_ITEM(video_resolution_proportionate_menu_768_720,   ((SCREEN_W == 768)  && (SCREEN_H == 720)));
+   TOGGLE_MENU_ITEM(video_resolution_proportionate_menu_1024_896,  ((SCREEN_W == 1024) && (SCREEN_H == 896)));
+   TOGGLE_MENU_ITEM(video_resolution_proportionate_menu_1024_960,  ((SCREEN_W == 1024) && (SCREEN_H == 960)));
+   TOGGLE_MENU_ITEM(video_resolution_proportionate_menu_1280_1120, ((SCREEN_W == 1280) && (SCREEN_H == 1120)));
+   TOGGLE_MENU_ITEM(video_resolution_proportionate_menu_1280_1200, ((SCREEN_W == 1280) && (SCREEN_H == 1200)));
 
-   TOGGLE_MENU_ITEM(options_video_resolution_menu_320_240,   ((SCREEN_W == 320)  && (SCREEN_H == 240)));
-   TOGGLE_MENU_ITEM(options_video_resolution_menu_640_480,   ((SCREEN_W == 640)  && (SCREEN_H == 480)));
-   TOGGLE_MENU_ITEM(options_video_resolution_menu_800_600,   ((SCREEN_W == 800)  && (SCREEN_H == 600)));
-   TOGGLE_MENU_ITEM(options_video_resolution_menu_1024_768,  ((SCREEN_W == 1024) && (SCREEN_H == 768)));
-   TOGGLE_MENU_ITEM(options_video_resolution_menu_1152_864,  ((SCREEN_W == 1152) && (SCREEN_H == 864)));
-   TOGGLE_MENU_ITEM(options_video_resolution_menu_1280_1024, ((SCREEN_W == 1280) && (SCREEN_H == 1024)));
-   TOGGLE_MENU_ITEM(options_video_resolution_menu_1600_1200, ((SCREEN_W == 1600) && (SCREEN_H == 1200)));
+   TOGGLE_MENU_ITEM(video_resolution_menu_320_240,   ((SCREEN_W == 320)  && (SCREEN_H == 240)));
+   TOGGLE_MENU_ITEM(video_resolution_menu_640_480,   ((SCREEN_W == 640)  && (SCREEN_H == 480)));
+   TOGGLE_MENU_ITEM(video_resolution_menu_800_600,   ((SCREEN_W == 800)  && (SCREEN_H == 600)));
+   TOGGLE_MENU_ITEM(video_resolution_menu_1024_768,  ((SCREEN_W == 1024) && (SCREEN_H == 768)));
+   TOGGLE_MENU_ITEM(video_resolution_menu_1152_864,  ((SCREEN_W == 1152) && (SCREEN_H == 864)));
+   TOGGLE_MENU_ITEM(video_resolution_menu_1280_1024, ((SCREEN_W == 1280) && (SCREEN_H == 1024)));
+   TOGGLE_MENU_ITEM(video_resolution_menu_1600_1200, ((SCREEN_W == 1600) && (SCREEN_H == 1200)));
 
-   TOGGLE_MENU_ITEM(options_video_resolution_extended_menu_400_300,  ((SCREEN_W == 400)  && (SCREEN_H == 300)));
-   TOGGLE_MENU_ITEM(options_video_resolution_extended_menu_480_360,  ((SCREEN_W == 480)  && (SCREEN_H == 360)));
-   TOGGLE_MENU_ITEM(options_video_resolution_extended_menu_512_384,  ((SCREEN_W == 512)  && (SCREEN_H == 384)));
-   TOGGLE_MENU_ITEM(options_video_resolution_extended_menu_640_400,  ((SCREEN_W == 640)  && (SCREEN_H == 400)));
-   TOGGLE_MENU_ITEM(options_video_resolution_extended_menu_720_480,  ((SCREEN_W == 720)  && (SCREEN_H == 480)));
-   TOGGLE_MENU_ITEM(options_video_resolution_extended_menu_720_576,  ((SCREEN_W == 720)  && (SCREEN_H == 576)));
-   TOGGLE_MENU_ITEM(options_video_resolution_extended_menu_848_480,  ((SCREEN_W == 848)  && (SCREEN_H == 480)));
-   TOGGLE_MENU_ITEM(options_video_resolution_extended_menu_1280_720, ((SCREEN_W == 1280) && (SCREEN_H == 720)));
-   TOGGLE_MENU_ITEM(options_video_resolution_extended_menu_1280_960, ((SCREEN_W == 1280) && (SCREEN_H == 960)));
-   TOGGLE_MENU_ITEM(options_video_resolution_extended_menu_1360_768, ((SCREEN_W == 1360) && (SCREEN_H == 768)));
+   TOGGLE_MENU_ITEM(video_resolution_extended_menu_400_300,  ((SCREEN_W == 400)  && (SCREEN_H == 300)));
+   TOGGLE_MENU_ITEM(video_resolution_extended_menu_480_360,  ((SCREEN_W == 480)  && (SCREEN_H == 360)));
+   TOGGLE_MENU_ITEM(video_resolution_extended_menu_512_384,  ((SCREEN_W == 512)  && (SCREEN_H == 384)));
+   TOGGLE_MENU_ITEM(video_resolution_extended_menu_640_400,  ((SCREEN_W == 640)  && (SCREEN_H == 400)));
+   TOGGLE_MENU_ITEM(video_resolution_extended_menu_720_480,  ((SCREEN_W == 720)  && (SCREEN_H == 480)));
+   TOGGLE_MENU_ITEM(video_resolution_extended_menu_720_576,  ((SCREEN_W == 720)  && (SCREEN_H == 576)));
+   TOGGLE_MENU_ITEM(video_resolution_extended_menu_848_480,  ((SCREEN_W == 848)  && (SCREEN_H == 480)));
+   TOGGLE_MENU_ITEM(video_resolution_extended_menu_1280_720, ((SCREEN_W == 1280) && (SCREEN_H == 720)));
+   TOGGLE_MENU_ITEM(video_resolution_extended_menu_1280_960, ((SCREEN_W == 1280) && (SCREEN_H == 960)));
+   TOGGLE_MENU_ITEM(video_resolution_extended_menu_1360_768, ((SCREEN_W == 1360) && (SCREEN_H == 768)));
 
-   TOGGLE_MENU_ITEM(options_video_colors_menu_paletted_8_bit,    (video_get_color_depth () == 8));
-   TOGGLE_MENU_ITEM(options_video_colors_menu_true_color_15_bit, (video_get_color_depth () == 15));
-   TOGGLE_MENU_ITEM(options_video_colors_menu_true_color_16_bit, (video_get_color_depth () == 16));
-   TOGGLE_MENU_ITEM(options_video_colors_menu_true_color_24_bit, (video_get_color_depth () == 24));
-   TOGGLE_MENU_ITEM(options_video_colors_menu_true_color_32_bit, (video_get_color_depth () == 32));
+   TOGGLE_MENU_ITEM(video_colors_menu_paletted_8_bit,    (video_get_color_depth () == 8));
+   TOGGLE_MENU_ITEM(video_colors_menu_true_color_15_bit, (video_get_color_depth () == 15));
+   TOGGLE_MENU_ITEM(video_colors_menu_true_color_16_bit, (video_get_color_depth () == 16));
+   TOGGLE_MENU_ITEM(video_colors_menu_true_color_24_bit, (video_get_color_depth () == 24));
+   TOGGLE_MENU_ITEM(video_colors_menu_true_color_32_bit, (video_get_color_depth () == 32));
 
-   TOGGLE_MENU_ITEM(options_video_blitter_menu_automatic,       (video_get_blitter () == VIDEO_BLITTER_AUTOMATIC));
-   TOGGLE_MENU_ITEM(options_video_blitter_menu_normal,          (video_get_blitter () == VIDEO_BLITTER_NORMAL));
-   TOGGLE_MENU_ITEM(options_video_blitter_menu_des,             (video_get_blitter () == VIDEO_BLITTER_DES));
-   TOGGLE_MENU_ITEM(options_video_blitter_menu_interpolated_2x, (video_get_blitter () == VIDEO_BLITTER_INTERPOLATED_2X));
-   TOGGLE_MENU_ITEM(options_video_blitter_menu_2xscl,           (video_get_blitter () == VIDEO_BLITTER_2XSCL));
-   TOGGLE_MENU_ITEM(options_video_blitter_menu_desii,           (video_get_blitter () == VIDEO_BLITTER_DESII));
-   TOGGLE_MENU_ITEM(options_video_blitter_menu_super_2xscl,     (video_get_blitter () == VIDEO_BLITTER_SUPER_2XSCL));
-   TOGGLE_MENU_ITEM(options_video_blitter_menu_ultra_2xscl,     (video_get_blitter () == VIDEO_BLITTER_ULTRA_2XSCL));
-   TOGGLE_MENU_ITEM(options_video_blitter_menu_hq2x,            (video_get_blitter () == VIDEO_BLITTER_HQ2X));
-   TOGGLE_MENU_ITEM(options_video_blitter_menu_nes_ntsc,        (video_get_blitter () == VIDEO_BLITTER_NES_NTSC));
-   TOGGLE_MENU_ITEM(options_video_blitter_menu_interpolated_3x, (video_get_blitter () == VIDEO_BLITTER_INTERPOLATED_3X));
-   TOGGLE_MENU_ITEM(options_video_blitter_menu_hq3x,            (video_get_blitter () == VIDEO_BLITTER_HQ3X));
-   TOGGLE_MENU_ITEM(options_video_blitter_menu_hq4x,            (video_get_blitter () == VIDEO_BLITTER_HQ4X));
-   TOGGLE_MENU_ITEM(options_video_blitter_menu_stretched,       (video_get_blitter () == VIDEO_BLITTER_STRETCHED));
+   TOGGLE_MENU_ITEM(video_blitter_menu_automatic,       (video_get_blitter () == VIDEO_BLITTER_AUTOMATIC));
+   TOGGLE_MENU_ITEM(video_blitter_menu_normal,          (video_get_blitter () == VIDEO_BLITTER_NORMAL));
+   TOGGLE_MENU_ITEM(video_blitter_menu_des,             (video_get_blitter () == VIDEO_BLITTER_DES));
+   TOGGLE_MENU_ITEM(video_blitter_menu_interpolated_2x, (video_get_blitter () == VIDEO_BLITTER_INTERPOLATED_2X));
+   TOGGLE_MENU_ITEM(video_blitter_menu_2xscl,           (video_get_blitter () == VIDEO_BLITTER_2XSCL));
+   TOGGLE_MENU_ITEM(video_blitter_menu_desii,           (video_get_blitter () == VIDEO_BLITTER_DESII));
+   TOGGLE_MENU_ITEM(video_blitter_menu_super_2xscl,     (video_get_blitter () == VIDEO_BLITTER_SUPER_2XSCL));
+   TOGGLE_MENU_ITEM(video_blitter_menu_ultra_2xscl,     (video_get_blitter () == VIDEO_BLITTER_ULTRA_2XSCL));
+   TOGGLE_MENU_ITEM(video_blitter_menu_hq2x,            (video_get_blitter () == VIDEO_BLITTER_HQ2X));
+   TOGGLE_MENU_ITEM(video_blitter_menu_nes_ntsc,        (video_get_blitter () == VIDEO_BLITTER_NES_NTSC));
+   TOGGLE_MENU_ITEM(video_blitter_menu_interpolated_3x, (video_get_blitter () == VIDEO_BLITTER_INTERPOLATED_3X));
+   TOGGLE_MENU_ITEM(video_blitter_menu_hq3x,            (video_get_blitter () == VIDEO_BLITTER_HQ3X));
+   TOGGLE_MENU_ITEM(video_blitter_menu_hq4x,            (video_get_blitter () == VIDEO_BLITTER_HQ4X));
+   TOGGLE_MENU_ITEM(video_blitter_menu_stretched,       (video_get_blitter () == VIDEO_BLITTER_STRETCHED));
 
-   TOGGLE_MENU_ITEM(options_video_filters_menu_scanlines_25_percent,  (video_get_filter_list () & VIDEO_FILTER_SCANLINES_LOW));
-   TOGGLE_MENU_ITEM(options_video_filters_menu_scanlines_50_percent,  (video_get_filter_list () & VIDEO_FILTER_SCANLINES_MEDIUM));
-   TOGGLE_MENU_ITEM(options_video_filters_menu_scanlines_100_percent, (video_get_filter_list () & VIDEO_FILTER_SCANLINES_HIGH));
+   TOGGLE_MENU_ITEM(video_filters_menu_scanlines_25_percent,  (video_get_filter_list () & VIDEO_FILTER_SCANLINES_LOW));
+   TOGGLE_MENU_ITEM(video_filters_menu_scanlines_50_percent,  (video_get_filter_list () & VIDEO_FILTER_SCANLINES_MEDIUM));
+   TOGGLE_MENU_ITEM(video_filters_menu_scanlines_100_percent, (video_get_filter_list () & VIDEO_FILTER_SCANLINES_HIGH));
 
-   TOGGLE_MENU_ITEM(options_video_menu_vsync, video_enable_vsync);
+   TOGGLE_MENU_ITEM(video_menu_vsync, video_enable_vsync);
 
-   TOGGLE_MENU_ITEM(options_video_palette_menu_ntsc_color,     (video_get_palette_id () == DATA_INDEX(DEFAULT_PALETTE)));
-   TOGGLE_MENU_ITEM(options_video_palette_menu_ntsc_grayscale, (video_get_palette_id () == DATA_INDEX(GRAYSCALE_PALETTE)));
-   TOGGLE_MENU_ITEM(options_video_palette_menu_gnuboy,         (video_get_palette_id () == DATA_INDEX(GNUBOY_PALETTE)));
-   TOGGLE_MENU_ITEM(options_video_palette_menu_nester,         (video_get_palette_id () == DATA_INDEX(NESTER_PALETTE)));
-   TOGGLE_MENU_ITEM(options_video_palette_menu_nesticle,       (video_get_palette_id () == DATA_INDEX(NESTICLE_PALETTE)));
-   TOGGLE_MENU_ITEM(options_video_palette_menu_modern_ntsc,    (video_get_palette_id () == DATA_INDEX(MODERN_NTSC_PALETTE)));
-   TOGGLE_MENU_ITEM(options_video_palette_menu_modern_pal,     (video_get_palette_id () == DATA_INDEX(MODERN_PAL_PALETTE)));
-   TOGGLE_MENU_ITEM(options_video_palette_menu_ega_mode_1,     (video_get_palette_id () == DATA_INDEX(EGA_PALETTE_1)));
-   TOGGLE_MENU_ITEM(options_video_palette_menu_ega_mode_2,     (video_get_palette_id () == DATA_INDEX(EGA_PALETTE_2)));
-   TOGGLE_MENU_ITEM(options_video_palette_menu_custom,         (video_get_palette_id () == -1));
+   TOGGLE_MENU_ITEM(video_palette_menu_ntsc_color,     (video_get_palette_id () == DATA_INDEX(DEFAULT_PALETTE)));
+   TOGGLE_MENU_ITEM(video_palette_menu_ntsc_grayscale, (video_get_palette_id () == DATA_INDEX(GRAYSCALE_PALETTE)));
+   TOGGLE_MENU_ITEM(video_palette_menu_gnuboy,         (video_get_palette_id () == DATA_INDEX(GNUBOY_PALETTE)));
+   TOGGLE_MENU_ITEM(video_palette_menu_nester,         (video_get_palette_id () == DATA_INDEX(NESTER_PALETTE)));
+   TOGGLE_MENU_ITEM(video_palette_menu_nesticle,       (video_get_palette_id () == DATA_INDEX(NESTICLE_PALETTE)));
+   TOGGLE_MENU_ITEM(video_palette_menu_modern_ntsc,    (video_get_palette_id () == DATA_INDEX(MODERN_NTSC_PALETTE)));
+   TOGGLE_MENU_ITEM(video_palette_menu_modern_pal,     (video_get_palette_id () == DATA_INDEX(MODERN_PAL_PALETTE)));
+   TOGGLE_MENU_ITEM(video_palette_menu_ega_mode_1,     (video_get_palette_id () == DATA_INDEX(EGA_PALETTE_1)));
+   TOGGLE_MENU_ITEM(video_palette_menu_ega_mode_2,     (video_get_palette_id () == DATA_INDEX(EGA_PALETTE_2)));
+   TOGGLE_MENU_ITEM(video_palette_menu_custom,         (video_get_palette_id () == -1));
 
-   TOGGLE_MENU_ITEM(options_video_advanced_menu_force_fullscreen, video_force_fullscreen);
+   TOGGLE_MENU_ITEM(video_advanced_menu_force_fullscreen, video_force_fullscreen);
 
-   TOGGLE_MENU_ITEM(options_video_layers_menu_sprites_a,  ppu_enable_sprite_layer_a);
-   TOGGLE_MENU_ITEM(options_video_layers_menu_sprites_b,  ppu_enable_sprite_layer_b);
-   TOGGLE_MENU_ITEM(options_video_layers_menu_background, ppu_enable_background_layer);
+   TOGGLE_MENU_ITEM(video_layers_menu_sprites_a,  ppu_enable_sprite_layer_a);
+   TOGGLE_MENU_ITEM(video_layers_menu_sprites_b,  ppu_enable_sprite_layer_b);
+   TOGGLE_MENU_ITEM(video_layers_menu_background, ppu_enable_background_layer);
 
    TOGGLE_MENU_ITEM(options_input_menu_enable_zapper, input_enable_zapper);
+
+   TOGGLE_MENU_ITEM(options_menu_show_status, video_display_status);
+
+   TOGGLE_MENU_ITEM(options_cpu_usage_menu_passive,    (cpu_usage == CPU_USAGE_PASSIVE));
+   TOGGLE_MENU_ITEM(options_cpu_usage_menu_normal,     (cpu_usage == CPU_USAGE_NORMAL));
+   TOGGLE_MENU_ITEM(options_cpu_usage_menu_aggressive, (cpu_usage == CPU_USAGE_AGGRESSIVE));
+
+   TOGGLE_MENU_ITEM(options_gui_theme_menu_classic,         (last_theme == &classic_theme));
+   TOGGLE_MENU_ITEM(options_gui_theme_menu_stainless_steel, (last_theme == &stainless_steel_theme));
+   TOGGLE_MENU_ITEM(options_gui_theme_menu_zero_4,          (last_theme == &zero_4_theme));
+   TOGGLE_MENU_ITEM(options_gui_theme_menu_panta,           (last_theme == &panta_theme));
 }
 
 static INLINE void draw_background (void)
@@ -884,40 +880,40 @@ int gui_init (void)
 
 #ifdef ALLEGRO_DOS
 
-   DISABLE_SUBMENU(options_system_cpu_usage_menu);
-   DISABLE_SUBMENU(options_video_driver_windows_menu);
-   DISABLE_SUBMENU(options_video_driver_linux_menu);
-   DISABLE_SUBMENU(options_video_driver_unix_menu);
-   DISABLE_MENU_ITEM(options_video_advanced_menu_force_fullscreen);
+   DISABLE_SUBMENU(video_driver_windows_menu);
+   DISABLE_SUBMENU(video_driver_linux_menu);
+   DISABLE_SUBMENU(video_driver_unix_menu);
+   DISABLE_MENU_ITEM(video_advanced_menu_force_fullscreen);
+   DISABLE_SUBMENU(options_cpu_usage_menu);
    DISABLE_SUBMENU(netplay_menu);
 
 #endif   /* ALLEGRO_DOS */
 
 #ifdef ALLEGRO_WINDOWS
 
-   DISABLE_SUBMENU(options_video_driver_dos_menu);
-   DISABLE_SUBMENU(options_video_driver_linux_menu);
-   DISABLE_SUBMENU(options_video_driver_unix_menu);
+   DISABLE_SUBMENU(video_driver_dos_menu);
+   DISABLE_SUBMENU(video_driver_linux_menu);
+   DISABLE_SUBMENU(video_driver_unix_menu);
 
 #endif   /* ALLEGRO_WINDOWS */
 
 #ifdef ALLEGRO_UNIX
 
-   DISABLE_SUBMENU(options_video_driver_dos_menu);
-   DISABLE_SUBMENU(options_video_driver_windows_menu);
+   DISABLE_SUBMENU(video_driver_dos_menu);
+   DISABLE_SUBMENU(video_driver_windows_menu);
  
 #ifdef ALLEGRO_LINUX
 
 #ifndef GFX_FBCON
-   DISABLE_MENU_ITEM(options_video_driver_linux_menu_framebuffer);
+   DISABLE_MENU_ITEM(video_driver_linux_menu_framebuffer);
 #endif
 #ifndef GFX_SVGALIB
-   DISABLE_MENU_ITEM(options_video_driver_linux_menu_svgalib);
+   DISABLE_MENU_ITEM(video_driver_linux_menu_svgalib);
 #endif
 
 #else /* ALLEGRO_LINUX */
 
-   DISABLE_SUBMENU(options_video_driver_linux_menu);
+   DISABLE_SUBMENU(video_driver_linux_menu);
 
 #endif   /* !ALLEGRO_LINUX */
 
@@ -928,7 +924,7 @@ int gui_init (void)
 #endif
 
    /* Select default palette. */
-   CHECK_MENU_ITEM(options_video_palette_menu_modern_ntsc);
+   CHECK_MENU_ITEM(video_palette_menu_modern_ntsc);
 
    /* Load configuration */
    gui_theme_id = get_config_int ("gui", "theme", GUI_THEME_PANTA);
@@ -967,11 +963,12 @@ int show_gui (BOOL first_run)
    if (!rom_is_loaded)
    {
       DISABLE_MENU_ITEM(main_menu_resume);
-      DISABLE_MENU_ITEM(main_menu_reset);
-      DISABLE_MENU_ITEM(main_menu_snapshot);
-      DISABLE_SUBMENU(main_state_menu);
       DISABLE_SUBMENU(main_replay_menu);
-      DISABLE_MENU_ITEM(options_menu_patches);
+      DISABLE_MENU_ITEM(main_menu_save_snapshot);
+      DISABLE_MENU_ITEM(machine_menu_soft_reset);
+      DISABLE_MENU_ITEM(machine_menu_hard_reset);
+      DISABLE_SUBMENU(machine_save_state_menu);
+      DISABLE_MENU_ITEM(machine_menu_cheat_manager);
    }
 
    cycle_video ();
@@ -1014,7 +1011,7 @@ void gui_handle_keypress (int c)
       case KEY_F1:
       {
          /* Save snapshot. */
-         main_menu_snapshot ();
+         main_menu_save_snapshot ();
 
          break;
       }
@@ -1022,7 +1019,7 @@ void gui_handle_keypress (int c)
       case KEY_F2:
       {
          /* Toggle status display. */
-         options_menu_status ();
+         options_menu_show_status ();
 
          break;
       }
@@ -1030,7 +1027,7 @@ void gui_handle_keypress (int c)
       case KEY_F3:
       {
          /* Quick save state. */
-         main_state_menu_quick_save ();
+         machine_save_state_menu_quick_save ();
 
          break;
       }
@@ -1040,7 +1037,7 @@ void gui_handle_keypress (int c)
          /* Quick load state. */
 
          if (!(input_mode & INPUT_MODE_REPLAY))
-            main_state_menu_quick_load ();
+            machine_save_state_menu_quick_load ();
 
          break;
       }
@@ -1048,17 +1045,17 @@ void gui_handle_keypress (int c)
       case KEY_F5:
       {
          /* Save state. */
-         main_state_menu_save ();
+         machine_save_state_menu_save ();
 
          break;
       }
 
       case KEY_F6:
       {
-         /* Restore state. */
+         /* Load state. */
 
          if (!(input_mode & INPUT_MODE_REPLAY))
-            main_state_menu_restore ();
+            machine_save_state_menu_load ();
 
          break;
       }
@@ -1067,8 +1064,8 @@ void gui_handle_keypress (int c)
       {
          /* Toggle sprites. */
 
-         options_video_layers_menu_sprites_a ();
-         options_video_layers_menu_sprites_b ();
+         video_layers_menu_sprites_a ();
+         video_layers_menu_sprites_b ();
 
          break;
       }
@@ -1076,7 +1073,7 @@ void gui_handle_keypress (int c)
       case KEY_F8:
       {
          /* Toggle background. */
-         options_video_layers_menu_background ();
+         video_layers_menu_background ();
 
          break;
       }
@@ -1416,6 +1413,108 @@ static int open_lobby (void)
 
 /* --- Menu handlers. --- */
 
+static int main_replay_menu_select (void);
+
+static int main_menu_resume (void)
+{
+    return (D_CLOSE);
+}
+
+static int main_menu_open (void)
+{
+   USTRING path;
+   BITMAP *bmp;
+   int w, h;
+   int result;
+   USTRING scratch;
+
+   /* Retrive path from configuration file. */
+   USTRING_CLEAR(path);
+   ustrncat (path, get_config_string ("gui", "open_path", "/"), (sizeof
+      (path) - 1));
+
+   /* Get drawing surface. */
+   bmp = gui_get_screen ();
+
+   /* Calculate file selector dimensions. */
+   w = ROUND((bmp->w * 0.80f));
+   h = ROUND((bmp->h * 0.67f));
+
+#ifdef USE_ZLIB
+   result = file_select_ex ("Supported formats (*.NES, *.GZ, *.ZIP)", path,
+      "NES;nes;GZ;gz;ZIP;zip", sizeof (path), w, h);
+#else
+   result = file_select_ex ("Supported formats (*.NES)", path, "NES;nes",
+      sizeof (path), w, h);
+#endif
+
+   /* Update path. */
+   set_config_string ("gui", "open_path", replace_filename (scratch, path,
+      "", sizeof (scratch)));
+
+   if (result != 0)
+   {
+      /* Dialog was OK'ed. */
+
+      ROM rom;
+
+      if (load_rom (path, &rom) != 0)
+      {
+         gui_message (GUI_ERROR_COLOR, "Failed to load ROM!");
+
+         return (D_O_K);
+      }
+      else
+      {
+         if (rom_is_loaded)
+         {
+            /* Close currently open ROM and save data. */
+
+            /* Save SRAM. */
+            save_sram ();
+
+            /* Save patches. */
+            save_patches ();
+
+            free_rom (&global_rom);
+         }
+
+         memcpy (&global_rom, &rom, sizeof (ROM));
+
+         /* Update state titles. */
+         machine_save_state_menu_select ();
+         /* Update replay titles. */
+         main_replay_menu_select ();
+
+         rom_is_loaded = TRUE;
+
+         /* Fixup machine type from region. */
+         update_machine_type ();
+
+         /* Initialize machine. */
+         machine_init ();
+
+         ENABLE_MENU_ITEM(main_menu_resume);
+         ENABLE_SUBMENU(main_replay_menu);
+         ENABLE_MENU_ITEM(main_menu_save_snapshot);
+         ENABLE_MENU_ITEM(machine_menu_soft_reset);
+         ENABLE_MENU_ITEM(machine_menu_hard_reset);
+         ENABLE_SUBMENU(machine_save_state_menu);
+         ENABLE_MENU_ITEM(machine_menu_cheat_manager);
+
+         /* Update window title. */
+         uszprintf (scratch, sizeof (scratch), "FakeNES - %s", get_filename
+            (global_rom.filename));
+         set_window_title (scratch);
+
+         return (D_CLOSE);
+      }
+   }
+
+   /* Dialog was cancelled. */
+   return (D_O_K);
+}
+
 /* Number of replay slots available in the menu. */
 #define REPLAY_SLOTS    5
 
@@ -1494,12 +1593,12 @@ static int main_replay_record_menu_start (void)
       return (D_O_K);
    }
 
+   DISABLE_MENU_ITEM(main_menu_open);
    DISABLE_MENU_ITEM(main_replay_record_menu_start);
    ENABLE_MENU_ITEM(main_replay_record_menu_stop);
-   DISABLE_MENU_ITEM(main_menu_load_rom);
    DISABLE_SUBMENU(main_replay_select_menu);
    DISABLE_SUBMENU(main_replay_play_menu);
-   DISABLE_SUBMENU(main_state_autosave_menu);
+   DISABLE_SUBMENU(machine_save_state_autosave_menu);
    DISABLE_SUBMENU(netplay_menu);
 
    /* Enter replay recording mode. */
@@ -1523,12 +1622,12 @@ static int main_replay_record_menu_stop (void)
    input_mode &= ~INPUT_MODE_REPLAY;
    input_mode &= ~INPUT_MODE_REPLAY_RECORD;
 
+   ENABLE_MENU_ITEM(main_menu_open);
    ENABLE_MENU_ITEM(main_replay_record_menu_start);
    DISABLE_MENU_ITEM(main_replay_record_menu_stop);
-   ENABLE_MENU_ITEM(main_menu_load_rom);
    ENABLE_SUBMENU(main_replay_select_menu);
    ENABLE_SUBMENU(main_replay_play_menu);
-   ENABLE_SUBMENU(main_state_autosave_menu);
+   ENABLE_SUBMENU(machine_save_state_autosave_menu);
    ENABLE_SUBMENU(netplay_menu);
 
    message_local ("Replay recording session stopped.");
@@ -1545,15 +1644,16 @@ static int main_replay_play_menu_start (void)
       return (D_O_K);
    }
 
+   DISABLE_MENU_ITEM(main_menu_open);
    DISABLE_MENU_ITEM(main_replay_play_menu_start);
    ENABLE_MENU_ITEM(main_replay_play_menu_stop);
-   DISABLE_MENU_ITEM(main_menu_load_rom);
-   DISABLE_MENU_ITEM(main_menu_reset);
    DISABLE_SUBMENU(main_replay_select_menu);
    DISABLE_SUBMENU(main_replay_record_menu);
-   DISABLE_MENU_ITEM(main_state_menu_quick_load);
-   DISABLE_MENU_ITEM(main_state_menu_restore);
-   DISABLE_MENU_ITEM(options_menu_patches);
+   DISABLE_MENU_ITEM(machine_menu_soft_reset);
+   DISABLE_MENU_ITEM(machine_menu_hard_reset);
+   DISABLE_MENU_ITEM(machine_save_state_menu_quick_load);
+   DISABLE_MENU_ITEM(machine_save_state_menu_load);
+   DISABLE_MENU_ITEM(machine_menu_cheat_manager);
    DISABLE_SUBMENU(netplay_menu);
 
    /* Enter replay playback mode. */
@@ -1577,15 +1677,16 @@ static int main_replay_play_menu_stop (void)
    input_mode &= ~INPUT_MODE_REPLAY;
    input_mode &= ~INPUT_MODE_REPLAY_PLAY;
 
+   ENABLE_MENU_ITEM(main_menu_open);
    ENABLE_MENU_ITEM(main_replay_play_menu_start);
    DISABLE_MENU_ITEM(main_replay_play_menu_stop);
-   ENABLE_MENU_ITEM(main_menu_load_rom);
-   ENABLE_MENU_ITEM(main_menu_reset);
    ENABLE_SUBMENU(main_replay_select_menu);
    ENABLE_SUBMENU(main_replay_record_menu);
-   ENABLE_MENU_ITEM(main_state_menu_quick_load);
-   ENABLE_MENU_ITEM(main_state_menu_restore);
-   ENABLE_MENU_ITEM(options_menu_patches);
+   ENABLE_MENU_ITEM(machine_menu_soft_reset);
+   ENABLE_MENU_ITEM(machine_menu_hard_reset);
+   ENABLE_MENU_ITEM(machine_save_state_menu_quick_load);
+   ENABLE_MENU_ITEM(machine_save_state_menu_load);
+   ENABLE_MENU_ITEM(machine_menu_cheat_manager);
    ENABLE_SUBMENU(netplay_menu);
 
    if (gui_is_active)
@@ -1596,270 +1697,7 @@ static int main_replay_play_menu_stop (void)
    return (D_O_K);
 }
 
-static int main_menu_load_rom (void)
-{
-   USTRING path;
-   BITMAP *bmp;
-   int w, h;
-   int result;
-   USTRING scratch;
-
-   /* Retrive path from configuration file. */
-   USTRING_CLEAR(path);
-   ustrncat (path, get_config_string ("gui", "load_rom_path", "/"),
-      (sizeof (path) - 1));
-
-   /* Get drawing surface. */
-   bmp = gui_get_screen ();
-
-   /* Calculate file selector dimensions. */
-   w = ROUND((bmp->w * 0.80f));
-   h = ROUND((bmp->h * 0.67f));
-
-#ifdef USE_ZLIB
-   result = file_select_ex ("iNES ROMs (*.NES, *.GZ, *.ZIP)", path,
-      "NES;nes;GZ;gz;ZIP;zip", sizeof (path), w, h);
-#else
-   result = file_select_ex ("iNES ROMs (*.NES)", path, "NES;nes", sizeof
-      (path), w, h);
-#endif
-
-   /* Update path. */
-   set_config_string ("gui", "load_rom_path", replace_filename (scratch,
-      path, "", sizeof (scratch)));
-
-   if (result != 0)
-   {
-      /* Dialog was OK'ed. */
-
-      ROM rom;
-
-      if (load_rom (path, &rom) != 0)
-      {
-         gui_message (GUI_ERROR_COLOR, "Failed to load ROM!");
-
-         return (D_O_K);
-      }
-      else
-      {
-         if (rom_is_loaded)
-         {
-            /* Close currently open ROM and save data. */
-
-            /* Save SRAM. */
-            save_sram ();
-
-            /* Save patches. */
-            save_patches ();
-
-            free_rom (&global_rom);
-         }
-
-         memcpy (&global_rom, &rom, sizeof (ROM));
-
-         /* Update state titles. */
-         main_state_menu_select ();
-         /* Update replay titles. */
-         main_replay_menu_select ();
-
-         rom_is_loaded = TRUE;
-
-         /* Fixup machine type from region. */
-         update_machine_type ();
-
-         /* Initialize machine. */
-         machine_init ();
-
-         ENABLE_MENU_ITEM(main_menu_resume);
-         ENABLE_MENU_ITEM(main_menu_reset);
-         ENABLE_SUBMENU(main_state_menu);
-         ENABLE_SUBMENU(main_replay_menu);
-         ENABLE_MENU_ITEM(main_menu_snapshot);
-         ENABLE_MENU_ITEM(options_menu_patches);
-
-         /* Update window title. */
-         uszprintf (scratch, sizeof (scratch), "FakeNES - %s", get_filename
-            (global_rom.filename));
-         set_window_title (scratch);
-
-         return (D_CLOSE);
-      }
-   }
-
-   /* Dialog was cancelled. */
-   return (D_O_K);
-}
-
-static int main_menu_resume (void)
-{
-    return (D_CLOSE);
-}
-
-static int main_menu_reset (void)
-{
-    machine_reset ();
-
-    return (D_CLOSE);
-}
-
-#define STATE_SLOTS  10
-
-#define STATE_SELECT_MENU_HANDLER(index)  \
-   static int main_state_select_menu_##index (void)   \
-   {  \
-      state_index = index;  \
-      update_menus ();  \
-      message_local ("Machine state slot set to %d.", index);  \
-      return (D_O_K);   \
-   }
-
-STATE_SELECT_MENU_HANDLER(0);
-STATE_SELECT_MENU_HANDLER(1);
-STATE_SELECT_MENU_HANDLER(2);
-STATE_SELECT_MENU_HANDLER(3);
-STATE_SELECT_MENU_HANDLER(4);
-STATE_SELECT_MENU_HANDLER(5);
-STATE_SELECT_MENU_HANDLER(6);
-STATE_SELECT_MENU_HANDLER(7);
-STATE_SELECT_MENU_HANDLER(8);
-STATE_SELECT_MENU_HANDLER(9);
-
-#undef STATE_MENU_HANDLER
-
-static int main_state_menu_quick_save (void)
-{
-   if (!save_state (-1, "QUICKSAVE"))
-   {
-      gui_message (GUI_ERROR_COLOR, "Quick Save failed.");
-
-      return (D_O_K);
-   }
-
-   return (D_CLOSE);
-}
-
-static int main_state_menu_quick_load (void)
-{
-   if (!load_state (-1))
-   {
-      gui_message (GUI_ERROR_COLOR, "Quick Load failed.");
-
-      return (D_O_K);
-   }
-
-   return (D_CLOSE);
-}
-
-static USTRING state_titles[STATE_SLOTS];
-static USTRING state_menu_texts[STATE_SLOTS];
-
-static int main_state_menu_select (void)
-{
-   int index;
-
-   for (index = 0; index < STATE_SLOTS; index++)
-   {
-      UCHAR *title;
-      UCHAR *text;
-
-      title = state_titles[index];
-      text = state_menu_texts[index];
-
-      /* Get title. */
-      get_state_title (index, title, USTRING_SIZE);
-
-      /* Build menu text. */
-      uszprintf (text, USTRING_SIZE, "&%d: %s", index, title);
-
-      /* Update menu. */
-      main_state_select_menu[index].text = text;
-   }
-
-   return (D_O_K);
-}
-
-static int main_state_menu_save (void)
-{
-   USTRING title;
-   USTRING filename;
-
-   /* Duplicate title. */
-   ustrncpy (title, state_titles[state_index], sizeof (title));
-
-   /* Patch up duplicate. */
-   fix_save_title (title, sizeof (title));
-
-   if (gui_is_active)
-   {
-      /* Allow user to customize title before save. */
-
-      main_state_save_dialog[4].d1 = (SAVE_TITLE_SIZE - 1);
-      main_state_save_dialog[4].dp = title;
-
-      if (show_dialog (main_state_save_dialog) != 5)
-         return (D_O_K);
-   }
-
-   if (!save_state (state_index, title))
-   {
-      gui_message (GUI_ERROR_COLOR, "Failed to open new machine state "
-         "file.");
-
-      return (D_O_K);
-   }
-
-   /* Update state titles. */
-   main_state_menu_select ();
-
-   if (!input_autosave_triggered)
-      message_local ("Machine state saved in slot %d.", state_index);
-
-   return (D_CLOSE);
-}
-
-static int main_state_menu_restore (void)
-{
-   if (!load_state (state_index))
-   {
-      gui_message (GUI_ERROR_COLOR, "Failed to open machine state file.");
-
-      return (D_O_K);
-   }
-
-   message_local ("Machine state loaded from slot %d.", state_index);
-
-   return (D_CLOSE);
-}
-
-static int main_state_autosave_menu_disabled (void)
-{
-   set_autosave (0);
-
-   return (D_O_K);
-}
-
-static int main_state_autosave_menu_10_seconds (void)
-{
-   set_autosave (10);
-
-   return (D_O_K);
-}
-
-static int main_state_autosave_menu_30_seconds (void)
-{
-   set_autosave (30);
-
-   return (D_O_K);
-}
-
-static int main_state_autosave_menu_60_seconds (void)
-{
-   set_autosave (60);
-
-   return (D_O_K);
-}
-
-static int main_menu_snapshot (void)
+static int main_menu_save_snapshot (void)
 {
    int index;
 
@@ -1885,67 +1723,6 @@ static int main_menu_snapshot (void)
    return (D_O_K);
 }
 
-static int main_menu_messages (void)
-{
-    PACKFILE * file;
-
-
-    UINT8 * buffer;
-
-   /* TODO: REWRITE ALL OF THIS. */
-#if 0 // needs to be converted to use the new logfile code
-    file = pack_fopen (logfile, "r");
-
-    if (! file)
-    {
-        buffer = malloc (strlen ("Failed to open (or bi-open) log file."));
-
-        if (! buffer)
-        {
-            /* Yuck. */
-
-            return (D_O_K);
-        }
-
-
-        sprintf (buffer, "Failed to open (or bi-open) log file.");
-    }
-    else
-    {
-        int size;
-
-
-        size = file_size (logfile);
-
-
-        buffer = malloc (size);
-
-        if (! buffer)
-        {
-            /* Log file has a maximum size of 64kB. */
-
-            /* Pretty sad if malloc failed to allocate that. */
-
-            return (D_O_K);
-        }
-
-
-        pack_fread (buffer, size, file);
-    }
-
-
-    pack_fclose (file);
-
-
-    main_messages_dialog [2].dp = buffer;
-
-
-    show_dialog (main_messages_dialog);
-#endif
-
-    return (D_O_K);
-}
-
 static int main_menu_exit (void)
 {
    want_exit = TRUE;
@@ -1953,50 +1730,178 @@ static int main_menu_exit (void)
    return (D_CLOSE);
 }
 
-static int options_menu_status (void)
+static int machine_menu_soft_reset (void)
 {
-   video_display_status = (! video_display_status);
-   update_menus ();
+    cpu_reset ();
+
+    return (D_CLOSE);
+}
+
+static int machine_menu_hard_reset (void)
+{
+    machine_reset ();
+
+    return (D_CLOSE);
+}
+
+#define STATE_SLOTS  10
+
+#define STATE_SELECT_MENU_HANDLER(index)  \
+   static int machine_save_state_select_menu_##index (void)   \
+   {  \
+      state_index = index;  \
+      update_menus ();  \
+      message_local ("Machine state slot set to %d.", index);  \
+      return (D_O_K);   \
+   }
+
+STATE_SELECT_MENU_HANDLER(0);
+STATE_SELECT_MENU_HANDLER(1);
+STATE_SELECT_MENU_HANDLER(2);
+STATE_SELECT_MENU_HANDLER(3);
+STATE_SELECT_MENU_HANDLER(4);
+STATE_SELECT_MENU_HANDLER(5);
+STATE_SELECT_MENU_HANDLER(6);
+STATE_SELECT_MENU_HANDLER(7);
+STATE_SELECT_MENU_HANDLER(8);
+STATE_SELECT_MENU_HANDLER(9);
+
+#undef STATE_MENU_HANDLER
+
+static USTRING state_titles[STATE_SLOTS];
+static USTRING state_menu_texts[STATE_SLOTS];
+
+static int machine_save_state_menu_quick_save (void)
+{
+   if (!save_state (-1, "QUICKSAVE"))
+   {
+      gui_message (GUI_ERROR_COLOR, "Quick Save failed.");
+
+      return (D_O_K);
+   }
+
+   return (D_CLOSE);
+}
+
+static int machine_save_state_menu_quick_load (void)
+{
+   if (!load_state (-1))
+   {
+      gui_message (GUI_ERROR_COLOR, "Quick Load failed.");
+
+      return (D_O_K);
+   }
+
+   return (D_CLOSE);
+}
+
+static int machine_save_state_menu_save (void)
+{
+   USTRING title;
+   USTRING filename;
+
+   /* Duplicate title. */
+   ustrncpy (title, state_titles[state_index], sizeof (title));
+
+   /* Patch up duplicate. */
+   fix_save_title (title, sizeof (title));
+
+   if (gui_is_active)
+   {
+      /* Allow user to customize title before save. */
+
+      machine_save_state_save_dialog[4].d1 = (SAVE_TITLE_SIZE - 1);
+      machine_save_state_save_dialog[4].dp = title;
+
+      if (show_dialog (machine_save_state_save_dialog) != 5)
+         return (D_O_K);
+   }
+
+   if (!save_state (state_index, title))
+   {
+      gui_message (GUI_ERROR_COLOR, "Failed to open new machine state "
+         "file.");
+
+      return (D_O_K);
+   }
+
+   /* Update state titles. */
+   machine_save_state_menu_select ();
+
+   if (!input_autosave_triggered)
+      message_local ("Machine state saved in slot %d.", state_index);
+
+   return (D_CLOSE);
+}
+
+static int machine_save_state_menu_load (void)
+{
+   if (!load_state (state_index))
+   {
+      gui_message (GUI_ERROR_COLOR, "Failed to open machine state file.");
+
+      return (D_O_K);
+   }
+
+   message_local ("Machine state loaded from slot %d.", state_index);
+
+   return (D_CLOSE);
+}
+
+static int machine_save_state_menu_select (void)
+{
+   int index;
+
+   for (index = 0; index < STATE_SLOTS; index++)
+   {
+      UCHAR *title;
+      UCHAR *text;
+
+      title = state_titles[index];
+      text = state_menu_texts[index];
+
+      /* Get title. */
+      get_state_title (index, title, USTRING_SIZE);
+
+      /* Build menu text. */
+      uszprintf (text, USTRING_SIZE, "&%d: %s", index, title);
+
+      /* Update menu. */
+      machine_save_state_select_menu[index].text = text;
+   }
 
    return (D_O_K);
 }
 
-#define SET_THEME(name) \
-   set_##name##_theme ();  \
-   gui_needs_restart = TRUE;
-
-static int options_gui_theme_menu_classic (void)
+static int machine_save_state_autosave_menu_disabled (void)
 {
-   SET_THEME(classic);
+   set_autosave (0);
 
-   return (D_CLOSE);
+   return (D_O_K);
 }
 
-static int options_gui_theme_menu_stainless_steel (void)
+static int machine_save_state_autosave_menu_10_seconds (void)
 {
-   SET_THEME(stainless_steel);
+   set_autosave (10);
 
-   return (D_CLOSE);
+   return (D_O_K);
 }
 
-static int options_gui_theme_menu_zero_4 (void)
+static int machine_save_state_autosave_menu_30_seconds (void)
 {
-   SET_THEME(zero_4);
+   set_autosave (30);
 
-   return (D_CLOSE);
+   return (D_O_K);
 }
 
-
-static int options_gui_theme_menu_panta (void)
+static int machine_save_state_autosave_menu_60_seconds (void)
 {
-   SET_THEME(panta);
+   set_autosave (60);
 
-   return (D_CLOSE);
+   return (D_O_K);
 }
 
-#undef SET_THEME
-
-static int options_system_region_menu_automatic (void)
+static int machine_region_menu_automatic (void)
 {
    machine_region = MACHINE_REGION_AUTOMATIC;
    update_machine_type ();
@@ -2007,7 +1912,7 @@ static int options_system_region_menu_automatic (void)
    return (D_O_K);
 }
 
-static int options_system_region_menu_ntsc (void)
+static int machine_region_menu_ntsc (void)
 {
    machine_region = MACHINE_REGION_NTSC;
    update_machine_type ();
@@ -2018,7 +1923,7 @@ static int options_system_region_menu_ntsc (void)
    return (D_O_K);
 }
 
-static int options_system_region_menu_pal (void)
+static int machine_region_menu_pal (void)
 {
    machine_region = MACHINE_REGION_PAL;
    update_machine_type ();
@@ -2029,38 +1934,18 @@ static int options_system_region_menu_pal (void)
    return (D_O_K);
 }
 
-
-static int options_system_cpu_usage_menu_passive (void)
+static int machine_menu_cheat_manager (void)
 {
-    cpu_usage = CPU_USAGE_PASSIVE;
-    update_menus ();
+   if (show_dialog (machine_cheat_manager_dialog) ==
+      MACHINE_CHEAT_MANAGER_DIALOG_SAVE_BUTTON)
+   {
+      save_patches ();
+   }
 
-    message_local ("System CPU usage set to passive.");
-
-    return (D_O_K);
+   return (D_O_K);
 }
 
-static int options_system_cpu_usage_menu_normal (void)
-{
-    cpu_usage = CPU_USAGE_NORMAL;
-    update_menus ();
-
-    message_local ("System CPU usage set to normal.");
-
-    return (D_O_K);
-}
-
-static int options_system_cpu_usage_menu_aggressive (void)
-{
-    cpu_usage = CPU_USAGE_AGGRESSIVE;
-    update_menus ();
-
-    message_local ("System CPU usage set to aggressive.");
-
-    return (D_O_K);
-}
-
-static int options_audio_menu_enabled (void)
+static int audio_menu_enabled (void)
 {
    audio_enable_output = !audio_enable_output;
    update_menus ();
@@ -2073,7 +1958,7 @@ static int options_audio_menu_enabled (void)
    return (D_O_K);
 }
 
-static int options_audio_subsystem_menu_none (void)
+static int audio_subsystem_menu_none (void)
 {
    audio_subsystem = AUDIO_SUBSYSTEM_NONE;
    update_menus ();
@@ -2085,7 +1970,7 @@ static int options_audio_subsystem_menu_none (void)
    return (D_O_K);
 }
 
-static int options_audio_subsystem_menu_allegro (void)
+static int audio_subsystem_menu_allegro (void)
 {
    audio_subsystem = AUDIO_SUBSYSTEM_ALLEGRO;
    update_menus ();
@@ -2097,7 +1982,7 @@ static int options_audio_subsystem_menu_allegro (void)
    return (D_O_K);
 }
 
-static int options_audio_subsystem_menu_openal (void)
+static int audio_subsystem_menu_openal (void)
 {
    audio_subsystem = AUDIO_SUBSYSTEM_OPENAL;
    update_menus ();
@@ -2110,7 +1995,7 @@ static int options_audio_subsystem_menu_openal (void)
 }
 
 #define MIXING_FREQUENCY_MENU_HANDLER(freq)  \
-   static int options_audio_mixing_frequency_menu_##freq##_hz (void) \
+   static int audio_mixing_frequency_menu_##freq##_hz (void) \
    {  \
       audio_sample_rate = freq;  \
       update_menus ();  \
@@ -2129,7 +2014,7 @@ MIXING_FREQUENCY_MENU_HANDLER(48000)
 MIXING_FREQUENCY_MENU_HANDLER(80200)
 MIXING_FREQUENCY_MENU_HANDLER(96000)
 
-static int options_audio_mixing_channels_menu_mono (void)
+static int audio_mixing_channels_menu_mono (void)
 {
    audio_pseudo_stereo = FALSE;
    update_menus ();
@@ -2141,7 +2026,7 @@ static int options_audio_mixing_channels_menu_mono (void)
    return (D_O_K);
 }
 
-static int options_audio_mixing_channels_menu_stereo_mix (void)
+static int audio_mixing_channels_menu_stereo_mix (void)
 {
    audio_pseudo_stereo = AUDIO_PSEUDO_STEREO_MODE_4;
    update_menus ();
@@ -2153,7 +2038,7 @@ static int options_audio_mixing_channels_menu_stereo_mix (void)
    return (D_O_K);
 }
 
-static int options_audio_mixing_channels_menu_pseudo_stereo_mode_1 (void)
+static int audio_mixing_channels_menu_pseudo_stereo_mode_1 (void)
 {
    audio_pseudo_stereo = AUDIO_PSEUDO_STEREO_MODE_1;
    update_menus ();
@@ -2165,7 +2050,7 @@ static int options_audio_mixing_channels_menu_pseudo_stereo_mode_1 (void)
    return (D_O_K);
 }
 
-static int options_audio_mixing_channels_menu_pseudo_stereo_mode_2 (void)
+static int audio_mixing_channels_menu_pseudo_stereo_mode_2 (void)
 {
    audio_pseudo_stereo = AUDIO_PSEUDO_STEREO_MODE_2;
    update_menus ();
@@ -2177,7 +2062,7 @@ static int options_audio_mixing_channels_menu_pseudo_stereo_mode_2 (void)
    return (D_O_K);
 }
 
-static int options_audio_mixing_channels_menu_stereo (void)
+static int audio_mixing_channels_menu_stereo (void)
 {
    audio_pseudo_stereo = AUDIO_PSEUDO_STEREO_MODE_3;
    update_menus ();
@@ -2189,7 +2074,7 @@ static int options_audio_mixing_channels_menu_stereo (void)
    return (D_O_K);
 }
 
-static int options_audio_mixing_channels_menu_swap_channels (void)
+static int audio_mixing_channels_menu_swap_channels (void)
 {
    papu_swap_channels = !papu_swap_channels;
    update_menus ();
@@ -2200,7 +2085,7 @@ static int options_audio_mixing_channels_menu_swap_channels (void)
    return (D_O_K);
 }
 
-static int options_audio_mixing_quality_menu_low_8_bit (void)
+static int audio_mixing_quality_menu_low_8_bit (void)
 {
    audio_sample_size = 8;
    update_menus ();
@@ -2212,7 +2097,7 @@ static int options_audio_mixing_quality_menu_low_8_bit (void)
    return (D_O_K);
 }
 
-static int options_audio_mixing_quality_menu_high_16_bit (void)
+static int audio_mixing_quality_menu_high_16_bit (void)
 {
    audio_sample_size = 16;
    update_menus ();
@@ -2224,7 +2109,7 @@ static int options_audio_mixing_quality_menu_high_16_bit (void)
    return (D_O_K);
 }
 
-static int options_audio_mixing_quality_menu_interpolation (void)
+static int audio_mixing_quality_menu_interpolation (void)
 {
    audio_interpolation = !audio_interpolation;
    update_menus ();
@@ -2237,7 +2122,7 @@ static int options_audio_mixing_quality_menu_interpolation (void)
    return (D_O_K);
 }
 
-static int options_audio_mixing_quality_menu_dithering (void)
+static int audio_mixing_quality_menu_dithering (void)
 {
    papu_dithering = !papu_dithering;
    update_menus ();
@@ -2247,7 +2132,7 @@ static int options_audio_mixing_quality_menu_dithering (void)
    return (D_O_K);
 }
 
-static int options_audio_mixing_anti_aliasing_menu_disabled (void)
+static int audio_mixing_anti_aliasing_menu_disabled (void)
 {
    papu_interpolate = 0;
    update_menus ();
@@ -2259,7 +2144,7 @@ static int options_audio_mixing_anti_aliasing_menu_disabled (void)
    return (D_O_K);
 }
 
-static int options_audio_mixing_anti_aliasing_menu_bilinear_2x (void)
+static int audio_mixing_anti_aliasing_menu_bilinear_2x (void)
 {
    papu_interpolate = 1;
    update_menus ();
@@ -2271,7 +2156,7 @@ static int options_audio_mixing_anti_aliasing_menu_bilinear_2x (void)
    return (D_O_K);
 }
 
-static int options_audio_mixing_anti_aliasing_menu_bilinear_4x (void)
+static int audio_mixing_anti_aliasing_menu_bilinear_4x (void)
 {
    papu_interpolate = 2;
    update_menus ();
@@ -2283,7 +2168,7 @@ static int options_audio_mixing_anti_aliasing_menu_bilinear_4x (void)
    return (D_O_K);
 }
 
-static int options_audio_mixing_anti_aliasing_menu_bilinear_8x (void)
+static int audio_mixing_anti_aliasing_menu_bilinear_8x (void)
 {
    papu_interpolate = 3;
    update_menus ();
@@ -2295,7 +2180,7 @@ static int options_audio_mixing_anti_aliasing_menu_bilinear_8x (void)
    return (D_O_K);
 }
 
-static int options_audio_mixing_anti_aliasing_menu_bilinear_16x (void)
+static int audio_mixing_anti_aliasing_menu_bilinear_16x (void)
 {
    papu_interpolate = 4;
    update_menus ();
@@ -2307,7 +2192,7 @@ static int options_audio_mixing_anti_aliasing_menu_bilinear_16x (void)
    return (D_O_K);
 }
 
-static int options_audio_effects_menu_linear_echo (void)
+static int audio_effects_menu_linear_echo (void)
 {
    papu_linear_echo = !papu_linear_echo;
    update_menus ();
@@ -2320,7 +2205,7 @@ static int options_audio_effects_menu_linear_echo (void)
    return (D_O_K);
 }
 
-static int options_audio_effects_menu_spatial_stereo_mode_1 (void)
+static int audio_effects_menu_spatial_stereo_mode_1 (void)
 {
    papu_spatial_stereo = ((papu_spatial_stereo ==
       PAPU_SPATIAL_STEREO_MODE_1) ? FALSE : PAPU_SPATIAL_STEREO_MODE_1);
@@ -2334,7 +2219,7 @@ static int options_audio_effects_menu_spatial_stereo_mode_1 (void)
    return (D_O_K);
 }
 
-static int options_audio_effects_menu_spatial_stereo_mode_2 (void)
+static int audio_effects_menu_spatial_stereo_mode_2 (void)
 {
    papu_spatial_stereo = ((papu_spatial_stereo ==
       PAPU_SPATIAL_STEREO_MODE_2) ? FALSE : PAPU_SPATIAL_STEREO_MODE_2);
@@ -2348,7 +2233,7 @@ static int options_audio_effects_menu_spatial_stereo_mode_2 (void)
    return (D_O_K);
 }
 
-static int options_audio_effects_menu_spatial_stereo_mode_3 (void)
+static int audio_effects_menu_spatial_stereo_mode_3 (void)
 {
    papu_spatial_stereo = ((papu_spatial_stereo ==
       PAPU_SPATIAL_STEREO_MODE_3) ? FALSE : PAPU_SPATIAL_STEREO_MODE_3);
@@ -2362,7 +2247,7 @@ static int options_audio_effects_menu_spatial_stereo_mode_3 (void)
    return (D_O_K);
 }
 
-static int options_audio_filters_menu_low_pass_mode_1 (void)
+static int audio_filters_menu_low_pass_mode_1 (void)
 {
    LIST filters;
 
@@ -2387,7 +2272,7 @@ static int options_audio_filters_menu_low_pass_mode_1 (void)
    return (D_O_K);
 }
 
-static int options_audio_filters_menu_low_pass_mode_2 (void)
+static int audio_filters_menu_low_pass_mode_2 (void)
 {
    LIST filters;
 
@@ -2412,7 +2297,7 @@ static int options_audio_filters_menu_low_pass_mode_2 (void)
    return (D_O_K);
 }
 
-static int options_audio_filters_menu_low_pass_mode_3 (void)
+static int audio_filters_menu_low_pass_mode_3 (void)
 {
    LIST filters;
 
@@ -2437,7 +2322,7 @@ static int options_audio_filters_menu_low_pass_mode_3 (void)
    return (D_O_K);
 }
 
-static int options_audio_filters_menu_high_pass (void)
+static int audio_filters_menu_high_pass (void)
 {
    LIST filters;
 
@@ -2455,7 +2340,7 @@ static int options_audio_filters_menu_high_pass (void)
    return (D_O_K);
 }
 
-static int options_audio_filters_menu_delta_sigma_filter (void)
+static int audio_filters_menu_delta_sigma_filter (void)
 {
    LIST filters;
 
@@ -2473,7 +2358,7 @@ static int options_audio_filters_menu_delta_sigma_filter (void)
    return (D_O_K);
 }
 
-static int options_audio_channels_menu_square_wave_a (void)
+static int audio_channels_menu_square_wave_a (void)
 {
    papu_enable_square_1 = !papu_enable_square_1;
    update_menus ();
@@ -2486,7 +2371,7 @@ static int options_audio_channels_menu_square_wave_a (void)
    return (D_O_K);
 }
 
-static int options_audio_channels_menu_square_wave_b (void)
+static int audio_channels_menu_square_wave_b (void)
 {
    papu_enable_square_2 = !papu_enable_square_2;
    update_menus ();
@@ -2499,7 +2384,7 @@ static int options_audio_channels_menu_square_wave_b (void)
    return (D_O_K);
 }
 
-static int options_audio_channels_menu_triangle_wave (void)
+static int audio_channels_menu_triangle_wave (void)
 {
    papu_enable_triangle = !papu_enable_triangle;
    update_menus ();
@@ -2512,7 +2397,7 @@ static int options_audio_channels_menu_triangle_wave (void)
    return (D_O_K);
 }
 
-static int options_audio_channels_menu_white_noise (void)
+static int audio_channels_menu_white_noise (void)
 {
    papu_enable_noise = !papu_enable_noise;
    papu_update ();
@@ -2525,7 +2410,7 @@ static int options_audio_channels_menu_white_noise (void)
    return (D_O_K);
 }
 
-static int options_audio_channels_menu_digital (void)
+static int audio_channels_menu_digital (void)
 {
    papu_enable_dmc = !papu_enable_dmc;
    papu_update ();
@@ -2538,7 +2423,7 @@ static int options_audio_channels_menu_digital (void)
    return (D_O_K);
 }
 
-static int options_audio_channels_menu_extended (void)
+static int audio_channels_menu_extended (void)
 {
    papu_enable_exsound = !papu_enable_exsound;
    papu_update ();
@@ -2551,7 +2436,7 @@ static int options_audio_channels_menu_extended (void)
    return (D_O_K);
 }
 
-static int options_audio_advanced_menu_ideal_triangle (void)
+static int audio_advanced_menu_ideal_triangle (void)
 {
    papu_ideal_triangle = !papu_ideal_triangle;
    update_menus ();
@@ -2564,7 +2449,7 @@ static int options_audio_advanced_menu_ideal_triangle (void)
    return (D_O_K);
 }
 
-static int options_audio_advanced_menu_hard_sync (void)
+static int audio_advanced_menu_hard_sync (void)
 {
    audio_hard_sync = !audio_hard_sync;
    update_menus ();
@@ -2575,12 +2460,12 @@ static int options_audio_advanced_menu_hard_sync (void)
    return (D_O_K);
 }
 
-static int options_audio_record_menu_start (void)
+static int audio_record_menu_start (void)
 {
    if (papu_start_record () == 0)
    {
-      DISABLE_MENU_ITEM(options_audio_record_menu_start);
-      ENABLE_MENU_ITEM(options_audio_record_menu_stop);
+      DISABLE_MENU_ITEM(audio_record_menu_start);
+      ENABLE_MENU_ITEM(audio_record_menu_stop);
    }
 
    message_local ("Audio recording session started.");
@@ -2588,12 +2473,12 @@ static int options_audio_record_menu_start (void)
    return (D_O_K);
 }
 
-static int options_audio_record_menu_stop (void)
+static int audio_record_menu_stop (void)
 {
    papu_stop_record ();
 
-   ENABLE_MENU_ITEM(options_audio_record_menu_start);
-   DISABLE_MENU_ITEM(options_audio_record_menu_stop);
+   ENABLE_MENU_ITEM(audio_record_menu_start);
+   DISABLE_MENU_ITEM(audio_record_menu_stop);
 
    message_local ("Audio recording session stopped.");
 
@@ -2601,7 +2486,7 @@ static int options_audio_record_menu_stop (void)
 }
 
 #define DRIVER_MENU_HANDLER(system, driver, id) \
-   static int options_video_driver_##system##_menu_##driver (void)   \
+   static int video_driver_##system##_menu_##driver (void)   \
    {  \
       video_set_driver (id);  \
       gui_needs_restart = TRUE;  \
@@ -2659,7 +2544,7 @@ DRIVER_MENU_HANDLER(unix, x_dga_2,        GFX_XDGA2)
 
 #undef DRIVER_MENU_HANDLER
 
-static int options_video_driver_menu_automatic (void)
+static int video_driver_menu_automatic (void)
 {
    video_set_driver (GFX_AUTODETECT);
 
@@ -2668,7 +2553,7 @@ static int options_video_driver_menu_automatic (void)
 }
 
 #define RESOLUTION_MENU_HANDLER(width, height)  \
-   static int options_video_resolution_menu_##width##_##height (void)   \
+   static int video_resolution_menu_##width##_##height (void)   \
    {  \
       video_set_resolution (width, height);  \
       gui_needs_restart = TRUE;  \
@@ -2676,7 +2561,7 @@ static int options_video_driver_menu_automatic (void)
    }
 
 #define RESOLUTION_MENU_HANDLER_EX(type, width, height)  \
-   static int options_video_resolution_##type##_menu_##width##_##height (void)   \
+   static int video_resolution_##type##_menu_##width##_##height (void)   \
    {  \
       video_set_resolution (width, height);  \
       gui_needs_restart = TRUE;  \
@@ -2716,7 +2601,7 @@ RESOLUTION_MENU_HANDLER_EX(extended, 1360, 768)
 #undef RESOLUTION_MENU_HANDLER
 #undef RESOLUTION_MENU_HANDLER_EX
 
-static int options_video_colors_menu_paletted_8_bit (void)
+static int video_colors_menu_paletted_8_bit (void)
 {
    video_set_color_depth (8);
 
@@ -2724,7 +2609,7 @@ static int options_video_colors_menu_paletted_8_bit (void)
    return (D_CLOSE);
 }
 
-static int options_video_colors_menu_true_color_15_bit (void)
+static int video_colors_menu_true_color_15_bit (void)
 {
    video_set_color_depth (15);
 
@@ -2732,7 +2617,7 @@ static int options_video_colors_menu_true_color_15_bit (void)
    return (D_CLOSE);
 }
 
-static int options_video_colors_menu_true_color_16_bit (void)
+static int video_colors_menu_true_color_16_bit (void)
 {
    video_set_color_depth (16);
 
@@ -2740,7 +2625,7 @@ static int options_video_colors_menu_true_color_16_bit (void)
    return (D_CLOSE);
 }
 
-static int options_video_colors_menu_true_color_24_bit (void)
+static int video_colors_menu_true_color_24_bit (void)
 {
    video_set_color_depth (24);
 
@@ -2748,7 +2633,7 @@ static int options_video_colors_menu_true_color_24_bit (void)
    return (D_CLOSE);
 }
 
-static int options_video_colors_menu_true_color_32_bit (void)
+static int video_colors_menu_true_color_32_bit (void)
 {
    video_set_color_depth (32);
 
@@ -2757,7 +2642,7 @@ static int options_video_colors_menu_true_color_32_bit (void)
 }
 
 #define BLITTER_MENU_HANDLER(name, caption, id) \
-   static int options_video_blitter_menu_##name (void)   \
+   static int video_blitter_menu_##name (void)   \
    {  \
       video_set_blitter (id); \
       update_menus ();  \
@@ -2783,7 +2668,7 @@ BLITTER_MENU_HANDLER(stretched,       "stretched",          VIDEO_BLITTER_STRETC
 
 #undef BLITTER_MENU_HANDLER
 
-static int options_video_filters_menu_scanlines_25_percent (void)
+static int video_filters_menu_scanlines_25_percent (void)
 {
    LIST filters;
 
@@ -2810,7 +2695,7 @@ static int options_video_filters_menu_scanlines_25_percent (void)
    return (D_O_K);
 }
 
-static int options_video_filters_menu_scanlines_50_percent (void)
+static int video_filters_menu_scanlines_50_percent (void)
 {
    LIST filters;
 
@@ -2837,7 +2722,7 @@ static int options_video_filters_menu_scanlines_50_percent (void)
    return (D_O_K);
 }
 
-static int options_video_filters_menu_scanlines_100_percent (void)
+static int video_filters_menu_scanlines_100_percent (void)
 {
    LIST filters;
 
@@ -2864,7 +2749,7 @@ static int options_video_filters_menu_scanlines_100_percent (void)
    return (D_O_K);
 }
 
-static int options_video_menu_vsync (void)
+static int video_menu_vsync (void)
 {
    video_enable_vsync = !video_enable_vsync;
    update_menus ();
@@ -2874,7 +2759,7 @@ static int options_video_menu_vsync (void)
    return (D_O_K);
 }
 
-static int options_video_layers_menu_sprites_a (void)
+static int video_layers_menu_sprites_a (void)
 {
    ppu_enable_sprite_layer_a = !ppu_enable_sprite_layer_a;
    update_menus ();
@@ -2885,7 +2770,7 @@ static int options_video_layers_menu_sprites_a (void)
    return (D_O_K);
 }
 
-static int options_video_layers_menu_sprites_b (void)
+static int video_layers_menu_sprites_b (void)
 {
    ppu_enable_sprite_layer_b = !ppu_enable_sprite_layer_b;
    update_menus ();
@@ -2897,7 +2782,7 @@ static int options_video_layers_menu_sprites_b (void)
 }
 
 
-static int options_video_layers_menu_background (void)
+static int video_layers_menu_background (void)
 {
    ppu_enable_background_layer = !ppu_enable_background_layer;
    update_menus ();
@@ -2909,7 +2794,7 @@ static int options_video_layers_menu_background (void)
 }
 
 #define PALETTE_MENU_HANDLER(name, caption, id) \
-   static int options_video_palette_menu_##name (void)   \
+   static int video_palette_menu_##name (void)   \
    {  \
       video_set_palette (DATA_TO_RGB(id));  \
       video_set_palette_id (DATA_INDEX(id)); \
@@ -2931,7 +2816,7 @@ PALETTE_MENU_HANDLER(ega_mode_2,     "EGA (mode 2)",   EGA_PALETTE_2)
 
 #undef PALETTE_MENU_HANDLER
 
-static int options_video_palette_menu_custom (void)
+static int video_palette_menu_custom (void)
 {
    PACKFILE *file;
    int index;
@@ -2968,13 +2853,21 @@ static int options_video_palette_menu_custom (void)
    return (D_O_K);
 }
 
-static int options_video_advanced_menu_force_fullscreen (void)
+static int video_advanced_menu_force_fullscreen (void)
 {
    video_force_fullscreen = !video_force_fullscreen;
    video_reinit ();
 
    gui_needs_restart = TRUE;
    return (D_CLOSE);
+}
+
+static int options_menu_show_status (void)
+{
+   video_display_status = (! video_display_status);
+   update_menus ();
+
+   return (D_O_K);
 }
 
 static int options_input_menu_enable_zapper (void)
@@ -2988,12 +2881,231 @@ static int options_input_menu_enable_zapper (void)
    return (D_O_K);
 }
 
-
 static int options_input_menu_configure (void)
 {
    show_dialog (options_input_configure_dialog);
 
    return (D_O_K);
+}
+
+static int options_cpu_usage_menu_passive (void)
+{
+    cpu_usage = CPU_USAGE_PASSIVE;
+    update_menus ();
+
+    message_local ("System CPU usage set to passive.");
+
+    return (D_O_K);
+}
+
+static int options_cpu_usage_menu_normal (void)
+{
+    cpu_usage = CPU_USAGE_NORMAL;
+    update_menus ();
+
+    message_local ("System CPU usage set to normal.");
+
+    return (D_O_K);
+}
+
+static int options_cpu_usage_menu_aggressive (void)
+{
+    cpu_usage = CPU_USAGE_AGGRESSIVE;
+    update_menus ();
+
+    message_local ("System CPU usage set to aggressive.");
+
+    return (D_O_K);
+}
+
+#define SET_THEME(name) \
+   set_##name##_theme ();  \
+   gui_needs_restart = TRUE;
+
+static int options_gui_theme_menu_classic (void)
+{
+   SET_THEME(classic);
+
+   return (D_CLOSE);
+}
+
+static int options_gui_theme_menu_stainless_steel (void)
+{
+   SET_THEME(stainless_steel);
+
+   return (D_CLOSE);
+}
+
+static int options_gui_theme_menu_zero_4 (void)
+{
+   SET_THEME(zero_4);
+
+   return (D_CLOSE);
+}
+
+
+static int options_gui_theme_menu_panta (void)
+{
+   SET_THEME(panta);
+
+   return (D_CLOSE);
+}
+
+#undef SET_THEME
+
+static int netplay_menu_start_as_server (void)
+{
+   STRING host;
+   int port;
+   STRING port_str;
+   USTRING nick;
+   DIALOG *dialog;
+   DIALOG *obj_host_label;
+   DIALOG *obj_host;
+   DIALOG *obj_port;
+   DIALOG *obj_nick;
+
+   /* Load configuration. */
+
+   STRING_CLEAR(host);
+
+   port = get_config_int ("netplay", "port", NETPLAY_DEFAULT_PORT);
+
+   STRING_CLEAR(port_str);
+   sprintf (port_str, "%d", port);
+
+   USTRING_CLEAR(nick);
+   ustrncat (nick, get_config_string ("netplay", "nick", ""), (sizeof (nick)
+      - 1));
+
+   /* Get dialog. */
+   dialog = netplay_dialog;
+
+   /* Get dialog objects. */
+   obj_host_label = &dialog[NETPLAY_DIALOG_HOST_LABEL];
+   obj_host       = &dialog[NETPLAY_DIALOG_HOST];
+   obj_port       = &dialog[NETPLAY_DIALOG_PORT];
+   obj_nick       = &dialog[NETPLAY_DIALOG_NICK];
+
+   /* Set up dialog objects. */
+
+   obj_host_label->flags |= D_DISABLED;
+  
+   obj_host->d1 = 0;
+   obj_host->dp = host;
+   obj_host->flags |= D_DISABLED;
+
+   obj_port->d1 = (sizeof (port_str) - 1);
+   obj_port->dp = port_str;
+
+   obj_nick->d1 = (sizeof (nick) - 1);
+   obj_nick->dp = nick;
+
+   /* Display dialog. */
+   if (show_dialog (dialog) != NETPLAY_DIALOG_OK_BUTTON)
+      return (D_O_K);
+
+   /* Integerize port. */
+   port = atoi (port_str);
+
+   /* Save configuration. */
+   set_config_int    ("netplay", "port", port);
+   set_config_string ("netplay", "nick", nick);
+
+   /* Start NetPlay session. */
+
+   if (!netplay_open_server (port))
+   {
+      gui_message (GUI_ERROR_COLOR, "Failed to open server!");
+      return (D_O_K);
+   }
+
+   message_local ("NetPlay session opened.");
+
+   /* Set nickname. */
+   netplay_set_nickname (nick);
+
+   /* Open lobby. */
+   return (open_lobby ());
+}
+
+static int netplay_menu_start_as_client (void)
+{
+   STRING host;
+   int port;
+   STRING port_str;
+   USTRING nick;
+   DIALOG *dialog;
+   DIALOG *obj_host_label;
+   DIALOG *obj_host;
+   DIALOG *obj_port;
+   DIALOG *obj_nick;
+          
+   /* Load configuration. */
+
+   STRING_CLEAR(host);
+   strncat (host, get_config_string ("netplay", "host", ""), (sizeof (host)
+      - 1));
+
+   port = get_config_int ("netplay", "port", NETPLAY_DEFAULT_PORT);
+
+   STRING_CLEAR(port_str);
+   sprintf (port_str, "%d", port);
+
+   USTRING_CLEAR(nick);
+   ustrncat (nick, get_config_string ("netplay", "nick", ""), (sizeof (nick)
+      - 1));
+
+   /* Get dialog. */
+   dialog = netplay_dialog;
+
+   /* Get dialog objects. */
+   obj_host_label = &dialog[NETPLAY_DIALOG_HOST_LABEL];
+   obj_host       = &dialog[NETPLAY_DIALOG_HOST];
+   obj_port       = &dialog[NETPLAY_DIALOG_PORT];
+   obj_nick       = &dialog[NETPLAY_DIALOG_NICK];
+
+   /* Set up dialog objects. */
+
+   obj_host_label->flags &= ~D_DISABLED;
+
+   obj_host->d1 = (sizeof (host) - 1);
+   obj_host->dp = host;
+   obj_host->flags &= ~D_DISABLED;
+
+   obj_port->d1 = (sizeof (port_str) - 1);
+   obj_port->dp = port_str;
+
+   obj_nick->d1 = (sizeof (nick) - 1);
+   obj_nick->dp = nick;
+
+   /* Display dialog. */
+   if (show_dialog (dialog) != NETPLAY_DIALOG_OK_BUTTON)
+      return (D_O_K);
+
+   /* Integerize port. */
+   port = atoi (port_str);
+
+   /* Save configuration. */
+   set_config_string ("netplay", "host", host);
+   set_config_int    ("netplay", "port", port);
+   set_config_string ("netplay", "nick", nick);
+
+   /* Start NetPlay session. */
+
+   if (!netplay_open_client (host, port))
+   {
+      gui_message (GUI_ERROR_COLOR, "Failed to connect to remote host!");
+      return (D_O_K);
+   }
+
+   message_local ("NetPlay session opened.");
+
+   /* Set nickname. */
+   netplay_set_nickname (nick);
+
+   /* Open lobby. */
+   return (open_lobby ());
 }
 
 static int help_menu_shortcuts (void)
@@ -3023,7 +3135,7 @@ static int help_menu_version (void)
 /* ---- Dialog handlers. ---- */
 
 
-static int options_patches_dialog_list (DIALOG *dialog)
+static int machine_cheat_manager_dialog_list (DIALOG *dialog)
 {
    CPU_PATCH *patch;
    DIALOG *obj_enabled;
@@ -3035,7 +3147,7 @@ static int options_patches_dialog_list (DIALOG *dialog)
 
    patch = &cpu_patch_info[dialog->d1];
 
-   obj_enabled = &dialog[OPTIONS_PATCHES_DIALOG_ENABLED_CHECKBOX];
+   obj_enabled = &dialog[MACHINE_CHEAT_MANAGER_DIALOG_ENABLED_CHECKBOX];
 
    if (patch->enabled)
       obj_enabled->flags |= D_SELECTED;
@@ -3049,7 +3161,7 @@ static int options_patches_dialog_list (DIALOG *dialog)
    return (D_O_K);
 }
 
-static int options_patches_dialog_add (DIALOG *dialog)
+static int machine_cheat_manager_dialog_add (DIALOG *dialog)
 {
    DIALOG *main_dialog;
    DIALOG *obj_title;
@@ -3068,11 +3180,11 @@ static int options_patches_dialog_add (DIALOG *dialog)
    }
 
    /* Get dialog. */
-   main_dialog = options_patches_add_dialog;
+   main_dialog = machine_cheat_manager_add_dialog;
 
    /* Get dialog objects. */
-   obj_title = &main_dialog[OPTIONS_PATCHES_ADD_DIALOG_TITLE];
-   obj_code  = &main_dialog[OPTIONS_PATCHES_ADD_DIALOG_CODE];
+   obj_title = &main_dialog[MACHINE_CHEAT_MANAGER_ADD_DIALOG_TITLE];
+   obj_code  = &main_dialog[MACHINE_CHEAT_MANAGER_ADD_DIALOG_CODE];
 
    /* Set up dialog objects. */
 
@@ -3085,7 +3197,7 @@ static int options_patches_dialog_add (DIALOG *dialog)
    obj_code->dp = code;
 
    /* Show dialog. */
-   if (show_dialog (main_dialog) != OPTIONS_PATCHES_ADD_DIALOG_OK_BUTTON)
+   if (show_dialog (main_dialog) != MACHINE_CHEAT_MANAGER_ADD_DIALOG_OK_BUTTON)
       return (D_O_K);
 
    patch = &cpu_patch_info[cpu_patch_count];
@@ -3118,7 +3230,7 @@ static int options_patches_dialog_add (DIALOG *dialog)
    return (D_REDRAW);
 }
 
-static int options_patches_dialog_remove (DIALOG *dialog)
+static int machine_cheat_manager_dialog_remove (DIALOG *dialog)
 {
    DIALOG *main_dialog;
    int start;
@@ -3130,9 +3242,9 @@ static int options_patches_dialog_remove (DIALOG *dialog)
    if (cpu_patch_count == 0)
       return (D_O_K);
 
-   main_dialog = options_patches_dialog;
+   main_dialog = machine_cheat_manager_dialog;
 
-   start = main_dialog[OPTIONS_PATCHES_DIALOG_LIST].d1;
+   start = main_dialog[MACHINE_CHEAT_MANAGER_DIALOG_LIST].d1;
    src = &cpu_patch_info[start];
 
    /* Disable patch. */
@@ -3164,14 +3276,14 @@ static int options_patches_dialog_remove (DIALOG *dialog)
 
    if (cpu_patch_count == 0)
    {
-      main_dialog[OPTIONS_PATCHES_DIALOG_ENABLED_CHECKBOX].flags &=
+      main_dialog[MACHINE_CHEAT_MANAGER_DIALOG_ENABLED_CHECKBOX].flags &=
          ~D_SELECTED;
    }
 
    return (D_REDRAW);
 }
 
-static int options_patches_dialog_enabled (DIALOG *dialog)
+static int machine_cheat_manager_dialog_enabled (DIALOG *dialog)
 {
    DIALOG *obj_list;
    CPU_PATCH *patch;
@@ -3185,7 +3297,7 @@ static int options_patches_dialog_enabled (DIALOG *dialog)
       return (D_O_K);
    }
 
-   obj_list = &options_patches_dialog[OPTIONS_PATCHES_DIALOG_LIST];
+   obj_list = &machine_cheat_manager_dialog[MACHINE_CHEAT_MANAGER_DIALOG_LIST];
 
    patch = &cpu_patch_info[obj_list->d1];
 
@@ -3218,14 +3330,14 @@ static int options_patches_dialog_enabled (DIALOG *dialog)
    return (D_O_K);
 }
 
-static USTRING options_patches_dialog_list_texts[CPU_MAX_PATCHES];
+static USTRING machine_cheat_manager_dialog_list_texts[CPU_MAX_PATCHES];
 
-static char *options_patches_dialog_list_filler (int index, int *list_size)
+static char *machine_cheat_manager_dialog_list_filler (int index, int *list_size)
 {
    if (index >= 0)
    {
       CPU_PATCH *patch = &cpu_patch_info[index];
-      UCHAR *text = options_patches_dialog_list_texts[index];
+      UCHAR *text = machine_cheat_manager_dialog_list_texts[index];
 
       USTRING_CLEAR(text);
       uszprintf (text, USTRING_SIZE, "$%04x -$%02x +$%02x %s ",
@@ -3516,170 +3628,4 @@ static int options_input_configure_dialog_calibrate (DIALOG *dialog)
    }
 
    return (D_O_K);
-}
-
-static int options_menu_patches (void)
-{
-   if (show_dialog (options_patches_dialog) ==
-      OPTIONS_PATCHES_DIALOG_SAVE_BUTTON)
-   {
-      save_patches ();
-   }
-
-   return (D_O_K);
-}
-
-static int netplay_menu_start_as_server (void)
-{
-   STRING host;
-   int port;
-   STRING port_str;
-   USTRING nick;
-   DIALOG *dialog;
-   DIALOG *obj_host_label;
-   DIALOG *obj_host;
-   DIALOG *obj_port;
-   DIALOG *obj_nick;
-
-   /* Load configuration. */
-
-   STRING_CLEAR(host);
-
-   port = get_config_int ("netplay", "port", NETPLAY_DEFAULT_PORT);
-
-   STRING_CLEAR(port_str);
-   sprintf (port_str, "%d", port);
-
-   USTRING_CLEAR(nick);
-   ustrncat (nick, get_config_string ("netplay", "nick", ""), (sizeof (nick)
-      - 1));
-
-   /* Get dialog. */
-   dialog = netplay_dialog;
-
-   /* Get dialog objects. */
-   obj_host_label = &dialog[NETPLAY_DIALOG_HOST_LABEL];
-   obj_host       = &dialog[NETPLAY_DIALOG_HOST];
-   obj_port       = &dialog[NETPLAY_DIALOG_PORT];
-   obj_nick       = &dialog[NETPLAY_DIALOG_NICK];
-
-   /* Set up dialog objects. */
-
-   obj_host_label->flags |= D_DISABLED;
-  
-   obj_host->d1 = 0;
-   obj_host->dp = host;
-   obj_host->flags |= D_DISABLED;
-
-   obj_port->d1 = (sizeof (port_str) - 1);
-   obj_port->dp = port_str;
-
-   obj_nick->d1 = (sizeof (nick) - 1);
-   obj_nick->dp = nick;
-
-   /* Display dialog. */
-   if (show_dialog (dialog) != NETPLAY_DIALOG_OK_BUTTON)
-      return (D_O_K);
-
-   /* Integerize port. */
-   port = atoi (port_str);
-
-   /* Save configuration. */
-   set_config_int    ("netplay", "port", port);
-   set_config_string ("netplay", "nick", nick);
-
-   /* Start NetPlay session. */
-
-   if (!netplay_open_server (port))
-   {
-      gui_message (GUI_ERROR_COLOR, "Failed to open server!");
-      return (D_O_K);
-   }
-
-   message_local ("NetPlay session opened.");
-
-   /* Set nickname. */
-   netplay_set_nickname (nick);
-
-   /* Open lobby. */
-   return (open_lobby ());
-}
-
-static int netplay_menu_start_as_client (void)
-{
-   STRING host;
-   int port;
-   STRING port_str;
-   USTRING nick;
-   DIALOG *dialog;
-   DIALOG *obj_host_label;
-   DIALOG *obj_host;
-   DIALOG *obj_port;
-   DIALOG *obj_nick;
-          
-   /* Load configuration. */
-
-   STRING_CLEAR(host);
-   strncat (host, get_config_string ("netplay", "host", ""), (sizeof (host)
-      - 1));
-
-   port = get_config_int ("netplay", "port", NETPLAY_DEFAULT_PORT);
-
-   STRING_CLEAR(port_str);
-   sprintf (port_str, "%d", port);
-
-   USTRING_CLEAR(nick);
-   ustrncat (nick, get_config_string ("netplay", "nick", ""), (sizeof (nick)
-      - 1));
-
-   /* Get dialog. */
-   dialog = netplay_dialog;
-
-   /* Get dialog objects. */
-   obj_host_label = &dialog[NETPLAY_DIALOG_HOST_LABEL];
-   obj_host       = &dialog[NETPLAY_DIALOG_HOST];
-   obj_port       = &dialog[NETPLAY_DIALOG_PORT];
-   obj_nick       = &dialog[NETPLAY_DIALOG_NICK];
-
-   /* Set up dialog objects. */
-
-   obj_host_label->flags &= ~D_DISABLED;
-
-   obj_host->d1 = (sizeof (host) - 1);
-   obj_host->dp = host;
-   obj_host->flags &= ~D_DISABLED;
-
-   obj_port->d1 = (sizeof (port_str) - 1);
-   obj_port->dp = port_str;
-
-   obj_nick->d1 = (sizeof (nick) - 1);
-   obj_nick->dp = nick;
-
-   /* Display dialog. */
-   if (show_dialog (dialog) != NETPLAY_DIALOG_OK_BUTTON)
-      return (D_O_K);
-
-   /* Integerize port. */
-   port = atoi (port_str);
-
-   /* Save configuration. */
-   set_config_string ("netplay", "host", host);
-   set_config_int    ("netplay", "port", port);
-   set_config_string ("netplay", "nick", nick);
-
-   /* Start NetPlay session. */
-
-   if (!netplay_open_client (host, port))
-   {
-      gui_message (GUI_ERROR_COLOR, "Failed to connect to remote host!");
-      return (D_O_K);
-   }
-
-   message_local ("NetPlay session opened.");
-
-   /* Set nickname. */
-   netplay_set_nickname (nick);
-
-   /* Open lobby. */
-   return (open_lobby ());
 }

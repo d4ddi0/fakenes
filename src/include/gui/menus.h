@@ -11,112 +11,50 @@
    else  \
       var &= ~ flag; \
 
-DEFINE_MENU(main_state_select_menu);
-DEFINE_MENU(main_state_autosave_menu);
-DEFINE_MENU(main_state_menu);
 DEFINE_MENU(main_replay_select_menu);
 DEFINE_MENU(main_replay_record_menu);
 DEFINE_MENU(main_replay_play_menu);
 DEFINE_MENU(main_replay_menu);
 DEFINE_MENU(main_menu);
-DEFINE_MENU(netplay_menu);
-DEFINE_MENU(options_gui_theme_menu);
-DEFINE_MENU(options_gui_menu);
-DEFINE_MENU(options_system_region_menu);
-DEFINE_MENU(options_system_cpu_usage_menu);
-DEFINE_MENU(options_system_menu);
-DEFINE_MENU(options_audio_subsystem_menu);
-DEFINE_MENU(options_audio_mixing_channels_menu);
-DEFINE_MENU(options_audio_mixing_frequency_menu);
-DEFINE_MENU(options_audio_mixing_quality_menu);
-DEFINE_MENU(options_audio_mixing_anti_aliasing_menu);
-DEFINE_MENU(options_audio_mixing_menu);
-DEFINE_MENU(options_audio_effects_menu);
-DEFINE_MENU(options_audio_filters_menu);
-DEFINE_MENU(options_audio_channels_menu);
-DEFINE_MENU(options_audio_advanced_menu);
-DEFINE_MENU(options_audio_record_menu);
-DEFINE_MENU(options_audio_menu);
-DEFINE_MENU(options_video_driver_dos_menu);
-DEFINE_MENU(options_video_driver_windows_menu);
-DEFINE_MENU(options_video_driver_linux_menu);
-DEFINE_MENU(options_video_driver_unix_menu);
-DEFINE_MENU(options_video_driver_menu);
-DEFINE_MENU(options_video_resolution_proportionate_menu);
-DEFINE_MENU(options_video_resolution_extended_menu);
-DEFINE_MENU(options_video_resolution_menu);
-DEFINE_MENU(options_video_colors_menu);
-DEFINE_MENU(options_video_blitter_menu);
-DEFINE_MENU(options_video_filters_menu);
-DEFINE_MENU(options_video_layers_menu);
-DEFINE_MENU(options_video_palette_menu);
-DEFINE_MENU(options_video_advanced_menu);
-DEFINE_MENU(options_video_menu);
+DEFINE_MENU(machine_save_state_select_menu);
+DEFINE_MENU(machine_save_state_autosave_menu);
+DEFINE_MENU(machine_save_state_menu);
+DEFINE_MENU(machine_region_menu);
+DEFINE_MENU(machine_menu);
+DEFINE_MENU(audio_subsystem_menu);
+DEFINE_MENU(audio_mixing_channels_menu);
+DEFINE_MENU(audio_mixing_frequency_menu);
+DEFINE_MENU(audio_mixing_quality_menu);
+DEFINE_MENU(audio_mixing_anti_aliasing_menu);
+DEFINE_MENU(audio_mixing_menu);
+DEFINE_MENU(audio_effects_menu);
+DEFINE_MENU(audio_filters_menu);
+DEFINE_MENU(audio_channels_menu);
+DEFINE_MENU(audio_advanced_menu);
+DEFINE_MENU(audio_record_menu);
+DEFINE_MENU(audio_menu);
+DEFINE_MENU(video_driver_dos_menu);
+DEFINE_MENU(video_driver_windows_menu);
+DEFINE_MENU(video_driver_linux_menu);
+DEFINE_MENU(video_driver_unix_menu);
+DEFINE_MENU(video_driver_menu);
+DEFINE_MENU(video_resolution_proportionate_menu);
+DEFINE_MENU(video_resolution_extended_menu);
+DEFINE_MENU(video_resolution_menu);
+DEFINE_MENU(video_colors_menu);
+DEFINE_MENU(video_blitter_menu);
+DEFINE_MENU(video_filters_menu);
+DEFINE_MENU(video_layers_menu);
+DEFINE_MENU(video_palette_menu);
+DEFINE_MENU(video_advanced_menu);
+DEFINE_MENU(video_menu);
 DEFINE_MENU(options_input_menu);
+DEFINE_MENU(options_cpu_usage_menu);
+DEFINE_MENU(options_gui_theme_menu);
 DEFINE_MENU(options_menu);
+DEFINE_MENU(netplay_menu);
 DEFINE_MENU(help_menu);
 DEFINE_MENU(top_menu);
-
-DEFINE_MENU_CALLBACK(main_state_select_menu_0);
-DEFINE_MENU_CALLBACK(main_state_select_menu_1);
-DEFINE_MENU_CALLBACK(main_state_select_menu_2);
-DEFINE_MENU_CALLBACK(main_state_select_menu_3);
-DEFINE_MENU_CALLBACK(main_state_select_menu_4);
-DEFINE_MENU_CALLBACK(main_state_select_menu_5);
-DEFINE_MENU_CALLBACK(main_state_select_menu_6);
-DEFINE_MENU_CALLBACK(main_state_select_menu_7);
-DEFINE_MENU_CALLBACK(main_state_select_menu_8);
-DEFINE_MENU_CALLBACK(main_state_select_menu_9);
-
-static const MENU main_state_select_menu_base[] =
-{
-   { NULL, main_state_select_menu_0, NULL, 0, NULL },
-   { NULL, main_state_select_menu_1, NULL, 0, NULL },
-   { NULL, main_state_select_menu_2, NULL, 0, NULL },
-   { NULL, main_state_select_menu_3, NULL, 0, NULL },
-   { NULL, main_state_select_menu_4, NULL, 0, NULL },
-   { NULL, main_state_select_menu_5, NULL, 0, NULL },
-   { NULL, main_state_select_menu_6, NULL, 0, NULL },
-   { NULL, main_state_select_menu_7, NULL, 0, NULL },
-   { NULL, main_state_select_menu_8, NULL, 0, NULL },
-   { NULL, main_state_select_menu_9, NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(main_state_autosave_menu_disabled);
-DEFINE_MENU_CALLBACK(main_state_autosave_menu_10_seconds);
-DEFINE_MENU_CALLBACK(main_state_autosave_menu_30_seconds);
-DEFINE_MENU_CALLBACK(main_state_autosave_menu_60_seconds);
-
-static const MENU main_state_autosave_menu_base[] =
-{
-   { "&Disabled",      main_state_autosave_menu_disabled,   NULL, 0, NULL },
-   MENU_SPLITTER,
-   { "&1: 10 Seconds", main_state_autosave_menu_10_seconds, NULL, 0, NULL },
-   { "&2: 30 Seconds", main_state_autosave_menu_30_seconds, NULL, 0, NULL },
-   { "&3: 60 Seconds", main_state_autosave_menu_60_seconds, NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(main_state_menu_quick_save);
-DEFINE_MENU_CALLBACK(main_state_menu_quick_load);
-DEFINE_MENU_CALLBACK(main_state_menu_select);
-DEFINE_MENU_CALLBACK(main_state_menu_save);
-DEFINE_MENU_CALLBACK(main_state_menu_restore);
-
-static const MENU main_state_menu_base[] =
-{
-   { "&Quick Save (F2)", main_state_menu_quick_save, NULL,                                  0, NULL },
-   { "Quick &Load (F3)", main_state_menu_quick_load, NULL,                                  0, NULL },
-   MENU_SPLITTER,
-   { "S&elect",          NULL,                       IMPORT_MENU(main_state_select_menu),   0, NULL },
-   MENU_SPLITTER,
-   { "&Save       (F4)", main_state_menu_save,       NULL,                                  0, NULL },
-   { "&Restore    (F5)", main_state_menu_restore,    NULL,                                  0, NULL },
-   MENU_SPLITTER,
-   { "&Autosave",        NULL,                       IMPORT_MENU(main_state_autosave_menu), 0, NULL },
-   MENU_ENDCAP
-};
 
 DEFINE_MENU_CALLBACK(main_replay_select_menu_0);
 DEFINE_MENU_CALLBACK(main_replay_select_menu_1);
@@ -133,7 +71,6 @@ static const MENU main_replay_select_menu_base[] =
    { NULL, main_replay_select_menu_4, NULL, 0, NULL },
    MENU_ENDCAP
 };
-
 
 DEFINE_MENU_CALLBACK(main_replay_record_menu_start);
 DEFINE_MENU_CALLBACK(main_replay_record_menu_stop);
@@ -164,26 +101,116 @@ static const MENU main_replay_menu_base[] =
    MENU_ENDCAP
 };
 
-DEFINE_MENU_CALLBACK(main_menu_load_rom);
 DEFINE_MENU_CALLBACK(main_menu_resume);
-DEFINE_MENU_CALLBACK(main_menu_reset);
-DEFINE_MENU_CALLBACK(main_menu_snapshot);
-DEFINE_MENU_CALLBACK(main_menu_messages);
+DEFINE_MENU_CALLBACK(main_menu_open);
+DEFINE_MENU_CALLBACK(main_menu_save_snapshot);
 DEFINE_MENU_CALLBACK(main_menu_exit);
 
 static const MENU main_menu_base[] =
 {
-   { "&Load ROM...",    main_menu_load_rom, NULL,                          0, NULL },
+   { "&Resume        (ESC)", main_menu_resume,        NULL,                          0,          NULL },
+   MENU_SPLITTER,                                                                       
+   { "&Open...",             main_menu_open,          NULL,                          0,          NULL },
+   { "O&pen Recent",         NULL,                    NULL,                          D_DISABLED, NULL },
+   { "&Close",               NULL,                    NULL,                          D_DISABLED, NULL },
+   MENU_SPLITTER,            
+   { "R&eplay",              NULL,                    IMPORT_MENU(main_replay_menu), 0,          NULL },
+   { "&Save Snapshot (F1)",  main_menu_save_snapshot, NULL,                          0,          NULL },
    MENU_SPLITTER,
-   { "&Resume   (ESC)", main_menu_resume,   NULL,                          0, NULL },
-   { "R&eset",          main_menu_reset,    NULL,                          0, NULL },
-   { "&State",          NULL,               IMPORT_MENU(main_state_menu),  0, NULL },
-   MENU_SPLITTER,
-   { "Re&play",         NULL,               IMPORT_MENU(main_replay_menu), 0, NULL },
-   { "S&napshot (F1)",  main_menu_snapshot, NULL,                          0, NULL },
-   { "&Messages...",    main_menu_messages, NULL,                          0, NULL },
+   { "&View Console...",     NULL,                    NULL,                          D_DISABLED, NULL },
+   { "V&iew Log...",         NULL,                    NULL,                          D_DISABLED, NULL },
    MENU_SPLITTER,       
-   { "E&xit",           main_menu_exit,     NULL,                          0, NULL },
+   { "E&xit",                main_menu_exit,          NULL,                          0,          NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(machine_save_state_select_menu_0);
+DEFINE_MENU_CALLBACK(machine_save_state_select_menu_1);
+DEFINE_MENU_CALLBACK(machine_save_state_select_menu_2);
+DEFINE_MENU_CALLBACK(machine_save_state_select_menu_3);
+DEFINE_MENU_CALLBACK(machine_save_state_select_menu_4);
+DEFINE_MENU_CALLBACK(machine_save_state_select_menu_5);
+DEFINE_MENU_CALLBACK(machine_save_state_select_menu_6);
+DEFINE_MENU_CALLBACK(machine_save_state_select_menu_7);
+DEFINE_MENU_CALLBACK(machine_save_state_select_menu_8);
+DEFINE_MENU_CALLBACK(machine_save_state_select_menu_9);
+
+static const MENU machine_save_state_select_menu_base[] =
+{
+   { NULL, machine_save_state_select_menu_0, NULL, 0, NULL },
+   { NULL, machine_save_state_select_menu_1, NULL, 0, NULL },
+   { NULL, machine_save_state_select_menu_2, NULL, 0, NULL },
+   { NULL, machine_save_state_select_menu_3, NULL, 0, NULL },
+   { NULL, machine_save_state_select_menu_4, NULL, 0, NULL },
+   { NULL, machine_save_state_select_menu_5, NULL, 0, NULL },
+   { NULL, machine_save_state_select_menu_6, NULL, 0, NULL },
+   { NULL, machine_save_state_select_menu_7, NULL, 0, NULL },
+   { NULL, machine_save_state_select_menu_8, NULL, 0, NULL },
+   { NULL, machine_save_state_select_menu_9, NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(machine_save_state_autosave_menu_disabled);
+DEFINE_MENU_CALLBACK(machine_save_state_autosave_menu_10_seconds);
+DEFINE_MENU_CALLBACK(machine_save_state_autosave_menu_30_seconds);
+DEFINE_MENU_CALLBACK(machine_save_state_autosave_menu_60_seconds);
+
+static const MENU machine_save_state_autosave_menu_base[] =
+{
+   { "&Disabled",      machine_save_state_autosave_menu_disabled,   NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&1: 10 Seconds", machine_save_state_autosave_menu_10_seconds, NULL, 0, NULL },
+   { "&2: 30 Seconds", machine_save_state_autosave_menu_30_seconds, NULL, 0, NULL },
+   { "&3: 60 Seconds", machine_save_state_autosave_menu_60_seconds, NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(machine_save_state_menu_quick_save);
+DEFINE_MENU_CALLBACK(machine_save_state_menu_quick_load);
+DEFINE_MENU_CALLBACK(machine_save_state_menu_save);
+DEFINE_MENU_CALLBACK(machine_save_state_menu_load);
+DEFINE_MENU_CALLBACK(machine_save_state_menu_select);
+
+static const MENU machine_save_state_menu_base[] =
+{
+   { "&Quick Save (F2)", machine_save_state_menu_quick_save, NULL,                                          0, NULL },
+   { "Quick &Load (F3)", machine_save_state_menu_quick_load, NULL,                                          0, NULL },
+   MENU_SPLITTER,                                    
+   { "&Save       (F4)", machine_save_state_menu_save,       NULL,                                          0, NULL },
+   { "&Load       (F5)", machine_save_state_menu_load,       NULL,                                          0, NULL },
+   MENU_SPLITTER,
+   { "S&elect",          NULL,                               IMPORT_MENU(machine_save_state_select_menu),   0, NULL },
+   MENU_SPLITTER,
+   { "&Autosave",        NULL,                               IMPORT_MENU(machine_save_state_autosave_menu), 0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(machine_region_menu_automatic);
+DEFINE_MENU_CALLBACK(machine_region_menu_ntsc);
+DEFINE_MENU_CALLBACK(machine_region_menu_pal);
+
+static const MENU machine_region_menu_base[] =
+{
+   { "&Automatic", machine_region_menu_automatic, NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&NTSC",      machine_region_menu_ntsc,      NULL, 0, NULL },
+   { "&PAL",       machine_region_menu_pal,       NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(machine_menu_soft_reset);
+DEFINE_MENU_CALLBACK(machine_menu_hard_reset);
+DEFINE_MENU_CALLBACK(machine_menu_cheat_manager);
+
+static const MENU machine_menu_base[] =
+{
+   { "&Soft Reset",       machine_menu_soft_reset,    NULL,                                  0, NULL },
+   { "&Hard Reset",       machine_menu_hard_reset,    NULL,                                  0, NULL },
+   MENU_SPLITTER,
+   { "&Save State",       NULL,                       IMPORT_MENU(machine_save_state_menu),  0, NULL },
+   { "&Region",           NULL,                       IMPORT_MENU(machine_region_menu),      0, NULL },
+   MENU_SPLITTER,
+   { "&Cheat Manager...", machine_menu_cheat_manager, NULL,                                  0, NULL },
    MENU_ENDCAP
 };
 
@@ -194,6 +221,543 @@ static const MENU netplay_menu_base[] =
 {
    { "&Start as Server...", netplay_menu_start_as_server, NULL, 0, NULL },
    { "Start as &Client...", netplay_menu_start_as_client, NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(audio_subsystem_menu_none);
+DEFINE_MENU_CALLBACK(audio_subsystem_menu_allegro);
+DEFINE_MENU_CALLBACK(audio_subsystem_menu_openal);
+
+static const MENU audio_subsystem_menu_base[] =
+{
+   { "&None",    audio_subsystem_menu_none,    NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&Allegro", audio_subsystem_menu_allegro, NULL, 0, NULL },
+   { "&OpenAL",  audio_subsystem_menu_openal,  NULL, 0, NULL },
+   MENU_ENDCAP
+};                                             
+
+DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_mono);
+DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_stereo_mix);
+DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_pseudo_stereo_mode_1);
+DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_pseudo_stereo_mode_2);
+DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_stereo);
+DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_swap_channels);
+
+static const MENU audio_mixing_channels_menu_base[] =
+{
+   { "&Mono",                   audio_mixing_channels_menu_mono,                 NULL, 0, NULL },
+   { "St&ereo Mix",             audio_mixing_channels_menu_stereo_mix,           NULL, 0, NULL },
+   { "&Pseudo Stereo (Mode 1)", audio_mixing_channels_menu_pseudo_stereo_mode_1, NULL, 0, NULL },
+   { "P&seudo Stereo (Mode 2)", audio_mixing_channels_menu_pseudo_stereo_mode_2, NULL, 0, NULL },
+   { "S&tereo",                 audio_mixing_channels_menu_stereo,               NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "S&wap Channels",          audio_mixing_channels_menu_swap_channels,        NULL, 0, NULL },
+   MENU_ENDCAP
+};                                             
+
+DEFINE_MENU_CALLBACK(audio_mixing_frequency_menu_8000_hz);
+DEFINE_MENU_CALLBACK(audio_mixing_frequency_menu_11025_hz);
+DEFINE_MENU_CALLBACK(audio_mixing_frequency_menu_16000_hz);
+DEFINE_MENU_CALLBACK(audio_mixing_frequency_menu_22050_hz);
+DEFINE_MENU_CALLBACK(audio_mixing_frequency_menu_32000_hz);
+DEFINE_MENU_CALLBACK(audio_mixing_frequency_menu_44100_hz);
+DEFINE_MENU_CALLBACK(audio_mixing_frequency_menu_48000_hz);
+DEFINE_MENU_CALLBACK(audio_mixing_frequency_menu_80200_hz);
+DEFINE_MENU_CALLBACK(audio_mixing_frequency_menu_96000_hz);
+
+static const MENU audio_mixing_frequency_menu_base[] =
+{
+   { "&1: 8000 Hz",  audio_mixing_frequency_menu_8000_hz,  NULL, 0, NULL },
+   { "&2: 11025 Hz", audio_mixing_frequency_menu_11025_hz, NULL, 0, NULL },
+   { "&3: 16000 Hz", audio_mixing_frequency_menu_16000_hz, NULL, 0, NULL },
+   { "&4: 22050 Hz", audio_mixing_frequency_menu_22050_hz, NULL, 0, NULL },
+   { "&5: 32000 Hz", audio_mixing_frequency_menu_32000_hz, NULL, 0, NULL },
+   { "&6: 44100 Hz", audio_mixing_frequency_menu_44100_hz, NULL, 0, NULL },
+   { "&7: 48000 Hz", audio_mixing_frequency_menu_48000_hz, NULL, 0, NULL },
+   { "&8: 80200 Hz", audio_mixing_frequency_menu_80200_hz, NULL, 0, NULL },
+   { "&9: 96000 Hz", audio_mixing_frequency_menu_96000_hz, NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(audio_mixing_quality_menu_low_8_bit);
+DEFINE_MENU_CALLBACK(audio_mixing_quality_menu_high_16_bit);
+DEFINE_MENU_CALLBACK(audio_mixing_quality_menu_interpolation);
+DEFINE_MENU_CALLBACK(audio_mixing_quality_menu_dithering);
+
+static const MENU audio_mixing_quality_menu_base[] =
+{
+   { "&Low (8 bits)",   audio_mixing_quality_menu_low_8_bit,     NULL, 0, NULL },
+   { "&High (16 bits)", audio_mixing_quality_menu_high_16_bit,   NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&Interpolation",  audio_mixing_quality_menu_interpolation, NULL, 0, NULL },
+   { "&Dithering",      audio_mixing_quality_menu_dithering,     NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(audio_mixing_anti_aliasing_menu_disabled);
+DEFINE_MENU_CALLBACK(audio_mixing_anti_aliasing_menu_bilinear_2x);
+DEFINE_MENU_CALLBACK(audio_mixing_anti_aliasing_menu_bilinear_4x);
+DEFINE_MENU_CALLBACK(audio_mixing_anti_aliasing_menu_bilinear_8x);
+DEFINE_MENU_CALLBACK(audio_mixing_anti_aliasing_menu_bilinear_16x);
+
+static const MENU audio_mixing_anti_aliasing_menu_base[] =
+{
+   { "&Disabled",         audio_mixing_anti_aliasing_menu_disabled,     NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&1: Bi-linear 2X",  audio_mixing_anti_aliasing_menu_bilinear_2x,  NULL, 0, NULL },
+   { "&2: Bi-linear 4X",  audio_mixing_anti_aliasing_menu_bilinear_4x,  NULL, 0, NULL },
+   { "&3: Bi-linear 8X",  audio_mixing_anti_aliasing_menu_bilinear_8x,  NULL, 0, NULL },
+   { "&4: Bi-linear 16X", audio_mixing_anti_aliasing_menu_bilinear_16x, NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+static const MENU audio_mixing_menu_base[] =
+{
+   { "&Frequency",     NULL, IMPORT_MENU(audio_mixing_frequency_menu),     0, NULL },
+   { "&Channels",      NULL, IMPORT_MENU(audio_mixing_channels_menu),      0, NULL },
+   { "&Quality",       NULL, IMPORT_MENU(audio_mixing_quality_menu),       0, NULL },
+   { "&Anti-aliasing", NULL, IMPORT_MENU(audio_mixing_anti_aliasing_menu), 0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(audio_effects_menu_linear_echo);
+DEFINE_MENU_CALLBACK(audio_effects_menu_spatial_stereo_mode_1);
+DEFINE_MENU_CALLBACK(audio_effects_menu_spatial_stereo_mode_2);
+DEFINE_MENU_CALLBACK(audio_effects_menu_spatial_stereo_mode_3);
+
+static const MENU audio_effects_menu_base[] =
+{                          
+   { "&Linear Echo",             audio_effects_menu_linear_echo,           NULL, 0, NULL },
+   { "&Spatial Stereo (Mode 1)", audio_effects_menu_spatial_stereo_mode_1, NULL, 0, NULL },
+   { "S&patial Stereo (Mode 2)", audio_effects_menu_spatial_stereo_mode_2, NULL, 0, NULL },
+   { "Sp&atial Stereo (Mode 3)", audio_effects_menu_spatial_stereo_mode_3, NULL, 0, NULL },
+   MENU_ENDCAP   
+};
+
+DEFINE_MENU_CALLBACK(audio_filters_menu_low_pass_mode_1);
+DEFINE_MENU_CALLBACK(audio_filters_menu_low_pass_mode_2);
+DEFINE_MENU_CALLBACK(audio_filters_menu_low_pass_mode_3);
+DEFINE_MENU_CALLBACK(audio_filters_menu_high_pass);
+DEFINE_MENU_CALLBACK(audio_filters_menu_delta_sigma_filter);
+
+static const MENU audio_filters_menu_base[] =
+{     
+   { "&Low Pass (Mode 1)",  audio_filters_menu_low_pass_mode_1,    NULL, 0, NULL },
+   { "L&ow Pass (Mode 2)",  audio_filters_menu_low_pass_mode_2,    NULL, 0, NULL },
+   { "Lo&w Pass (Mode 3)",  audio_filters_menu_low_pass_mode_3,    NULL, 0, NULL },
+   { "&High Pass",          audio_filters_menu_high_pass,          NULL, 0, NULL },
+   { "&Delta-Sigma Filter", audio_filters_menu_delta_sigma_filter, NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(audio_channels_menu_square_wave_a);
+DEFINE_MENU_CALLBACK(audio_channels_menu_square_wave_b);
+DEFINE_MENU_CALLBACK(audio_channels_menu_triangle_wave);
+DEFINE_MENU_CALLBACK(audio_channels_menu_white_noise);
+DEFINE_MENU_CALLBACK(audio_channels_menu_digital);
+DEFINE_MENU_CALLBACK(audio_channels_menu_extended);
+
+static const MENU audio_channels_menu_base[] =
+{
+   { "&Square Wave A", audio_channels_menu_square_wave_a, NULL, 0, NULL },
+   { "S&quare Wave B", audio_channels_menu_square_wave_b, NULL, 0, NULL },
+   { "&Triangle Wave", audio_channels_menu_triangle_wave, NULL, 0, NULL },
+   { "&White Noise",   audio_channels_menu_white_noise,   NULL, 0, NULL },
+   { "&Digital",       audio_channels_menu_digital,       NULL, 0, NULL },
+   { "&Extended",      audio_channels_menu_extended,      NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(audio_advanced_menu_ideal_triangle);
+DEFINE_MENU_CALLBACK(audio_advanced_menu_hard_sync);
+
+static const MENU audio_advanced_menu_base[] =
+{
+   { "&Ideal Triangle", audio_advanced_menu_ideal_triangle, NULL, 0, NULL },
+   { "&Hard Sync",      audio_advanced_menu_hard_sync,      NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(audio_record_menu_start);
+DEFINE_MENU_CALLBACK(audio_record_menu_stop);
+
+static const MENU audio_record_menu_base[] =
+{
+   { "&Start", audio_record_menu_start, NULL, 0,          NULL },
+   { "S&top",  audio_record_menu_stop,  NULL, D_DISABLED, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(audio_menu_enabled);
+
+static const MENU audio_menu_base[] =
+{
+   { "&Enabled",   audio_menu_enabled, NULL,                                      0, NULL },
+   MENU_SPLITTER,
+   { "&Subsystem", NULL,                       IMPORT_MENU(audio_subsystem_menu), 0, NULL },
+   { "&Mixing",    NULL,                       IMPORT_MENU(audio_mixing_menu),    0, NULL },
+   { "Effec&ts",   NULL,                       IMPORT_MENU(audio_effects_menu),   0, NULL },
+   { "&Filters",   NULL,                       IMPORT_MENU(audio_filters_menu),   0, NULL },
+   { "&Channels",  NULL,                       IMPORT_MENU(audio_channels_menu),  0, NULL },
+   { "&Advanced",  NULL,                       IMPORT_MENU(audio_advanced_menu),  0, NULL },
+   MENU_SPLITTER,
+   { "&Record",    NULL,                       IMPORT_MENU(audio_record_menu),    0, NULL },
+   MENU_ENDCAP
+};
+
+#ifdef ALLEGRO_DOS
+
+DEFINE_MENU_CALLBACK(video_driver_dos_menu_vga);
+DEFINE_MENU_CALLBACK(video_driver_dos_menu_vga_mode_x);
+DEFINE_MENU_CALLBACK(video_driver_dos_menu_vesa);
+DEFINE_MENU_CALLBACK(video_driver_dos_menu_vesa_2_banked);
+DEFINE_MENU_CALLBACK(video_driver_dos_menu_vesa_2_linear);
+DEFINE_MENU_CALLBACK(video_driver_dos_menu_vesa_3);
+DEFINE_MENU_CALLBACK(video_driver_dos_menu_vesa_vbe_af);
+
+static const MENU video_driver_dos_menu_base[] =
+{
+   { "&VGA",           video_driver_dos_menu_vga,           NULL, 0, NULL },
+   { "VGA Mode-&X",    video_driver_dos_menu_vga_mode_x,    NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "V&ESA",          video_driver_dos_menu_vesa,          NULL, 0, NULL },
+   { "VESA 2 &Banked", video_driver_dos_menu_vesa_2_banked, NULL, 0, NULL },
+   { "VESA 2 &Linear", video_driver_dos_menu_vesa_2_linear, NULL, 0, NULL },
+   { "VE&SA 3",        video_driver_dos_menu_vesa_3,        NULL, 0, NULL },
+   { "VESA VBE/&AF",   video_driver_dos_menu_vesa_vbe_af,   NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+#else /* ALLEGRO_DOS */
+
+static const MENU video_driver_dos_menu_base[] =
+{
+   MENU_ENDCAP
+};
+
+#endif   /* !ALLEGRO_DOS */
+
+#ifdef ALLEGRO_WINDOWS
+
+DEFINE_MENU_CALLBACK(video_driver_windows_menu_directx);
+DEFINE_MENU_CALLBACK(video_driver_windows_menu_directx_window);
+DEFINE_MENU_CALLBACK(video_driver_windows_menu_directx_overlay);
+DEFINE_MENU_CALLBACK(video_driver_windows_menu_gdi);
+
+static const MENU video_driver_windows_menu_base[] =
+{
+   { "&DirectX",         video_driver_windows_menu_directx,         NULL, 0, NULL },
+   { "DirectX &Window",  video_driver_windows_menu_directx_window,  NULL, 0, NULL },
+   { "DirectX &Overlay", video_driver_windows_menu_directx_overlay, NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&GDI",             video_driver_windows_menu_gdi,             NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+#else /* ALLEGRO_WINDOWS */
+
+static const MENU video_driver_windows_menu_base[] =
+{
+   MENU_ENDCAP
+};
+
+#endif   /* !ALLEGRO_WINDOWS */
+
+#ifdef ALLEGRO_LINUX
+
+DEFINE_MENU_CALLBACK(video_driver_linux_menu_vga);
+DEFINE_MENU_CALLBACK(video_driver_linux_menu_vga_mode_x);
+DEFINE_MENU_CALLBACK(video_driver_linux_menu_vesa_vbe_af);
+DEFINE_MENU_CALLBACK(video_driver_linux_menu_framebuffer);
+DEFINE_MENU_CALLBACK(video_driver_linux_menu_svgalib);
+
+static const MENU video_driver_linux_menu_base[] =
+{
+   { "&VGA",         video_driver_linux_menu_vga,         NULL, 0, NULL },
+   { "VGA Mode-&X",  video_driver_linux_menu_vga_mode_x,  NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "VESA VBE/&AF", video_driver_linux_menu_vesa_vbe_af, NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&Framebuffer", video_driver_linux_menu_framebuffer, NULL, 0, NULL },
+   { "&SVGAlib",     video_driver_linux_menu_svgalib,     NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+#else /* ALLEGRO_LINUX */
+
+static const MENU video_driver_linux_menu_base[] =
+{
+   MENU_ENDCAP
+};
+
+#endif   /* !ALLEGRO_LINUX */
+
+#ifdef ALLEGRO_UNIX
+
+DEFINE_MENU_CALLBACK(video_driver_unix_menu_x_windows);
+DEFINE_MENU_CALLBACK(video_driver_unix_menu_x_windows_full);
+DEFINE_MENU_CALLBACK(video_driver_unix_menu_x_dga);
+DEFINE_MENU_CALLBACK(video_driver_unix_menu_x_dga_full);
+DEFINE_MENU_CALLBACK(video_driver_unix_menu_x_dga_2);
+
+static const MENU video_driver_unix_menu_base[] =
+{
+   { "X &Windows",      video_driver_unix_menu_x_windows,      NULL, 0, NULL },
+   { "X &Windows Full", video_driver_unix_menu_x_windows_full, NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "X/&DGA",          video_driver_unix_menu_x_dga,          NULL, 0, NULL },
+   { "X/&DGA FULL",     video_driver_unix_menu_x_dga_full,     NULL, 0, NULL },
+   { "X/D&GA 2",        video_driver_unix_menu_x_dga_2,        NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+#else /* ALLEGRO_UNIX */
+
+static const MENU video_driver_unix_menu_base[] =
+{
+   MENU_ENDCAP
+};
+
+#endif   /* !ALLEGRO_UNIX */
+
+DEFINE_MENU_CALLBACK(video_driver_menu_automatic);
+
+static const MENU video_driver_menu_base[] =
+{
+   { "&Automatic", video_driver_menu_automatic, NULL,                                           0, NULL },
+   MENU_SPLITTER,
+   { "&DOS",       NULL,                                IMPORT_MENU(video_driver_dos_menu),     0, NULL },
+   { "&Windows",   NULL,                                IMPORT_MENU(video_driver_windows_menu), 0, NULL },
+   { "&Linux",     NULL,                                IMPORT_MENU(video_driver_linux_menu),   0, NULL },
+   { "&Unix",      NULL,                                IMPORT_MENU(video_driver_unix_menu),    0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(video_resolution_proportionate_menu_256_224);
+DEFINE_MENU_CALLBACK(video_resolution_proportionate_menu_256_240);
+DEFINE_MENU_CALLBACK(video_resolution_proportionate_menu_512_448);
+DEFINE_MENU_CALLBACK(video_resolution_proportionate_menu_512_480);
+DEFINE_MENU_CALLBACK(video_resolution_proportionate_menu_768_672);
+DEFINE_MENU_CALLBACK(video_resolution_proportionate_menu_768_720);
+DEFINE_MENU_CALLBACK(video_resolution_proportionate_menu_1024_896);
+DEFINE_MENU_CALLBACK(video_resolution_proportionate_menu_1024_960);
+DEFINE_MENU_CALLBACK(video_resolution_proportionate_menu_1280_1120);
+DEFINE_MENU_CALLBACK(video_resolution_proportionate_menu_1280_1200);
+
+static const MENU video_resolution_proportionate_menu_base[] =
+{
+   { " &1: 256x224",   video_resolution_proportionate_menu_256_224,   NULL, 0, NULL },
+   { " &2: 256x240",   video_resolution_proportionate_menu_256_240,   NULL, 0, NULL },
+   { " &3: 512x448",   video_resolution_proportionate_menu_512_448,   NULL, 0, NULL },
+   { " &4: 512x480",   video_resolution_proportionate_menu_512_480,   NULL, 0, NULL },
+   { " &5: 768x672",   video_resolution_proportionate_menu_768_672,   NULL, 0, NULL },
+   { " &6: 768x720",   video_resolution_proportionate_menu_768_720,   NULL, 0, NULL },
+   { " &7: 1152x896",  video_resolution_proportionate_menu_1024_896,  NULL, 0, NULL },
+   { " &8: 1152x900",  video_resolution_proportionate_menu_1024_960,  NULL, 0, NULL },
+   { " &9: 1280x1120", video_resolution_proportionate_menu_1280_1120, NULL, 0, NULL },
+   { "1&0: 1280x1200", video_resolution_proportionate_menu_1280_1200, NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(video_resolution_extended_menu_400_300);
+DEFINE_MENU_CALLBACK(video_resolution_extended_menu_480_360);
+DEFINE_MENU_CALLBACK(video_resolution_extended_menu_512_384);
+DEFINE_MENU_CALLBACK(video_resolution_extended_menu_640_400);
+DEFINE_MENU_CALLBACK(video_resolution_extended_menu_720_480);
+DEFINE_MENU_CALLBACK(video_resolution_extended_menu_720_576);
+DEFINE_MENU_CALLBACK(video_resolution_extended_menu_848_480);
+DEFINE_MENU_CALLBACK(video_resolution_extended_menu_1280_720);
+DEFINE_MENU_CALLBACK(video_resolution_extended_menu_1280_960);
+DEFINE_MENU_CALLBACK(video_resolution_extended_menu_1360_768);
+
+static const MENU video_resolution_extended_menu_base[] =
+{
+   { " &1: 400x300",  video_resolution_extended_menu_400_300,  NULL, 0, NULL },
+   { " &2: 480x360",  video_resolution_extended_menu_480_360,  NULL, 0, NULL },
+   { " &3: 512x384",  video_resolution_extended_menu_512_384,  NULL, 0, NULL },
+   { " &4: 640x400",  video_resolution_extended_menu_640_400,  NULL, 0, NULL },
+   { " &5: 720x480",  video_resolution_extended_menu_720_480,  NULL, 0, NULL },
+   { " &6: 720x576",  video_resolution_extended_menu_720_576,  NULL, 0, NULL },
+   { " &7: 848x480",  video_resolution_extended_menu_848_480,  NULL, 0, NULL },
+   { " &8: 1280x720", video_resolution_extended_menu_1280_720, NULL, 0, NULL },
+   { " &9: 1280x960", video_resolution_extended_menu_1280_960, NULL, 0, NULL },
+   { "1&0: 1360x768", video_resolution_extended_menu_1360_768, NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(video_resolution_menu_320_240);
+DEFINE_MENU_CALLBACK(video_resolution_menu_640_480);
+DEFINE_MENU_CALLBACK(video_resolution_menu_800_600);
+DEFINE_MENU_CALLBACK(video_resolution_menu_1024_768);
+DEFINE_MENU_CALLBACK(video_resolution_menu_1152_864);
+DEFINE_MENU_CALLBACK(video_resolution_menu_1280_1024);
+DEFINE_MENU_CALLBACK(video_resolution_menu_1600_1200);
+
+static const MENU video_resolution_menu_base[] =
+{
+   { "&Proportionate", NULL,                                    IMPORT_MENU(video_resolution_proportionate_menu), 0, NULL },
+   MENU_SPLITTER,
+   { "&1: 320x240",    video_resolution_menu_320_240,   NULL,                                                     0, NULL },
+   { "&2: 640x480",    video_resolution_menu_640_480,   NULL,                                                     0, NULL },
+   { "&3: 800x600",    video_resolution_menu_800_600,   NULL,                                                     0, NULL },
+   { "&4: 1024x768",   video_resolution_menu_1024_768,  NULL,                                                     0, NULL },
+   { "&5: 1152x864",   video_resolution_menu_1152_864,  NULL,                                                     0, NULL },
+   { "&6: 1280x1024",  video_resolution_menu_1280_1024, NULL,                                                     0, NULL },
+   { "&7: 1600x1200",  video_resolution_menu_1600_1200, NULL,                                                     0, NULL },
+   MENU_SPLITTER,
+   { "&Extended",      NULL,                                    IMPORT_MENU(video_resolution_extended_menu),      0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(video_colors_menu_paletted_8_bit);
+DEFINE_MENU_CALLBACK(video_colors_menu_true_color_15_bit);
+DEFINE_MENU_CALLBACK(video_colors_menu_true_color_16_bit);
+DEFINE_MENU_CALLBACK(video_colors_menu_true_color_24_bit);
+DEFINE_MENU_CALLBACK(video_colors_menu_true_color_32_bit);
+
+static const MENU video_colors_menu_base[] =
+{
+   { "&Paletted (8-bit)",    video_colors_menu_paletted_8_bit,    NULL, 0, NULL },
+   { "&True Color (15-bit)", video_colors_menu_true_color_15_bit, NULL, 0, NULL },
+   { "T&rue Color (16-bit)", video_colors_menu_true_color_16_bit, NULL, 0, NULL },
+   { "Tr&ue Color (24-bit)", video_colors_menu_true_color_24_bit, NULL, 0, NULL },
+   { "Tru&e Color (32-bit)", video_colors_menu_true_color_32_bit, NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(video_blitter_menu_automatic);
+DEFINE_MENU_CALLBACK(video_blitter_menu_normal);
+DEFINE_MENU_CALLBACK(video_blitter_menu_des);
+DEFINE_MENU_CALLBACK(video_blitter_menu_interpolated_2x);
+DEFINE_MENU_CALLBACK(video_blitter_menu_2xscl);
+DEFINE_MENU_CALLBACK(video_blitter_menu_desii);
+DEFINE_MENU_CALLBACK(video_blitter_menu_super_2xscl);
+DEFINE_MENU_CALLBACK(video_blitter_menu_ultra_2xscl);
+DEFINE_MENU_CALLBACK(video_blitter_menu_hq2x);
+DEFINE_MENU_CALLBACK(video_blitter_menu_interpolated_3x);
+DEFINE_MENU_CALLBACK(video_blitter_menu_hq3x);
+DEFINE_MENU_CALLBACK(video_blitter_menu_hq4x);
+DEFINE_MENU_CALLBACK(video_blitter_menu_stretched);
+DEFINE_MENU_CALLBACK(video_blitter_menu_nes_ntsc);
+
+static const MENU video_blitter_menu_base[] =
+{
+   { "&Automatic",           video_blitter_menu_automatic,       NULL, 0, NULL },
+   MENU_SPLITTER,
+   { " &1: Normal",          video_blitter_menu_normal,          NULL, 0, NULL },
+   { " &2: DES",             video_blitter_menu_des,             NULL, 0, NULL },
+   { " &3: Interpolated 2X", video_blitter_menu_interpolated_2x, NULL, 0, NULL },
+   { " &4: 2xSCL",           video_blitter_menu_2xscl,           NULL, 0, NULL },
+   { " &5: DESii",           video_blitter_menu_desii,           NULL, 0, NULL },
+   { " &6: Super 2xSCL",     video_blitter_menu_super_2xscl,     NULL, 0, NULL },
+   { " &7: Ultra 2xSCL",     video_blitter_menu_ultra_2xscl,     NULL, 0, NULL },
+   { " &8: HQ2X",            video_blitter_menu_hq2x,            NULL, 0, NULL },
+   { " &9: nes_ntsc",        video_blitter_menu_nes_ntsc,        NULL, 0, NULL },
+   { "1&0: Interpolated 3X", video_blitter_menu_interpolated_3x, NULL, 0, NULL },
+   { "11: &HQ3X",            video_blitter_menu_hq3x,            NULL, 0, NULL },
+   { "11: H&Q4X",            video_blitter_menu_hq4x,            NULL, 0, NULL },
+   { "13: &Stretched",       video_blitter_menu_stretched,       NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(video_filters_menu_scanlines_25_percent);
+DEFINE_MENU_CALLBACK(video_filters_menu_scanlines_50_percent);
+DEFINE_MENU_CALLBACK(video_filters_menu_scanlines_100_percent);
+
+static const MENU video_filters_menu_base[] =
+{
+   { "&Scanlines (25%)",  video_filters_menu_scanlines_25_percent,  NULL, 0, NULL },
+   { "S&canlines (50%)",  video_filters_menu_scanlines_50_percent,  NULL, 0, NULL },
+   { "Sc&anlines (100%)", video_filters_menu_scanlines_100_percent, NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(video_layers_menu_sprites_a);
+DEFINE_MENU_CALLBACK(video_layers_menu_sprites_b);
+DEFINE_MENU_CALLBACK(video_layers_menu_background);
+
+static const MENU video_layers_menu_base[] =
+{
+   { "&Sprites A  (F7)", video_layers_menu_sprites_a,  NULL, 0, NULL },
+   { "S&prites B  (F7)", video_layers_menu_sprites_b,  NULL, 0, NULL },
+   { "&Background (F8)", video_layers_menu_background, NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(video_palette_menu_ntsc_color);
+DEFINE_MENU_CALLBACK(video_palette_menu_ntsc_grayscale);
+DEFINE_MENU_CALLBACK(video_palette_menu_gnuboy);
+DEFINE_MENU_CALLBACK(video_palette_menu_nester);
+DEFINE_MENU_CALLBACK(video_palette_menu_nesticle);
+DEFINE_MENU_CALLBACK(video_palette_menu_modern_ntsc);
+DEFINE_MENU_CALLBACK(video_palette_menu_modern_pal);
+DEFINE_MENU_CALLBACK(video_palette_menu_ega_mode_1);
+DEFINE_MENU_CALLBACK(video_palette_menu_ega_mode_2);
+DEFINE_MENU_CALLBACK(video_palette_menu_custom);
+
+static const MENU video_palette_menu_base[] =
+{
+   { "NTSC &Color",     video_palette_menu_ntsc_color,     NULL, 0, NULL },
+   { "NTSC &Grayscale", video_palette_menu_ntsc_grayscale, NULL, 0, NULL },
+   { "gn&uboy",         video_palette_menu_gnuboy,         NULL, 0, NULL },
+   { "&NESter",         video_palette_menu_nester,         NULL, 0, NULL },
+   { "N&ESticle",       video_palette_menu_nesticle,       NULL, 0, NULL },
+   { "&Modern NTSC",    video_palette_menu_modern_ntsc,    NULL, 0, NULL },
+   { "Modern &PAL",     video_palette_menu_modern_pal,     NULL, 0, NULL },
+   { "&EGA (Mode 1)",   video_palette_menu_ega_mode_1,     NULL, 0, NULL },
+   { "EG&A (Mode 2)",   video_palette_menu_ega_mode_2,     NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "Cu&stom",         video_palette_menu_custom,         NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(video_advanced_menu_force_fullscreen);
+
+static const MENU video_advanced_menu_base[] =
+{
+   { "&Force Fullscreen", video_advanced_menu_force_fullscreen, NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(video_menu_vsync);
+
+static const MENU video_menu_base[] =
+{
+   { "&Driver",     NULL,                     IMPORT_MENU(video_driver_menu),     0, NULL },
+   { "&Resolution", NULL,                     IMPORT_MENU(video_resolution_menu), 0, NULL },
+   { "&Colors",     NULL,                     IMPORT_MENU(video_colors_menu),     0, NULL },
+   { "&Blitter",    NULL,                     IMPORT_MENU(video_blitter_menu),    0, NULL },
+   { "&Filters",    NULL,                     IMPORT_MENU(video_filters_menu),    0, NULL },
+   MENU_SPLITTER,
+   { "&VSync",      video_menu_vsync, NULL,                                       0, NULL },
+   MENU_SPLITTER,
+   { "&Layers",     NULL,                     IMPORT_MENU(video_layers_menu),     0, NULL },
+   { "&Palette",    NULL,                     IMPORT_MENU(video_palette_menu),    0, NULL },
+   { "&Advanced",   NULL,                     IMPORT_MENU(video_advanced_menu),   0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(options_input_menu_enable_zapper);
+DEFINE_MENU_CALLBACK(options_input_menu_configure);
+
+static const MENU options_input_menu_base[] =
+{
+   { "Enable &Zapper", options_input_menu_enable_zapper, NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&Configure...",  options_input_menu_configure,     NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
+DEFINE_MENU_CALLBACK(options_cpu_usage_menu_passive);
+DEFINE_MENU_CALLBACK(options_cpu_usage_menu_normal);
+DEFINE_MENU_CALLBACK(options_cpu_usage_menu_aggressive);
+
+static const MENU options_cpu_usage_menu_base[] =
+{
+   { "&Passive/Laptop", options_cpu_usage_menu_passive,    NULL, 0, NULL },
+   { "&Normal",         options_cpu_usage_menu_normal,     NULL, 0, NULL },
+   { "&Aggressive",     options_cpu_usage_menu_aggressive, NULL, 0, NULL },
    MENU_ENDCAP
 };
 
@@ -211,585 +775,16 @@ static const MENU options_gui_theme_menu_base[] =
    MENU_ENDCAP
 };
 
-static const MENU options_gui_menu_base [] =
-{
-   { "&Theme", NULL, IMPORT_MENU(options_gui_theme_menu), 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(options_system_region_menu_automatic);
-DEFINE_MENU_CALLBACK(options_system_region_menu_ntsc);
-DEFINE_MENU_CALLBACK(options_system_region_menu_pal);
-
-static const MENU options_system_region_menu_base[] =
-{
-   { "&Automatic", options_system_region_menu_automatic, NULL, 0, NULL },
-   MENU_SPLITTER,
-   { "&NTSC",      options_system_region_menu_ntsc,      NULL, 0, NULL },
-   { "&PAL",       options_system_region_menu_pal,       NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(options_system_cpu_usage_menu_passive);
-DEFINE_MENU_CALLBACK(options_system_cpu_usage_menu_normal);
-DEFINE_MENU_CALLBACK(options_system_cpu_usage_menu_aggressive);
-
-static const MENU options_system_cpu_usage_menu_base[] =
-{
-   { "&Passive/Laptop", options_system_cpu_usage_menu_passive,    NULL, 0, NULL },
-   { "&Normal",         options_system_cpu_usage_menu_normal,     NULL, 0, NULL },
-   { "&Aggressive",     options_system_cpu_usage_menu_aggressive, NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-static const MENU options_system_menu_base[] =
-{
-   { "&Region",    NULL, IMPORT_MENU(options_system_region_menu),    0, NULL },
-   MENU_SPLITTER,
-   { "&CPU Usage", NULL, IMPORT_MENU(options_system_cpu_usage_menu), 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(options_audio_subsystem_menu_none);
-DEFINE_MENU_CALLBACK(options_audio_subsystem_menu_allegro);
-DEFINE_MENU_CALLBACK(options_audio_subsystem_menu_openal);
-
-static const MENU options_audio_subsystem_menu_base[] =
-{
-   { "&None",    options_audio_subsystem_menu_none,    NULL, 0, NULL },
-   MENU_SPLITTER,
-   { "&Allegro", options_audio_subsystem_menu_allegro, NULL, 0, NULL },
-   { "&OpenAL",  options_audio_subsystem_menu_openal,  NULL, 0, NULL },
-   MENU_ENDCAP
-};                                             
-
-DEFINE_MENU_CALLBACK(options_audio_mixing_channels_menu_mono);
-DEFINE_MENU_CALLBACK(options_audio_mixing_channels_menu_stereo_mix);
-DEFINE_MENU_CALLBACK(options_audio_mixing_channels_menu_pseudo_stereo_mode_1);
-DEFINE_MENU_CALLBACK(options_audio_mixing_channels_menu_pseudo_stereo_mode_2);
-DEFINE_MENU_CALLBACK(options_audio_mixing_channels_menu_stereo);
-DEFINE_MENU_CALLBACK(options_audio_mixing_channels_menu_swap_channels);
-
-static const MENU options_audio_mixing_channels_menu_base[] =
-{
-   { "&Mono",                   options_audio_mixing_channels_menu_mono,                 NULL, 0, NULL },
-   { "St&ereo Mix",             options_audio_mixing_channels_menu_stereo_mix,           NULL, 0, NULL },
-   { "&Pseudo Stereo (Mode 1)", options_audio_mixing_channels_menu_pseudo_stereo_mode_1, NULL, 0, NULL },
-   { "P&seudo Stereo (Mode 2)", options_audio_mixing_channels_menu_pseudo_stereo_mode_2, NULL, 0, NULL },
-   { "S&tereo",                 options_audio_mixing_channels_menu_stereo,               NULL, 0, NULL },
-   MENU_SPLITTER,
-   { "S&wap Channels",          options_audio_mixing_channels_menu_swap_channels,        NULL, 0, NULL },
-   MENU_ENDCAP
-};                                             
-
-DEFINE_MENU_CALLBACK(options_audio_mixing_frequency_menu_8000_hz);
-DEFINE_MENU_CALLBACK(options_audio_mixing_frequency_menu_11025_hz);
-DEFINE_MENU_CALLBACK(options_audio_mixing_frequency_menu_16000_hz);
-DEFINE_MENU_CALLBACK(options_audio_mixing_frequency_menu_22050_hz);
-DEFINE_MENU_CALLBACK(options_audio_mixing_frequency_menu_32000_hz);
-DEFINE_MENU_CALLBACK(options_audio_mixing_frequency_menu_44100_hz);
-DEFINE_MENU_CALLBACK(options_audio_mixing_frequency_menu_48000_hz);
-DEFINE_MENU_CALLBACK(options_audio_mixing_frequency_menu_80200_hz);
-DEFINE_MENU_CALLBACK(options_audio_mixing_frequency_menu_96000_hz);
-
-static const MENU options_audio_mixing_frequency_menu_base[] =
-{
-   { "&1: 8000 Hz",  options_audio_mixing_frequency_menu_8000_hz,  NULL, 0, NULL },
-   { "&2: 11025 Hz", options_audio_mixing_frequency_menu_11025_hz, NULL, 0, NULL },
-   { "&3: 16000 Hz", options_audio_mixing_frequency_menu_16000_hz, NULL, 0, NULL },
-   { "&4: 22050 Hz", options_audio_mixing_frequency_menu_22050_hz, NULL, 0, NULL },
-   { "&5: 32000 Hz", options_audio_mixing_frequency_menu_32000_hz, NULL, 0, NULL },
-   { "&6: 44100 Hz", options_audio_mixing_frequency_menu_44100_hz, NULL, 0, NULL },
-   { "&7: 48000 Hz", options_audio_mixing_frequency_menu_48000_hz, NULL, 0, NULL },
-   { "&8: 80200 Hz", options_audio_mixing_frequency_menu_80200_hz, NULL, 0, NULL },
-   { "&9: 96000 Hz", options_audio_mixing_frequency_menu_96000_hz, NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(options_audio_mixing_quality_menu_low_8_bit);
-DEFINE_MENU_CALLBACK(options_audio_mixing_quality_menu_high_16_bit);
-DEFINE_MENU_CALLBACK(options_audio_mixing_quality_menu_interpolation);
-DEFINE_MENU_CALLBACK(options_audio_mixing_quality_menu_dithering);
-
-static const MENU options_audio_mixing_quality_menu_base[] =
-{
-   { "&Low (8 bits)",   options_audio_mixing_quality_menu_low_8_bit,     NULL, 0, NULL },
-   { "&High (16 bits)", options_audio_mixing_quality_menu_high_16_bit,   NULL, 0, NULL },
-   MENU_SPLITTER,
-   { "&Interpolation",  options_audio_mixing_quality_menu_interpolation, NULL, 0, NULL },
-   { "&Dithering",      options_audio_mixing_quality_menu_dithering,     NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(options_audio_mixing_anti_aliasing_menu_disabled);
-DEFINE_MENU_CALLBACK(options_audio_mixing_anti_aliasing_menu_bilinear_2x);
-DEFINE_MENU_CALLBACK(options_audio_mixing_anti_aliasing_menu_bilinear_4x);
-DEFINE_MENU_CALLBACK(options_audio_mixing_anti_aliasing_menu_bilinear_8x);
-DEFINE_MENU_CALLBACK(options_audio_mixing_anti_aliasing_menu_bilinear_16x);
-
-static const MENU options_audio_mixing_anti_aliasing_menu_base[] =
-{
-   { "&Disabled",         options_audio_mixing_anti_aliasing_menu_disabled,     NULL, 0, NULL },
-   MENU_SPLITTER,
-   { "&1: Bi-linear 2X",  options_audio_mixing_anti_aliasing_menu_bilinear_2x,  NULL, 0, NULL },
-   { "&2: Bi-linear 4X",  options_audio_mixing_anti_aliasing_menu_bilinear_4x,  NULL, 0, NULL },
-   { "&3: Bi-linear 8X",  options_audio_mixing_anti_aliasing_menu_bilinear_8x,  NULL, 0, NULL },
-   { "&4: Bi-linear 16X", options_audio_mixing_anti_aliasing_menu_bilinear_16x, NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-static const MENU options_audio_mixing_menu_base[] =
-{
-   { "&Frequency",     NULL, IMPORT_MENU(options_audio_mixing_frequency_menu),     0, NULL },
-   { "&Channels",      NULL, IMPORT_MENU(options_audio_mixing_channels_menu),      0, NULL },
-   { "&Quality",       NULL, IMPORT_MENU(options_audio_mixing_quality_menu),       0, NULL },
-   { "&Anti-aliasing", NULL, IMPORT_MENU(options_audio_mixing_anti_aliasing_menu), 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(options_audio_effects_menu_linear_echo);
-DEFINE_MENU_CALLBACK(options_audio_effects_menu_spatial_stereo_mode_1);
-DEFINE_MENU_CALLBACK(options_audio_effects_menu_spatial_stereo_mode_2);
-DEFINE_MENU_CALLBACK(options_audio_effects_menu_spatial_stereo_mode_3);
-
-static const MENU options_audio_effects_menu_base[] =
-{                          
-   { "&Linear Echo",             options_audio_effects_menu_linear_echo,           NULL, 0, NULL },
-   { "&Spatial Stereo (Mode 1)", options_audio_effects_menu_spatial_stereo_mode_1, NULL, 0, NULL },
-   { "S&patial Stereo (Mode 2)", options_audio_effects_menu_spatial_stereo_mode_2, NULL, 0, NULL },
-   { "Sp&atial Stereo (Mode 3)", options_audio_effects_menu_spatial_stereo_mode_3, NULL, 0, NULL },
-   MENU_ENDCAP   
-};
-
-DEFINE_MENU_CALLBACK(options_audio_filters_menu_low_pass_mode_1);
-DEFINE_MENU_CALLBACK(options_audio_filters_menu_low_pass_mode_2);
-DEFINE_MENU_CALLBACK(options_audio_filters_menu_low_pass_mode_3);
-DEFINE_MENU_CALLBACK(options_audio_filters_menu_high_pass);
-DEFINE_MENU_CALLBACK(options_audio_filters_menu_delta_sigma_filter);
-
-static const MENU options_audio_filters_menu_base[] =
-{     
-   { "&Low Pass (Mode 1)",  options_audio_filters_menu_low_pass_mode_1,    NULL, 0, NULL },
-   { "L&ow Pass (Mode 2)",  options_audio_filters_menu_low_pass_mode_2,    NULL, 0, NULL },
-   { "Lo&w Pass (Mode 3)",  options_audio_filters_menu_low_pass_mode_3,    NULL, 0, NULL },
-   { "&High Pass",          options_audio_filters_menu_high_pass,          NULL, 0, NULL },
-   { "&Delta-Sigma Filter", options_audio_filters_menu_delta_sigma_filter, NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(options_audio_channels_menu_square_wave_a);
-DEFINE_MENU_CALLBACK(options_audio_channels_menu_square_wave_b);
-DEFINE_MENU_CALLBACK(options_audio_channels_menu_triangle_wave);
-DEFINE_MENU_CALLBACK(options_audio_channels_menu_white_noise);
-DEFINE_MENU_CALLBACK(options_audio_channels_menu_digital);
-DEFINE_MENU_CALLBACK(options_audio_channels_menu_extended);
-
-static const MENU options_audio_channels_menu_base[] =
-{
-   { "&Square Wave A", options_audio_channels_menu_square_wave_a, NULL, 0, NULL },
-   { "S&quare Wave B", options_audio_channels_menu_square_wave_b, NULL, 0, NULL },
-   { "&Triangle Wave", options_audio_channels_menu_triangle_wave, NULL, 0, NULL },
-   { "&White Noise",   options_audio_channels_menu_white_noise,   NULL, 0, NULL },
-   { "&Digital",       options_audio_channels_menu_digital,       NULL, 0, NULL },
-   { "&Extended",      options_audio_channels_menu_extended,      NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(options_audio_advanced_menu_ideal_triangle);
-DEFINE_MENU_CALLBACK(options_audio_advanced_menu_hard_sync);
-
-static const MENU options_audio_advanced_menu_base[] =
-{
-   { "&Ideal Triangle", options_audio_advanced_menu_ideal_triangle, NULL, 0, NULL },
-   { "&Hard Sync",      options_audio_advanced_menu_hard_sync,      NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(options_audio_record_menu_start);
-DEFINE_MENU_CALLBACK(options_audio_record_menu_stop);
-
-static const MENU options_audio_record_menu_base[] =
-{
-   { "&Start", options_audio_record_menu_start, NULL, 0,          NULL },
-   { "S&top",  options_audio_record_menu_stop,  NULL, D_DISABLED, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(options_audio_menu_enabled);
-
-static const MENU options_audio_menu_base[] =
-{
-   { "&Enabled",   options_audio_menu_enabled, NULL,                                      0, NULL },
-   MENU_SPLITTER,
-   { "&Subsystem", NULL,                       IMPORT_MENU(options_audio_subsystem_menu), 0, NULL },
-   { "&Mixing",    NULL,                       IMPORT_MENU(options_audio_mixing_menu),    0, NULL },
-   { "Effec&ts",   NULL,                       IMPORT_MENU(options_audio_effects_menu),   0, NULL },
-   { "&Filters",   NULL,                       IMPORT_MENU(options_audio_filters_menu),   0, NULL },
-   { "&Channels",  NULL,                       IMPORT_MENU(options_audio_channels_menu),  0, NULL },
-   { "&Advanced",  NULL,                       IMPORT_MENU(options_audio_advanced_menu),  0, NULL },
-   MENU_SPLITTER,
-   { "&Record",    NULL,                       IMPORT_MENU(options_audio_record_menu),    0, NULL },
-   MENU_ENDCAP
-};
-
-#ifdef ALLEGRO_DOS
-
-DEFINE_MENU_CALLBACK(options_video_driver_dos_menu_vga);
-DEFINE_MENU_CALLBACK(options_video_driver_dos_menu_vga_mode_x);
-DEFINE_MENU_CALLBACK(options_video_driver_dos_menu_vesa);
-DEFINE_MENU_CALLBACK(options_video_driver_dos_menu_vesa_2_banked);
-DEFINE_MENU_CALLBACK(options_video_driver_dos_menu_vesa_2_linear);
-DEFINE_MENU_CALLBACK(options_video_driver_dos_menu_vesa_3);
-DEFINE_MENU_CALLBACK(options_video_driver_dos_menu_vesa_vbe_af);
-
-static const MENU options_video_driver_dos_menu_base[] =
-{
-   { "&VGA",           options_video_driver_dos_menu_vga,           NULL, 0, NULL },
-   { "VGA Mode-&X",    options_video_driver_dos_menu_vga_mode_x,    NULL, 0, NULL },
-   MENU_SPLITTER,
-   { "V&ESA",          options_video_driver_dos_menu_vesa,          NULL, 0, NULL },
-   { "VESA 2 &Banked", options_video_driver_dos_menu_vesa_2_banked, NULL, 0, NULL },
-   { "VESA 2 &Linear", options_video_driver_dos_menu_vesa_2_linear, NULL, 0, NULL },
-   { "VE&SA 3",        options_video_driver_dos_menu_vesa_3,        NULL, 0, NULL },
-   { "VESA VBE/&AF",   options_video_driver_dos_menu_vesa_vbe_af,   NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-#else /* ALLEGRO_DOS */
-
-static const MENU options_video_driver_dos_menu_base[] =
-{
-   MENU_ENDCAP
-};
-
-#endif   /* !ALLEGRO_DOS */
-
-#ifdef ALLEGRO_WINDOWS
-
-DEFINE_MENU_CALLBACK(options_video_driver_windows_menu_directx);
-DEFINE_MENU_CALLBACK(options_video_driver_windows_menu_directx_window);
-DEFINE_MENU_CALLBACK(options_video_driver_windows_menu_directx_overlay);
-DEFINE_MENU_CALLBACK(options_video_driver_windows_menu_gdi);
-
-static const MENU options_video_driver_windows_menu_base[] =
-{
-   { "&DirectX",         options_video_driver_windows_menu_directx,         NULL, 0, NULL },
-   { "DirectX &Window",  options_video_driver_windows_menu_directx_window,  NULL, 0, NULL },
-   { "DirectX &Overlay", options_video_driver_windows_menu_directx_overlay, NULL, 0, NULL },
-   MENU_SPLITTER,
-   { "&GDI",             options_video_driver_windows_menu_gdi,             NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-#else /* ALLEGRO_WINDOWS */
-
-static const MENU options_video_driver_windows_menu_base[] =
-{
-   MENU_ENDCAP
-};
-
-#endif   /* !ALLEGRO_WINDOWS */
-
-#ifdef ALLEGRO_LINUX
-
-DEFINE_MENU_CALLBACK(options_video_driver_linux_menu_vga);
-DEFINE_MENU_CALLBACK(options_video_driver_linux_menu_vga_mode_x);
-DEFINE_MENU_CALLBACK(options_video_driver_linux_menu_vesa_vbe_af);
-DEFINE_MENU_CALLBACK(options_video_driver_linux_menu_framebuffer);
-DEFINE_MENU_CALLBACK(options_video_driver_linux_menu_svgalib);
-
-static const MENU options_video_driver_linux_menu_base[] =
-{
-   { "&VGA",         options_video_driver_linux_menu_vga,         NULL, 0, NULL },
-   { "VGA Mode-&X",  options_video_driver_linux_menu_vga_mode_x,  NULL, 0, NULL },
-   MENU_SPLITTER,
-   { "VESA VBE/&AF", options_video_driver_linux_menu_vesa_vbe_af, NULL, 0, NULL },
-   MENU_SPLITTER,
-   { "&Framebuffer", options_video_driver_linux_menu_framebuffer, NULL, 0, NULL },
-   { "&SVGAlib",     options_video_driver_linux_menu_svgalib,     NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-#else /* ALLEGRO_LINUX */
-
-static const MENU options_video_driver_linux_menu_base[] =
-{
-   MENU_ENDCAP
-};
-
-#endif   /* !ALLEGRO_LINUX */
-
-#ifdef ALLEGRO_UNIX
-
-DEFINE_MENU_CALLBACK(options_video_driver_unix_menu_x_windows);
-DEFINE_MENU_CALLBACK(options_video_driver_unix_menu_x_windows_full);
-DEFINE_MENU_CALLBACK(options_video_driver_unix_menu_x_dga);
-DEFINE_MENU_CALLBACK(options_video_driver_unix_menu_x_dga_full);
-DEFINE_MENU_CALLBACK(options_video_driver_unix_menu_x_dga_2);
-
-static const MENU options_video_driver_unix_menu_base[] =
-{
-   { "X &Windows",      options_video_driver_unix_menu_x_windows,      NULL, 0, NULL },
-   { "X &Windows Full", options_video_driver_unix_menu_x_windows_full, NULL, 0, NULL },
-   MENU_SPLITTER,
-   { "X/&DGA",          options_video_driver_unix_menu_x_dga,          NULL, 0, NULL },
-   { "X/&DGA FULL",     options_video_driver_unix_menu_x_dga_full,     NULL, 0, NULL },
-   { "X/D&GA 2",        options_video_driver_unix_menu_x_dga_2,        NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-#else /* ALLEGRO_UNIX */
-
-static const MENU options_video_driver_unix_menu_base[] =
-{
-   MENU_ENDCAP
-};
-
-#endif   /* !ALLEGRO_UNIX */
-
-DEFINE_MENU_CALLBACK(options_video_driver_menu_automatic);
-
-static const MENU options_video_driver_menu_base[] =
-{
-   { "&Automatic", options_video_driver_menu_automatic, NULL,                                           0, NULL },
-   MENU_SPLITTER,
-   { "&DOS",       NULL,                                IMPORT_MENU(options_video_driver_dos_menu),     0, NULL },
-   { "&Windows",   NULL,                                IMPORT_MENU(options_video_driver_windows_menu), 0, NULL },
-   { "&Linux",     NULL,                                IMPORT_MENU(options_video_driver_linux_menu),   0, NULL },
-   { "&Unix",      NULL,                                IMPORT_MENU(options_video_driver_unix_menu),    0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(options_video_resolution_proportionate_menu_256_224);
-DEFINE_MENU_CALLBACK(options_video_resolution_proportionate_menu_256_240);
-DEFINE_MENU_CALLBACK(options_video_resolution_proportionate_menu_512_448);
-DEFINE_MENU_CALLBACK(options_video_resolution_proportionate_menu_512_480);
-DEFINE_MENU_CALLBACK(options_video_resolution_proportionate_menu_768_672);
-DEFINE_MENU_CALLBACK(options_video_resolution_proportionate_menu_768_720);
-DEFINE_MENU_CALLBACK(options_video_resolution_proportionate_menu_1024_896);
-DEFINE_MENU_CALLBACK(options_video_resolution_proportionate_menu_1024_960);
-DEFINE_MENU_CALLBACK(options_video_resolution_proportionate_menu_1280_1120);
-DEFINE_MENU_CALLBACK(options_video_resolution_proportionate_menu_1280_1200);
-
-static const MENU options_video_resolution_proportionate_menu_base[] =
-{
-   { " &1: 256x224",   options_video_resolution_proportionate_menu_256_224,   NULL, 0, NULL },
-   { " &2: 256x240",   options_video_resolution_proportionate_menu_256_240,   NULL, 0, NULL },
-   { " &3: 512x448",   options_video_resolution_proportionate_menu_512_448,   NULL, 0, NULL },
-   { " &4: 512x480",   options_video_resolution_proportionate_menu_512_480,   NULL, 0, NULL },
-   { " &5: 768x672",   options_video_resolution_proportionate_menu_768_672,   NULL, 0, NULL },
-   { " &6: 768x720",   options_video_resolution_proportionate_menu_768_720,   NULL, 0, NULL },
-   { " &7: 1152x896",  options_video_resolution_proportionate_menu_1024_896,  NULL, 0, NULL },
-   { " &8: 1152x900",  options_video_resolution_proportionate_menu_1024_960,  NULL, 0, NULL },
-   { " &9: 1280x1120", options_video_resolution_proportionate_menu_1280_1120, NULL, 0, NULL },
-   { "1&0: 1280x1200", options_video_resolution_proportionate_menu_1280_1200, NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(options_video_resolution_extended_menu_400_300);
-DEFINE_MENU_CALLBACK(options_video_resolution_extended_menu_480_360);
-DEFINE_MENU_CALLBACK(options_video_resolution_extended_menu_512_384);
-DEFINE_MENU_CALLBACK(options_video_resolution_extended_menu_640_400);
-DEFINE_MENU_CALLBACK(options_video_resolution_extended_menu_720_480);
-DEFINE_MENU_CALLBACK(options_video_resolution_extended_menu_720_576);
-DEFINE_MENU_CALLBACK(options_video_resolution_extended_menu_848_480);
-DEFINE_MENU_CALLBACK(options_video_resolution_extended_menu_1280_720);
-DEFINE_MENU_CALLBACK(options_video_resolution_extended_menu_1280_960);
-DEFINE_MENU_CALLBACK(options_video_resolution_extended_menu_1360_768);
-
-static const MENU options_video_resolution_extended_menu_base[] =
-{
-   { " &1: 400x300",  options_video_resolution_extended_menu_400_300,  NULL, 0, NULL },
-   { " &2: 480x360",  options_video_resolution_extended_menu_480_360,  NULL, 0, NULL },
-   { " &3: 512x384",  options_video_resolution_extended_menu_512_384,  NULL, 0, NULL },
-   { " &4: 640x400",  options_video_resolution_extended_menu_640_400,  NULL, 0, NULL },
-   { " &5: 720x480",  options_video_resolution_extended_menu_720_480,  NULL, 0, NULL },
-   { " &6: 720x576",  options_video_resolution_extended_menu_720_576,  NULL, 0, NULL },
-   { " &7: 848x480",  options_video_resolution_extended_menu_848_480,  NULL, 0, NULL },
-   { " &8: 1280x720", options_video_resolution_extended_menu_1280_720, NULL, 0, NULL },
-   { " &9: 1280x960", options_video_resolution_extended_menu_1280_960, NULL, 0, NULL },
-   { "1&0: 1360x768", options_video_resolution_extended_menu_1360_768, NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(options_video_resolution_menu_320_240);
-DEFINE_MENU_CALLBACK(options_video_resolution_menu_640_480);
-DEFINE_MENU_CALLBACK(options_video_resolution_menu_800_600);
-DEFINE_MENU_CALLBACK(options_video_resolution_menu_1024_768);
-DEFINE_MENU_CALLBACK(options_video_resolution_menu_1152_864);
-DEFINE_MENU_CALLBACK(options_video_resolution_menu_1280_1024);
-DEFINE_MENU_CALLBACK(options_video_resolution_menu_1600_1200);
-
-static const MENU options_video_resolution_menu_base[] =
-{
-   { "&Proportionate", NULL,                                    IMPORT_MENU(options_video_resolution_proportionate_menu), 0, NULL },
-   MENU_SPLITTER,
-   { "&1: 320x240",    options_video_resolution_menu_320_240,   NULL,                                                     0, NULL },
-   { "&2: 640x480",    options_video_resolution_menu_640_480,   NULL,                                                     0, NULL },
-   { "&3: 800x600",    options_video_resolution_menu_800_600,   NULL,                                                     0, NULL },
-   { "&4: 1024x768",   options_video_resolution_menu_1024_768,  NULL,                                                     0, NULL },
-   { "&5: 1152x864",   options_video_resolution_menu_1152_864,  NULL,                                                     0, NULL },
-   { "&6: 1280x1024",  options_video_resolution_menu_1280_1024, NULL,                                                     0, NULL },
-   { "&7: 1600x1200",  options_video_resolution_menu_1600_1200, NULL,                                                     0, NULL },
-   MENU_SPLITTER,
-   { "&Extended",      NULL,                                    IMPORT_MENU(options_video_resolution_extended_menu),      0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(options_video_colors_menu_paletted_8_bit);
-DEFINE_MENU_CALLBACK(options_video_colors_menu_true_color_15_bit);
-DEFINE_MENU_CALLBACK(options_video_colors_menu_true_color_16_bit);
-DEFINE_MENU_CALLBACK(options_video_colors_menu_true_color_24_bit);
-DEFINE_MENU_CALLBACK(options_video_colors_menu_true_color_32_bit);
-
-static const MENU options_video_colors_menu_base[] =
-{
-   { "&Paletted (8-bit)",    options_video_colors_menu_paletted_8_bit,    NULL, 0, NULL },
-   { "&True Color (15-bit)", options_video_colors_menu_true_color_15_bit, NULL, 0, NULL },
-   { "T&rue Color (16-bit)", options_video_colors_menu_true_color_16_bit, NULL, 0, NULL },
-   { "Tr&ue Color (24-bit)", options_video_colors_menu_true_color_24_bit, NULL, 0, NULL },
-   { "Tru&e Color (32-bit)", options_video_colors_menu_true_color_32_bit, NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(options_video_blitter_menu_automatic);
-DEFINE_MENU_CALLBACK(options_video_blitter_menu_normal);
-DEFINE_MENU_CALLBACK(options_video_blitter_menu_des);
-DEFINE_MENU_CALLBACK(options_video_blitter_menu_interpolated_2x);
-DEFINE_MENU_CALLBACK(options_video_blitter_menu_2xscl);
-DEFINE_MENU_CALLBACK(options_video_blitter_menu_desii);
-DEFINE_MENU_CALLBACK(options_video_blitter_menu_super_2xscl);
-DEFINE_MENU_CALLBACK(options_video_blitter_menu_ultra_2xscl);
-DEFINE_MENU_CALLBACK(options_video_blitter_menu_hq2x);
-DEFINE_MENU_CALLBACK(options_video_blitter_menu_interpolated_3x);
-DEFINE_MENU_CALLBACK(options_video_blitter_menu_hq3x);
-DEFINE_MENU_CALLBACK(options_video_blitter_menu_hq4x);
-DEFINE_MENU_CALLBACK(options_video_blitter_menu_stretched);
-DEFINE_MENU_CALLBACK(options_video_blitter_menu_nes_ntsc);
-
-static const MENU options_video_blitter_menu_base[] =
-{
-   { "&Automatic",           options_video_blitter_menu_automatic,       NULL, 0, NULL },
-   MENU_SPLITTER,
-   { " &1: Normal",          options_video_blitter_menu_normal,          NULL, 0, NULL },
-   { " &2: DES",             options_video_blitter_menu_des,             NULL, 0, NULL },
-   { " &3: Interpolated 2X", options_video_blitter_menu_interpolated_2x, NULL, 0, NULL },
-   { " &4: 2xSCL",           options_video_blitter_menu_2xscl,           NULL, 0, NULL },
-   { " &5: DESii",           options_video_blitter_menu_desii,           NULL, 0, NULL },
-   { " &6: Super 2xSCL",     options_video_blitter_menu_super_2xscl,     NULL, 0, NULL },
-   { " &7: Ultra 2xSCL",     options_video_blitter_menu_ultra_2xscl,     NULL, 0, NULL },
-   { " &8: HQ2X",            options_video_blitter_menu_hq2x,            NULL, 0, NULL },
-   { " &9: nes_ntsc",        options_video_blitter_menu_nes_ntsc,        NULL, 0, NULL },
-   { "1&0: Interpolated 3X", options_video_blitter_menu_interpolated_3x, NULL, 0, NULL },
-   { "11: &HQ3X",            options_video_blitter_menu_hq3x,            NULL, 0, NULL },
-   { "11: H&Q4X",            options_video_blitter_menu_hq4x,            NULL, 0, NULL },
-   { "13: &Stretched",       options_video_blitter_menu_stretched,       NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(options_video_filters_menu_scanlines_25_percent);
-DEFINE_MENU_CALLBACK(options_video_filters_menu_scanlines_50_percent);
-DEFINE_MENU_CALLBACK(options_video_filters_menu_scanlines_100_percent);
-
-static const MENU options_video_filters_menu_base[] =
-{
-   { "&Scanlines (25%)",  options_video_filters_menu_scanlines_25_percent,  NULL, 0, NULL },
-   { "S&canlines (50%)",  options_video_filters_menu_scanlines_50_percent,  NULL, 0, NULL },
-   { "Sc&anlines (100%)", options_video_filters_menu_scanlines_100_percent, NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(options_video_layers_menu_sprites_a);
-DEFINE_MENU_CALLBACK(options_video_layers_menu_sprites_b);
-DEFINE_MENU_CALLBACK(options_video_layers_menu_background);
-
-static const MENU options_video_layers_menu_base[] =
-{
-   { "&Sprites A  (F7)", options_video_layers_menu_sprites_a,  NULL, 0, NULL },
-   { "S&prites B  (F7)", options_video_layers_menu_sprites_b,  NULL, 0, NULL },
-   { "&Background (F8)", options_video_layers_menu_background, NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(options_video_palette_menu_ntsc_color);
-DEFINE_MENU_CALLBACK(options_video_palette_menu_ntsc_grayscale);
-DEFINE_MENU_CALLBACK(options_video_palette_menu_gnuboy);
-DEFINE_MENU_CALLBACK(options_video_palette_menu_nester);
-DEFINE_MENU_CALLBACK(options_video_palette_menu_nesticle);
-DEFINE_MENU_CALLBACK(options_video_palette_menu_modern_ntsc);
-DEFINE_MENU_CALLBACK(options_video_palette_menu_modern_pal);
-DEFINE_MENU_CALLBACK(options_video_palette_menu_ega_mode_1);
-DEFINE_MENU_CALLBACK(options_video_palette_menu_ega_mode_2);
-DEFINE_MENU_CALLBACK(options_video_palette_menu_custom);
-
-static const MENU options_video_palette_menu_base[] =
-{
-   { "NTSC &Color",     options_video_palette_menu_ntsc_color,     NULL, 0, NULL },
-   { "NTSC &Grayscale", options_video_palette_menu_ntsc_grayscale, NULL, 0, NULL },
-   { "gn&uboy",         options_video_palette_menu_gnuboy,         NULL, 0, NULL },
-   { "&NESter",         options_video_palette_menu_nester,         NULL, 0, NULL },
-   { "N&ESticle",       options_video_palette_menu_nesticle,       NULL, 0, NULL },
-   { "&Modern NTSC",    options_video_palette_menu_modern_ntsc,    NULL, 0, NULL },
-   { "Modern &PAL",     options_video_palette_menu_modern_pal,     NULL, 0, NULL },
-   { "&EGA (Mode 1)",   options_video_palette_menu_ega_mode_1,     NULL, 0, NULL },
-   { "EG&A (Mode 2)",   options_video_palette_menu_ega_mode_2,     NULL, 0, NULL },
-   MENU_SPLITTER,
-   { "Cu&stom",         options_video_palette_menu_custom,         NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(options_video_advanced_menu_force_fullscreen);
-
-static const MENU options_video_advanced_menu_base[] =
-{
-   { "&Force Fullscreen", options_video_advanced_menu_force_fullscreen, NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(options_video_menu_vsync);
-
-static const MENU options_video_menu_base[] =
-{
-   { "&Driver",     NULL,                     IMPORT_MENU(options_video_driver_menu),     0, NULL },
-   { "&Resolution", NULL,                     IMPORT_MENU(options_video_resolution_menu), 0, NULL },
-   { "&Colors",     NULL,                     IMPORT_MENU(options_video_colors_menu),     0, NULL },
-   { "&Blitter",    NULL,                     IMPORT_MENU(options_video_blitter_menu),    0, NULL },
-   { "&Filters",    NULL,                     IMPORT_MENU(options_video_filters_menu),    0, NULL },
-   MENU_SPLITTER,
-   { "&VSync",      options_video_menu_vsync, NULL,                                       0, NULL },
-   MENU_SPLITTER,
-   { "&Layers",     NULL,                     IMPORT_MENU(options_video_layers_menu),     0, NULL },
-   { "&Palette",    NULL,                     IMPORT_MENU(options_video_palette_menu),    0, NULL },
-   { "&Advanced",   NULL,                     IMPORT_MENU(options_video_advanced_menu),   0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(options_input_menu_enable_zapper);
-DEFINE_MENU_CALLBACK(options_input_menu_configure);
-
-static const MENU options_input_menu_base[] =
-{
-   { "Enable &Zapper", options_input_menu_enable_zapper, NULL, 0, NULL },
-   MENU_SPLITTER,
-   { "&Configure...",  options_input_menu_configure,     NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-
-DEFINE_MENU_CALLBACK(options_menu_status);
-DEFINE_MENU_CALLBACK(options_menu_patches);
+DEFINE_MENU_CALLBACK(options_menu_show_status);
 
 static const MENU options_menu_base[] =
 {
-   { "&Status (F2)", options_menu_status,  NULL,                             0, NULL },
+   { "&Show Status (F2)", options_menu_show_status,  NULL,                                0, NULL },
    MENU_SPLITTER,
-   { "&GUI",         NULL,                 IMPORT_MENU(options_gui_menu),    0, NULL },
-   { "S&ystem",      NULL,                 IMPORT_MENU(options_system_menu), 0, NULL },
-   { "&Audio",       NULL,                 IMPORT_MENU(options_audio_menu),  0, NULL },
-   { "&Video",       NULL,                 IMPORT_MENU(options_video_menu),  0, NULL },
-   { "&Input",       NULL,                 IMPORT_MENU(options_input_menu),  0, NULL },
+   { "&Input",            NULL,                      IMPORT_MENU(options_input_menu),     0, NULL },
+   { "&CPU Usage",        NULL,                      IMPORT_MENU(options_cpu_usage_menu), 0, NULL },
    MENU_SPLITTER,
-   { "&Patches...",  options_menu_patches, NULL,                             0, NULL },
+   { "&GUI Theme",        NULL,                      IMPORT_MENU(options_gui_theme_menu), 0, NULL },
    MENU_ENDCAP      
 };
 
@@ -809,6 +804,9 @@ static const MENU help_menu_base[] =
 static const MENU top_menu_base[] =
 { 
    { "&Main",    NULL, IMPORT_MENU(main_menu),    0, NULL },
+   { "&Machine", NULL, IMPORT_MENU(machine_menu), 0, NULL },
+   { "&Audio",   NULL, IMPORT_MENU(audio_menu),   0, NULL },
+   { "&Video",   NULL, IMPORT_MENU(video_menu),   0, NULL },
    { "&Options", NULL, IMPORT_MENU(options_menu), 0, NULL },
    { "&NetPlay", NULL, IMPORT_MENU(netplay_menu), 0, NULL },
    { "&Help",    NULL, IMPORT_MENU(help_menu),    0, NULL },
