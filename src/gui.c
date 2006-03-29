@@ -587,9 +587,17 @@ static INLINE int show_dialog (DIALOG *dialog)
 
 static INLINE void update_menus (void)
 {
-#ifndef USE_OPENAL
-   DISABLE_MENU_ITEM(audio_subsystem_menu_openal);
-#endif
+   if (!rom_is_loaded)
+   {
+      DISABLE_MENU_ITEM(main_menu_resume);
+      DISABLE_MENU_ITEM(main_menu_close);
+      DISABLE_SUBMENU(main_replay_menu);
+      DISABLE_MENU_ITEM(main_menu_save_snapshot);
+      DISABLE_MENU_ITEM(machine_menu_soft_reset);
+      DISABLE_MENU_ITEM(machine_menu_hard_reset);
+      DISABLE_SUBMENU(machine_save_state_menu);
+      DISABLE_MENU_ITEM(machine_menu_cheat_manager);
+   }
 
    SET_MENU_ITEM_ENABLED(audio_mixing_quality_menu_interpolation,
       (audio_subsystem != AUDIO_SUBSYSTEM_OPENAL));
@@ -921,6 +929,10 @@ int gui_init (void)
 
 #endif   /* ALLEGRO_UNIX */
 
+#ifndef USE_OPENAL
+   DISABLE_MENU_ITEM(audio_subsystem_menu_openal);
+#endif
+
 #ifndef USE_HAWKNL
    DISABLE_SUBMENU(netplay_menu);
 #endif
@@ -961,17 +973,6 @@ int show_gui (BOOL first_run)
 
    /* Set up menus. */
    update_menus ();
-
-   if (!rom_is_loaded)
-   {
-      DISABLE_MENU_ITEM(main_menu_resume);
-      DISABLE_SUBMENU(main_replay_menu);
-      DISABLE_MENU_ITEM(main_menu_save_snapshot);
-      DISABLE_MENU_ITEM(machine_menu_soft_reset);
-      DISABLE_MENU_ITEM(machine_menu_hard_reset);
-      DISABLE_SUBMENU(machine_save_state_menu);
-      DISABLE_MENU_ITEM(machine_menu_cheat_manager);
-   }
 
    cycle_video ();
 
@@ -1497,6 +1498,7 @@ static int main_menu_open (void)
          machine_init ();
 
          ENABLE_MENU_ITEM(main_menu_resume);
+         ENABLE_MENU_ITEM(main_menu_close);
          ENABLE_SUBMENU(main_replay_menu);
          ENABLE_MENU_ITEM(main_menu_save_snapshot);
          ENABLE_MENU_ITEM(machine_menu_soft_reset);
@@ -1515,6 +1517,19 @@ static int main_menu_open (void)
 
    /* Dialog was cancelled. */
    return (D_O_K);
+}
+
+static int main_menu_close (void)
+{
+   /* Unload ROM. */
+   free_rom (&global_rom);
+   rom_is_loaded = FALSE;
+
+   update_menus ();
+
+   cycle_video ();
+
+   return (D_REDRAW);
 }
 
 /* Number of replay slots available in the menu. */

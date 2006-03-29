@@ -103,6 +103,7 @@ static const MENU main_replay_menu_base[] =
 
 DEFINE_MENU_CALLBACK(main_menu_resume);
 DEFINE_MENU_CALLBACK(main_menu_open);
+DEFINE_MENU_CALLBACK(main_menu_close);
 DEFINE_MENU_CALLBACK(main_menu_save_snapshot);
 DEFINE_MENU_CALLBACK(main_menu_exit);
 
@@ -112,7 +113,7 @@ static const MENU main_menu_base[] =
    MENU_SPLITTER,                                                                       
    { "&Open...",             main_menu_open,          NULL,                          0,          NULL },
    { "O&pen Recent",         NULL,                    NULL,                          D_DISABLED, NULL },
-   { "&Close",               NULL,                    NULL,                          D_DISABLED, NULL },
+   { "&Close",               main_menu_close,         NULL,                          0,          NULL },
    MENU_SPLITTER,            
    { "R&eplay",              NULL,                    IMPORT_MENU(main_replay_menu), 0,          NULL },
    { "&Save Snapshot (F1)",  main_menu_save_snapshot, NULL,                          0,          NULL },
