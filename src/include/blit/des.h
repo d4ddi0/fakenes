@@ -84,7 +84,7 @@ static void blit_des (BITMAP *src, BITMAP *dest, int x_base, int y_base)
             }
 
             default:
-               break;
+               WARN_GENERIC();
          }
       }
    }
@@ -199,7 +199,7 @@ static void blit_desii (BITMAP *src, BITMAP *dest, int x_base, int y_base)
             }
 
             default:
-               break;
+               WARN_GENERIC();
          }
       }
    }

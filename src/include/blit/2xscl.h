@@ -90,7 +90,7 @@ static void blit_2xscl (BITMAP *src, BITMAP *dest, int x_base, int y_base)
                }
    
                default:
-                  break;
+                  WARN_GENERIC();
             }
          }
       }
@@ -196,7 +196,7 @@ static void blit_super_2xscl (BITMAP *src, BITMAP *dest, int x_base, int
             }
 
             default:
-               break;
+               WARN_GENERIC();
          }
       }
    }
@@ -308,7 +308,7 @@ static void blit_ultra_2xscl (BITMAP *src, BITMAP *dest, int x_base,
             }
 
             default:
-               break;
+               WARN_GENERIC();
          }
       }
    }

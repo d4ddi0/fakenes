@@ -20,7 +20,7 @@ static INLINE void _blit_hq (int size, BITMAP *src, BITMAP *dest, int
    RT_ASSERT(dest);
 
    if ((size != 2) && (size != 3) && (size != 4))
-      return;
+      WARN_BREAK_GENERIC();
    if ((size == 2) && (!blitter_size_check (dest, 512, 480)))
       return;
    if ((size == 3) && (!blitter_size_check (dest, 768, 720)))
@@ -30,7 +30,7 @@ static INLINE void _blit_hq (int size, BITMAP *src, BITMAP *dest, int
 
    /* Check buffers. */
    if (!blit_buffer_in || !blit_buffer_out)
-      return;
+      WARN_BREAK_GENERIC();
 
    /* Set buffers. */
    in  = (unsigned short *)blit_buffer_in;
@@ -95,7 +95,7 @@ static INLINE void _blit_hq (int size, BITMAP *src, BITMAP *dest, int
       }
 
       default:
-         break;
+         WARN_GENERIC();
    }
 
 
@@ -152,7 +152,7 @@ static INLINE void _blit_hq (int size, BITMAP *src, BITMAP *dest, int
             }
 
             default:
-               break;
+               WARN_GENERIC();
          }
       }
    }
@@ -176,12 +176,13 @@ static INLINE void _init_hq (int size, BITMAP *src, BITMAP *dest)
    /* Allocate input buffer. */
    blit_buffer_in = malloc (((w * h) * sizeof (unsigned short)));
    if (!blit_buffer_in)
-      return;
+      WARN_BREAK_GENERIC ();
 
    /* Allocate output buffer. */
    blit_buffer_out = malloc (((wm * hm) * sizeof (int)));
    if (!blit_buffer_out)
    {
+      WARN_GENERIC();
       free (blit_buffer_in);
       return;
    }

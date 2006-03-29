@@ -86,7 +86,7 @@ static void blit_interpolated_2x (BITMAP *src, BITMAP *dest, int x_base, int
                }
 
                default:
-                  break;
+                  WARN_GENERIC();
             }
          }
       }
@@ -228,6 +228,9 @@ static void blit_interpolated_3x (BITMAP *src, BITMAP *dest, int x_base, int
 
                   break;
                }
+
+               default:
+                  WARN_GENERIC();
             }
          }
       }

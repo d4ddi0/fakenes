@@ -30,7 +30,7 @@ static void blit_stretched (BITMAP *src, BITMAP *dest, int x_base, int
       BITMAP *buffer;
 
       if (!blit_buffer_in)
-         return;
+         WARN_BREAK_GENERIC();
 
       buffer = (BITMAP *)blit_buffer_in;
 
@@ -63,7 +63,11 @@ static void init_stretched (BITMAP *src, BITMAP *dest)
    RT_ASSERT(dest);
 
    if (color_depth != 8)
+   {
       blit_buffer_in = (void *)create_bitmap (src->w, src->h);
+      if (!blit_buffer_in)
+         WARN_BREAK_GENERIC();
+   }
 
    /* Note: Changing the values of 'stretch_width' or 'stretch_height' after
       the blitter has been initialized could have bad side-effects. */

@@ -25,7 +25,7 @@ static void blit_nes_ntsc (BITMAP *src, BITMAP *dest, int x_base, int
 
    /* Check buffers. */
    if (!blit_buffer_in || !blit_buffer_out)
-      return;
+      WARN_BREAK_GENERIC();
 
    /* Set buffers. */
    in  = (unsigned char  *)blit_buffer_in;
@@ -134,7 +134,7 @@ static void blit_nes_ntsc (BITMAP *src, BITMAP *dest, int x_base, int
             }
 
             default:
-               break;
+               WARN_GENERIC();
          }
       }
    }
@@ -163,12 +163,13 @@ static void init_nes_ntsc (BITMAP *src, BITMAP *dest)
    /* Allocate input buffer. */
    blit_buffer_in = malloc (((w * h) * sizeof (unsigned char)));
    if (!blit_buffer_in)
-      return;
+      WARN_BREAK_GENERIC();
 
    /* Allocate output buffer. */
    blit_buffer_out = malloc (((wm * hm) * sizeof (unsigned short)));
    if (!blit_buffer_out)
    {
+      WARN_GENERIC();
       free (blit_buffer_in);
       return;
    }
