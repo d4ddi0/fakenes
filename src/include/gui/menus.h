@@ -676,12 +676,17 @@ static const MENU video_filters_menu_base[] =
 DEFINE_MENU_CALLBACK(video_layers_menu_sprites_a);
 DEFINE_MENU_CALLBACK(video_layers_menu_sprites_b);
 DEFINE_MENU_CALLBACK(video_layers_menu_background);
+DEFINE_MENU_CALLBACK(video_layers_menu_hide_horizontal_scrolling);
+DEFINE_MENU_CALLBACK(video_layers_menu_hide_vertical_scrolling);
 
 static const MENU video_layers_menu_base[] =
 {
-   { "&Sprites A  (F7)", video_layers_menu_sprites_a,  NULL, 0, NULL },
-   { "S&prites B  (F7)", video_layers_menu_sprites_b,  NULL, 0, NULL },
-   { "&Background (F8)", video_layers_menu_background, NULL, 0, NULL },
+   { "&Sprites A  (F7)",     video_layers_menu_sprites_a,                 NULL, 0, NULL },
+   { "S&prites B  (F7)",     video_layers_menu_sprites_b,                 NULL, 0, NULL },
+   { "&Background (F8)",     video_layers_menu_background,                NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&Hide Hor. Scrolling", video_layers_menu_hide_horizontal_scrolling, NULL, 0, NULL },
+   { "H&ide Ver. Scrolling", video_layers_menu_hide_vertical_scrolling,   NULL, 0, NULL },
    MENU_ENDCAP
 };
 

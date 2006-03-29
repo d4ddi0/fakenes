@@ -84,6 +84,14 @@ BITMAP * video_buffer;
 FONT * small_font;
 
 
+LIST video_edge_clipping;
+
+
+#define VIDEO_EDGE_CLIPPING_HORIZONTAL (1 << 0)
+
+#define VIDEO_EDGE_CLIPPING_VERTICAL   (1 << 1)
+
+
 int video_init (void);
 
 int video_reinit (void);

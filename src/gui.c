@@ -808,9 +808,11 @@ static INLINE void update_menus (void)
 
    TOGGLE_MENU_ITEM(video_advanced_menu_force_fullscreen, video_force_fullscreen);
 
-   TOGGLE_MENU_ITEM(video_layers_menu_sprites_a,  ppu_enable_sprite_layer_a);
-   TOGGLE_MENU_ITEM(video_layers_menu_sprites_b,  ppu_enable_sprite_layer_b);
-   TOGGLE_MENU_ITEM(video_layers_menu_background, ppu_enable_background_layer);
+   TOGGLE_MENU_ITEM(video_layers_menu_sprites_a,                 ppu_enable_sprite_layer_a);
+   TOGGLE_MENU_ITEM(video_layers_menu_sprites_b,                 ppu_enable_sprite_layer_b);
+   TOGGLE_MENU_ITEM(video_layers_menu_background,                ppu_enable_background_layer);
+   TOGGLE_MENU_ITEM(video_layers_menu_hide_horizontal_scrolling, (video_edge_clipping & VIDEO_EDGE_CLIPPING_HORIZONTAL));
+   TOGGLE_MENU_ITEM(video_layers_menu_hide_vertical_scrolling,   (video_edge_clipping & VIDEO_EDGE_CLIPPING_VERTICAL));
 
    TOGGLE_MENU_ITEM(options_input_menu_enable_zapper, input_enable_zapper);
 
@@ -2789,6 +2791,44 @@ static int video_layers_menu_background (void)
 
    message_local ("Video background layer %s.", get_enabled_text
       (ppu_enable_background_layer));
+
+   return (D_O_K);
+}
+
+static int video_layers_menu_hide_horizontal_scrolling (void)
+{
+   LIST clipping = video_edge_clipping;
+
+   if (clipping & VIDEO_EDGE_CLIPPING_HORIZONTAL)
+      clipping &= ~VIDEO_EDGE_CLIPPING_HORIZONTAL;
+   else
+      clipping |= VIDEO_EDGE_CLIPPING_HORIZONTAL;
+
+   video_edge_clipping = clipping;
+
+   update_menus ();
+
+   message_local ("Video horizontal edge clipping %s.", get_enabled_text
+      (video_edge_clipping & VIDEO_EDGE_CLIPPING_HORIZONTAL));
+
+   return (D_O_K);
+}
+
+static int video_layers_menu_hide_vertical_scrolling (void)
+{
+   LIST clipping = video_edge_clipping;
+
+   if (clipping & VIDEO_EDGE_CLIPPING_VERTICAL)
+      clipping &= ~VIDEO_EDGE_CLIPPING_VERTICAL;
+   else
+      clipping |= VIDEO_EDGE_CLIPPING_VERTICAL;
+
+   video_edge_clipping = clipping;
+
+   update_menus ();
+
+   message_local ("Video vertical edge clipping %s.", get_enabled_text
+      (video_edge_clipping & VIDEO_EDGE_CLIPPING_VERTICAL));
 
    return (D_O_K);
 }

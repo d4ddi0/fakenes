@@ -133,6 +133,9 @@ static int video_palette_id = -1;
 static int using_custom_font = FALSE;
 
 
+LIST video_edge_clipping = 0;
+
+
 #include "blit/2xscl.h"
 
 #include "blit/des.h"
@@ -219,6 +222,9 @@ int video_init (void)
     video_display_status = get_config_int ("video", "display_status", FALSE);
 
     video_enable_vsync = get_config_int ("video", "enable_vsync", FALSE);
+
+
+    video_edge_clipping = get_config_int ("video", "edge_clipping", 0);
 
 
     if (video_driver == GFX_AUTODETECT)
@@ -519,6 +525,9 @@ void video_exit (void)
     set_config_int ("video", "display_status", video_display_status);
 
     set_config_int ("video", "enable_vsync", video_enable_vsync);
+
+
+    set_config_int ("video", "edge_clipping", video_edge_clipping);
 }
 
 
@@ -738,6 +747,33 @@ void video_blit (BITMAP * bitmap)
     if (! rom_is_loaded)
     {
         return;
+    }
+
+
+    if (video_edge_clipping)
+    {
+        int w, h;
+
+        w = (video_buffer->w - 1);
+        h = (video_buffer->h - 1);
+
+        if (video_edge_clipping & VIDEO_EDGE_CLIPPING_HORIZONTAL)
+        {
+           /* Left edge. */
+           rectfill (video_buffer, 0, 0, 12, h, 0);
+   
+           /* Right edge. */
+           rectfill (video_buffer, (w - 12), 0, w, h, 0);
+        }
+
+        if (video_edge_clipping & VIDEO_EDGE_CLIPPING_VERTICAL)
+        {
+           /* Top edge. */
+           rectfill (video_buffer, 0, 0, w, 12, 0);
+   
+           /* Bottom edge. */
+           rectfill (video_buffer, 0, (h - 12), w, h, 0);
+       }
     }
 
 
