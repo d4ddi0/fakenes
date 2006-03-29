@@ -1697,8 +1697,7 @@ static int main_open_recent_menu_clear (void)
       USTRING_CLEAR(filename);
 
       /* Build menu text. */
-      uszprintf (text, USTRING_SIZE, "&%d: %s", (index + 1),
-         UNUSED_SLOT_TEXT);
+      uszprintf (text, USTRING_SIZE, "&%d: %s", index, UNUSED_SLOT_TEXT);
 
       /* Update menu. */
       menu->text = text;
