@@ -91,7 +91,6 @@ extern "C" {
 UINT8 ppu_register_2000;
 
 UINT8 ppu_register_2001;
-UINT8 ppu_register_2001_cache [PPU_DISPLAY_LINES];
 
 int ppu_enable_sprite_layer_a;
 

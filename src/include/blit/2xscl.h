@@ -1,7 +1,8 @@
 #include "blit/shared.h"
 
-static INLINE void blit_2xscl (BITMAP *src, BITMAP *dest, int x_base, int
-   y_base)
+/* Blitters. */
+
+static void blit_2xscl (BITMAP *src, BITMAP *dest, int x_base, int y_base)
 {
    int y;
 
@@ -96,8 +97,8 @@ static INLINE void blit_2xscl (BITMAP *src, BITMAP *dest, int x_base, int
    }
 }
 
-static INLINE void blit_super_2xscl (BITMAP *src, BITMAP *dest, int x_base,
-    int y_base)
+static void blit_super_2xscl (BITMAP *src, BITMAP *dest, int x_base, int
+   y_base)
 {
    int y;
 
@@ -201,7 +202,7 @@ static INLINE void blit_super_2xscl (BITMAP *src, BITMAP *dest, int x_base,
    }
 }
 
-static INLINE void blit_ultra_2xscl (BITMAP *src, BITMAP *dest, int x_base,
+static void blit_ultra_2xscl (BITMAP *src, BITMAP *dest, int x_base,
     int y_base)
 {
    int y;
@@ -312,3 +313,34 @@ static INLINE void blit_ultra_2xscl (BITMAP *src, BITMAP *dest, int x_base,
       }
    }
 }
+
+/* Initializer. */
+
+static void init_2xscl (BITMAP *src, BITMAP *dest)
+{
+   RT_ASSERT(src);
+   RT_ASSERT(dest);
+
+   blit_x_offset = ((dest->w / 2) - ((src->w * 2) / 2));
+   blit_y_offset = ((dest->h / 2) - ((src->h * 2) / 2));
+}
+
+/* Interfaces. */
+
+static const BLITTER blitter_2xscl =
+{
+   init_2xscl, NULL,
+   blit_2xscl
+};
+
+static const BLITTER blitter_super_2xscl =
+{
+   init_2xscl, NULL,
+   blit_super_2xscl
+};
+
+static const BLITTER blitter_ultra_2xscl =
+{
+   init_2xscl, NULL,
+   blit_super_2xscl
+};

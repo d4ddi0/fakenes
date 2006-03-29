@@ -1,7 +1,9 @@
 #include "blit/shared.h"
 
-static INLINE void blit_interpolated_2x (BITMAP *src, BITMAP *dest, int
-   x_base, int y_base)
+/* Blitters. */
+
+static void blit_interpolated_2x (BITMAP *src, BITMAP *dest, int x_base, int
+   y_base)
 {
    int y;
 
@@ -91,8 +93,8 @@ static INLINE void blit_interpolated_2x (BITMAP *src, BITMAP *dest, int
    }
 }
 
-static INLINE void blit_interpolated_3x (BITMAP *src, BITMAP *dest, int
-   x_base, int y_base)
+static void blit_interpolated_3x (BITMAP *src, BITMAP *dest, int x_base, int
+   y_base)
 {
    int y;
 
@@ -231,3 +233,37 @@ static INLINE void blit_interpolated_3x (BITMAP *src, BITMAP *dest, int
       }
    }
 }
+
+/* Initializers. */
+
+static void init_interpolated_2x (BITMAP *src, BITMAP *dest)
+{
+   RT_ASSERT(src);
+   RT_ASSERT(dest);
+                
+   blit_x_offset = ((dest->w / 2) - ((src->w * 2) / 2));
+   blit_y_offset = ((dest->h / 2) - ((src->h * 2) / 2));
+}
+
+static void init_interpolated_3x (BITMAP *src, BITMAP *dest)
+{
+   RT_ASSERT(src);
+   RT_ASSERT(dest);
+
+   blit_x_offset = ((dest->w / 2) - ((src->w * 3) / 2));
+   blit_y_offset = ((dest->h / 2) - ((src->h * 3) / 2));
+}
+
+/* Interfaces. */
+
+static const BLITTER blitter_interpolated_2x =
+{
+   init_interpolated_2x, NULL,
+   blit_interpolated_2x
+};
+
+static const BLITTER blitter_interpolated_3x =
+{
+   init_interpolated_3x, NULL,
+   blit_interpolated_3x
+};

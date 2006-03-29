@@ -1,13 +1,17 @@
 #include "blit/shared.h"
 #include "nes_ntsc.h"
 
-static INLINE void blit_nes_ntsc (BITMAP *src, BITMAP *dest, int x_base, int
+/* Variables. */
+
+static nes_ntsc_t       _nes_ntsc_ntsc;
+static nes_ntsc_setup_t _nes_ntsc_setup;
+static int              _nes_ntsc_phase;
+
+/* Blitter. */
+
+static void blit_nes_ntsc (BITMAP *src, BITMAP *dest, int x_base, int
    y_base)
 {
-   static nes_ntsc_t ntsc;
-   static nes_ntsc_setup_t setup;
-   static BOOL initialized = FALSE;
-   static int phase;
    unsigned char *in;
    unsigned short *out;
    int w, h, wm, hm;
@@ -19,31 +23,19 @@ static INLINE void blit_nes_ntsc (BITMAP *src, BITMAP *dest, int x_base, int
    if (!blitter_size_check (dest, 602, 480))
       return;
 
-   if (!initialized)
-   {
-      memset (&setup, 0, sizeof (setup));
-      setup.merge_fields = 1;
-      nes_ntsc_init (&ntsc, &setup);
+   /* Check buffers. */
+   if (!blit_buffer_in || !blit_buffer_out)
+      return;
 
-      initialized = TRUE;
-   }
+   /* Set buffers. */
+   in  = (unsigned char  *)blit_buffer_in;
+   out = (unsigned short *)blit_buffer_out;
 
    /* Calculate sizes. */
    w = src->w;
    h = src->h;
    wm = 602;
    hm = 240;
-
-   /* Create copy buffers. */
-   in = malloc (((w * h) * sizeof (unsigned char)));
-   if (!in)
-      return;
-   out = malloc (((wm * hm) * sizeof (unsigned short)));
-   if (!out)
-   {
-      free (in);
-      return;
-   }
 
    /* Import source bitmap to input buffer. */
    for (y = 0; y < h; y++)
@@ -55,12 +47,13 @@ static INLINE void blit_nes_ntsc (BITMAP *src, BITMAP *dest, int x_base, int
    }
 
    /* Force 'phase' to 0 if 'setup.merge_fields' is on. */
-	phase ^= 1;
-   if (setup.merge_fields)
-		phase = 0;
+   _nes_ntsc_phase ^= 1;
+   if (_nes_ntsc_setup.merge_fields)
+      _nes_ntsc_phase = 0;
 
    /* Perform an NTSC filtering operation. */
-   nes_ntsc_blit (&ntsc, in, w, phase, wm, hm, out, (wm * 2));
+   nes_ntsc_blit (&_nes_ntsc_ntsc, in, w, _nes_ntsc_phase, wm, hm, out, (wm
+      * 2));
 
    /* Export out buffer to destination bitmap. */
    for (y = 0; y < hm; y++)
@@ -145,8 +138,61 @@ static INLINE void blit_nes_ntsc (BITMAP *src, BITMAP *dest, int x_base, int
          }
       }
    }
-
-   /* Free copy buffers. */
-   free (in);
-   free (out);
 }
+
+/* Initializer. */
+
+static void init_nes_ntsc (BITMAP *src, BITMAP *dest)
+{
+   int w, h, wm, hm;
+
+   RT_ASSERT(src);
+   RT_ASSERT(dest);
+
+   /* Initialize nes_ntsc. */
+   memset (&_nes_ntsc_setup, 0, sizeof (_nes_ntsc_setup));
+   _nes_ntsc_setup.merge_fields = 1;
+   nes_ntsc_init (&_nes_ntsc_ntsc, &_nes_ntsc_setup);
+
+   /* Calculate sizes. */
+   w = src->w;
+   h = src->h;
+   wm = 602;
+   hm = 240;
+
+   /* Allocate input buffer. */
+   blit_buffer_in = malloc (((w * h) * sizeof (unsigned char)));
+   if (!blit_buffer_in)
+      return;
+
+   /* Allocate output buffer. */
+   blit_buffer_out = malloc (((wm * hm) * sizeof (unsigned short)));
+   if (!blit_buffer_out)
+   {
+      free (blit_buffer_in);
+      return;
+   }
+
+   blit_x_offset = ((dest->w / 2) - (602 / 2));
+   blit_y_offset = ((dest->h / 2) - (480 / 2));
+}
+
+/* Deinitializer. */
+
+static void deinit_nes_ntsc (void)
+{
+   /* Destroy buffers. */
+
+   if (blit_buffer_in)
+      free (blit_buffer_in);
+   if (blit_buffer_out)
+      free (blit_buffer_out);
+}
+
+/* Interface. */
+
+static const BLITTER blitter_nes_ntsc =
+{
+   init_nes_ntsc, deinit_nes_ntsc,
+   blit_nes_ntsc
+};

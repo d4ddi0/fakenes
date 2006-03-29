@@ -1,10 +1,14 @@
 #include "blit/shared.h"
 
+/* Imports. */
+
 extern void hq2x (unsigned char *, unsigned char *, int, int, int);
 extern void hq3x (unsigned char *, unsigned char *, int, int, int);
 extern void hq4x (unsigned char *, unsigned char *, int, int, int);
 
-static INLINE void blit_hq (int multiple, BITMAP *src, BITMAP *dest, int
+/* Blitter framework. */
+
+static INLINE void _blit_hq (int size, BITMAP *src, BITMAP *dest, int
    x_base, int y_base)
 {
    unsigned short *in;
@@ -15,31 +19,28 @@ static INLINE void blit_hq (int multiple, BITMAP *src, BITMAP *dest, int
    RT_ASSERT(src);
    RT_ASSERT(dest);
 
-   if ((multiple != 2) && (multiple != 3) && (multiple != 4))
+   if ((size != 2) && (size != 3) && (size != 4))
       return;
-   if ((multiple == 2) && (!blitter_size_check (dest, 512, 480)))
+   if ((size == 2) && (!blitter_size_check (dest, 512, 480)))
       return;
-   if ((multiple == 3) && (!blitter_size_check (dest, 768, 720)))
+   if ((size == 3) && (!blitter_size_check (dest, 768, 720)))
       return;
-   if ((multiple == 4) && (!blitter_size_check (dest, 1024, 960)))
+   if ((size == 4) && (!blitter_size_check (dest, 1024, 960)))
       return;
+
+   /* Check buffers. */
+   if (!blit_buffer_in || !blit_buffer_out)
+      return;
+
+   /* Set buffers. */
+   in  = (unsigned short *)blit_buffer_in;
+   out = (int            *)blit_buffer_out;
 
    /* Calculate sizes. */
    w = src->w;
    h = src->h;
-   wm = (src->w * multiple);
-   hm = (src->h * multiple);
-
-   /* Create copy buffers. */
-   in = malloc (((w * h) * sizeof (unsigned short)));
-   if (!in)
-      return;
-   out = malloc (((wm * hm) * sizeof (int)));
-   if (!out)
-   {
-      free (in);
-      return;
-   }
+   wm = (src->w * size);
+   hm = (src->h * size);
 
    /* Import source bitmap to input buffer. */
    for (y = 0; y < h; y++)
@@ -61,7 +62,7 @@ static INLINE void blit_hq (int multiple, BITMAP *src, BITMAP *dest, int
       }
    }
 
-   switch (multiple)
+   switch (size)
    {
       case 2:
       {
@@ -155,12 +156,119 @@ static INLINE void blit_hq (int multiple, BITMAP *src, BITMAP *dest, int
          }
       }
    }
-
-   /* Free copy buffers. */
-   free (in);
-   free (out);
 }
 
-#define blit_hq2x(s, d, x, y) blit_hq (2, s, d, x, y)
-#define blit_hq3x(s, d, x, y) blit_hq (3, s, d, x, y)
-#define blit_hq4x(s, d, x, y) blit_hq (4, s, d, x, y)
+/* Initializer framework. */
+
+static INLINE void _init_hq (int size, BITMAP *src, BITMAP *dest)
+{
+   int w, h, wm, hm;
+
+   RT_ASSERT(src);
+   RT_ASSERT(dest);
+
+   /* Calculate sizes. */
+   w = src->w;
+   h = src->h;
+   wm = (src->w * size);
+   hm = (src->h * size);
+
+   /* Allocate input buffer. */
+   blit_buffer_in = malloc (((w * h) * sizeof (unsigned short)));
+   if (!blit_buffer_in)
+      return;
+
+   /* Allocate output buffer. */
+   blit_buffer_out = malloc (((wm * hm) * sizeof (int)));
+   if (!blit_buffer_out)
+   {
+      free (blit_buffer_in);
+      return;
+   }
+
+   blit_x_offset = ((dest->w / 2) - (wm / 2));
+   blit_y_offset = ((dest->h / 2) - (hm / 2));
+}
+
+/* Deinitializer. */
+
+static void deinit_hq (void)
+{
+   /* Destroy buffers. */
+
+   if (blit_buffer_in)
+      free (blit_buffer_in);
+   if (blit_buffer_out)
+      free (blit_buffer_out);
+}
+
+/* Wrappers. */
+/* TODO: Maybe wrap these in macros to reduce code redundancy? */
+
+static void init_hq2x (BITMAP *src, BITMAP *dest)
+{
+   // RT_ASSERT(src);
+   // RT_ASSERT(dest);
+
+   _init_hq (2, src, dest);
+}
+
+static void blit_hq2x (BITMAP *src, BITMAP *dest, int x_base, int y_base)
+{
+   // RT_ASSERT(src);
+   // RT_ASSERT(dest);
+
+   _blit_hq (2, src, dest, x_base, y_base);
+}
+
+static void init_hq3x (BITMAP *src, BITMAP *dest)
+{
+   // RT_ASSERT(src);
+   // RT_ASSERT(dest);
+
+   _init_hq (3, src, dest);
+}
+
+static void blit_hq3x (BITMAP *src, BITMAP *dest, int x_base, int y_base)
+{
+   // RT_ASSERT(src);
+   // RT_ASSERT(dest);
+
+   _blit_hq (3, src, dest, x_base, y_base);
+}
+
+static void init_hq4x (BITMAP *src, BITMAP *dest)
+{
+   RT_ASSERT(src);
+   RT_ASSERT(dest);
+
+   _init_hq (4, src, dest);
+}
+
+static void blit_hq4x (BITMAP *src, BITMAP *dest, int x_base, int y_base)
+{
+   RT_ASSERT(src);
+   RT_ASSERT(dest);
+
+   _blit_hq (4, src, dest, x_base, y_base);
+}
+
+/* Interfaces. */
+
+static const BLITTER blitter_hq2x =
+{
+   init_hq2x, deinit_hq,
+   blit_hq2x
+};
+
+static const BLITTER blitter_hq3x =
+{
+   init_hq3x, deinit_hq,
+   blit_hq3x
+};
+
+static const BLITTER blitter_hq4x =
+{
+   init_hq4x, deinit_hq,
+   blit_hq4x
+};

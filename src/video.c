@@ -36,9 +36,6 @@ static BITMAP * status_buffer = NIL;
 static BITMAP * mouse_sprite_remove_buffer = NIL;
 
 
-static BITMAP * stretch_buffer = NIL;
-
-
 #define MAX_MESSAGES    10
 
 
@@ -85,31 +82,10 @@ static int screen_width = 0;
 
 static int color_depth = 0;
 
-
-static int stretch_width = 0;
-
-static int stretch_height = 0;
-
-
-static int first_blit_line = 0;
-
-static int last_blit_line = 0;
-
-
-static int blit_x_offset = 0;
-
-static int blit_y_offset = 0;
-
-
 static int brightness = 0;
 
 
-static int blitter_type = 0;
-
 static int filter_list = 0;
-
-
-static int selected_blitter = 0;
 
 
 #define VIDEO_COLOR_BLACK   palette_color [0]
@@ -136,16 +112,28 @@ static int using_custom_font = FALSE;
 LIST video_edge_clipping = 0;
 
 
+/* Blitter API. */
+#include "blit/shared.h"
+
+/* Blit buffers. */
+static void *blit_buffer_in  = NULL;
+static void *blit_buffer_out = NULL;
+
+/* Blitter variables. */
+static int blitter_id         = 0;      /* Blitter ID. */
+static const BLITTER *blitter = NULL;   /* Blitter interface. */
+static int blit_x_offset      = 0;      
+static int blit_y_offset      = 0;      
+static int stretch_width      = 0;
+static int stretch_height     = 0;
+
+/* Blitters. */
 #include "blit/2xscl.h"
-
 #include "blit/des.h"
-
 #include "blit/hq.h"
-
 #include "blit/interp.h"
-
 #include "blit/ntsc.h"
-
+#include "blit/std.h"
 
 static void switch_out_callback (void)
 {
@@ -196,7 +184,7 @@ int video_init (void)
     video_force_fullscreen = get_config_int ("video", "force_fullscreen", FALSE);
 
 
-    blitter_type = get_config_int ("video", "blitter_type", VIDEO_BLITTER_STRETCHED);
+    blitter_id = get_config_int ("video", "blitter", VIDEO_BLITTER_STRETCHED);
 
     filter_list = get_config_int ("video", "filter_list", 0);
 
@@ -204,16 +192,6 @@ int video_init (void)
     stretch_width = get_config_int ("video", "stretch_width", 512);
 
     stretch_height = get_config_int ("video", "stretch_height", 480);
-
-
-    first_blit_line = get_config_int ("video", "first_blit_line", 0);
-
-    last_blit_line = get_config_int ("video", "last_blit_line", 239);
-
-    if (last_blit_line < first_blit_line)
-    {
-        last_blit_line = first_blit_line;
-    }
 
 
     brightness = get_config_int ("video", "brightness", 0);
@@ -318,10 +296,6 @@ int video_init (void)
     mouse_sprite_remove_buffer = create_bitmap_ex (8, 16, 16);
 
 
-    /* Heh, redundant variable assignment. :( */
-
-    video_set_blitter (blitter_type);
-
     video_set_filter_list (filter_list);
 
 
@@ -334,6 +308,9 @@ int video_init (void)
 
         clear (base_video_buffer);
     }
+
+
+    video_set_blitter (blitter_id);
 
 
     if (preserve_palette)
@@ -466,15 +443,6 @@ void video_exit (void)
     destroy_bitmap (mouse_sprite_remove_buffer);
 
 
-    if (stretch_buffer)
-    {
-        destroy_bitmap (stretch_buffer);
-
-
-        stretch_buffer = NIL;
-    }
-
-
     if (! preserve_video_buffer)
     {
         destroy_bitmap (video_buffer);
@@ -486,6 +454,16 @@ void video_exit (void)
     if (using_custom_font)
     {
         destroy_font (font);
+    }
+
+
+    if (blitter)
+    {
+        if (blitter->deinit)
+        {
+           /* Deinitializer blitter. */
+           blitter->deinit ();
+        }
     }
 
 
@@ -503,7 +481,7 @@ void video_exit (void)
     set_config_int ("video", "force_fullscreen", video_force_fullscreen);
 
 
-    set_config_int ("video", "blitter_type", blitter_type);
+    set_config_int ("video", "blitter", blitter_id);
 
 
     set_config_int ("video", "filter_list", filter_list);
@@ -512,11 +490,6 @@ void video_exit (void)
     set_config_int ("video", "stretch_width", stretch_width);
 
     set_config_int ("video", "stretch_height", stretch_height);
-
-
-    set_config_int ("video", "first_blit_line", first_blit_line);
-
-    set_config_int ("video", "last_blit_line", last_blit_line);
 
 
     set_config_int ("video", "brightness", brightness);
@@ -581,156 +554,6 @@ static INLINE void display_status (BITMAP * bitmap, int color)
 }
 
 
-static INLINE int select_blitter (void)
-{
-    if ((SCREEN_W >= 1024) && (SCREEN_H >= 960))
-    {
-        return (VIDEO_BLITTER_HQ4X);
-    }
-    if ((SCREEN_W >= 768) && (SCREEN_H >= 720))
-    {
-        return (VIDEO_BLITTER_HQ3X);
-    }
-    if ((SCREEN_W >= 512) && (SCREEN_H >= 480))
-    {
-        return (VIDEO_BLITTER_HQ2X);
-    }
-    else
-    {
-        return (VIDEO_BLITTER_DES);
-    }
-}
-
-
-static INLINE void color_deemphasis_overlay (void)
-{
-    int y;
-
-
-    int width;
-
-    int height;
-
-
-    switch (blitter_type)
-    {
-        case VIDEO_BLITTER_NORMAL:
-
-        case VIDEO_BLITTER_DES:
-
-            width = 256;
-
-            height = 1;
-
-
-            break;
-
-
-        case VIDEO_BLITTER_INTERPOLATED_2X:
-
-        case VIDEO_BLITTER_2XSCL:
-
-        case VIDEO_BLITTER_DESII:
-
-        case VIDEO_BLITTER_SUPER_2XSCL:
-
-        case VIDEO_BLITTER_ULTRA_2XSCL:
-
-        case VIDEO_BLITTER_HQ2X:
-
-            width = 512;
-
-            height = 2;
-
-
-            break;
-
-
-        case VIDEO_BLITTER_NES_NTSC:
-
-            width = 602;
-
-            height = 2;
-
-
-            break;
-
-
-        case VIDEO_BLITTER_INTERPOLATED_3X:
-
-        case VIDEO_BLITTER_HQ3X:
-
-            width = 768;
-
-            height = 3;
-
-
-            break;
-
-
-        case VIDEO_BLITTER_HQ4X:
-
-            width = 1024;
-
-            height = 4;
-
-
-            break;
-
-
-        default:
-
-            return;
-    }
-
-
-    set_multiply_blender (0, 0, 0, 255);
-
-
-    drawing_mode (DRAW_MODE_TRANS, NULL, 0, 0);
-
-
-    for (y = 0; y < PPU_DISPLAY_LINES; y ++)
-    {
-        int bits;
-
-
-        int red;
-
-        int green;
-
-        int blue;
-
-
-        int line;
-
-
-        bits = ((ppu_register_2001_cache [y] >> 5) & 0x07);
-
-        if (bits == 0)
-        {
-            continue;
-        }
-
-
-        red = ((bits & 0x06) ? 191 : 255);
-
-        green = ((bits & 0x05) ? 191 : 255);
-
-        blue = ((bits & 0x03) ? 191 : 255);
-
-
-        for (line = 0; line < height; line ++)
-        {
-            hline (screen_buffer, blit_x_offset, (blit_y_offset + ((y * height) + line)), (blit_x_offset + (width - 1)), makecol (red, green, blue));
-        }
-    }
-
-
-    solid_mode ();
-}
-
-
 static void draw_messages (void);
 
 static void erase_messages (void);
@@ -739,262 +562,115 @@ static void erase_messages (void);
 static int flash_tick = 0;
 
 
-void video_blit (BITMAP * bitmap)
+void video_blit (BITMAP *bitmap)
 {
-    BITMAP * source_buffer;
+   RT_ASSERT(bitmap);
 
+   if (!rom_is_loaded)
+      return;
 
-    if (! rom_is_loaded)
-    {
-        return;
-    }
+   if (video_edge_clipping)
+   {
+      int w, h;
 
+      /* Calculate sizes. */
+      w = (video_buffer->w - 1);
+      h = (video_buffer->h - 1);
 
-    if (video_edge_clipping)
-    {
-        int w, h;
-
-        w = (video_buffer->w - 1);
-        h = (video_buffer->h - 1);
-
-        if (video_edge_clipping & VIDEO_EDGE_CLIPPING_HORIZONTAL)
-        {
-           /* Left edge. */
-           rectfill (video_buffer, 0, 0, 12, h, 0);
+      if (video_edge_clipping & VIDEO_EDGE_CLIPPING_HORIZONTAL)
+      {
+         /* Left edge. */
+         rectfill (video_buffer, 0, 0, 12, h, 0);
    
-           /* Right edge. */
-           rectfill (video_buffer, (w - 12), 0, w, h, 0);
-        }
+         /* Right edge. */
+         rectfill (video_buffer, (w - 12), 0, w, h, 0);
+      }
 
-        if (video_edge_clipping & VIDEO_EDGE_CLIPPING_VERTICAL)
-        {
-           /* Top edge. */
-           rectfill (video_buffer, 0, 0, w, 12, 0);
+      if (video_edge_clipping & VIDEO_EDGE_CLIPPING_VERTICAL)
+      {
+         /* Top edge. */
+         rectfill (video_buffer, 0, 0, w, 12, 0);
    
-           /* Bottom edge. */
-           rectfill (video_buffer, 0, (h - 12), w, h, 0);
-       }
-    }
-
-
-    if ((input_enable_zapper) && (! gui_is_active))
-    {
-        blit (video_buffer, mouse_sprite_remove_buffer, (input_zapper_x_offset - 7), (input_zapper_y_offset - 7), 0, 0, 16, 16);
-
-        masked_blit (DATA_TO_BITMAP (GUN_SPRITE), video_buffer, 0, 0, (input_zapper_x_offset - 7), (input_zapper_y_offset - 7), 16, 16);
-    }
-
-
-    if (blitter_type == VIDEO_BLITTER_AUTOMATIC)
-    {
-        if (! (selected_blitter > 0))
-        {
-            /* Force resync. */
-
-            video_set_blitter (blitter_type);
-        }
-
-
-        blitter_type = selected_blitter;
-    }
-
-
-    switch (blitter_type)
-    {
-        case VIDEO_BLITTER_NORMAL:
-
-            blit (video_buffer, screen_buffer, 0, first_blit_line, blit_x_offset, blit_y_offset, 256, (last_blit_line - first_blit_line + 1));
-
-
-            break;
-
-
-        case VIDEO_BLITTER_DES:
-
-            blit_des (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
-
-
-            break;
-
-
-        case VIDEO_BLITTER_INTERPOLATED_2X:
-
-            blit_interpolated_2x (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
-
-
-            break;
-
-
-        case VIDEO_BLITTER_2XSCL:
-
-            blit_2xscl (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
-
-
-            break;
-
-
-        case VIDEO_BLITTER_DESII:
-
-            blit_desii (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
-
-
-            break;
-
-
-        case VIDEO_BLITTER_SUPER_2XSCL:
-
-            blit_super_2xscl (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
-
-
-            break;
-
-
-        case VIDEO_BLITTER_ULTRA_2XSCL:
-
-            blit_ultra_2xscl (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
-
-
-            break;
-
-
-        case VIDEO_BLITTER_HQ2X:
-
-            blit_hq2x (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
-
-
-            break;
-
-
-        case VIDEO_BLITTER_NES_NTSC:
-
-            blit_nes_ntsc (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
-
-
-            break;
-
-
-        case VIDEO_BLITTER_INTERPOLATED_3X:
-
-            blit_interpolated_3x (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
-
-
-            break;
-
-
-        case VIDEO_BLITTER_HQ3X:
-
-            blit_hq3x (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
-
-
-            break;
-
-
-        case VIDEO_BLITTER_HQ4X:
-
-            blit_hq4x (video_buffer, screen_buffer, blit_x_offset, blit_y_offset);
-
-
-            break;
-
-
-        case VIDEO_BLITTER_STRETCHED:
-
-            /* See comment in video_set_blitter(). */
-
-            if (color_depth != 8)
-            {
-                blit (video_buffer, stretch_buffer, 0, 0, 0, 0, 256, 240);
-
-                stretch_blit (stretch_buffer, screen_buffer, 0, first_blit_line, 256, (last_blit_line - first_blit_line + 1),
-                    blit_x_offset, blit_y_offset, stretch_width, stretch_height);
-            }
-            else
-            {
-                stretch_blit (video_buffer, screen_buffer, 0, first_blit_line, 256, (last_blit_line - first_blit_line + 1),
-                    blit_x_offset, blit_y_offset, stretch_width, stretch_height);
-            }
-
-
-            break;
-    }
-
-
-    color_deemphasis_overlay ();
-
-
-    if (selected_blitter > 0)
-    {
-        blitter_type = VIDEO_BLITTER_AUTOMATIC;
-    }
-
-
-    if ((input_enable_zapper) && (! gui_is_active))
-    {
-        blit (mouse_sprite_remove_buffer, video_buffer, 0, 0, (input_zapper_x_offset - 7), (input_zapper_y_offset - 7), 16, 16);
-    }
-
-
-    video_filter ();
-
-
-    if ((video_display_status) && (! gui_is_active))
-    {
-        display_status (screen_buffer, VIDEO_COLOR_WHITE);
-    }
-
-
-    if (((video_message_duration > 0) || (input_mode & INPUT_MODE_CHAT)) && (! gui_is_active))
-    {
-        draw_messages ();
-    }
-
-
-    if (page_buffer)
-    {
-        /* Reduce screen tearing by blitting to VRAM first, then doing a
-           VRAM to VRAM blit to the visible portion of the screen, since
-           such blits are much faster.  Of course, we could just do page
-           flipping, but this way we keep things simple and compatible. */
-
-        acquire_bitmap (page_buffer);
-
-        blit (screen_buffer, page_buffer, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
-
-        release_bitmap (page_buffer);
-
-
-        if (video_enable_vsync)
-        {
-            vsync ();
-        }
-
-        blit (page_buffer, bitmap, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
-    }
-    else
-    {
-        acquire_bitmap (bitmap);
-
-        if (video_enable_vsync)
-        {
-            vsync ();
-        }
-
-        blit (screen_buffer, bitmap, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
-
-        release_bitmap (bitmap);
-    }
-
-
-    if (((video_message_duration > 0) || (input_mode & INPUT_MODE_CHAT)) && (! gui_is_active))
-    {
-        erase_messages ();
-    }
-
-
-    clear (status_buffer);
-
-
-    /* clear (screen_buffer); */
+         /* Bottom edge. */
+         rectfill (video_buffer, 0, (h - 12), w, h, 0);
+      }
+   }
+
+   if (input_enable_zapper && !gui_is_active)
+   {
+      /* Draw Zapper sprite. */
+
+      blit (video_buffer, mouse_sprite_remove_buffer,
+         (input_zapper_x_offset - 7), (input_zapper_y_offset - 7), 0, 0, 16,
+            16);
+
+      masked_blit (DATA_TO_BITMAP(GUN_SPRITE), video_buffer, 0, 0,
+         (input_zapper_x_offset - 7), (input_zapper_y_offset - 7), 16, 16);
+   }
+
+   /* Perform blitting operation. */
+   blitter->blit (video_buffer, screen_buffer, blit_x_offset,
+      blit_y_offset);
+
+   if (input_enable_zapper && !gui_is_active)
+   {
+      /* Undraw Zapper sprite. */
+
+      blit (mouse_sprite_remove_buffer, video_buffer, 0, 0,
+         (input_zapper_x_offset - 7), (input_zapper_y_offset - 7), 16, 16);
+   }
+
+   /* Apply filters. */
+   video_filter ();
+
+   if (video_display_status && !gui_is_active)
+      display_status (screen_buffer, VIDEO_COLOR_WHITE);
+
+   if (((video_message_duration > 0) ||
+        (input_mode & INPUT_MODE_CHAT)) && !gui_is_active)
+   {
+      /* Draw messages. */
+      draw_messages ();
+   }
+
+    /* Send screen buffer to screen. */
+
+   if (page_buffer)
+   {
+      /* Reduce screen tearing by blitting to VRAM first, then doing a
+         VRAM to VRAM blit to the visible portion of the screen, since
+         such blits are much faster.  Of course, we could just do page
+         flipping, but this way we keep things simple and compatible. */
+
+      acquire_bitmap (page_buffer);
+      blit (screen_buffer, page_buffer, 0, 0, 0, 0, screen_buffer->w,
+         screen_buffer->h);
+      release_bitmap (page_buffer);
+
+      if (video_enable_vsync)
+         vsync ();
+      blit (page_buffer, bitmap, 0, 0, 0, 0, page_buffer->w,
+         page_buffer->h);
+   }
+   else
+   {
+      acquire_bitmap (bitmap);
+      if (video_enable_vsync)
+         vsync ();
+      blit (screen_buffer, bitmap, 0, 0, 0, 0, screen_buffer->w,
+         screen_buffer->h);
+      release_bitmap (bitmap);
+   }
+
+   if (((video_message_duration > 0) ||
+        (input_mode & INPUT_MODE_CHAT)) && !gui_is_active)
+   {
+      /* Undraw messages. */
+      erase_messages ();
+   }
+
+   /* Clear status buffer. */
+   clear (status_buffer);
 }
 
 
@@ -1415,167 +1091,79 @@ void video_create_gui_gradient (GUI_COLOR * start, GUI_COLOR * end, int slices)
     }
 }
 
-
-
-void video_set_blitter (int blitter)
+static INLINE int get_automatic_blitter (void)
 {
-    blitter_type = blitter;
-
-
-    if (blitter == VIDEO_BLITTER_AUTOMATIC)
-    {
-        selected_blitter = select_blitter ();
-
-
-        blitter = selected_blitter;
-    }
-    else
-    {
-        /* Clear automatic blitter. */
-
-        selected_blitter = 0;
-    }
-
-
-    switch (blitter)
-    {
-        case VIDEO_BLITTER_NORMAL:
-
-        case VIDEO_BLITTER_DES:
-
-            blit_x_offset = ((SCREEN_W / 2) - (256 / 2));
-        
-            blit_y_offset = ((SCREEN_H / 2) - (240 / 2));
-
-
-            break;
-
-
-        case VIDEO_BLITTER_INTERPOLATED_2X:
-
-        case VIDEO_BLITTER_DESII:
-
-        case VIDEO_BLITTER_2XSCL:
-
-        case VIDEO_BLITTER_SUPER_2XSCL:
-
-        case VIDEO_BLITTER_ULTRA_2XSCL:
-
-        case VIDEO_BLITTER_HQ2X:
-
-            if (! ((SCREEN_W < 512) || (SCREEN_H < 480)))
-            {
-                blit_x_offset = ((SCREEN_W / 2) - 256);
-    
-                blit_y_offset = ((SCREEN_H / 2) - 240);
-            }
-            else
-            {
-                blit_x_offset = ((SCREEN_W / 2) - (256 / 2));
-            
-                blit_y_offset = ((SCREEN_H / 2) - (240 / 2));
-            }
-
-
-            break;
-
-
-        case VIDEO_BLITTER_INTERPOLATED_3X:
-
-        case VIDEO_BLITTER_HQ3X:
-
-            if (! ((SCREEN_W < 768) || (SCREEN_H < 720)))
-            {
-                blit_x_offset = ((SCREEN_W / 2) - 384);
-    
-                blit_y_offset = ((SCREEN_H / 2) - 360);
-            }
-            else
-            {
-                blit_x_offset = ((SCREEN_W / 2) - (384 / 2));
-            
-                blit_y_offset = ((SCREEN_H / 2) - (360 / 2));
-            }
-
-
-            break;
-
-
-        case VIDEO_BLITTER_HQ4X:
-
-            if (! ((SCREEN_W < 1024) || (SCREEN_H < 960)))
-            {
-                blit_x_offset = ((SCREEN_W / 2) - 512);
-    
-                blit_y_offset = ((SCREEN_H / 2) - 480);
-            }
-            else
-            {
-                blit_x_offset = ((SCREEN_W / 2) - (512 / 2));
-            
-                blit_y_offset = ((SCREEN_H / 2) - (480 / 2));
-            }
-
-
-            break;
-
-
-        case VIDEO_BLITTER_STRETCHED:
-
-            blit_x_offset = ((SCREEN_W / 2) - (stretch_width / 2));
-        
-            blit_y_offset = ((SCREEN_H / 2) - (stretch_height / 2));
-
-
-            /* Yuck, no color conversion in stretch_blit! */
-
-            if (color_depth != 8)
-            {
-                if (stretch_buffer)
-                {
-                    destroy_bitmap (stretch_buffer);
-                }
-
-
-                stretch_buffer = create_bitmap (256, 240);
-            }
-
-
-            break;
-
-
-        case VIDEO_BLITTER_NES_NTSC:
-
-            if (! ((SCREEN_W < 602) || (SCREEN_H < 480)))
-            {
-                blit_x_offset = ((SCREEN_W / 2) - 301);
-    
-                blit_y_offset = ((SCREEN_H / 2) - 240);
-            }
-            else
-            {
-                blit_x_offset = ((SCREEN_W / 2) - (301 / 2));
-            
-                blit_y_offset = ((SCREEN_H / 2) - (240 / 2));
-            }
-
-
-            break;
-
-
-        default:
-
-            break;
-    }
-
-
-    clear (screen_buffer);
+   if ((SCREEN_W >= 1024) && (SCREEN_H >= 960))
+      return (VIDEO_BLITTER_HQ4X);
+   if ((SCREEN_W >= 768) && (SCREEN_H >= 720))
+      return (VIDEO_BLITTER_HQ3X);
+   if ((SCREEN_W >= 512) && (SCREEN_H >= 480))
+      return (VIDEO_BLITTER_HQ2X);
+   else
+      return (VIDEO_BLITTER_DES);
 }
 
+#define BLITTER_SWITCH(id, name) \
+   case id :   \
+   {  \
+      blitter = & blitter_##name ;  \
+      break;   \
+   }
 
-int video_get_blitter (void)
+void video_set_blitter (ENUM id)
 {
-    return (blitter_type);
+   int selected_blitter;
+
+   if (blitter)
+   {
+      if (blitter->deinit)
+      {
+         /* Deinitialize blitter. */
+         blitter->deinit ();
+      }
+   }
+
+   blitter_id = id;
+
+   if (blitter_id == VIDEO_BLITTER_AUTOMATIC)
+      selected_blitter = get_automatic_blitter ();
+   else
+      selected_blitter = blitter_id;
+
+   switch (selected_blitter)
+   {
+      BLITTER_SWITCH(VIDEO_BLITTER_NORMAL,          normal)
+      BLITTER_SWITCH(VIDEO_BLITTER_DES,             des)
+      BLITTER_SWITCH(VIDEO_BLITTER_INTERPOLATED_2X, interpolated_2x)
+      BLITTER_SWITCH(VIDEO_BLITTER_DESII,           desii)
+      BLITTER_SWITCH(VIDEO_BLITTER_2XSCL,           2xscl)
+      BLITTER_SWITCH(VIDEO_BLITTER_SUPER_2XSCL,     super_2xscl)
+      BLITTER_SWITCH(VIDEO_BLITTER_ULTRA_2XSCL,     ultra_2xscl)
+      BLITTER_SWITCH(VIDEO_BLITTER_HQ2X,            hq2x)
+      BLITTER_SWITCH(VIDEO_BLITTER_NES_NTSC,        nes_ntsc)
+      BLITTER_SWITCH(VIDEO_BLITTER_INTERPOLATED_3X, interpolated_3x)
+      BLITTER_SWITCH(VIDEO_BLITTER_HQ3X,            hq3x)
+      BLITTER_SWITCH(VIDEO_BLITTER_HQ4X,            hq4x)
+      BLITTER_SWITCH(VIDEO_BLITTER_STRETCHED,       stretched)
+
+      default:
+         WARN_GENERIC();
+   }
+
+   if (blitter->init)
+   {
+      /* Initialize blitter. */
+      blitter->init (video_buffer, screen_buffer);
+   }
+
+   clear (screen_buffer);
+}
+
+#undef BLITTER_SWITCH
+
+ENUM video_get_blitter (void)
+{
+   return (blitter_id);
 }
 
 
@@ -1624,14 +1212,6 @@ void video_set_resolution (int width, int height)
     preserve_video_buffer = FALSE;
 
     preserve_palette = FALSE;
-
-
-    /* Sync. */
-
-    if (selected_blitter > 0)
-    {
-        selected_blitter = 0;
-    }
 
 
     if (gui_is_active)
@@ -1686,14 +1266,6 @@ void video_set_color_depth (int depth)
     preserve_palette = FALSE;
 
 
-    /* Sync. */
-
-    if (selected_blitter > 0)
-    {
-        selected_blitter = 0;
-    }
-
-
     if (gui_is_active)
     {
         show_mouse (screen);
@@ -1738,14 +1310,6 @@ void video_set_driver (int driver)
     preserve_video_buffer = FALSE;
 
     preserve_palette = FALSE;
-
-
-    /* Sync. */
-
-    if (selected_blitter > 0)
-    {
-        selected_blitter = 0;
-    }
 
 
     if (gui_is_active)

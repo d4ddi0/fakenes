@@ -1,6 +1,16 @@
 #ifndef BLIT_SHARED_H_INCLUDED
 #define BLIT_SHARED_H_INCLUDED
 
+/* Blitter structure. */
+
+typedef struct _BLITTER
+{
+   void (*init) (BITMAP *, BITMAP *);
+   void (*deinit) (void);
+   void (*blit) (BITMAP *, BITMAP *, int, int);
+
+} BLITTER;
+
 /* Pixel access macros. */
 
 #define FAST_GETPIXEL8(bmp, x, y)      (bmp->line[y][x])
@@ -93,4 +103,4 @@ static INLINE int unmix (int color_a, int color_b)
    return (video_create_color (r, g, b));
 }
 
-#endif /* !BLIT_SHARED_H_INCLUDED */
+#endif   /* !BLIT_SHARED_H_INCLUDED */

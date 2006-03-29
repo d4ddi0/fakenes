@@ -126,9 +126,6 @@ static INT8 background_pixels [8 + 256 + 8];
 
 static int palette_mask = 0x3f;
 
-UINT8 ppu_register_2001_cache [PPU_DISPLAY_LINES];
-
-
 #include "ppu/tiles.h"
 
 #include "ppu/backgrnd.h"
@@ -1070,11 +1067,6 @@ void ppu_start_render (void)
 void ppu_render_line (int line)
 {
     int i;
-
-    if (line < PPU_DISPLAY_LINES)
-    {
-        ppu_register_2001_cache [line] = ppu_register_2001;
-    }
 
     if (ppu_register_2001 & PPU_MONOCHROME_DISPLAY_BIT)
     {

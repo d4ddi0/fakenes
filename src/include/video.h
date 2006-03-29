@@ -22,48 +22,25 @@ volatile int video_message_duration;
 
 enum
 {
-    VIDEO_BLITTER_AUTOMATIC,
-
-
-    VIDEO_BLITTER_NORMAL,
-
-    VIDEO_BLITTER_DES,
-
-
-    VIDEO_BLITTER_INTERPOLATED_2X,
-
-    VIDEO_BLITTER_2XSCL,
-
-    VIDEO_BLITTER_DESII,
-
-    VIDEO_BLITTER_SUPER_2XSCL,
-
-    VIDEO_BLITTER_ULTRA_2XSCL,
-
-    VIDEO_BLITTER_HQ2X,
-
-
-    VIDEO_BLITTER_NES_NTSC,
-
-
-    VIDEO_BLITTER_INTERPOLATED_3X,
-
-    VIDEO_BLITTER_HQ3X,
-
-
-    VIDEO_BLITTER_HQ4X,
-
-
-    VIDEO_BLITTER_STRETCHED
+   VIDEO_BLITTER_AUTOMATIC = -1,
+   VIDEO_BLITTER_NORMAL,
+   VIDEO_BLITTER_DES,
+   VIDEO_BLITTER_INTERPOLATED_2X,
+   VIDEO_BLITTER_2XSCL,
+   VIDEO_BLITTER_DESII,
+   VIDEO_BLITTER_SUPER_2XSCL,
+   VIDEO_BLITTER_ULTRA_2XSCL,
+   VIDEO_BLITTER_HQ2X,
+   VIDEO_BLITTER_NES_NTSC,
+   VIDEO_BLITTER_INTERPOLATED_3X,
+   VIDEO_BLITTER_HQ3X,
+   VIDEO_BLITTER_HQ4X,
+   VIDEO_BLITTER_STRETCHED
 };
 
-
 #define VIDEO_FILTER_SCANLINES_LOW      1
-
 #define VIDEO_FILTER_SCANLINES_MEDIUM   2
-
 #define VIDEO_FILTER_SCANLINES_HIGH     4
-
 
 int video_display_status;
 
@@ -127,9 +104,8 @@ int video_create_gradient (int, int, int, int, int);
 void video_create_gui_gradient (GUI_COLOR *, GUI_COLOR *, int);
 
 
-void video_set_blitter (int);
-
-int video_get_blitter (void);
+void video_set_blitter (ENUM);
+ENUM video_get_blitter (void);
 
 
 void video_set_filter_list (int);

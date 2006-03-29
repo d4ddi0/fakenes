@@ -1,7 +1,8 @@
 #include "blit/shared.h"
 
-static INLINE void blit_des (BITMAP *src, BITMAP *dest, int x_base, int
-   y_base)
+/* Blitters. */
+
+static void blit_des (BITMAP *src, BITMAP *dest, int x_base, int y_base)
 {
    int y;
 
@@ -89,8 +90,7 @@ static INLINE void blit_des (BITMAP *src, BITMAP *dest, int x_base, int
    }
 }
 
-static INLINE void blit_desii (BITMAP *src, BITMAP *dest, int x_base, int
-   y_base)
+static void blit_desii (BITMAP *src, BITMAP *dest, int x_base, int y_base)
 {
    int y;
 
@@ -205,3 +205,36 @@ static INLINE void blit_desii (BITMAP *src, BITMAP *dest, int x_base, int
    }
 }
 
+/* Initializers. */
+
+static void init_des (BITMAP *src, BITMAP *dest)
+{
+   RT_ASSERT(src);
+   RT_ASSERT(dest);
+
+   blit_x_offset = ((dest->w / 2) - (src->w / 2));
+   blit_y_offset = ((dest->h / 2) - (src->h / 2));
+}
+
+static void init_desii (BITMAP *src, BITMAP *dest)
+{
+   RT_ASSERT(src);
+   RT_ASSERT(dest);
+
+   blit_x_offset = ((dest->w / 2) - ((src->w * 2) / 2));
+   blit_y_offset = ((dest->h / 2) - ((src->h * 2) / 2));
+}
+
+/* Interfaces. */
+
+static const BLITTER blitter_des =
+{
+   init_des, NULL,
+   blit_des
+};
+
+static const BLITTER blitter_desii =
+{
+   init_desii, NULL,
+   blit_desii
+};
