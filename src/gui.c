@@ -616,6 +616,7 @@ static INLINE void update_menus (void)
       DISABLE_MENU_ITEM(machine_menu_hard_reset);
       DISABLE_SUBMENU(machine_save_state_menu);
       DISABLE_MENU_ITEM(machine_menu_cheat_manager);
+      DISABLE_MENU_ITEM(video_layers_menu_flip_mirroring);
    }
 
    SET_MENU_ITEM_ENABLED(audio_mixing_quality_menu_interpolation,
@@ -1412,6 +1413,7 @@ static INLINE int load_file (const UCHAR *filename)
       ENABLE_MENU_ITEM(machine_menu_hard_reset);
       ENABLE_SUBMENU(machine_save_state_menu);
       ENABLE_MENU_ITEM(machine_menu_cheat_manager);
+      ENABLE_MENU_ITEM(video_layers_menu_flip_mirroring);
 
       /* Update window title. */
       uszprintf (scratch, sizeof (scratch), "FakeNES - %s", get_filename
@@ -3024,6 +3026,13 @@ static int video_layers_menu_hide_vertical_scrolling (void)
       (video_edge_clipping & VIDEO_EDGE_CLIPPING_VERTICAL));
 
    return (D_O_K);
+}
+
+static int video_layers_menu_flip_mirroring (void)
+{
+   ppu_invert_mirroring ();
+
+   return (D_CLOSE);
 }
 
 #define PALETTE_MENU_HANDLER(name, caption, id) \

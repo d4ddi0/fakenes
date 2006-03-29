@@ -701,6 +701,7 @@ DEFINE_MENU_CALLBACK(video_layers_menu_sprites_b);
 DEFINE_MENU_CALLBACK(video_layers_menu_background);
 DEFINE_MENU_CALLBACK(video_layers_menu_hide_horizontal_scrolling);
 DEFINE_MENU_CALLBACK(video_layers_menu_hide_vertical_scrolling);
+DEFINE_MENU_CALLBACK(video_layers_menu_flip_mirroring);
 
 static const MENU video_layers_menu_base[] =
 {
@@ -710,6 +711,8 @@ static const MENU video_layers_menu_base[] =
    MENU_SPLITTER,
    { "&Hide Hor. Scrolling", video_layers_menu_hide_horizontal_scrolling, NULL, 0, NULL },
    { "H&ide Ver. Scrolling", video_layers_menu_hide_vertical_scrolling,   NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&Flip Mirroring",      video_layers_menu_flip_mirroring,            NULL, 0, NULL },
    MENU_ENDCAP
 };
 
