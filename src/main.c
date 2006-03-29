@@ -743,15 +743,14 @@ int main (int argc, char * argv [])
                         throttle_counter = 0;
                     }
                 }
-                else
-                {
-                    actual_fps_count = 0;
-    
-                    virtual_fps_count = 0;
-    
-    
-                    audio_fps = 0;
-                }
+
+
+                actual_fps_count = 0;
+
+                virtual_fps_count = 0;
+ 
+ 
+                audio_fps = 0;
 
 
                 frame_interrupt = FALSE;
