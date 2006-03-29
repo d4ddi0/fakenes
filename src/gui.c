@@ -856,6 +856,11 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(options_gui_theme_menu_stainless_steel, (last_theme == &stainless_steel_theme));
    TOGGLE_MENU_ITEM(options_gui_theme_menu_zero_4,          (last_theme == &zero_4_theme));
    TOGGLE_MENU_ITEM(options_gui_theme_menu_panta,           (last_theme == &panta_theme));
+   TOGGLE_MENU_ITEM(options_gui_theme_menu_xodiac,          (last_theme == &xodiac_theme));
+   TOGGLE_MENU_ITEM(options_gui_theme_menu_monochrome,      (last_theme == &monochrome_theme));
+   TOGGLE_MENU_ITEM(options_gui_theme_menu_essence,         (last_theme == &essence_theme));
+   TOGGLE_MENU_ITEM(options_gui_theme_menu_voodoo,          (last_theme == &voodoo_theme));
+   TOGGLE_MENU_ITEM(options_gui_theme_menu_hugs_and_kisses, (last_theme == &hugs_and_kisses_theme));
 }
 
 static INLINE void draw_background (void)
@@ -3160,40 +3165,25 @@ static int options_cpu_usage_menu_aggressive (void)
     return (D_O_K);
 }
 
-#define SET_THEME(name) \
-   set_##name##_theme ();  \
-   gui_needs_restart = TRUE;
+#define OPTIONS_GUI_THEME_MENU_HANDLER(name)   \
+   static int options_gui_theme_menu_##name (void) \
+   {  \
+      set_##name##_theme ();  \
+      gui_needs_restart = TRUE;  \
+      return (D_CLOSE); \
+   }
 
-static int options_gui_theme_menu_classic (void)
-{
-   SET_THEME(classic);
+OPTIONS_GUI_THEME_MENU_HANDLER(classic)
+OPTIONS_GUI_THEME_MENU_HANDLER(stainless_steel)
+OPTIONS_GUI_THEME_MENU_HANDLER(zero_4)
+OPTIONS_GUI_THEME_MENU_HANDLER(panta)
+OPTIONS_GUI_THEME_MENU_HANDLER(xodiac)
+OPTIONS_GUI_THEME_MENU_HANDLER(monochrome)
+OPTIONS_GUI_THEME_MENU_HANDLER(essence)
+OPTIONS_GUI_THEME_MENU_HANDLER(voodoo)
+OPTIONS_GUI_THEME_MENU_HANDLER(hugs_and_kisses)
 
-   return (D_CLOSE);
-}
-
-static int options_gui_theme_menu_stainless_steel (void)
-{
-   SET_THEME(stainless_steel);
-
-   return (D_CLOSE);
-}
-
-static int options_gui_theme_menu_zero_4 (void)
-{
-   SET_THEME(zero_4);
-
-   return (D_CLOSE);
-}
-
-
-static int options_gui_theme_menu_panta (void)
-{
-   SET_THEME(panta);
-
-   return (D_CLOSE);
-}
-
-#undef SET_THEME
+#undef OPTIONS_GUI_THEME_MENU_HANDLER
 
 static int netplay_menu_start_as_server (void)
 {

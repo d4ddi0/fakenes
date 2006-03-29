@@ -796,13 +796,26 @@ DEFINE_MENU_CALLBACK(options_gui_theme_menu_classic);
 DEFINE_MENU_CALLBACK(options_gui_theme_menu_stainless_steel);
 DEFINE_MENU_CALLBACK(options_gui_theme_menu_zero_4);
 DEFINE_MENU_CALLBACK(options_gui_theme_menu_panta);
+DEFINE_MENU_CALLBACK(options_gui_theme_menu_xodiac);
+DEFINE_MENU_CALLBACK(options_gui_theme_menu_monochrome);
+DEFINE_MENU_CALLBACK(options_gui_theme_menu_essence);
+DEFINE_MENU_CALLBACK(options_gui_theme_menu_voodoo);
+DEFINE_MENU_CALLBACK(options_gui_theme_menu_hugs_and_kisses);
 
 static const MENU options_gui_theme_menu_base[] =
 {
-   { "&1: Classic",         options_gui_theme_menu_classic,         NULL, 0, NULL },
-   { "&2: stainless Steel", options_gui_theme_menu_stainless_steel, NULL, 0, NULL },
-   { "&3: Zero 4",          options_gui_theme_menu_zero_4,          NULL, 0, NULL },
-   { "&4: Panta",           options_gui_theme_menu_panta,           NULL, 0, NULL },
+   { "Complete Themes",       NULL,                                   NULL, 0, NULL },
+   { "  &1: Classic",         options_gui_theme_menu_classic,         NULL, 0, NULL },
+   { "  &2: stainless Steel", options_gui_theme_menu_stainless_steel, NULL, 0, NULL },
+   { "  &3: Zero 4",          options_gui_theme_menu_zero_4,          NULL, 0, NULL },
+   { "  &4: Panta",           options_gui_theme_menu_panta,           NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "Color Themes",          NULL,                                   NULL, 0, NULL },
+   { "  &5: Xodiac",          options_gui_theme_menu_xodiac,          NULL, 0, NULL },
+   { "  &6: Monochrome",      options_gui_theme_menu_monochrome,      NULL, 0, NULL },
+   { "  &7: Essence",         options_gui_theme_menu_essence,         NULL, 0, NULL },
+   { "  &8: Voodoo",          options_gui_theme_menu_voodoo,          NULL, 0, NULL },
+   { "  &9: Hugs and Kisses", options_gui_theme_menu_hugs_and_kisses, NULL, 0, NULL },
    MENU_ENDCAP
 };
 
