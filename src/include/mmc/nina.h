@@ -15,7 +15,7 @@ static void nina_save_state (PACKFILE *, int);
 static void nina_load_state (PACKFILE *, int);
 
 
-const MMC mmc_nina =
+static const MMC mmc_nina =
 {
     34, "NINA-001",
 

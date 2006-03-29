@@ -15,7 +15,7 @@ static void mmc5_save_state (PACKFILE *, int);
 static void mmc5_load_state (PACKFILE *, int);
 
 
-const MMC mmc_mmc5 =
+static const MMC mmc_mmc5 =
 {
     5, "MMC5 + ExSound",
 

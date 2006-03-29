@@ -18,7 +18,7 @@ static void ffe_f3_save_state (PACKFILE *, int);
 static void ffe_f3_load_state (PACKFILE *, int);
 
 
-const MMC mmc_ffe_f3 =
+static const MMC mmc_ffe_f3 =
 {
     8, "FFE F3xxx",
 

@@ -15,7 +15,7 @@ static void aorom_save_state (PACKFILE *, int);
 static void aorom_load_state (PACKFILE *, int);
 
 
-const MMC mmc_aorom =
+static const MMC mmc_aorom =
 {
     7, "AOROM",
 

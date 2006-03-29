@@ -15,7 +15,7 @@ static void sunsoft4_save_state (PACKFILE *, int);
 static void sunsoft4_load_state (PACKFILE *, int);
 
 
-const MMC mmc_sunsoft4 =
+static const MMC mmc_sunsoft4 =
 {
     68, "Sunsoft mapper #4",
 

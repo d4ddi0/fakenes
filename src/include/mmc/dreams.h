@@ -18,7 +18,7 @@ static void dreams_save_state (PACKFILE *, int);
 static void dreams_load_state (PACKFILE *, int);
 
 
-const MMC mmc_dreams =
+static const MMC mmc_dreams =
 {
     11, "Color Dreams",
 

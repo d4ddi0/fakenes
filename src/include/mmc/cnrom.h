@@ -18,7 +18,7 @@ static void cnrom_save_state (PACKFILE *, int);
 static void cnrom_load_state (PACKFILE *, int);
 
 
-const MMC mmc_cnrom =
+static const MMC mmc_cnrom =
 {
     3, "CNROM",
 

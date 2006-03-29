@@ -15,7 +15,7 @@ static void mmc3_save_state (PACKFILE *, int);
 static void mmc3_load_state (PACKFILE *, int);
 
 
-const MMC mmc_mmc3 =
+static const MMC mmc_mmc3 =
 {
     4, "MMC3",
 

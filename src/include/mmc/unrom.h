@@ -18,7 +18,7 @@ static void unrom_save_state (PACKFILE *, int);
 static void unrom_load_state (PACKFILE *, int);
 
 
-const MMC mmc_unrom =
+static const MMC mmc_unrom =
 {
     2, "UNROM",
 

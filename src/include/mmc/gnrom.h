@@ -18,7 +18,7 @@ static void gnrom_save_state (PACKFILE *, int);
 static void gnrom_load_state (PACKFILE *, int);
 
 
-const MMC mmc_gnrom =
+static const MMC mmc_gnrom =
 {
     66, "GNROM",
 

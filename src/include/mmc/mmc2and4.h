@@ -20,7 +20,7 @@ static void mmc2and4_save_state (PACKFILE *, int);
 static void mmc2and4_load_state (PACKFILE *, int);
 
 
-const MMC mmc_mmc2 =
+static const MMC mmc_mmc2 =
 {
     9, "MMC2",
 
