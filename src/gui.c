@@ -68,8 +68,8 @@ static int replay_index = 0;  /* For replays. */
 #define UNUSED_SLOT_TEXT   "Empty"
 
 /* Number of slots available in each of the associated menus. */
-#define OPEN_RECENT_SLOTS  5
-#define REPLAY_SLOTS       5
+#define OPEN_RECENT_SLOTS  10
+#define REPLAY_SLOTS       10
 #define STATE_SLOTS        10
 
 static USTRING open_recent_filenames[OPEN_RECENT_SLOTS];
@@ -993,8 +993,8 @@ int gui_init (void)
          continue;
 
       uszprintf (filename, USTRING_SIZE, "%s", path);
-      uszprintf (text,     USTRING_SIZE, "&%d: %s", (index + 1),
-         get_filename (path));
+      uszprintf (text,     USTRING_SIZE, "&%d: %s", index, get_filename
+         (path));
 
       /* Update menu. */
       menu->text = text;
@@ -1629,7 +1629,7 @@ static int main_menu_open (void)
             if (filename[0])
             {
                /* Build menu text. */
-               uszprintf (text, USTRING_SIZE, "&%d: %s", (index + 1),
+               uszprintf (text, USTRING_SIZE, "&%d: %s", index,
                   get_filename (filename));
 
                /* Enable menu. */
@@ -1638,7 +1638,7 @@ static int main_menu_open (void)
             else
             {
                /* Build menu text. */
-               uszprintf (text, USTRING_SIZE, "&%d: %s", (index + 1),
+               uszprintf (text, USTRING_SIZE, "&%d: %s", index,
                   UNUSED_SLOT_TEXT);
 
                /* Disable menu. */
@@ -1668,6 +1668,11 @@ OPEN_RECENT_MENU_HANDLER(1)
 OPEN_RECENT_MENU_HANDLER(2)
 OPEN_RECENT_MENU_HANDLER(3)
 OPEN_RECENT_MENU_HANDLER(4)
+OPEN_RECENT_MENU_HANDLER(5)
+OPEN_RECENT_MENU_HANDLER(6)
+OPEN_RECENT_MENU_HANDLER(7)
+OPEN_RECENT_MENU_HANDLER(8)
+OPEN_RECENT_MENU_HANDLER(9)
 
 #undef OPEN_RECENT_MENU_HANDLER
 
@@ -1738,6 +1743,11 @@ REPLAY_SELECT_MENU_HANDLER(1)
 REPLAY_SELECT_MENU_HANDLER(2)
 REPLAY_SELECT_MENU_HANDLER(3)
 REPLAY_SELECT_MENU_HANDLER(4)
+REPLAY_SELECT_MENU_HANDLER(5)
+REPLAY_SELECT_MENU_HANDLER(6)
+REPLAY_SELECT_MENU_HANDLER(7)
+REPLAY_SELECT_MENU_HANDLER(8)
+REPLAY_SELECT_MENU_HANDLER(9)
 
 #undef REPLAY_SELECT_MENU_HANDLER
 

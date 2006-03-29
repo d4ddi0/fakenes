@@ -62,6 +62,11 @@ DEFINE_MENU_CALLBACK(main_open_recent_menu_1);
 DEFINE_MENU_CALLBACK(main_open_recent_menu_2);
 DEFINE_MENU_CALLBACK(main_open_recent_menu_3);
 DEFINE_MENU_CALLBACK(main_open_recent_menu_4);
+DEFINE_MENU_CALLBACK(main_open_recent_menu_5);
+DEFINE_MENU_CALLBACK(main_open_recent_menu_6);
+DEFINE_MENU_CALLBACK(main_open_recent_menu_7);
+DEFINE_MENU_CALLBACK(main_open_recent_menu_8);
+DEFINE_MENU_CALLBACK(main_open_recent_menu_9);
 DEFINE_MENU_CALLBACK(main_open_recent_menu_lock);
 DEFINE_MENU_CALLBACK(main_open_recent_menu_clear);
 
@@ -72,6 +77,11 @@ static const MENU main_open_recent_menu_base[] =
    { NULL,     main_open_recent_menu_2,     NULL, 0, NULL },
    { NULL,     main_open_recent_menu_3,     NULL, 0, NULL },
    { NULL,     main_open_recent_menu_4,     NULL, 0, NULL },
+   { NULL,     main_open_recent_menu_5,     NULL, 0, NULL },
+   { NULL,     main_open_recent_menu_6,     NULL, 0, NULL },
+   { NULL,     main_open_recent_menu_7,     NULL, 0, NULL },
+   { NULL,     main_open_recent_menu_8,     NULL, 0, NULL },
+   { NULL,     main_open_recent_menu_9,     NULL, 0, NULL },
    MENU_SPLITTER,
    { "&Lock",  main_open_recent_menu_lock,  NULL, 0, NULL },
    { "&Clear", main_open_recent_menu_clear, NULL, 0, NULL },
@@ -83,6 +93,11 @@ DEFINE_MENU_CALLBACK(main_replay_select_menu_1);
 DEFINE_MENU_CALLBACK(main_replay_select_menu_2);
 DEFINE_MENU_CALLBACK(main_replay_select_menu_3);
 DEFINE_MENU_CALLBACK(main_replay_select_menu_4);
+DEFINE_MENU_CALLBACK(main_replay_select_menu_5);
+DEFINE_MENU_CALLBACK(main_replay_select_menu_6);
+DEFINE_MENU_CALLBACK(main_replay_select_menu_7);
+DEFINE_MENU_CALLBACK(main_replay_select_menu_8);
+DEFINE_MENU_CALLBACK(main_replay_select_menu_9);
 
 static const MENU main_replay_select_menu_base[] =
 {
@@ -91,6 +106,11 @@ static const MENU main_replay_select_menu_base[] =
    { NULL, main_replay_select_menu_2, NULL, 0, NULL },
    { NULL, main_replay_select_menu_3, NULL, 0, NULL },
    { NULL, main_replay_select_menu_4, NULL, 0, NULL },
+   { NULL, main_replay_select_menu_5, NULL, 0, NULL },
+   { NULL, main_replay_select_menu_6, NULL, 0, NULL },
+   { NULL, main_replay_select_menu_7, NULL, 0, NULL },
+   { NULL, main_replay_select_menu_8, NULL, 0, NULL },
+   { NULL, main_replay_select_menu_9, NULL, 0, NULL },
    MENU_ENDCAP
 };
 
