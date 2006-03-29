@@ -446,7 +446,7 @@ static INLINE void apply_echo (void)
 
     for (offset = 0; offset < papu_buffer_frame_size; offset ++)
     {
-        int accumulator;
+        int accumulator = 0;
 
 
         for (index = 0; index < ECHO_DEPTH; index ++)
