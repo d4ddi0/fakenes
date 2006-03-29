@@ -200,6 +200,9 @@ static void deinit_hq (void)
       free (blit_buffer_in);
    if (blit_buffer_out)
       free (blit_buffer_out);
+
+   blit_buffer_in  = NULL;
+   blit_buffer_out = NULL;
 }
 
 /* Wrappers. */

@@ -24,93 +24,57 @@
 #include "types.h"
 #include "video.h"
 
+static BITMAP *screen_buffer = NULL;
+static BITMAP *page_buffer = NULL;
 
-static BITMAP * screen_buffer = NIL;
-
-static BITMAP * page_buffer = NIL;
-
-
-static BITMAP * status_buffer = NIL;
-
-
-static BITMAP * mouse_sprite_remove_buffer = NIL;
-
+static BITMAP *status_buffer = NULL;
+static BITMAP *mouse_sprite_remove_buffer = NULL;
 
 #define MAX_MESSAGES    10
 
-
 static USTRING video_messages[MAX_MESSAGES];
-
 
 volatile int video_message_duration = 0;
 
-
 static void video_message_timer (void)
 {
-    if (video_message_duration > 0)
-    {
-        video_message_duration -= 1000;
-    }
+   if (video_message_duration > 0)
+      video_message_duration -= 1000;
 }
 
 END_OF_STATIC_FUNCTION (video_message_timer);
 
-
-int video_display_status = FALSE;
-
-int video_enable_vsync = FALSE;
-
-
-int video_force_fullscreen = FALSE;
-
+BOOL video_display_status = FALSE;
+BOOL video_enable_vsync = FALSE;
+BOOL video_force_fullscreen = FALSE;
 
 int video_driver = 0;
 
+BITMAP *base_video_buffer = NULL;
+BITMAP *video_buffer = NULL;
 
-BITMAP * base_video_buffer = NIL;
+FONT *small_font = NULL;
 
-BITMAP * video_buffer = NIL;
+static int screen_width  = 640;
+static int screen_height = 480;
+static int color_depth   = -1;
+static int brightness    = 0;
+                         
+static LIST filter_list = 0;
 
+#define VIDEO_COLOR_BLACK   palette_color[0]
+#define VIDEO_COLOR_WHITE   palette_color[33]
 
-FONT * small_font = NIL;
-
-
-static int screen_height = 0;
-
-static int screen_width = 0;
-
-
-static int color_depth = 0;
-
-static int brightness = 0;
-
-
-static int filter_list = 0;
-
-
-#define VIDEO_COLOR_BLACK   palette_color [0]
-
-#define VIDEO_COLOR_WHITE   palette_color [33]
-
-
-static int preserve_video_buffer = FALSE;
-
-static int preserve_palette = FALSE;
-
+static BOOL preserve_video_buffer = FALSE;
+static BOOL preserve_palette = FALSE;
 
 static PALETTE internal_palette;
-
-
-RGB * video_palette = NIL;
-
+RGB * video_palette = NULL;
 static int video_palette_id = -1;
 
-
-static int using_custom_font = FALSE;
-
+static BOOL using_custom_font = FALSE;
 
 LIST video_edge_clipping = 0;
-
 
 /* Blitter API. */
 #include "blit/shared.h"
@@ -120,12 +84,12 @@ static void *blit_buffer_in  = NULL;
 static void *blit_buffer_out = NULL;
 
 /* Blitter variables. */
-static int blitter_id         = 0;      /* Blitter ID. */
+static int blitter_id         = VIDEO_BLITTER_STRETCHED;
 static const BLITTER *blitter = NULL;   /* Blitter interface. */
 static int blit_x_offset      = 0;      
 static int blit_y_offset      = 0;      
-static int stretch_width      = 0;
-static int stretch_height     = 0;
+static int stretch_width      = 512;
+static int stretch_height     = 480;
 
 /* Blitters. */
 #include "blit/2xscl.h"
@@ -137,370 +101,330 @@ static int stretch_height     = 0;
 
 static void switch_out_callback (void)
 {
-    if (! gui_is_active)
-    {
-        audio_suspend ();
-    }
+   if (!gui_is_active)
+      audio_suspend ();
 }
-
 
 static void switch_in_callback (void)
 {
-    if (! gui_is_active)
-    {
-        audio_resume ();
-    }
+   if (!gui_is_active)
+      audio_resume ();
 }
-
 
 int video_init (void)
 {
-    int driver;
-
-
-    const UINT8 * font_file;
-
-
-    LOCK_VARIABLE (video_message_duration);
-
-
-    LOCK_FUNCTION (video_message_timer);
-
-
-    install_int_ex (video_message_timer, BPS_TO_TIMER (1));
-
-
-    video_driver = get_config_id ("video", "driver", GFX_AUTODETECT);
-
-
-    screen_width = get_config_int ("video", "screen_width", 640);
-
-    screen_height = get_config_int ("video", "screen_height", 480);
-
-
-    color_depth = get_config_int ("video", "color_depth", -1);
-
-
-    video_force_fullscreen = get_config_int ("video", "force_fullscreen", FALSE);
-
-
-    blitter_id = get_config_int ("video", "blitter", VIDEO_BLITTER_STRETCHED);
-
-    filter_list = get_config_int ("video", "filter_list", 0);
-
-
-    stretch_width = get_config_int ("video", "stretch_width", 512);
-
-    stretch_height = get_config_int ("video", "stretch_height", 480);
-
-
-    brightness = get_config_int ("video", "brightness", 0);
-
-
-    video_display_status = get_config_int ("video", "display_status", FALSE);
-
-    video_enable_vsync = get_config_int ("video", "enable_vsync", FALSE);
-
-
-    video_edge_clipping = get_config_int ("video", "edge_clipping", 0);
-
-
-    if (video_driver == GFX_AUTODETECT)
-    {
-        if (video_force_fullscreen)
-        {
-            driver = GFX_AUTODETECT_FULLSCREEN;
-        }
-        else
-        {
-            int depth;
-
-            depth = desktop_color_depth ();
-
-            /* Attempt to detect a windowed environment.  This has a side
-               effect of changing the default color depth to that of the
-               desktop. */
-
-            if (depth > 0)
-            {
-                driver = GFX_AUTODETECT_WINDOWED;
-
-                if (color_depth == -1)
-                {
-                    color_depth = depth;
-                }
-            }
-            else
-            {
-                driver = GFX_AUTODETECT;
-            }
-        }
-    }
-    else
-    {
-        driver = video_driver;
-    }
-
-
-    if (color_depth == -1)
-    {
-        /* No windowed environment present to autodetect a color depth from;
-           default to 256 colors. */
-
-        color_depth = 8;
-    }
-
-    if ((color_depth != 8) && (color_depth != 15) && (color_depth != 16) && (color_depth != 24) && (color_depth != 32))
-    {
-        return (1);
-    }
-
-
-    set_color_depth (color_depth);
-
-    if (set_gfx_mode (driver, screen_width, screen_height, 0, 0) != 0)
-    {
-        return (2);
-    }
-
-
-    if (color_depth != 8)
-    {
-        set_color_conversion (COLORCONV_TOTAL);
-    }
-
-
-    screen_buffer = create_bitmap (SCREEN_W, SCREEN_H);
-
-    clear (screen_buffer);
-
-
-    if (gfx_capabilities & GFX_HW_VRAM_BLIT)
-    {
-       /* VRAM->VRAM blits are hardware accelerated (note: This call doesn't
-          have to succeed). */
-
-       page_buffer = create_video_bitmap (SCREEN_W, SCREEN_H);
-    }
-    else
-    {
-       /* No hardware acceleration available. */
-
-       page_buffer = NIL;
-    }
-
-
-    status_buffer = create_sub_bitmap (screen_buffer, 0, (SCREEN_H - 128), 72, 128);
-
-
-    mouse_sprite_remove_buffer = create_bitmap_ex (8, 16, 16);
-
-
-    video_set_filter_list (filter_list);
-
-
-    if (! preserve_video_buffer)
-    {
-        base_video_buffer = create_bitmap_ex (8, ((8 + 256) + 8), ((16 + 240) + 16));
-    
-        video_buffer = create_sub_bitmap (base_video_buffer, 8, 16, 256, 240);
-    
-
-        clear (base_video_buffer);
-    }
-
-
-    video_set_blitter (blitter_id);
-
-
-    if (preserve_palette)
-    {
-        video_set_palette (NIL);
-    }
-    else
-    {
-        video_set_palette (DATA_TO_RGB (MODERN_NTSC_PALETTE));
-
-        video_set_palette_id (DATA_INDEX (MODERN_NTSC_PALETTE));
-    }
-
-
-    small_font = DATA_TO_FONT (SMALL_FONT);
-
-
-    font_file = get_config_string ("gui", "font", "");
-
-    if ((strlen (font_file) > 1) && (exists (font_file)))
-    {
-        font = load_font (font_file, NIL, NIL);
-
-        if (! font)
-        {
-            using_custom_font = FALSE;
-
-
-            font = DATA_TO_FONT (SMALL_FONT_CLEAN);
-        }
-        else
-        {
-            using_custom_font = TRUE;
-        }
-    }
-    else
-    {
-        /* Reset just in case. */
-
-        using_custom_font = FALSE;
-
-
-        font = DATA_TO_FONT (SMALL_FONT_CLEAN);
-    }
-
-
-    if (is_windowed_mode ())
-    {
-        set_display_switch_mode (SWITCH_BACKGROUND);
-    }
-    else
-    {
-        set_display_switch_mode (SWITCH_AMNESIA);
-
-
-        /* Install callbacks. */
-   
-        set_display_switch_callback (SWITCH_IN, switch_in_callback);
-   
-        set_display_switch_callback (SWITCH_OUT, switch_out_callback);
-    }
-
-
-    return (0);
+   int driver;
+   const CHAR *font_file;
+
+   /* Install message timer. */
+
+   LOCK_VARIABLE (video_message_duration);
+   LOCK_FUNCTION (video_message_timer);
+   install_int_ex (video_message_timer, BPS_TO_TIMER(1));
+
+   /* Load configuration. */
+
+   video_driver           = get_config_id  ("video", "driver",           video_driver);
+   screen_width           = get_config_int ("video", "screen_width",     screen_width);
+   screen_height          = get_config_int ("video", "screen_height",    screen_height);
+   color_depth            = get_config_int ("video", "color_depth",      color_depth);
+   video_force_fullscreen = get_config_int ("video", "force_fullscreen", video_force_fullscreen);
+   blitter_id             = get_config_int ("video", "blitter",          blitter_id);
+   filter_list            = get_config_int ("video", "filter_list",      filter_list);
+   stretch_width          = get_config_int ("video", "stretch_width",    stretch_width);
+   stretch_height         = get_config_int ("video", "stretch_height",   stretch_height);
+   brightness             = get_config_int ("video", "brightness",       brightness);
+   video_display_status   = get_config_int ("video", "display_status",   video_display_status);
+   video_enable_vsync     = get_config_int ("video", "enable_vsync",     video_enable_vsync);
+   video_edge_clipping    = get_config_int ("video", "edge_clipping",    video_edge_clipping);
+
+   /* Determine which driver to use. */
+
+   if (video_driver == GFX_AUTODETECT)
+   {
+      if (video_force_fullscreen)
+      {
+         driver = GFX_AUTODETECT_FULLSCREEN;
+      }
+      else
+      {
+         int depth;
+
+         depth = desktop_color_depth ();
+
+         /* Attempt to detect a windowed environment.  This has a side
+            effect of changing the default color depth to that of the
+            desktop. */
+
+         if (depth > 0)
+         {
+            driver = GFX_AUTODETECT_WINDOWED;
+
+            if (color_depth == -1)
+               color_depth = depth;
+         }
+         else
+         {
+            driver = GFX_AUTODETECT;
+         }
+      }
+   }
+   else
+   {
+      driver = video_driver;
+   }
+
+   /* Set color depth. */
+
+   if (color_depth == -1)
+   {
+      /* No windowed environment present to autodetect a color depth from;
+         default to 256 colors. */
+
+      color_depth = 8;
+   }
+
+   if ((color_depth != 8)  &&
+       (color_depth != 15) &&
+       (color_depth != 16) &&
+       (color_depth != 24) &&
+       (color_depth != 32))
+   {   
+      WARN("Invalid color depth");
+      return (1);
+   }
+
+   set_color_depth (color_depth);
+
+   /* Enter graphics mode. */
+
+   if (set_gfx_mode (driver, screen_width, screen_height, 0, 0) != 0)
+   {
+      WARN("set_gfx_mode() failed");
+      return (2);
+   }
+
+   if (color_depth != 8)
+      set_color_conversion (COLORCONV_TOTAL);
+
+   /* Create screen buffer. */
+
+   screen_buffer = create_bitmap (SCREEN_W, SCREEN_H);
+   if (!screen_buffer)
+   {
+      WARN("Couldn't create screen buffer");
+      return (3);
+   }
+
+   clear_bitmap (screen_buffer);
+        
+   /* Create page buffer. */
+
+   if (gfx_capabilities & GFX_HW_VRAM_BLIT)
+   {
+      /* VRAM->VRAM blits are hardware accelerated (note: This call doesn't
+         have to succeed). */
+
+      page_buffer = create_video_bitmap (SCREEN_W, SCREEN_H);
+   }
+   else
+   {
+      /* No hardware acceleration available. */
+      page_buffer = NULL;
+   }
+
+   /* Create status buffer. */
+   status_buffer = create_sub_bitmap (screen_buffer, 0, (screen_buffer->h -
+      128), 72, 128);
+   if (!status_buffer)
+   {
+      WARN("Failed to create status buffer");
+      return (4);
+   }
+  
+   if (!preserve_video_buffer)
+   {
+      /* Create video buffer. */
+
+      base_video_buffer = create_bitmap_ex (8, ((8 + 256) + 8), ((16 + 240)
+         + 16));
+      video_buffer = create_sub_bitmap (base_video_buffer, 8, 16, 256, 240);
+
+      if (!base_video_buffer || !video_buffer)
+      {
+         WARN("Couldn't create video buffer");
+         return (5);
+      }
+
+      clear_bitmap (base_video_buffer);
+   }
+
+   /* TODO: Is this really neccessary?  Maybe we can remove this stuff when
+      the PPU gets a new internal buffer format. */
+   mouse_sprite_remove_buffer = create_bitmap_ex (8, 16, 16);
+   if (!mouse_sprite_remove_buffer)
+   {
+      WARN_GENERIC();
+      return (6);
+   }
+
+   /* Set up palette. */
+
+   if (preserve_palette)
+   {
+      /* Use existing palette. */
+      video_set_palette (NULL);
+   }
+   else
+   {
+      /* Set default palette. */
+      video_set_palette    (DATA_TO_RGB(MODERN_NTSC_PALETTE));
+      video_set_palette_id (DATA_INDEX(MODERN_NTSC_PALETTE));
+   }
+
+   /* Set up blitter & filters. */
+
+   video_set_blitter (blitter_id);
+   video_set_filter_list (filter_list);
+
+   /* Set up fonts. */
+
+   small_font = DATA_TO_FONT(SMALL_FONT);
+
+   font_file = get_config_string ("gui", "font", "");
+
+   if ((strlen (font_file) > 1) && (exists (font_file)))
+   {
+      font = load_font (font_file, NULL, NULL);
+
+      if (font)
+      {
+         using_custom_font = TRUE;
+      }
+      else
+      {
+         WARN("Font load failed");
+
+         font = DATA_TO_FONT(SMALL_FONT_CLEAN);
+         using_custom_font = FALSE;
+      }
+   }
+   else
+   {
+      /* Reset just in case. */
+
+      font = DATA_TO_FONT (SMALL_FONT_CLEAN);
+      using_custom_font = FALSE;
+   }
+      
+   if (is_windowed_mode ())
+   {
+      set_display_switch_mode (SWITCH_BACKGROUND);
+   }
+   else
+   {
+      set_display_switch_mode (SWITCH_AMNESIA);
+
+      /* Install callbacks. */
+      set_display_switch_callback (SWITCH_IN,  switch_in_callback);
+      set_display_switch_callback (SWITCH_OUT, switch_out_callback);
+   }
+
+   /* Return success. */
+   return (0);
 }
-
 
 int video_reinit (void)
 {
-    int result;
+   int result;
 
+   preserve_video_buffer = TRUE;
+   preserve_palette = TRUE;
 
-    preserve_video_buffer = TRUE;
+   video_exit ();
 
-    preserve_palette = TRUE;
+   result = video_init ();
 
-
-    video_exit ();
-
-
-    result = video_init ();
-
-    if (result == 0)
-    {
-        preserve_video_buffer = FALSE;
+   if (result == 0)
+   {
+      preserve_video_buffer = FALSE;
+      preserve_palette = FALSE;
     
-        preserve_palette = FALSE;
-    
-    
-        if (gui_is_active)
-        {
-            show_mouse (screen);
-        }
-    }
+      if (gui_is_active)
+         show_mouse (screen);
+   }
 
-
-    return (result);
+   return (result);
 }
-
 
 void video_exit (void)
 {
-    if (! is_windowed_mode ())
-    {
-        /* Remove callbacks. */
+   if (!is_windowed_mode ())
+   {
+      /* Remove callbacks. */
+      remove_display_switch_callback (switch_in_callback);
+      remove_display_switch_callback (switch_out_callback);
+   }
 
-        remove_display_switch_callback (switch_in_callback);
+   /* Remove message timer. */
+   remove_int (video_message_timer);
 
-        remove_display_switch_callback (switch_out_callback);
-    }
+   /* Return to text mode. */
+   set_gfx_mode (GFX_TEXT, 0, 0, 0, 0);
 
+   if (using_custom_font)
+   {
+      /* Destroy font. */
+      destroy_font (font);
+      using_custom_font = FALSE;
+   }
 
-    remove_int (video_message_timer);
+   if (blitter)
+   {
+      /* Deinitializer blitter. */
 
+      if (blitter->deinit)
+         blitter->deinit ();
 
-    set_gfx_mode (GFX_TEXT, 0, 0, 0, 0);
+      blitter = NULL;
+   }
 
+   /* Destroy buffers. */
 
-    destroy_bitmap (status_buffer);
+   if (mouse_sprite_remove_buffer)
+      destroy_bitmap (mouse_sprite_remove_buffer);
 
+   if (!preserve_video_buffer)
+   {
+      if (video_buffer)
+         destroy_bitmap (video_buffer);
+      if (base_video_buffer)
+         destroy_bitmap (base_video_buffer);
+   }
 
-    if (page_buffer)
-    {
-        destroy_bitmap (page_buffer);
-    }
+   if (status_buffer)
+      destroy_bitmap (status_buffer);
 
-    destroy_bitmap (screen_buffer);
+   if (page_buffer)
+      destroy_bitmap (page_buffer);
+   if (screen_buffer)
+      destroy_bitmap (screen_buffer);
 
+   /* Save configuration. */
 
-    destroy_bitmap (mouse_sprite_remove_buffer);
-
-
-    if (! preserve_video_buffer)
-    {
-        destroy_bitmap (video_buffer);
-    
-        destroy_bitmap (base_video_buffer);
-    }
-
-
-    if (using_custom_font)
-    {
-        destroy_font (font);
-    }
-
-
-    if (blitter)
-    {
-        if (blitter->deinit)
-        {
-           /* Deinitializer blitter. */
-           blitter->deinit ();
-        }
-    }
-
-
-    set_config_id ("video", "driver", video_driver);
-
-
-    set_config_int ("video", "screen_width", screen_width);
-
-    set_config_int ("video", "screen_height", screen_height);
-
-
-    set_config_int ("video", "color_depth", color_depth);
-
-
-    set_config_int ("video", "force_fullscreen", video_force_fullscreen);
-
-
-    set_config_int ("video", "blitter", blitter_id);
-
-
-    set_config_int ("video", "filter_list", filter_list);
-
-
-    set_config_int ("video", "stretch_width", stretch_width);
-
-    set_config_int ("video", "stretch_height", stretch_height);
-
-
-    set_config_int ("video", "brightness", brightness);
-
-
-    set_config_int ("video", "display_status", video_display_status);
-
-    set_config_int ("video", "enable_vsync", video_enable_vsync);
-
-
-    set_config_int ("video", "edge_clipping", video_edge_clipping);
+   set_config_id  ("video", "driver",           video_driver);
+   set_config_int ("video", "screen_width",     screen_width);
+   set_config_int ("video", "screen_height",    screen_height);
+   set_config_int ("video", "color_depth",      color_depth);
+   set_config_int ("video", "force_fullscreen", video_force_fullscreen);
+   set_config_int ("video", "blitter",          blitter_id);
+   set_config_int ("video", "filter_list",      filter_list);
+   set_config_int ("video", "stretch_width",    stretch_width);
+   set_config_int ("video", "stretch_height",   stretch_height);
+   set_config_int ("video", "brightness",       brightness);
+   set_config_int ("video", "display_status",   video_display_status);
+   set_config_int ("video", "enable_vsync",     video_enable_vsync);
+   set_config_int ("video", "edge_clipping",    video_edge_clipping);
 }
 
 
@@ -812,7 +736,7 @@ void video_set_palette (RGB * palette)
             GUI_COLOR color;
     
     
-            video_create_gui_gradient (&color, NIL, NIL);
+            video_create_gui_gradient (&color, NULL, NULL);
     
     
             internal_palette [index].r = (color.r * 63);
@@ -871,7 +795,7 @@ void video_set_palette (RGB * palette)
     set_trans_blender (0, 0, 0, 127);
 
 
-    create_blender_table (&half_transparency_map, internal_palette, NIL);
+    create_blender_table (&half_transparency_map, internal_palette, NULL);
 
 
     color_map = &half_transparency_map;
@@ -1012,7 +936,7 @@ int video_create_gradient (int start, int end, int slices, int x, int y)
         gradient_last_x = -1;
 
 
-        return (NIL);
+        return (NULL);
     }
     else
     {
@@ -1319,7 +1243,7 @@ void video_set_driver (int driver)
 }
 
 
-void video_set_filter_list (int filters)
+void video_set_filter_list (LIST filters)
 {
     filter_list = filters;
 
@@ -1328,7 +1252,7 @@ void video_set_filter_list (int filters)
 }
 
 
-int video_get_filter_list (void)
+LIST video_get_filter_list (void)
 {
     return (filter_list);
 }
@@ -1351,7 +1275,7 @@ void video_filter (void)
         set_trans_blender (0, 0, 0, 127);
 
 
-        drawing_mode (DRAW_MODE_TRANS, NIL, 0, 0);
+        drawing_mode (DRAW_MODE_TRANS, NULL, 0, 0);
 
 
         for (y = 0; y < screen_buffer -> h; y += 2)
@@ -1367,7 +1291,7 @@ void video_filter (void)
         set_trans_blender (0, 0, 0, 63);
 
 
-        drawing_mode (DRAW_MODE_TRANS, NIL, 0, 0);
+        drawing_mode (DRAW_MODE_TRANS, NULL, 0, 0);
 
 
         for (y = 0; y < screen_buffer -> h; y += 2)
@@ -1495,7 +1419,7 @@ static void draw_messages (void)
 
     if (box)
     {
-        drawing_mode (DRAW_MODE_TRANS, NIL, 0, 0);
+        drawing_mode (DRAW_MODE_TRANS, NULL, 0, 0);
     
         rectfill (screen_buffer, x, y, x2, y2, gray);
     
@@ -1561,7 +1485,7 @@ static void draw_messages (void)
         memcpy (buffer, &video_messages [index] [0], USTRING_SIZE);
 
 
-        for (token = strtok (&video_messages [index] [0], " "); token; token = strtok (NIL, " "))
+        for (token = strtok (&video_messages [index] [0], " "); token; token = strtok (NULL, " "))
         {
             int length;
 
