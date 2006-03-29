@@ -211,7 +211,7 @@ static const MENU machine_save_state_autosave_menu_base[] =
 DEFINE_MENU_CALLBACK(machine_save_state_menu_quick_save);
 DEFINE_MENU_CALLBACK(machine_save_state_menu_quick_load);
 DEFINE_MENU_CALLBACK(machine_save_state_menu_save);
-DEFINE_MENU_CALLBACK(machine_save_state_menu_load);
+DEFINE_MENU_CALLBACK(machine_save_state_menu_restore);
 DEFINE_MENU_CALLBACK(machine_save_state_menu_select);
 
 static const MENU machine_save_state_menu_base[] =
@@ -220,7 +220,7 @@ static const MENU machine_save_state_menu_base[] =
    { "Quick &Load (F4)", machine_save_state_menu_quick_load, NULL,                                          0, NULL },
    MENU_SPLITTER,                                    
    { "&Save       (F5)", machine_save_state_menu_save,       NULL,                                          0, NULL },
-   { "&Load       (F6)", machine_save_state_menu_load,       NULL,                                          0, NULL },
+   { "&Restore    (F6)", machine_save_state_menu_restore,    NULL,                                          0, NULL },
    MENU_SPLITTER,
    { "S&elect",          NULL,                               IMPORT_MENU(machine_save_state_select_menu),   0, NULL },
    MENU_SPLITTER,

@@ -1136,7 +1136,7 @@ void gui_handle_keypress (int c)
          /* Load state. */
 
          if (!(input_mode & INPUT_MODE_REPLAY))
-            machine_save_state_menu_load ();
+            machine_save_state_menu_restore ();
 
          break;
       }
@@ -1868,7 +1868,7 @@ static int main_replay_play_menu_start (void)
    DISABLE_MENU_ITEM(machine_menu_soft_reset);
    DISABLE_MENU_ITEM(machine_menu_hard_reset);
    DISABLE_MENU_ITEM(machine_save_state_menu_quick_load);
-   DISABLE_MENU_ITEM(machine_save_state_menu_load);
+   DISABLE_MENU_ITEM(machine_save_state_menu_restore);
    DISABLE_MENU_ITEM(machine_menu_cheat_manager);
    DISABLE_SUBMENU(netplay_menu);
 
@@ -1902,7 +1902,7 @@ static int main_replay_play_menu_stop (void)
    ENABLE_MENU_ITEM(machine_menu_soft_reset);
    ENABLE_MENU_ITEM(machine_menu_hard_reset);
    ENABLE_MENU_ITEM(machine_save_state_menu_quick_load);
-   ENABLE_MENU_ITEM(machine_save_state_menu_load);
+   ENABLE_MENU_ITEM(machine_save_state_menu_restore);
    ENABLE_MENU_ITEM(machine_menu_cheat_manager);
    ENABLE_SUBMENU(netplay_menu);
 
@@ -2046,7 +2046,7 @@ static int machine_save_state_menu_save (void)
    return (D_CLOSE);
 }
 
-static int machine_save_state_menu_load (void)
+static int machine_save_state_menu_restore (void)
 {
    if (!load_state (state_index))
    {
