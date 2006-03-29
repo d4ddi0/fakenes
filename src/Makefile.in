@@ -78,7 +78,7 @@ ${BINARY}: ${OBJECTS}
 	${CC} ${OBJECTS} -o ${BINARY} ${LIBRARIES}
 .SUFFIXES: .c
 ${OBJECT_PATH}/%${OBJEXT}: %.c
-	${CC} -c $< -o $@ ${CFLAGS}
+	${CC} ${CFLAGS} -c $< -o $@
 
 install: ${BINARY}
 	${INSTALL} -m 0755 ${BINARY} /usr/local/bin

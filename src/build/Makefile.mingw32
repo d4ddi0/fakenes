@@ -24,17 +24,12 @@ BINARY_DEBUG := ${BINARY_PATH}/fakenesd${EXEEXT}
 
 # GCC flags.
 TARGET_ARCH ?= i586
-TARGET_CPU ?= i686
-MFLAGS := -march=${TARGET_ARCH} -mtune=${TARGET_CPU}
+MFLAGS := -march=${TARGET_ARCH}
 ifdef DEBUG
-   OFLAGS = -O0 -g -ggdb3
+   OFLAGS = -O0 -g3
    DFLAGS = -DDEBUG -DLSB_FIRST
 else
-   OFLAGS = -O3 -fomit-frame-pointer -fno-exceptions \
-   -funroll-loops -ffast-math -fforce-addr -fforce-mem -fstrength-reduce \
-   -fthread-jumps -fexpensive-optimizations -foptimize-sibling-calls \
-   -fstrict-aliasing -maccumulate-outgoing-args -fschedule-insns \
-   -fschedule-insns2
+   OFLAGS = -pipe -O3 -ffast-math -fomit-frame-pointer
    DFLAGS = -DLSB_FIRST
 endif
 ifndef NO_ZLIB
@@ -121,10 +116,10 @@ ${BINARY}: ${OBJECTS}
 	${CC} ${OBJECTS} ${RESOURCES} -o ${BINARY} -s ${LIBRARIES}
 ${BINARY_DEBUG}: ${OBJECTS}
 	@echo Building.
-	${CC} ${OBJECTS} ${RESOURCES} -o ${BINARY_DEBUG} -g -ggdb3 ${LIBRARIES}
+	${CC} ${OBJECTS} ${RESOURCES} -o ${BINARY_DEBUG} -g3 ${LIBRARIES}
 .SUFFIXES: .c
 ${OBJECT_PATH}/%${OBJEXT}: %.c
-	${CC} -c $< -o $@ ${CFLAGS}
+	${CC} ${CFLAGS} -c $< -o $@
 
 clean:
 	${RM} ${OBJECTS} ${BINARY} ${BINARY_DEBUG}
