@@ -64,6 +64,23 @@ static PALETTE custom_palette;
 static int state_index = 0;   /* For states. */
 static int replay_index = 0;  /* For replays. */
 
+/* Text that appears in "unused" menu slots for recent items. */
+#define UNUSED_SLOT_TEXT   "Empty"
+
+/* Number of slots available in each of the associated menus. */
+#define OPEN_RECENT_SLOTS  5
+#define REPLAY_SLOTS       5
+#define STATE_SLOTS        10
+
+static USTRING open_recent_filenames[OPEN_RECENT_SLOTS];
+static USTRING open_recent_menu_texts[OPEN_RECENT_SLOTS];
+static USTRING replay_titles[REPLAY_SLOTS];
+static USTRING replay_menu_texts[REPLAY_SLOTS];
+static USTRING state_titles[STATE_SLOTS];
+static USTRING state_menu_texts[STATE_SLOTS];
+
+static BOOL lock_recent = FALSE;
+
 static INLINE MENU *load_menu (const MENU *menu)
 {
    MENU *new_menu;
@@ -210,6 +227,7 @@ static INLINE void unload_dialog (DIALOG *dialog)
 
 static INLINE void load_menus (void)
 {
+   MENU_FROM_BASE(main_open_recent_menu);
    MENU_FROM_BASE(main_replay_select_menu);
    MENU_FROM_BASE(main_replay_record_menu);
    MENU_FROM_BASE(main_replay_play_menu);
@@ -276,6 +294,7 @@ static INLINE void load_dialogs (void)
 
 static INLINE void unload_menus (void)
 {
+   unload_menu (main_open_recent_menu);
    unload_menu (main_replay_select_menu);
    unload_menu (main_replay_record_menu);
    unload_menu (main_replay_play_menu);
@@ -620,6 +639,8 @@ static INLINE void update_menus (void)
       ENABLE_MENU_ITEM(audio_effects_menu_spatial_stereo_mode_3);
    }
 
+   TOGGLE_MENU_ITEM(main_open_recent_menu_lock, lock_recent);
+
    TOGGLE_MENU_ITEM(main_replay_select_menu_0, (replay_index == 0));
    TOGGLE_MENU_ITEM(main_replay_select_menu_1, (replay_index == 1));
    TOGGLE_MENU_ITEM(main_replay_select_menu_2, (replay_index == 2));
@@ -880,6 +901,8 @@ static INLINE void draw_background (void)
 
 int gui_init (void)
 {
+   int index;
+
    /* Set up replacement objects. */
    gui_menu_draw_menu = sl_draw_menu;
    gui_menu_draw_menu_item = sl_draw_menu_item;
@@ -941,7 +964,38 @@ int gui_init (void)
    CHECK_MENU_ITEM(video_palette_menu_modern_ntsc);
 
    /* Load configuration */
-   gui_theme_id = get_config_int ("gui", "theme", GUI_THEME_PANTA);
+   gui_theme_id = get_config_int ("gui", "theme",       GUI_THEME_PANTA);
+   lock_recent  = get_config_int ("gui", "lock_recent", FALSE);
+
+   /* Load up recent items. */
+
+   main_open_recent_menu_clear ();
+
+   for (index = 0; index < OPEN_RECENT_SLOTS; index++)
+   {
+      USTRING key;
+      const char *path;
+      UCHAR *filename = open_recent_filenames[index];
+      UCHAR *text     = open_recent_menu_texts[index];
+      MENU  *menu     = &main_open_recent_menu[index];
+
+      USTRING_CLEAR(key);
+      uszprintf (key, sizeof (key), "recent%d", index);
+
+      path = get_config_string ("gui", key, NULL);
+      if (!path)
+         continue;
+
+      uszprintf (filename, USTRING_SIZE, "%s", path);
+      uszprintf (text,     USTRING_SIZE, "&%d: %s", (index + 1),
+         get_filename (path));
+
+      /* Update menu. */
+      menu->text = text;
+
+      /* Enable menu. */
+      menu->flags &= ~D_DISABLED;
+   }
 
    /* Cheap hack to fix palette. */
    gui_is_active = TRUE;
@@ -953,6 +1007,40 @@ int gui_init (void)
 
 void gui_exit (void)
 {
+   int index;
+   STRING save_path;
+   STRING host;
+
+   /* Save configuration. */
+   STRING_CLEAR(save_path);
+   strncpy (save_path, get_config_string ("gui", "save_path", "./"),
+      sizeof (save_path) - 1);
+   set_config_string ("gui", "save_path", save_path);
+
+   STRING_CLEAR(host);
+   strncpy (host, get_config_string ("netplay", "host", ""), (sizeof (host)
+      - 1));
+   set_config_string ("netplay", "host", host);
+
+   set_config_int ("gui", "theme",       gui_theme_id);
+   set_config_int ("gui", "lock_recent", lock_recent);
+
+   /* Save recent items. */
+
+   for (index = 0; index < OPEN_RECENT_SLOTS; index++)
+   {
+      USTRING key;
+      const UCHAR *filename = open_recent_filenames[index];
+
+      if (!filename)
+         continue;
+
+      USTRING_CLEAR(key);
+      uszprintf (key, sizeof (key), "recent%d", index);
+
+      set_config_string ("gui", key, filename);
+   }
+
    unload_menus ();
    unload_dialogs ();
 }
@@ -961,9 +1049,6 @@ static INLINE void cycle_video (void);
 
 int show_gui (BOOL first_run)
 {
-   STRING save_path;
-   STRING host;
-
    gui_needs_restart = FALSE;
    gui_is_active = TRUE;
 
@@ -983,19 +1068,6 @@ int show_gui (BOOL first_run)
    }
 
    run_dialog (main_dialog);
-
-   /* Save configuration. */
-   STRING_CLEAR(save_path);
-   strncpy (save_path, get_config_string ("gui", "save_path", "./"),
-      sizeof (save_path) - 1);
-   set_config_string ("gui", "save_path", save_path);
-
-   STRING_CLEAR(host);
-   strncpy (host, get_config_string ("netplay", "host", ""), (sizeof (host)
-      - 1));
-   set_config_string ("netplay", "host", host);
-
-   set_config_int ("gui", "theme", gui_theme_id);
 
    /* Shut down GUI. */
    gui_is_active = FALSE;
@@ -1288,6 +1360,68 @@ static void update_machine_type (void)
    cycle_audio ();
 }
 
+static int main_replay_menu_select (void);
+
+static INLINE int load_file (const UCHAR *filename)
+{
+   /* This function loads the ROM specified by filename.  The file is NOT
+      automatically added to the recent items list.  That must be done
+      manually (currently by main_menu_open()).
+
+      The return value of this function should be passed back to the calling
+      dialog (e.g, D_CLOSE to close it and start the emulation, etc.). */
+
+   ROM rom;
+
+   if (load_rom (filename, &rom) != 0)
+   {
+      gui_message (GUI_ERROR_COLOR, "Failed to load ROM!");
+
+      return (D_O_K);
+   }
+   else
+   {
+      USTRING scratch;
+
+      if (rom_is_loaded)
+      {
+         /* Close currently open ROM and save data. */
+         main_menu_close ();
+      }
+
+      memcpy (&global_rom, &rom, sizeof (ROM));
+
+      /* Update state titles. */
+      machine_save_state_menu_select ();
+      /* Update replay titles. */
+      main_replay_menu_select ();
+
+      rom_is_loaded = TRUE;
+
+      /* Fixup machine type from region. */
+      update_machine_type ();
+
+      /* Initialize machine. */
+      machine_init ();
+
+      ENABLE_MENU_ITEM(main_menu_resume);
+      ENABLE_MENU_ITEM(main_menu_close);
+      ENABLE_SUBMENU(main_replay_menu);
+      ENABLE_MENU_ITEM(main_menu_save_snapshot);
+      ENABLE_MENU_ITEM(machine_menu_soft_reset);
+      ENABLE_MENU_ITEM(machine_menu_hard_reset);
+      ENABLE_SUBMENU(machine_save_state_menu);
+      ENABLE_MENU_ITEM(machine_menu_cheat_manager);
+
+      /* Update window title. */
+      uszprintf (scratch, sizeof (scratch), "FakeNES - %s", get_filename
+         (global_rom.filename));
+      set_window_title (scratch);
+
+      return (D_CLOSE);
+   }
+}
+
 static int open_lobby (void)
 {
    /* This function handles the entire GUI end of the NetPlay lobby.  It
@@ -1416,8 +1550,6 @@ static int open_lobby (void)
 
 /* --- Menu handlers. --- */
 
-static int main_replay_menu_select (void);
-
 static int main_menu_resume (void)
 {
     return (D_CLOSE);
@@ -1459,68 +1591,116 @@ static int main_menu_open (void)
    {
       /* Dialog was OK'ed. */
 
-      ROM rom;
+      int result;
 
-      if (load_rom (path, &rom) != 0)
-      {
-         gui_message (GUI_ERROR_COLOR, "Failed to load ROM!");
+      result = load_file (path);
 
-         return (D_O_K);
-      }
-      else
+      if ((result == D_CLOSE) && !lock_recent)
       {
-         if (rom_is_loaded)
+         /* Load succeeded; add file to recent items list. */
+
+         int index;
+         UCHAR *filename;
+         UCHAR *text;
+         MENU  *menu;
+
+         for (index = (OPEN_RECENT_SLOTS - 2); index >= 0; index--)
          {
-            /* Close currently open ROM and save data. */
-
-            /* Save SRAM. */
-            save_sram ();
-
-            /* Save patches. */
-            save_patches ();
-
-            free_rom (&global_rom);
+            ustrncpy (open_recent_filenames[(index + 1)],
+               open_recent_filenames[index], USTRING_SIZE);
+            ustrncpy (open_recent_menu_texts[(index + 1)],
+               open_recent_menu_texts[index], USTRING_SIZE);
          }
 
-         memcpy (&global_rom, &rom, sizeof (ROM));
+         filename = open_recent_filenames[0];
+         text     = open_recent_menu_texts[0];
+         menu     = &main_open_recent_menu[0];
 
-         /* Update state titles. */
-         machine_save_state_menu_select ();
-         /* Update replay titles. */
-         main_replay_menu_select ();
+         uszprintf (filename, USTRING_SIZE, "%s", path);
+         uszprintf (text,     USTRING_SIZE, "&%d: %s", (index + 1),
+            get_filename (path));
 
-         rom_is_loaded = TRUE;
+         menu->flags &= ~D_DISABLED;
 
-         /* Fixup machine type from region. */
-         update_machine_type ();
+         /* Update menus. */
+         for (index = 0; index < OPEN_RECENT_SLOTS; index++)
+         {
+            filename = open_recent_filenames[index];
+            text     = open_recent_menu_texts[index];
+            menu     = &main_open_recent_menu[index];
+            
+            menu->text = text;
 
-         /* Initialize machine. */
-         machine_init ();
-
-         ENABLE_MENU_ITEM(main_menu_resume);
-         ENABLE_MENU_ITEM(main_menu_close);
-         ENABLE_SUBMENU(main_replay_menu);
-         ENABLE_MENU_ITEM(main_menu_save_snapshot);
-         ENABLE_MENU_ITEM(machine_menu_soft_reset);
-         ENABLE_MENU_ITEM(machine_menu_hard_reset);
-         ENABLE_SUBMENU(machine_save_state_menu);
-         ENABLE_MENU_ITEM(machine_menu_cheat_manager);
-
-         /* Update window title. */
-         uszprintf (scratch, sizeof (scratch), "FakeNES - %s", get_filename
-            (global_rom.filename));
-         set_window_title (scratch);
-
-         return (D_CLOSE);
+            if (filename)
+               menu->flags &= ~D_DISABLED;
+            else
+               menu->flags |= D_DISABLED;
+         }
       }
+
+      return (result);
    }
 
    /* Dialog was cancelled. */
    return (D_O_K);
 }
 
+#define OPEN_RECENT_MENU_HANDLER(index) \
+   static int main_open_recent_menu_##index (void)  \
+   {  \
+      return (load_file (open_recent_filenames[index])); \
+   }
+
+OPEN_RECENT_MENU_HANDLER(0)
+OPEN_RECENT_MENU_HANDLER(1)
+OPEN_RECENT_MENU_HANDLER(2)
+OPEN_RECENT_MENU_HANDLER(3)
+OPEN_RECENT_MENU_HANDLER(4)
+
+#undef OPEN_RECENT_MENU_HANDLER
+
+static int main_open_recent_menu_lock (void)
+{
+   lock_recent = !lock_recent;
+   update_menus ();
+
+   return (D_O_K);
+}
+
+static int main_open_recent_menu_clear (void)
+{
+   int index;
+
+   for (index = 0; index < OPEN_RECENT_SLOTS; index++)
+   {
+      UCHAR *filename = open_recent_filenames[index];
+      UCHAR *text     = open_recent_menu_texts[index];
+      MENU  *menu     = &main_open_recent_menu[index];
+
+      USTRING_CLEAR(filename);
+
+      /* Build menu text. */
+      uszprintf (text, USTRING_SIZE, "&%d: %s", (index + 1),
+         UNUSED_SLOT_TEXT);
+
+      /* Update menu. */
+      menu->text = text;
+
+      /* Disable menu. */
+      menu->flags |= D_DISABLED;
+   }
+
+   return (D_O_K);
+}
+
 static int main_menu_close (void)
 {
+   /* Save SRAM. */
+   save_sram ();      
+
+   /* Save patches. */
+   save_patches ();
+
    /* Unload ROM. */
    free_rom (&global_rom);
    rom_is_loaded = FALSE;
@@ -1531,9 +1711,6 @@ static int main_menu_close (void)
 
    return (D_REDRAW);
 }
-
-/* Number of replay slots available in the menu. */
-#define REPLAY_SLOTS    5
 
 #define REPLAY_SELECT_MENU_HANDLER(index) \
    static int main_replay_select_menu_##index (void)  \
@@ -1551,9 +1728,6 @@ REPLAY_SELECT_MENU_HANDLER(3)
 REPLAY_SELECT_MENU_HANDLER(4)
 
 #undef REPLAY_SELECT_MENU_HANDLER
-
-static USTRING replay_titles[REPLAY_SLOTS];
-static USTRING replay_menu_texts[REPLAY_SLOTS];
 
 static int main_replay_menu_select (void)
 {
@@ -1611,6 +1785,7 @@ static int main_replay_record_menu_start (void)
    }
 
    DISABLE_MENU_ITEM(main_menu_open);
+   DISABLE_SUBMENU(main_open_recent_menu);
    DISABLE_MENU_ITEM(main_replay_record_menu_start);
    ENABLE_MENU_ITEM(main_replay_record_menu_stop);
    DISABLE_SUBMENU(main_replay_select_menu);
@@ -1640,6 +1815,7 @@ static int main_replay_record_menu_stop (void)
    input_mode &= ~INPUT_MODE_REPLAY_RECORD;
 
    ENABLE_MENU_ITEM(main_menu_open);
+   ENABLE_SUBMENU(main_open_recent_menu);
    ENABLE_MENU_ITEM(main_replay_record_menu_start);
    DISABLE_MENU_ITEM(main_replay_record_menu_stop);
    ENABLE_SUBMENU(main_replay_select_menu);
@@ -1662,6 +1838,7 @@ static int main_replay_play_menu_start (void)
    }
 
    DISABLE_MENU_ITEM(main_menu_open);
+   DISABLE_SUBMENU(main_open_recent_menu);
    DISABLE_MENU_ITEM(main_replay_play_menu_start);
    ENABLE_MENU_ITEM(main_replay_play_menu_stop);
    DISABLE_SUBMENU(main_replay_select_menu);
@@ -1695,6 +1872,7 @@ static int main_replay_play_menu_stop (void)
    input_mode &= ~INPUT_MODE_REPLAY_PLAY;
 
    ENABLE_MENU_ITEM(main_menu_open);
+   ENABLE_SUBMENU(main_open_recent_menu);
    ENABLE_MENU_ITEM(main_replay_play_menu_start);
    DISABLE_MENU_ITEM(main_replay_play_menu_stop);
    ENABLE_SUBMENU(main_replay_select_menu);
@@ -1761,8 +1939,6 @@ static int machine_menu_hard_reset (void)
     return (D_CLOSE);
 }
 
-#define STATE_SLOTS  10
-
 #define STATE_SELECT_MENU_HANDLER(index)  \
    static int machine_save_state_select_menu_##index (void)   \
    {  \
@@ -1784,9 +1960,6 @@ STATE_SELECT_MENU_HANDLER(8);
 STATE_SELECT_MENU_HANDLER(9);
 
 #undef STATE_MENU_HANDLER
-
-static USTRING state_titles[STATE_SLOTS];
-static USTRING state_menu_texts[STATE_SLOTS];
 
 static int machine_save_state_menu_quick_save (void)
 {

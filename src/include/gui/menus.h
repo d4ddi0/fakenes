@@ -11,6 +11,7 @@
    else  \
       var &= ~ flag; \
 
+DEFINE_MENU(main_open_recent_menu);
 DEFINE_MENU(main_replay_select_menu);
 DEFINE_MENU(main_replay_record_menu);
 DEFINE_MENU(main_replay_play_menu);
@@ -55,6 +56,27 @@ DEFINE_MENU(options_menu);
 DEFINE_MENU(netplay_menu);
 DEFINE_MENU(help_menu);
 DEFINE_MENU(top_menu);
+
+DEFINE_MENU_CALLBACK(main_open_recent_menu_0);
+DEFINE_MENU_CALLBACK(main_open_recent_menu_1);
+DEFINE_MENU_CALLBACK(main_open_recent_menu_2);
+DEFINE_MENU_CALLBACK(main_open_recent_menu_3);
+DEFINE_MENU_CALLBACK(main_open_recent_menu_4);
+DEFINE_MENU_CALLBACK(main_open_recent_menu_lock);
+DEFINE_MENU_CALLBACK(main_open_recent_menu_clear);
+
+static const MENU main_open_recent_menu_base[] =
+{
+   { NULL,     main_open_recent_menu_0,     NULL, 0, NULL },
+   { NULL,     main_open_recent_menu_1,     NULL, 0, NULL },
+   { NULL,     main_open_recent_menu_2,     NULL, 0, NULL },
+   { NULL,     main_open_recent_menu_3,     NULL, 0, NULL },
+   { NULL,     main_open_recent_menu_4,     NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&Lock",  main_open_recent_menu_lock,  NULL, 0, NULL },
+   { "&Clear", main_open_recent_menu_clear, NULL, 0, NULL },
+   MENU_ENDCAP
+};
 
 DEFINE_MENU_CALLBACK(main_replay_select_menu_0);
 DEFINE_MENU_CALLBACK(main_replay_select_menu_1);
@@ -109,19 +131,19 @@ DEFINE_MENU_CALLBACK(main_menu_exit);
 
 static const MENU main_menu_base[] =
 {
-   { "&Resume        (ESC)", main_menu_resume,        NULL,                          0,          NULL },
+   { "&Resume        (ESC)", main_menu_resume,        NULL,                               0,          NULL },
    MENU_SPLITTER,                                                                       
-   { "&Open...",             main_menu_open,          NULL,                          0,          NULL },
-   { "O&pen Recent",         NULL,                    NULL,                          D_DISABLED, NULL },
-   { "&Close",               main_menu_close,         NULL,                          0,          NULL },
+   { "&Open...",             main_menu_open,          NULL,                               0,          NULL },
+   { "O&pen Recent",         NULL,                    IMPORT_MENU(main_open_recent_menu), 0,          NULL },
+   { "&Close",               main_menu_close,         NULL,                               0,          NULL },
    MENU_SPLITTER,            
-   { "R&eplay",              NULL,                    IMPORT_MENU(main_replay_menu), 0,          NULL },
-   { "&Save Snapshot (F1)",  main_menu_save_snapshot, NULL,                          0,          NULL },
+   { "R&eplay",              NULL,                    IMPORT_MENU(main_replay_menu),      0,          NULL },
+   { "&Save Snapshot (F1)",  main_menu_save_snapshot, NULL,                               0,          NULL },
    MENU_SPLITTER,
-   { "&View Console...",     NULL,                    NULL,                          D_DISABLED, NULL },
-   { "V&iew Log...",         NULL,                    NULL,                          D_DISABLED, NULL },
+   { "&View Console...",     NULL,                    NULL,                               D_DISABLED, NULL },
+   { "V&iew Log...",         NULL,                    NULL,                               D_DISABLED, NULL },
    MENU_SPLITTER,       
-   { "E&xit",                main_menu_exit,          NULL,                          0,          NULL },
+   { "E&xit",                main_menu_exit,          NULL,                               0,          NULL },
    MENU_ENDCAP
 };
 
