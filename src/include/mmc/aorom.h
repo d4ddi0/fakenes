@@ -1,132 +1,99 @@
-
-
 /* Mapper #7 (AOROM). */
-
 /* This mapper is fully supported. */
 
+#include "mmc/shared.h"
 
 static int aorom_init (void);
-
 static void aorom_reset (void);
-
-
 static void aorom_save_state (PACKFILE *, int);
-
 static void aorom_load_state (PACKFILE *, int);
-
 
 static const MMC mmc_aorom =
 {
-    7, "AOROM",
-
-    aorom_init, aorom_reset,
-
-
-    "AOROM\0\0\0",
-
-    aorom_save_state, aorom_load_state
+   7, "AOROM",
+   aorom_init, aorom_reset,
+   "AOROM\0\0\0",
+   aorom_save_state, aorom_load_state
 };
-
 
 static UINT8 aorom_last_write = 0;
 
-
-#define AOROM_MIRRORING_BIT     (1 << 4)
-
+#define AOROM_MIRRORING_BIT   (1 << 4)
 
 static void aorom_write (UINT16 address, UINT8 value)
 {
-    int index;
+   /* Save page # and mirroring for state saving. */
+   aorom_last_write = value;
 
+   /* Is this reversed? */
+   ppu_set_mirroring (((value & AOROM_MIRRORING_BIT) ?
+      MIRRORING_ONE_SCREEN_2400 : MIRRORING_ONE_SCREEN_2000));
 
-    /* Save page # and mirroring for state saving. */
+   /* Mask off upper 4 bits. */
+   value &= 0x0f;
 
-    aorom_last_write = value;
-
-
-    /* Is this reversed? */
-
-    ppu_set_mirroring (((value & AOROM_MIRRORING_BIT) ? MIRRORING_ONE_SCREEN_2400 : MIRRORING_ONE_SCREEN_2000));
-
-
-    /* Mask off upper 4 bits. */
-
-    value &= 0x0f;
-
-
-    /* Select requested 32k page. */
-
-    cpu_set_read_address_32k_rom_block (0x8000, value);
+   /* Select requested 32k page. */
+   cpu_set_read_address_32k_rom_block (0x8000, value);
 }
-
 
 static void aorom_reset (void)
 {
-    int index;
-
-
-    /* Select first 32k page. */
-
-    cpu_set_read_address_32k_rom_block (0x8000, 0);
-
+   /* Select first 32k page. */
+   cpu_set_read_address_32k_rom_block (0x8000, 0);
 }
-
 
 static int aorom_init (void)
 {
-    /* No VROM hardware. */
+   /* No VROM hardware. */
+   ppu_set_ram_8k_pattern_vram ();
+   mmc_pattern_vram_in_use = TRUE;
 
-    ppu_set_ram_8k_pattern_vram ();
+   /* Set the default mirroring. */
+   mmc_name_table_count = 2;
+   ppu_set_mirroring (MIRRORING_ONE_SCREEN_2000);
 
-    mmc_pattern_vram_in_use = TRUE;
+   /* Set initial mappings. */
+   aorom_reset ();
 
+   /* Install write handler. */
+   cpu_set_write_handler_32k (0x8000, aorom_write);
 
-
-    /* Set the default mirroring. */
-
-    mmc_name_table_count = 2;
-    ppu_set_mirroring (MIRRORING_ONE_SCREEN_2000);
-
-
-    /* Set initial mappings. */
-
-    aorom_reset ();
-
-
-    /* Install write handler. */
-
-    cpu_set_write_handler_32k (0x8000, aorom_write);
-
-
-    return (0);
+   /* Return success. */
+   return (0);
 }
 
-
-static void aorom_save_state (PACKFILE * file, int version)
+static void aorom_save_state (PACKFILE *file, int version)
 {
-    PACKFILE * file_chunk;
+   PACKFILE *chunk;
 
+   RT_ASSERT(file);
 
-    file_chunk = pack_fopen_chunk (file, FALSE);
+   /* Open chunk. */
+   chunk = pack_fopen_chunk (file, FALSE);
+   if (!chunk)
+      WARN_BREAK_GENERIC();
 
+   /* Save data. */
+   pack_putc (aorom_last_write, chunk);
 
-    pack_putc (aorom_last_write, file_chunk);
-
-
-    pack_fclose_chunk (file_chunk);
+   /* Close chunk. */
+   pack_fclose_chunk (chunk);
 }
 
-
-static void aorom_load_state (PACKFILE * file, int version)
+static void aorom_load_state (PACKFILE *file, int version)
 {
-    PACKFILE * file_chunk;
+   PACKFILE *chunk;
 
+   RT_ASSERT(file);
 
-    file_chunk = pack_fopen_chunk (file, FALSE);
+   /* Open chunk. */
+   chunk = pack_fopen_chunk (file, FALSE);
+   if (!chunk)
+      WARN_BREAK_GENERIC();
 
+   /* Load data. */
+   aorom_write (0x8000, pack_getc (chunk));
 
-    aorom_write (0x8000, pack_getc (file_chunk));
-
-
-    pack_fclose_chunk (file_chunk);
+   /* Close chunk. */
+   pack_fclose_chunk (chunk);
 }

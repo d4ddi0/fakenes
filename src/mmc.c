@@ -12,6 +12,7 @@
 #include <string.h>
 #include "common.h"
 #include "cpu.h"
+#include "debug.h"
 #include "gui.h"
 #include "mmc.h"
 #include "papu.h"

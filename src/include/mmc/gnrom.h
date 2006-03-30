@@ -1,155 +1,110 @@
-
-
 /* Mapper #66 (GNROM). */
-
 /* This mapper is fully supported. */
-
 
 #include "mmc/shared.h"
 
-
 static int gnrom_init (void);
-
 static void gnrom_reset (void);
-
-
 static void gnrom_save_state (PACKFILE *, int);
-
 static void gnrom_load_state (PACKFILE *, int);
-
 
 static const MMC mmc_gnrom =
 {
-    66, "GNROM",
-
-    gnrom_init, gnrom_reset,
-
-
-    "GNROM\0\0\0",
-
-    gnrom_save_state, gnrom_load_state
+   66, "GNROM",
+   gnrom_init, gnrom_reset,
+   "GNROM\0\0\0",
+   gnrom_save_state, gnrom_load_state
 };
-
 
 static UINT8 gnrom_last_write = 0;
 
-
-#define GNROM_PRG_ROM_MASK  0xf0
-
-#define GNROM_CHR_ROM_MASK  0x0f
-
+#define GNROM_PRG_ROM_MASK 0xf0
+#define GNROM_CHR_ROM_MASK 0x0f
 
 static void gnrom_write (UINT16 address, UINT8 value)
 {
-    int index;
+   int chr_page, prg_page;
+   int index;
 
+   /* Store page #s for state saving. */
+   gnrom_last_write = value;
 
-    int chr_page;
+   /* Extract ROM page # (xxxx0000). */
+   prg_page = ((value & GNROM_PRG_ROM_MASK) >> 4);
 
-    int prg_page;
+   /* Select requested 32k ROM page. */
+   cpu_set_read_address_32k_rom_block (0x8000, prg_page);
 
+   /* Extract CHR-ROM page # (0000xxxx). */
+   chr_page = (value & GNROM_CHR_ROM_MASK);
 
-    /* Store page #s for state saving. */
+   /* Convert 8k page # to 1k. */
+   chr_page *= 8;
 
-    gnrom_last_write = value;
-
-
-    /* Extract ROM page # (xxxx0000). */
-
-    prg_page = ((value & GNROM_PRG_ROM_MASK) >> 4);
-
-
-    /* Select requested 32k ROM page. */
-
-    cpu_set_read_address_32k_rom_block (0x8000, prg_page);
-
-
-    /* Extract CHR-ROM page # (0000xxxx). */
-
-    chr_page = (value & GNROM_CHR_ROM_MASK);
-
-
-    /* Convert 8k page # to 1k. */
-
-    chr_page *= 8;
-
-
-    /* Select requested 8k CHR-ROM page. */
-
-    for (index = 0; index < 8; index ++)
-    {
-        ppu_set_ram_1k_pattern_vrom_block ((index << 10), (chr_page + index));
-    }
+   /* Select requested 8k CHR-ROM page. */
+   for (index = 0; index < 8; index++)
+      ppu_set_ram_1k_pattern_vrom_block ((index << 10), (chr_page + index));
 }
-
 
 static void gnrom_reset (void)
 {
-    int index;
+   int index;
 
+   /* Select first 32k ROM page. */
+   cpu_set_read_address_32k_rom_block (0x8000, MMC_FIRST_ROM_BLOCK);
 
-    /* Select first 32k ROM page. */
-
-    cpu_set_read_address_32k_rom_block (0x8000, MMC_FIRST_ROM_BLOCK);
-
-
-    /* Select first 8k CHR-ROM page. */
-
-    for (index = 0; index < 8; index ++)
-    {
-        ppu_set_ram_1k_pattern_vrom_block ((index << 10), index);
-    }
+   /* Select first 8k CHR-ROM page. */
+   for (index = 0; index < 8; index++)
+      ppu_set_ram_1k_pattern_vrom_block ((index << 10), index);
 }
-
 
 static int gnrom_init (void)
 {
-    /* Mapper requires some CHR ROM */
-    if (mmc_pattern_vram_in_use)
-    {
-        return -1;
-    }
+   if (mmc_pattern_vram_in_use)
+   {
+      /* Mapper requires some CHR ROM */
+      WARN_GENERIC();
+      return (-1);
+   }
 
+   /* Set initial mappings. */
+   gnrom_reset ();
 
-    /* Set initial mappings. */
+   /* Install write handler. */
+   cpu_set_write_handler_32k (0x8000, gnrom_write);
 
-    gnrom_reset ();
-
-
-    /* Install write handler. */
-
-    cpu_set_write_handler_32k (0x8000, gnrom_write);
-
-
-    return (0);
+   /* Return success. */
+   return (0);
 }
 
-
-static void gnrom_save_state (PACKFILE * file, int version)
+static void gnrom_save_state (PACKFILE *file, int version)
 {
-    PACKFILE * file_chunk;
+   PACKFILE *chunk;
 
+   RT_ASSERT(file);
 
-    file_chunk = pack_fopen_chunk (file, FALSE);
+   /* Open chunk. */
+   chunk = pack_fopen_chunk (file, FALSE);
 
+   /* Save data. */
+   pack_putc (gnrom_last_write, chunk);
 
-    pack_putc (gnrom_last_write, file_chunk);
-
-
-    pack_fclose_chunk (file_chunk);
+   /* Close chunk. */
+   pack_fclose_chunk (chunk);
 }
 
-
-static void gnrom_load_state (PACKFILE * file, int version)
+static void gnrom_load_state (PACKFILE *file, int version)
 {
-    PACKFILE * file_chunk;
+   PACKFILE *chunk;
 
+   RT_ASSERT(file);
 
-    file_chunk = pack_fopen_chunk (file, FALSE);
+   /* Open chunk. */
+   chunk = pack_fopen_chunk (file, FALSE);
 
+   /* Load data. */
+   gnrom_write (0x8000, pack_getc (chunk));
 
-    gnrom_write (0x8000, pack_getc (file_chunk));
-
-
-    pack_fclose_chunk (file_chunk);
+   /* Close chunk. */
+   pack_fclose_chunk (chunk);
 }
