@@ -124,6 +124,8 @@ static void nina_save_state (PACKFILE *file, int version)
 
    /* Open chunk. */
    chunk = pack_fopen_chunk (file, FALSE);
+   if (!chunk)
+      WARN_BREAK_GENERIC();
 
    /* Save data */
 
@@ -143,6 +145,8 @@ static void nina_load_state (PACKFILE *file, int version)
 
    /* Open chunk. */
    chunk = pack_fopen_chunk (file, FALSE);
+   if (!chunk)
+      WARN_BREAK_GENERIC();
 
    /* Load data */
 

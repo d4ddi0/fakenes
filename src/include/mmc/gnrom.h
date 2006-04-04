@@ -85,6 +85,8 @@ static void gnrom_save_state (PACKFILE *file, int version)
 
    /* Open chunk. */
    chunk = pack_fopen_chunk (file, FALSE);
+   if (!chunk)
+      WARN_BREAK_GENERIC();
 
    /* Save data. */
    pack_putc (gnrom_last_write, chunk);
@@ -101,6 +103,8 @@ static void gnrom_load_state (PACKFILE *file, int version)
 
    /* Open chunk. */
    chunk = pack_fopen_chunk (file, FALSE);
+   if (!chunk)
+      WARN_BREAK_GENERIC();
 
    /* Load data. */
    gnrom_write (0x8000, pack_getc (chunk));

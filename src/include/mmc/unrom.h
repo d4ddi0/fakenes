@@ -60,6 +60,8 @@ static void unrom_save_state (PACKFILE *file, int version)
 
    /* Open chunk. */
    chunk = pack_fopen_chunk (file, FALSE);
+   if (!chunk)
+      WARN_BREAK_GENERIC();
 
    /* Save data. */
    pack_putc (unrom_last_write, chunk);
@@ -76,6 +78,8 @@ static void unrom_load_state (PACKFILE * file, int version)
 
    /* Open chunk. */
    chunk = pack_fopen_chunk (file, FALSE);
+   if (!chunk)
+      WARN_BREAK_GENERIC();
 
    /* Load data. */
    unrom_write (0x8000, pack_getc (chunk));
