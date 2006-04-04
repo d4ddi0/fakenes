@@ -61,8 +61,8 @@ static PALETTE custom_palette;
 /* Time to rest in milliseconds (used by gui_heartbeat()). */
 #define REST_TIME 50
 
-static int state_index = 0;   /* For states. */
-static int replay_index = 0;  /* For replays. */
+static int save_state_index = 0; /* For save states. */
+static int replay_index = 0;     /* For replays. */
 
 /* Text that appears in "unused" menu slots for recent items. */
 #define UNUSED_SLOT_TEXT   "Empty"
@@ -70,14 +70,14 @@ static int replay_index = 0;  /* For replays. */
 /* Number of slots available in each of the associated menus. */
 #define OPEN_RECENT_SLOTS  10
 #define REPLAY_SLOTS       10
-#define STATE_SLOTS        10
+#define SAVE_STATE_SLOTS   10
 
 static USTRING open_recent_filenames[OPEN_RECENT_SLOTS];
 static USTRING open_recent_menu_texts[OPEN_RECENT_SLOTS];
 static USTRING replay_titles[REPLAY_SLOTS];
 static USTRING replay_menu_texts[REPLAY_SLOTS];
-static USTRING state_titles[STATE_SLOTS];
-static USTRING state_menu_texts[STATE_SLOTS];
+static USTRING save_state_titles[SAVE_STATE_SLOTS];
+static USTRING save_state_menu_texts[SAVE_STATE_SLOTS];
 
 static BOOL lock_recent = FALSE;
 
@@ -648,16 +648,16 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(main_replay_select_menu_3, (replay_index == 3));
    TOGGLE_MENU_ITEM(main_replay_select_menu_4, (replay_index == 4));
 
-   TOGGLE_MENU_ITEM(machine_save_state_select_menu_0, (state_index == 0));
-   TOGGLE_MENU_ITEM(machine_save_state_select_menu_1, (state_index == 1));
-   TOGGLE_MENU_ITEM(machine_save_state_select_menu_2, (state_index == 2));
-   TOGGLE_MENU_ITEM(machine_save_state_select_menu_3, (state_index == 3));
-   TOGGLE_MENU_ITEM(machine_save_state_select_menu_4, (state_index == 4));
-   TOGGLE_MENU_ITEM(machine_save_state_select_menu_5, (state_index == 5));
-   TOGGLE_MENU_ITEM(machine_save_state_select_menu_6, (state_index == 6));
-   TOGGLE_MENU_ITEM(machine_save_state_select_menu_7, (state_index == 7));
-   TOGGLE_MENU_ITEM(machine_save_state_select_menu_8, (state_index == 8));
-   TOGGLE_MENU_ITEM(machine_save_state_select_menu_9, (state_index == 9));
+   TOGGLE_MENU_ITEM(machine_save_state_select_menu_0, (save_state_index == 0));
+   TOGGLE_MENU_ITEM(machine_save_state_select_menu_1, (save_state_index == 1));
+   TOGGLE_MENU_ITEM(machine_save_state_select_menu_2, (save_state_index == 2));
+   TOGGLE_MENU_ITEM(machine_save_state_select_menu_3, (save_state_index == 3));
+   TOGGLE_MENU_ITEM(machine_save_state_select_menu_4, (save_state_index == 4));
+   TOGGLE_MENU_ITEM(machine_save_state_select_menu_5, (save_state_index == 5));
+   TOGGLE_MENU_ITEM(machine_save_state_select_menu_6, (save_state_index == 6));
+   TOGGLE_MENU_ITEM(machine_save_state_select_menu_7, (save_state_index == 7));
+   TOGGLE_MENU_ITEM(machine_save_state_select_menu_8, (save_state_index == 8));
+   TOGGLE_MENU_ITEM(machine_save_state_select_menu_9, (save_state_index == 9));
 
    TOGGLE_MENU_ITEM(machine_save_state_autosave_menu_disabled,   (input_autosave_interval == 0));
    TOGGLE_MENU_ITEM(machine_save_state_autosave_menu_10_seconds, (input_autosave_interval == 10));
@@ -1209,10 +1209,10 @@ void gui_handle_keypress (int c)
 
          if (!(input_mode & INPUT_MODE_CHAT))
          {
-            state_index = ((c >> 8) - KEY_0);
+            save_state_index = ((c >> 8) - KEY_0);
     
             message_local ("Machine state slot set to %d.",
-               state_index);
+               save_state_index);
          }
 
          break;
@@ -1232,8 +1232,8 @@ void gui_stop_replay (void)
 
 static INLINE void set_autosave (int interval)
 {
-   /* This function simply sets the state autosave interval to 'interval'
-      seconds (in game speed, not real world speed. */
+   /* This function simply sets the save state autosave interval to
+      'interval' seconds (in game speed, not real world speed :b). */
 
    input_autosave_interval = interval;
    update_menus ();
@@ -1397,7 +1397,7 @@ static INLINE int load_file (const UCHAR *filename)
 
       memcpy (&global_rom, &rom, sizeof (ROM));
 
-      /* Update state titles. */
+      /* Update save state titles. */
       machine_save_state_menu_select ();
       /* Update replay titles. */
       main_replay_menu_select ();
@@ -1820,7 +1820,7 @@ static int main_replay_record_menu_start (void)
  
    message_local ("Replay recording session started.");
  
-   /* Update save state titles. */
+   /* Update replay titles. */
    main_replay_menu_select ();
 
    return (D_CLOSE);
@@ -1960,27 +1960,27 @@ static int machine_menu_hard_reset (void)
     return (D_CLOSE);
 }
 
-#define STATE_SELECT_MENU_HANDLER(index)  \
+#define SAVE_STATE_SELECT_MENU_HANDLER(index)   \
    static int machine_save_state_select_menu_##index (void)   \
    {  \
-      state_index = index;  \
+      save_state_index = index;  \
       update_menus ();  \
       message_local ("Machine state slot set to %d.", index);  \
       return (D_O_K);   \
    }
 
-STATE_SELECT_MENU_HANDLER(0);
-STATE_SELECT_MENU_HANDLER(1);
-STATE_SELECT_MENU_HANDLER(2);
-STATE_SELECT_MENU_HANDLER(3);
-STATE_SELECT_MENU_HANDLER(4);
-STATE_SELECT_MENU_HANDLER(5);
-STATE_SELECT_MENU_HANDLER(6);
-STATE_SELECT_MENU_HANDLER(7);
-STATE_SELECT_MENU_HANDLER(8);
-STATE_SELECT_MENU_HANDLER(9);
+SAVE_STATE_SELECT_MENU_HANDLER(0);
+SAVE_STATE_SELECT_MENU_HANDLER(1);
+SAVE_STATE_SELECT_MENU_HANDLER(2);
+SAVE_STATE_SELECT_MENU_HANDLER(3);
+SAVE_STATE_SELECT_MENU_HANDLER(4);
+SAVE_STATE_SELECT_MENU_HANDLER(5);
+SAVE_STATE_SELECT_MENU_HANDLER(6);
+SAVE_STATE_SELECT_MENU_HANDLER(7);
+SAVE_STATE_SELECT_MENU_HANDLER(8);
+SAVE_STATE_SELECT_MENU_HANDLER(9);
 
-#undef STATE_MENU_HANDLER
+#undef SAVE_STATE_MENU_HANDLER
 
 static int machine_save_state_menu_quick_save (void)
 {
@@ -2012,7 +2012,7 @@ static int machine_save_state_menu_save (void)
    USTRING filename;
 
    /* Duplicate title. */
-   ustrncpy (title, state_titles[state_index], sizeof (title));
+   ustrncpy (title, save_state_titles[save_state_index], sizeof (title));
 
    /* Patch up duplicate. */
    fix_save_title (title, sizeof (title));
@@ -2028,7 +2028,7 @@ static int machine_save_state_menu_save (void)
          return (D_O_K);
    }
 
-   if (!save_state (state_index, title))
+   if (!save_state (save_state_index, title))
    {
       gui_message (GUI_ERROR_COLOR, "Failed to open new machine state "
          "file.");
@@ -2036,25 +2036,25 @@ static int machine_save_state_menu_save (void)
       return (D_O_K);
    }
 
-   /* Update state titles. */
+   /* Update save state titles. */
    machine_save_state_menu_select ();
 
    if (!input_autosave_triggered)
-      message_local ("Machine state saved in slot %d.", state_index);
+      message_local ("Machine state saved in slot %d.", save_state_index);
 
    return (D_CLOSE);
 }
 
 static int machine_save_state_menu_restore (void)
 {
-   if (!load_state (state_index))
+   if (!load_state (save_state_index))
    {
       gui_message (GUI_ERROR_COLOR, "Failed to open machine state file.");
 
       return (D_O_K);
    }
 
-   message_local ("Machine state loaded from slot %d.", state_index);
+   message_local ("Machine state loaded from slot %d.", save_state_index);
 
    return (D_CLOSE);
 }
@@ -2063,13 +2063,13 @@ static int machine_save_state_menu_select (void)
 {
    int index;
 
-   for (index = 0; index < STATE_SLOTS; index++)
+   for (index = 0; index < SAVE_STATE_SLOTS; index++)
    {
       UCHAR *title;
       UCHAR *text;
 
-      title = state_titles[index];
-      text = state_menu_texts[index];
+      title = save_state_titles[index];
+      text = save_state_menu_texts[index];
 
       /* Get title. */
       get_state_title (index, title, USTRING_SIZE);
@@ -2862,20 +2862,20 @@ static int video_colors_menu_true_color_32_bit (void)
       return (D_O_K);   \
    }
 
-BLITTER_MENU_HANDLER(automatic,       "automatic",          VIDEO_BLITTER_AUTOMATIC)
-BLITTER_MENU_HANDLER(normal,          "normal",             VIDEO_BLITTER_NORMAL)
-BLITTER_MENU_HANDLER(des,             "des engine",         VIDEO_BLITTER_DES)
-BLITTER_MENU_HANDLER(interpolated_2x, "interpolated (2x)",  VIDEO_BLITTER_INTERPOLATED_2X)
-BLITTER_MENU_HANDLER(2xscl,           "2xSCL engine",       VIDEO_BLITTER_2XSCL)
-BLITTER_MENU_HANDLER(desii,           "des 2 engine",       VIDEO_BLITTER_DESII)
-BLITTER_MENU_HANDLER(super_2xscl,     "super 2xSCL engine", VIDEO_BLITTER_SUPER_2XSCL)
-BLITTER_MENU_HANDLER(ultra_2xscl,     "ultra 2xSCL engine", VIDEO_BLITTER_ULTRA_2XSCL)
-BLITTER_MENU_HANDLER(hq2x,            "hq2x filter",        VIDEO_BLITTER_HQ2X)
-BLITTER_MENU_HANDLER(nes_ntsc,        "nes_ntsc engine",    VIDEO_BLITTER_NES_NTSC)
-BLITTER_MENU_HANDLER(interpolated_3x, "interpolated (3x)",  VIDEO_BLITTER_INTERPOLATED_3X)
-BLITTER_MENU_HANDLER(hq3x,            "hq3x filter",        VIDEO_BLITTER_HQ3X)
-BLITTER_MENU_HANDLER(hq4x,            "hq4x filter",        VIDEO_BLITTER_HQ4X)
-BLITTER_MENU_HANDLER(stretched,       "stretched",          VIDEO_BLITTER_STRETCHED)
+BLITTER_MENU_HANDLER(automatic,       "automatic",           VIDEO_BLITTER_AUTOMATIC)
+BLITTER_MENU_HANDLER(normal,          "normal",              VIDEO_BLITTER_NORMAL)
+BLITTER_MENU_HANDLER(des,             "des engine",          VIDEO_BLITTER_DES)
+BLITTER_MENU_HANDLER(interpolated_2x, "interpolated (2x)",   VIDEO_BLITTER_INTERPOLATED_2X)
+BLITTER_MENU_HANDLER(2xscl,           "2xSCL engine",        VIDEO_BLITTER_2XSCL)
+BLITTER_MENU_HANDLER(desii,           "des 2 engine",        VIDEO_BLITTER_DESII)
+BLITTER_MENU_HANDLER(super_2xscl,     "super 2xSCL engine",  VIDEO_BLITTER_SUPER_2XSCL)
+BLITTER_MENU_HANDLER(ultra_2xscl,     "ultra 2xSCL engine",  VIDEO_BLITTER_ULTRA_2XSCL)
+BLITTER_MENU_HANDLER(hq2x,            "hq2x filter",         VIDEO_BLITTER_HQ2X)
+BLITTER_MENU_HANDLER(nes_ntsc,        "nes_ntsc engine",     VIDEO_BLITTER_NES_NTSC)
+BLITTER_MENU_HANDLER(interpolated_3x, "interpolated (3x)",   VIDEO_BLITTER_INTERPOLATED_3X)
+BLITTER_MENU_HANDLER(hq3x,            "hq3x filter",         VIDEO_BLITTER_HQ3X)
+BLITTER_MENU_HANDLER(hq4x,            "hq4x filter",         VIDEO_BLITTER_HQ4X)
+BLITTER_MENU_HANDLER(stretched,       "stretched",           VIDEO_BLITTER_STRETCHED)
 
 #undef BLITTER_MENU_HANDLER
 
