@@ -50,11 +50,6 @@ int frame_skip_min = 0;
 int frame_skip_max = 0;
 
 
-static int enable_resync = FALSE;
-
-static int resync_grace_frames = 0;
-
-
 ENUM cpu_usage = CPU_USAGE_NORMAL;
 
 
@@ -236,14 +231,6 @@ void resume_throttling (void)
 
 
     install_int_ex (throttle_interrupt, BPS_TO_TIMER (speed));
-
-
-    if (enable_resync)
-    {
-        while (throttle_counter == 0);
-
-        throttle_counter = 0;
-    }
 }
 
 
@@ -536,11 +523,6 @@ int main (int argc, char * argv [])
     /* Note: machine_type is set later by the ROM loading code. */
 
 
-    enable_resync = get_config_int ("timing", "enable_resync", TRUE);
-
-    resync_grace_frames = get_config_int ("timing", "resync_grace_frames", 10);
-
-
     cpu_usage = get_config_int ("timing", "cpu_usage", CPU_USAGE_NORMAL);
 
 
@@ -725,23 +707,6 @@ int main (int argc, char * argv [])
                 
     
                     timing_audio_fps = audio_fps;
-                }
-
-
-                if ((enable_resync) && (! fast_forward))
-                {
-                    if ((actual_fps_count < (average_fps - resync_grace_frames)) && (average_fps > 0))
-                    {
-                        suspend_timing ();
-
-
-                        resume_timing ();
-
-
-                        while (throttle_counter == 0);
-
-                        throttle_counter = 0;
-                    }
                 }
 
 
@@ -1093,11 +1058,6 @@ int main (int argc, char * argv [])
 
 
     set_config_int ("timing", "machine_region", machine_region);
-
-
-    set_config_int ("timing", "enable_resync", enable_resync);
-
-    set_config_int ("timing", "resync_grace_frames", resync_grace_frames);
 
 
     set_config_int ("timing", "cpu_usage", cpu_usage);
