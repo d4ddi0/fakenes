@@ -14,7 +14,6 @@
 #include "common.h"
 #include "cpu.h"
 #include "crc.h"
-#include "input.h"
 #include "mmc.h"
 #include "ppu.h"
 #include "rom.h"
@@ -1052,13 +1051,6 @@ void ppu_start_frame (void)
 }
 
 
-void ppu_start_render (void)
-{
-    ppu_start_frame();
-}
-
-
-
 void ppu_render_line (int line)
 {
     int i;
@@ -1108,16 +1100,6 @@ void ppu_render_line (int line)
 void ppu_stub_render_line (int line)
 {
     int first_y, last_y;
-
-    /* draw lines for zapper emulation */
-
-    if (input_enable_zapper && (input_zapper_y_offset == line) &&
-        input_zapper_on_screen)
-    {
-        ppu_render_line (line);
-        return;
-    }
-
 
     /* draw lines for sprite 0 collision emulation */
 

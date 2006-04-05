@@ -874,8 +874,12 @@ int main (int argc, char * argv [])
             {
                 /* Perform a full render. */
 
-                ppu_start_render ();
+                ppu_start_frame ();
 
+                if (input_enable_zapper)
+                {
+                    input_update_zapper_offsets ();
+                }
 
                 for (ppu_scanline = 0; ppu_scanline <= ppu_frame_last_line; ppu_scanline ++)
                 {
@@ -987,9 +991,19 @@ int main (int argc, char * argv [])
                     {
                         ppu_start_line ();
 
+                      /* draw lines for zapper emulation */
+                  
+                      if (input_enable_zapper && (input_zapper_y_offset == ppu_scanline) &&
+                          input_zapper_on_screen)
+                      {
+                          ppu_render_line (ppu_scanline);
 
-                        ppu_stub_render_line (ppu_scanline);
-
+                          input_update_zapper ();
+                      }
+                      else
+                      {
+                          ppu_stub_render_line (ppu_scanline);
+                      }
 
                         cpu_execute (RENDER_CLOCKS);
                     }
