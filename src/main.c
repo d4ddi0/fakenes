@@ -968,6 +968,8 @@ int main (int argc, char * argv [])
                 }
 
 
+                video_blit (screen);
+
                 papu_process ();
             }
             else
