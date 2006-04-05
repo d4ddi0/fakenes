@@ -312,6 +312,11 @@ void cpu_interrupt (int type)
 {
     switch (type)
     {
+        case CPU_INTERRUPT_NONE:
+
+            break;
+
+
         case CPU_INTERRUPT_IRQ_SINGLE_SHOT:
 
             FN2A03_Interrupt (&cpu_context, FN2A03_INT_IRQ_SINGLE_SHOT);

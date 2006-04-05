@@ -897,11 +897,7 @@ int main (int argc, char * argv [])
 
                     if (mmc_hblank_start)
                     {
-                        int type = mmc_hblank_start (ppu_scanline);
-                        if (type != CPU_INTERRUPT_NONE)
-                        {
-                           cpu_interrupt (type);
-                        }
+                        cpu_interrupt (mmc_hblank_start (ppu_scanline));
                     }
 
 
@@ -924,11 +920,7 @@ int main (int argc, char * argv [])
 
                     if (mmc_scanline_end)
                     {
-                        int type = mmc_scanline_end (ppu_scanline);
-                        if (type != CPU_INTERRUPT_NONE)
-                        {
-                           cpu_interrupt (type);
-                        }
+                        cpu_interrupt (mmc_scanline_end (ppu_scanline));
                     }
                 }
 
@@ -1003,11 +995,7 @@ int main (int argc, char * argv [])
 
                     if (mmc_hblank_start)
                     {
-                        int type = mmc_hblank_start (ppu_scanline);
-                        if (type != CPU_INTERRUPT_NONE)
-                        {
-                           cpu_interrupt (type);
-                        }
+                        cpu_interrupt (mmc_hblank_start (ppu_scanline));
                     }
 
 
@@ -1030,11 +1018,7 @@ int main (int argc, char * argv [])
 
                     if (mmc_scanline_end)
                     {
-                        int type = mmc_scanline_end (ppu_scanline);
-                        if (type != CPU_INTERRUPT_NONE)
-                        {
-                           cpu_interrupt (type);
-                        }
+                        cpu_interrupt (mmc_scanline_end (ppu_scanline));
                     }
                 }
 
