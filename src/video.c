@@ -559,7 +559,7 @@ void video_blit (BITMAP *bitmap)
 
     /* Send screen buffer to screen. */
 
-   if (page_buffer)
+   if (page_buffer && is_video_bitmap (bitmap))
    {
       /* Reduce screen tearing by blitting to VRAM first, then doing a
          VRAM to VRAM blit to the visible portion of the screen, since
