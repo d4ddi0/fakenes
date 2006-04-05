@@ -14,6 +14,7 @@
 #include "core.h"
 #include "cpu.h"
 #include "crc.h"
+#include "debug.h"
 #include "input.h"
 #include "mmc.h"
 #include "papu.h"
@@ -22,138 +23,106 @@
 #include "save.h"
 #include "types.h"
 
-
-UINT8 cpu_sram [SRAM_SIZE];
-
+UINT8 cpu_ram[CPU_RAM_SIZE];
+UINT8 cpu_sram[CPU_SRAM_SIZE];
 
 int cpu_init (void)
 {
-    memset (cpu_ram, NIL, sizeof (cpu_ram));
+   memset (cpu_ram,  0, sizeof (cpu_ram));
+   memset (cpu_sram, 0, sizeof (cpu_sram));
 
-    memset (cpu_sram, NIL, sizeof (cpu_sram));
+   /* Trainer support - copy the trainer into the memory map */
+   if (global_rom.control_byte_1 & ROM_CTRL_TRAINER)
+       memcpy ((cpu_sram + 0x1000), global_rom.trainer, ROM_TRAINER_SIZE);
 
+   load_sram ();
 
-    /* Trainer support - copy the trainer into the memory map */
-    if ((global_rom.control_byte_1 & ROM_CTRL_TRAINER))
-    {
-        memcpy (cpu_sram + 0x1000, global_rom.trainer, 512);
-    }
+   cpu_active_pc = &cpu_context.PC.word;
 
+   cpu_context.TrapBadOps = TRUE;
 
-    cpu_active_pc = &cpu_context.PC.word;
+   memset (dummy_read,  0, sizeof (dummy_read));
+   memset (dummy_write, 0, sizeof (dummy_write));
 
-
-    if (global_rom.sram_flag)
-    {
-        load_sram ();
-    }
-
-
-    cpu_context.TrapBadOps = TRUE;
-
-
-    memset(dummy_read, 0, sizeof(dummy_read));
-    memset(dummy_write, 0, sizeof(dummy_write));
-
-
-    return (0);
+   return (0);
 }
 
-
-UINT8 cpu_read_direct_safeguard(UINT16 address)
+UINT8 cpu_read_direct_safeguard (UINT16 address)
 {
-    return cpu_block_2k_read_address [address >> 11] [address] + cpu_patch_table [address];
+   return (CPU_PATCH_FIXUP(cpu_block_2k_read_address[(address >> 11)][address]));
 }
 
-
-void cpu_write_direct_safeguard(UINT16 address, UINT8 value)
+void cpu_write_direct_safeguard (UINT16 address, UINT8 value)
 {
-    cpu_block_2k_write_address [address >> 11] [address] = value;
+   cpu_block_2k_write_address[(address >> 11)][address] = value;
 }
 
-
-UINT8 ppu_read_2000_3FFF (UINT16 address)
+UINT8 cpu_read_2000_3fff_handler (UINT16 address)
 {
-    return ppu_read(address);
+   return (ppu_read (address));
 }
 
-UINT8 ppu_read_4000_47FF (UINT16 address)
+void cpu_write_2000_3fff_handler (UINT16 address, UINT8 value)
 {
-    if (address == 0x4014)
-        return (ppu_read(address));
-    else if (address <= 0x4015)
-    {
-        return (papu_read (address));
-    }
-    else if ((address == 0x4016) || (address == 0x4017))
-    {
-        return (input_read (address));
-    }
-
-    return (0);
+   ppu_write (address, value);
 }
 
-void ppu_write_2000_3FFF (UINT16 address, UINT8 value)
+UINT8 cpu_read_4000_47ff_handler (UINT16 address)
 {
-    ppu_write(address, value);
+   if (address == 0x4014)
+      return (ppu_read (address));
+   else if (address <= 0x4015)
+      return (papu_read (address));
+   else if ((address == 0x4016) || (address == 0x4017))
+      return (input_read (address));
+
+   return (0);
 }
 
-void ppu_write_4000_47FF (UINT16 address, UINT8 value)
+void cpu_write_4000_47ff_handler (UINT16 address, UINT8 value)
 {
-    if (address == 0x4014)
-    {
-        ppu_write (address, value);
-    }
-    else if (address <= 0x4015)
-    {
-        papu_write (address, value);
-    }
-    else if ((address == 0x4016) || (address == 0x4017))
-    {
-        input_write (address, value);
-    }
+   if (address == 0x4014)
+      ppu_write (address, value);
+   else if (address <= 0x4015)
+      papu_write (address, value);
+   else if ((address == 0x4016) || (address == 0x4017))
+      input_write (address, value);
 }
 
 void cpu_memmap_init (void)
 {
-    int index;
+   int index;
 
+   /* Load patches from patch table. */
+   if (rom_is_loaded)
+      load_patches ();
 
-    /* Load patches from patch table. */
+   memset (cpu_patch_table, 0, sizeof (cpu_patch_table));
 
-    if (rom_is_loaded)
-    {
-        load_patches ();
-    }
+   /* Start with a clean memory map */
+   for (index = 0; index < (64 << 10); index += (2 << 10))
+   {
+      cpu_set_read_address_2k  (index, dummy_read);
+      cpu_set_write_address_2k (index, dummy_write);
+   }
 
+   /* Map in RAM */
+   for (index = 0; index < (8 << 10); index += (2 << 10))
+   {
+       cpu_set_read_address_2k  (index, cpu_ram);
+       cpu_set_write_address_2k (index, cpu_ram);
+   }
 
-    memset (cpu_patch_table, 0, sizeof (cpu_patch_table));
+   /* Map in SRAM */
+   cpu_enable_sram ();
 
+   /* Map in registers */
 
-    /* Start with a clean memory map */
-    for (index = 0; index < (64 << 10); index += (2 << 10))
-    {
-        cpu_set_read_address_2k (index, dummy_read);
-        cpu_set_write_address_2k (index, dummy_write);
-    }
+   cpu_set_read_handler_8k  (0x2000, cpu_read_2000_3fff_handler);
+   cpu_set_write_handler_8k (0x2000, cpu_write_2000_3fff_handler);
 
-    /* Map in RAM */
-    for (index = 0; index < (8 << 10); index += (2 << 10))
-    {
-        cpu_set_read_address_2k (index, cpu_ram);
-        cpu_set_write_address_2k (index, cpu_ram);
-    }
-
-    /* Map in SRAM */
-    enable_sram();
-
-    /* Map in registers */
-    cpu_set_read_handler_8k (0x2000, ppu_read_2000_3FFF);
-    cpu_set_write_handler_8k (0x2000, ppu_write_2000_3FFF);
-
-    cpu_set_read_handler_2k (0x4000, ppu_read_4000_47FF);
-    cpu_set_write_handler_2k (0x4000, ppu_write_4000_47FF);
-
+   cpu_set_read_handler_2k  (0x4000, cpu_read_4000_47ff_handler);
+   cpu_set_write_handler_2k (0x4000, cpu_write_4000_47ff_handler);
 
     if ((global_rom.control_byte_1 & ROM_CTRL_TRAINER))
     {
@@ -166,14 +135,10 @@ void cpu_memmap_init (void)
         global_rom.trainer_crc32 = 0;
     }
 
-
     /* compute CRC32 for PRG ROM */
     global_rom.prg_rom_crc32 = build_crc32 (global_rom.prg_rom,
         (global_rom.prg_rom_pages * 0x4000));
-
-
 }
-
 
 void cpu_exit (void)
 {
@@ -201,28 +166,29 @@ void cpu_exit (void)
 
 #endif
 
+   /* Save SRAM. */
+   save_sram ();
 
-    /* Save SRAM. */
-
-    save_sram ();
-
-
-    /* Save patches. */
-
-    save_patches ();
+   /* Save patches. */
+   save_patches ();
 }
-
 
 void cpu_free_prg_rom (const ROM *rom)
 {
-    if (rom -> prg_rom) free (rom -> prg_rom);
+   RT_ASSERT(rom);
+
+   if (rom->prg_rom)
+      free (rom->prg_rom);
 }
 
-
-UINT8 * cpu_get_prg_rom_pages (ROM *rom)
+UINT8 *cpu_get_prg_rom_pages (ROM *rom)
 {
-    int num_pages = rom -> prg_rom_pages;
-    int copycount, missing, count, next, pages_mirror_size;
+   int num_pages;
+   int copycount, missing, count, next, pages_mirror_size;
+
+   RT_ASSERT(rom);
+
+   num_pages = rom->prg_rom_pages;
 
     /* Compute a mask used to wrap invalid PRG ROM page numbers.
      *  As PRG ROM uses a 16k page size, this mask is based
@@ -245,15 +211,13 @@ UINT8 * cpu_get_prg_rom_pages (ROM *rom)
         pages_mirror_size = (1 << i);
     }
 
-    rom -> prg_rom_page_overflow_mask = pages_mirror_size - 1;
-
+    rom->prg_rom_page_overflow_mask = (pages_mirror_size - 1);
 
     /* identify-map all the present pages */
     for (copycount = 0; copycount < num_pages; copycount++)
     {
-        rom -> prg_rom_page_lookup [copycount] = copycount;
+        rom->prg_rom_page_lookup[copycount] = copycount;
     }
-
 
     /* mirror-map all the not-present pages */
     for (next = num_pages, missing = pages_mirror_size - num_pages,
@@ -263,215 +227,203 @@ UINT8 * cpu_get_prg_rom_pages (ROM *rom)
         {
             for (copycount = count; copycount; copycount--, next++)
             {
-                rom -> prg_rom_page_lookup[next] =
-                    rom -> prg_rom_page_lookup[next - count];
+                rom->prg_rom_page_lookup[next] =
+                  rom->prg_rom_page_lookup[(next - count)];
             }
         }
     }
 
-
     /* 16k PRG ROM page size */
-    rom -> prg_rom = malloc (num_pages * 0x4000);
-
-    if (rom -> prg_rom != NIL)
+    rom->prg_rom = malloc ((num_pages * 0x4000));
+    if (rom->prg_rom)
     {
         /* initialize to a known value for areas not present in image */
-        memset (rom -> prg_rom, 0xFF, (num_pages * 0x4000));
+        memset (rom->prg_rom, 0xff, (num_pages * 0x4000));
     }
 
-    return rom -> prg_rom;
+    return (rom->prg_rom);
 }
 
-
-void enable_sram(void)
+void cpu_enable_sram (void)
 {
-    cpu_set_read_address_8k (0x6000, cpu_sram);
-    cpu_set_write_address_8k (0x6000, cpu_sram);
+   cpu_set_read_address_8k  (0x6000, cpu_sram);
+   cpu_set_write_address_8k (0x6000, cpu_sram);
 }
 
-
-void disable_sram(void)
+void cpu_disable_sram (void)
 {
-    cpu_set_read_address_8k (0x6000, dummy_read);
-    cpu_set_write_address_8k (0x6000, dummy_write);
+   cpu_set_read_address_8k  (0x6000, dummy_read);
+   cpu_set_write_address_8k (0x6000, dummy_write);
 }
-
 
 void cpu_reset (void)
 {
-    /* Save SRAM. */
+   /* Save SRAM. */
+   save_sram ();
 
-    save_sram ();
-
-
-    FN2A03_Reset (&cpu_context);
+   FN2A03_Reset (&cpu_context);
 }
-
 
 void cpu_interrupt (int type)
 {
-    switch (type)
-    {
-        case CPU_INTERRUPT_NONE:
+   switch (type)
+   {
+      case CPU_INTERRUPT_NONE:
+         break;
 
-            break;
+      case CPU_INTERRUPT_IRQ_SINGLE_SHOT:
+      {
+         FN2A03_Interrupt (&cpu_context, FN2A03_INT_IRQ_SINGLE_SHOT);
 
+         break;
+      }
 
-        case CPU_INTERRUPT_IRQ_SINGLE_SHOT:
+      case CPU_INTERRUPT_NMI:
+      {
+         FN2A03_Interrupt (&cpu_context, FN2A03_INT_NMI);
 
-            FN2A03_Interrupt (&cpu_context, FN2A03_INT_IRQ_SINGLE_SHOT);
+         break;
+      }
 
+      default:
+      {
+         FN2A03_Interrupt (&cpu_context, FN2A03_INT_IRQ_SOURCE((type -
+            CPU_INTERRUPT_IRQ_SOURCE(0))));
 
-            break;
-
-
-        case CPU_INTERRUPT_NMI:
-
-            FN2A03_Interrupt (&cpu_context, FN2A03_INT_NMI);
-
-
-            break;
-
-
-        default:
-
-            FN2A03_Interrupt (&cpu_context,
-                FN2A03_INT_IRQ_SOURCE(type - CPU_INTERRUPT_IRQ_SOURCE(0)));
-
-
-            break;
-    }
+         break;
+      }
+   }
 }
-
 
 void cpu_clear_interrupt (int type)
 {
-    switch (type)
-    {
-        case CPU_INTERRUPT_IRQ_SINGLE_SHOT:
-        case CPU_INTERRUPT_NMI:
+   switch (type)
+   {
+      case CPU_INTERRUPT_IRQ_SINGLE_SHOT:
+      case CPU_INTERRUPT_NMI:
+         break;
 
-            break;
+      default:
+      {
+         FN2A03_Clear_Interrupt (&cpu_context, FN2A03_INT_IRQ_SOURCE((type -
+            CPU_INTERRUPT_IRQ_SOURCE(0))));
 
-
-        default:
-
-            FN2A03_Clear_Interrupt (&cpu_context,
-                FN2A03_INT_IRQ_SOURCE(type - CPU_INTERRUPT_IRQ_SOURCE(0)));
-
-
-            break;
-
-    }
+         break;
+      }
+   }
 }
-
 
 static int scanline_start_cycle;
 
 void cpu_start_new_scanline (void)
 {
-    scanline_start_cycle = cpu_context.ICount;
+   scanline_start_cycle = cpu_context.ICount;
 }
-
 
 int cpu_get_cycles_line (void)
 {
-    return (cpu_context.Cycles - scanline_start_cycle) / CYCLE_LENGTH;
+   return (((cpu_context.Cycles - scanline_start_cycle) / CYCLE_LENGTH));
 }
 
-
-int cpu_get_cycles (int reset)
+int cpu_get_cycles (BOOL reset)
 {
-    int cycles = cpu_context.Cycles;
+   int cycles = cpu_context.Cycles;
 
+   if (reset)
+   {
+      cpu_context.ICount -= cpu_context.Cycles;
+      cpu_context.Cycles = 0;
+   }
 
-    if (reset)
-    {
-        cpu_context.ICount -= cpu_context.Cycles;
-        cpu_context.Cycles = 0;
-    }
-
-
-    return (cycles / CYCLE_LENGTH);
+   return ((cycles / CYCLE_LENGTH));
 }
 
-
-void cpu_save_state (PACKFILE * file, int version)
+void cpu_save_state (PACKFILE *file, int version)
 {
-    PACKFILE * file_chunk;
+   PACKFILE *chunk;
 
+   RT_ASSERT(file);
 
-    file_chunk = pack_fopen_chunk (file, FALSE);
+   /* Open chunk. */
+   chunk = pack_fopen_chunk (file, FALSE);
+   if (!chunk)
+      WARN_BREAK_GENERIC();
 
+   /* Save data. */
 
-    /* Save CPU registers */
-    pack_iputw (cpu_context.PC.word, file_chunk);
+   /* Save CPU registers. */
 
-    pack_putc (cpu_context.A, file_chunk);
-    pack_putc (cpu_context.X, file_chunk);
-    pack_putc (cpu_context.Y, file_chunk);
-    pack_putc (cpu_context.S, file_chunk);
-    pack_putc (FN2A03_Pack_Flags(&cpu_context), file_chunk);
+   pack_iputw (cpu_context.PC.word, chunk);
 
-    /* Save cycle counters */
-    pack_iputl (cpu_context.ICount, file_chunk);
-    pack_iputl (cpu_context.Cycles, file_chunk);
+   pack_putc (cpu_context.A, chunk);
+   pack_putc (cpu_context.X, chunk);
+   pack_putc (cpu_context.Y, chunk);
+   pack_putc (cpu_context.S, chunk);
 
-    /* Save IRQ state */
-    pack_iputl (cpu_context.IRequest, file_chunk);
+   pack_putc (FN2A03_Pack_Flags (&cpu_context), chunk);
 
-    /* Save execution state */
-    pack_putc (cpu_context.Jammed, file_chunk);
+   /* Save cycle counters. */
 
+   pack_iputl (cpu_context.ICount, chunk);
+   pack_iputl (cpu_context.Cycles, chunk);
 
-    /* Save NES internal RAM */
-    pack_fwrite (cpu_ram, 0x800, file_chunk);
+   /* Save IRQ state. */
+   pack_iputl (cpu_context.IRequest, chunk);
 
-    /* Save cartridge expansion RAM */
-    pack_fwrite (cpu_sram, 0x2000, file_chunk);
+   /* Save execution state. */
+   pack_putc (cpu_context.Jammed, chunk);
 
+   /* Save NES internal RAM. */
+   pack_fwrite (cpu_ram, 0x800, chunk);
 
-    pack_fclose_chunk (file_chunk);
+   /* Save cartridge expansion RAM. */
+   pack_fwrite (cpu_sram, 0x2000, chunk);
+
+   /* Close chunk. */
+   pack_fclose_chunk (chunk);
 }
 
-
-void cpu_load_state (PACKFILE * file, int version)
+void cpu_load_state (PACKFILE *file, int version)
 {
-    PACKFILE * file_chunk;
+   PACKFILE *chunk;
 
-    UINT8 P;
+   RT_ASSERT(file);
 
+   /* Open chunk. */
+   chunk = pack_fopen_chunk (file, FALSE);
+   if (!chunk)
+      WARN_BREAK_GENERIC();
 
-    file_chunk = pack_fopen_chunk (file, FALSE);
+   /* Load data. */
 
+   /* Restore CPU registers. */
 
-    /* Restore CPU registers */
-    cpu_context.PC.word = pack_igetw (file_chunk);
+   cpu_context.PC.word = pack_igetw (chunk);
 
-    cpu_context.A = pack_getc (file_chunk);
-    cpu_context.X = pack_getc (file_chunk);
-    cpu_context.Y = pack_getc (file_chunk);
-    cpu_context.S = pack_getc (file_chunk);
-    P = pack_getc (file_chunk);
-    FN2A03_Unpack_Flags(&cpu_context, P);
+   cpu_context.A = pack_getc (chunk);
+   cpu_context.X = pack_getc (chunk);
+   cpu_context.Y = pack_getc (chunk);
+   cpu_context.S = pack_getc (chunk);
 
-    /* Restore cycle counters */
-    cpu_context.ICount = pack_igetl (file_chunk);
-    cpu_context.Cycles = pack_igetl (file_chunk);
+   FN2A03_Unpack_Flags (&cpu_context, pack_getc (chunk));
 
-    /* Restore IRQ state */
-    cpu_context.IRequest = pack_igetl (file_chunk);
+   /* Restore cycle counters. */
 
-    /* Restore execution state */
-    cpu_context.Jammed = pack_getc (file_chunk);
+   cpu_context.ICount = pack_igetl (chunk);
+   cpu_context.Cycles = pack_igetl (chunk);
 
+   /* Restore IRQ state. */
+   cpu_context.IRequest = pack_igetl (chunk);
 
-    /* Restore NES internal RAM */
-    pack_fread (cpu_ram, 0x800, file_chunk);
+   /* Restore execution state. */
+   cpu_context.Jammed = pack_getc (chunk);
 
-    /* Restore cartridge expansion RAM */
-    pack_fread (cpu_sram, 0x2000, file_chunk);
+   /* Restore NES internal RAM. */
+   pack_fread (cpu_ram, 0x800, chunk);
 
+   /* Restore cartridge expansion RAM. */
+   pack_fread (cpu_sram, 0x2000, chunk);
 
-    pack_fclose_chunk (file_chunk);
+   /* Close chunk. */
+   pack_fclose_chunk (chunk);
 }

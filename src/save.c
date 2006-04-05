@@ -625,6 +625,10 @@ BOOL load_sram (void)
    USTRING filename;
    PACKFILE *file;
 
+   /* Make sure cart contains SRAM. */
+   if (!global_rom.sram_flag)
+      return (FALSE);
+
    /* Get filename. */
    get_sram_filename (filename, sizeof (filename));
 
@@ -637,7 +641,7 @@ BOOL load_sram (void)
       return (FALSE);
 
    /* Load data. */
-   pack_fread (cpu_sram, SRAM_SIZE, file);
+   pack_fread (cpu_sram, CPU_SRAM_SIZE, file);
 
    /* Close file. */
    pack_fclose (file);
@@ -663,7 +667,7 @@ BOOL save_sram (void)
       return (FALSE);
 
    /* Save data. */
-   pack_fwrite (cpu_sram, SRAM_SIZE, file);
+   pack_fwrite (cpu_sram, CPU_SRAM_SIZE, file);
 
    /* Close file. */
    pack_fclose (file);

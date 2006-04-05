@@ -266,8 +266,8 @@ static void mmc3_write (UINT16 address, UINT8 value)
             /* Disabled for Star Tropics. */
 
             mmc3_sram_enable = (value & 0x80);
-            //if (mmc3_sram_enable) enable_sram();
-            //else disable_sram();
+            //if (mmc3_sram_enable) cpu_enable_sram();
+            //else cpu_disable_sram();
 
 
             break;
