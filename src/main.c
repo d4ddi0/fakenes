@@ -890,6 +890,12 @@ int main (int argc, char * argv [])
 
                         ppu_render_line (ppu_scanline);
 
+                         /* handle zapper emulation */
+                         if (input_enable_zapper && (input_zapper_y_offset == ppu_scanline) &&
+                             input_zapper_on_screen)
+                         {
+                             input_update_zapper ();
+                         }
 
                         cpu_execute (RENDER_CLOCKS);
                     }
@@ -966,6 +972,10 @@ int main (int argc, char * argv [])
 
                 ppu_start_frame ();
 
+                if (input_enable_zapper)
+                {
+                    input_update_zapper_offsets ();
+                }
 
                 for (ppu_scanline = 0; ppu_scanline <= ppu_frame_last_line; ppu_scanline ++)
                 {

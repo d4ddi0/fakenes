@@ -1049,11 +1049,6 @@ void ppu_clear (void)
 void ppu_start_frame (void)
 {
     vram_address_start_new_frame();
-
-    if (input_enable_zapper)
-    {
-        input_update_zapper_offsets ();
-    }
 }
 
 
@@ -1107,13 +1102,6 @@ void ppu_render_line (int line)
     if (PPU_SPRITES_ENABLED)
     {
         ppu_render_sprites (line);
-    }
-
-    /* handle zapper emulation */
-    if (input_enable_zapper && (input_zapper_y_offset == line) &&
-        input_zapper_on_screen)
-    {
-        input_update_zapper ();
     }
 }
 
