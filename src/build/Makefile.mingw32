@@ -44,6 +44,9 @@ endif
 ifdef TAG
    DFLAGS += -DVERSION_TAG=\"${TAG}\"
 endif
+ifdef STATIC
+   DFLAGS += -DALLEGRO_STATICLINK
+endif
 CFLAGS := -I${INCLUDE_PATH} ${MFLAGS} ${OFLAGS} -Wall -Wno-unused ${DFLAGS}
 
 # GPP flags
@@ -78,7 +81,13 @@ OBJECTS := ${OBJECT_PATH}/alstream${OBJEXT} \
 
 # Libraries.
 LIBALLEG ?= -lalleg
-LIBRARIES := ${LIBALLEG}
+LIBALLEG_STATIC ?= -lalleg_s
+ifdef STATIC
+   LIBRARIES := ${LIBALLEG_STATIC}
+   LIBRARIES += -lgdi32 -ldxguid -lole32 -ldinput -lddraw -lwinmm -ldsound
+else
+   LIBRARIES := ${LIBALLEG}
+endif
 ifndef NO_ZLIB
    LIBZ ?= -lz
    LIBRARIES += ${LIBZ}
