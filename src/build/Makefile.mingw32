@@ -4,10 +4,21 @@ MKDIR = mkdir -p
 RMDIR = rmdir
 RM = rm -f
 
+# Platform.
+ifdef DEBUG
+   PLATFORM = mingw32debug
+else
+   ifdef STATIC
+      PLATFORM = mingw32static
+   else
+      PLATFORM = mingw32
+   endif
+endif
+
 # Paths.
 SOURCE_PATH = .
 INCLUDE_PATH = ${SOURCE_PATH}/include
-OBJECT_PATH = ${SOURCE_PATH}/build/mingw32
+OBJECT_PATH = ${SOURCE_PATH}/build/${PLATFORM}
 BINARY_PATH ?= .
 
 # Dependancies.
