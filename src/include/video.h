@@ -41,6 +41,7 @@ enum
 #define VIDEO_FILTER_SCANLINES_HIGH     4
 
 BOOL video_display_status;
+BOOL video_enable_page_buffer;
 BOOL video_enable_vsync;
 BOOL video_force_fullscreen;
 

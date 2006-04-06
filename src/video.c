@@ -45,6 +45,7 @@ static void video_message_timer (void)
 END_OF_STATIC_FUNCTION (video_message_timer);
 
 BOOL video_display_status = FALSE;
+BOOL video_enable_page_buffer = FALSE;
 BOOL video_enable_vsync = FALSE;
 BOOL video_force_fullscreen = FALSE;
 
@@ -124,19 +125,20 @@ int video_init (void)
 
    /* Load configuration. */
 
-   video_driver           = get_config_id  ("video", "driver",           video_driver);
-   screen_width           = get_config_int ("video", "screen_width",     screen_width);
-   screen_height          = get_config_int ("video", "screen_height",    screen_height);
-   color_depth            = get_config_int ("video", "color_depth",      color_depth);
-   video_force_fullscreen = get_config_int ("video", "force_fullscreen", video_force_fullscreen);
-   blitter_id             = get_config_int ("video", "blitter",          blitter_id);
-   filter_list            = get_config_int ("video", "filter_list",      filter_list);
-   stretch_width          = get_config_int ("video", "stretch_width",    stretch_width);
-   stretch_height         = get_config_int ("video", "stretch_height",   stretch_height);
-   brightness             = get_config_int ("video", "brightness",       brightness);
-   video_display_status   = get_config_int ("video", "display_status",   video_display_status);
-   video_enable_vsync     = get_config_int ("video", "enable_vsync",     video_enable_vsync);
-   video_edge_clipping    = get_config_int ("video", "edge_clipping",    video_edge_clipping);
+   video_driver             = get_config_id  ("video", "driver",             video_driver);
+   screen_width             = get_config_int ("video", "screen_width",       screen_width);
+   screen_height            = get_config_int ("video", "screen_height",      screen_height);
+   color_depth              = get_config_int ("video", "color_depth",        color_depth);
+   video_force_fullscreen   = get_config_int ("video", "force_fullscreen",   video_force_fullscreen);
+   blitter_id               = get_config_int ("video", "blitter",            blitter_id);
+   filter_list              = get_config_int ("video", "filter_list",        filter_list);
+   stretch_width            = get_config_int ("video", "stretch_width",      stretch_width);
+   stretch_height           = get_config_int ("video", "stretch_height",     stretch_height);
+   brightness               = get_config_int ("video", "brightness",         brightness);
+   video_display_status     = get_config_int ("video", "display_status",     video_display_status);
+   video_enable_page_buffer = get_config_int ("video", "enable_page_buffer", video_enable_page_buffer);
+   video_enable_vsync       = get_config_int ("video", "enable_vsync",       video_enable_vsync);
+   video_edge_clipping      = get_config_int ("video", "edge_clipping",      video_edge_clipping);
 
    /* Determine which driver to use. */
 
@@ -220,16 +222,17 @@ int video_init (void)
         
    /* Create page buffer. */
 
-   if (gfx_capabilities & GFX_HW_VRAM_BLIT)
+   if (video_enable_page_buffer)
    {
-      /* VRAM->VRAM blits are hardware accelerated (note: This call doesn't
-         have to succeed). */
-
       page_buffer = create_video_bitmap (SCREEN_W, SCREEN_H);
+      if (!page_buffer)
+      {
+         WARN("Failed to create page buffer");
+         video_enable_page_buffer = FALSE;
+      }
    }
    else
    {
-      /* No hardware acceleration available. */
       page_buffer = NULL;
    }
 
@@ -412,19 +415,20 @@ void video_exit (void)
 
    /* Save configuration. */
 
-   set_config_id  ("video", "driver",           video_driver);
-   set_config_int ("video", "screen_width",     screen_width);
-   set_config_int ("video", "screen_height",    screen_height);
-   set_config_int ("video", "color_depth",      color_depth);
-   set_config_int ("video", "force_fullscreen", video_force_fullscreen);
-   set_config_int ("video", "blitter",          blitter_id);
-   set_config_int ("video", "filter_list",      filter_list);
-   set_config_int ("video", "stretch_width",    stretch_width);
-   set_config_int ("video", "stretch_height",   stretch_height);
-   set_config_int ("video", "brightness",       brightness);
-   set_config_int ("video", "display_status",   video_display_status);
-   set_config_int ("video", "enable_vsync",     video_enable_vsync);
-   set_config_int ("video", "edge_clipping",    video_edge_clipping);
+   set_config_id  ("video", "driver",             video_driver);
+   set_config_int ("video", "screen_width",       screen_width);
+   set_config_int ("video", "screen_height",      screen_height);
+   set_config_int ("video", "color_depth",        color_depth);
+   set_config_int ("video", "force_fullscreen",   video_force_fullscreen);
+   set_config_int ("video", "blitter",            blitter_id);
+   set_config_int ("video", "filter_list",        filter_list);
+   set_config_int ("video", "stretch_width",      stretch_width);
+   set_config_int ("video", "stretch_height",     stretch_height);
+   set_config_int ("video", "brightness",         brightness);
+   set_config_int ("video", "display_status",     video_display_status);
+   set_config_int ("video", "enable_page_buffer", video_enable_page_buffer);
+   set_config_int ("video", "enable_vsync",       video_enable_vsync);
+   set_config_int ("video", "edge_clipping",      video_edge_clipping);
 }
 
 
@@ -571,10 +575,12 @@ void video_blit (BITMAP *bitmap)
          screen_buffer->h);
       release_bitmap (page_buffer);
 
+      acquire_bitmap (bitmap);
       if (video_enable_vsync)
          vsync ();
       blit (page_buffer, bitmap, 0, 0, 0, 0, page_buffer->w,
          page_buffer->h);
+      release_bitmap (bitmap);
    }
    else
    {

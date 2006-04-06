@@ -771,21 +771,23 @@ static const MENU video_advanced_menu_base[] =
    MENU_ENDCAP
 };
 
+DEFINE_MENU_CALLBACK(video_menu_page_buffer);
 DEFINE_MENU_CALLBACK(video_menu_vsync);
 
 static const MENU video_menu_base[] =
-{
-   { "&Driver",     NULL,                     IMPORT_MENU(video_driver_menu),     0, NULL },
-   { "&Resolution", NULL,                     IMPORT_MENU(video_resolution_menu), 0, NULL },
-   { "&Colors",     NULL,                     IMPORT_MENU(video_colors_menu),     0, NULL },
-   { "&Blitter",    NULL,                     IMPORT_MENU(video_blitter_menu),    0, NULL },
-   { "&Filters",    NULL,                     IMPORT_MENU(video_filters_menu),    0, NULL },
+{                    
+   { "&Driver",      NULL,                   IMPORT_MENU(video_driver_menu),     0, NULL },
+   { "&Resolution",  NULL,                   IMPORT_MENU(video_resolution_menu), 0, NULL },
+   { "&Colors",      NULL,                   IMPORT_MENU(video_colors_menu),     0, NULL },
+   { "&Blitter",     NULL,                   IMPORT_MENU(video_blitter_menu),    0, NULL },
+   { "&Filters",     NULL,                   IMPORT_MENU(video_filters_menu),    0, NULL },
    MENU_SPLITTER,
-   { "&VSync",      video_menu_vsync, NULL,                                       0, NULL },
+   { "&Page Buffer", video_menu_page_buffer, NULL,                               0, NULL },
+   { "&VSync",       video_menu_vsync,       NULL,                               0, NULL },
    MENU_SPLITTER,
-   { "&Layers",     NULL,                     IMPORT_MENU(video_layers_menu),     0, NULL },
-   { "&Palette",    NULL,                     IMPORT_MENU(video_palette_menu),    0, NULL },
-   { "&Advanced",   NULL,                     IMPORT_MENU(video_advanced_menu),   0, NULL },
+   { "&Layers",      NULL,                   IMPORT_MENU(video_layers_menu),     0, NULL },
+   { "P&alette",     NULL,                   IMPORT_MENU(video_palette_menu),    0, NULL },
+   { "Adva&nced",    NULL,                   IMPORT_MENU(video_advanced_menu),   0, NULL },
    MENU_ENDCAP
 };
 

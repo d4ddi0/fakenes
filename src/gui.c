@@ -823,7 +823,8 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(video_filters_menu_scanlines_50_percent,  (video_get_filter_list () & VIDEO_FILTER_SCANLINES_MEDIUM));
    TOGGLE_MENU_ITEM(video_filters_menu_scanlines_100_percent, (video_get_filter_list () & VIDEO_FILTER_SCANLINES_HIGH));
 
-   TOGGLE_MENU_ITEM(video_menu_vsync, video_enable_vsync);
+   TOGGLE_MENU_ITEM(video_menu_page_buffer, video_enable_page_buffer);
+   TOGGLE_MENU_ITEM(video_menu_vsync,       video_enable_vsync);
 
    TOGGLE_MENU_ITEM(video_palette_menu_ntsc_color,     (video_get_palette_id () == DATA_INDEX(DEFAULT_PALETTE)));
    TOGGLE_MENU_ITEM(video_palette_menu_ntsc_grayscale, (video_get_palette_id () == DATA_INDEX(GRAYSCALE_PALETTE)));
@@ -2956,6 +2957,21 @@ static int video_filters_menu_scanlines_100_percent (void)
 
    message_local ("Scanlines video filter %s.", get_enabled_text_ex
       ((filters & VIDEO_FILTER_SCANLINES_HIGH), "enabled (100%)"));
+
+   return (D_O_K);
+}
+
+static int video_menu_page_buffer (void)
+{
+   video_enable_page_buffer = !video_enable_page_buffer;
+   update_menus ();
+
+   video_reinit ();
+
+   cycle_video ();
+
+   message_local ("Page buffering %s.", get_enabled_text
+      (video_enable_page_buffer));
 
    return (D_O_K);
 }
