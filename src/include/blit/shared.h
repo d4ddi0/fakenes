@@ -27,7 +27,7 @@ static INLINE BOOL blitter_size_check (BITMAP *bmp, int width, int height)
 {
    int y;
 
-   if ((bmp->w >= width) || (bmp->h >= height))
+   if ((bmp->w >= width) && (bmp->h >= height))
       return (TRUE);
 
    y = ((bmp->h / 2) - (text_height (font) / 2));
