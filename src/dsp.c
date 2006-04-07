@@ -426,6 +426,17 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
       DSP_MIXER_RIGHT = fixf (DSP_MIXER_RIGHT, DSP_SAMPLE_VALUE_MIN,
          DSP_SAMPLE_VALUE_MAX);
 
+      if (dsp_effector_list & DSP_EFFECTOR_SWAP_CHANNELS)
+      {
+         /* Swap stereo channels. */
+
+         DSP_SAMPLE old_left;
+
+         old_left = DSP_MIXER_LEFT;
+         DSP_MIXER_LEFT = DSP_MIXER_RIGHT;
+         DSP_MIXER_RIGHT = old_left;
+      }
+
       /* Convert back to signed integer. */
 
       DSP_OUTPUT_LEFT  = DSP_MIXER_TO_OUTPUT(DSP_MIXER_LEFT);
@@ -437,6 +448,16 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
 
          DSP_OUTPUT_LEFT  ^= DSP_OUTPUT_SIGNED_BIT;
          DSP_OUTPUT_RIGHT ^= DSP_OUTPUT_SIGNED_BIT;
+      }
+
+      if (dsp_effector_list & DSP_EFFECTOR_DITHER)
+      {
+         /* Dithering. */
+
+         DSP_OUTPUT_LEFT ^= ((DSP_OUTPUT_LEFT & (DSP_OUTPUT_SIGNED_BIT >>
+            bits_per_sample)) << 1);
+         DSP_OUTPUT_RIGHT ^= ((DSP_OUTPUT_RIGHT & (DSP_OUTPUT_SIGNED_BIT >>
+            bits_per_sample)) << 1);
       }
 
       /* Quantize and output samples. */
