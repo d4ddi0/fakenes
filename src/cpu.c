@@ -385,6 +385,7 @@ void cpu_save_state (PACKFILE *file, int version)
 void cpu_load_state (PACKFILE *file, int version)
 {
    PACKFILE *chunk;
+   UINT8 P;
 
    RT_ASSERT(file);
 
@@ -404,7 +405,8 @@ void cpu_load_state (PACKFILE *file, int version)
    cpu_context.Y = pack_getc (chunk);
    cpu_context.S = pack_getc (chunk);
 
-   FN2A03_Unpack_Flags (&cpu_context, pack_getc (chunk));
+   P = pack_getc (chunk);
+   FN2A03_Unpack_Flags (&cpu_context, P);
 
    /* Restore cycle counters. */
 
