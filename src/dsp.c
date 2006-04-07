@@ -53,10 +53,6 @@ static DSP_CHANNEL_PARAMS dsp_channel_params[DSP_MAX_CHANNELS];
 /* Effectors. */
 static LIST dsp_effector_list = 0;
 
-/* Render buffer access helper prototypes. */
-static INLINE void dsp_put_rendered_sample_mono   (void *, int, int);
-static INLINE void dsp_put_rendered_sample_stereo (void *, int, int, int);
-
 /* --- Initialization and deinitialization. --- */
 
 int dsp_init (void)
