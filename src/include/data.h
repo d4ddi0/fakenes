@@ -1,21 +1,10 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
 
+   data.h: Datafile interface.
 
-/*
-
-FakeNES - A portable, Open Source NES emulator.
-
-Distributed under the Clarified Artistic License.
-
-data.h: Definitions of datafile helper macros.
-
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
-
-This is free software.  See 'LICENSE' for details.
-You must read and accept the license prior to use.
-
-*/
-
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
 
 #ifndef DATA_H_INCLUDED
 

@@ -1,5 +1,4 @@
 /* FakeNES - A free, portable, Open Source NES emulator.
-   Distributed under the Clarified Artistic License.
 
    gui.c: Implementation of the object-based GUI.
 

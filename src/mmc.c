@@ -1,5 +1,4 @@
 /* FakeNES - A free, portable, Open Source NES emulator.
-   Distributed under the Clarified Artistic License.
 
    mmc.c: Implementation of the MMC emulation.
 

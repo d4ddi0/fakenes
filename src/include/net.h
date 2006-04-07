@@ -1,6 +1,4 @@
-
 /* FakeNES - A free, portable, Open Source NES emulator.
-   Distributed under the Clarified Artistic License.
 
    net.h: Declarations for the network interface.
 

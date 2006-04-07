@@ -1,5 +1,4 @@
 /* FakeNES - A free, portable, Open Source NES emulator.
-   Distributed under the Clarified Artistic License.
 
    main.c: Implementation of the main emulation.
 

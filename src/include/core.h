@@ -1,5 +1,4 @@
 /* FakeNES - A free, portable, Open Source NES emulator.
-   Distributed under the Clarified Artistic License.
 
    core.h: Declarations for the RP2A03G CPU emulation.
 

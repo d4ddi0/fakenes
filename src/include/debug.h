@@ -1,3 +1,11 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
+
+   debug.h: Debug interface.
+
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
+
 #ifndef DEBUG_H_INCLUDED
 #define DEBUG_H_INCLUDED
 #include <allegro.h>
