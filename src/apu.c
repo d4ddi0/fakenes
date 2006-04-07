@@ -1203,7 +1203,7 @@ void apu_process (void)
    
                case APU_CHANNEL_SQUARE_2:
                {
-                  value = apu_rectangle (&apu.apus.rectangle[0]);
+                  value = apu_rectangle (&apu.apus.rectangle[1]);
    
                   break;
                }
