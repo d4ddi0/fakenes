@@ -989,13 +989,9 @@ void apu_reset (void)
    memset (&apu, 0, sizeof (apu));
 
    /* Clear queues. */
-
-   memset (&apu.queue, 0, (APUQUEUE_SIZE * sizeof (apudata_t)));
-   apu.q_head = apu.q_tail = 0;
-
+             
+   memset (&apu.queue,    0, (APUQUEUE_SIZE * sizeof (apudata_t)));
    memset (&apu.ex_queue, 0, (APUQUEUE_SIZE * sizeof (apudata_t)));
-   apu.ex_q_head = apu.ex_q_tail = 0;
-   apu.exsound = APU_EXSOUND_NONE;
 
    /* set the stupid flag to tell difference between two rectangles */
 
@@ -1005,9 +1001,6 @@ void apu_reset (void)
    /* Restore parameters. */
    set_params (sample_rate, refresh_rate);
 
-   // for $4017:bit7 by T.Yano
-   apu_cnt_rate = 5;
-
    // for ExSound
    APU_LogTableInitialize ();
 
@@ -1015,6 +1008,9 @@ void apu_reset (void)
    APU_MMC5SoundVolume (1);
    APU_VRC6SoundReset ();
    APU_VRC6SoundVolume (1);
+
+   // for $4017:bit7 by T.Yano
+   apu_cnt_rate = 5;
 }
 
 void apu_set_exsound (ENUM exsound)
@@ -1132,7 +1128,10 @@ void apu_ex_write (UINT16 address, UINT8 value)
 
 void apu_process (void)
 {
+   int elapsed_cycles;
    int samples;
+
+   elapsed_cycles = apu.elapsed_cycles;
 
    /* TODO: Fix this, it probably won't work with audio disabled. */
    samples = apu_frame_samples;
@@ -1149,15 +1148,14 @@ void apu_process (void)
          DSP_SAMPLE dsp_samples[APU_CHANNELS];
    
          while ((!APU_QEMPTY()) &&
-                (apu.queue[apu.q_tail].timestamp <= apu.elapsed_cycles))
+                (apu.queue[apu.q_tail].timestamp <= elapsed_cycles))
          {
             data = apu_dequeue ();
             apu_regwrite (data->address, data->value);
          }
    
          while ((!APU_EX_QEMPTY()) &&
-                (apu.ex_queue[apu.ex_q_tail].timestamp <=
-                   apu.elapsed_cycles))
+                (apu.ex_queue[apu.ex_q_tail].timestamp <= elapsed_cycles))
          {
             data = apu_ex_dequeue ();
    
@@ -1185,7 +1183,7 @@ void apu_process (void)
             }
          }
    
-         apu.elapsed_cycles += APU_FROM_FIXED(apu.cycle_rate);
+         elapsed_cycles += APU_FROM_FIXED(apu.cycle_rate);
    
          /* Clear samples. */
          memset (dsp_samples, 0, sizeof (dsp_samples));
@@ -1313,15 +1311,14 @@ void apu_process (void)
          apudata_t *data;
    
          while ((!APU_QEMPTY()) &&
-                (apu.queue[apu.q_tail].timestamp <= apu.elapsed_cycles))
+                (apu.queue[apu.q_tail].timestamp <= elapsed_cycles))
          {
             data = apu_dequeue ();
             apu_regwrite (data->address, data->value);
          }
    
          while ((!APU_EX_QEMPTY()) &&
-                (apu.ex_queue[apu.ex_q_tail].timestamp <=
-                   apu.elapsed_cycles))
+                (apu.ex_queue[apu.ex_q_tail].timestamp <= elapsed_cycles))
          {
             data = apu_ex_dequeue ();
    
@@ -1349,7 +1346,7 @@ void apu_process (void)
             }
          }
    
-         apu.elapsed_cycles += APU_FROM_FIXED(apu.cycle_rate);
+         elapsed_cycles += APU_FROM_FIXED(apu.cycle_rate);
       }
 
    }  /* !audio_enable_output */
