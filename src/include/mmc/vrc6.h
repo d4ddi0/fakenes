@@ -228,7 +228,7 @@ static void vrc6_write (UINT16 address, UINT8 value)
    } 
 
    /* Write ExSound. */
-   papu_exwrite (address, value);
+   apu_ex_write (address, value);
 }
 
 static void vrc6_reset (void)
@@ -260,7 +260,7 @@ static int vrc6_base_init (void)
    mmc_scanline_end = vrc6_irq_tick;
 
    /* Select ExSound chip. */
-   papu_set_exsound (PAPU_EXSOUND_VRC6);
+   apu_set_exsound (APU_EXSOUND_VRC6);
 
    /* Return success. */
    return (0);

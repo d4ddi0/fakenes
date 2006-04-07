@@ -10,6 +10,7 @@
 #include <allegro.h>
 #include <stdio.h>
 #include <string.h>
+#include "apu.h"
 #include "common.h"
 #include "core.h"
 #include "cpu.h"
@@ -17,7 +18,6 @@
 #include "debug.h"
 #include "input.h"
 #include "mmc.h"
-#include "papu.h"
 #include "ppu.h"
 #include "rom.h"
 #include "save.h"
@@ -72,7 +72,7 @@ UINT8 cpu_read_4000_47ff_handler (UINT16 address)
    if (address == 0x4014)
       return (ppu_read (address));
    else if (address <= 0x4015)
-      return (papu_read (address));
+      return (apu_read (address));
    else if ((address == 0x4016) || (address == 0x4017))
       return (input_read (address));
 
@@ -84,7 +84,7 @@ void cpu_write_4000_47ff_handler (UINT16 address, UINT8 value)
    if (address == 0x4014)
       ppu_write (address, value);
    else if (address <= 0x4015)
-      papu_write (address, value);
+      apu_write (address, value);
    else if ((address == 0x4016) || (address == 0x4017))
       input_write (address, value);
 }

@@ -585,7 +585,7 @@ static void mmc5_write (UINT16 address, UINT8 value)
 
     if (address < 0x5100)
     {
-        papu_exwrite (address, value);
+        apu_ex_write (address, value);
         return;
     }
 
@@ -1068,7 +1068,7 @@ static int mmc5_init (void)
 
     /* Select ExSound chip. */
 
-    papu_set_exsound (PAPU_EXSOUND_MMC5);
+    apu_set_exsound (APU_EXSOUND_MMC5);
 
 
     return (0);

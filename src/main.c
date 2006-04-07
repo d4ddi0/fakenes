@@ -11,6 +11,7 @@
 #include <allegro.h>
 #include "build.h"
 #include <stdio.h>
+#include "apu.h"
 #include "audio.h"
 #include "common.h"
 #include "cpu.h"
@@ -20,7 +21,6 @@
 #include "mmc.h"
 #include "net.h"
 #include "netplay.h"
-#include "papu.h"
 #include "platform.h"
 #include "ppu.h"
 #include "rom.h"
@@ -328,9 +328,7 @@ int main (int argc, char * argv [])
     }
 
 
-    papu_init ();
-
-    papu_reset ();
+    apu_init ();
 
 
     net_init ();
@@ -666,7 +664,7 @@ int main (int argc, char * argv [])
 
                 video_blit (screen);
 
-                papu_process ();
+                apu_process ();
             }
             else
             {
@@ -762,7 +760,7 @@ int main (int argc, char * argv [])
                 }
 
 
-                papu_process ();
+                apu_process ();
             }
 
 
@@ -792,7 +790,7 @@ int main (int argc, char * argv [])
     set_config_int ("gui", "first_run", first_run);
 
 
-    papu_exit ();
+    apu_exit ();
 
     audio_exit ();
 
@@ -902,7 +900,7 @@ void machine_reset (void)
 
     mmc_reset ();
 
-    papu_reset ();
+    apu_reset ();
 
     ppu_reset ();
 

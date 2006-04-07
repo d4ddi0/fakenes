@@ -10,12 +10,12 @@
 #include <allegro.h>
 #include <stdio.h>
 #include <string.h>
+#include "apu.h"
 #include "common.h"
 #include "cpu.h"
 #include "debug.h"
 #include "gui.h"
 #include "mmc.h"
-#include "papu.h"
 #include "ppu.h"
 #include "rom.h"
 #include "timing.h"
@@ -248,7 +248,7 @@ int mmc_init (void)
     }
 
 
-    papu_clear_exsound ();
+    apu_set_exsound (APU_EXSOUND_NONE);
 
 
     if (ROM_CURRENT_MMC == NIL)

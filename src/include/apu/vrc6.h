@@ -1,12 +1,17 @@
+#include "apu/shared.h"
+
 /*
 ** Konami VRC6 ExSound by TAKEDA, toshiya
 **
 ** original: s_vrc6.c in nezp0922
 */
 
-static INT32 VRC6SoundSquareRender(VRC6_SQUARE *ch)
+static INT32 APU_VRC6SoundSquareRender(APU_VRC6_SQUARE *ch)
 {
     UINT32 output;
+
+   RT_ASSERT(ch);
+
 	if (ch->update)
 	{
 		if (ch->update & (2 | 4))
@@ -28,7 +33,7 @@ static INT32 VRC6SoundSquareRender(VRC6_SQUARE *ch)
 
 	if (ch->mute || !(ch->regs[2] & 0x80)) return 0;
 
-	output = LinearToLog(ch->regs[0] & 0x0F) + apu->vrc6s.mastervolume;
+   output = APU_LinearToLog(ch->regs[0] & 0x0F) + apu.vrc6s.mastervolume;
 	if (!(ch->regs[0] & 0x80) && (ch->adr < ((ch->regs[0] >> 4) + 1)))
 	{
 #if 1
@@ -37,12 +42,14 @@ static INT32 VRC6SoundSquareRender(VRC6_SQUARE *ch)
 		output++;	/* negative gate */
 #endif
 	}
-	return LogToLinear(output, LOG_LIN_BITS - LIN_BITS - 16 - 1);
+   return APU_LogToLinear(output, APU_LOG_LIN_BITS - APU_LIN_BITS - 16 - 1);
 }
 
-static INT32 VRC6SoundSawRender(VRC6_SAW *ch)
+static INT32 APU_VRC6SoundSawRender(APU_VRC6_SAW *ch)
 {
     UINT32 output;
+
+   RT_ASSERT(ch);
 
 	if (ch->update)
 	{
@@ -69,70 +76,75 @@ static INT32 VRC6SoundSawRender(VRC6_SAW *ch)
 
 	if (ch->mute || !(ch->regs[2] & 0x80)) return 0;
 
-	output = LinearToLog((ch->output >> 3) & 0x1F) + apu->vrc6s.mastervolume;
-	return LogToLinear(output, LOG_LIN_BITS - LIN_BITS - 16 - 1);
+   output = APU_LinearToLog((ch->output >> 3) & 0x1F) + apu.vrc6s.mastervolume;
+   return APU_LogToLinear(output, APU_LOG_LIN_BITS - APU_LIN_BITS - 16 - 1);
 }
 
-static INT32 VRC6SoundRender(void)
+static INT32 APU_VRC6SoundRender(void)
 {
     INT32 accum = 0;
-	accum += VRC6SoundSquareRender(&apu->vrc6s.square[0]);
-	accum += VRC6SoundSquareRender(&apu->vrc6s.square[1]);
-	accum += VRC6SoundSawRender(&apu->vrc6s.saw);
+   /* output signed 32-bit */
+   accum += APU_VRC6SoundSquareRender(&apu.vrc6s.square[0]) << 8;
+   accum += APU_VRC6SoundSquareRender(&apu.vrc6s.square[1]) << 8;
+   accum += APU_VRC6SoundSawRender(&apu.vrc6s.saw) << 8;
 	return accum;
 }
 
-static void VRC6SoundVolume(UINT32 volume)
+static void APU_VRC6SoundVolume(UINT32 volume)
 {
-	apu->vrc6s.mastervolume = (volume << (LOG_BITS - 8)) << 1;
+   apu.vrc6s.mastervolume = (volume << (APU_LOG_BITS - 8)) << 1;
 }
 
-static void VRC6SoundWrite9000(UINT32 address, UINT8 value)
+static void APU_VRC6SoundWrite9000(UINT16 address, UINT8 value)
 {
-	apu->vrc6s.square[0].regs[address & 3] = value;
-	apu->vrc6s.square[0].update |= 1 << (address & 3); 
+   apu.vrc6s.square[0].regs[address & 3] = value;
+   apu.vrc6s.square[0].update |= 1 << (address & 3); 
 }
-static void VRC6SoundWriteA000(UINT32 address, UINT8 value)
+static void APU_VRC6SoundWriteA000(UINT16 address, UINT8 value)
 {
-	apu->vrc6s.square[1].regs[address & 3] = value;
-	apu->vrc6s.square[1].update |= 1 << (address & 3); 
+   apu.vrc6s.square[1].regs[address & 3] = value;
+   apu.vrc6s.square[1].update |= 1 << (address & 3); 
 }
-static void VRC6SoundWriteB000(UINT32 address, UINT8 value)
+static void APU_VRC6SoundWriteB000(UINT16 address, UINT8 value)
 {
-	apu->vrc6s.saw.regs[address & 3] = value;
-	apu->vrc6s.saw.update |= 1 << (address & 3); 
+   apu.vrc6s.saw.regs[address & 3] = value;
+   apu.vrc6s.saw.update |= 1 << (address & 3); 
 }
 
-static void VRC6SoundWrite(UINT32 address, UINT8 value)
+static void APU_VRC6SoundWrite(UINT16 address, UINT8 value)
 {
 	switch(address & 0xF000) {
 		case 0x9000:
-			VRC6SoundWrite9000(address, value);
+         APU_VRC6SoundWrite9000(address, value);
 			break;
 		case 0xA000:
-			VRC6SoundWriteA000(address, value);
+         APU_VRC6SoundWriteA000(address, value);
 			break;
 		case 0xB000:
-			VRC6SoundWriteB000(address, value);
+         APU_VRC6SoundWriteB000(address, value);
 			break;
 	}
 }
 
-static void VRC6SoundSquareReset(VRC6_SQUARE *ch)
+static void APU_VRC6SoundSquareReset(APU_VRC6_SQUARE *ch)
 {
-	ch->cps = DivFix(NES_BASECYCLES, 12 * SAMPLE_RATE, 18);
+   RT_ASSERT(ch);
+
+   ch->cps = APU_DivFix(APU_NES_BASECYCLES, 12 * APU_SAMPLE_RATE, 18);
 }
 
-static void VRC6SoundSawReset(VRC6_SAW *ch)
+static void APU_VRC6SoundSawReset(APU_VRC6_SAW *ch)
 {
-	ch->cps = DivFix(NES_BASECYCLES, 24 * SAMPLE_RATE, 18);
+   RT_ASSERT(ch);
+
+   ch->cps = APU_DivFix(APU_NES_BASECYCLES, 24 * APU_SAMPLE_RATE, 18);
 }
 
-static void VRC6SoundReset(void)
+static void APU_VRC6SoundReset(void)
 {
-	memset(&apu->vrc6s, 0, sizeof(VRC6SOUND));
-	VRC6SoundSquareReset(&apu->vrc6s.square[0]);
-	VRC6SoundSquareReset(&apu->vrc6s.square[1]);
-	VRC6SoundSawReset(&apu->vrc6s.saw);
+   memset(&apu.vrc6s, 0, sizeof(APU_VRC6SOUND));
+   APU_VRC6SoundSquareReset(&apu.vrc6s.square[0]);
+   APU_VRC6SoundSquareReset(&apu.vrc6s.square[1]);
+   APU_VRC6SoundSawReset(&apu.vrc6s.saw);
 }
 

@@ -2,8 +2,15 @@
 #define DEBUG_H_INCLUDED
 #include <allegro.h>
 #include "common.h"
+#include "log.h"
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+#ifdef DEBUG
+#define DEBUG_PRINTF(format, args...)  log_printf ( format , ## args )
+#else
+#define DEBUG_PRINTF(format, args...)
 #endif
 
 /* Warning macros to help with debugging. */

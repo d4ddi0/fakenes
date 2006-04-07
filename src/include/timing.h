@@ -60,6 +60,17 @@ enum
 #define LAST_DISPLAYED_LINE   239
 #define FIRST_VBLANK_LINE     240
 
+static INLINE int timing_get_speed (void)
+{
+   int speed;
+
+   speed = (machine_type == MACHINE_TYPE_NTSC ? 60 : 50);
+   if (timing_half_speed)
+      speed /= 2;
+
+   return (speed);
+}
+
 #ifdef __cplusplus
 }
 #endif

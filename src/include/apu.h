@@ -12,7 +12,10 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
    Any permitted reproduction of these routines, in whole or in part,
-   must bear this legend. */
+   must bear this legend.
+
+   Heavily modified for FakeNES by Siloh.
+   Portions (c) 2001-2006 FakeNES Team. */
 
 #ifndef APU_H_INCLUDED
 #define APU_H_INCLUDED
@@ -49,21 +52,15 @@ extern "C" {
 #define APU_NOISE_32K   0x7fff
 #define APU_NOISE_93    93
 
-#define APU_BASEFREQ    1789772.5
+#define APU_BASEFREQ    1789772.5f
 
 /* to/from 16.16 fixed point */
 #define APU_TO_FIXED    itofix
 #define APU_FROM_FIXED  fixtoi
 
-// ----------------------------------------------------------------------------
-// APU Sound struct
+/* --- 2A03 support. --- */
 
-/* channel structures */
-/* As much data as possible is precalculated,
-** to keep the sample processing as lean as possible
-*/
- 
-typedef struct rectangle_s
+typedef struct apu_rectangle_s
 {
    int regs[4];
 
@@ -104,12 +101,9 @@ typedef struct rectangle_s
    int holdnote_cur;
    int vbl_length_cur;
 
-   int smooth_envelope;
-   int smooth_sweep;
+} apu_rectangle_t;
 
-} rectangle_t;
-
-typedef struct triangle_s
+typedef struct apu_triangle_s
 {
    int regs[3];
 
@@ -135,12 +129,9 @@ typedef struct triangle_s
    int counter_started_cur;
    int vbl_length_cur;
 
-   /* less compatibility, clearer sound if enabled */
-   int ideal_triangle;
+} apu_triangle_t;
 
-} triangle_t;
-
-typedef struct noise_s
+typedef struct apu_noise_s
 {
    int regs[3];
 
@@ -167,9 +158,9 @@ typedef struct noise_s
    int holdnote_cur;
    int vbl_length_cur;
 
-} noise_t;
+} apu_noise_t;
 
-typedef struct dmc_s
+typedef struct apu_dmc_s
 {
    int regs[4];
 
@@ -200,19 +191,18 @@ typedef struct dmc_s
    int irq_gen_cur;
    int irq_occurred_cur;
 
-} dmc_t;
+} apu_dmc_t;
 
-typedef struct apusound_s
+typedef struct apu_apusound_s
 {
-   rectangle_t rectangle[2];
-   triangle_t triangle;
-   noise_t noise;
-   dmc_t dmc;
+   apu_rectangle_t rectangle[2];
+   apu_triangle_t  triangle;
+   apu_noise_t     noise;
+   apu_dmc_t       dmc;
 
-} APUSOUND;
+} APU_APUSOUND;
 
-// ----------------------------------------------------------------------------
-// VRC6 Sound struct
+/* --- VRC6 support. --- */
 
 typedef struct
 {
@@ -224,7 +214,7 @@ typedef struct
    int adr;
    int mute;
 
-} VRC6_SQUARE;
+} APU_VRC6_SQUARE;
 
 typedef struct
 {
@@ -237,132 +227,17 @@ typedef struct
    int adr;
    int mute;
 
-} VRC6_SAW;
+} APU_VRC6_SAW;
 
 typedef struct
 {
-	VRC6_SQUARE square[2];
-	VRC6_SAW saw;
+   APU_VRC6_SQUARE square[2];
+   APU_VRC6_SAW saw;
    int mastervolume;
 
-} VRC6SOUND;
+} APU_VRC6SOUND;
 
-// ----------------------------------------------------------------------------
-// APU Sound struct
-
-typedef struct
-{
-   int pg_phase;
-   int pg_spd;
-   int vib_cycles;
-   int input;
-   int eg_phase;
-   int eg_sl;
-   int eg_arr;
-   int eg_drr;
-   int eg_rrr;
-   int pg_vib;
-   int *sintblp;
-   int tl;
-   int eg_mode;
-   int eg_type;
-   int su_type;
-   int eg_ar;
-   int eg_dr;
-   int eg_rr;
-   int eg_ks;
-   int eg_am;
-
-} OPLL_OP;
-
-typedef struct
-{
-   int cps;
-   int spd;
-   int cycles;
-   int adr;
-   int adrmask;
-   int *table;
-   int output;
-
-} OPLL_LFO;
-
-typedef struct
-{
-   int cps;
-   int cycles;
-   int fbbuf[2];
-   int output;
-	OPLL_OP op[2];
-   int mastervolume;
-   int tone[8];
-   int key;
-   int toneno;
-   int freql;
-   int freqh;
-   int fb;
-   int update;
-
-} OPLL_CH;
-
-typedef struct
-{
-	OPLL_CH ch[6];
-	OPLL_LFO lfo[2];
-   int mastervolume;
-   int usertone[8];
-   int adr;
-   int rhythmc;
-   int toneupdate;
-
-} OPLLSOUND;
-
-// ----------------------------------------------------------------------------
-// FDS Sound struct
-
-typedef struct
-{
-   int wave[0x40];
-   int envspd;
-   int envphase;
-   int envout;
-   int outlvl;
-
-   int phase;
-   int spd;
-   int volume;
-   int sweep;
-
-   int enable;
-   int envmode;
-   int xxxxx;
-   int xxxxx2;
-
-   int timer;
-   int last_spd;
-
-} FDS_FMOP;
-
-typedef struct FDSSOUND
-{
-   int cps;
-   int cycles;
-   int mastervolume;
-   int output;
-   int fade;
-
-	FDS_FMOP op[2];
-
-   int waveaddr;
-   int mute;
-   int key;
-   int reg[0x10];
-   int reg_cur[0x10];
-
-} FDSSOUND;
-
-// ----------------------------------------------------------------------------
-// MMC5 Sound struct
+/* --- MMC5 support. --- */
 
 typedef struct
 {
@@ -388,7 +263,7 @@ typedef struct
    int duty;
    int mute;
 
-} MMC5_SQUARE;
+} APU_MMC5_SQUARE;
 
 typedef struct
 {
@@ -396,136 +271,14 @@ typedef struct
    int key;
    int mute;
 
-} MMC5_DA;
+} APU_MMC5_DA;
 
 typedef struct
 {
-	MMC5_SQUARE square[2];
-	MMC5_DA da;
+   APU_MMC5_SQUARE square[2];
+   APU_MMC5_DA da;
 
-} MMC5SOUND;
-
-// ----------------------------------------------------------------------------
-// N106 Sound struct
-
-typedef struct
-{
-   int logvol;
-   int cycles;
-   int spd;
-   int phase;
-   int tlen;
-   int update;
-   int freql;
-   int freqm;
-   int freqh;
-   int vreg;
-   int tadr;
-   int nazo;
-   int mute;
-
-} N106_WM;
-
-typedef struct
-{
-   int cps;
-   int mastervolume;
-
-	N106_WM ch[8];
-
-   int addressauto;
-   int address;
-   int chinuse;
-
-   int tone[0x100]; /* TONE DATA */
-   int data[0x80];
-
-} N106SOUND;
-
-// ----------------------------------------------------------------------------
-// FME7 Sound struct
-
-typedef struct
-{
-   int cps;
-   int cycles;
-   int spd;
-   int regs[3];
-   int update;
-   int adr;
-   int mute;
-   int key;
-
-} PSG_SQUARE;
-
-typedef struct
-{
-   int cps;
-   int cycles;
-   int spd;
-   int noiserng;
-   int regs[1];
-   int update;
-   int noiseout;
-
-} PSG_NOISE;
-
-typedef struct
-{
-   int cps;
-   int cycles;
-   int spd;
-   int envout;
-   INT8 *adr;
-   int regs[3];
-   int update;
-
-} PSG_ENVELOPE;
-
-typedef struct
-{
-	PSG_SQUARE square[3];
-	PSG_ENVELOPE envelope;
-	PSG_NOISE noise;
-   int mastervolume;
-   int adr;
-
-} PSGSOUND;
-
-// ----------------------------------------------------------------------------
-// APU Sound struct
-
-enum {
-   APUMODE_IDEAL_TRIANGLE,
-   APUMODE_SMOOTH_ENVELOPE,
-   APUMODE_SMOOTH_SWEEP
-};
-
-typedef struct
-{
-   int min_range, max_range;
-   UINT8 (*read_func)(UINT32 address);
-
-} apu_memread;
-
-typedef struct
-{
-   int min_range, max_range;
-   void (*write_func)(UINT32 address, UINT8 value);
-
-} apu_memwrite;
-
-/* external sound chip stuff */
-typedef struct apuext_s
-{
-   void (*init)(void);
-   void (*shutdown)(void);
-   void (*reset)(void);
-   int (*process)(void);
-   apu_memread *mem_read;
-   apu_memwrite *mem_write;
-
-} apuext_t;
+} APU_MMC5SOUND;
 
 /* APU queue structure */
 #define APUQUEUE_SIZE   4096
@@ -541,13 +294,9 @@ typedef struct apudata_s
 
 typedef struct apu_s
 {
-   APUSOUND apus;
-   VRC6SOUND vrc6s;
-   OPLLSOUND ym2413s;
-   FDSSOUND fdssound;
-   MMC5SOUND mmc5;
-   N106SOUND n106s;
-   PSGSOUND psg;
+   APU_APUSOUND  apus;
+   APU_MMC5SOUND mmc5;
+   APU_VRC6SOUND vrc6s;
 
    int enable_reg;
    int enable_reg_cur;
@@ -558,49 +307,59 @@ typedef struct apu_s
    // for ExSound
    apudata_t ex_queue[APUQUEUE_SIZE];
    int ex_q_head, ex_q_tail;
-   int ex_chip;
+   ENUM exsound;
 
    int elapsed_cycles;
-
-   void *buffer; /* pointer to output buffer */
-   int num_samples;
-
-   int mix_enable[6];
-   int filter_list;
-
-   int cycle_rate;
+   int cycle_rate;   // should be fixed point?
 
    int sample_rate;
-   int sample_bits;
-   float refresh_rate;
-
-   void (*process)(void *buffer, int num_samples, int dither);
-
-   /* external sound chip */
-   apuext_t *ext;
+   REAL refresh_rate;
 
 } apu_t;
 
 /* Function prototypes */
-apu_t *apu_getcontext (void);
-void apu_setcontext (apu_t *);
-apu_t *apu_create (int, float, int);
-void apu_destroy(apu_t **);
-void apu_setparams(int, float, int);
-void apu_process (void *, int, int);
-void apu_process_stereo (void *, int, int, int, int, int);
+int apu_init (void);
+void apu_exit (void);
 void apu_reset (void);
-void apu_setext (apu_t *, apuext_t *);
-void apu_setfilterlist (int);
-void apu_setchan (int, int);
-void apu_setmode (int, int);
-UINT8 apu_read (UINT32);
-void apu_write (UINT32, UINT8);
-UINT8 ex_read (UINT32);
-void ex_write (UINT32, UINT8);
-void apu_write_cur (UINT32, UINT8);
-void sync_apu_register (void);
-int sync_dmc_register (int);
+void apu_set_exsound (ENUM);
+UINT8 apu_read (UINT16);
+void apu_write (UINT16, UINT8);
+void apu_ex_write (UINT16, UINT8);
+void apu_process (void);
+void apu_save_state (PACKFILE *, int);
+void apu_load_state (PACKFILE *, int);
+
+ENUM apu_stereo_mode;
+
+enum
+{
+   APU_STEREO_MODE_1 = 1,
+   APU_STEREO_MODE_2,
+   APU_STEREO_MODE_3,
+   APU_STEREO_MODE_4,
+};
+
+enum
+{
+   APU_CHANNEL_SQUARE_1 = 0,
+   APU_CHANNEL_SQUARE_2,
+   APU_CHANNEL_TRIANGLE,
+   APU_CHANNEL_NOISE,
+   APU_CHANNEL_DMC,
+   APU_CHANNEL_EXTRA,
+   APU_CHANNELS
+};
+
+enum
+{
+   APU_EXSOUND_NONE = 0,
+   APU_EXSOUND_VRC6,
+   APU_EXSOUND_OPLL,
+   APU_EXSOUND_FDS,
+   APU_EXSOUND_MMC5,
+   APU_EXSOUND_N106,
+   APU_EXSOUND_PSG
+};
 
 #ifdef __cplusplus
 }

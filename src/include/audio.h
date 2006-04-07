@@ -1,94 +1,48 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
+   Distributed under the Clarified Artistic License.
 
+   audio.h: Declarations for the audio interface.
 
-/*
-
-FakeNES - A portable, Open Source NES emulator.
-
-Distributed under the Clarified Artistic License.
-
-audio.h: Declarations for the audio interface.
-
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
-
-This is free software.  See 'LICENSE' for details.
-You must read and accept the license prior to use.
-
-*/
-
+   Copyright (c) 2001-2006, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
 
 #ifndef AUDIO_H_INCLUDED
-
 #define AUDIO_H_INCLUDED
+#include "common.h"
+#include "types.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-
-enum
-{
-    AUDIO_PSEUDO_STEREO_MODE_1 = 1,
-
-    AUDIO_PSEUDO_STEREO_MODE_2,
-
-    AUDIO_PSEUDO_STEREO_MODE_3,
-
-    AUDIO_PSEUDO_STEREO_MODE_4
-};
-
-
-int audio_enable_output;
-
-
-int audio_subsystem;
-
-
+BOOL audio_enable_output;
+ENUM audio_subsystem;
 int audio_sample_rate;
-
 int audio_sample_size;
-
-
+BOOL audio_unsigned_samples;
 int audio_buffer_length;
 
-
-int audio_pseudo_stereo;
-
-
-int audio_interpolation;
-
-
-int audio_hard_sync;
-
-
-int audio_unsigned_samples;
-
-
+int audio_buffer_size_samples;
+int audio_buffer_size_bytes;
+int audio_buffer_frame_size_samples;
+int audio_buffer_frame_size_bytes;
 volatile int audio_fps;
 
-
 int audio_init (void);
-
 void audio_exit (void);
-
-
-void audio_poll (void);
-
+void *audio_get_buffer (void);
 void audio_play (void);
-
-
 void audio_suspend (void);
-
 void audio_resume (void);
 
-
-void * audio_buffer;
-
-
+/* Subsystems. */
 enum
 {
    AUDIO_SUBSYSTEM_NONE,
-
-   AUDIO_SUBSYSTEM_ALLEGRO,
-
-   AUDIO_SUBSYSTEM_OPENAL
+   AUDIO_SUBSYSTEM_ALLEGRO
 };
 
-
-#endif /* ! AUDIO_H_INCLUDED */
+#ifdef __cplusplus
+}
+#endif
+#endif  /* !AUDIO_H_INCLUDED */

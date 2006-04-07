@@ -72,12 +72,17 @@ typedef union
 
 typedef signed char BOOL;  /* Boolean value. */
 typedef int ENUM;          /* Enumeration index. */
-typedef unsigned LIST;     /* List. */
+typedef unsigned FLAGS;    /* Flags. */
 typedef float REAL;        /* Real number. */
 typedef char CHAR;         /* ASCII character. */
 typedef char UCHAR;        /* Unicode character. */
 
-typedef LIST FLAGS;        /* List of flags. */
+typedef FLAGS LIST;        /* List of flags. */
+
+/* List access macros. */
+#define LIST_ADD(list, flags)       (list |= flags)
+#define LIST_REMOVE(list, flags)    (list &= ~flags)
+#define LIST_COMPARE(list, flags)   (list & flags)
 
 /* String data types. */
 #define STRING_SIZE_BASE   1024  /* Typical size. */

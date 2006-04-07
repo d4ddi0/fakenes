@@ -17,13 +17,13 @@
 #include "cpu.h"
 #include "data.h"
 #include "debug.h"
+#include "dsp.h"
 #include "genie.h"
 #include "gui.h"
 #include "input.h"
 #include "log.h"
 #include "mmc.h"
 #include "netplay.h"
-#include "papu.h"
 #include "ppu.h"
 #include "rom.h"
 #include "save.h"
@@ -238,17 +238,13 @@ static INLINE void load_menus (void)
    MENU_FROM_BASE(machine_save_state_menu);
    MENU_FROM_BASE(machine_region_menu);
    MENU_FROM_BASE(machine_menu);
-   MENU_FROM_BASE(audio_subsystem_menu);
    MENU_FROM_BASE(audio_mixing_channels_menu);
    MENU_FROM_BASE(audio_mixing_frequency_menu);
    MENU_FROM_BASE(audio_mixing_quality_menu);
-   MENU_FROM_BASE(audio_mixing_anti_aliasing_menu);
    MENU_FROM_BASE(audio_mixing_menu);
    MENU_FROM_BASE(audio_effects_menu);
    MENU_FROM_BASE(audio_filters_menu);
    MENU_FROM_BASE(audio_channels_menu);
-   MENU_FROM_BASE(audio_advanced_menu);
-   MENU_FROM_BASE(audio_record_menu);
    MENU_FROM_BASE(audio_menu);
    MENU_FROM_BASE(video_driver_dos_menu);
    MENU_FROM_BASE(video_driver_windows_menu);
@@ -305,17 +301,13 @@ static INLINE void unload_menus (void)
    unload_menu (machine_save_state_menu);
    unload_menu (machine_region_menu);
    unload_menu (machine_menu);
-   unload_menu (audio_subsystem_menu);
    unload_menu (audio_mixing_channels_menu);
    unload_menu (audio_mixing_frequency_menu);
    unload_menu (audio_mixing_quality_menu);
-   unload_menu (audio_mixing_anti_aliasing_menu);
    unload_menu (audio_mixing_menu);
    unload_menu (audio_effects_menu);
    unload_menu (audio_filters_menu);
    unload_menu (audio_channels_menu);
-   unload_menu (audio_advanced_menu);
-   unload_menu (audio_record_menu);
    unload_menu (audio_menu);
    unload_menu (video_driver_dos_menu);
    unload_menu (video_driver_windows_menu);
@@ -619,25 +611,24 @@ static INLINE void update_menus (void)
       DISABLE_MENU_ITEM(video_layers_menu_flip_mirroring);
    }
 
-   SET_MENU_ITEM_ENABLED(audio_mixing_quality_menu_interpolation,
-      (audio_subsystem != AUDIO_SUBSYSTEM_OPENAL));
-
-   if (!audio_pseudo_stereo)
+   if (!apu_stereo_mode)
    {
-      papu_swap_channels = FALSE;
-      papu_spatial_stereo = FALSE;
+      DSP_DISABLE_EFFECTOR(DSP_EFFECTOR_SWAP_CHANNELS);
+      DSP_DISABLE_EFFECTOR(DSP_EFFECTOR_WIDE_STEREO_TYPE_1);
+      DSP_DISABLE_EFFECTOR(DSP_EFFECTOR_WIDE_STEREO_TYPE_2);
+      DSP_DISABLE_EFFECTOR(DSP_EFFECTOR_WIDE_STEREO_TYPE_3);
 
       DISABLE_MENU_ITEM(audio_mixing_channels_menu_swap_channels);
-      DISABLE_MENU_ITEM(audio_effects_menu_spatial_stereo_mode_1);
-      DISABLE_MENU_ITEM(audio_effects_menu_spatial_stereo_mode_2);
-      DISABLE_MENU_ITEM(audio_effects_menu_spatial_stereo_mode_3);
+      DISABLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_1);
+      DISABLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_2);
+      DISABLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_3);
    }
    else
    {
       ENABLE_MENU_ITEM(audio_mixing_channels_menu_swap_channels);
-      ENABLE_MENU_ITEM(audio_effects_menu_spatial_stereo_mode_1);
-      ENABLE_MENU_ITEM(audio_effects_menu_spatial_stereo_mode_2);
-      ENABLE_MENU_ITEM(audio_effects_menu_spatial_stereo_mode_3);
+      ENABLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_1);
+      ENABLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_2);
+      ENABLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_3);
    }
 
    TOGGLE_MENU_ITEM(main_open_recent_menu_lock, lock_recent);
@@ -670,10 +661,6 @@ static INLINE void update_menus (void)
 
    TOGGLE_MENU_ITEM(audio_menu_enabled, audio_enable_output);
 
-   TOGGLE_MENU_ITEM(audio_subsystem_menu_none,   (audio_subsystem == AUDIO_SUBSYSTEM_NONE));
-   TOGGLE_MENU_ITEM(audio_subsystem_menu_allegro,(audio_subsystem == AUDIO_SUBSYSTEM_ALLEGRO));
-   TOGGLE_MENU_ITEM(audio_subsystem_menu_openal, (audio_subsystem == AUDIO_SUBSYSTEM_OPENAL));
-
    TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_8000_hz,  (audio_sample_rate == 8000));
    TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_11025_hz, (audio_sample_rate == 11025));
    TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_16000_hz, (audio_sample_rate == 16000));
@@ -684,44 +671,33 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_80200_hz, (audio_sample_rate == 80200));
    TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_96000_hz, (audio_sample_rate == 96000));
 
-   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_mono,                 !audio_pseudo_stereo);
-   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_stereo_mix,           (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_4));
-   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_pseudo_stereo_mode_1, (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_1));
-   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_pseudo_stereo_mode_2, (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_2));
-   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_stereo,               (audio_pseudo_stereo == AUDIO_PSEUDO_STEREO_MODE_3));
-   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_swap_channels,        papu_swap_channels);
+   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_mono,                 !apu_stereo_mode);
+   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_stereo_mix,           (apu_stereo_mode == APU_STEREO_MODE_4));
+   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_pseudo_stereo_mode_1, (apu_stereo_mode == APU_STEREO_MODE_1));
+   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_pseudo_stereo_mode_2, (apu_stereo_mode == APU_STEREO_MODE_2));
+   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_stereo,               (apu_stereo_mode == APU_STEREO_MODE_3));
+   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_swap_channels,        dsp_get_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS));
 
    TOGGLE_MENU_ITEM(audio_mixing_quality_menu_low_8_bit,     (audio_sample_size == 8));
    TOGGLE_MENU_ITEM(audio_mixing_quality_menu_high_16_bit,   (audio_sample_size == 16));
-   TOGGLE_MENU_ITEM(audio_mixing_quality_menu_interpolation, audio_interpolation);
-   TOGGLE_MENU_ITEM(audio_mixing_quality_menu_dithering,     papu_dithering);
+   TOGGLE_MENU_ITEM(audio_mixing_quality_menu_dithering,     dsp_get_effector_enabled (DSP_EFFECTOR_DITHER));
 
-   TOGGLE_MENU_ITEM(audio_mixing_anti_aliasing_menu_disabled,     (papu_interpolate == 0));
-   TOGGLE_MENU_ITEM(audio_mixing_anti_aliasing_menu_bilinear_2x,  (papu_interpolate == 1));
-   TOGGLE_MENU_ITEM(audio_mixing_anti_aliasing_menu_bilinear_4x,  (papu_interpolate == 2));
-   TOGGLE_MENU_ITEM(audio_mixing_anti_aliasing_menu_bilinear_8x,  (papu_interpolate == 3));
-   TOGGLE_MENU_ITEM(audio_mixing_anti_aliasing_menu_bilinear_16x, (papu_interpolate == 4));
+   TOGGLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_1, dsp_get_effector_enabled (DSP_EFFECTOR_WIDE_STEREO_TYPE_1));
+   TOGGLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_2, dsp_get_effector_enabled (DSP_EFFECTOR_WIDE_STEREO_TYPE_2));
+   TOGGLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_3, dsp_get_effector_enabled (DSP_EFFECTOR_WIDE_STEREO_TYPE_3));
 
-   TOGGLE_MENU_ITEM(audio_effects_menu_linear_echo,           papu_linear_echo);
-   TOGGLE_MENU_ITEM(audio_effects_menu_spatial_stereo_mode_1, (papu_spatial_stereo == PAPU_SPATIAL_STEREO_MODE_1));
-   TOGGLE_MENU_ITEM(audio_effects_menu_spatial_stereo_mode_2, (papu_spatial_stereo == PAPU_SPATIAL_STEREO_MODE_2));
-   TOGGLE_MENU_ITEM(audio_effects_menu_spatial_stereo_mode_3, (papu_spatial_stereo == PAPU_SPATIAL_STEREO_MODE_3));
+   TOGGLE_MENU_ITEM(audio_filters_menu_low_pass_type_1,    dsp_get_effector_enabled (DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_1));
+   TOGGLE_MENU_ITEM(audio_filters_menu_low_pass_type_2,    dsp_get_effector_enabled (DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_2));
+   TOGGLE_MENU_ITEM(audio_filters_menu_low_pass_type_3,    dsp_get_effector_enabled (DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_3));
+   TOGGLE_MENU_ITEM(audio_filters_menu_high_pass,          dsp_get_effector_enabled (DSP_EFFECTOR_HIGH_PASS_FILTER));
+   TOGGLE_MENU_ITEM(audio_filters_menu_delta_sigma_filter, dsp_get_effector_enabled (DSP_EFFECTOR_DELTA_SIGMA_FILTER));
 
-   TOGGLE_MENU_ITEM(audio_filters_menu_low_pass_mode_1,    (papu_get_filter_list () & PAPU_FILTER_LOW_PASS_MODE_1));
-   TOGGLE_MENU_ITEM(audio_filters_menu_low_pass_mode_2,    (papu_get_filter_list () & PAPU_FILTER_LOW_PASS_MODE_2));
-   TOGGLE_MENU_ITEM(audio_filters_menu_low_pass_mode_3,    (papu_get_filter_list () & PAPU_FILTER_LOW_PASS_MODE_3));
-   TOGGLE_MENU_ITEM(audio_filters_menu_high_pass,          (papu_get_filter_list () & PAPU_FILTER_HIGH_PASS));
-   TOGGLE_MENU_ITEM(audio_filters_menu_delta_sigma_filter, (papu_get_filter_list () & PAPU_FILTER_DELTA_SIGMA_FILTER));
-
-   TOGGLE_MENU_ITEM(audio_channels_menu_square_wave_a, papu_enable_square_1);
-   TOGGLE_MENU_ITEM(audio_channels_menu_square_wave_b, papu_enable_square_2);
-   TOGGLE_MENU_ITEM(audio_channels_menu_triangle_wave, papu_enable_triangle);
-   TOGGLE_MENU_ITEM(audio_channels_menu_white_noise,   papu_enable_noise);
-   TOGGLE_MENU_ITEM(audio_channels_menu_digital,       papu_enable_dmc);
-   TOGGLE_MENU_ITEM(audio_channels_menu_extended,      papu_enable_exsound);
-
-   TOGGLE_MENU_ITEM(audio_advanced_menu_ideal_triangle, papu_ideal_triangle);
-   TOGGLE_MENU_ITEM(audio_advanced_menu_hard_sync,      audio_hard_sync);
+   TOGGLE_MENU_ITEM(audio_channels_menu_square_wave_a, dsp_get_channel_enabled (APU_CHANNEL_SQUARE_1));
+   TOGGLE_MENU_ITEM(audio_channels_menu_square_wave_b, dsp_get_channel_enabled (APU_CHANNEL_SQUARE_2));
+   TOGGLE_MENU_ITEM(audio_channels_menu_triangle_wave, dsp_get_channel_enabled (APU_CHANNEL_TRIANGLE));
+   TOGGLE_MENU_ITEM(audio_channels_menu_white_noise,   dsp_get_channel_enabled (APU_CHANNEL_NOISE));
+   TOGGLE_MENU_ITEM(audio_channels_menu_digital,       dsp_get_channel_enabled (APU_CHANNEL_DMC));
+   TOGGLE_MENU_ITEM(audio_channels_menu_extended,      dsp_get_channel_enabled (APU_CHANNEL_EXTRA));
 
 #ifdef ALLEGRO_DOS
 
@@ -959,10 +935,6 @@ int gui_init (void)
 
 #endif   /* ALLEGRO_UNIX */
 
-#ifndef USE_OPENAL
-   DISABLE_MENU_ITEM(audio_subsystem_menu_openal);
-#endif
-
 #ifndef USE_HAWKNL
    DISABLE_SUBMENU(netplay_menu);
 #endif
@@ -1086,6 +1058,8 @@ int show_gui (BOOL first_run)
    return (want_exit);
 }
 
+static INLINE void cycle_audio (void);
+
 void gui_handle_keypress (int c)
 {
    switch ((c >> 8))
@@ -1172,10 +1146,7 @@ void gui_handle_keypress (int c)
             resume_timing ();
          }
 
-         audio_exit ();
-         audio_init ();
-
-         papu_reinit ();
+         cycle_audio ();
 
          break;
       }
@@ -1252,8 +1223,8 @@ static INLINE void cycle_audio (void)
 
    audio_exit ();
    audio_init ();
-
-   papu_reinit ();
+   apu_exit ();
+   apu_init ();
 }
 
 static INLINE void cycle_video (void)
@@ -2170,42 +2141,6 @@ static int audio_menu_enabled (void)
    return (D_O_K);
 }
 
-static int audio_subsystem_menu_none (void)
-{
-   audio_subsystem = AUDIO_SUBSYSTEM_NONE;
-   update_menus ();
-
-   cycle_audio ();
-
-   message_local ("Audio subsystem set to NONE.");
-
-   return (D_O_K);
-}
-
-static int audio_subsystem_menu_allegro (void)
-{
-   audio_subsystem = AUDIO_SUBSYSTEM_ALLEGRO;
-   update_menus ();
-
-   cycle_audio ();
-
-   message_local ("Audio subsystem set to Allegro.");
-
-   return (D_O_K);
-}
-
-static int audio_subsystem_menu_openal (void)
-{
-   audio_subsystem = AUDIO_SUBSYSTEM_OPENAL;
-   update_menus ();
-
-   cycle_audio ();
-
-   message_local ("Audio subsystem set to OpenAL.");
-
-   return (D_O_K);
-}
-
 #define MIXING_FREQUENCY_MENU_HANDLER(freq)  \
    static int audio_mixing_frequency_menu_##freq##_hz (void) \
    {  \
@@ -2228,7 +2163,7 @@ MIXING_FREQUENCY_MENU_HANDLER(96000)
 
 static int audio_mixing_channels_menu_mono (void)
 {
-   audio_pseudo_stereo = FALSE;
+   apu_stereo_mode = FALSE;
    update_menus ();
 
    cycle_audio ();
@@ -2240,7 +2175,7 @@ static int audio_mixing_channels_menu_mono (void)
 
 static int audio_mixing_channels_menu_stereo_mix (void)
 {
-   audio_pseudo_stereo = AUDIO_PSEUDO_STEREO_MODE_4;
+   apu_stereo_mode = APU_STEREO_MODE_4;
    update_menus ();
     
    cycle_audio ();
@@ -2252,7 +2187,7 @@ static int audio_mixing_channels_menu_stereo_mix (void)
 
 static int audio_mixing_channels_menu_pseudo_stereo_mode_1 (void)
 {
-   audio_pseudo_stereo = AUDIO_PSEUDO_STEREO_MODE_1;
+   apu_stereo_mode = APU_STEREO_MODE_1;
    update_menus ();
     
    cycle_audio ();
@@ -2264,7 +2199,7 @@ static int audio_mixing_channels_menu_pseudo_stereo_mode_1 (void)
 
 static int audio_mixing_channels_menu_pseudo_stereo_mode_2 (void)
 {
-   audio_pseudo_stereo = AUDIO_PSEUDO_STEREO_MODE_2;
+   apu_stereo_mode = APU_STEREO_MODE_2;
    update_menus ();
 
    cycle_audio ();
@@ -2276,7 +2211,7 @@ static int audio_mixing_channels_menu_pseudo_stereo_mode_2 (void)
 
 static int audio_mixing_channels_menu_stereo (void)
 {
-   audio_pseudo_stereo = AUDIO_PSEUDO_STEREO_MODE_3;
+   apu_stereo_mode = APU_STEREO_MODE_3;
    update_menus ();
 
    cycle_audio ();
@@ -2288,11 +2223,11 @@ static int audio_mixing_channels_menu_stereo (void)
 
 static int audio_mixing_channels_menu_swap_channels (void)
 {
-   papu_swap_channels = !papu_swap_channels;
+   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_SWAP_CHANNELS);
    update_menus ();
 
    message_local ("Audio stereo channel swapping %s.", get_enabled_text
-      (papu_swap_channels));
+      (dsp_get_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS)));
 
    return (D_O_K);
 }
@@ -2321,378 +2256,179 @@ static int audio_mixing_quality_menu_high_16_bit (void)
    return (D_O_K);
 }
 
-static int audio_mixing_quality_menu_interpolation (void)
-{
-   audio_interpolation = !audio_interpolation;
-   update_menus ();
-
-   cycle_audio ();
-
-   message_local ("Audio interpolation %s.", get_enabled_text
-      (audio_interpolation));
-
-   return (D_O_K);
-}
-
 static int audio_mixing_quality_menu_dithering (void)
 {
-   papu_dithering = !papu_dithering;
+   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_DITHER);
    update_menus ();
 
-   message_local ("Audio dithering %s.", get_enabled_text (papu_dithering));
+   message_local ("Audio dithering %s.", get_enabled_text
+      (dsp_get_effector_enabled (DSP_EFFECTOR_DITHER)));
 
    return (D_O_K);
 }
 
-static int audio_mixing_anti_aliasing_menu_disabled (void)
+static int audio_effects_menu_wide_stereo_type_1 (void)
 {
-   papu_interpolate = 0;
+   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_WIDE_STEREO_TYPE_1);
    update_menus ();
 
-   papu_reinit ();
-
-   message_local ("Audio anti-aliasing disabled.");
+   message_local ("Audio wide stereo effect %s.",
+      (dsp_get_effector_enabled (DSP_EFFECTOR_WIDE_STEREO_TYPE_1) ?
+         "enabled (type 1)" : "disabled"));
 
    return (D_O_K);
 }
 
-static int audio_mixing_anti_aliasing_menu_bilinear_2x (void)
+static int audio_effects_menu_wide_stereo_type_2 (void)
 {
-   papu_interpolate = 1;
+   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_WIDE_STEREO_TYPE_2);
    update_menus ();
 
-   papu_reinit ();
-
-   message_local ("Audio anti-aliasing method set to bilinear 2X.");
+   message_local ("Audio wide stereo effect %s.",
+      (dsp_get_effector_enabled (DSP_EFFECTOR_WIDE_STEREO_TYPE_2) ?
+         "enabled (type 2)" : "disabled"));
 
    return (D_O_K);
 }
 
-static int audio_mixing_anti_aliasing_menu_bilinear_4x (void)
+static int audio_effects_menu_wide_stereo_type_3 (void)
 {
-   papu_interpolate = 2;
+   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_WIDE_STEREO_TYPE_3);
    update_menus ();
 
-   papu_reinit ();
-
-   message_local ("Audio anti-aliasing method set to bilinear 4X.");
+   message_local ("Audio wide stereo effect %s.",
+      (dsp_get_effector_enabled (DSP_EFFECTOR_WIDE_STEREO_TYPE_3) ?
+         "enabled (type 3)" : "disabled"));
 
    return (D_O_K);
 }
 
-static int audio_mixing_anti_aliasing_menu_bilinear_8x (void)
+static int audio_filters_menu_low_pass_type_1 (void)
 {
-   papu_interpolate = 3;
+   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_1);
    update_menus ();
 
-   papu_reinit ();
-
-   message_local ("Audio anti-aliasing method set to bilinear 8X.");
+   message_local ("Low pass audio filter %s.", get_enabled_text_ex
+      (dsp_get_effector_enabled (DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_1),
+         "enabled (type 1)"));
 
    return (D_O_K);
 }
 
-static int audio_mixing_anti_aliasing_menu_bilinear_16x (void)
+static int audio_filters_menu_low_pass_type_2 (void)
 {
-   papu_interpolate = 4;
+   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_2);
    update_menus ();
 
-   papu_reinit ();
-
-   message_local ("Audio anti-aliasing method set to bilinear 16X.");
+   message_local ("Low pass audio filter %s.", get_enabled_text_ex
+      (dsp_get_effector_enabled (DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_2),
+         "enabled (type 2)"));
 
    return (D_O_K);
 }
 
-static int audio_effects_menu_linear_echo (void)
+static int audio_filters_menu_low_pass_type_3 (void)
 {
-   papu_linear_echo = !papu_linear_echo;
+   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_3);
    update_menus ();
 
-   papu_reinit ();
-
-   message_local ("Audio linear echo effect %s.", get_enabled_text
-      (papu_linear_echo));
-
-   return (D_O_K);
-}
-
-static int audio_effects_menu_spatial_stereo_mode_1 (void)
-{
-   papu_spatial_stereo = ((papu_spatial_stereo ==
-      PAPU_SPATIAL_STEREO_MODE_1) ? FALSE : PAPU_SPATIAL_STEREO_MODE_1);
-   update_menus ();
-
-   papu_reinit ();
-
-   message_local ("Audio spatial stereo effect %s.", (papu_spatial_stereo ?
-      "enabled (mode 1)" : "disabled"));
-
-   return (D_O_K);
-}
-
-static int audio_effects_menu_spatial_stereo_mode_2 (void)
-{
-   papu_spatial_stereo = ((papu_spatial_stereo ==
-      PAPU_SPATIAL_STEREO_MODE_2) ? FALSE : PAPU_SPATIAL_STEREO_MODE_2);
-   update_menus ();
-
-   papu_reinit ();
-
-   message_local ("Audio spatial stereo effect %s.", (papu_spatial_stereo ?
-      "enabled (mode 2)" : "disabled"));
-
-   return (D_O_K);
-}
-
-static int audio_effects_menu_spatial_stereo_mode_3 (void)
-{
-   papu_spatial_stereo = ((papu_spatial_stereo ==
-      PAPU_SPATIAL_STEREO_MODE_3) ? FALSE : PAPU_SPATIAL_STEREO_MODE_3);
-   update_menus ();
-
-   papu_reinit ();
-
-   message_local ("Audio spatial stereo effect %s.", (papu_spatial_stereo ?
-      "enabled (mode 3)" : "disabled"));
-
-   return (D_O_K);
-}
-
-static int audio_filters_menu_low_pass_mode_1 (void)
-{
-   LIST filters;
-
-   filters = papu_get_filter_list ();
-
-   if (filters & PAPU_FILTER_LOW_PASS_MODE_1)
-   {
-      papu_set_filter_list ((filters & ~PAPU_FILTER_LOW_PASS_MODE_1));
-   }
-   else
-   {
-      filters &= ~PAPU_FILTER_LOW_PASS_MODE_2;
-      filters &= ~PAPU_FILTER_LOW_PASS_MODE_3;
-      papu_set_filter_list ((filters | PAPU_FILTER_LOW_PASS_MODE_1));
-   }
-
-   update_menus ();
-
-   message_local ("Low pass audio filter %s.", get_enabled_text_ex ((filters
-      & PAPU_FILTER_LOW_PASS_MODE_1), "enabled (mode 1)"));
-
-   return (D_O_K);
-}
-
-static int audio_filters_menu_low_pass_mode_2 (void)
-{
-   LIST filters;
-
-   filters = papu_get_filter_list ();
-
-   if (filters & PAPU_FILTER_LOW_PASS_MODE_2)
-   {
-      papu_set_filter_list ((filters & ~PAPU_FILTER_LOW_PASS_MODE_2));
-   }
-   else
-   {
-      filters &= ~PAPU_FILTER_LOW_PASS_MODE_1;
-      filters &= ~PAPU_FILTER_LOW_PASS_MODE_3;
-      papu_set_filter_list ((filters | PAPU_FILTER_LOW_PASS_MODE_2));
-   }
-
-   update_menus ();
-
-   message_local ("Low pass audio filter %s.", get_enabled_text_ex ((filters
-      & PAPU_FILTER_LOW_PASS_MODE_2), "enabled (mode 2)"));
-
-   return (D_O_K);
-}
-
-static int audio_filters_menu_low_pass_mode_3 (void)
-{
-   LIST filters;
-
-   filters = papu_get_filter_list ();
-
-   if (filters & PAPU_FILTER_LOW_PASS_MODE_3)
-   {
-      papu_set_filter_list ((filters & ~PAPU_FILTER_LOW_PASS_MODE_3));
-   }
-   else
-   {
-      filters &= ~PAPU_FILTER_LOW_PASS_MODE_1;
-      filters &= ~PAPU_FILTER_LOW_PASS_MODE_2;
-      papu_set_filter_list ((filters | PAPU_FILTER_LOW_PASS_MODE_3));
-   }
-
-   update_menus ();
-
-   message_local ("Low pass audio filter %s.", get_enabled_text_ex ((filters
-      & PAPU_FILTER_LOW_PASS_MODE_3), "enabled (mode 3)"));
+   message_local ("Low pass audio filter %s.", get_enabled_text_ex
+      (dsp_get_effector_enabled (DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_3),
+         "enabled (type 3)"));
 
    return (D_O_K);
 }
 
 static int audio_filters_menu_high_pass (void)
 {
-   LIST filters;
-
-   filters = papu_get_filter_list ();
-
-   if (filters & PAPU_FILTER_HIGH_PASS)
-      papu_set_filter_list ((filters & ~PAPU_FILTER_HIGH_PASS));
-   else
-      papu_set_filter_list ((filters | PAPU_FILTER_HIGH_PASS));
-
+   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_HIGH_PASS_FILTER);
    update_menus ();
 
-   message_local ("Toggled high pass audio filter.");
+   message_local ("High pass audio filter %s.", get_enabled_text
+      (dsp_get_effector_enabled (DSP_EFFECTOR_HIGH_PASS_FILTER)));
 
    return (D_O_K);
 }
 
 static int audio_filters_menu_delta_sigma_filter (void)
 {
-   LIST filters;
-
-   filters = papu_get_filter_list ();
-
-   if (filters & PAPU_FILTER_DELTA_SIGMA_FILTER)
-      papu_set_filter_list ((filters & ~PAPU_FILTER_DELTA_SIGMA_FILTER));
-   else
-      papu_set_filter_list ((filters | PAPU_FILTER_DELTA_SIGMA_FILTER));
-
+   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_DELTA_SIGMA_FILTER);
    update_menus ();
 
-   message_local ("Toggled delta-sigma audio filter.");
+   message_local ("Delta-Sigma audio filter %s.", get_enabled_text
+      (dsp_get_effector_enabled (DSP_EFFECTOR_DELTA_SIGMA_FILTER)));
 
    return (D_O_K);
 }
 
 static int audio_channels_menu_square_wave_a (void)
 {
-   papu_enable_square_1 = !papu_enable_square_1;
+   dsp_set_channel_enabled (APU_CHANNEL_SQUARE_1,
+      DSP_SET_ENABLED_MODE_INVERT, 0);
    update_menus ();
 
-   papu_update ();
-
    message_local ("Audio square wave channel A %s.", get_enabled_text
-      (papu_enable_square_1));
+      (dsp_get_channel_enabled (APU_CHANNEL_SQUARE_1)));
 
    return (D_O_K);
 }
 
 static int audio_channels_menu_square_wave_b (void)
 {
-   papu_enable_square_2 = !papu_enable_square_2;
+   dsp_set_channel_enabled (APU_CHANNEL_SQUARE_2,
+      DSP_SET_ENABLED_MODE_INVERT, 0);
    update_menus ();
 
-   papu_update ();
-
    message_local ("Audio square wave channel B %s.", get_enabled_text
-      (papu_enable_square_2));
+      (dsp_get_channel_enabled (APU_CHANNEL_SQUARE_2)));
 
    return (D_O_K);
 }
 
 static int audio_channels_menu_triangle_wave (void)
 {
-   papu_enable_triangle = !papu_enable_triangle;
+   dsp_set_channel_enabled (APU_CHANNEL_TRIANGLE,
+      DSP_SET_ENABLED_MODE_INVERT, 0);
    update_menus ();
 
-   papu_update ();
-
    message_local ("Audio triangle wave channel %s.", get_enabled_text
-      (papu_enable_triangle));
+      (dsp_get_channel_enabled (APU_CHANNEL_TRIANGLE)));
 
    return (D_O_K);
 }
 
 static int audio_channels_menu_white_noise (void)
 {
-   papu_enable_noise = !papu_enable_noise;
-   papu_update ();
-
+   dsp_set_channel_enabled (APU_CHANNEL_NOISE, DSP_SET_ENABLED_MODE_INVERT,
+      0);
    update_menus ();
 
    message_local ("Audio white noise channel %s.", get_enabled_text
-      (papu_enable_noise));
+      (dsp_get_channel_enabled (APU_CHANNEL_NOISE)));
 
    return (D_O_K);
 }
 
 static int audio_channels_menu_digital (void)
 {
-   papu_enable_dmc = !papu_enable_dmc;
-   papu_update ();
-
+   dsp_set_channel_enabled (APU_CHANNEL_DMC, DSP_SET_ENABLED_MODE_INVERT,
+      0);
    update_menus ();
 
    message_local ("Audio digital channel %s.", get_enabled_text
-      (papu_enable_dmc));
+      (dsp_get_channel_enabled (APU_CHANNEL_DMC)));
 
    return (D_O_K);
 }
 
 static int audio_channels_menu_extended (void)
 {
-   papu_enable_exsound = !papu_enable_exsound;
-   papu_update ();
-
+   dsp_set_channel_enabled (APU_CHANNEL_EXTRA, DSP_SET_ENABLED_MODE_INVERT,
+      0);
    update_menus ();
 
    message_local ("Audio extended channels %s.", get_enabled_text
-      (papu_enable_exsound));
-
-   return (D_O_K);
-}
-
-static int audio_advanced_menu_ideal_triangle (void)
-{
-   papu_ideal_triangle = !papu_ideal_triangle;
-   update_menus ();
-
-   papu_update ();
-
-   message_local ("Audio ideal triangle emulation %s.", get_enabled_text
-      (papu_ideal_triangle));
-
-   return (D_O_K);
-}
-
-static int audio_advanced_menu_hard_sync (void)
-{
-   audio_hard_sync = !audio_hard_sync;
-   update_menus ();
-
-   message_local ("Audio hard synchronization %s.", get_enabled_text
-      (audio_hard_sync));
-
-   return (D_O_K);
-}
-
-static int audio_record_menu_start (void)
-{
-   if (papu_start_record () == 0)
-   {
-      DISABLE_MENU_ITEM(audio_record_menu_start);
-      ENABLE_MENU_ITEM(audio_record_menu_stop);
-   }
-
-   message_local ("Audio recording session started.");
-
-   return (D_O_K);
-}
-
-static int audio_record_menu_stop (void)
-{
-   papu_stop_record ();
-
-   ENABLE_MENU_ITEM(audio_record_menu_start);
-   DISABLE_MENU_ITEM(audio_record_menu_stop);
-
-   message_local ("Audio recording session stopped.");
+      (dsp_get_channel_enabled (APU_CHANNEL_EXTRA)));
 
    return (D_O_K);
 }

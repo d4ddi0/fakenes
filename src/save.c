@@ -11,11 +11,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "apu.h"
 #include "common.h"
 #include "cpu.h"
 #include "debug.h"
 #include "input.h"
-#include "papu.h"
 #include "ppu.h"
 #include "rom.h"
 #include "save.h"
@@ -26,6 +26,9 @@
 
 /* Text that appears in "unused" menu slots for states and replays. */
 #define UNUSED_SLOT_TEXT   "Empty"
+
+/* FNSS version supported/created. */
+#define FNSS_VERSION 0x0101
 
 static INLINE BOOL fnss_save (PACKFILE *file, const UCHAR *title)
 {
@@ -38,7 +41,7 @@ static INLINE BOOL fnss_save (PACKFILE *file, const UCHAR *title)
    RT_ASSERT(title);
 
    /* Set version. */
-   version = 0x0100;
+   version = FNSS_VERSION;
 
    /* Write signature. */
    pack_fwrite ("FNSS", 4, file);
@@ -62,9 +65,9 @@ static INLINE BOOL fnss_save (PACKFILE *file, const UCHAR *title)
    pack_fwrite ("PPU\0", 4, file);
    ppu_save_state (file, version);
    
-   /* Write PAPU chunk. */
-   pack_fwrite ("PAPU", 4, file);
-   papu_save_state (file, version);
+   /* Write APU chunk. */
+   pack_fwrite ("APU", 4, file);
+   apu_save_state (file, version);
    
    /* Write MMC chunk. */
    pack_fwrite ("MMC\0", 4, file);
@@ -106,7 +109,7 @@ static INLINE BOOL fnss_load (PACKFILE *file)
    version = pack_igetw (file);
 
    /* Verify version number. */
-   if (version > 0x0100)
+   if (version > FNSS_VERSION)
    {
       /* Verification failed. */
       return (FALSE);
@@ -143,9 +146,9 @@ static INLINE BOOL fnss_load (PACKFILE *file)
    pack_fread (signature, 4, file);
    ppu_load_state (file, version);
 
-   /* Load PAPU chunk. */
+   /* Load APU chunk. */
    pack_fread (signature, 4, file);
-   papu_load_state (file, version);
+   apu_load_state (file, version);
 
    /* Load MMC chunk. */
    pack_fread (signature, 4, file);

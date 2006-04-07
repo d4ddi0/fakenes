@@ -22,17 +22,13 @@ DEFINE_MENU(machine_save_state_autosave_menu);
 DEFINE_MENU(machine_save_state_menu);
 DEFINE_MENU(machine_region_menu);
 DEFINE_MENU(machine_menu);
-DEFINE_MENU(audio_subsystem_menu);
 DEFINE_MENU(audio_mixing_channels_menu);
 DEFINE_MENU(audio_mixing_frequency_menu);
 DEFINE_MENU(audio_mixing_quality_menu);
-DEFINE_MENU(audio_mixing_anti_aliasing_menu);
 DEFINE_MENU(audio_mixing_menu);
 DEFINE_MENU(audio_effects_menu);
 DEFINE_MENU(audio_filters_menu);
 DEFINE_MENU(audio_channels_menu);
-DEFINE_MENU(audio_advanced_menu);
-DEFINE_MENU(audio_record_menu);
 DEFINE_MENU(audio_menu);
 DEFINE_MENU(video_driver_dos_menu);
 DEFINE_MENU(video_driver_windows_menu);
@@ -267,19 +263,6 @@ static const MENU netplay_menu_base[] =
    MENU_ENDCAP
 };
 
-DEFINE_MENU_CALLBACK(audio_subsystem_menu_none);
-DEFINE_MENU_CALLBACK(audio_subsystem_menu_allegro);
-DEFINE_MENU_CALLBACK(audio_subsystem_menu_openal);
-
-static const MENU audio_subsystem_menu_base[] =
-{
-   { "&None",    audio_subsystem_menu_none,    NULL, 0, NULL },
-   MENU_SPLITTER,
-   { "&Allegro", audio_subsystem_menu_allegro, NULL, 0, NULL },
-   { "&OpenAL",  audio_subsystem_menu_openal,  NULL, 0, NULL },
-   MENU_ENDCAP
-};                                             
-
 DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_mono);
 DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_stereo_mix);
 DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_pseudo_stereo_mode_1);
@@ -325,7 +308,6 @@ static const MENU audio_mixing_frequency_menu_base[] =
 
 DEFINE_MENU_CALLBACK(audio_mixing_quality_menu_low_8_bit);
 DEFINE_MENU_CALLBACK(audio_mixing_quality_menu_high_16_bit);
-DEFINE_MENU_CALLBACK(audio_mixing_quality_menu_interpolation);
 DEFINE_MENU_CALLBACK(audio_mixing_quality_menu_dithering);
 
 static const MENU audio_mixing_quality_menu_base[] =
@@ -333,25 +315,7 @@ static const MENU audio_mixing_quality_menu_base[] =
    { "&Low (8 bits)",   audio_mixing_quality_menu_low_8_bit,     NULL, 0, NULL },
    { "&High (16 bits)", audio_mixing_quality_menu_high_16_bit,   NULL, 0, NULL },
    MENU_SPLITTER,
-   { "&Interpolation",  audio_mixing_quality_menu_interpolation, NULL, 0, NULL },
    { "&Dithering",      audio_mixing_quality_menu_dithering,     NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(audio_mixing_anti_aliasing_menu_disabled);
-DEFINE_MENU_CALLBACK(audio_mixing_anti_aliasing_menu_bilinear_2x);
-DEFINE_MENU_CALLBACK(audio_mixing_anti_aliasing_menu_bilinear_4x);
-DEFINE_MENU_CALLBACK(audio_mixing_anti_aliasing_menu_bilinear_8x);
-DEFINE_MENU_CALLBACK(audio_mixing_anti_aliasing_menu_bilinear_16x);
-
-static const MENU audio_mixing_anti_aliasing_menu_base[] =
-{
-   { "&Disabled",         audio_mixing_anti_aliasing_menu_disabled,     NULL, 0, NULL },
-   MENU_SPLITTER,
-   { "&1: Bi-linear 2X",  audio_mixing_anti_aliasing_menu_bilinear_2x,  NULL, 0, NULL },
-   { "&2: Bi-linear 4X",  audio_mixing_anti_aliasing_menu_bilinear_4x,  NULL, 0, NULL },
-   { "&3: Bi-linear 8X",  audio_mixing_anti_aliasing_menu_bilinear_8x,  NULL, 0, NULL },
-   { "&4: Bi-linear 16X", audio_mixing_anti_aliasing_menu_bilinear_16x, NULL, 0, NULL },
    MENU_ENDCAP
 };
 
@@ -360,35 +324,32 @@ static const MENU audio_mixing_menu_base[] =
    { "&Frequency",     NULL, IMPORT_MENU(audio_mixing_frequency_menu),     0, NULL },
    { "&Channels",      NULL, IMPORT_MENU(audio_mixing_channels_menu),      0, NULL },
    { "&Quality",       NULL, IMPORT_MENU(audio_mixing_quality_menu),       0, NULL },
-   { "&Anti-aliasing", NULL, IMPORT_MENU(audio_mixing_anti_aliasing_menu), 0, NULL },
    MENU_ENDCAP
 };
 
-DEFINE_MENU_CALLBACK(audio_effects_menu_linear_echo);
-DEFINE_MENU_CALLBACK(audio_effects_menu_spatial_stereo_mode_1);
-DEFINE_MENU_CALLBACK(audio_effects_menu_spatial_stereo_mode_2);
-DEFINE_MENU_CALLBACK(audio_effects_menu_spatial_stereo_mode_3);
+DEFINE_MENU_CALLBACK(audio_effects_menu_wide_stereo_type_1);
+DEFINE_MENU_CALLBACK(audio_effects_menu_wide_stereo_type_2);
+DEFINE_MENU_CALLBACK(audio_effects_menu_wide_stereo_type_3);
 
 static const MENU audio_effects_menu_base[] =
 {                          
-   { "&Linear Echo",             audio_effects_menu_linear_echo,           NULL, 0, NULL },
-   { "&Spatial Stereo (Mode 1)", audio_effects_menu_spatial_stereo_mode_1, NULL, 0, NULL },
-   { "S&patial Stereo (Mode 2)", audio_effects_menu_spatial_stereo_mode_2, NULL, 0, NULL },
-   { "Sp&atial Stereo (Mode 3)", audio_effects_menu_spatial_stereo_mode_3, NULL, 0, NULL },
+   { "&Wide Stereo (Type 1)", audio_effects_menu_wide_stereo_type_1, NULL, 0, NULL },
+   { "W&ide Stereo (Type 2)", audio_effects_menu_wide_stereo_type_2, NULL, 0, NULL },
+   { "Wi&de Stereo (Type 3)", audio_effects_menu_wide_stereo_type_3, NULL, 0, NULL },
    MENU_ENDCAP   
 };
 
-DEFINE_MENU_CALLBACK(audio_filters_menu_low_pass_mode_1);
-DEFINE_MENU_CALLBACK(audio_filters_menu_low_pass_mode_2);
-DEFINE_MENU_CALLBACK(audio_filters_menu_low_pass_mode_3);
+DEFINE_MENU_CALLBACK(audio_filters_menu_low_pass_type_1);
+DEFINE_MENU_CALLBACK(audio_filters_menu_low_pass_type_2);
+DEFINE_MENU_CALLBACK(audio_filters_menu_low_pass_type_3);
 DEFINE_MENU_CALLBACK(audio_filters_menu_high_pass);
 DEFINE_MENU_CALLBACK(audio_filters_menu_delta_sigma_filter);
 
 static const MENU audio_filters_menu_base[] =
 {     
-   { "&Low Pass (Mode 1)",  audio_filters_menu_low_pass_mode_1,    NULL, 0, NULL },
-   { "L&ow Pass (Mode 2)",  audio_filters_menu_low_pass_mode_2,    NULL, 0, NULL },
-   { "Lo&w Pass (Mode 3)",  audio_filters_menu_low_pass_mode_3,    NULL, 0, NULL },
+   { "&Low Pass (Type 1)",  audio_filters_menu_low_pass_type_1,    NULL, 0, NULL },
+   { "L&ow Pass (Type 2)",  audio_filters_menu_low_pass_type_2,    NULL, 0, NULL },
+   { "Lo&w Pass (Type 3)",  audio_filters_menu_low_pass_type_3,    NULL, 0, NULL },
    { "&High Pass",          audio_filters_menu_high_pass,          NULL, 0, NULL },
    { "&Delta-Sigma Filter", audio_filters_menu_delta_sigma_filter, NULL, 0, NULL },
    MENU_ENDCAP
@@ -412,40 +373,16 @@ static const MENU audio_channels_menu_base[] =
    MENU_ENDCAP
 };
 
-DEFINE_MENU_CALLBACK(audio_advanced_menu_ideal_triangle);
-DEFINE_MENU_CALLBACK(audio_advanced_menu_hard_sync);
-
-static const MENU audio_advanced_menu_base[] =
-{
-   { "&Ideal Triangle", audio_advanced_menu_ideal_triangle, NULL, 0, NULL },
-   { "&Hard Sync",      audio_advanced_menu_hard_sync,      NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(audio_record_menu_start);
-DEFINE_MENU_CALLBACK(audio_record_menu_stop);
-
-static const MENU audio_record_menu_base[] =
-{
-   { "&Start", audio_record_menu_start, NULL, 0,          NULL },
-   { "S&top",  audio_record_menu_stop,  NULL, D_DISABLED, NULL },
-   MENU_ENDCAP
-};
-
 DEFINE_MENU_CALLBACK(audio_menu_enabled);
 
 static const MENU audio_menu_base[] =
 {
-   { "&Enabled",   audio_menu_enabled, NULL,                                      0, NULL },
+   { "&Enabled",   audio_menu_enabled, NULL,                             0, NULL },
    MENU_SPLITTER,
-   { "&Subsystem", NULL,                       IMPORT_MENU(audio_subsystem_menu), 0, NULL },
-   { "&Mixing",    NULL,                       IMPORT_MENU(audio_mixing_menu),    0, NULL },
-   { "Effec&ts",   NULL,                       IMPORT_MENU(audio_effects_menu),   0, NULL },
-   { "&Filters",   NULL,                       IMPORT_MENU(audio_filters_menu),   0, NULL },
-   { "&Channels",  NULL,                       IMPORT_MENU(audio_channels_menu),  0, NULL },
-   { "&Advanced",  NULL,                       IMPORT_MENU(audio_advanced_menu),  0, NULL },
-   MENU_SPLITTER,
-   { "&Record",    NULL,                       IMPORT_MENU(audio_record_menu),    0, NULL },
+   { "&Mixing",    NULL,               IMPORT_MENU(audio_mixing_menu),   0, NULL },
+   { "Effec&ts",   NULL,               IMPORT_MENU(audio_effects_menu),  0, NULL },
+   { "&Filters",   NULL,               IMPORT_MENU(audio_filters_menu),  0, NULL },
+   { "&Channels",  NULL,               IMPORT_MENU(audio_channels_menu), 0, NULL },
    MENU_ENDCAP
 };
 

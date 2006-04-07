@@ -31,13 +31,13 @@ endif
 CFLAGS := `allegro-config --cflags` -I${INCLUDE_PATH} @CFLAGS@ ${DFLAGS}
 
 # Objects.
-OBJECTS := ${OBJECT_PATH}/alstream${OBJEXT} \
-   ${OBJECT_PATH}/apu${OBJEXT} \
+OBJECTS := ${OBJECT_PATH}/apu${OBJEXT} \
    ${OBJECT_PATH}/audio${OBJEXT} \
    ${OBJECT_PATH}/core${OBJEXT} \
    ${OBJECT_PATH}/cpu${OBJEXT} \
    ${OBJECT_PATH}/crc${OBJEXT} \
    ${OBJECT_PATH}/data${OBJEXT} \
+   ${OBJECT_PATH}/dsp${OBJEXT} \
    ${OBJECT_PATH}/gui${OBJEXT} \
    ${OBJECT_PATH}/hq2x${OBJEXT} \
    ${OBJECT_PATH}/hq3x${OBJEXT} \
@@ -49,7 +49,6 @@ OBJECTS := ${OBJECT_PATH}/alstream${OBJEXT} \
    ${OBJECT_PATH}/nes_ntsc${OBJEXT} \
    ${OBJECT_PATH}/net${OBJEXT} \
    ${OBJECT_PATH}/netplay${OBJEXT} \
-   ${OBJECT_PATH}/papu${OBJEXT} \
    ${OBJECT_PATH}/platform${OBJEXT} \
    ${OBJECT_PATH}/ppu${OBJEXT} \
    ${OBJECT_PATH}/rom${OBJEXT} \

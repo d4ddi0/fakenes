@@ -1,3 +1,5 @@
+#include "apu/shared.h"
+
 /*
 ** Nintendo MMC3 ExSound by TAKEDA, toshiya
 **
@@ -5,7 +7,7 @@
 */
 
 #define V(x) (x*64/60)
-static UINT32 mmc5_vbl_length[32] =
+static UINT32 apu_mmc5_vbl_length[32] =
 {
 	V(0x05), V(0x7F), V(0x0A), V(0x01), V(0x14), V(0x02), V(0x28), V(0x03),
 	V(0x50), V(0x04), V(0x1E), V(0x05), V(0x07), V(0x06), V(0x0E), V(0x07),
@@ -15,16 +17,19 @@ static UINT32 mmc5_vbl_length[32] =
 #undef V
 
 #define V(x) ((x) << 19)
-static AL_CONST UINT32 mmc5_spd_limit[8] =
+static const UINT32 apu_mmc5_spd_limit[8] =
 {
 	V(0x3FF), V(0x555), V(0x666), V(0x71C), 
 	V(0x787), V(0x7C1), V(0x7E0), V(0x7F0),
 };
 #undef V
 
-static INT32 MMC5SoundSquareRender(MMC5_SQUARE *ch)
+static INT32 APU_MMC5SoundSquareRender(APU_MMC5_SQUARE *ch)
 {
     UINT32 output;
+
+   RT_ASSERT(ch);
+
 	if (ch->update)
 	{
 		if (ch->update & 1)
@@ -37,14 +42,14 @@ static INT32 MMC5SoundSquareRender(MMC5_SQUARE *ch)
 		{
 			ch->sweepspd = (((ch->regs[1] >> 4) & 0x07) + 1) << (19 + 8);
 		}
-		if (ch->update & (4 | 8))
+      if (ch->update & (4 | 8))
 		{
 			ch->spd = (((ch->regs[3] & 7) << 8) + ch->regs[2] + 1) << 19;
 		}
 		if ((ch->update & 8) && (ch->key & 1))
 		{
 			ch->key &= ~2;
-			ch->length = (mmc5_vbl_length[ch->regs[3] >> 3] * ch->freq) >> 6;
+         ch->length = (apu_mmc5_vbl_length[ch->regs[3] >> 3] * ch->freq) >> 6;
 			ch->envadr = 0;
 		}
 		ch->update = 0;
@@ -103,7 +108,7 @@ static INT32 MMC5SoundSquareRender(MMC5_SQUARE *ch)
 	if (ch->spd < (4 << 19)) return 0;
 	if (!(ch->regs[1] & 8))
 	{
-		if (ch->spd > mmc5_spd_limit[ch->regs[1] & 7]) return 0;
+      if (ch->spd > apu_mmc5_spd_limit[ch->regs[1] & 7]) return 0;
 	}
 
 	ch->cycles -= ch->cps;
@@ -116,8 +121,8 @@ static INT32 MMC5SoundSquareRender(MMC5_SQUARE *ch)
 
 	if (ch->key & 2)
 	{
-		if (ch->release < (31 << (LOG_BITS + 1)))
-			ch->release += 3 << (LOG_BITS - 8 + 1);
+      if (ch->release < (31 << (APU_LOG_BITS + 1)))
+         ch->release += 3 << (APU_LOG_BITS - 8 + 1);
 	}
 	else
 	{
@@ -131,34 +136,37 @@ static INT32 MMC5SoundSquareRender(MMC5_SQUARE *ch)
 	else
 		output = 15 - ch->envadr;
 
-	output = LinearToLog(output) + ch->mastervolume + ch->release;
+   output = APU_LinearToLog(output) + ch->mastervolume + ch->release;
 	output += (ch->adr < ch->duty);
-	return LogToLinear(output, LOG_LIN_BITS - LIN_BITS - 16);
+   return APU_LogToLinear(output, APU_LOG_LIN_BITS - APU_LIN_BITS - 16);
 }
 
-static void MMC5SoundSquareReset(MMC5_SQUARE *ch)
+static void APU_MMC5SoundSquareReset(APU_MMC5_SQUARE *ch)
 {
-	memset(ch, 0, sizeof(MMC5_SQUARE));
-	ch->freq = SAMPLE_RATE;
-	ch->cps = DivFix(NES_BASECYCLES, 12 * ch->freq, 19);
+   RT_ASSERT(ch);
+
+   memset(ch, 0, sizeof(APU_MMC5_SQUARE));
+   ch->freq = APU_SAMPLE_RATE;
+   ch->cps = APU_DivFix(APU_NES_BASECYCLES, 12 * ch->freq, 19);
 }
 
-static INT32 MMC5SoundRender(void)
+static INT32 APU_MMC5SoundRender(void)
 {
     INT32 accum = 0;
-	accum += MMC5SoundSquareRender(&apu->mmc5.square[0]);
-	accum += MMC5SoundSquareRender(&apu->mmc5.square[1]);
+    /* output signed 32-bit */
+   accum += APU_MMC5SoundSquareRender(&apu.mmc5.square[0]) << 8;
+   accum += APU_MMC5SoundSquareRender(&apu.mmc5.square[1]) << 8;
 	return accum;
 }
 
-static void MMC5SoundVolume(UINT32 volume)
+static void APU_MMC5SoundVolume(UINT32 volume)
 {
-	volume = (volume << (LOG_BITS - 8)) << 1;
-	apu->mmc5.square[0].mastervolume = volume;
-	apu->mmc5.square[1].mastervolume = volume;
+   volume = (volume << (APU_LOG_BITS - 8)) << 1;
+   apu.mmc5.square[0].mastervolume = volume;
+   apu.mmc5.square[1].mastervolume = volume;
 }
 
-static void MMC5SoundWrite(UINT32 address, UINT8 value)
+static void APU_MMC5SoundWrite(UINT16 address, UINT8 value)
 {
 	if (0x5000 <= address && address <= 0x5015)
 	{
@@ -169,54 +177,56 @@ static void MMC5SoundWrite(UINT32 address, UINT8 value)
 				{
 					int ch = address >= 0x5004;
 					int port = address & 3;
-					apu->mmc5.square[ch].regs[port] = value;
-					apu->mmc5.square[ch].update |= 1 << port; 
+               apu.mmc5.square[ch].regs[port] = value;
+               apu.mmc5.square[ch].update |= 1 << port; 
 				}
 				break;
 			case 0x5011:
-                apu->mmc5.da.output = ((INT32)value) - 0x80;
+                apu.mmc5.da.output = ((INT32)value) - 0x80;
 				break;
 			case 0x5010:
-				apu->mmc5.da.key = (value & 0x01);
+            apu.mmc5.da.key = (value & 0x01);
 				break;
 			case 0x5015:
 				if (value & 1)
-					apu->mmc5.square[0].key = 1;
+               apu.mmc5.square[0].key = 1;
 				else
 				{
-					apu->mmc5.square[0].key = 0;
-					apu->mmc5.square[0].length = 0;
+               apu.mmc5.square[0].key = 0;
+               apu.mmc5.square[0].length = 0;
 				}
 				if (value & 2)
-					apu->mmc5.square[1].key = 1;
+               apu.mmc5.square[1].key = 1;
 				else
 				{
-					apu->mmc5.square[1].key = 0;
-					apu->mmc5.square[1].length = 0;
+               apu.mmc5.square[1].key = 0;
+               apu.mmc5.square[1].length = 0;
 				}
 				break;
 		}
 	}
 }
 
-static void MMC5SoundDaReset(MMC5_DA *ch)
+static void APU_MMC5SoundDaReset(APU_MMC5_DA *ch)
 {
-	memset(ch, 0, sizeof(MMC5_DA));
+   RT_ASSERT(ch);
+
+   memset(ch, 0, sizeof(APU_MMC5_DA));
 }
 
-static void MMC5SoundReset(void)
+static void APU_MMC5SoundReset(void)
 {
-	MMC5SoundSquareReset(&apu->mmc5.square[0]);
-	MMC5SoundSquareReset(&apu->mmc5.square[1]);
-	MMC5SoundDaReset(&apu->mmc5.da);
+   APU_MMC5SoundSquareReset(&apu.mmc5.square[0]);
+   APU_MMC5SoundSquareReset(&apu.mmc5.square[1]);
+   APU_MMC5SoundDaReset(&apu.mmc5.da);
 
-	MMC5SoundWrite(0x5000, 0x00);
-	MMC5SoundWrite(0x5002, 0x00);
-	MMC5SoundWrite(0x5003, 0x00);
-	MMC5SoundWrite(0x5004, 0x00);
-	MMC5SoundWrite(0x5006, 0x00);
-	MMC5SoundWrite(0x5007, 0x00);
-	MMC5SoundWrite(0x5010, 0x00);
-	MMC5SoundWrite(0x5011, 0x00);
+   APU_MMC5SoundWrite(0x5000, 0x00);
+   APU_MMC5SoundWrite(0x5002, 0x00);
+   APU_MMC5SoundWrite(0x5003, 0x00);
+   APU_MMC5SoundWrite(0x5004, 0x00);
+   APU_MMC5SoundWrite(0x5006, 0x00);
+   APU_MMC5SoundWrite(0x5007, 0x00);
+   APU_MMC5SoundWrite(0x5010, 0x00);
+   APU_MMC5SoundWrite(0x5011, 0x00);
 }
 

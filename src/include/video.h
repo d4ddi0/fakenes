@@ -83,16 +83,6 @@ void video_set_driver (int);
 
 void video_message (const UCHAR *, ...);
 
-static INLINE int fix (int value, int base, int limit)
-{
-   if (value < base)
-      value = base;
-   if (value > limit)
-      value = limit;
-
-   return (value);
-}
-
 #ifdef __cplusplus
 }
 #endif
