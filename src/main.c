@@ -8,7 +8,6 @@
  
 #define ALLEGRO_USE_CONSOLE
 #include <allegro.h>
-#include "build.h"
 #include <stdio.h>
 #include "apu.h"
 #include "audio.h"
