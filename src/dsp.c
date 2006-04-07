@@ -404,10 +404,12 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
 
          if (params->pan < (0 - EPSILON))
          {
-            DSP_MIXER_LEFT += input;
+            DSP_MIXER_LEFT  += input;
+            DSP_MIXER_RIGHT += (input / 2.0f);
          }
          else if (params->pan > (0 + EPSILON))
          {
+            DSP_MIXER_LEFT  += (input / 2.0f);
             DSP_MIXER_RIGHT += input;
          }
          else
