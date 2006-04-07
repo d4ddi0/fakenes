@@ -56,6 +56,9 @@ ifdef STATIC
    DFLAGS += -DALLEGRO_STATICLINK
 endif
 CFLAGS := -I${INCLUDE_PATH} ${MFLAGS} ${OFLAGS} -Wall -Wno-unused ${DFLAGS}
+ifdef VERBOSE
+   CFLAGS += -Q
+endif
 
 # GPP flags
 CPPFLAGS := -I${INCLUDE_PATH} ${DFLAGS}

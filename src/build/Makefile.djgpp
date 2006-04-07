@@ -39,6 +39,9 @@ ifdef TAG
    DFLAGS += -DVERSION_TAG=\"${TAG}\"
 endif
 CFLAGS := -I${INCLUDE_PATH} ${MFLAGS} ${OFLAGS} -Wall -Wno-unused ${DFLAGS}
+ifdef VERBOSE
+   CFLAGS += -Q
+endif
 
 # Objects.
 OBJECTS := ${OBJECT_PATH}/apu${OBJEXT} \
