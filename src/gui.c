@@ -12,12 +12,12 @@
 #include <string.h>
 #include "apu.h"
 #include "audio.h"
+#include "cheats.h"
 #include "common.h"
 #include "cpu.h"
 #include "data.h"
 #include "debug.h"
 #include "dsp.h"
-#include "genie.h"
 #include "gui.h"
 #include "input.h"
 #include "log.h"
@@ -3194,7 +3194,7 @@ static int machine_cheat_manager_dialog_add (DIALOG *dialog)
 
    patch = &cpu_patch_info[cpu_patch_count];
 
-   if (genie_decode (code, &patch->address, &patch->value,
+   if (cheats_decode (code, &patch->address, &patch->value,
       &patch->match_value) != 0)
    {
       alert ("- Error -", NULL, "You must enter a valid Game Genie (or "
