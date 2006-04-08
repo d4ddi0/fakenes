@@ -672,12 +672,12 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_80200_hz, (audio_sample_rate == 80200));
    TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_96000_hz, (audio_sample_rate == 96000));
 
-   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_mono,                 !apu_stereo_mode);
-   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_stereo_mix,           (apu_stereo_mode == APU_STEREO_MODE_4));
-   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_pseudo_stereo_mode_1, (apu_stereo_mode == APU_STEREO_MODE_1));
-   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_pseudo_stereo_mode_2, (apu_stereo_mode == APU_STEREO_MODE_2));
-   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_stereo,               (apu_stereo_mode == APU_STEREO_MODE_3));
-   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_swap_channels,        dsp_get_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS));
+   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_mono,                  !apu_stereo_mode);
+   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_stereo_mix,            (apu_stereo_mode == APU_STEREO_MODE_4));
+   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_virtual_stereo_mode_1, (apu_stereo_mode == APU_STEREO_MODE_1));
+   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_virtual_stereo_mode_2, (apu_stereo_mode == APU_STEREO_MODE_2));
+   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_stereo,                (apu_stereo_mode == APU_STEREO_MODE_3));
+   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_swap_channels,         dsp_get_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS));
 
    TOGGLE_MENU_ITEM(audio_mixing_quality_menu_low_8_bit,     (audio_sample_size == 8));
    TOGGLE_MENU_ITEM(audio_mixing_quality_menu_high_16_bit,   (audio_sample_size == 16));
@@ -2186,26 +2186,26 @@ static int audio_mixing_channels_menu_stereo_mix (void)
    return (D_O_K);
 }
 
-static int audio_mixing_channels_menu_pseudo_stereo_mode_1 (void)
+static int audio_mixing_channels_menu_virtual_stereo_mode_1 (void)
 {
    apu_stereo_mode = APU_STEREO_MODE_1;
    update_menus ();
     
    cycle_audio ();
 
-   message_local ("Audio channels set to pseudo stereo (mode 1).");
+   message_local ("Audio channels set to virtual stereo (mode 1).");
 
    return (D_O_K);
 }
 
-static int audio_mixing_channels_menu_pseudo_stereo_mode_2 (void)
+static int audio_mixing_channels_menu_virtual_stereo_mode_2 (void)
 {
    apu_stereo_mode = APU_STEREO_MODE_2;
    update_menus ();
 
    cycle_audio ();
 
-   message_local ("Audio channels set to pseudo stereo (mode 2).");
+   message_local ("Audio channels set to virtual stereo (mode 2).");
 
    return (D_O_K);
 }

@@ -266,20 +266,20 @@ static const MENU netplay_menu_base[] =
 
 DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_mono);
 DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_stereo_mix);
-DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_pseudo_stereo_mode_1);
-DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_pseudo_stereo_mode_2);
+DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_virtual_stereo_mode_1);
+DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_virtual_stereo_mode_2);
 DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_stereo);
 DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_swap_channels);
 
 static const MENU audio_mixing_channels_menu_base[] =
 {
-   { "&Mono",                   audio_mixing_channels_menu_mono,                 NULL, 0, NULL },
-   { "St&ereo Mix",             audio_mixing_channels_menu_stereo_mix,           NULL, 0, NULL },
-   { "&Pseudo Stereo (Mode 1)", audio_mixing_channels_menu_pseudo_stereo_mode_1, NULL, 0, NULL },
-   { "P&seudo Stereo (Mode 2)", audio_mixing_channels_menu_pseudo_stereo_mode_2, NULL, 0, NULL },
-   { "S&tereo",                 audio_mixing_channels_menu_stereo,               NULL, 0, NULL },
+   { "&Mono",                    audio_mixing_channels_menu_mono,                  NULL, 0, NULL },
+   { "St&ereo Mix",              audio_mixing_channels_menu_stereo_mix,            NULL, 0, NULL },
+   { "&Virtual Stereo (Mode 1)", audio_mixing_channels_menu_virtual_stereo_mode_1, NULL, 0, NULL },
+   { "V&irtual Stereo (Mode 2)", audio_mixing_channels_menu_virtual_stereo_mode_2, NULL, 0, NULL },
+   { "S&tereo",                  audio_mixing_channels_menu_stereo,                NULL, 0, NULL },
    MENU_SPLITTER,
-   { "S&wap Channels",          audio_mixing_channels_menu_swap_channels,        NULL, 0, NULL },
+   { "S&wap Channels",           audio_mixing_channels_menu_swap_channels,         NULL, 0, NULL },
    MENU_ENDCAP
 };                                             
 
