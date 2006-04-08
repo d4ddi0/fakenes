@@ -681,6 +681,7 @@ static INLINE void update_menus (void)
 
    TOGGLE_MENU_ITEM(audio_mixing_quality_menu_low_8_bit,     (audio_sample_size == 8));
    TOGGLE_MENU_ITEM(audio_mixing_quality_menu_high_16_bit,   (audio_sample_size == 16));
+   TOGGLE_MENU_ITEM(audio_mixing_quality_menu_interpolation, audio_interpolation);
    TOGGLE_MENU_ITEM(audio_mixing_quality_menu_dithering,     dsp_get_effector_enabled (DSP_EFFECTOR_DITHER));
 
    TOGGLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_1, dsp_get_effector_enabled (DSP_EFFECTOR_WIDE_STEREO_TYPE_1));
@@ -2253,6 +2254,19 @@ static int audio_mixing_quality_menu_high_16_bit (void)
    cycle_audio ();
 
    message_local ("Audio mixing quality set to high (16-bit).");
+
+   return (D_O_K);
+}
+
+static int audio_mixing_quality_menu_interpolation (void)
+{
+   audio_interpolation = !audio_interpolation;
+   update_menus ();
+
+   cycle_audio ();
+
+   message_local ("Audio interpolation %s.", get_enabled_text
+      (audio_interpolation));
 
    return (D_O_K);
 }

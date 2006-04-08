@@ -309,6 +309,7 @@ static const MENU audio_mixing_frequency_menu_base[] =
 
 DEFINE_MENU_CALLBACK(audio_mixing_quality_menu_low_8_bit);
 DEFINE_MENU_CALLBACK(audio_mixing_quality_menu_high_16_bit);
+DEFINE_MENU_CALLBACK(audio_mixing_quality_menu_interpolation);
 DEFINE_MENU_CALLBACK(audio_mixing_quality_menu_dithering);
 
 static const MENU audio_mixing_quality_menu_base[] =
@@ -316,6 +317,7 @@ static const MENU audio_mixing_quality_menu_base[] =
    { "&Low (8 bits)",   audio_mixing_quality_menu_low_8_bit,     NULL, 0, NULL },
    { "&High (16 bits)", audio_mixing_quality_menu_high_16_bit,   NULL, 0, NULL },
    MENU_SPLITTER,
+   { "&Interpolation",  audio_mixing_quality_menu_interpolation, NULL, 0, NULL },
    { "&Dithering",      audio_mixing_quality_menu_dithering,     NULL, 0, NULL },
    MENU_ENDCAP
 };

@@ -19,6 +19,7 @@ ENUM audio_subsystem;
 int audio_sample_rate;
 int audio_sample_size;
 BOOL audio_unsigned_samples;
+BOOL audio_interpolation;
 int audio_buffer_length;
 
 int audio_buffer_size_samples;

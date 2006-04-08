@@ -26,6 +26,7 @@ ENUM audio_subsystem        = AUDIO_SUBSYSTEM_ALLEGRO;
 int  audio_sample_rate      = 48000;
 int  audio_sample_size      = 16;
 BOOL audio_unsigned_samples = TRUE;
+BOOL audio_interpolation    = TRUE;
 int  audio_buffer_length    = 6;
 
 /* Buffer sizes. */
@@ -56,6 +57,7 @@ int audio_init (void)
    audio_subsystem     = get_config_int ("audio", "subsystem",     audio_subsystem);
    audio_sample_rate   = get_config_int ("audio", "sample_rate",   audio_sample_rate);
    audio_sample_size   = get_config_int ("audio", "sample_size",   audio_sample_size);
+   audio_interpolation = get_config_int ("audio", "interpolation", audio_interpolation);
    audio_buffer_length = get_config_int ("audio", "buffer_length", audio_buffer_length);
 
    if (!audio_enable_output)
@@ -67,9 +69,11 @@ int audio_init (void)
    {
       case AUDIO_SUBSYSTEM_ALLEGRO:
       {
-         /* Disable interpolation, since we have no use for it. */
-         set_mixer_quality (1);
-      
+         if (audio_interpolation)
+            set_mixer_quality (2);
+         else
+            set_mixer_quality (1);
+
          set_volume_per_voice (0);
               
          if (install_sound (DIGI_AUTODETECT, MIDI_NONE, NULL) != 0)
@@ -170,6 +174,7 @@ void audio_exit (void)
    set_config_int ("audio", "subsystem",     audio_subsystem);
    set_config_int ("audio", "sample_rate",   audio_sample_rate);
    set_config_int ("audio", "sample_size",   audio_sample_size);
+   set_config_int ("audio", "interpolation", audio_interpolation);
    set_config_int ("audio", "buffer_length", audio_buffer_length);
 }
 
