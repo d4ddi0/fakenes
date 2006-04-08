@@ -425,24 +425,12 @@ int main (int argc, char * argv [])
                 average_fps /= 2;
 
                 
-                if ((frame_skip_min == 0) && (! fast_forward))
-                {
-                    timing_fps = fix (actual_fps_count, 1, speed);
-                
-                    timing_hertz = fix (virtual_fps_count, 1, speed);
-                
-    
-                    timing_audio_fps = fix (audio_fps, 1, speed);
-                }
-                else
-                {
-                    timing_fps = actual_fps_count;
-                
-                    timing_hertz = virtual_fps_count;
-                
-    
-                    timing_audio_fps = audio_fps;
-                }
+                timing_fps = actual_fps_count;
+            
+                timing_hertz = virtual_fps_count;
+            
+
+                timing_audio_fps = audio_fps;
 
 
                 actual_fps_count = 0;
