@@ -412,6 +412,7 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
             continue;
 
          input = (DSP_BUFFER_SAMPLE(sample, channel) * params->volume);
+         input /= 2.0f; /* For stereo mixing. */
 
          if (params->pan < (0 - EPSILON))
          {
@@ -425,7 +426,6 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
          }
          else
          {
-            input /= 2.0f;
             DSP_MIXER_LEFT  += input;
             DSP_MIXER_RIGHT += input;
          }
