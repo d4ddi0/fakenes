@@ -215,11 +215,11 @@ static const MENU machine_save_state_menu_base[] =
 {
    { "&Quick Save (F3)", machine_save_state_menu_quick_save, NULL,                                          0, NULL },
    { "Quick &Load (F4)", machine_save_state_menu_quick_load, NULL,                                          0, NULL },
+   MENU_SPLITTER,
+   { "S&elect",          NULL,                               IMPORT_MENU(machine_save_state_select_menu),   0, NULL },
    MENU_SPLITTER,                                    
    { "&Save       (F5)", machine_save_state_menu_save,       NULL,                                          0, NULL },
    { "&Restore    (F6)", machine_save_state_menu_restore,    NULL,                                          0, NULL },
-   MENU_SPLITTER,
-   { "S&elect",          NULL,                               IMPORT_MENU(machine_save_state_select_menu),   0, NULL },
    MENU_SPLITTER,
    { "&Autosave",        NULL,                               IMPORT_MENU(machine_save_state_autosave_menu), 0, NULL },
    MENU_ENDCAP
@@ -591,17 +591,16 @@ DEFINE_MENU_CALLBACK(video_resolution_menu_1600_1200);
 
 static const MENU video_resolution_menu_base[] =
 {
-   { "&Proportionate", NULL,                                    IMPORT_MENU(video_resolution_proportionate_menu), 0, NULL },
+   { "&1: 320x240",    video_resolution_menu_320_240,   NULL,                                                   0, NULL },
+   { "&2: 640x480",    video_resolution_menu_640_480,   NULL,                                                   0, NULL },
+   { "&3: 800x600",    video_resolution_menu_800_600,   NULL,                                                   0, NULL },
+   { "&4: 1024x768",   video_resolution_menu_1024_768,  NULL,                                                   0, NULL },
+   { "&5: 1152x864",   video_resolution_menu_1152_864,  NULL,                                                   0, NULL },
+   { "&6: 1280x1024",  video_resolution_menu_1280_1024, NULL,                                                   0, NULL },
+   { "&7: 1600x1200",  video_resolution_menu_1600_1200, NULL,                                                   0, NULL },
    MENU_SPLITTER,
-   { "&1: 320x240",    video_resolution_menu_320_240,   NULL,                                                     0, NULL },
-   { "&2: 640x480",    video_resolution_menu_640_480,   NULL,                                                     0, NULL },
-   { "&3: 800x600",    video_resolution_menu_800_600,   NULL,                                                     0, NULL },
-   { "&4: 1024x768",   video_resolution_menu_1024_768,  NULL,                                                     0, NULL },
-   { "&5: 1152x864",   video_resolution_menu_1152_864,  NULL,                                                     0, NULL },
-   { "&6: 1280x1024",  video_resolution_menu_1280_1024, NULL,                                                     0, NULL },
-   { "&7: 1600x1200",  video_resolution_menu_1600_1200, NULL,                                                     0, NULL },
-   MENU_SPLITTER,
-   { "&Extended",      NULL,                                    IMPORT_MENU(video_resolution_extended_menu),      0, NULL },
+   { "&Proportionate", NULL,                                  IMPORT_MENU(video_resolution_proportionate_menu), 0, NULL },
+   { "&Extended",      NULL,                                  IMPORT_MENU(video_resolution_extended_menu),      0, NULL },
    MENU_ENDCAP
 };
 
