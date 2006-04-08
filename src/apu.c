@@ -36,7 +36,7 @@
    secondary renderers to the APU's signed 32-bit format, an easy task. */
 
 /* Stereo mode. */
-ENUM apu_stereo_mode = APU_STEREO_MODE_3;
+ENUM apu_stereo_mode = APU_STEREO_MODE_2;
 
 /* Static APU context. */
 static apu_t apu;
