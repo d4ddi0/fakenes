@@ -51,7 +51,7 @@ typedef struct _DSP_CHANNEL_PARAMS
 static DSP_CHANNEL_PARAMS dsp_channel_params[DSP_MAX_CHANNELS];
 
 /* Effectors. */
-static LIST dsp_effector_list = 0;
+static LIST dsp_effector_list = DSP_EFFECTOR_DITHER;
 
 /* WAV writer (see bottom). */
 static void dsp_wav_write (void);
