@@ -52,8 +52,9 @@ extern "C" {
 #define APU_NOISE_32K   0x7fff
 #define APU_NOISE_93    93
 
-#define APU_BASEFREQ    1789772.5f
-
+#define APU_BASEFREQ_NTSC  (1.89e9 / 88 / 12)
+#define APU_BASEFREQ_PAL   (26601712.5 / 15)
+                        
 /* to/from 16.16 fixed point */
 #define APU_TO_FIXED    itofix
 #define APU_FROM_FIXED  fixtoi

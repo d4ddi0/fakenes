@@ -1462,7 +1462,8 @@ static void set_params (int sample_rate, REAL refresh_rate)
       Allegro's ftofix() macro should be used instead. */
 
    /* turn into fixed point! */
-   apu.cycle_rate = (INT32)(APU_BASEFREQ * 65536.0 / sample_rate);
+   apu.cycle_rate = (INT32)(((machine_type == MACHINE_TYPE_NTSC) ?
+      APU_BASEFREQ_NTSC : APU_BASEFREQ_PAL) * 65536.0 / sample_rate);
 
    /* build various lookup tables for apu */
    build_luts (samples);
