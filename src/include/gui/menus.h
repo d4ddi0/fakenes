@@ -29,6 +29,7 @@ DEFINE_MENU(audio_mixing_menu);
 DEFINE_MENU(audio_effects_menu);
 DEFINE_MENU(audio_filters_menu);
 DEFINE_MENU(audio_channels_menu);
+DEFINE_MENU(audio_record_menu);
 DEFINE_MENU(audio_menu);
 DEFINE_MENU(video_driver_dos_menu);
 DEFINE_MENU(video_driver_windows_menu);
@@ -373,6 +374,16 @@ static const MENU audio_channels_menu_base[] =
    MENU_ENDCAP
 };
 
+DEFINE_MENU_CALLBACK(audio_record_menu_start);
+DEFINE_MENU_CALLBACK(audio_record_menu_stop);
+
+static const MENU audio_record_menu_base[] =
+{
+   { "&Start", audio_record_menu_start, NULL, 0,          NULL },
+   { "S&top",  audio_record_menu_stop,  NULL, D_DISABLED, NULL },
+   MENU_ENDCAP
+};
+
 DEFINE_MENU_CALLBACK(audio_menu_enabled);
 
 static const MENU audio_menu_base[] =
@@ -383,6 +394,8 @@ static const MENU audio_menu_base[] =
    { "Effec&ts",   NULL,               IMPORT_MENU(audio_effects_menu),  0, NULL },
    { "&Filters",   NULL,               IMPORT_MENU(audio_filters_menu),  0, NULL },
    { "&Channels",  NULL,               IMPORT_MENU(audio_channels_menu), 0, NULL },
+   MENU_SPLITTER,
+   { "&Record",    NULL,               IMPORT_MENU(audio_record_menu),   0, NULL },
    MENU_ENDCAP
 };
 

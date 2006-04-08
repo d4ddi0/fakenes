@@ -23,14 +23,17 @@ int dsp_init (void);
 void dsp_exit (void);
 int dsp_open (int, int);
 void dsp_close (void);
-void dsp_clear (void);
+void dsp_start (void);
 void dsp_write (const DSP_SAMPLE *);
+void dsp_end (void);
 void dsp_set_channel_enabled (int, ENUM, BOOL);
 BOOL dsp_get_channel_enabled (ENUM);
 void dsp_set_channel_params (int, REAL, REAL);
 void dsp_set_effector_enabled (FLAGS, ENUM, BOOL);
 BOOL dsp_get_effector_enabled (FLAGS);
 void dsp_render (void *, int, int, BOOL);
+int dsp_open_wav (const UCHAR *, int, int, int);
+void dsp_close_wav (void);
 
 enum
 {

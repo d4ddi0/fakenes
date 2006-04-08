@@ -244,6 +244,7 @@ static INLINE void load_menus (void)
    MENU_FROM_BASE(audio_effects_menu);
    MENU_FROM_BASE(audio_filters_menu);
    MENU_FROM_BASE(audio_channels_menu);
+   MENU_FROM_BASE(audio_record_menu);
    MENU_FROM_BASE(audio_menu);
    MENU_FROM_BASE(video_driver_dos_menu);
    MENU_FROM_BASE(video_driver_windows_menu);
@@ -307,6 +308,7 @@ static INLINE void unload_menus (void)
    unload_menu (audio_effects_menu);
    unload_menu (audio_filters_menu);
    unload_menu (audio_channels_menu);
+   unload_menu (audio_record_menu);
    unload_menu (audio_menu);
    unload_menu (video_driver_dos_menu);
    unload_menu (video_driver_windows_menu);
@@ -2428,6 +2430,49 @@ static int audio_channels_menu_extended (void)
 
    message_local ("Audio extended channels %s.", get_enabled_text
       (dsp_get_channel_enabled (APU_CHANNEL_EXTRA)));
+
+   return (D_O_K);
+}
+
+static int audio_record_menu_start (void)
+{
+   int index;
+
+   for (index = 0; index < 9999; index++)
+   {
+      USTRING filename;
+
+      uszprintf (filename, sizeof (filename), "wave%04d.wav", index);
+
+      if (exists (filename))
+         continue;
+
+      if (dsp_open_wav (filename, audio_sample_rate, (apu_stereo_mode ? 2 :
+         1), audio_sample_size) == 0)
+      {
+         DISABLE_MENU_ITEM(audio_record_menu_start);
+         ENABLE_MENU_ITEM(audio_record_menu_stop);
+      }
+   
+      message_local ("Audio recording session started to %s.", filename);
+
+      return (D_O_K);
+   }
+   
+   gui_message (GUI_ERROR_COLOR, "Couldn't find a suitable image "
+      "filename.");
+
+   return (D_O_K);
+}
+
+static int audio_record_menu_stop (void)
+{
+   dsp_close_wav ();
+
+   ENABLE_MENU_ITEM(audio_record_menu_start);
+   DISABLE_MENU_ITEM(audio_record_menu_stop);
+
+   message_local ("Audio recording session stopped.");
 
    return (D_O_K);
 }

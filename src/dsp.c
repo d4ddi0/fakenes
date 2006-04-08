@@ -7,6 +7,7 @@
    You must read and accept the license prior to use. */
 
 #include <allegro.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "common.h"
@@ -51,6 +52,9 @@ static DSP_CHANNEL_PARAMS dsp_channel_params[DSP_MAX_CHANNELS];
 
 /* Effectors. */
 static LIST dsp_effector_list = 0;
+
+/* WAV writer (see bottom). */
+static void dsp_wav_write (void);
 
 /* --- Initialization and deinitialization. --- */
 
@@ -148,9 +152,9 @@ void dsp_close (void)
    }
 }
 
-void dsp_clear (void)
+void dsp_start (void)
 {
-   DEBUG_PRINTF("dsp_clear()\n");
+   DEBUG_PRINTF("dsp_start()\n");
 
    /* Clear write pointer. */
    dsp_write_sample = 0;
@@ -179,6 +183,14 @@ void dsp_write (const DSP_SAMPLE *samples)
    }
 
    dsp_write_sample++;
+}
+
+void dsp_end (void)
+{
+   DEBUG_PRINTF("dsp_end()\n");
+
+   /* Write data to disk if necessary. */
+   dsp_wav_write ();
 }
 
 /* --- Channel param manipulation. --- */
@@ -487,4 +499,171 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
             WARN_GENERIC();
       }
    }
+}
+
+/* --- WAV writer functions. --- */
+
+/* TODO: Fix this stuff up to work properly on big-endian platforms
+   (currently it produces a big-endian ordered WAV file, I think). */
+
+typedef struct
+{
+   UINT32 chunk_id;
+   INT32  chunk_size;
+   UINT32 riff_type;
+
+} dsp_wav_riff_type_chunk_t;
+
+typedef struct
+{
+   UINT32 chunk_id;
+   INT32  chunk_size;
+   INT16  format_tag;
+   UINT16 channels;
+   UINT32 samples_per_sec;
+   UINT32 avg_bytes_per_sec;
+   UINT16 block_align;
+   UINT16 bits_per_sample;
+
+} dsp_wav_format_chunk_t;
+
+typedef struct
+{
+   UINT32 chunk_id;
+   INT32  chunk_size;
+
+} dsp_wav_data_chunk_t;
+
+#define DSP_WAV_ID(a,b,c,d)   ((d << 24) | (c << 16) | (b << 8) | a)
+
+#define WAV_HEADER_SIZE \
+   (sizeof (dsp_wav_riff_type_chunk_t) +  \
+    sizeof (dsp_wav_format_chunk_t) +  \
+    sizeof (dsp_wav_data_chunk_t))
+
+static FILE    *dsp_wav_file            = NULL;
+static unsigned dsp_wav_size            = 0;
+static int      dsp_wav_sample_rate     = 0;
+static int      dsp_wav_channels        = 0;
+static int      dsp_wav_bits_per_sample = 0;
+
+int dsp_open_wav (const UCHAR *filename, int sample_rate, int channels, int
+   bits_per_sample)
+{
+   RT_ASSERT(filename);
+
+   DEBUG_PRINTF("dsp_open_wav(filename=%s,sample_rate=%d,channels=%d,"
+      "bits_per_sample=%d)\n", filename, sample_rate, channels,
+         bits_per_sample);
+
+   if ((channels != 1) &&
+       (channels != 2))
+   {
+      /* Unsupported channel count. */
+      return (1);
+   }
+
+   if ((bits_per_sample != 8) &&
+       (bits_per_sample != 16))
+   {
+      /* Unsupported sample depth. */
+      return (2);
+   }
+
+   /* Open file. */
+   dsp_wav_file = fopen (filename, "wb");
+   if (!dsp_wav_file)
+      return (3);
+
+   /* Skip header space. */
+   fseek (dsp_wav_file, WAV_HEADER_SIZE, SEEK_SET);
+
+   /* Clear size counter. */
+   dsp_wav_size = 0;
+
+   /* Set parameters. */
+   dsp_wav_sample_rate     = sample_rate;
+   dsp_wav_channels        = channels;
+   dsp_wav_bits_per_sample = bits_per_sample;
+
+   /* Return success. */
+   return (0);
+}
+
+void dsp_close_wav (void)
+{
+   DEBUG_PRINTF("dsp_close_wav()\n");
+
+   if (dsp_wav_file)
+   {
+      dsp_wav_riff_type_chunk_t riff;
+      dsp_wav_format_chunk_t    fmt;
+      dsp_wav_data_chunk_t      data;
+      unsigned size;
+
+      /* Build RIFF chunks. */
+
+      riff.chunk_id   = DSP_WAV_ID('R','I','F','F');
+      riff.chunk_size = ((WAV_HEADER_SIZE + dsp_wav_size) - 8);
+      riff.riff_type  = DSP_WAV_ID('W','A','V','E');
+
+      fmt.chunk_id          = DSP_WAV_ID('f','m','t',' ');
+      fmt.chunk_size        = (sizeof (fmt) - 8);
+      fmt.format_tag        = 1;  /* No compression. */
+      fmt.channels          = dsp_wav_channels;
+      fmt.samples_per_sec   = dsp_wav_sample_rate;
+      fmt.avg_bytes_per_sec = ((dsp_wav_sample_rate * dsp_wav_channels) *
+         (dsp_wav_bits_per_sample / 8));
+      fmt.block_align       = (dsp_wav_channels * (dsp_wav_bits_per_sample /
+         8));
+      fmt.bits_per_sample   = dsp_wav_bits_per_sample;
+      
+      data.chunk_id   = DSP_WAV_ID('d','a','t','a');
+      data.chunk_size = ((sizeof (data) + dsp_wav_size) - 8);
+
+      /* Write WAV header. */
+
+      fseek (dsp_wav_file, 0, SEEK_SET);
+
+      fwrite (&riff, sizeof (riff), 1, dsp_wav_file);
+      fwrite (&fmt,  sizeof (fmt),  1, dsp_wav_file);
+      fwrite (&data, sizeof (data), 1, dsp_wav_file);
+
+      /* Close file. */
+      fclose (dsp_wav_file);
+   }
+}
+
+static void dsp_wav_write (void)
+{
+   unsigned size;
+   void *buffer;
+
+   DEBUG_PRINTF("dsp_wav_write()\n");
+
+   if (!dsp_wav_file)
+      return;
+
+   /* Calculate buffer size. */
+   size = ((dsp_buffer_samples * dsp_wav_channels) *
+      (dsp_wav_bits_per_sample / 8));
+
+   /* Allocate rendering buffer. */
+
+   buffer = malloc (size);
+   if (!buffer)
+      WARN_BREAK_GENERIC();
+
+   /* Render waveform. */
+   dsp_render (buffer, dsp_wav_channels, dsp_wav_bits_per_sample,
+      ((dsp_wav_bits_per_sample == 8) ? TRUE : FALSE));
+
+   /* Write rendering buffer to disk. */
+   fwrite (buffer, size, 1, dsp_wav_file);
+
+   /* Increment size counter. */
+   dsp_wav_size += size;
+
+   /* Free rendering buffer. */
+   free (buffer);
 }

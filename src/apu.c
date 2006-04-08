@@ -1138,8 +1138,8 @@ void apu_process (void)
 
    if (audio_enable_output)
    {
-      /* Clear DSP buffer. */
-      dsp_clear ();
+      /* Start DSP buffer fill. */
+      dsp_start ();
 
       while (samples--)
       {
@@ -1271,6 +1271,9 @@ void apu_process (void)
          /* Send samples to buffer. */
          dsp_write (dsp_samples);
       }
+
+      /* End DSP buffer fill. */
+      dsp_end ();
 
       /* Process DSP buffer into APU buffer. */
       dsp_render (apu_buffer, (apu_stereo_mode ? 2 : 1), audio_sample_size,
