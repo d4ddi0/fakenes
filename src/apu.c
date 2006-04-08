@@ -841,11 +841,84 @@ int apu_init (void)
    DSP_ENABLE_CHANNEL_EX(APU_CHANNEL_DMC,      get_config_int ("apu", "enable_dmc",      TRUE));
    DSP_ENABLE_CHANNEL_EX(APU_CHANNEL_EXTRA,    get_config_int ("apu", "enable_extra",    TRUE));
 
+   /* Initialize everything else. */
+   apu_update ();
+
+   /* Reset APU. */
+   apu_reset ();
+
+   /* Return success. */
+   return (0);
+}
+
+void apu_exit (void)
+{
+   /* Deinitialize DSP. */
+   dsp_exit ();
+
+   /* Save configuration. */
+
+   set_config_int ("apu", "stereo_mode", apu_stereo_mode);
+
+   set_config_int ("apu", "enable_square_1", dsp_get_channel_enabled (APU_CHANNEL_SQUARE_1));
+   set_config_int ("apu", "enable_square_2", dsp_get_channel_enabled (APU_CHANNEL_SQUARE_2));
+   set_config_int ("apu", "enable_triangle", dsp_get_channel_enabled (APU_CHANNEL_TRIANGLE));
+   set_config_int ("apu", "enable_noise",    dsp_get_channel_enabled (APU_CHANNEL_NOISE));
+   set_config_int ("apu", "enable_dmc",      dsp_get_channel_enabled (APU_CHANNEL_DMC));
+   set_config_int ("apu", "enable_extra",    dsp_get_channel_enabled (APU_CHANNEL_EXTRA));
+}  
+
+void apu_reset (void)
+{
+   /* Initializes/resets emulated sound hardware, creates waveforms/voices
+      */
+
+   int sample_rate;
+   REAL refresh_rate;
+
+   /* Save parameters. */
+
+   sample_rate = apu.sample_rate;
+   refresh_rate = apu.refresh_rate;
+
+   /* Clear context. */
+   memset (&apu, 0, sizeof (apu));
+
+   /* Clear queues. */
+             
+   memset (&apu.queue,    0, (APUQUEUE_SIZE * sizeof (apudata_t)));
+   memset (&apu.ex_queue, 0, (APUQUEUE_SIZE * sizeof (apudata_t)));
+
+   /* set the stupid flag to tell difference between two rectangles */
+
+   apu.apus.rectangle[0].sweep_complement = TRUE;
+   apu.apus.rectangle[1].sweep_complement = FALSE;
+
+   /* Restore parameters. */
+   set_params (sample_rate, refresh_rate);
+
+   // for ExSound
+   APU_LogTableInitialize ();
+
+   APU_MMC5SoundReset ();
+   APU_MMC5SoundVolume (1);
+   APU_VRC6SoundReset ();
+   APU_VRC6SoundVolume (1);
+
+   // for $4017:bit7 by T.Yano
+   apu_cnt_rate = 5;
+}
+
+void apu_update (void)
+{
+   /* Updates the APU to external changes without resetting it, since that
+      might cause problems in a currently running game. */
+
    /* Set parameters. */
    set_params (audio_sample_rate, timing_get_speed ());
 
-   /* Initialize everything else. */
-   apu_reset ();
+   /* Deinitialize DSP. */
+   dsp_exit ();
 
    /* Open DSP buffer. */
    if (dsp_open (audio_buffer_frame_size_samples, APU_CHANNELS) != 0)
@@ -919,67 +992,6 @@ int apu_init (void)
       default:
          WARN_GENERIC();
    }
-
-   /* Return success. */
-   return (0);
-}
-
-void apu_exit (void)
-{
-   /* Deinitialize DSP. */
-   dsp_exit ();
-
-   /* Save configuration. */
-
-   set_config_int ("apu", "stereo_mode", apu_stereo_mode);
-
-   set_config_int ("apu", "enable_square_1", dsp_get_channel_enabled (APU_CHANNEL_SQUARE_1));
-   set_config_int ("apu", "enable_square_2", dsp_get_channel_enabled (APU_CHANNEL_SQUARE_2));
-   set_config_int ("apu", "enable_triangle", dsp_get_channel_enabled (APU_CHANNEL_TRIANGLE));
-   set_config_int ("apu", "enable_noise",    dsp_get_channel_enabled (APU_CHANNEL_NOISE));
-   set_config_int ("apu", "enable_dmc",      dsp_get_channel_enabled (APU_CHANNEL_DMC));
-   set_config_int ("apu", "enable_extra",    dsp_get_channel_enabled (APU_CHANNEL_EXTRA));
-}  
-
-void apu_reset (void)
-{
-   /* Initializes/resets emulated sound hardware, creates waveforms/voices
-      */
-
-   int sample_rate;
-   REAL refresh_rate;
-
-   /* Save parameters. */
-
-   sample_rate = apu.sample_rate;
-   refresh_rate = apu.refresh_rate;
-
-   /* Clear context. */
-   memset (&apu, 0, sizeof (apu));
-
-   /* Clear queues. */
-             
-   memset (&apu.queue,    0, (APUQUEUE_SIZE * sizeof (apudata_t)));
-   memset (&apu.ex_queue, 0, (APUQUEUE_SIZE * sizeof (apudata_t)));
-
-   /* set the stupid flag to tell difference between two rectangles */
-
-   apu.apus.rectangle[0].sweep_complement = TRUE;
-   apu.apus.rectangle[1].sweep_complement = FALSE;
-
-   /* Restore parameters. */
-   set_params (sample_rate, refresh_rate);
-
-   // for ExSound
-   APU_LogTableInitialize ();
-
-   APU_MMC5SoundReset ();
-   APU_MMC5SoundVolume (1);
-   APU_VRC6SoundReset ();
-   APU_VRC6SoundVolume (1);
-
-   // for $4017:bit7 by T.Yano
-   apu_cnt_rate = 5;
 }
 
 void apu_set_exsound (ENUM exsound)

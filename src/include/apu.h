@@ -322,6 +322,7 @@ typedef struct apu_s
 int apu_init (void);
 void apu_exit (void);
 void apu_reset (void);
+void apu_update (void);
 void apu_set_exsound (ENUM);
 UINT8 apu_read (UINT16);
 void apu_write (UINT16, UINT8);

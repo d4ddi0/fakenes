@@ -1225,8 +1225,7 @@ static INLINE void cycle_audio (void)
 
    audio_exit ();
    audio_init ();
-   apu_exit ();
-   apu_init ();
+   apu_update ();
 }
 
 static INLINE void cycle_video (void)
