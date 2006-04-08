@@ -33,6 +33,7 @@ CFLAGS := `allegro-config --cflags` -I${INCLUDE_PATH} @CFLAGS@ ${DFLAGS}
 # Objects.
 OBJECTS := ${OBJECT_PATH}/apu${OBJEXT} \
    ${OBJECT_PATH}/audio${OBJEXT} \
+   ${OBJECT_PATH}/audiolib${OBJEXT} \
    ${OBJECT_PATH}/core${OBJEXT} \
    ${OBJECT_PATH}/cpu${OBJEXT} \
    ${OBJECT_PATH}/crc${OBJEXT} \

@@ -841,6 +841,7 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-zlib             build with ZIP and gzip support default=yes
   --with-hawknl           build with NetPlay support default=no
+  --with-openal           build with OpenAL support default=no
 
 Some influential environment variables:
   CC          C compiler command
@@ -2425,6 +2426,14 @@ else
   USE_HAWKNL=no
 fi;
 
+# Check whether --with-openal or --without-openal was given.
+if test "${with_openal+set}" = set; then
+  withval="$with_openal"
+  USE_OPENAL=$withval
+else
+  USE_OPENAL=no
+fi;
+
 echo "$as_me:$LINENO: checking whether to enable ZIP and gzip support" >&5
 echo $ECHO_N "checking whether to enable ZIP and gzip support... $ECHO_C" >&6
 if [ "x$USE_ZLIB" = "xyes" ]; then
@@ -2451,6 +2460,20 @@ else
     echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
     echo if this is not what you want, use --with-hawknl
+fi
+
+echo "$as_me:$LINENO: checking whether to enable OpenAL support" >&5
+echo $ECHO_N "checking whether to enable OpenAL support... $ECHO_C" >&6
+if [ "x$USE_OPENAL" = "xyes" ]; then
+    DFLAGS="$DFLAGS -DUSE_OPENAL"
+    echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+    LIBRARIES="$LIBRARIES `openal-config --libs`"
+    echo if this is not what you want, use --without-openal
+else
+    echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+    echo if this is not what you want, use --with-openal
 fi
 
 

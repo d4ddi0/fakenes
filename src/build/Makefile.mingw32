@@ -49,6 +49,9 @@ endif
 ifdef USE_HAWKNL
    DFLAGS += -DUSE_HAWKNL
 endif
+ifdef USE_OPENAL
+   DFLAGS += -DUSE_OPENAL
+endif
 ifdef TAG
    DFLAGS += -DVERSION_TAG=\"${TAG}\"
 endif
@@ -66,6 +69,7 @@ CPPFLAGS := -I${INCLUDE_PATH} ${DFLAGS}
 # Objects.
 OBJECTS := ${OBJECT_PATH}/apu${OBJEXT} \
    ${OBJECT_PATH}/audio${OBJEXT} \
+   ${OBJECT_PATH}/audiolib${OBJEXT} \
    ${OBJECT_PATH}/core${OBJEXT} \
    ${OBJECT_PATH}/crc${OBJEXT} \
    ${OBJECT_PATH}/cpu${OBJEXT} \
@@ -103,6 +107,11 @@ endif
 ifdef USE_HAWKNL
    LIBNL ?= -lNL
    LIBRARIES += ${LIBNL}
+endif
+ifdef USE_OPENAL
+   LIBALUT ?= -lalut
+   LIBOPENAL ?= -lOpenAL32
+   LIBRARIES += ${LIBALUT} ${LIBOPENAL}
 endif
 
 RESOURCES := ${SOURCE_PATH}/support/resource.o

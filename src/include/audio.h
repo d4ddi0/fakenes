@@ -8,6 +8,7 @@
 
 #ifndef AUDIO_H_INCLUDED
 #define AUDIO_H_INCLUDED
+#include "apu.h"
 #include "common.h"
 #include "types.h"
 #ifdef __cplusplus
@@ -24,6 +25,8 @@ int audio_buffer_length;
 
 int audio_buffer_frame_size_samples;
 unsigned audio_buffer_frame_size_bytes;
+int audio_buffer_size_samples;
+unsigned audio_buffer_size_bytes;
 volatile int audio_fps;
 
 int audio_init (void);
@@ -34,11 +37,16 @@ void audio_resume (void);
 void *audio_get_buffer (void);
 void audio_free_buffer (void);
 
+/* Helper macros. */
+#define AUDIO_STEREO    apu_stereo_mode
+#define AUDIO_CHANNELS  (AUDIO_STEREO ? 2 : 1)
+
 /* Subsystems. */
 enum
 {
    AUDIO_SUBSYSTEM_NONE,
-   AUDIO_SUBSYSTEM_ALLEGRO
+   AUDIO_SUBSYSTEM_ALLEGRO,
+   AUDIO_SUBSYSTEM_OPENAL
 };
 
 #ifdef __cplusplus

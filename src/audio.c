@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include "apu.h"
 #include "audio.h"
+#include "audiolib.h"
 #include "common.h"
 #include "debug.h"
 #include "gui.h"
@@ -30,10 +31,10 @@ BOOL audio_interpolation    = TRUE;
 int  audio_buffer_length    = 6;
 
 /* Buffer sizes. */
-int audio_buffer_frame_size_samples     = 0;
-unsigned audio_buffer_frame_size_bytes  = 0;
-static int audio_buffer_size_samples    = 0;
-static unsigned audio_buffer_size_bytes = 0;
+int audio_buffer_frame_size_samples    = 0;
+unsigned audio_buffer_frame_size_bytes = 0;
+int audio_buffer_size_samples          = 0;
+unsigned audio_buffer_size_bytes       = 0;
 
 /* Queues. */
 typedef struct _AUDIO_QUEUE_FRAME
@@ -56,13 +57,6 @@ typedef struct _AUDIO_QUEUE
 
 static AUDIO_QUEUE audio_queue;
 
-/* Streams. */
-static AUDIOSTREAM *audio_stream = NULL;
-
-/* Helper macros. */
-#define AUDIO_STEREO    apu_stereo_mode
-#define AUDIO_CHANNELS  (AUDIO_STEREO ? 2 : 1)
-
 /* Function prototypes. */
 static int audio_create_queue (void);
 static void audio_destroy_queue (void);
@@ -75,6 +69,8 @@ volatile int audio_fps = 0;
 
 int audio_init (void)
 {
+   int result;
+
    DEBUG_PRINTF("audio_init()\n");
 
    /* Load configuration. */
@@ -89,38 +85,11 @@ int audio_init (void)
    if (!audio_enable_output)
       return (0);
 
-   switch (audio_subsystem)
+   /* Initialize audio library. */
+   if ((result = audiolib_init ()) != 0)
    {
-      case AUDIO_SUBSYSTEM_ALLEGRO:
-      {
-         if (audio_interpolation)
-            set_mixer_quality (2);
-         else
-            set_mixer_quality (1);
-
-         set_volume_per_voice (0);
-              
-         if (install_sound (DIGI_AUTODETECT, MIDI_NONE, NULL) != 0)
-            return (1);
-
-         if (digi_driver->id == DIGI_NONE)
-            return (2);
-
-         /* Autodetect settings. */
-
-         if (audio_sample_rate == -1)
-             audio_sample_rate = get_mixer_frequency ();
-         if (audio_sample_size == -1)
-             audio_sample_size = get_mixer_bits ();
-
-         /* Allegro always uses unsigned samples. */
-         audio_unsigned_samples = TRUE;
-
-         break;
-      }
-
-      default:
-         WARN_GENERIC();
+      WARN_GENERIC();
+      return ((8 + result));
    }
 
    /* Calculate buffer sizes. */
@@ -139,29 +108,12 @@ int audio_init (void)
    audio_buffer_size_bytes = ((audio_buffer_size_samples * AUDIO_CHANNELS) *
       (audio_sample_size / 8));
 
-   /* Initialize subsystem. */
+   /* Begin playing. */
 
-   switch (audio_subsystem)
+   if ((result = audiolib_play ()) != 0)
    {
-      case AUDIO_SUBSYSTEM_ALLEGRO:
-      {
-         /* Create stream. */
-
-         if (!(audio_stream = play_audio_stream (audio_buffer_size_samples,
-            audio_sample_size, AUDIO_STEREO, audio_sample_rate, 255, 128)))
-         {
-            WARN("Failed to create audio stream");
-            return (3);
-         }
-
-         /* Pause stream. */
-         voice_stop (audio_stream->voice);
-
-         break;
-      }
-
-      default:
-         WARN_GENERIC();
+      WARN_GENERIC();
+      return ((8 + result));
    }
 
    /* Create queue and return. */
@@ -177,14 +129,8 @@ void audio_exit (void)
       /* Destroy queue. */
       audio_destroy_queue ();
 
-      if (audio_stream)
-      {
-         /* Destroy stream. */
-         stop_audio_stream (audio_stream);
-      }
-
-      /* Remove sound driver. */
-      remove_sound ();
+      /* Deinitialize audio library. */
+      audiolib_exit ();
    }
 
    /* Save configuration. */
@@ -212,20 +158,17 @@ void audio_update (void)
    if (wait_frames > 0)
       return;
 
-   buffer = get_audio_stream_buffer (audio_stream);
+   buffer = audiolib_get_buffer ();
    if (!buffer)
       return;
 
-   /* Botch for AUDIOSTREAMs not working like they're supposed to. */
+   /* Necessary botch to get around buffer problems. */
    wait_frames = audio_buffer_length;
 
    /* Write entire queue to buffer. */
    audio_output (buffer);
 
-   free_audio_stream_buffer (audio_stream);
-
-   /* Play stream if we haven't already. */
-   voice_start (audio_stream->voice);
+   audiolib_free_buffer ();
 }
 
 void audio_suspend (void)
@@ -235,7 +178,7 @@ void audio_suspend (void)
    if (!audio_enable_output)
       return;
 
-   voice_stop (audio_stream->voice);
+   audiolib_suspend ();
 }
 
 void audio_resume (void)
@@ -245,7 +188,7 @@ void audio_resume (void)
    if (!audio_enable_output)
       return;
 
-   voice_start (audio_stream->voice);
+   audiolib_resume ();
 }
 
 static AUDIO_QUEUE_FRAME *floaty_frame = NULL;

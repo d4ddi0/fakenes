@@ -22,6 +22,7 @@ DEFINE_MENU(machine_save_state_autosave_menu);
 DEFINE_MENU(machine_save_state_menu);
 DEFINE_MENU(machine_region_menu);
 DEFINE_MENU(machine_menu);
+DEFINE_MENU(audio_subsystem_menu);
 DEFINE_MENU(audio_mixing_channels_menu);
 DEFINE_MENU(audio_mixing_frequency_menu);
 DEFINE_MENU(audio_mixing_quality_menu);
@@ -264,6 +265,19 @@ static const MENU netplay_menu_base[] =
    MENU_ENDCAP
 };
 
+DEFINE_MENU_CALLBACK(audio_subsystem_menu_none);
+DEFINE_MENU_CALLBACK(audio_subsystem_menu_allegro);
+DEFINE_MENU_CALLBACK(audio_subsystem_menu_openal);
+
+static const MENU audio_subsystem_menu_base[] =
+{
+   { "&None",    audio_subsystem_menu_none,    NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&Allegro", audio_subsystem_menu_allegro, NULL, 0, NULL },
+   { "&OpenAL",  audio_subsystem_menu_openal,  NULL, 0, NULL },
+   MENU_ENDCAP
+};                                             
+
 DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_mono);
 DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_stereo_mix);
 DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_virtual_stereo_mode_1);
@@ -390,14 +404,15 @@ DEFINE_MENU_CALLBACK(audio_menu_enabled);
 
 static const MENU audio_menu_base[] =
 {
-   { "&Enabled",   audio_menu_enabled, NULL,                             0, NULL },
+   { "&Enabled",   audio_menu_enabled, NULL,                              0, NULL },
    MENU_SPLITTER,
-   { "&Mixing",    NULL,               IMPORT_MENU(audio_mixing_menu),   0, NULL },
-   { "Effec&ts",   NULL,               IMPORT_MENU(audio_effects_menu),  0, NULL },
-   { "&Filters",   NULL,               IMPORT_MENU(audio_filters_menu),  0, NULL },
-   { "&Channels",  NULL,               IMPORT_MENU(audio_channels_menu), 0, NULL },
-   MENU_SPLITTER,
-   { "&Record",    NULL,               IMPORT_MENU(audio_record_menu),   0, NULL },
+   { "&Subsystem", NULL,               IMPORT_MENU(audio_subsystem_menu), 0, NULL },
+   { "&Mixing",    NULL,               IMPORT_MENU(audio_mixing_menu),    0, NULL },
+   { "Effec&ts",   NULL,               IMPORT_MENU(audio_effects_menu),   0, NULL },
+   { "&Filters",   NULL,               IMPORT_MENU(audio_filters_menu),   0, NULL },
+   { "&Channels",  NULL,               IMPORT_MENU(audio_channels_menu),  0, NULL },
+   MENU_SPLITTER,                                                       
+   { "&Record",    NULL,               IMPORT_MENU(audio_record_menu),    0, NULL },
    MENU_ENDCAP
 };
 

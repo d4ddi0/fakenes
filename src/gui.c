@@ -237,6 +237,7 @@ static INLINE void load_menus (void)
    MENU_FROM_BASE(machine_save_state_menu);
    MENU_FROM_BASE(machine_region_menu);
    MENU_FROM_BASE(machine_menu);
+   MENU_FROM_BASE(audio_subsystem_menu);
    MENU_FROM_BASE(audio_mixing_channels_menu);
    MENU_FROM_BASE(audio_mixing_frequency_menu);
    MENU_FROM_BASE(audio_mixing_quality_menu);
@@ -301,6 +302,7 @@ static INLINE void unload_menus (void)
    unload_menu (machine_save_state_menu);
    unload_menu (machine_region_menu);
    unload_menu (machine_menu);
+   unload_menu (audio_subsystem_menu);
    unload_menu (audio_mixing_channels_menu);
    unload_menu (audio_mixing_frequency_menu);
    unload_menu (audio_mixing_quality_menu);
@@ -599,6 +601,13 @@ static INLINE int show_dialog (DIALOG *dialog)
 
 static INLINE void update_menus (void)
 {
+#ifndef USE_OPENAL
+   DISABLE_MENU_ITEM(audio_subsystem_menu_openal);
+#endif
+
+   SET_MENU_ITEM_ENABLED(audio_mixing_quality_menu_interpolation,
+      (audio_subsystem != AUDIO_SUBSYSTEM_OPENAL));
+
    if (!rom_is_loaded)
    {
       DISABLE_MENU_ITEM(main_menu_resume);
@@ -661,6 +670,10 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(machine_region_menu_pal,       (machine_region == MACHINE_REGION_PAL));
 
    TOGGLE_MENU_ITEM(audio_menu_enabled, audio_enable_output);
+
+   TOGGLE_MENU_ITEM(audio_subsystem_menu_none,   (audio_subsystem == AUDIO_SUBSYSTEM_NONE));
+   TOGGLE_MENU_ITEM(audio_subsystem_menu_allegro,(audio_subsystem == AUDIO_SUBSYSTEM_ALLEGRO));
+   TOGGLE_MENU_ITEM(audio_subsystem_menu_openal, (audio_subsystem == AUDIO_SUBSYSTEM_OPENAL));
 
    TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_8000_hz,  (audio_sample_rate == 8000));
    TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_11025_hz, (audio_sample_rate == 11025));
@@ -2138,6 +2151,42 @@ static int audio_menu_enabled (void)
 
    message_local ("Audio rendering and output %s.", get_enabled_text
       (audio_enable_output));
+
+   return (D_O_K);
+}
+
+static int audio_subsystem_menu_none (void)
+{
+   audio_subsystem = AUDIO_SUBSYSTEM_NONE;
+   update_menus ();
+
+   cycle_audio ();
+
+   message_local ("Audio subsystem set to NONE.");
+
+   return (D_O_K);
+}
+
+static int audio_subsystem_menu_allegro (void)
+{
+   audio_subsystem = AUDIO_SUBSYSTEM_ALLEGRO;
+   update_menus ();
+
+   cycle_audio ();
+
+   message_local ("Audio subsystem set to Allegro.");
+
+   return (D_O_K);
+}
+
+static int audio_subsystem_menu_openal (void)
+{
+   audio_subsystem = AUDIO_SUBSYSTEM_OPENAL;
+   update_menus ();
+
+   cycle_audio ();
+
+   message_local ("Audio subsystem set to OpenAL.");
 
    return (D_O_K);
 }

@@ -36,6 +36,7 @@ fi
 
 AC_ARG_WITH(zlib,   [  --with-zlib             build with ZIP and gzip support [default=yes]], [USE_ZLIB=$withval], [USE_ZLIB=yes])
 AC_ARG_WITH(hawknl, [  --with-hawknl           build with NetPlay support [default=no]], [USE_HAWKNL=$withval], [USE_HAWKNL=no])
+AC_ARG_WITH(openal, [  --with-openal           build with OpenAL support [default=no]], [USE_OPENAL=$withval], [USE_OPENAL=no])
 
 AC_MSG_CHECKING(whether to enable ZIP and gzip support)
 if [[ "x$USE_ZLIB" = "xyes" ]]; then
@@ -57,6 +58,17 @@ if [[ "x$USE_HAWKNL" = "xyes" ]]; then
 else
     AC_MSG_RESULT(no)
     echo if this is not what you want, use --with-hawknl
+fi
+
+AC_MSG_CHECKING(whether to enable OpenAL support)
+if [[ "x$USE_OPENAL" = "xyes" ]]; then
+    DFLAGS="$DFLAGS -DUSE_OPENAL"
+    AC_MSG_RESULT(yes)
+    LIBRARIES="$LIBRARIES `openal-config --libs`"
+    echo if this is not what you want, use --without-openal
+else
+    AC_MSG_RESULT(no)
+    echo if this is not what you want, use --with-openal
 fi
 
 dnl Add -DLSB_FIRST to DFLAGS if on a little endian platform.
