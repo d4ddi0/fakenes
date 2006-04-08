@@ -81,6 +81,7 @@ typedef FLAGS LIST;        /* List of flags. */
 /* List access macros. */
 #define LIST_ADD(list, flags)       (list |= flags)
 #define LIST_REMOVE(list, flags)    (list &= ~flags)
+#define LIST_TOGGLE(list, flags)    (list ^= flags)
 #define LIST_COMPARE(list, flags)   ((list & flags) ? TRUE : FALSE)
 
 /* String data types. */

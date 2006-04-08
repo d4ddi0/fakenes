@@ -2679,17 +2679,8 @@ static int video_filters_menu_scanlines_25_percent (void)
    LIST filters;
 
    filters = video_get_filter_list ();
-
-   if (filters & VIDEO_FILTER_SCANLINES_LOW)
-   {
-      video_set_filter_list ((filters & ~VIDEO_FILTER_SCANLINES_LOW));
-   }
-   else
-   {
-      filters &= ~VIDEO_FILTER_SCANLINES_HIGH;
-      filters &= ~VIDEO_FILTER_SCANLINES_MEDIUM;
-      video_set_filter_list ((filters | VIDEO_FILTER_SCANLINES_LOW));
-   }
+   LIST_TOGGLE(filters, VIDEO_FILTER_SCANLINES_LOW);
+   video_set_filter_list (filters);
 
    update_menus ();
 
@@ -2706,17 +2697,8 @@ static int video_filters_menu_scanlines_50_percent (void)
    LIST filters;
 
    filters = video_get_filter_list ();
-
-   if (filters & VIDEO_FILTER_SCANLINES_MEDIUM)
-   {
-      video_set_filter_list ((filters & ~VIDEO_FILTER_SCANLINES_MEDIUM));
-   }
-   else
-   {
-      filters &= ~VIDEO_FILTER_SCANLINES_HIGH;
-      filters &= ~VIDEO_FILTER_SCANLINES_LOW;
-      video_set_filter_list ((filters | VIDEO_FILTER_SCANLINES_MEDIUM));
-   }
+   LIST_TOGGLE(filters, VIDEO_FILTER_SCANLINES_MEDIUM);
+   video_set_filter_list (filters);
 
    update_menus ();
 
@@ -2733,17 +2715,8 @@ static int video_filters_menu_scanlines_100_percent (void)
    LIST filters;
 
    filters = video_get_filter_list ();
-
-   if (filters & VIDEO_FILTER_SCANLINES_HIGH)
-   {
-      video_set_filter_list ((filters & ~VIDEO_FILTER_SCANLINES_HIGH));
-   }
-   else
-   {
-      filters &= ~VIDEO_FILTER_SCANLINES_MEDIUM;
-      filters &= ~VIDEO_FILTER_SCANLINES_LOW;
-      video_set_filter_list ((filters | VIDEO_FILTER_SCANLINES_HIGH));
-   }
+   LIST_TOGGLE(filters, VIDEO_FILTER_SCANLINES_HIGH);
+   video_set_filter_list (filters);
 
    update_menus ();
 

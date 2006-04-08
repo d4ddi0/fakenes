@@ -1275,7 +1275,8 @@ void video_filter (void)
             hline (screen_buffer, blit_x_offset, y, screen_buffer -> w, 0);
         }
     }
-    else if (filter_list & VIDEO_FILTER_SCANLINES_MEDIUM)
+
+    if (filter_list & VIDEO_FILTER_SCANLINES_MEDIUM)
     {
         set_trans_blender (0, 0, 0, 127);
 
@@ -1291,7 +1292,8 @@ void video_filter (void)
 
         solid_mode ();
     }
-    else if (filter_list & VIDEO_FILTER_SCANLINES_LOW)
+
+    if (filter_list & VIDEO_FILTER_SCANLINES_LOW)
     {
         set_trans_blender (0, 0, 0, 63);
 
