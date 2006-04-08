@@ -23,34 +23,60 @@
 /* Parameters. */
 BOOL audio_enable_output    = TRUE;
 ENUM audio_subsystem        = AUDIO_SUBSYSTEM_ALLEGRO;
-int  audio_sample_rate      = -1;
-int  audio_sample_size      = -1;
+int  audio_sample_rate      = -1;   /* Autodetect. */
+int  audio_sample_size      = -1;   /* Autodetect. */
 BOOL audio_unsigned_samples = TRUE;
 BOOL audio_interpolation    = TRUE;
 int  audio_buffer_length    = 6;
 
 /* Buffer sizes. */
-int audio_buffer_size_samples = 0;
-int audio_buffer_size_bytes = 0;
-int audio_buffer_frame_size_samples = 0;
-int audio_buffer_frame_size_bytes = 0;
+int audio_buffer_frame_size_samples     = 0;
+unsigned audio_buffer_frame_size_bytes  = 0;
+static int audio_buffer_size_samples    = 0;
+static unsigned audio_buffer_size_bytes = 0;
 
-/* Samples. */
-static SAMPLE *audio_sample     = NULL;   /* Primary sample. */
-static SAMPLE *audio_sample_alt = NULL;   /* Alternate sample. */
-static SAMPLE *open_sample      = NULL;   /* Pointer to read-only sample. */
-static SAMPLE *closed_sample    = NULL;   /* Pointer to write-only sample. */
+/* Queues. */
+typedef struct _AUDIO_QUEUE_FRAME
+{
+   void *buffer;
+   struct _AUDIO_QUEUE_FRAME *prev;
+   struct _AUDIO_QUEUE_FRAME *next;
 
-/* Voices. */
-static int audio_voice     = 0;  /* Voice for primary sample. */
-static int audio_voice_alt = 0;  /* Voice for alternate sample. */
-static int active_voice    = 0;  /* Active voice. */
+} AUDIO_QUEUE_FRAME;
+
+static AUDIO_QUEUE_FRAME *audio_frames = NULL;
+static int audio_frame_count = 0;
+
+typedef struct _AUDIO_QUEUE
+{
+   AUDIO_QUEUE_FRAME *first;
+   AUDIO_QUEUE_FRAME *last;
+
+} AUDIO_QUEUE;
+
+static AUDIO_QUEUE audio_queue;
+
+/* Streams. */
+static AUDIOSTREAM *audio_stream = NULL;
+
+/* Helper macros. */
+#define AUDIO_STEREO    apu_stereo_mode
+#define AUDIO_CHANNELS  (AUDIO_STEREO ? 2 : 1)
+
+/* Function prototypes. */
+static int audio_create_queue (void);
+static void audio_destroy_queue (void);
+static void audio_enqueue (AUDIO_QUEUE_FRAME *);
+static AUDIO_QUEUE_FRAME *audio_dequeue (void);
+static void audio_output (void *);
 
 /* Miscellaneous. */
 volatile int audio_fps = 0;
 
 int audio_init (void)
 {
+   DEBUG_PRINTF("audio_init()\n");
+
    /* Load configuration. */
 
    audio_enable_output = get_config_int ("audio", "enable_output", audio_enable_output);
@@ -62,8 +88,6 @@ int audio_init (void)
 
    if (!audio_enable_output)
       return (0);
-
-   /* Initialize subsystem. */
 
    switch (audio_subsystem)
    {
@@ -89,6 +113,7 @@ int audio_init (void)
          if (audio_sample_size == -1)
              audio_sample_size = get_mixer_bits ();
 
+         /* Allegro always uses unsigned samples. */
          audio_unsigned_samples = TRUE;
 
          break;
@@ -98,80 +123,67 @@ int audio_init (void)
          WARN_GENERIC();
    }
 
-
    /* Calculate buffer sizes. */
 
    /* Individual frames. */
 
    audio_buffer_frame_size_samples = (audio_sample_rate /
       timing_get_speed ());
-
-   audio_buffer_frame_size_bytes = audio_buffer_frame_size_samples;
-   if (audio_sample_size == 16)
-      audio_buffer_frame_size_bytes *= 2;
-   if (apu_stereo_mode)
-      audio_buffer_frame_size_bytes *= 2;
+   audio_buffer_frame_size_bytes = ((audio_buffer_frame_size_samples *
+      AUDIO_CHANNELS) * (audio_sample_size / 8));
 
    /* Entire buffer. */
 
    audio_buffer_size_samples = (audio_buffer_frame_size_samples *
       audio_buffer_length);
-                 
-   audio_buffer_size_bytes = audio_buffer_size_samples;
-   if (audio_sample_size == 16)
-      audio_buffer_size_bytes *= 2;
-   if (apu_stereo_mode)
-      audio_buffer_size_bytes *= 2;
+   audio_buffer_size_bytes = ((audio_buffer_size_samples * AUDIO_CHANNELS) *
+      (audio_sample_size / 8));
 
-   /* Create samples. */
+   /* Initialize subsystem. */
 
-   audio_sample = create_sample (audio_sample_size, apu_stereo_mode,
-      audio_sample_rate, audio_buffer_size_samples);
-   if (!audio_sample)
-      return (3);
-
-   audio_sample_alt = create_sample (audio_sample_size, apu_stereo_mode,
-      audio_sample_rate, audio_buffer_size_samples);
-   if (!audio_sample_alt)
+   switch (audio_subsystem)
    {
-      destroy_sample (audio_sample);
-      return (4);
+      case AUDIO_SUBSYSTEM_ALLEGRO:
+      {
+         /* Create stream. */
+
+         if (!(audio_stream = play_audio_stream (audio_buffer_size_samples,
+            audio_sample_size, AUDIO_STEREO, audio_sample_rate, 255, 128)))
+         {
+            WARN("Failed to create audio stream");
+            return (3);
+         }
+
+         /* Pause stream. */
+         voice_stop (audio_stream->voice);
+
+         break;
+      }
+
+      default:
+         WARN_GENERIC();
    }
 
-   /* Set initial sample mapping. */
-   open_sample = audio_sample;
-   closed_sample = audio_sample_alt;
-
-   /* Create voices. */
-
-   audio_voice     = allocate_voice (audio_sample);
-   audio_voice_alt = allocate_voice (audio_sample_alt);
-
-   active_voice = audio_voice_alt;
-
-   return (0);
+   /* Create queue and return. */
+   return (audio_create_queue ());
 }
 
 void audio_exit (void)
 {
+   DEBUG_PRINTF("audio_exit()\n");
+
    if (audio_enable_output)
    {
-      /* Destroy samples. */
+      /* Destroy queue. */
+      audio_destroy_queue ();
 
-      if (audio_sample)
-         destroy_sample (audio_sample);
-      if (audio_sample_alt)
-         destroy_sample (audio_sample_alt);
-
-      /* Destroy voices. */
-
-      if (voice_check (audio_voice))
-         deallocate_voice (audio_voice);
-      if (voice_check (audio_voice_alt))
-         deallocate_voice (audio_voice_alt);
+      if (audio_stream)
+      {
+         /* Destroy stream. */
+         stop_audio_stream (audio_stream);
+      }
 
       /* Remove sound driver. */
-
       remove_sound ();
    }
 
@@ -185,61 +197,262 @@ void audio_exit (void)
    set_config_int ("audio", "buffer_length", audio_buffer_length);
 }
 
-void audio_suspend (void)
+void audio_update (void)
 {
+   static int wait_frames = 0;
+   void *buffer;
+
+   DEBUG_PRINTF("audio_update()\n");
+
    if (!audio_enable_output)
       return;
 
-   if (!voice_check (active_voice))
+   if (wait_frames > 0)
+      wait_frames--;
+   if (wait_frames > 0)
       return;
 
-   voice_stop (active_voice);
+   buffer = get_audio_stream_buffer (audio_stream);
+   if (!buffer)
+      return;
+
+   /* Botch for AUDIOSTREAMs not working like they're supposed to. */
+   wait_frames = audio_buffer_length;
+
+   /* Write entire queue to buffer. */
+   audio_output (buffer);
+
+   free_audio_stream_buffer (audio_stream);
+
+   /* Play stream if we haven't already. */
+   voice_start (audio_stream->voice);
+}
+
+void audio_suspend (void)
+{
+   DEBUG_PRINTF("audio_suspend()\n");
+
+   if (!audio_enable_output)
+      return;
+
+   voice_stop (audio_stream->voice);
 }
 
 void audio_resume (void)
 {
+   DEBUG_PRINTF("audio_resume()\n");
+
    if (!audio_enable_output)
       return;
 
-   if (!voice_check (active_voice))
-      return;
-
-   voice_start (active_voice);
+   voice_start (audio_stream->voice);
 }
+
+static AUDIO_QUEUE_FRAME *floaty_frame = NULL;
 
 void *audio_get_buffer (void)
 {
+   DEBUG_PRINTF("audio_get_buffer()\n");
+
    if (!audio_enable_output)
       return (NULL);
 
-   if (!open_sample)
+   floaty_frame = audio_dequeue ();
+   if (!floaty_frame)
+   {
+      WARN_GENERIC();
       return (NULL);
+   }
 
-   return (open_sample->data);
+   return (floaty_frame->buffer);
 }
 
-void audio_play (void)
+void audio_free_buffer (void)
 {
-   SAMPLE *old_open_sample;
+   DEBUG_PRINTF("audio_free_buffer()\n");
 
    if (!audio_enable_output)
       return;
 
-   /* Swap samples. */
+   if (!floaty_frame)
+   {
+      WARN_GENERIC();
+      return;
+   }
 
-   old_open_sample = open_sample;
-   open_sample = closed_sample;
-   closed_sample = old_open_sample;
+   audio_enqueue (floaty_frame);
+   floaty_frame = NULL;
+}
 
-   /* Assign voice. */
+/* --- Internal functions. --- */
 
-   if (closed_sample == audio_sample)
-      active_voice = audio_voice;
-   else
-      active_voice = audio_voice_alt;
+static int audio_create_queue (void)
+{
+   int size;
+   int index;
 
-   /* Start voice. */
-   voice_start (active_voice);
+   /* Save frame count so we don't get memory leaks if 'audio_buffer_length'
+      is changed before audio_destroy_queue() is called. */
+   audio_frame_count = audio_buffer_length;
 
-   audio_fps += audio_buffer_length;
+   /* Allocate frames. */
+
+   size = (sizeof (AUDIO_QUEUE_FRAME) * audio_frame_count);
+
+   audio_frames = malloc (size);
+   if (!audio_frames)
+   {
+      WARN_GENERIC();
+      return (1);
+   }
+
+   /* Clear frames. */
+   memset (audio_frames, 0, size);
+
+   /* Allocate frame buffers. */
+
+   for (index = 0; index < audio_frame_count; index++)
+   {
+      AUDIO_QUEUE_FRAME *frame = &audio_frames[index];
+
+      size = audio_buffer_frame_size_bytes;
+
+      frame->buffer = malloc (size);
+      if (!frame->buffer)
+      {
+         /* Possible memory leak here. */
+         WARN_GENERIC();
+         free (audio_frames);
+         return (2);
+      }
+
+      /* Clear buffer. */
+      memset (frame->buffer, 0, size);
+   }
+
+   /* Clear queue. */
+   memset (&audio_queue, 0, sizeof (audio_queue));
+
+   /* Map frames into the queue. */
+
+   for (index = 0; index < audio_frame_count; index++)
+   {
+      AUDIO_QUEUE_FRAME *frame = &audio_frames[index];
+
+      if (index > 0)
+         frame->prev = &audio_frames[(index - 1)];
+      if (index < (audio_frame_count - 1))
+         frame->next = &audio_frames[(index + 1)];
+   }
+
+   audio_queue.first = &audio_frames[0];
+   audio_queue.last  = &audio_frames[(audio_frame_count - 1)];
+
+   /* Create ring. */
+   /* Note that because of this we have to be careful to only read the queue
+      in a single direction (either forward or backward, but not both at
+      the same time), otherwise we could end up with an infinite loop. */
+   audio_queue.first->prev = audio_queue.last;
+   audio_queue.last->next  = audio_queue.first;
+
+   /* Return success. */
+   return (0);
+}
+
+static void audio_destroy_queue (void)
+{
+   if (audio_frames)
+   {
+      int index;
+
+      for (index = 0; index < audio_frame_count; index++)
+      {
+         AUDIO_QUEUE_FRAME *frame = &audio_frames[index];
+
+         if (frame->buffer)
+            free (frame->buffer);
+      }
+
+      free (audio_frames);
+      audio_frames = NULL;
+
+      /* Reset frame counter. */
+      audio_frame_count = 0;
+   }
+
+   /* Clear queue. */
+   memset (&audio_queue, 0, sizeof (audio_queue));
+}         
+
+static void audio_enqueue (AUDIO_QUEUE_FRAME *frame)
+{
+   AUDIO_QUEUE_FRAME *last;
+
+   RT_ASSERT(frame);
+
+   /* Get last frame in queue. */
+   last = audio_queue.last;
+
+   /* Set up links. */
+   last->next = frame;
+   frame->prev = last;
+   frame->next = audio_queue.first;
+
+   /* Add frame to queue. */
+   audio_queue.last = frame;
+}
+
+static AUDIO_QUEUE_FRAME *audio_dequeue (void)
+{
+   AUDIO_QUEUE_FRAME *frame;
+
+   /* Grab first frame in queue. */
+   frame = audio_queue.first;
+
+   /* Remove frame from queue. */
+   audio_queue.first = frame->next;
+
+   /* Clear links. */
+   audio_queue.first->prev = audio_queue.last;
+   frame->prev = NULL;
+   frame->next = NULL;
+
+   /* Return frame. */
+   return (frame);
+}
+
+static void audio_output (void *buffer)
+{
+   int frame_size, buffer_size;
+   AUDIO_QUEUE_FRAME *frame;
+   unsigned offset = 0;
+
+   RT_ASSERT(buffer);
+
+   frame_size  = audio_buffer_frame_size_bytes;
+   buffer_size = audio_buffer_size_bytes;
+
+   /* Get first frame in queue. */
+   frame = audio_queue.first;
+
+   while (frame)
+   {
+      if (offset >= buffer_size)
+      {
+         /* Buffer is full. */
+         return;
+      }
+
+      /* Copy frame data to output buffer. */
+      memcpy ((buffer + offset), frame->buffer, frame_size);
+
+      /* Advance write pointer. */
+      offset += frame_size;
+
+      /* Advance to next frame in queue. */
+      frame = frame->next;
+
+      /* Increment FPS counter. */
+      audio_fps++;
+   }
 }

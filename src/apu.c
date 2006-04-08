@@ -41,14 +41,6 @@ ENUM apu_stereo_mode = APU_STEREO_MODE_2;
 /* Static APU context. */
 static apu_t apu;
 
-/* Buffers. */
-static void *apu_buffer_base = NULL;
-static void *apu_buffer = NULL;
-static int apu_frame = 0;
-
-/* Buffer sizes. */
-static int apu_frame_samples = 0;   // in DSP sample counts
-
 /* Internal function prototypes (defined at bottom). */
 static void set_params (int, REAL);
 static void build_luts (int);
@@ -855,21 +847,8 @@ int apu_init (void)
    /* Initialize everything else. */
    apu_reset ();
 
-   /* Allocate APU buffer. */
-   apu_buffer_base = malloc (audio_buffer_size_bytes);
-   if (!apu_buffer_base)
-      return (1);
-
-   apu_buffer = apu_buffer_base;
-
-   /* Reset frame counter. */
-   apu_frame = 0;
-
-   /* Calculate frame size. */
-   apu_frame_samples = (audio_sample_rate / timing_get_speed ());
-
    /* Open DSP buffer. */
-   if (dsp_open (apu_frame_samples, APU_CHANNELS) != 0)
+   if (dsp_open (audio_buffer_frame_size_samples, APU_CHANNELS) != 0)
       WARN("Failed to open DSP buffer");
 
    /* Set up channel map. */
@@ -949,16 +928,6 @@ void apu_exit (void)
 {
    /* Deinitialize DSP. */
    dsp_exit ();
-
-   if (apu_buffer_base)
-   {
-      /* Deallocate and nullify APU buffer. */
-
-      free (apu_buffer_base);
-
-      apu_buffer = NULL;
-      apu_buffer_base = NULL;
-   }
 
    /* Save configuration. */
 
@@ -1134,10 +1103,12 @@ void apu_process (void)
    elapsed_cycles = apu.elapsed_cycles;
 
    /* TODO: Fix this, it probably won't work with audio disabled. */
-   samples = apu_frame_samples;
+   samples = audio_buffer_frame_size_samples;
 
    if (audio_enable_output)
    {
+      void *buffer;
+
       /* Start DSP buffer fill. */
       dsp_start ();
 
@@ -1275,37 +1246,15 @@ void apu_process (void)
       /* End DSP buffer fill. */
       dsp_end ();
 
-      /* Process DSP buffer into APU buffer. */
-      dsp_render (apu_buffer, (apu_stereo_mode ? 2 : 1), audio_sample_size,
+      buffer = audio_get_buffer ();
+      if (!buffer)
+         WARN_BREAK_GENERIC();
+
+      /* Process DSP buffer into audio buffer. */
+      dsp_render (buffer, (apu_stereo_mode ? 2 : 1), audio_sample_size,
          audio_unsigned_samples);
 
-      /* Adjust window pointer. */
-      apu_buffer += audio_buffer_frame_size_bytes;
-
-      if (++apu_frame == audio_buffer_length)
-      {     
-         /* Frame buffer is full. */
-
-         void *buffer;
-
-         /* Get audio buffer. */
-         buffer = audio_get_buffer ();
-   
-         if (buffer)
-         {
-            /* Copy buffer. */
-            memcpy (buffer, apu_buffer_base, audio_buffer_size_bytes);
-
-            /* Play buffer. */
-            audio_play ();
-         }
-
-         /* Reset window pointer. */
-         apu_buffer = apu_buffer_base;
-
-         /* Reset frame counter. */
-         apu_frame = 0;
-      }
+      audio_free_buffer ();
    }
    else  /* audio_enable_output */
    {

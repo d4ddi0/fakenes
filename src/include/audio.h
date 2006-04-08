@@ -22,18 +22,17 @@ BOOL audio_unsigned_samples;
 BOOL audio_interpolation;
 int audio_buffer_length;
 
-int audio_buffer_size_samples;
-int audio_buffer_size_bytes;
 int audio_buffer_frame_size_samples;
-int audio_buffer_frame_size_bytes;
+unsigned audio_buffer_frame_size_bytes;
 volatile int audio_fps;
 
 int audio_init (void);
 void audio_exit (void);
-void *audio_get_buffer (void);
-void audio_play (void);
+void audio_update (void);
 void audio_suspend (void);
 void audio_resume (void);
+void *audio_get_buffer (void);
+void audio_free_buffer (void);
 
 /* Subsystems. */
 enum

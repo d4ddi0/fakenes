@@ -663,6 +663,8 @@ int main (int argc, char * argv [])
                 video_blit (screen);
 
                 apu_process ();
+
+                audio_update ();
             }
             else
             {
@@ -759,6 +761,8 @@ int main (int argc, char * argv [])
 
 
                 apu_process ();
+
+                audio_update ();
             }
 
 
