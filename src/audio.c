@@ -23,8 +23,8 @@
 /* Parameters. */
 BOOL audio_enable_output    = TRUE;
 ENUM audio_subsystem        = AUDIO_SUBSYSTEM_ALLEGRO;
-int  audio_sample_rate      = 48000;
-int  audio_sample_size      = 16;
+int  audio_sample_rate      = -1;
+int  audio_sample_size      = -1;
 BOOL audio_unsigned_samples = TRUE;
 BOOL audio_interpolation    = TRUE;
 int  audio_buffer_length    = 6;
@@ -81,7 +81,14 @@ int audio_init (void)
 
          if (digi_driver->id == DIGI_NONE)
             return (2);
-      
+
+         /* Autodetect settings. */
+
+         if (audio_sample_rate == -1)
+             audio_sample_rate = get_mixer_frequency ();
+         if (audio_sample_size == -1)
+             audio_sample_size = get_mixer_bits ();
+
          audio_unsigned_samples = TRUE;
 
          break;
