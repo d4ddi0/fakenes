@@ -16,6 +16,9 @@
 #include "log.h"
 #include "types.h"
 
+/* Master volume. */
+REAL dsp_master_volume = 1.0f;
+
 /* The DSP buffer. */
 static DSP_SAMPLE *dsp_buffer = NULL;
 
@@ -63,7 +66,9 @@ int dsp_init (void)
    DEBUG_PRINTF("dsp_init()\n");
 
    /* Load configuration. */
-   dsp_effector_list = get_config_int ("dsp", "effector_list", dsp_effector_list);
+
+   dsp_master_volume = get_config_float ("dsp", "master_volume", dsp_master_volume);
+   dsp_effector_list = get_config_int   ("dsp", "effector_list", dsp_effector_list);
 
    /* Clear channel parameters. */
    memset (dsp_channel_params, 0, sizeof (dsp_channel_params));
@@ -82,7 +87,9 @@ void dsp_exit (void)
    dsp_close ();
 
    /* Save configuration. */
-   set_config_int ("dsp", "effector_list", dsp_effector_list);
+
+   set_config_float ("dsp", "master_volume", dsp_master_volume);
+   set_config_int   ("dsp", "effector_list", dsp_effector_list);
 }
 
 /* --- Buffer manipulation. --- */
@@ -177,6 +184,7 @@ void dsp_write (const DSP_SAMPLE *samples)
       value = samples[channel];
 
       /* Clipping. */
+      value *= dsp_master_volume;
       value = fixf (value, DSP_SAMPLE_VALUE_MIN, DSP_SAMPLE_VALUE_MAX);
 
       DSP_BUFFER_SAMPLE(sample, channel) = value;

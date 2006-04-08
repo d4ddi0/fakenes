@@ -19,6 +19,8 @@ extern "C" {
 
 typedef REAL DSP_SAMPLE;
 
+REAL dsp_master_volume;
+
 int dsp_init (void);
 void dsp_exit (void);
 int dsp_open (int, int);

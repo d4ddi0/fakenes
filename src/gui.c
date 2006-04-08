@@ -245,6 +245,7 @@ static INLINE void load_menus (void)
    MENU_FROM_BASE(audio_effects_menu);
    MENU_FROM_BASE(audio_filters_menu);
    MENU_FROM_BASE(audio_channels_menu);
+   MENU_FROM_BASE(audio_volume_menu);
    MENU_FROM_BASE(audio_record_menu);
    MENU_FROM_BASE(audio_menu);
    MENU_FROM_BASE(video_driver_dos_menu);
@@ -310,6 +311,7 @@ static INLINE void unload_menus (void)
    unload_menu (audio_effects_menu);
    unload_menu (audio_filters_menu);
    unload_menu (audio_channels_menu);
+   unload_menu (audio_volume_menu);
    unload_menu (audio_record_menu);
    unload_menu (audio_menu);
    unload_menu (video_driver_dos_menu);
@@ -601,6 +603,8 @@ static INLINE int show_dialog (DIALOG *dialog)
 
 static INLINE void update_menus (void)
 {
+   static USTRING audio_volume_text;
+
 #ifndef USE_OPENAL
    DISABLE_MENU_ITEM(audio_subsystem_menu_openal);
 #endif
@@ -853,6 +857,11 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(options_gui_theme_menu_essence,         (last_theme == &essence_theme));
    TOGGLE_MENU_ITEM(options_gui_theme_menu_voodoo,          (last_theme == &voodoo_theme));
    TOGGLE_MENU_ITEM(options_gui_theme_menu_hugs_and_kisses, (last_theme == &hugs_and_kisses_theme));
+
+   /* TODO: Find a better way to do this. */
+   uszprintf (audio_volume_text, sizeof (audio_volume_text), "Current "
+      "level: %d%%", (int)ROUND((dsp_master_volume * 100.0f)));
+   audio_volume_menu[0].text = audio_volume_text;
 }
 
 static INLINE void draw_background (void)
@@ -1201,6 +1210,22 @@ void gui_handle_keypress (int c)
             message_local ("Machine state slot set to %d.",
                save_state_index);
          }
+
+         break;
+      }
+
+      case KEY_MINUS:
+      case KEY_MINUS_PAD:
+      {
+         audio_volume_menu_decrease ();
+
+         break;
+      }
+
+      case KEY_EQUALS:
+      case KEY_PLUS_PAD:
+      {
+         audio_volume_menu_increase ();
 
          break;
       }
@@ -2492,6 +2517,42 @@ static int audio_channels_menu_extended (void)
 
    message_local ("Audio extended channels %s.", get_enabled_text
       (dsp_get_channel_enabled (APU_CHANNEL_EXTRA)));
+
+   return (D_O_K);
+}
+
+static int audio_volume_menu_increase (void)
+{
+   dsp_master_volume += 0.25f;
+   if (dsp_master_volume > 1.5f)
+      dsp_master_volume = 1.5f;
+
+   update_menus ();
+
+   message_local ("Audio master volume level increased.");
+
+   return (D_O_K);
+}
+
+static int audio_volume_menu_decrease (void)
+{
+   dsp_master_volume -= 0.25f;
+   if (dsp_master_volume < 0)
+      dsp_master_volume = 0;
+
+   update_menus ();
+
+   message_local ("Audio master volume level decreased.");
+
+   return (D_O_K);
+}
+
+static int audio_volume_menu_reset (void)
+{
+   dsp_master_volume = 1.0f;
+   update_menus ();
+
+   message_local ("Audio master volume level reset.");
 
    return (D_O_K);
 }

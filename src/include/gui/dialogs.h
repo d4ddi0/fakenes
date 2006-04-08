@@ -255,6 +255,8 @@ static const DIALOG help_shortcuts_dialog_base[] =
     { sl_text,     143, 69,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "F11 - Increase Brightness", NULL },
     { sl_text,     143, 85,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "F12 - Record Start/Stop",   NULL },
     { sl_text,     143, 99,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "BACKSPACE - Message",       NULL },
+    { sl_text,     143, 115, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "(-) - Decrease Volume",     NULL },
+    { sl_text,     143, 127, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "(+) - Increase Volume",     NULL },
     { sl_text,     143, 149, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "No other keys reserved.",   NULL },
     DIALOG_FRAME_ENDCAP
 };

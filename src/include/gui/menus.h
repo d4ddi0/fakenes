@@ -30,6 +30,7 @@ DEFINE_MENU(audio_mixing_menu);
 DEFINE_MENU(audio_effects_menu);
 DEFINE_MENU(audio_filters_menu);
 DEFINE_MENU(audio_channels_menu);
+DEFINE_MENU(audio_volume_menu);
 DEFINE_MENU(audio_record_menu);
 DEFINE_MENU(audio_menu);
 DEFINE_MENU(video_driver_dos_menu);
@@ -390,6 +391,21 @@ static const MENU audio_channels_menu_base[] =
    MENU_ENDCAP
 };
 
+DEFINE_MENU_CALLBACK(audio_volume_menu_increase);
+DEFINE_MENU_CALLBACK(audio_volume_menu_decrease);
+DEFINE_MENU_CALLBACK(audio_volume_menu_reset);
+
+static const MENU audio_volume_menu_base[] =
+{
+   /* Kludge to make MENU_FROM_BASE() load the menu. */
+   { "insert text here", NULL,                       NULL, 0, NULL },
+   { "  &Increase (+)",  audio_volume_menu_increase, NULL, 0, NULL },
+   { "  &Decrease (-)",  audio_volume_menu_decrease, NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "  &Reset",         audio_volume_menu_reset,    NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
 DEFINE_MENU_CALLBACK(audio_record_menu_start);
 DEFINE_MENU_CALLBACK(audio_record_menu_stop);
 
@@ -411,6 +427,7 @@ static const MENU audio_menu_base[] =
    { "Effec&ts",   NULL,               IMPORT_MENU(audio_effects_menu),   0, NULL },
    { "&Filters",   NULL,               IMPORT_MENU(audio_filters_menu),   0, NULL },
    { "&Channels",  NULL,               IMPORT_MENU(audio_channels_menu),  0, NULL },
+   { "&Volume",    NULL,               IMPORT_MENU(audio_volume_menu),    0, NULL },
    MENU_SPLITTER,                                                       
    { "&Record",    NULL,               IMPORT_MENU(audio_record_menu),    0, NULL },
    MENU_ENDCAP
