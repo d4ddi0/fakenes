@@ -210,6 +210,11 @@ int main (int argc, char * argv [])
     int result;
 
 
+    /* Save argc and argv. */
+    saved_argc = argc;
+    saved_argv = argv;
+
+
     if (VERSION == 0x030)
     {
         printf ("\nThis release is dedicated to those who fell in the 9/11 attacks.\n");

@@ -34,6 +34,9 @@ extern "C" {
 int disable_gui;  /* From main.c, should probably be moved into
                      gui.c/gui.h and be made BOOL. */
 
+int saved_argc;
+char **saved_argv;   /* Saved from main(), needed for ALUT. */
+
 static INLINE int fix (int value, int base, int limit)
 {
    if (value < base)

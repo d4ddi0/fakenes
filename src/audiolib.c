@@ -422,7 +422,7 @@ int audiolib_openal_init (void)
    /* Interpolation is not supported. */
    audio_interpolation = FALSE;
 
-   alutInit (0, NULL);
+   alutInit (&saved_argc, saved_argv);
    AL_CHECK();
 
    /* Autodetect settings. */
