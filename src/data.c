@@ -1699,33 +1699,45 @@ static DATAFILE_PROPERTY datafile_gui_generic_theme_mouse_sprite_prop[] = {
 };
 
 static unsigned char datafile_gui_generic_theme_mouse_sprite_lines[] = 
-"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
-"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
-"\0\0\0\0\0\x9f\x9f\0\0\0\0\0\0\0\0\0\0\0"
-"\0\0\0\0\0\x9f\x90\x9f\0\0\0\0\0\0\0\0\0\0"
-"\0\0\0\0\0\x9f\x90\x90\x9f\0\0\0\0\0\0\0\0\0"
-"\0\0\0\0\0\x9f\x90\x90\x90\x9f\0\0\0\0\0\0\0\0"
-"\0\0\0\0\0\x9f\x90\x90\x90\x90\x9f\0\0\0\0\0\0\0"
-"\0\0\0\0\0\x9f\x90\x90\x90\x90\x90\x9f\0\0\0\0\0\0"
-"\0\0\0\0\0\x9f\x90\x90\x90\x90\x90\x90\x9f\0\0\0\0\0"
-"\0\0\0\0\0\x9f\x90\x90\x90\x90\x90\x90\x90\x9f\0\0\0\0"
-"\0\0\0\0\0\x9f\x90\x90\x90\x90\x90\x90\x90\x90\x9f\0\0\0"
-"\0\0\0\0\0\x9f\x90\x90\x90\x90\x90\x9f\x9f\x9f\x9f\0\0\0"
-"\0\0\0\0\0\x9f\x90\x90\x9f\x90\x90\x9f\0\0\0\0\0\0"
-"\0\0\0\0\0\x9f\x90\x9f\0\x9f\x90\x90\x9f\0\0\0\0\0"
-"\0\0\0\0\0\x9f\x9f\0\0\x9f\x90\x90\x9f\0\0\0\0\0"
-"\0\0\0\0\0\0\0\0\0\0\x9f\x9f\0\0\0\0\0\0"
-"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
-"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
-"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
-"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\x9f\x9f\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\x9f\x90\x9f\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\x9f\x90\x90\x9f\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\x9f\x90\x90\x90\x9f\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\x9f\x90\x90\x90\x90\x9f\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\x9f\x90\x90\x90\x90\x90\x9f\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\x9f\x90\x90\x90\x90\x90\x90\x9f\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\x9f\x90\x90\x90\x90\x90\x90\x90\x9f\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\x9f\x90\x90\x90\x90\x90\x90\x90\x90\x9f\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\x9f\x90\x90\x90\x90\x90\x9f\x9f\x9f\x9f\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\x9f\x90\x90\x9f\x90\x90\x9f\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\x9f\x90\x9f\0\x9f\x90\x90\x9f\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\x9f\x9f\0\0\x9f\x90\x90\x9f\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\0\0\0\0\0\x9f\x9f\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
 ;
 
 static struct { int w, h; int clip; int cl, cr, ct, cb;
                 GFX_VTABLE *vtable; void *write_bank; void *read_bank;
                 void *dat; unsigned long id; void *extra;
-                int x_ofs; int y_ofs; int seg; unsigned char *line[21]; } datafile_gui_generic_theme_mouse_sprite = {
-    18, 20, /* width, height */
+                int x_ofs; int y_ofs; int seg; unsigned char *line[33]; } datafile_gui_generic_theme_mouse_sprite = {
+    32, 32, /* width, height */
     0, 0, 0, 0, 0, /* clip */
     (GFX_VTABLE *)8, /* bpp */
     0, 0, /* write_bank, read_bank */
@@ -1733,25 +1745,37 @@ static struct { int w, h; int clip; int cl, cr, ct, cb;
     0, 0, 0, 0, 0,
     { /* line[] array */
       datafile_gui_generic_theme_mouse_sprite_lines + 0,
-      datafile_gui_generic_theme_mouse_sprite_lines + 18,
-      datafile_gui_generic_theme_mouse_sprite_lines + 36,
-      datafile_gui_generic_theme_mouse_sprite_lines + 54,
-      datafile_gui_generic_theme_mouse_sprite_lines + 72,
-      datafile_gui_generic_theme_mouse_sprite_lines + 90,
-      datafile_gui_generic_theme_mouse_sprite_lines + 108,
-      datafile_gui_generic_theme_mouse_sprite_lines + 126,
-      datafile_gui_generic_theme_mouse_sprite_lines + 144,
-      datafile_gui_generic_theme_mouse_sprite_lines + 162,
-      datafile_gui_generic_theme_mouse_sprite_lines + 180,
-      datafile_gui_generic_theme_mouse_sprite_lines + 198,
-      datafile_gui_generic_theme_mouse_sprite_lines + 216,
-      datafile_gui_generic_theme_mouse_sprite_lines + 234,
-      datafile_gui_generic_theme_mouse_sprite_lines + 252,
-      datafile_gui_generic_theme_mouse_sprite_lines + 270,
+      datafile_gui_generic_theme_mouse_sprite_lines + 32,
+      datafile_gui_generic_theme_mouse_sprite_lines + 64,
+      datafile_gui_generic_theme_mouse_sprite_lines + 96,
+      datafile_gui_generic_theme_mouse_sprite_lines + 128,
+      datafile_gui_generic_theme_mouse_sprite_lines + 160,
+      datafile_gui_generic_theme_mouse_sprite_lines + 192,
+      datafile_gui_generic_theme_mouse_sprite_lines + 224,
+      datafile_gui_generic_theme_mouse_sprite_lines + 256,
       datafile_gui_generic_theme_mouse_sprite_lines + 288,
-      datafile_gui_generic_theme_mouse_sprite_lines + 306,
-      datafile_gui_generic_theme_mouse_sprite_lines + 324,
-      datafile_gui_generic_theme_mouse_sprite_lines + 342,
+      datafile_gui_generic_theme_mouse_sprite_lines + 320,
+      datafile_gui_generic_theme_mouse_sprite_lines + 352,
+      datafile_gui_generic_theme_mouse_sprite_lines + 384,
+      datafile_gui_generic_theme_mouse_sprite_lines + 416,
+      datafile_gui_generic_theme_mouse_sprite_lines + 448,
+      datafile_gui_generic_theme_mouse_sprite_lines + 480,
+      datafile_gui_generic_theme_mouse_sprite_lines + 512,
+      datafile_gui_generic_theme_mouse_sprite_lines + 544,
+      datafile_gui_generic_theme_mouse_sprite_lines + 576,
+      datafile_gui_generic_theme_mouse_sprite_lines + 608,
+      datafile_gui_generic_theme_mouse_sprite_lines + 640,
+      datafile_gui_generic_theme_mouse_sprite_lines + 672,
+      datafile_gui_generic_theme_mouse_sprite_lines + 704,
+      datafile_gui_generic_theme_mouse_sprite_lines + 736,
+      datafile_gui_generic_theme_mouse_sprite_lines + 768,
+      datafile_gui_generic_theme_mouse_sprite_lines + 800,
+      datafile_gui_generic_theme_mouse_sprite_lines + 832,
+      datafile_gui_generic_theme_mouse_sprite_lines + 864,
+      datafile_gui_generic_theme_mouse_sprite_lines + 896,
+      datafile_gui_generic_theme_mouse_sprite_lines + 928,
+      datafile_gui_generic_theme_mouse_sprite_lines + 960,
+      datafile_gui_generic_theme_mouse_sprite_lines + 992,
       0 }
 };
 
@@ -14653,7 +14677,7 @@ DATAFILE datafile_data[] = {
     { &datafile_grayscale_palette, DAT_ID('P', 'A', 'L', ' '), 1024, datafile_grayscale_palette_prop },
     { &datafile_gui_classic_theme_mouse_sprite, DAT_ID('B', 'M', 'P', ' '), 1030, datafile_gui_classic_theme_mouse_sprite_prop },
     { &datafile_gui_classic_theme_palette, DAT_ID('P', 'A', 'L', ' '), 1024, datafile_gui_classic_theme_palette_prop },
-    { &datafile_gui_generic_theme_mouse_sprite, DAT_ID('B', 'M', 'P', ' '), 366, datafile_gui_generic_theme_mouse_sprite_prop },
+    { &datafile_gui_generic_theme_mouse_sprite, DAT_ID('B', 'M', 'P', ' '), 1030, datafile_gui_generic_theme_mouse_sprite_prop },
     { &datafile_gui_generic_theme_palette, DAT_ID('P', 'A', 'L', ' '), 1024, datafile_gui_generic_theme_palette_prop },
     { &datafile_gui_panta_theme_background_image, DAT_ID('B', 'M', 'P', ' '), 307206, datafile_gui_panta_theme_background_image_prop },
     { &datafile_gui_panta_theme_mouse_sprite, DAT_ID('B', 'M', 'P', ' '), 1030, datafile_gui_panta_theme_mouse_sprite_prop },
