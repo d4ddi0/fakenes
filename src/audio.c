@@ -17,10 +17,6 @@
 #include "timing.h"
 #include "types.h"
 
-/* Once audio_init() has been called, please do not change the values of
-   any of these variables without first calling audio_exit(), otherwise a
-   series of memory leaks could occur. */
-
 /* Parameters. */
 BOOL audio_enable_output    = TRUE;
 ENUM audio_subsystem        = AUDIO_SUBSYSTEM_ALLEGRO;
@@ -29,6 +25,10 @@ int  audio_sample_size      = -1;   /* Autodetect. */
 BOOL audio_unsigned_samples = TRUE;
 BOOL audio_interpolation    = TRUE;
 int  audio_buffer_length    = 6;
+
+/* Cachied copies of sensetive parameters to prevent memory leaks if any of
+   them are changed before audio_exit() is called. */
+static BOOL audio_cached_enable_output = -1;
 
 /* Buffer sizes. */
 int audio_buffer_frame_size_samples    = 0;
@@ -82,6 +82,9 @@ int audio_init (void)
    audio_interpolation = get_config_int ("audio", "interpolation", audio_interpolation);
    audio_buffer_length = get_config_int ("audio", "buffer_length", audio_buffer_length);
 
+   /* Cache sensetive parameters. */
+   audio_cached_enable_output = audio_enable_output;
+
    if (!audio_enable_output)
       return (0);
 
@@ -124,7 +127,7 @@ void audio_exit (void)
 {
    DEBUG_PRINTF("audio_exit()\n");
 
-   if (audio_enable_output)
+   if (audio_cached_enable_output)
    {
       /* Destroy queue. */
       audio_destroy_queue ();
@@ -150,7 +153,7 @@ void audio_update (void)
 
    DEBUG_PRINTF("audio_update()\n");
 
-   if (!audio_enable_output)
+   if (!audio_cached_enable_output)
       return;
 
    if (wait_frames > 0)
@@ -175,7 +178,7 @@ void audio_suspend (void)
 {
    DEBUG_PRINTF("audio_suspend()\n");
 
-   if (!audio_enable_output)
+   if (!audio_cached_enable_output)
       return;
 
    audiolib_suspend ();
@@ -185,7 +188,7 @@ void audio_resume (void)
 {
    DEBUG_PRINTF("audio_resume()\n");
 
-   if (!audio_enable_output)
+   if (!audio_cached_enable_output)
       return;
 
    audiolib_resume ();
@@ -197,7 +200,7 @@ void *audio_get_buffer (void)
 {
    DEBUG_PRINTF("audio_get_buffer()\n");
 
-   if (!audio_enable_output)
+   if (!audio_cached_enable_output)
       return (NULL);
 
    floaty_frame = audio_dequeue ();
@@ -214,8 +217,8 @@ void audio_free_buffer (void)
 {
    DEBUG_PRINTF("audio_free_buffer()\n");
 
-   if (!audio_enable_output)
-      return;
+   if (!audio_cached_enable_output)
+      return; 
 
    if (!floaty_frame)
    {
