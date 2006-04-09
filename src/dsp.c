@@ -84,6 +84,7 @@ void dsp_exit (void)
 
    DEBUG_PRINTF("dsp_exit()\n");
 
+   dsp_close_wav ();
    dsp_close ();
 
    /* Save configuration. */
