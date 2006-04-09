@@ -883,11 +883,6 @@ int machine_init (void)
 
 void machine_reset (void)
 {
-    audio_exit ();
-
-    audio_init ();
-
-
     mmc_reset ();
 
     apu_reset ();
