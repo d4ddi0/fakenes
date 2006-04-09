@@ -1512,7 +1512,7 @@ static void draw_messages (void)
             {
                 shadow_textout (screen_buffer, font, token, x, y, VIDEO_COLOR_WHITE);
             }
-            else
+            else if (box)
             {
                 shadow_textout (screen_buffer, font, token, x, y, silver);
             }
