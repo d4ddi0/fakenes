@@ -2469,6 +2469,7 @@ if [ "x$USE_OPENAL" = "xyes" ]; then
     echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
     LIBRARIES="$LIBRARIES `openal-config --libs`"
+    LIBRARIES="$LIBRARIES -lalut"
     echo if this is not what you want, use --without-openal
 else
     echo "$as_me:$LINENO: result: no" >&5
