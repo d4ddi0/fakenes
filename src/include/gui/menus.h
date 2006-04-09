@@ -46,7 +46,6 @@ DEFINE_MENU(video_blitter_menu);
 DEFINE_MENU(video_filters_menu);
 DEFINE_MENU(video_layers_menu);
 DEFINE_MENU(video_palette_menu);
-DEFINE_MENU(video_advanced_menu);
 DEFINE_MENU(video_menu);
 DEFINE_MENU(options_input_menu);
 DEFINE_MENU(options_cpu_usage_menu);
@@ -746,31 +745,23 @@ static const MENU video_palette_menu_base[] =
    MENU_ENDCAP
 };
 
-DEFINE_MENU_CALLBACK(video_advanced_menu_force_fullscreen);
-
-static const MENU video_advanced_menu_base[] =
-{
-   { "&Force Fullscreen", video_advanced_menu_force_fullscreen, NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
+DEFINE_MENU_CALLBACK(video_menu_fullscreen);
 DEFINE_MENU_CALLBACK(video_menu_page_buffer);
 DEFINE_MENU_CALLBACK(video_menu_vsync);
 
 static const MENU video_menu_base[] =
 {                    
+   { "&Fullscreen",  video_menu_fullscreen,  NULL,                               0, NULL },
+   { "&Page Buffer", video_menu_page_buffer, NULL,                               0, NULL },
+   { "&VSync",       video_menu_vsync,       NULL,                               0, NULL },
+   MENU_SPLITTER,
    { "&Driver",      NULL,                   IMPORT_MENU(video_driver_menu),     0, NULL },
    { "&Resolution",  NULL,                   IMPORT_MENU(video_resolution_menu), 0, NULL },
    { "&Colors",      NULL,                   IMPORT_MENU(video_colors_menu),     0, NULL },
    { "&Blitter",     NULL,                   IMPORT_MENU(video_blitter_menu),    0, NULL },
-   { "&Filters",     NULL,                   IMPORT_MENU(video_filters_menu),    0, NULL },
-   MENU_SPLITTER,
-   { "&Page Buffer", video_menu_page_buffer, NULL,                               0, NULL },
-   { "&VSync",       video_menu_vsync,       NULL,                               0, NULL },
-   MENU_SPLITTER,
+   { "F&ilters",     NULL,                   IMPORT_MENU(video_filters_menu),    0, NULL },
    { "&Layers",      NULL,                   IMPORT_MENU(video_layers_menu),     0, NULL },
    { "P&alette",     NULL,                   IMPORT_MENU(video_palette_menu),    0, NULL },
-   { "Adva&nced",    NULL,                   IMPORT_MENU(video_advanced_menu),   0, NULL },
    MENU_ENDCAP
 };
 

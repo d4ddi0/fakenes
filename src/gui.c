@@ -261,7 +261,6 @@ static INLINE void load_menus (void)
    MENU_FROM_BASE(video_filters_menu);
    MENU_FROM_BASE(video_layers_menu);
    MENU_FROM_BASE(video_palette_menu);
-   MENU_FROM_BASE(video_advanced_menu);
    MENU_FROM_BASE(video_menu);
    MENU_FROM_BASE(options_input_menu);
    MENU_FROM_BASE(options_cpu_usage_menu);
@@ -327,7 +326,6 @@ static INLINE void unload_menus (void)
    unload_menu (video_filters_menu);
    unload_menu (video_layers_menu);
    unload_menu (video_palette_menu);
-   unload_menu (video_advanced_menu);
    unload_menu (video_menu);
    unload_menu (options_input_menu);
    unload_menu (options_cpu_usage_menu);
@@ -818,6 +816,7 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(video_filters_menu_scanlines_50_percent,  (video_get_filter_list () & VIDEO_FILTER_SCANLINES_MEDIUM));
    TOGGLE_MENU_ITEM(video_filters_menu_scanlines_100_percent, (video_get_filter_list () & VIDEO_FILTER_SCANLINES_HIGH));
 
+   TOGGLE_MENU_ITEM(video_menu_fullscreen,  video_force_fullscreen);
    TOGGLE_MENU_ITEM(video_menu_page_buffer, video_enable_page_buffer);
    TOGGLE_MENU_ITEM(video_menu_vsync,       video_enable_vsync);
 
@@ -831,8 +830,6 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(video_palette_menu_ega_mode_1,     (video_get_palette_id () == DATA_INDEX(EGA_PALETTE_1)));
    TOGGLE_MENU_ITEM(video_palette_menu_ega_mode_2,     (video_get_palette_id () == DATA_INDEX(EGA_PALETTE_2)));
    TOGGLE_MENU_ITEM(video_palette_menu_custom,         (video_get_palette_id () == -1));
-
-   TOGGLE_MENU_ITEM(video_advanced_menu_force_fullscreen, video_force_fullscreen);
 
    TOGGLE_MENU_ITEM(video_layers_menu_sprites_a,                 ppu_enable_sprite_layer_a);
    TOGGLE_MENU_ITEM(video_layers_menu_sprites_b,                 ppu_enable_sprite_layer_b);
@@ -920,10 +917,11 @@ int gui_init (void)
 
 #ifdef ALLEGRO_DOS
 
+   CHECK_MENU_ITEM(video_menu_fullscreen);
+   DISABLE_MENU_ITEM(video_menu_fullscreen);
    DISABLE_SUBMENU(video_driver_windows_menu);
    DISABLE_SUBMENU(video_driver_linux_menu);
    DISABLE_SUBMENU(video_driver_unix_menu);
-   DISABLE_MENU_ITEM(video_advanced_menu_force_fullscreen);
    DISABLE_SUBMENU(options_cpu_usage_menu);
    DISABLE_SUBMENU(netplay_menu);
 
@@ -2600,6 +2598,40 @@ static int audio_record_menu_stop (void)
    return (D_O_K);
 }
 
+static int video_menu_fullscreen (void)
+{
+   video_force_fullscreen = !video_force_fullscreen;
+   video_reinit ();
+
+   gui_needs_restart = TRUE;
+   return (D_CLOSE);
+}
+
+static int video_menu_page_buffer (void)
+{
+   video_enable_page_buffer = !video_enable_page_buffer;
+   update_menus ();
+
+   video_reinit ();
+
+   cycle_video ();
+
+   message_local ("Page buffering %s.", get_enabled_text
+      (video_enable_page_buffer));
+
+   return (D_O_K);
+}
+
+static int video_menu_vsync (void)
+{
+   video_enable_vsync = !video_enable_vsync;
+   update_menus ();
+
+   message_local ("VSync %s.", get_enabled_text (video_enable_vsync));
+
+   return (D_O_K);
+}
+
 #define DRIVER_MENU_HANDLER(system, driver, id) \
    static int video_driver_##system##_menu_##driver (void)   \
    {  \
@@ -2837,31 +2869,6 @@ static int video_filters_menu_scanlines_100_percent (void)
    return (D_O_K);
 }
 
-static int video_menu_page_buffer (void)
-{
-   video_enable_page_buffer = !video_enable_page_buffer;
-   update_menus ();
-
-   video_reinit ();
-
-   cycle_video ();
-
-   message_local ("Page buffering %s.", get_enabled_text
-      (video_enable_page_buffer));
-
-   return (D_O_K);
-}
-
-static int video_menu_vsync (void)
-{
-   video_enable_vsync = !video_enable_vsync;
-   update_menus ();
-
-   message_local ("VSync %s.", get_enabled_text (video_enable_vsync));
-
-   return (D_O_K);
-}
-
 static int video_layers_menu_sprites_a (void)
 {
    ppu_enable_sprite_layer_a = !ppu_enable_sprite_layer_a;
@@ -2999,15 +3006,6 @@ static int video_palette_menu_custom (void)
    message_local ("Video palette set to custom.");
     
    return (D_O_K);
-}
-
-static int video_advanced_menu_force_fullscreen (void)
-{
-   video_force_fullscreen = !video_force_fullscreen;
-   video_reinit ();
-
-   gui_needs_restart = TRUE;
-   return (D_CLOSE);
 }
 
 static int options_menu_show_status (void)
