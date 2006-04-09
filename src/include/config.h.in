@@ -1,23 +1,13 @@
-
-
 #ifndef CONFIG_H_INCLUDED
-
 #define CONFIG_H_INCLUDED
 
-
 /* The number of bytes in a short int.  */
-
 #undef SIZEOF_SHORT_INT
 
-
 /* The number of bytes in a int.  */
-
 #undef SIZEOF_INT
 
-
 /* The number of bytes in a long int.  */
-
 #undef SIZEOF_LONG_INT
 
-
-#endif /* ! CONFIG_H_INCLUDED */
+#endif   /* !CONFIG_H_INCLUDED */
