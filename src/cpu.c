@@ -339,92 +339,69 @@ int cpu_get_cycles (BOOL reset)
 
 void cpu_save_state (PACKFILE *file, int version)
 {
-   PACKFILE *chunk;
-
    RT_ASSERT(file);
-
-   /* Open chunk. */
-   chunk = pack_fopen_chunk (file, FALSE);
-   if (!chunk)
-      WARN_BREAK_GENERIC();
-
-   /* Save data. */
 
    /* Save CPU registers. */
 
-   pack_iputw (cpu_context.PC.word, chunk);
+   pack_iputw (cpu_context.PC.word, file);
 
-   pack_putc (cpu_context.A, chunk);
-   pack_putc (cpu_context.X, chunk);
-   pack_putc (cpu_context.Y, chunk);
-   pack_putc (cpu_context.S, chunk);
+   pack_putc (cpu_context.A, file);
+   pack_putc (cpu_context.X, file);
+   pack_putc (cpu_context.Y, file);
+   pack_putc (cpu_context.S, file);
 
-   pack_putc (FN2A03_Pack_Flags (&cpu_context), chunk);
+   pack_putc (FN2A03_Pack_Flags (&cpu_context), file);
 
    /* Save cycle counters. */
 
-   pack_iputl (cpu_context.ICount, chunk);
-   pack_iputl (cpu_context.Cycles, chunk);
+   pack_iputl (cpu_context.ICount, file);
+   pack_iputl (cpu_context.Cycles, file);
 
    /* Save IRQ state. */
-   pack_iputl (cpu_context.IRequest, chunk);
+   pack_iputl (cpu_context.IRequest, file);
 
    /* Save execution state. */
-   pack_putc (cpu_context.Jammed, chunk);
+   pack_putc (cpu_context.Jammed, file);
 
    /* Save NES internal RAM. */
-   pack_fwrite (cpu_ram, 0x800, chunk);
+   pack_fwrite (cpu_ram, 0x800, file);
 
    /* Save cartridge expansion RAM. */
-   pack_fwrite (cpu_sram, 0x2000, chunk);
-
-   /* Close chunk. */
-   pack_fclose_chunk (chunk);
+   pack_fwrite (cpu_sram, 0x2000, file);
 }
 
 void cpu_load_state (PACKFILE *file, int version)
 {
-   PACKFILE *chunk;
    UINT8 P;
 
    RT_ASSERT(file);
 
-   /* Open chunk. */
-   chunk = pack_fopen_chunk (file, FALSE);
-   if (!chunk)
-      WARN_BREAK_GENERIC();
-
-   /* Load data. */
-
    /* Restore CPU registers. */
 
-   cpu_context.PC.word = pack_igetw (chunk);
+   cpu_context.PC.word = pack_igetw (file);
 
-   cpu_context.A = pack_getc (chunk);
-   cpu_context.X = pack_getc (chunk);
-   cpu_context.Y = pack_getc (chunk);
-   cpu_context.S = pack_getc (chunk);
+   cpu_context.A = pack_getc (file);
+   cpu_context.X = pack_getc (file);
+   cpu_context.Y = pack_getc (file);
+   cpu_context.S = pack_getc (file);
 
-   P = pack_getc (chunk);
+   P = pack_getc (file);
    FN2A03_Unpack_Flags (&cpu_context, P);
 
    /* Restore cycle counters. */
 
-   cpu_context.ICount = pack_igetl (chunk);
-   cpu_context.Cycles = pack_igetl (chunk);
+   cpu_context.ICount = pack_igetl (file);
+   cpu_context.Cycles = pack_igetl (file);
 
    /* Restore IRQ state. */
-   cpu_context.IRequest = pack_igetl (chunk);
+   cpu_context.IRequest = pack_igetl (file);
 
    /* Restore execution state. */
-   cpu_context.Jammed = pack_getc (chunk);
+   cpu_context.Jammed = pack_getc (file);
 
    /* Restore NES internal RAM. */
-   pack_fread (cpu_ram, 0x800, chunk);
+   pack_fread (cpu_ram, 0x800, file);
 
    /* Restore cartridge expansion RAM. */
-   pack_fread (cpu_sram, 0x2000, chunk);
-
-   /* Close chunk. */
-   pack_fclose_chunk (chunk);
+   pack_fread (cpu_sram, 0x2000, file);
 }

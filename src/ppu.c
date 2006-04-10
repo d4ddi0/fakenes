@@ -1142,128 +1142,110 @@ void ppu_vblank_nmi (void)
 
 void ppu_save_state (PACKFILE * file, int version)
 {
-    PACKFILE * file_chunk;
+    pack_putc(ppu_register_2000, file);
+    pack_putc(ppu_register_2001, file);
 
 
-    file_chunk = pack_fopen_chunk (file, FALSE);
+    pack_putc(ppu_mirroring, file);
 
 
-    pack_putc(ppu_register_2000, file_chunk);
-    pack_putc(ppu_register_2001, file_chunk);
+    pack_putc(spr_ram_address, file);
 
 
-    pack_putc(ppu_mirroring, file_chunk);
+    pack_iputw(vram_address, file);
+    pack_putc(buffered_vram_read, file);
+
+    pack_putc(address_write, file);
+    pack_iputw(address_temp, file);
+    pack_putc(x_offset, file);
+
+    pack_putc(vblank_occurred, file);
+
+    pack_putc(hit_first_sprite, file);
+    pack_iputl(first_sprite_this_line, file);
 
 
-    pack_putc(spr_ram_address, file_chunk);
-
-
-    pack_iputw(vram_address, file_chunk);
-    pack_putc(buffered_vram_read, file_chunk);
-
-    pack_putc(address_write, file_chunk);
-    pack_iputw(address_temp, file_chunk);
-    pack_putc(x_offset, file_chunk);
-
-    pack_putc(vblank_occurred, file_chunk);
-
-    pack_putc(hit_first_sprite, file_chunk);
-    pack_iputl(first_sprite_this_line, file_chunk);
-
-
-    pack_putc(mmc_get_name_table_count(), file_chunk);
-    pack_putc(mmc_uses_pattern_vram(), file_chunk);
+    pack_putc(mmc_get_name_table_count(), file);
+    pack_putc(mmc_uses_pattern_vram(), file);
 
 
     /* save palette RAM */
-    pack_fwrite(ppu_palette, 32, file_chunk);
+    pack_fwrite(ppu_palette, 32, file);
 
 
     /* save sprite RAM */
-    pack_fwrite(ppu_spr_ram, 256, file_chunk);
+    pack_fwrite(ppu_spr_ram, 256, file);
 
     /* mmc_get_name_table_count() MUST be <= 4 */
     /* values of 2 and 4 are expected */
     if (mmc_get_name_table_count())
     {
      pack_fwrite(ppu_name_table_vram, 1024 * mmc_get_name_table_count(),
-      file_chunk);
+      file);
     }
 
     if (mmc_uses_pattern_vram())
     {
-     pack_fwrite(ppu_pattern_vram, 8192, file_chunk);
+     pack_fwrite(ppu_pattern_vram, 8192, file);
     }
-
-
-    pack_fclose_chunk (file_chunk);
 }
 
 
 void ppu_load_state (PACKFILE * file, int version)
 {
-    PACKFILE * file_chunk;
-
-
     int state_name_table_count, state_contains_pattern_vram;
 
 
-    file_chunk = pack_fopen_chunk (file, FALSE);
-
-
-    ppu_register_2000 = pack_getc(file_chunk);
+    ppu_register_2000 = pack_getc(file);
     ppu_write (0x2000, ppu_register_2000);
 
-    ppu_register_2001 = pack_getc(file_chunk);
+    ppu_register_2001 = pack_getc(file);
     ppu_write (0x2001, ppu_register_2001);
 
 
-    ppu_mirroring = pack_getc(file_chunk);
+    ppu_mirroring = pack_getc(file);
     ppu_set_mirroring(ppu_mirroring);
 
 
-    spr_ram_address = pack_getc(file_chunk);
+    spr_ram_address = pack_getc(file);
     sprite_list_needs_recache = TRUE;
 
 
-    vram_address = pack_igetw(file_chunk);
-    buffered_vram_read = pack_getc(file_chunk);
+    vram_address = pack_igetw(file);
+    buffered_vram_read = pack_getc(file);
 
-    address_write = pack_getc(file_chunk);
-    address_temp = pack_igetw(file_chunk);
-    x_offset = pack_getc(file_chunk);
+    address_write = pack_getc(file);
+    address_temp = pack_igetw(file);
+    x_offset = pack_getc(file);
 
-    vblank_occurred = pack_getc(file_chunk);
+    vblank_occurred = pack_getc(file);
 
-    hit_first_sprite = pack_getc(file_chunk);
-    first_sprite_this_line = pack_igetl(file_chunk);
+    hit_first_sprite = pack_getc(file);
+    first_sprite_this_line = pack_igetl(file);
 
 
-    state_name_table_count = pack_getc(file_chunk);
-    state_contains_pattern_vram = pack_getc(file_chunk);
+    state_name_table_count = pack_getc(file);
+    state_contains_pattern_vram = pack_getc(file);
 
 
     /* load palette RAM */
-    pack_fread(ppu_palette, 32, file_chunk);
+    pack_fread(ppu_palette, 32, file);
 
 
     /* load sprite RAM */
-    pack_fread(ppu_spr_ram, 256, file_chunk);
+    pack_fread(ppu_spr_ram, 256, file);
 
     /* state_name_table_count MUST be <= 4 */
     /* values of 2 and 4 are expected */
     if (state_name_table_count)
     {
      pack_fread(ppu_name_table_vram, 1024 * state_name_table_count,
-      file_chunk);
+      file);
     }
 
     if (state_contains_pattern_vram)
     {
-     pack_fread(ppu_pattern_vram, 8192, file_chunk);
+     pack_fread(ppu_pattern_vram, 8192, file);
      ppu_cache_all_vram ();
     }
-
-
-    pack_fclose_chunk (file_chunk);
 }

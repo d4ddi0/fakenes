@@ -118,46 +118,23 @@ static int nina_init (void)
 
 static void nina_save_state (PACKFILE *file, int version)
 {
-   PACKFILE *chunk;
-
    RT_ASSERT(file);
 
-   /* Open chunk. */
-   chunk = pack_fopen_chunk (file, FALSE);
-   if (!chunk)
-      WARN_BREAK_GENERIC();
-
-   /* Save data */
-
-   pack_putc (nina_prg_bank, chunk);
-   pack_fwrite (nina_chr_bank, 2, chunk);
-
-   /* Close chunk. */
-   pack_fclose_chunk (chunk);
+   pack_putc (nina_prg_bank, file);
+   pack_fwrite (nina_chr_bank, 2, file);
 }
 
 static void nina_load_state (PACKFILE *file, int version)
 {
-   PACKFILE *chunk;
    int index;
 
    RT_ASSERT(file);
 
-   /* Open chunk. */
-   chunk = pack_fopen_chunk (file, FALSE);
-   if (!chunk)
-      WARN_BREAK_GENERIC();
-
-   /* Load data */
-
-   nina_prg_bank = pack_getc (chunk);
-   pack_fread (nina_chr_bank, 2, chunk);
+   nina_prg_bank = pack_getc (file);
+   pack_fread (nina_chr_bank, 2, file);
 
    nina_update_prg_bank ();
    nina_update_chr_bank (0);
    nina_update_chr_bank (1);
-
-   /* Close chunk. */
-   pack_fclose_chunk (chunk);
 }
 

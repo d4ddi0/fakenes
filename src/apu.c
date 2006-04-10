@@ -1059,17 +1059,9 @@ void apu_ex_write (UINT16 address, UINT8 value)
 
 void apu_save_state (PACKFILE *file, int version)
 {
-   PACKFILE *chunk;
    int index;
 
    RT_ASSERT(file);
-
-   /* Open chunk. */
-   chunk = pack_fopen_chunk (file, FALSE);
-   if (!chunk)
-      WARN_BREAK_GENERIC();
-
-   /* Save data. */
 
    /* Squares. */
    for (index = 0; index < 2; index++)
@@ -1077,41 +1069,30 @@ void apu_save_state (PACKFILE *file, int version)
       int subindex;
 
       for (subindex = 0; subindex < 4; subindex++)
-         pack_putc (apu.apus.square[index].regs[subindex], chunk);
+         pack_putc (apu.apus.square[index].regs[subindex], file);
    }
 
    /* Triangle. */
    for (index = 0; index < 3; index++)
-      pack_putc (apu.apus.triangle.regs[index], chunk);
+      pack_putc (apu.apus.triangle.regs[index], file);
 
    /* Noise. */
    for (index = 0; index < 3; index++)
-      pack_putc (apu.apus.noise.regs[index], chunk);
+      pack_putc (apu.apus.noise.regs[index], file);
 
    /* DMC. */
    for (index = 0; index < 4; index++)
-      pack_putc (apu.apus.dmc.regs[index], chunk);
+      pack_putc (apu.apus.dmc.regs[index], file);
 
    /* ExSound. */
-   pack_putc (apu.exsound, chunk);
-
-   /* Close chunk. */
-   pack_fclose_chunk (chunk);
+   pack_putc (apu.exsound, file);
 }
 
 void apu_load_state (PACKFILE *file, int version)
 {
-   PACKFILE *chunk;
    int index;
 
    RT_ASSERT(file);
-
-   /* Open chunk. */
-   chunk = pack_fopen_chunk (file, FALSE);
-   if (!chunk)
-      WARN_BREAK_GENERIC();
-
-   /* Load data. */
 
    for (index = 0; index < 0x16; index++)
    {
@@ -1120,7 +1101,7 @@ void apu_load_state (PACKFILE *file, int version)
       if (index == 0x14)
          continue;
 
-      value = pack_getc (chunk);
+      value = pack_getc (file);
 
       if ((index >= 0x10) && (index <= 0x13))
       {
@@ -1135,10 +1116,7 @@ void apu_load_state (PACKFILE *file, int version)
    }
 
    /* ExSound. */
-   apu_set_exsound (pack_getc (chunk));
-
-   /* Close chunk. */
-   pack_fclose_chunk (chunk);
+   apu_set_exsound (pack_getc (file));
 }
 
 /* --- Internal functions. --- */

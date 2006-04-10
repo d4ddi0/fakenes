@@ -79,36 +79,14 @@ static int dreams_init (void)
 
 static void dreams_save_state (PACKFILE *file, int version)
 {
-   PACKFILE *chunk;
-
    RT_ASSERT(file);
 
-   /* Open chunk. */
-   chunk = pack_fopen_chunk (file, FALSE);
-   if (!chunk)
-      WARN_BREAK_GENERIC();
-
-   /* Save data. */
-   pack_putc (dreams_last_write, chunk);
-
-   /* Close chunk. */
-   pack_fclose_chunk (chunk);
+   pack_putc (dreams_last_write, file);
 }
 
-static void dreams_load_state (PACKFILE * file, int version)
+static void dreams_load_state (PACKFILE *file, int version)
 {
-   PACKFILE *chunk;
-
    RT_ASSERT(file);
 
-   /* Open chunk. */
-   chunk = pack_fopen_chunk (file, FALSE);
-   if (!chunk)
-      WARN_BREAK_GENERIC();
-
-   /* Load data. */
-   dreams_write (0x8000, pack_getc (chunk));
-
-   /* Close chunk. */
-   pack_fclose_chunk (chunk);
+   dreams_write (0x8000, pack_getc (file));
 }

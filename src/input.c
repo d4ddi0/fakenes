@@ -1119,39 +1119,21 @@ void input_map_device_button (int device, int button, int value)
 
 void input_save_state (PACKFILE * file, int version)
 {
-    PACKFILE * file_chunk;
+    pack_putc (last_write, file);
 
 
-    file_chunk = pack_fopen_chunk (file, FALSE);
+    pack_putc (current_read_p1, file);
 
-
-    pack_putc (last_write, file_chunk);
-
-
-    pack_putc (current_read_p1, file_chunk);
-
-    pack_putc (current_read_p2, file_chunk);
-
-
-    pack_fclose_chunk (file_chunk);
+    pack_putc (current_read_p2, file);
 }
 
 
 void input_load_state (PACKFILE * file, int version)
 {
-    PACKFILE * file_chunk;
+    last_write = pack_getc (file);
 
 
-    file_chunk = pack_fopen_chunk (file, FALSE);
+    current_read_p1 = pack_getc (file);
 
-
-    last_write = pack_getc (file_chunk);
-
-
-    current_read_p1 = pack_getc (file_chunk);
-
-    current_read_p2 = pack_getc (file_chunk);
-
-
-    pack_fclose_chunk (file_chunk);
+    current_read_p2 = pack_getc (file);
 }

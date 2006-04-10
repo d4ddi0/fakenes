@@ -21,6 +21,7 @@
 #include "netplay.h"
 #include "platform.h"
 #include "ppu.h"
+#include "rewind.h"
 #include "rom.h"
 #include "timing.h"
 #include "version.h"
@@ -332,6 +333,9 @@ int main (int argc, char * argv [])
 
 
     apu_init ();
+
+
+    rewind_init ();
 
 
     net_init ();
@@ -759,6 +763,17 @@ int main (int argc, char * argv [])
             }
 
 
+            if (input_mode & INPUT_MODE_PLAY)
+            {
+               /* Game rewinding. */
+
+               if (key[KEY_BACKSLASH])
+                  rewind_load_snapshot ();
+               else
+                  rewind_save_snapshot ();
+            }        
+
+
             if ((cpu_usage == CPU_USAGE_PASSIVE) ||
                 (cpu_usage == CPU_USAGE_NORMAL))
             {
@@ -801,6 +816,9 @@ int main (int argc, char * argv [])
     ppu_exit ();
 
 
+    rewind_exit ();
+
+
     netplay_exit ();
 
     net_exit ();
@@ -838,6 +856,9 @@ END_OF_MAIN ()
 
 int machine_init (void)
 {
+    rewind_clear ();
+
+
     if (rom_is_loaded)
     {
         cpu_memmap_init ();

@@ -275,44 +275,26 @@ void mmc_reset (void)
 
 void mmc_save_state (PACKFILE * file, int version)
 {
-    PACKFILE * file_chunk;
-
-
-    file_chunk = pack_fopen_chunk (file, FALSE);
-
-
     if (ROM_CURRENT_MMC -> save_state)
     {
-        pack_fwrite (ROM_CURRENT_MMC -> id, 8, file_chunk);
+        pack_fwrite (ROM_CURRENT_MMC -> id, 8, file);
 
 
-        ROM_CURRENT_MMC -> save_state (file_chunk, version);
+        ROM_CURRENT_MMC -> save_state (file, version);
     }
-
-
-    pack_fclose_chunk (file_chunk);
 }
 
 
 void mmc_load_state (PACKFILE * file, int version)
 {
-    PACKFILE * file_chunk;
-
-
     UINT8 signature [8];
-
-
-    file_chunk = pack_fopen_chunk (file, FALSE);
 
 
     if (ROM_CURRENT_MMC -> load_state)
     {
-        pack_fread (signature, 8, file_chunk);
+        pack_fread (signature, 8, file);
 
 
-        ROM_CURRENT_MMC -> load_state (file_chunk, version);
+        ROM_CURRENT_MMC -> load_state (file, version);
     }
-
-
-    pack_fclose_chunk (file_chunk);
 }

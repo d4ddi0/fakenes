@@ -66,36 +66,14 @@ static int cnrom_init (void)
 
 static void cnrom_save_state (PACKFILE *file, int version)
 {
-   PACKFILE *chunk;
-
    RT_ASSERT(file);
 
-   /* Open chunk. */
-   chunk = pack_fopen_chunk (file, FALSE);
-   if (!chunk)
-      WARN_BREAK_GENERIC();
-
-   /* Save data. */
-   pack_putc (cnrom_last_write, chunk);
-
-   /* Close chunk. */
-   pack_fclose_chunk (chunk);
+   pack_putc (cnrom_last_write, file);
 }
 
 static void cnrom_load_state (PACKFILE *file, int version)
 {
-   PACKFILE *chunk;
-
    RT_ASSERT(file);
 
-   /* Open chunk. */
-   chunk = pack_fopen_chunk (file, FALSE);
-   if (!chunk)
-      WARN_BREAK_GENERIC();
-
-   /* Load data. */
-   cnrom_write (0x8000, pack_getc (chunk));
-
-   /* Close chunk. */
-   pack_fclose_chunk (chunk);
+   cnrom_write (0x8000, pack_getc (file));
 }

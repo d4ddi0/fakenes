@@ -54,36 +54,15 @@ static int unrom_init (void)
 
 static void unrom_save_state (PACKFILE *file, int version)
 {
-   PACKFILE *chunk;
-
    RT_ASSERT(file);
-
-   /* Open chunk. */
-   chunk = pack_fopen_chunk (file, FALSE);
-   if (!chunk)
-      WARN_BREAK_GENERIC();
 
    /* Save data. */
-   pack_putc (unrom_last_write, chunk);
-
-   /* Close chunk. */
-   pack_fclose_chunk (chunk);
+   pack_putc (unrom_last_write, file);
 }
 
-static void unrom_load_state (PACKFILE * file, int version)
+static void unrom_load_state (PACKFILE *file, int version)
 {
-   PACKFILE *chunk;
-
    RT_ASSERT(file);
 
-   /* Open chunk. */
-   chunk = pack_fopen_chunk (file, FALSE);
-   if (!chunk)
-      WARN_BREAK_GENERIC();
-
-   /* Load data. */
-   unrom_write (0x8000, pack_getc (chunk));
-
-   /* Close chunk. */
-   pack_fclose_chunk (chunk);
+   unrom_write (0x8000, pack_getc (file));
 }

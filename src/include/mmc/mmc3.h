@@ -381,62 +381,44 @@ static int mmc3_init (void)
 
 static void mmc3_save_state (PACKFILE * file, int version)
 {
-    PACKFILE * file_chunk;
+    pack_putc (mmc3_register_8000, file);
+
+    pack_putc (mmc3_sram_enable, file);
+
+    pack_putc (mmc3_irq_counter, file);
+    pack_putc (mmc3_irq_latch, file);
+
+    pack_putc (mmc3_disable_irqs, file);
+    pack_putc (mmc3_counter_latched, file);
 
 
-    file_chunk = pack_fopen_chunk (file, FALSE);
-
-
-    pack_putc (mmc3_register_8000, file_chunk);
-
-    pack_putc (mmc3_sram_enable, file_chunk);
-
-    pack_putc (mmc3_irq_counter, file_chunk);
-    pack_putc (mmc3_irq_latch, file_chunk);
-
-    pack_putc (mmc3_disable_irqs, file_chunk);
-    pack_putc (mmc3_counter_latched, file_chunk);
-
-
-    pack_fwrite (mmc3_prg_bank, 2, file_chunk);
-    pack_fwrite (mmc3_chr_bank, 6, file_chunk);
-
-
-    pack_fclose_chunk (file_chunk);
+    pack_fwrite (mmc3_prg_bank, 2, file);
+    pack_fwrite (mmc3_chr_bank, 6, file);
 }
 
 
 static void mmc3_load_state (PACKFILE * file, int version)
 {
-    PACKFILE * file_chunk;
-
-
-    file_chunk = pack_fopen_chunk (file, FALSE);
-
-
     /* Restore address latches */
-    mmc3_write(0x8000, pack_getc (file_chunk));
+    mmc3_write(0x8000, pack_getc (file));
 
     /* Restore SRAM status */
-    mmc3_write(0xA001, pack_getc (file_chunk));
+    mmc3_write(0xA001, pack_getc (file));
 
     /* Restore IRQ registers */
-    mmc3_irq_counter = pack_getc (file_chunk);
-    mmc3_irq_latch = pack_getc (file_chunk);
+    mmc3_irq_counter = pack_getc (file);
+    mmc3_irq_latch = pack_getc (file);
 
-    mmc3_disable_irqs = pack_getc (file_chunk);
-    mmc3_counter_latched = pack_getc (file_chunk);
+    mmc3_disable_irqs = pack_getc (file);
+    mmc3_counter_latched = pack_getc (file);
 
 
     /* Restore banking */
-    pack_fread (mmc3_prg_bank, 2, file_chunk);
-    pack_fread (mmc3_chr_bank, 6, file_chunk);
+    pack_fread (mmc3_prg_bank, 2, file);
+    pack_fread (mmc3_chr_bank, 6, file);
 
 
     mmc3_cpu_bank_sort ();
     mmc3_ppu_bank_sort ();
-
-
-    pack_fclose_chunk (file_chunk);
 }
 

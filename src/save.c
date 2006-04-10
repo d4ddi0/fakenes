@@ -29,6 +29,77 @@
 /* FNSS version supported/created. */
 #define FNSS_VERSION 0x0101
 
+static INLINE BOOL fnss_save_chunk (PACKFILE *file, int version, const char
+   *id, void (*save_state) (PACKFILE *, int))
+{
+   /* This function opens a chunk for the component with the specified
+      4-character ID, then invokes it's save handler within that chunk.
+
+      Returns TRUE on success, FALSE on failure. */
+
+   PACKFILE *chunk;
+
+   RT_ASSERT(file);
+   RT_ASSERT(id);
+   RT_ASSERT(save_state);
+
+   /* Write ID. */
+   pack_fwrite (id, 4, file);
+
+   /* Open chunk. */
+   chunk = pack_fopen_chunk (file, FALSE);
+   if (!chunk)
+   {
+      WARN_GENERIC();
+      return (FALSE);
+   }
+
+   /* Invoke save handler. */
+   save_state (chunk, version);
+
+   /* Close chunk. */
+   pack_fclose_chunk (chunk);
+
+   /* Return success. */
+   return (TRUE);
+}
+
+static INLINE BOOL fnss_load_chunk (PACKFILE *file, int version, const char
+   *id, void (*load_state) (PACKFILE *, int))
+{
+   /* Same as above, but or loading instead. */
+
+   PACKFILE *chunk;
+   UINT8 signature[4];
+
+   RT_ASSERT(file);
+   RT_ASSERT(id);
+   RT_ASSERT(load_state);
+
+   /* Read ID. */
+   pack_fread (signature, 4, file);
+
+   /* We ignore signatures for now, this will be used in the future to load
+      chunks in any order. */
+
+   /* Open chunk. */
+   chunk = pack_fopen_chunk (file, FALSE);
+   if (!chunk)
+   {
+      WARN_GENERIC();
+      return (FALSE);
+   }
+
+   /* Invoke load handler. */
+   load_state (chunk, version);
+
+   /* Close chunk. */
+   pack_fclose_chunk (chunk);
+
+   /* Return success. */
+   return (TRUE);
+}
+
 static INLINE BOOL fnss_save (PACKFILE *file, const UCHAR *title)
 {
    UINT16 version;
@@ -57,24 +128,19 @@ static INLINE BOOL fnss_save (PACKFILE *file, const UCHAR *title)
    pack_iputl (global_rom.chr_rom_crc32, file);
    
    /* Write CPU chunk. */
-   pack_fwrite ("CPU\0", 4, file);
-   cpu_save_state (file, version);
+   fnss_save_chunk (file, version, "CPU\0", cpu_save_state);
    
    /* Write PPU chunk. */
-   pack_fwrite ("PPU\0", 4, file);
-   ppu_save_state (file, version);
+   fnss_save_chunk (file, version, "PPU\0", ppu_save_state);
    
    /* Write APU chunk. */
-   pack_fwrite ("APU", 4, file);
-   apu_save_state (file, version);
+   fnss_save_chunk (file, version, "APU\0", apu_save_state);
    
    /* Write MMC chunk. */
-   pack_fwrite ("MMC\0", 4, file);
-   mmc_save_state (file, version);
+   fnss_save_chunk (file, version, "MMC\0", mmc_save_state);
    
    /* Write CTRL chunk. */
-   pack_fwrite ("CTRL", 4, file);
-   input_save_state (file, version);
+   fnss_save_chunk (file, version, "CTRL", input_save_state);
 
    /* Return success. */
    return (TRUE);
@@ -134,27 +200,83 @@ static INLINE BOOL fnss_load (PACKFILE *file)
    /* Reset the virtual machine to it's initial state. */
    machine_reset ();
     
-   /* We ignore signatures for now, this will be used in the future to load
-      chunks in any order. */
-
    /* Load CPU chunk. */
-   pack_fread (signature, 4, file);
-   cpu_load_state (file, version);
+   fnss_load_chunk (file, version, "CPU\0", cpu_load_state);
 
    /* Load PPU chunk. */
-   pack_fread (signature, 4, file);
-   ppu_load_state (file, version);
+   fnss_load_chunk (file, version, "PPU\0", ppu_load_state);
 
    /* Load APU chunk. */
-   pack_fread (signature, 4, file);
-   apu_load_state (file, version);
+   fnss_load_chunk (file, version, "APU\0", apu_load_state);
 
    /* Load MMC chunk. */
-   pack_fread (signature, 4, file);
-   mmc_load_state (file, version);
+   fnss_load_chunk (file, version, "MMC\0", mmc_load_state);
 
    /* Load CTRL chunk. */
-   pack_fread (signature, 4, file);
+   fnss_load_chunk (file, version, "CTRL", input_load_state);
+
+   /* Return success. */
+   return (TRUE);
+}
+
+static INLINE BOOL fnss_save_raw (PACKFILE *file)
+{
+   int version;
+
+   /* This function saves a minimalist save state.  Used primarily for game
+      snapshots created by the real-time game rewinding feature. */
+
+   RT_ASSERT(file);
+
+   /* Set version. */
+   version = FNSS_VERSION;
+
+   /* Dump CPU state. */
+   cpu_save_state (file, version);
+
+   /* Dump PPU state. */
+   ppu_save_state (file, version);
+
+   /* Dump APU state. */
+   apu_save_state (file, version);
+
+   /* Dump MMC state. */
+   mmc_save_state (file, version);
+
+   /* Dump input state. */
+   input_save_state (file, version);
+
+   /* Return success. */
+   return (TRUE);
+}
+
+static INLINE BOOL fnss_load_raw (PACKFILE *file)
+{
+   /* Same as fnss_save_raw(), but for loading instead. */
+
+   int version;
+
+   RT_ASSERT(file);
+
+   /* Set version. */
+   version = FNSS_VERSION;
+
+   /* Reset the virtual machine to it's initial state. */
+   machine_reset ();
+
+   /* Restore CPU state. */
+   cpu_load_state (file, version);
+
+   /* Restore PPU state. */
+   ppu_load_state (file, version);
+
+   /* Restore APU state. */
+   apu_load_state (file, version);
+
+   /* Restore MMC state. */
+   mmc_load_state (file, version);
+
+   /* Restore input state. */
    input_load_state (file, version);
 
    /* Return success. */
@@ -510,6 +632,24 @@ BOOL load_state (int index)
    pack_fclose (file);
 
    return (TRUE);
+}
+
+BOOL save_state_raw (PACKFILE *file)
+{
+   /* Global alias for fnss_save_raw(). */
+
+   RT_ASSERT(file);
+
+   return (fnss_save_raw (file));
+}
+
+BOOL load_state_raw (PACKFILE *file)
+{
+   /* Global alias for fnss_load_raw(). */
+
+   RT_ASSERT(file);
+
+   return (fnss_load_raw (file));
 }
 
 /* --- Patches. --- */

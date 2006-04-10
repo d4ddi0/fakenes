@@ -214,51 +214,31 @@ static int sunsoft4_init (void)
 
 static void sunsoft4_save_state (PACKFILE *file, int version)
 {
-   PACKFILE *chunk;
-
    RT_ASSERT(file);
 
-   /* Open chunk. */
-   chunk = pack_fopen_chunk (file, FALSE);
-   if (!chunk)
-      WARN_BREAK_GENERIC();
-
-   /* Save data. */
-
    /* Save PRG banking */
-   pack_putc (sunsoft4_prg_bank, chunk);
+   pack_putc (sunsoft4_prg_bank, file);
 
    /* Save CHR banking */
-   pack_fwrite (sunsoft4_chr_bank, 4, chunk);
+   pack_fwrite (sunsoft4_chr_bank, 4, file);
 
    /* Save name table banking */
-   pack_putc (sunsoft4_name_table_control, chunk);
-   pack_fwrite (sunsoft4_name_table_banks, 2, chunk);
-
-   /* Close chunk. */
-   pack_fclose_chunk (chunk);
+   pack_putc (sunsoft4_name_table_control, file);
+   pack_fwrite (sunsoft4_name_table_banks, 2, file);
 }
 
 static void sunsoft4_load_state (PACKFILE *file, int version)
 {
-   PACKFILE *chunk;
    int index;
 
    RT_ASSERT(file);
 
-   /* Open chunk. */
-   chunk = pack_fopen_chunk (file, FALSE);
-   if (!chunk)
-      WARN_BREAK_GENERIC();
-
-   /* Load data. */
-
    /* Restore PRG banking */
-   sunsoft4_prg_bank = pack_getc (chunk);
+   sunsoft4_prg_bank = pack_getc (file);
    sunsoft4_update_prg_bank ();
 
    /* Restore CHR banking */
-   pack_fread (sunsoft4_chr_bank, 4, chunk);
+   pack_fread (sunsoft4_chr_bank, 4, file);
 
    for (index = 0; index < 4; index++)
    {
@@ -267,11 +247,8 @@ static void sunsoft4_load_state (PACKFILE *file, int version)
    }
 
    /* Restore name table banking */
-   sunsoft4_name_table_control = pack_getc (chunk);
-   pack_fread (sunsoft4_name_table_banks, 2, chunk);
+   sunsoft4_name_table_control = pack_getc (file);
+   pack_fread (sunsoft4_name_table_banks, 2, file);
    sunsoft4_fixup_name_tables ();
-
-   /* close chunk. */
-   pack_fclose_chunk (chunk);
 }
 

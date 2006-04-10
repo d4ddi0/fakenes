@@ -306,44 +306,26 @@ static int mmc4_init (void)
 
 static void mmc2and4_save_state (PACKFILE * file, int version)
 {
-    PACKFILE * file_chunk;
+    pack_putc (mmc2and4_prg_bank, file);
 
 
-    file_chunk = pack_fopen_chunk (file, FALSE);
-
-
-    pack_putc (mmc2and4_prg_bank, file_chunk);
-
-
-    pack_fwrite (mmc2and4_latch, 2, file_chunk);
-    pack_fwrite (mmc2and4_vrom_bank, 2 * 2, file_chunk);
-
-
-    pack_fclose_chunk (file_chunk);
+    pack_fwrite (mmc2and4_latch, 2, file);
+    pack_fwrite (mmc2and4_vrom_bank, 2 * 2, file);
 }
 
 
 static void mmc2and4_load_state (PACKFILE * file, int version)
 {
-    PACKFILE * file_chunk;
-
-
-    file_chunk = pack_fopen_chunk (file, FALSE);
-
-
     /* Restore banking */
-    mmc2and4_prg_bank = pack_getc (file_chunk);
+    mmc2and4_prg_bank = pack_getc (file);
 
 
-    pack_fread (mmc2and4_latch, 2, file_chunk);
-    pack_fread (mmc2and4_vrom_bank, 2 * 2, file_chunk);
+    pack_fread (mmc2and4_latch, 2, file);
+    pack_fread (mmc2and4_vrom_bank, 2 * 2, file);
 
 
     mmc2and4_update_prg_bank ();
     mmc2and4_update_chr_bank (0);
     mmc2and4_update_chr_bank (1);
-
-
-    pack_fclose_chunk (file_chunk);
 }
 

@@ -26,6 +26,8 @@ void save_replay_data (UINT8);
 UCHAR *get_state_title (int, UCHAR *, int);
 BOOL save_state (int, const UCHAR *);
 BOOL load_state (int);
+BOOL save_state_raw (PACKFILE *);
+BOOL load_state_raw (PACKFILE *);
 BOOL load_patches (void);
 BOOL save_patches (void);
 BOOL load_sram (void);

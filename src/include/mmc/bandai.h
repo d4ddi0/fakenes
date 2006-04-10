@@ -244,25 +244,16 @@ static int bandai_init (void)
 
 static void bandai_save_state (PACKFILE * file, int version)
 {
-    PACKFILE * file_chunk;
-
-
-    file_chunk = pack_fopen_chunk (file, FALSE);
-
-
     /* Save IRQ registers */
-    pack_iputw (bandai_irq_counter, file_chunk);
-    pack_iputw (bandai_irq_latch.word, file_chunk);
+    pack_iputw (bandai_irq_counter, file);
+    pack_iputw (bandai_irq_latch.word, file);
 
-    pack_putc (bandai_enable_irqs, file_chunk);
+    pack_putc (bandai_enable_irqs, file);
 
 
     /* Save banking */
-    pack_putc (bandai_prg_bank, file_chunk);
-    pack_fwrite (bandai_chr_bank, 8, file_chunk);
-
-
-    pack_fclose_chunk (file_chunk);
+    pack_putc (bandai_prg_bank, file);
+    pack_fwrite (bandai_chr_bank, 8, file);
 }
 
 
@@ -270,22 +261,16 @@ static void bandai_load_state (PACKFILE * file, int version)
 {
     int index;
 
-    PACKFILE * file_chunk;
-
-
-    file_chunk = pack_fopen_chunk (file, FALSE);
-
-
     /* Restore IRQ registers */
-    bandai_irq_counter = pack_igetw (file_chunk);
-    bandai_irq_latch.word = pack_igetw (file_chunk);
+    bandai_irq_counter = pack_igetw (file);
+    bandai_irq_latch.word = pack_igetw (file);
 
-    bandai_enable_irqs = pack_getc (file_chunk);
+    bandai_enable_irqs = pack_getc (file);
 
 
     /* Restore banking */
-    bandai_prg_bank = pack_getc (file_chunk);
-    pack_fread (bandai_chr_bank, 8, file_chunk);
+    bandai_prg_bank = pack_getc (file);
+    pack_fread (bandai_chr_bank, 8, file);
 
 
     bandai_update_prg_bank ();
@@ -294,8 +279,5 @@ static void bandai_load_state (PACKFILE * file, int version)
     {
         bandai_update_chr_bank (index);
     }
-
-
-    pack_fclose_chunk (file_chunk);
 }
 

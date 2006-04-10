@@ -385,44 +385,26 @@ static int mmc1_init (void)
 
 static void mmc1_save_state (PACKFILE * file, int version)
 {
-    PACKFILE * file_chunk;
+    pack_putc (mmc1_previous_register, file);
 
+    pack_putc (mmc1_bit_stream, file);
+    pack_putc (mmc1_bit_counter, file);
 
-    file_chunk = pack_fopen_chunk (file, FALSE);
-
-
-    pack_putc (mmc1_previous_register, file_chunk);
-
-    pack_putc (mmc1_bit_stream, file_chunk);
-    pack_putc (mmc1_bit_counter, file_chunk);
-
-    pack_fwrite (mmc1_register, 4, file_chunk);
-
-
-    pack_fclose_chunk (file_chunk);
+    pack_fwrite (mmc1_register, 4, file);
 }
 
 
 static void mmc1_load_state (PACKFILE * file, int version)
 {
-    PACKFILE * file_chunk;
+    mmc1_previous_register = pack_getc (file);
+
+    mmc1_bit_stream = pack_getc (file);
+    mmc1_bit_counter = pack_getc (file);
 
 
-    file_chunk = pack_fopen_chunk (file, FALSE);
-
-
-    mmc1_previous_register = pack_getc (file_chunk);
-
-    mmc1_bit_stream = pack_getc (file_chunk);
-    mmc1_bit_counter = pack_getc (file_chunk);
-
-
-    mmc1_set_register_value (0, pack_getc (file_chunk));
-    mmc1_set_register_value (1, pack_getc (file_chunk));
-    mmc1_set_register_value (2, pack_getc (file_chunk));
-    mmc1_set_register_value (3, pack_getc (file_chunk));
-
-
-    pack_fclose_chunk (file_chunk);
+    mmc1_set_register_value (0, pack_getc (file));
+    mmc1_set_register_value (1, pack_getc (file));
+    mmc1_set_register_value (2, pack_getc (file));
+    mmc1_set_register_value (3, pack_getc (file));
 }
 

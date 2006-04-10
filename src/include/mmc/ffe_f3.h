@@ -129,29 +129,11 @@ static int ffe_f3_init (void)
 
 static void ffe_f3_save_state (PACKFILE * file, int version)
 {
-    PACKFILE * file_chunk;
-
-
-    file_chunk = pack_fopen_chunk (file, FALSE);
-
-
-    pack_putc (ffe_f3_last_write, file_chunk);
-
-
-    pack_fclose_chunk (file_chunk);
+    pack_putc (ffe_f3_last_write, file);
 }
 
 
 static void ffe_f3_load_state (PACKFILE * file, int version)
 {
-    PACKFILE * file_chunk;
-
-
-    file_chunk = pack_fopen_chunk (file, FALSE);
-
-
-    ffe_f3_write (0x8000, pack_getc (file_chunk));
-
-
-    pack_fclose_chunk (file_chunk);
+    ffe_f3_write (0x8000, pack_getc (file));
 }

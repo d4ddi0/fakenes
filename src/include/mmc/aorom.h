@@ -64,36 +64,14 @@ static int aorom_init (void)
 
 static void aorom_save_state (PACKFILE *file, int version)
 {
-   PACKFILE *chunk;
-
    RT_ASSERT(file);
 
-   /* Open chunk. */
-   chunk = pack_fopen_chunk (file, FALSE);
-   if (!chunk)
-      WARN_BREAK_GENERIC();
-
-   /* Save data. */
-   pack_putc (aorom_last_write, chunk);
-
-   /* Close chunk. */
-   pack_fclose_chunk (chunk);
+   pack_putc (aorom_last_write, file);
 }
 
 static void aorom_load_state (PACKFILE *file, int version)
 {
-   PACKFILE *chunk;
-
    RT_ASSERT(file);
 
-   /* Open chunk. */
-   chunk = pack_fopen_chunk (file, FALSE);
-   if (!chunk)
-      WARN_BREAK_GENERIC();
-
-   /* Load data. */
-   aorom_write (0x8000, pack_getc (chunk));
-
-   /* Close chunk. */
-   pack_fclose_chunk (chunk);
+   aorom_write (0x8000, pack_getc (file));
 }

@@ -1077,38 +1077,29 @@ static int mmc5_init (void)
 
 static void mmc5_save_state (PACKFILE * file, int version)
 {
-    PACKFILE * file_chunk;
-
-
-    file_chunk = pack_fopen_chunk (file, FALSE);
-
-
     /* Save registers */
-    pack_fwrite (mmc5_5100, 0x2C, file_chunk);
-    pack_fwrite (mmc5_5200, 7, file_chunk);
-    pack_putc (background_patterns_last_mapped, file_chunk);
+    pack_fwrite (mmc5_5100, 0x2C, file);
+    pack_fwrite (mmc5_5200, 7, file);
+    pack_putc (background_patterns_last_mapped, file);
 
 
     /* Save IRQ state */
-    pack_iputl (mmc5_irq_line_counter, file_chunk);
-    pack_putc (mmc5_irq_line_requested, file_chunk);
-    pack_putc (mmc5_irq_status, file_chunk);
-    pack_putc (mmc5_disable_irqs, file_chunk);
+    pack_iputl (mmc5_irq_line_counter, file);
+    pack_putc (mmc5_irq_line_requested, file);
+    pack_putc (mmc5_irq_status, file);
+    pack_putc (mmc5_disable_irqs, file);
 
 
     /* Restore WRAM */
-    pack_putc (mmc5_wram_size, file_chunk);
+    pack_putc (mmc5_wram_size, file);
     if (mmc5_wram_size)
     {
-        pack_fwrite (mmc5_wram, (mmc5_wram_size << 10), file_chunk);
+        pack_fwrite (mmc5_wram, (mmc5_wram_size << 10), file);
     }
 
 
     /* Restore EXRAM */
-    pack_fwrite (mmc5_exram, (1 << 10), file_chunk);
-
-
-    pack_fclose_chunk (file_chunk);
+    pack_fwrite (mmc5_exram, (1 << 10), file);
 }
 
 
@@ -1118,16 +1109,11 @@ static void mmc5_load_state (PACKFILE * file, int version)
 
     UINT8 saved_wram_size;
 
-    PACKFILE * file_chunk;
-
-
-    file_chunk = pack_fopen_chunk (file, FALSE);
-
 
     /* Restore registers */
-    pack_fread (mmc5_5100, 0x2C, file_chunk);
-    pack_fread (mmc5_5200, 7, file_chunk);
-    background_patterns_last_mapped = pack_getc (file_chunk);
+    pack_fread (mmc5_5100, 0x2C, file);
+    pack_fread (mmc5_5200, 7, file);
+    background_patterns_last_mapped = pack_getc (file);
 
     mmc5_multiply_needs_update = TRUE;
 
@@ -1149,24 +1135,21 @@ static void mmc5_load_state (PACKFILE * file, int version)
 
 
     /* Restore IRQ state */
-    mmc5_irq_line_counter = pack_igetl (file_chunk);
-    mmc5_irq_line_requested = pack_getc (file_chunk);
-    mmc5_irq_status = pack_getc (file_chunk);
-    mmc5_disable_irqs = pack_getc (file_chunk);
+    mmc5_irq_line_counter = pack_igetl (file);
+    mmc5_irq_line_requested = pack_getc (file);
+    mmc5_irq_status = pack_getc (file);
+    mmc5_disable_irqs = pack_getc (file);
 
 
     /* Restore WRAM */
-    saved_wram_size = pack_getc (file_chunk);
+    saved_wram_size = pack_getc (file);
     if (saved_wram_size)
     {
-        pack_fread (mmc5_wram, (saved_wram_size << 10), file_chunk);
+        pack_fread (mmc5_wram, (saved_wram_size << 10), file);
     }
 
 
     /* Restore EXRAM */
-    pack_fread (mmc5_exram, (1 << 10), file_chunk);
-
-
-    pack_fclose_chunk (file_chunk);
+    pack_fread (mmc5_exram, (1 << 10), file);
 }
 

@@ -86,6 +86,7 @@ OBJECTS := ${OBJECT_PATH}/apu${OBJEXT} \
    ${OBJECT_PATH}/netplay${OBJEXT} \
    ${OBJECT_PATH}/platform${OBJEXT} \
    ${OBJECT_PATH}/ppu${OBJEXT} \
+   ${OBJECT_PATH}/rewind${OBJEXT} \
    ${OBJECT_PATH}/rom${OBJEXT} \
    ${OBJECT_PATH}/save${OBJEXT} \
    ${OBJECT_PATH}/unzip${OBJEXT} \

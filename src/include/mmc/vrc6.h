@@ -284,59 +284,36 @@ static int vrc6v_init (void)
 
 static void vrc6_save_state (PACKFILE *file, int version)
 {
-   PACKFILE *chunk;
-
    RT_ASSERT(file);
 
-   /* Open chunk. */
-   chunk = pack_fopen_chunk (file, FALSE);
-   if (!chunk)
-      WARN_BREAK_GENERIC();
-
-   /* Save data. */
-
    /* Save IRQ registers. */
-   pack_putc (vrc6_irq_counter, chunk);
-   pack_putc (vrc6_irq_latch,   chunk);
-   pack_putc (vrc6_enable_irqs, chunk);
+   pack_putc (vrc6_irq_counter, file);
+   pack_putc (vrc6_irq_latch,   file);
+   pack_putc (vrc6_enable_irqs, file);
 
    /* Save banking. */
-   pack_fwrite (vrc6_prg_bank, 2, chunk);
-   pack_fwrite (vrc6_chr_bank, 8, chunk);
-
-   /* Close chunk. */
-   pack_fclose_chunk (chunk);
+   pack_fwrite (vrc6_prg_bank, 2, file);
+   pack_fwrite (vrc6_chr_bank, 8, file);
 }
 
 static void vrc6_load_state (PACKFILE *file, int version)
 {
-   PACKFILE *chunk;
    int index;
 
    RT_ASSERT(file);
 
-   /* Open chunk. */
-   chunk = pack_fopen_chunk (file, FALSE);
-   if (!chunk)
-      WARN_BREAK_GENERIC();
-
-   /* Load data. */
-
    /* Restore IRQ registers */
-   vrc6_irq_counter = pack_getc (chunk);
-   vrc6_irq_latch   = pack_getc (chunk);
-   vrc6_enable_irqs = pack_getc (chunk);
+   vrc6_irq_counter = pack_getc (file);
+   vrc6_irq_latch   = pack_getc (file);
+   vrc6_enable_irqs = pack_getc (file);
 
    /* Restore banking */
-   pack_fread (vrc6_prg_bank, 2, chunk);
-   pack_fread (vrc6_chr_bank, 8, chunk);
+   pack_fread (vrc6_prg_bank, 2, file);
+   pack_fread (vrc6_chr_bank, 8, file);
 
    vrc6_update_prg_bank (0);
    vrc6_update_prg_bank (1);
 
    for (index = 0; index < 8; index++)
       vrc6_update_chr_bank (index);
-
-   /* Close chunk. */
-   pack_fclose_chunk (chunk);
 }
