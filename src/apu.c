@@ -49,7 +49,7 @@ static void write_cur (UINT16, UINT8);
 static void sync_apu_register (void);
 
 /* Macro to convert generated samples to normalized samples. */
-#define APU_TO_OUTPUT(value)  ((value * 65536.0f) / 2147483647.0f)
+#define APU_TO_OUTPUT(value)  (value / 32767.0f)
                                              
 /* --- Lookup tables. --- */
 
