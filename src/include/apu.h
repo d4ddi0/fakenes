@@ -55,31 +55,29 @@ extern "C" {
 #define APU_BASEFREQ_NTSC  (1.89e9 / 88 / 12)
 #define APU_BASEFREQ_PAL   (26601712.5 / 15)
                         
-/* to/from 16.16 fixed point */
-#define APU_TO_FIXED    itofix
-#define APU_FROM_FIXED  fixtoi
-
 /* --- 2A03 support. --- */
 
-typedef struct apu_rectangle_s
+typedef struct apu_square_s
 {
    int regs[4];
 
-   int enabled;
-   
-   int phaseacc;
+   BOOL enabled;
+
+   INT32 output;
+
+   REAL phaseacc;
    int freq;
-   int output_vol;
-   int fixed_envelope;
-   int holdnote;
+   BOOL fixed_envelope;
+   BOOL holdnote;
    int volume;
 
+   /* Sweep. */
    int sweep_phase;
    int sweep_delay;
-   int sweep_on;
+   BOOL sweep_on;
    int sweep_shifts;
    int sweep_length;
-   int sweep_inc;
+   BOOL sweep_inc;
 
    /* this may not be necessary in the future */
    int freq_limit;
@@ -87,8 +85,9 @@ typedef struct apu_rectangle_s
    /* rectangle 0 uses a complement addition for sweep
    ** increases, while rectangle 1 uses subtraction
    */
-   int sweep_complement;
+   BOOL sweep_complement;
 
+   /* Envelope. */
    int env_phase;
    int env_delay;
    int env_vol;
@@ -98,26 +97,27 @@ typedef struct apu_rectangle_s
    int duty_flip;
 
    /* for sync read $4105 */
-   int enabled_cur;
-   int holdnote_cur;
+   BOOL enabled_cur;
+   BOOL holdnote_cur;
    int vbl_length_cur;
 
-} apu_rectangle_t;
+} apu_square_t;
 
 typedef struct apu_triangle_s
 {
    int regs[3];
 
-   int enabled;
+   BOOL enabled;
+
+   INT32 output;
 
    int freq;
-   int phaseacc;
-   int output_vol;
+   REAL phaseacc;
 
    int adder;
 
-   int holdnote;
-   int counter_started;
+   BOOL holdnote;
+   BOOL counter_started;
    /* quasi-hack */
    int write_latency;
 
@@ -125,9 +125,9 @@ typedef struct apu_triangle_s
    int linear_length;
 
    /* for sync read $4105 */
-   int enabled_cur;
-   int holdnote_cur;
-   int counter_started_cur;
+   BOOL enabled_cur;
+   BOOL holdnote_cur;
+   BOOL counter_started_cur;
    int vbl_length_cur;
 
 } apu_triangle_t;
@@ -136,17 +136,18 @@ typedef struct apu_noise_s
 {
    int regs[3];
 
-   int enabled;
+   BOOL enabled;
+
+   INT32 output;
 
    int freq;
-   int phaseacc;
-   int output_vol;
+   REAL phaseacc;
 
    int env_phase;
    int env_delay;
    int env_vol;
-   int fixed_envelope;
-   int holdnote;
+   BOOL fixed_envelope;
+   BOOL holdnote;
 
    int volume;
 
@@ -155,8 +156,8 @@ typedef struct apu_noise_s
    int xor_tap;
 
    /* for sync read $4105 */
-   int enabled_cur;
-   int holdnote_cur;
+   BOOL enabled_cur;
+   BOOL holdnote_cur;
    int vbl_length_cur;
 
 } apu_noise_t;
@@ -166,11 +167,12 @@ typedef struct apu_dmc_s
    int regs[4];
 
    /* bodge for timestamp queue */
-   int enabled;
+   BOOL enabled;
+
+   INT32 output;
    
    int freq;
-   int phaseacc;
-   int output_vol;
+   REAL phaseacc;
 
    int address;
    int cached_addr;
@@ -196,10 +198,10 @@ typedef struct apu_dmc_s
 
 typedef struct apu_apusound_s
 {
-   apu_rectangle_t rectangle[2];
-   apu_triangle_t  triangle;
-   apu_noise_t     noise;
-   apu_dmc_t       dmc;
+   apu_square_t   square[2];
+   apu_triangle_t triangle;
+   apu_noise_t    noise;
+   apu_dmc_t      dmc;
 
 } APU_APUSOUND;
 
@@ -288,8 +290,8 @@ typedef struct
 /* apu ring buffer member */
 typedef struct apudata_s
 {
-   int timestamp, address;
-   int value;
+   REAL timestamp;
+   int address, value;
 
 } apudata_t;
 
@@ -310,10 +312,10 @@ typedef struct apu_s
    int ex_q_head, ex_q_tail;
    ENUM exsound;
 
-   int elapsed_cycles;
-   int cycle_rate;   // should be fixed point?
+   REAL elapsed_cycles;
+   REAL cycle_rate;
 
-   int sample_rate;
+   REAL sample_rate;
    REAL refresh_rate;
 
 } apu_t;
@@ -355,12 +357,8 @@ enum
 enum
 {
    APU_EXSOUND_NONE = 0,
-   APU_EXSOUND_VRC6,
-   APU_EXSOUND_OPLL,
-   APU_EXSOUND_FDS,
    APU_EXSOUND_MMC5,
-   APU_EXSOUND_N106,
-   APU_EXSOUND_PSG
+   APU_EXSOUND_VRC6
 };
 
 #ifdef __cplusplus

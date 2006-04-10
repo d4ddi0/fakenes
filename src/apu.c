@@ -42,14 +42,16 @@ ENUM apu_stereo_mode = APU_STEREO_MODE_2;
 static apu_t apu;
 
 /* Internal function prototypes (defined at bottom). */
-static void set_params (int, REAL);
+static void set_params (REAL, REAL);
 static void build_luts (int);
 static void write_cur (UINT16, UINT8);
 static void sync_apu_register (void);
-static int sync_dmc_register (int);
+
+/* Macro to convert generated samples to the APU's signed 32-bit format. */
+#define APU_TO_OUTPUT(value)  (INT32)ROUND((value * 65536.0f))
 
 /* Macro to convert signed 32-bit APU samples to normalized DSP samples. */
-#define APU_TO_DSP(value)     (value / 4294967295.0f)
+#define APU_TO_DSP(value)     (DSP_SAMPLE)(value / 2147483647.0f)
 
 /* --- Lookup tables. --- */
 
@@ -57,13 +59,13 @@ static int decay_lut[16];
 static int vbl_lut[32];
 static int trilength_lut[128];
 
-/* vblank length table used for rectangles, triangle, noise */
+/* vblank length table used for squares, triangle, noise */
 static const int vbl_length[] = {
    5, 127, 10,  1, 19,  2, 40,  3, 80, 4, 30,  5,  7, 6, 13, 7, 6, 8, 12,
    9,  24, 10, 48, 11, 96, 12, 36, 13, 8, 14, 16, 15
 };
 
-/* frequency limit of rectangle channels */
+/* frequency limit of square channels */
 static const int freq_limit[] = {
    0x3ff, 0x555, 0x666, 0x71c, 0x787, 0x7c1, 0x7e0, 0x7f0
 };
@@ -79,7 +81,7 @@ static const int dmc_clocks[] = {
     54
 };
 
-/* ratios of pos/neg pulse for rectangle waves */
+/* ratios of pos/neg pulse for square waves */
 static const int duty_lut[] = {
    2, 4, 8, 12
 };
@@ -146,44 +148,30 @@ static INLINE apudata_t *apu_ex_dequeue (void)
 
 /* --- Sound generators. --- */
 
-/* emulation of the 15-bit shift register the
-** NES uses to generate pseudo-random series
-** for the white noise channel
-*/
-static INLINE int shift_register15 (int xor_tap)
-{
-   static int sreg = 0x4000;
-   int bit0, tap, bit14;
-
-   bit0 = (sreg & 1);
-   tap = ((sreg & xor_tap) ? 1 : 0);
-   bit14 = (bit0 ^ tap);
-   sreg >>= 1;
-   sreg |= (bit14 << 14);
-
-   return ((bit0 ^ 1));
-}
-
-/* RECTANGLE WAVE
-   ==============
+/* SQUARE WAVE CHANNELS
+   Waveform generator
+   ====================
 
    reg0: 0-3=volume, 4=envelope, 5=hold, 6-7=duty cycle
    reg1: 0-2=sweep shifts, 3=sweep inc/dec, 4-6=sweep length, 7=sweep on
    reg2: 8 bits of freq
    reg3: 0-2=high freq, 7-4=vbl length counter */
 
-#define APU_RECTANGLE_OUTPUT()   (chan->output_vol << 16)
-
-static INLINE int apu_rectangle (apu_rectangle_t *chan)
+static INLINE INT32 apu_square (apu_square_t *chan)
 {
-   int output;
-   REAL total;
+   REAL output;
    REAL sample_weight;
+   REAL total;
 
    RT_ASSERT(chan);
 
-   if ((!chan->enabled) || (chan->vbl_length <= 0))
-      return (APU_RECTANGLE_OUTPUT());
+   if (!chan->enabled ||
+       (chan->vbl_length <= 0))
+   {
+      /* Channel is disabled or vbl length counter is negative or zero -
+         return last known output level. */
+      return (chan->output);
+   }
 
    /* vbl length counter */
    if (!chan->holdnote)
@@ -206,9 +194,9 @@ static INLINE int apu_rectangle (apu_rectangle_t *chan)
    ** clean, but it is fast and (or should be) accurate 
    */
    if ((chan->freq < 8) ||
-       ((!chan->sweep_inc) && (chan->freq > chan->freq_limit)))
+       (!chan->sweep_inc && (chan->freq > chan->freq_limit)))
    {
-      return (APU_RECTANGLE_OUTPUT());
+      return (chan->output);
    }
 
    /* frequency sweeping at a rate of (sweep_delay + 1) / 120 secs */
@@ -253,10 +241,10 @@ static INLINE int apu_rectangle (apu_rectangle_t *chan)
 
    while (chan->phaseacc < 0)
    {
-      chan->phaseacc += APU_TO_FIXED((chan->freq + 1));
+      chan->phaseacc += (chan->freq + 1);
       chan->adder = ((chan->adder + 1) & 0x0f);
 
-      sample_weight = APU_TO_FIXED((chan->freq + 1));
+      sample_weight = (chan->freq + 1);
 
       if (chan->phaseacc > 0)
          sample_weight -= chan->phaseacc;
@@ -265,13 +253,16 @@ static INLINE int apu_rectangle (apu_rectangle_t *chan)
          -sample_weight);
    }
 
-   /* TODO: Clean up this line. */
-   chan->output_vol = (int)floor (output * total / apu.cycle_rate + 0.5);
+   output *= total;
+   output /= apu.cycle_rate;
 
-   return (APU_RECTANGLE_OUTPUT());
+   chan->output = APU_TO_OUTPUT(output);
+
+   return (chan->output);
 }
 
-/* TRIANGLE WAVE
+/* TRIANGLE WAVE CHANNEL
+   Waveform generator
    =============
 
    reg0: 7=holdnote, 6-0=linear length counter
@@ -280,34 +271,37 @@ static INLINE int apu_rectangle (apu_rectangle_t *chan)
 
 #define APU_TRIANGLE_OUTPUT() (((chan->output_vol * 21) >> 4) << 16)
 
-static INLINE int apu_triangle (apu_triangle_t *chan)
+static INLINE INT32 apu_triangle (apu_triangle_t *chan)
 {
    static REAL val;
    REAL sample_weight, total, prev_val;
 
    RT_ASSERT(chan);
 
-   if ((!chan->enabled) || (chan->vbl_length <= 0))
-      return (APU_TRIANGLE_OUTPUT());
+   if (!chan->enabled ||
+       (chan->vbl_length <= 0))
+   {
+      return (chan->output);
+   }
 
    if (chan->counter_started)
    {
       if (chan->linear_length > 0)
          chan->linear_length -= (4 * apu_cnt_rate);   /* 240/60 */
 
-      if ((chan->vbl_length > 0) && (!chan->holdnote))
+      if ((chan->vbl_length > 0) && !chan->holdnote)
          chan->vbl_length -= apu_cnt_rate;
    }
-   else if ((!chan->holdnote) && chan->write_latency)
+   else if (!chan->holdnote && chan->write_latency)
    {
-      if (--chan->write_latency == 0)
+      if (--chan->write_latency < 1)   // changed to <1 instead of ==0 for float
          chan->counter_started = TRUE;
    }
 
-   if ((chan->linear_length <= 0) || (chan->freq < APU_TO_FIXED(4)))
+   if ((chan->linear_length <= 0) || (chan->freq < 4))
    {
       /* inaudible */
-      return (APU_TRIANGLE_OUTPUT());
+      return (chan->output);
    }
 
    /* TODO: All of the following could use a major clean-up. */
@@ -317,9 +311,9 @@ static INLINE int apu_triangle (apu_triangle_t *chan)
    prev_val = val;
 
    if (chan->adder)
-      val -= ((REAL)apu.cycle_rate / chan->freq);
+      val -= (apu.cycle_rate / chan->freq);
    else
-      val += ((REAL)apu.cycle_rate / chan->freq);
+      val += (apu.cycle_rate / chan->freq);
 
    while ((val < -8) || (val >= 8))
    {
@@ -354,25 +348,26 @@ static INLINE int apu_triangle (apu_triangle_t *chan)
    }
 
    total /= sample_weight;
+   total *= 256.0f;
+   total *= 21.0f;
+   total /= 16.0f;
 
-   chan->output_vol = (int)floor (total * 256 + 0.5);
+   chan->output = APU_TO_OUTPUT(total);
 
-   return (APU_TRIANGLE_OUTPUT());
+   return (chan->output);
 }
 
-
 /* WHITE NOISE CHANNEL
+   Waveform generator
    ===================
 
    reg0: 0-3=volume, 4=envelope, 5=hold
    reg2: 7=small(93 byte) sample,3-0=freq lookup
    reg3: 7-4=vbl length counter */
 
-#define APU_NOISE_OUTPUT() (((chan->output_vol * 13) >> 4) << 16)
-
-static INLINE int apu_noise (apu_noise_t *chan)
+static INLINE INT32 apu_noise (apu_noise_t *chan)
 {
-   int outvol;
+   REAL output;
 
    static int noise_bit;
    REAL total;
@@ -380,8 +375,11 @@ static INLINE int apu_noise (apu_noise_t *chan)
 
    RT_ASSERT(chan);
 
-   if ((!chan->enabled) || (chan->vbl_length <= 0))
-      return (APU_NOISE_OUTPUT());
+   if (!chan->enabled ||
+       (chan->vbl_length <= 0))
+   {
+      return (chan->output);
+   }
 
    /* vbl length counter */
    if (!chan->holdnote)
@@ -401,9 +399,9 @@ static INLINE int apu_noise (apu_noise_t *chan)
    }
 
    if (chan->fixed_envelope)
-      outvol = (chan->volume << 8); /* fixed volume */
+      output = (chan->volume << 8); /* fixed volume */
    else
-      outvol = ((chan->env_vol ^ 0x0f) << 8);
+      output = ((chan->env_vol ^ 0x0f) << 8);
 
    sample_weight = chan->phaseacc;
 
@@ -416,9 +414,17 @@ static INLINE int apu_noise (apu_noise_t *chan)
 
    while (chan->phaseacc < 0)
    {
+      static int sreg = 0x4000;
+      int bit0, tap, bit14;
+
       chan->phaseacc += chan->freq;
 
-      noise_bit = shift_register15 (chan->xor_tap);
+      bit0 = (sreg & 1);
+      tap = ((sreg & chan->xor_tap) ? 1 : 0);
+      bit14 = (bit0 ^ tap);
+      sreg >>= 1;
+      sreg |= (bit14 << 14);
+      noise_bit = (bit0 ^ 1);
 
       sample_weight = chan->freq;
 
@@ -428,22 +434,18 @@ static INLINE int apu_noise (apu_noise_t *chan)
       total += (noise_bit ? sample_weight : -sample_weight);
    }
 
-   /* TODO: Clean up this line. */
-   chan->output_vol = (int)floor (outvol * total / apu.cycle_rate + 0.5);
+   output *= total;
+   output /= apu.cycle_rate;
+   output *= 13.0f;
+   output /= 16.0f;
 
-   return (APU_NOISE_OUTPUT());
-}
+   chan->output = APU_TO_OUTPUT(output);
 
-static INLINE void apu_dmcreload (apu_dmc_t *chan)
-{
-   RT_ASSERT(chan);
-
-   chan->address      = chan->cached_addr;
-   chan->dma_length   = chan->cached_dmalength;
-   chan->irq_occurred = FALSE;
+   return (chan->output);
 }
 
 /* DELTA MODULATION CHANNEL
+   Waveform generator
    =========================
 
    reg0: 7=irq gen, 6=looping, 3-0=pointer to clock table
@@ -451,9 +453,7 @@ static INLINE void apu_dmcreload (apu_dmc_t *chan)
    reg2: 8 bits of 64-byte aligned address offset : $C000 + (value * 64)
    reg3: length, (value * 16) + 1 */
 
-#define APU_DMC_OUTPUT()   (((chan->output_vol * 13) >> 4) << 16)
-
-static INLINE int apu_dmc (apu_dmc_t *chan)
+static INLINE INT32 apu_dmc (apu_dmc_t *chan)
 {
    REAL total;
    REAL sample_weight;
@@ -466,9 +466,8 @@ static INLINE int apu_dmc (apu_dmc_t *chan)
    /* only process when channel is alive */
    if (chan->dma_length == 0)
    {
-      chan->output_vol = (chan->regs[1] << 8);
-
-      return (APU_DMC_OUTPUT());
+      chan->output = APU_TO_OUTPUT((chan->regs[1] << 8));
+      return (chan->output);
    }
 
    sample_weight = chan->phaseacc;
@@ -502,7 +501,10 @@ static INLINE int apu_dmc (apu_dmc_t *chan)
          /* if loop bit set, we're cool to retrigger sample */
          if (chan->looping)
          {
-            apu_dmcreload (chan);
+            /* Reload. */
+            chan->address = chan->cached_addr;
+            chan->dma_length = chan->cached_dmalength;
+            chan->irq_occurred = FALSE;
          }
          else
          {
@@ -550,9 +552,13 @@ static INLINE int apu_dmc (apu_dmc_t *chan)
       total += ((chan->regs[1] << 8) * sample_weight);
    }
 
-   chan->output_vol = (int)floor (total / apu.cycle_rate + 0.5);
+   total /= apu.cycle_rate;
+   total *= 13.0f;
+   total /= 16.0f;
 
-   return (APU_DMC_OUTPUT());
+   chan->output = APU_TO_OUTPUT(total);
+
+   return (chan->output);
 }
 
 static void apu_regwrite (UINT32 address, UINT8 value)
@@ -568,18 +574,18 @@ static void apu_regwrite (UINT32 address, UINT8 value)
 
    switch (address)
    {
-      case APU_WRA0: /* rectangles */
+      case APU_WRA0: /* squares */
       case APU_WRB0:
       {
          chan = ((address & 4) ? 1 : 0);
 
-         apu.apus.rectangle[chan].regs[0] = value;
+         apu.apus.square[chan].regs[0] = value;
    
-         apu.apus.rectangle[chan].volume = (value & 0x0f);
-         apu.apus.rectangle[chan].env_delay = decay_lut[(value & 0x0f)];
-         apu.apus.rectangle[chan].holdnote = ((value & 0x20) ? TRUE : FALSE);
-         apu.apus.rectangle[chan].fixed_envelope = ((value & 0x10) ? TRUE : FALSE);
-         apu.apus.rectangle[chan].duty_flip = duty_lut[(value >> 6)];
+         apu.apus.square[chan].volume = (value & 0x0f);
+         apu.apus.square[chan].env_delay = decay_lut[(value & 0x0f)];
+         apu.apus.square[chan].holdnote = TRUE_OR_FALSE((value & 0x20));
+         apu.apus.square[chan].fixed_envelope = TRUE_OR_FALSE((value & 0x10));
+         apu.apus.square[chan].duty_flip = duty_lut[(value >> 6)];
 
          break;
       }
@@ -589,12 +595,12 @@ static void apu_regwrite (UINT32 address, UINT8 value)
       {
          chan = ((address & 4) ? 1 : 0);
 
-         apu.apus.rectangle[chan].regs[1] = value;
-         apu.apus.rectangle[chan].sweep_on = ((value & 0x80) ? TRUE : FALSE);
-         apu.apus.rectangle[chan].sweep_shifts = (value & 7);
-         apu.apus.rectangle[chan].sweep_delay = decay_lut[((value >> 4) & 7)];
-         apu.apus.rectangle[chan].sweep_inc = ((value & 0x08) ? TRUE : FALSE);
-         apu.apus.rectangle[chan].freq_limit = freq_limit[(value & 7)];
+         apu.apus.square[chan].regs[1] = value;
+         apu.apus.square[chan].sweep_on = TRUE_OR_FALSE((value & 0x80));
+         apu.apus.square[chan].sweep_shifts = (value & 7);
+         apu.apus.square[chan].sweep_delay = decay_lut[((value >> 4) & 7)];
+         apu.apus.square[chan].sweep_inc = TRUE_OR_FALSE((value & 0x08));
+         apu.apus.square[chan].freq_limit = freq_limit[(value & 7)];
 
          break;
       }
@@ -604,8 +610,8 @@ static void apu_regwrite (UINT32 address, UINT8 value)
       {
          chan = ((address & 4) ? 1 : 0);
 
-         apu.apus.rectangle[chan].regs[2] = value;
-         apu.apus.rectangle[chan].freq = ((apu.apus.rectangle[chan].freq & ~0xff) | value);
+         apu.apus.square[chan].regs[2] = value;
+         apu.apus.square[chan].freq = ((apu.apus.square[chan].freq & ~0xff) | value);
 
          break;
       }
@@ -615,15 +621,15 @@ static void apu_regwrite (UINT32 address, UINT8 value)
       {
          chan = ((address & 4) ? 1 : 0);
 
-         apu.apus.rectangle[chan].regs[3] = value;
+         apu.apus.square[chan].regs[3] = value;
    
-         apu.apus.rectangle[chan].vbl_length = vbl_lut[(value >> 3)];
-         apu.apus.rectangle[chan].env_vol = 0;
-         apu.apus.rectangle[chan].freq = (((value & 7) << 8) | (apu.apus.rectangle[chan].freq & 0xff));
-         apu.apus.rectangle[chan].adder = 0;
+         apu.apus.square[chan].vbl_length = vbl_lut[(value >> 3)];
+         apu.apus.square[chan].env_vol = 0;
+         apu.apus.square[chan].freq = (((value & 7) << 8) | (apu.apus.square[chan].freq & 0xff));
+         apu.apus.square[chan].adder = 0;
 
          if (apu.enable_reg & (1 << chan))
-            apu.apus.rectangle[chan].enabled = TRUE;
+            apu.apus.square[chan].enabled = TRUE;
 
          break;
       }
@@ -631,7 +637,7 @@ static void apu_regwrite (UINT32 address, UINT8 value)
       case APU_WRC0: /* triangle */
       {
          apu.apus.triangle.regs[0] = value;
-         apu.apus.triangle.holdnote = ((value & 0x80) ? TRUE : FALSE);
+         apu.apus.triangle.holdnote = TRUE_OR_FALSE((value & 0x80));
    
          if ((!apu.apus.triangle.counter_started) &&
              (apu.apus.triangle.vbl_length > 0))
@@ -646,7 +652,7 @@ static void apu_regwrite (UINT32 address, UINT8 value)
       case APU_WRC2:
       {
          apu.apus.triangle.regs[1] = value;
-         apu.apus.triangle.freq = APU_TO_FIXED(((((apu.apus.triangle.regs[2] & 7) << 8) + value) + 1));
+         apu.apus.triangle.freq = ((((apu.apus.triangle.regs[2] & 7) << 8) + value) + 1);
 
          break;
       }
@@ -668,9 +674,9 @@ static void apu_regwrite (UINT32 address, UINT8 value)
          */
    
          /* 06/13/00 MPC -- seems to work OK */
-         apu.apus.triangle.write_latency = (int)(228 / APU_FROM_FIXED(apu.cycle_rate));
+         apu.apus.triangle.write_latency = (228.0f / apu.cycle_rate);
    
-         apu.apus.triangle.freq = APU_TO_FIXED(((((value & 7) << 8) + apu.apus.triangle.regs[1]) + 1));
+         apu.apus.triangle.freq = ((((value & 7) << 8) + apu.apus.triangle.regs[1]) + 1);
          apu.apus.triangle.vbl_length = vbl_lut[(value >> 3)];
          apu.apus.triangle.counter_started = FALSE;
          apu.apus.triangle.linear_length = trilength_lut[(apu.apus.triangle.regs[0] & 0x7f)];
@@ -685,8 +691,8 @@ static void apu_regwrite (UINT32 address, UINT8 value)
       {
          apu.apus.noise.regs[0] = value;
          apu.apus.noise.env_delay = decay_lut[(value & 0x0f)];
-         apu.apus.noise.holdnote = ((value & 0x20) ? TRUE : FALSE);
-         apu.apus.noise.fixed_envelope = ((value & 0x10) ? TRUE : FALSE);
+         apu.apus.noise.holdnote = TRUE_OR_FALSE((value & 0x20));
+         apu.apus.noise.fixed_envelope = TRUE_OR_FALSE((value & 0x10));
          apu.apus.noise.volume = (value & 0x0f);
 
          break;
@@ -695,7 +701,7 @@ static void apu_regwrite (UINT32 address, UINT8 value)
       case APU_WRD2:
       {
          apu.apus.noise.regs[1] = value;
-         apu.apus.noise.freq = APU_TO_FIXED(noise_freq[(value & 0x0f)]);
+         apu.apus.noise.freq = noise_freq[(value & 0x0f)];
          apu.apus.noise.xor_tap = ((value & 0x80) ? 0x40 : 0x02);
 
          break;
@@ -718,8 +724,8 @@ static void apu_regwrite (UINT32 address, UINT8 value)
       {
          apu.apus.dmc.regs[0] = value;
    
-         apu.apus.dmc.freq = APU_TO_FIXED(dmc_clocks[(value & 0x0f)]);
-         apu.apus.dmc.looping = ((value & 0x40) ? TRUE : FALSE);
+         apu.apus.dmc.freq = dmc_clocks[(value & 0x0f)];
+         apu.apus.dmc.looping = TRUE_OR_FALSE((value & 0x40));
    
          if (value & 0x80)
          {
@@ -764,7 +770,7 @@ static void apu_regwrite (UINT32 address, UINT8 value)
       case APU_SMASK:
       {
          /* bodge for timestamp queue */
-         apu.apus.dmc.enabled = ((value & 0x10) ? TRUE : FALSE);
+         apu.apus.dmc.enabled = TRUE_OR_FALSE((value & 0x10));
    
          apu.enable_reg = value;
    
@@ -772,8 +778,8 @@ static void apu_regwrite (UINT32 address, UINT8 value)
          {
             if ((value & (1 << chan)) == 0)
             {
-               apu.apus.rectangle[chan].enabled = FALSE;
-               apu.apus.rectangle[chan].vbl_length = 0;
+               apu.apus.square[chan].enabled = FALSE;
+               apu.apus.square[chan].vbl_length = 0;
             }
          }
    
@@ -795,7 +801,12 @@ static void apu_regwrite (UINT32 address, UINT8 value)
          if (value & 0x10)
          {
             if (apu.apus.dmc.dma_length == 0)
-               apu_dmcreload (&apu.apus.dmc);
+            {
+               /* Reload. */
+               apu.apus.dmc.address = apu.apus.dmc.cached_addr;
+               apu.apus.dmc.dma_length = apu.apus.dmc.cached_dmalength;
+               apu.apus.dmc.irq_occurred = FALSE;
+            }
          }
          else
          {
@@ -873,8 +884,7 @@ void apu_reset (void)
    /* Initializes/resets emulated sound hardware, creates waveforms/voices
       */
 
-   int sample_rate;
-   REAL refresh_rate;
+   REAL sample_rate, refresh_rate;
 
    /* Save parameters. */
 
@@ -889,10 +899,10 @@ void apu_reset (void)
    memset (&apu.queue,    0, (APUQUEUE_SIZE * sizeof (apudata_t)));
    memset (&apu.ex_queue, 0, (APUQUEUE_SIZE * sizeof (apudata_t)));
 
-   /* set the stupid flag to tell difference between two rectangles */
+   /* set the stupid flag to tell difference between two squares */
 
-   apu.apus.rectangle[0].sweep_complement = TRUE;
-   apu.apus.rectangle[1].sweep_complement = FALSE;
+   apu.apus.square[0].sweep_complement = TRUE;
+   apu.apus.square[1].sweep_complement = FALSE;
 
    /* Restore parameters. */
    set_params (sample_rate, refresh_rate);
@@ -1012,14 +1022,14 @@ UINT8 apu_read (UINT16 address)
 
          /* Return 1 in 0-5 bit pos if a channel is playing */
 
-         if (apu.apus.rectangle[0].enabled_cur &&
-             (apu.apus.rectangle[0].vbl_length_cur > 0))
+         if (apu.apus.square[0].enabled_cur &&
+             (apu.apus.square[0].vbl_length_cur > 0))
          {
             value |= 0x01;
          }
 
-         if (apu.apus.rectangle[1].enabled_cur &&
-             (apu.apus.rectangle[1].vbl_length_cur > 0))
+         if (apu.apus.square[1].enabled_cur &&
+             (apu.apus.square[1].vbl_length_cur > 0))
          {
             value |= 0x02;
          }
@@ -1069,7 +1079,7 @@ void apu_write (UINT16 address, UINT8 value)
       case 0x4015:
       {
          /* bodge for timestamp queue */
-         apu.apus.dmc.enabled = ((value & 0x10) ? TRUE : FALSE);
+         apu.apus.dmc.enabled = TRUE_OR_FALSE((value & 0x10));
 
          /* No break. */
       }
@@ -1109,7 +1119,7 @@ void apu_ex_write (UINT16 address, UINT8 value)
 
 void apu_process (void)
 {
-   int elapsed_cycles;
+   REAL elapsed_cycles;
    int samples;
 
    elapsed_cycles = apu.elapsed_cycles;
@@ -1130,14 +1140,14 @@ void apu_process (void)
          int channel;
          DSP_SAMPLE dsp_samples[APU_CHANNELS];
    
-         while ((!APU_QEMPTY()) &&
+         while (!APU_QEMPTY() &&
                 (apu.queue[apu.q_tail].timestamp <= elapsed_cycles))
          {
             data = apu_dequeue ();
             apu_regwrite (data->address, data->value);
          }
    
-         while ((!APU_EX_QEMPTY()) &&
+         while (!APU_EX_QEMPTY() &&
                 (apu.ex_queue[apu.ex_q_tail].timestamp <= elapsed_cycles))
          {
             data = apu_ex_dequeue ();
@@ -1166,7 +1176,7 @@ void apu_process (void)
             }
          }
    
-         elapsed_cycles += APU_FROM_FIXED(apu.cycle_rate);
+         elapsed_cycles += apu.cycle_rate;
    
          /* Clear samples. */
          memset (dsp_samples, 0, sizeof (dsp_samples));
@@ -1179,14 +1189,14 @@ void apu_process (void)
             {
                case APU_CHANNEL_SQUARE_1:
                {
-                  value = apu_rectangle (&apu.apus.rectangle[0]);
+                  value = apu_square (&apu.apus.square[0]);
    
                   break;
                }
    
                case APU_CHANNEL_SQUARE_2:
                {
-                  value = apu_rectangle (&apu.apus.rectangle[1]);
+                  value = apu_square (&apu.apus.square[1]);
    
                   break;
                }
@@ -1310,7 +1320,7 @@ void apu_process (void)
             }
          }
    
-         elapsed_cycles += APU_FROM_FIXED(apu.cycle_rate);
+         elapsed_cycles += apu.cycle_rate;
       }
 
    }  /* !audio_enable_output */
@@ -1342,7 +1352,7 @@ void apu_save_state (PACKFILE *file, int version)
       int subindex;
 
       for (subindex = 0; subindex < 4; subindex++)
-         pack_putc (apu.apus.rectangle[index].regs[subindex], chunk);
+         pack_putc (apu.apus.square[index].regs[subindex], chunk);
    }
 
    /* Triangle. */
@@ -1408,23 +1418,18 @@ void apu_load_state (PACKFILE *file, int version)
 
 /* --- Internal functions. --- */
 
-static void set_params (int sample_rate, REAL refresh_rate)
+static void set_params (REAL sample_rate, REAL refresh_rate)
 {
    int samples;
 
    /* Set parameters. */
-   apu.sample_rate  = sample_rate;
+   apu.sample_rate = sample_rate;
    apu.refresh_rate = refresh_rate;
 
-   samples = (sample_rate / refresh_rate);
+   samples = (int)(sample_rate / refresh_rate);
 
-   /* TODO: Clean up the following line.  I'm not quite sure which part
-      of it is calculation and which is the fixed point transformation, but
-      Allegro's ftofix() macro should be used instead. */
-
-   /* turn into fixed point! */
-   apu.cycle_rate = (INT32)(((machine_type == MACHINE_TYPE_NTSC) ?
-      APU_BASEFREQ_NTSC : APU_BASEFREQ_PAL) * 65536.0 / sample_rate);
+   apu.cycle_rate = (((machine_type == MACHINE_TYPE_NTSC) ? APU_BASEFREQ_NTSC
+      : APU_BASEFREQ_PAL) / sample_rate);
 
    /* build various lookup tables for apu */
    build_luts (samples);
@@ -1468,7 +1473,7 @@ static void write_cur (UINT16 address, UINT8 value)
       {
          chan = ((address & 4) ? 1 : 0);
 
-         apu.apus.rectangle[chan].holdnote_cur = ((value & 0x20) ? TRUE : FALSE);
+         apu.apus.square[chan].holdnote_cur = TRUE_OR_FALSE((value & 0x20));
 
          break;
       }
@@ -1478,17 +1483,17 @@ static void write_cur (UINT16 address, UINT8 value)
       {
          chan = ((address & 4) ? 1 : 0);
 
-         apu.apus.rectangle[chan].vbl_length_cur = (vbl_length[(value >> 3)] * 5);
+         apu.apus.square[chan].vbl_length_cur = (vbl_length[(value >> 3)] * 5);
 
          if (apu.enable_reg_cur & (1 << chan))
-            apu.apus.rectangle[chan].enabled_cur = TRUE;
+            apu.apus.square[chan].enabled_cur = TRUE;
 
          break;
       }
 
       case APU_WRC0:
       {
-         apu.apus.triangle.holdnote_cur = ((value & 0x80) ? TRUE : FALSE);
+         apu.apus.triangle.holdnote_cur = TRUE_OR_FALSE((value & 0x80));
 
          break;
       }
@@ -1507,7 +1512,7 @@ static void write_cur (UINT16 address, UINT8 value)
 
       case APU_WRD0:
       {
-         apu.apus.noise.holdnote_cur = ((value & 0x20) ? TRUE : FALSE);
+         apu.apus.noise.holdnote_cur = TRUE_OR_FALSE((value & 0x20));
 
          break;
       }
@@ -1526,7 +1531,7 @@ static void write_cur (UINT16 address, UINT8 value)
       {
          apu.apus.dmc.freq_cur = dmc_clocks[(value & 0x0f)];
          apu.apus.dmc.phaseacc_cur = 0;
-         apu.apus.dmc.looping_cur = ((value & 0x40) ? TRUE : FALSE);
+         apu.apus.dmc.looping_cur = TRUE_OR_FALSE((value & 0x40));
 
          if (value & 0x80)
          {
@@ -1556,8 +1561,8 @@ static void write_cur (UINT16 address, UINT8 value)
          {
             if ((value & (1 << chan)) == 0)
             {
-               apu.apus.rectangle[chan].enabled_cur = FALSE;
-               apu.apus.rectangle[chan].vbl_length_cur = 0;
+               apu.apus.square[chan].enabled_cur = FALSE;
+               apu.apus.square[chan].vbl_length_cur = 0;
             }
          }
 
@@ -1595,16 +1600,16 @@ static void write_cur (UINT16 address, UINT8 value)
 
 static void sync_apu_register (void)
 {
-   if ((!apu.apus.rectangle[0].holdnote_cur) &&
-       (apu.apus.rectangle[0].vbl_length_cur > 0))
+   if ((!apu.apus.square[0].holdnote_cur) &&
+       (apu.apus.square[0].vbl_length_cur > 0))
    {
-      apu.apus.rectangle[0].vbl_length_cur -= apu_cnt_rate;
+      apu.apus.square[0].vbl_length_cur -= apu_cnt_rate;
    }
 
-   if ((!apu.apus.rectangle[1].holdnote_cur) &&
-       (apu.apus.rectangle[1].vbl_length_cur > 0))
+   if ((!apu.apus.square[1].holdnote_cur) &&
+       (apu.apus.square[1].vbl_length_cur > 0))
    {
-      apu.apus.rectangle[1].vbl_length_cur -= apu_cnt_rate;
+      apu.apus.square[1].vbl_length_cur -= apu_cnt_rate;
    }
 
    if (apu.apus.triangle.counter_started_cur)
@@ -1621,44 +1626,4 @@ static void sync_apu_register (void)
    {
       apu.apus.noise.vbl_length_cur -= apu_cnt_rate;
    }
-}
-
-static int sync_dmc_register (int cpu_cycles)
-{
-   int irq_occurred = FALSE;
-
-   apu.apus.dmc.phaseacc_cur -= cpu_cycles;
-
-   while (apu.apus.dmc.phaseacc_cur < 0)
-   {
-      apu.apus.dmc.phaseacc_cur += (apu.apus.dmc.freq_cur * 8);
-
-      if (apu.apus.dmc.dma_length_cur)
-      {
-        if (--apu.apus.dmc.dma_length_cur == 0)
-        {
-           if (apu.apus.dmc.looping_cur)
-           {
-              apu.apus.dmc.dma_length_cur =
-               apu.apus.dmc.cached_dmalength_cur;
-
-              apu.apus.dmc.irq_occurred_cur = FALSE;
-           }
-           else
-           {
-              apu.apus.dmc.dma_length_cur = 0;
-
-              if (apu.apus.dmc.irq_gen_cur)
-              {
-                 apu.apus.dmc.irq_occurred_cur = TRUE;
-                 irq_occurred = TRUE;
-              }
-
-              apu.apus.dmc.enabled_cur = FALSE;
-           }
-        }
-      }
-   }
-
-   return (irq_occurred);
 }

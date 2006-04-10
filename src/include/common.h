@@ -19,6 +19,8 @@ extern "C" {
 #undef FALSE
 #define FALSE  0
 
+#define TRUE_OR_FALSE(x)   (x ? TRUE : FALSE)
+
 #undef NULL
 #define NULL   0
 

@@ -36,8 +36,8 @@ static int dsp_write_sample = 0;
 #define DSP_OUTPUT_CHANNELS_MIN  1
 #define DSP_OUTPUT_CHANNELS_MAX  2
 
-#define DSP_SAMPLE_VALUE_MIN  -0.5f
-#define DSP_SAMPLE_VALUE_MAX  +0.5f
+#define DSP_SAMPLE_VALUE_MIN  -1.0f
+#define DSP_SAMPLE_VALUE_MAX  +1.0f
 
 /* Sample access macros. */
 #define DSP_BUFFER_SAMPLE(sample, channel)   \
