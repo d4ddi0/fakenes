@@ -48,16 +48,12 @@ extern "C" {
 
 #define APU_SMASK       0x4015
 
-/* length of generated noise */
-#define APU_NOISE_32K   0x7fff
-#define APU_NOISE_93    93
-
 #define APU_BASEFREQ_NTSC  (1.89e9 / 88 / 12)
 #define APU_BASEFREQ_PAL   (26601712.5 / 15)
                         
 /* --- 2A03 support. --- */
 
-typedef struct apu_square_s
+typedef struct apu_chan_s
 {
    int regs[4];
 
@@ -70,6 +66,11 @@ typedef struct apu_square_s
    BOOL fixed_envelope;
    BOOL holdnote;
    int volume;
+
+   int adder;
+   int duty_flip;
+   int vbl_length;
+   int linear_length;
 
    /* Sweep. */
    int sweep_phase;
@@ -79,129 +80,55 @@ typedef struct apu_square_s
    int sweep_length;
    BOOL sweep_inc;
 
-   /* this may not be necessary in the future */
-   int freq_limit;
-
-   /* rectangle 0 uses a complement addition for sweep
-   ** increases, while rectangle 1 uses subtraction
-   */
-   BOOL sweep_complement;
-
    /* Envelope. */
    int env_phase;
    int env_delay;
    int env_vol;
 
-   int vbl_length;
-   int adder;
-   int duty_flip;
+   /* Square. */
+   int freq_limit;   /* this may not be necessary in the future */
+   BOOL sweep_complement;  /* difference between square wave channels. */
 
-   /* for sync read $4105 */
-   BOOL enabled_cur;
-   BOOL holdnote_cur;
-   int vbl_length_cur;
-
-} apu_square_t;
-
-typedef struct apu_triangle_s
-{
-   int regs[3];
-
-   BOOL enabled;
-
-   INT32 output;
-
-   int freq;
-   REAL phaseacc;
-
-   int adder;
-
-   BOOL holdnote;
+   /* Triangle? */
    BOOL counter_started;
-   /* quasi-hack */
-   int write_latency;
+   REAL write_latency;   /* quasi-hack */
 
-   int vbl_length;
-   int linear_length;
+   /* Noise. */
+   int xor_tap;
+
+   /* DMC. */
+   UINT16 address;
+   UINT16 cached_addr;
+   int dma_length;
+   int cached_dmalength;
+   UINT8 cur_byte;
 
    /* for sync read $4105 */
    BOOL enabled_cur;
    BOOL holdnote_cur;
    BOOL counter_started_cur;
    int vbl_length_cur;
-
-} apu_triangle_t;
-
-typedef struct apu_noise_s
-{
-   int regs[3];
-
-   BOOL enabled;
-
-   INT32 output;
-
-   int freq;
-   REAL phaseacc;
-
-   int env_phase;
-   int env_delay;
-   int env_vol;
-   BOOL fixed_envelope;
-   BOOL holdnote;
-
-   int volume;
-
-   int vbl_length;
-
-   int xor_tap;
-
-   /* for sync read $4105 */
-   BOOL enabled_cur;
-   BOOL holdnote_cur;
-   int vbl_length_cur;
-
-} apu_noise_t;
-
-typedef struct apu_dmc_s
-{
-   int regs[4];
-
-   /* bodge for timestamp queue */
-   BOOL enabled;
-
-   INT32 output;
-   
-   int freq;
-   REAL phaseacc;
-
-   int address;
-   int cached_addr;
-   int dma_length;
-   int cached_dmalength;
-   int cur_byte;
-
-   int looping;
-   int irq_gen;
-   int irq_occurred;
-
-   /* for sync read $4105 and DPCM IRQ */
    int freq_cur;
-   int phaseacc_cur;
+   REAL phaseacc_cur;
+
+   /* DMC? */
+   BOOL looping;
+   BOOL irq_gen;
+   BOOL irq_occurred;
    int dma_length_cur;
    int cached_dmalength_cur;
-   int enabled_cur;
-   int looping_cur;
-   int irq_gen_cur;
-   int irq_occurred_cur;
+   BOOL looping_cur;
+   BOOL irq_gen_cur;
+   BOOL irq_occurred_cur;
 
-} apu_dmc_t;
+} apu_chan_t;
 
 typedef struct apu_apusound_s
 {
-   apu_square_t   square[2];
-   apu_triangle_t triangle;
-   apu_noise_t    noise;
-   apu_dmc_t      dmc;
+   apu_chan_t square[2];
+   apu_chan_t triangle;
+   apu_chan_t noise;
+   apu_chan_t dmc;
 
 } APU_APUSOUND;
 
@@ -290,8 +217,9 @@ typedef struct
 /* apu ring buffer member */
 typedef struct apudata_s
 {
-   REAL timestamp;
-   int address, value;
+   unsigned timestamp;
+   UINT16 address;
+   UINT8 value;
 
 } apudata_t;
 
@@ -301,8 +229,8 @@ typedef struct apu_s
    APU_MMC5SOUND mmc5;
    APU_VRC6SOUND vrc6s;
 
-   int enable_reg;
-   int enable_reg_cur;
+   FLAGS enable_reg;
+   FLAGS enable_reg_cur;
 
    apudata_t queue[APUQUEUE_SIZE];
    int q_head, q_tail;
@@ -325,11 +253,11 @@ int apu_init (void);
 void apu_exit (void);
 void apu_reset (void);
 void apu_update (void);
+void apu_process (void);
 void apu_set_exsound (ENUM);
 UINT8 apu_read (UINT16);
 void apu_write (UINT16, UINT8);
 void apu_ex_write (UINT16, UINT8);
-void apu_process (void);
 void apu_save_state (PACKFILE *, int);
 void apu_load_state (PACKFILE *, int);
 
