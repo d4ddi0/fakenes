@@ -2522,8 +2522,8 @@ static int audio_channels_menu_extended (void)
 static int audio_volume_menu_increase (void)
 {
    dsp_master_volume += 0.25f;
-   if (dsp_master_volume > 1.5f)
-      dsp_master_volume = 1.5f;
+   if (dsp_master_volume > 4.0f)
+      dsp_master_volume = 4.0f;
 
    update_menus ();
 

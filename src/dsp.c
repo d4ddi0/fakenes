@@ -17,7 +17,7 @@
 #include "types.h"
 
 /* Master volume. */
-REAL dsp_master_volume = 1.0f;
+REAL dsp_master_volume = 2.0f;
 
 /* The DSP buffer. */
 static DSP_SAMPLE *dsp_buffer = NULL;
@@ -185,7 +185,6 @@ void dsp_write (const DSP_SAMPLE *samples)
       value = samples[channel];
 
       /* Clipping. */
-      value *= dsp_master_volume;
       value = fixf (value, DSP_SAMPLE_VALUE_MIN, DSP_SAMPLE_VALUE_MAX);
 
       DSP_BUFFER_SAMPLE(sample, channel) = value;
@@ -316,7 +315,7 @@ BOOL dsp_get_effector_enabled (FLAGS effector)
 #define DSP_OUTPUT_LEFT  outputs[0]
 #define DSP_OUTPUT_RIGHT outputs[1]
 
-#define DSP_MIXER_TO_OUTPUT(mixer)  ROUND((mixer * 4294967295.0f))
+#define DSP_MIXER_TO_OUTPUT(mixer)  ROUND((mixer * 2147483647.0f))
 #define DSP_OUTPUT_SIGNED_BIT       0x80000000
 #define DSP_OUTPUT_SHIFTS_8         24
 #define DSP_OUTPUT_SHIFTS_16        16
@@ -439,6 +438,10 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
             DSP_MIXER_RIGHT += input;
          }
       }
+
+      /* Master volume control. */
+      DSP_MIXER_LEFT  *= dsp_master_volume;
+      DSP_MIXER_RIGHT *= dsp_master_volume;
 
       /* Clipping. */
 
