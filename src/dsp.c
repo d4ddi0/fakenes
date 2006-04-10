@@ -17,7 +17,7 @@
 #include "types.h"
 
 /* Master volume. */
-REAL dsp_master_volume = 2.0f;
+REAL dsp_master_volume = 1.0f;
 
 /* The DSP buffer. */
 static DSP_SAMPLE *dsp_buffer = NULL;
