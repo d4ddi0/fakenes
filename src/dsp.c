@@ -665,7 +665,7 @@ static void dsp_wav_write (void)
 
    /* Render waveform. */
    dsp_render (buffer, dsp_wav_channels, dsp_wav_bits_per_sample,
-      ((dsp_wav_bits_per_sample == 8) ? TRUE : FALSE));
+      TRUE_OR_FALSE(dsp_wav_bits_per_sample == 8));
 
    /* Write rendering buffer to disk. */
    fwrite (buffer, size, 1, dsp_wav_file);
