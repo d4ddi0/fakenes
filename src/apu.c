@@ -84,9 +84,6 @@ static const int duty_lut[] = {
    2, 4, 8, 12
 };
 
-// for $4017:bit7 by T.Yano
-static int apu_cnt_rate = 5;
-
 /* --- Queue routines. --- */
 
 #define APU_QEMPTY()    (apu.q_head == apu.q_tail)
@@ -153,7 +150,7 @@ static INLINE REAL apu_envelope (apu_chan_t *chan)
    RT_ASSERT(chan);
 
    /* envelope decay at a rate of (env_delay + 1) / 240 secs */
-   chan->env_phase -= (4 * apu_cnt_rate); /* 240/60 */
+   chan->env_phase -= (4 * apu.cnt_rate); /* 240/60 */
 
    while (chan->env_phase < 0)
    {
@@ -200,7 +197,7 @@ static INLINE REAL apu_square (apu_chan_t *chan)
 
    /* vbl length counter */
    if (!chan->holdnote)
-      chan->vbl_length -= apu_cnt_rate;
+      chan->vbl_length -= apu.cnt_rate;
 
    /* TODO: using a table of max frequencies is not technically
    ** clean, but it is fast and (or should be) accurate 
@@ -214,7 +211,7 @@ static INLINE REAL apu_square (apu_chan_t *chan)
    /* frequency sweeping at a rate of (sweep_delay + 1) / 120 secs */
    if (chan->sweep_on && chan->sweep_shifts)
    {
-      chan->sweep_phase -= (2 * apu_cnt_rate);  /* 120/60 */
+      chan->sweep_phase -= (2 * apu.cnt_rate);  /* 120/60 */
 
       while (chan->sweep_phase < 0)
       {
@@ -296,10 +293,10 @@ static INLINE REAL apu_triangle (apu_chan_t *chan)
    if (chan->counter_started)
    {
       if (chan->linear_length > 0)
-         chan->linear_length -= (4 * apu_cnt_rate);   /* 240/60 */
+         chan->linear_length -= (4 * apu.cnt_rate);   /* 240/60 */
 
       if ((chan->vbl_length > 0) && !chan->holdnote)
-         chan->vbl_length -= apu_cnt_rate;
+         chan->vbl_length -= apu.cnt_rate;
    }
    else if (!chan->holdnote && chan->write_latency)
    {
@@ -400,7 +397,7 @@ static INLINE REAL apu_noise (apu_chan_t *chan)
 
    /* vbl length counter */
    if (!chan->holdnote)
-      chan->vbl_length -= apu_cnt_rate;
+      chan->vbl_length -= apu.cnt_rate;
 
    output = apu_envelope (chan);
 
@@ -640,7 +637,7 @@ void apu_reset (void)
    APU_VRC6SoundVolume (1);
 
    // for $4017:bit7 by T.Yano
-   apu_cnt_rate = 5;
+   apu.cnt_rate = 5;
 }
 
 void apu_update (void)
@@ -1449,9 +1446,9 @@ static void regwrite (UINT32 address, UINT8 value)
       case 0x4017:
       {
          if (value & 0x80)
-            apu_cnt_rate = 4;
+            apu.cnt_rate = 4;
          else
-            apu_cnt_rate = 5;
+            apu.cnt_rate = 5;
 
          break;
       }
@@ -1606,13 +1603,13 @@ static void sync_apu_register (void)
    if ((!apu.apus.square[0].holdnote_cur) &&
        (apu.apus.square[0].vbl_length_cur > 0))
    {
-      apu.apus.square[0].vbl_length_cur -= apu_cnt_rate;
+      apu.apus.square[0].vbl_length_cur -= apu.cnt_rate;
    }
 
    if ((!apu.apus.square[1].holdnote_cur) &&
        (apu.apus.square[1].vbl_length_cur > 0))
    {
-      apu.apus.square[1].vbl_length_cur -= apu_cnt_rate;
+      apu.apus.square[1].vbl_length_cur -= apu.cnt_rate;
    }
 
    if (apu.apus.triangle.counter_started_cur)
@@ -1620,13 +1617,13 @@ static void sync_apu_register (void)
       if ((apu.apus.triangle.vbl_length_cur > 0) &&
           (!apu.apus.triangle.holdnote_cur))
       {
-         apu.apus.triangle.vbl_length_cur -= apu_cnt_rate;
+         apu.apus.triangle.vbl_length_cur -= apu.cnt_rate;
       }
    }
 
    if ((!apu.apus.noise.holdnote_cur) &&
        (apu.apus.noise.vbl_length_cur > 0))
    {
-      apu.apus.noise.vbl_length_cur -= apu_cnt_rate;
+      apu.apus.noise.vbl_length_cur -= apu.cnt_rate;
    }
 }

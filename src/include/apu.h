@@ -246,6 +246,9 @@ typedef struct apu_s
    REAL sample_rate;
    REAL refresh_rate;
 
+   // for $4017:bit7 by T.Yano
+   int cnt_rate;
+
 } apu_t;
 
 /* Function prototypes */
