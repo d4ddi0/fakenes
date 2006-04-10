@@ -153,9 +153,9 @@ static void APU_MMC5SoundSquareReset(APU_MMC5_SQUARE *ch)
 static INT32 APU_MMC5SoundRender(void)
 {
     INT32 accum = 0;
-    /* output signed 32-bit */
-   accum += APU_MMC5SoundSquareRender(&apu.mmc5.square[0]) << 8;
-   accum += APU_MMC5SoundSquareRender(&apu.mmc5.square[1]) << 8;
+    /* output signed 16-bit */
+   accum += APU_MMC5SoundSquareRender(&apu.mmc5.square[0]) >> 8;
+   accum += APU_MMC5SoundSquareRender(&apu.mmc5.square[1]) >> 8;
 	return accum;
 }
 

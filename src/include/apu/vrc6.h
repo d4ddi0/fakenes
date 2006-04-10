@@ -83,10 +83,10 @@ static INT32 APU_VRC6SoundSawRender(APU_VRC6_SAW *ch)
 static INT32 APU_VRC6SoundRender(void)
 {
     INT32 accum = 0;
-   /* output signed 32-bit */
-   accum += APU_VRC6SoundSquareRender(&apu.vrc6s.square[0]) << 8;
-   accum += APU_VRC6SoundSquareRender(&apu.vrc6s.square[1]) << 8;
-   accum += APU_VRC6SoundSawRender(&apu.vrc6s.saw) << 8;
+   /* output signed 16-bit */
+   accum += APU_VRC6SoundSquareRender(&apu.vrc6s.square[0]) >> 8;
+   accum += APU_VRC6SoundSquareRender(&apu.vrc6s.square[1]) >> 8;
+   accum += APU_VRC6SoundSawRender(&apu.vrc6s.saw) >> 8;
 	return accum;
 }
 

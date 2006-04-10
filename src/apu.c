@@ -48,12 +48,9 @@ static void regwrite (UINT32, UINT8);
 static void write_cur (UINT16, UINT8);
 static void sync_apu_register (void);
 
-/* Macro to convert generated samples to the APU's signed 32-bit format. */
-#define APU_TO_OUTPUT(value)  (INT32)ROUND((value * 65536.0f))
-
-/* Macro to convert signed 32-bit APU samples to normalized DSP samples. */
-#define APU_TO_DSP(value)     (DSP_SAMPLE)(value / 2147483647.0f)
-
+/* Macro to convert generated samples to normalized samples. */
+#define APU_TO_OUTPUT(value)  ((value * 65536.0f) / 2147483647.0f)
+                                             
 /* --- Lookup tables. --- */
 
 static int decay_lut[16];
@@ -185,7 +182,7 @@ static INLINE REAL apu_envelope (apu_chan_t *chan)
    reg2: 8 bits of freq
    reg3: 0-2=high freq, 7-4=vbl length counter */
 
-static INLINE INT32 apu_square (apu_chan_t *chan)
+static INLINE REAL apu_square (apu_chan_t *chan)
 {
    REAL output;
    REAL sample_weight;
@@ -282,7 +279,7 @@ static INLINE INT32 apu_square (apu_chan_t *chan)
    reg2: low 8 bits of frequency
    reg3: 7-3=length counter, 2-0=high 3 bits of frequency */
 
-static INLINE INT32 apu_triangle (apu_chan_t *chan)
+static INLINE REAL apu_triangle (apu_chan_t *chan)
 {
    static REAL val;
    REAL sample_weight, total, prev_val;
@@ -385,7 +382,7 @@ static INLINE INT32 apu_triangle (apu_chan_t *chan)
    reg2: 7=small(93 byte) sample,3-0=freq lookup
    reg3: 7-4=vbl length counter */
 
-static INLINE INT32 apu_noise (apu_chan_t *chan)
+static INLINE REAL apu_noise (apu_chan_t *chan)
 {
    REAL output;
 
@@ -455,7 +452,7 @@ static INLINE INT32 apu_noise (apu_chan_t *chan)
    reg2: 8 bits of 64-byte aligned address offset : $C000 + (value * 64)
    reg3: length, (value * 16) + 1 */
 
-static INLINE INT32 apu_dmc (apu_chan_t *chan)
+static INLINE REAL apu_dmc (apu_chan_t *chan)
 {
    REAL total;
    REAL sample_weight;
@@ -797,47 +794,49 @@ void apu_process (void)
    
          for (channel = 0; channel < APU_CHANNELS; channel++)
          {
-            INT32 value = 0;
+            REAL sample = 0;
 
             switch (channel)
             {
                case APU_CHANNEL_SQUARE_1:
                {
-                  value = apu_square (&apu.apus.square[0]);
+                  sample = apu_square (&apu.apus.square[0]);
    
                   break;
                }
    
                case APU_CHANNEL_SQUARE_2:
                {
-                  value = apu_square (&apu.apus.square[1]);
+                  sample = apu_square (&apu.apus.square[1]);
    
                   break;
                }
    
                case APU_CHANNEL_TRIANGLE:
                {
-                  value = apu_triangle (&apu.apus.triangle);
+                  sample = apu_triangle (&apu.apus.triangle);
    
                   break;
                }
    
                case APU_CHANNEL_NOISE:
                {
-                  value = apu_noise (&apu.apus.noise);
+                  sample = apu_noise (&apu.apus.noise);
    
                   break;
                }
    
                case APU_CHANNEL_DMC:
                {
-                  value = apu_dmc (&apu.apus.dmc);
+                  sample = apu_dmc (&apu.apus.dmc);
    
                   break; 
                } 
    
                case APU_CHANNEL_EXTRA:
                {
+                  INT32 value = 0;
+
                   switch (apu.exsound)
                   {
                      case APU_EXSOUND_NONE:
@@ -863,7 +862,10 @@ void apu_process (void)
                         // WARN_GENERIC();
                         break;
                   }
-   
+
+                  /* Convert to DSP format. */
+                  sample = APU_TO_OUTPUT(value);
+
                   break;
                }
    
@@ -871,8 +873,7 @@ void apu_process (void)
                   WARN_GENERIC();
             }
                  
-            /* Convert to DSP format. */
-            dsp_samples[channel] = APU_TO_DSP(value);
+            dsp_samples[channel] = sample;
          }
    
          /* Send samples to buffer. */

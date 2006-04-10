@@ -59,7 +59,7 @@ typedef struct apu_chan_s
 
    BOOL enabled;
 
-   INT32 output;
+   REAL output;
 
    REAL phaseacc;
    int freq;
