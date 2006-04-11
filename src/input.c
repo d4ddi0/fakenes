@@ -228,8 +228,6 @@ static INLINE void load_joystick_layouts (void)
 
 int input_autosave_interval = 0;
 
-int input_autosave_triggered = FALSE;
-
 
 int input_init (void)
 {
@@ -681,15 +679,9 @@ void input_process (void)
 
          if (++frames == (input_autosave_interval * timing_get_speed ()))
          {
-            /* Set trigger flag. */
-            input_autosave_triggered = TRUE;
-     
             /* Simulate keypress. */
             gui_handle_keypress (0, KEY_F3);
 
-            /* Clear trigger flag. */
-            input_autosave_triggered = FALSE;
-     
             /* Reset frame counter. */
             frames = 0;
          }

@@ -2048,9 +2048,6 @@ static int machine_save_state_menu_save (void)
    /* Update save state titles. */
    machine_save_state_menu_select ();
 
-   if (!input_autosave_triggered)
-      message_local ("Machine state saved in slot %d.", save_state_index);
-
    return (D_CLOSE);
 }
 

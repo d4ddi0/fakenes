@@ -32,8 +32,6 @@ int input_zapper_on_screen;
 
 int input_autosave_interval;
 
-int input_autosave_triggered;
-
 
 int input_mode;
 
