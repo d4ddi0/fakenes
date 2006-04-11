@@ -19,7 +19,7 @@
 #endif
 
 /* Maximum number of enries in the queue. */
-#define MAX_QUEUE_SIZE  600
+#define MAX_QUEUE_SIZE  300
 
 /* Maximum buffer file data size.  Buffer files are only used as temporary
    storage while saving/loading snapshots, therefor their size does not
