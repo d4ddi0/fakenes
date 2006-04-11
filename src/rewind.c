@@ -27,6 +27,14 @@
    queue.  The total size of a raw save state must not exceed this value. */
 #define MAX_BUFFER_FILE_DATA_SIZE   65536
 
+/* Frame rate at which snapshots are saved/loaded.  Smaller values mean
+   smoother backtracking at the cost of memory and a more constant speed it.
+   This should be a fractional value, even for whole numbers. */
+#define FRAME_RATE   (timing_get_speed () / 2.0f)
+
+/* Frame counter, used to enforce the frame rate. */
+static int wait_frames = 0;
+
 /* Queue. */
 
 typedef struct _QUEUE_FRAME
@@ -99,6 +107,9 @@ void rewind_clear (void)
    queue.first = NULL;
    queue.last  = NULL;
    queue.size  = 0;
+
+   /* Clear frame counter. */
+   wait_frames = 0;
 }
 
 typedef struct _BUFFER_FILE
@@ -116,6 +127,11 @@ BOOL rewind_save_snapshot (void)
    PACKFILE *file;
    BUFFER_FILE buffer;
    long size;
+
+   if (wait_frames > 0)
+      wait_frames--;
+   if (wait_frames > 0)
+      return (FALSE);
 
    if (queue.size >= MAX_QUEUE_SIZE)
    {
@@ -196,7 +212,10 @@ BOOL rewind_save_snapshot (void)
       free (frame);
       return (FALSE);
    }
-   
+
+   /* Set frame counter. */
+   wait_frames = ROUND((timing_get_speed () / FRAME_RATE));
+
    /* Return success. */
    return (TRUE);
 }
@@ -207,6 +226,11 @@ BOOL rewind_load_snapshot (void)
    PACKFILE *file;
    BUFFER_FILE buffer;
    long size;
+
+   if (wait_frames > 0)
+      wait_frames--;
+   if (wait_frames > 0)
+      return (FALSE);
 
    if (queue.size <= 0)
    {
@@ -261,6 +285,9 @@ BOOL rewind_load_snapshot (void)
 
    /* Destroy frame. */
    free (frame);
+
+   /* Set frame counter. */
+   wait_frames = ROUND((timing_get_speed () / FRAME_RATE));
 
    /* Return success. */
    return (TRUE);
