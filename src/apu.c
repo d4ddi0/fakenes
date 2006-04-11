@@ -44,7 +44,7 @@ static apu_t apu;
 /* Internal function prototypes (defined at bottom). */
 static void set_params (REAL, REAL);
 static void build_luts (int);
-static void regwrite (UINT32, UINT8);
+static void regwrite (UINT16, UINT8);
 static void write_cur (UINT16, UINT8);
 static void sync_apu_register (void);
 
@@ -730,6 +730,8 @@ void apu_process (void)
    REAL elapsed_cycles;
    int samples;
 
+   /* Grab the elapsed cycles counter locally for floating-point precision
+      cycle stepping during queue processing. */
    elapsed_cycles = apu.elapsed_cycles;
 
    /* TODO: Fix this, it probably won't work with audio disabled. */
@@ -744,19 +746,23 @@ void apu_process (void)
 
       while (samples--)
       {
+         int max_timestamp;
          apudata_t *data;
          int channel;
          DSP_SAMPLE dsp_samples[APU_CHANNELS];
-   
+
+         /* Truncate to integer. */
+         max_timestamp = ROUND(elapsed_cycles);
+
          while (!APU_QEMPTY() &&
-                (apu.queue[apu.q_tail].timestamp <= elapsed_cycles))
+                (apu.queue[apu.q_tail].timestamp <= max_timestamp))
          {
             data = apu_dequeue ();
             regwrite (data->address, data->value);
          }
    
          while (!APU_EX_QEMPTY() &&
-                (apu.ex_queue[apu.ex_q_tail].timestamp <= elapsed_cycles))
+                (apu.ex_queue[apu.ex_q_tail].timestamp <= max_timestamp))
          {
             data = apu_ex_dequeue ();
    
@@ -891,17 +897,21 @@ void apu_process (void)
    {
       while (samples--)
       {
+         int max_timestamp;
          apudata_t *data;
-   
+
+         /* Truncate to integer. */
+         max_timestamp = elapsed_cycles;
+
          while ((!APU_QEMPTY()) &&
-                (apu.queue[apu.q_tail].timestamp <= elapsed_cycles))
+                (apu.queue[apu.q_tail].timestamp <= max_timestamp))
          {
             data = apu_dequeue ();
             regwrite (data->address, data->value);
          }
    
          while ((!APU_EX_QEMPTY()) &&
-                (apu.ex_queue[apu.ex_q_tail].timestamp <= elapsed_cycles))
+                (apu.ex_queue[apu.ex_q_tail].timestamp <= max_timestamp))
          {
             data = apu_ex_dequeue ();
    
@@ -1016,7 +1026,7 @@ void apu_write (UINT16 address, UINT8 value)
       case 0x4015:
       {
          /* bodge for timestamp queue */
-         apu.apus.dmc.enabled = TRUE_OR_FALSE((value & 0x10));
+         apu.apus.dmc.enabled = TRUE_OR_FALSE(value & 0x10);
 
          /* No break. */
       }
@@ -1151,7 +1161,7 @@ static void build_luts (int num_samples)
       trilength_lut[i] = num_samples * i * 5;
 }
 
-static void regwrite (UINT32 address, UINT8 value)
+static void regwrite (UINT16 address, UINT8 value)
 {  
    int chan;
    int reg;
@@ -1180,8 +1190,8 @@ static void regwrite (UINT32 address, UINT8 value)
    
          apu.apus.square[chan].volume = (value & 0x0f);
          apu.apus.square[chan].env_delay = decay_lut[(value & 0x0f)];
-         apu.apus.square[chan].holdnote = TRUE_OR_FALSE((value & 0x20));
-         apu.apus.square[chan].fixed_envelope = TRUE_OR_FALSE((value & 0x10));
+         apu.apus.square[chan].holdnote = TRUE_OR_FALSE(value & 0x20);
+         apu.apus.square[chan].fixed_envelope = TRUE_OR_FALSE(value & 0x10);
          apu.apus.square[chan].duty_flip = duty_lut[(value >> 6)];
 
          break;
@@ -1193,10 +1203,10 @@ static void regwrite (UINT32 address, UINT8 value)
          chan = ((address & 4) ? 1 : 0);
 
          apu.apus.square[chan].regs[1] = value;
-         apu.apus.square[chan].sweep_on = TRUE_OR_FALSE((value & 0x80));
+         apu.apus.square[chan].sweep_on = TRUE_OR_FALSE(value & 0x80);
          apu.apus.square[chan].sweep_shifts = (value & 7);
          apu.apus.square[chan].sweep_delay = decay_lut[((value >> 4) & 7)];
-         apu.apus.square[chan].sweep_inc = TRUE_OR_FALSE((value & 0x08));
+         apu.apus.square[chan].sweep_inc = TRUE_OR_FALSE(value & 0x08);
          apu.apus.square[chan].freq_limit = freq_limit[(value & 7)];
 
          break;
@@ -1234,7 +1244,7 @@ static void regwrite (UINT32 address, UINT8 value)
       case APU_WRC0: /* triangle */
       {
          apu.apus.triangle.regs[0] = value;
-         apu.apus.triangle.holdnote = TRUE_OR_FALSE((value & 0x80));
+         apu.apus.triangle.holdnote = TRUE_OR_FALSE(value & 0x80);
    
          if ((!apu.apus.triangle.counter_started) &&
              (apu.apus.triangle.vbl_length > 0))
@@ -1288,8 +1298,8 @@ static void regwrite (UINT32 address, UINT8 value)
       {
          apu.apus.noise.regs[0] = value;
          apu.apus.noise.env_delay = decay_lut[(value & 0x0f)];
-         apu.apus.noise.holdnote = TRUE_OR_FALSE((value & 0x20));
-         apu.apus.noise.fixed_envelope = TRUE_OR_FALSE((value & 0x10));
+         apu.apus.noise.holdnote = TRUE_OR_FALSE(value & 0x20);
+         apu.apus.noise.fixed_envelope = TRUE_OR_FALSE(value & 0x10);
          apu.apus.noise.volume = (value & 0x0f);
 
          break;
@@ -1322,7 +1332,7 @@ static void regwrite (UINT32 address, UINT8 value)
          apu.apus.dmc.regs[0] = value;
    
          apu.apus.dmc.freq = dmc_clocks[(value & 0x0f)];
-         apu.apus.dmc.looping = TRUE_OR_FALSE((value & 0x40));
+         apu.apus.dmc.looping = TRUE_OR_FALSE(value & 0x40);
    
          if (value & 0x80)
          {
@@ -1367,7 +1377,7 @@ static void regwrite (UINT32 address, UINT8 value)
       case APU_SMASK:
       {
          /* bodge for timestamp queue */
-         apu.apus.dmc.enabled = TRUE_OR_FALSE((value & 0x10));
+         apu.apus.dmc.enabled = TRUE_OR_FALSE(value & 0x10);
    
          apu.enable_reg = value;
    
@@ -1448,7 +1458,7 @@ static void write_cur (UINT16 address, UINT8 value)
       {
          chan = ((address & 4) ? 1 : 0);
 
-         apu.apus.square[chan].holdnote_cur = TRUE_OR_FALSE((value & 0x20));
+         apu.apus.square[chan].holdnote_cur = TRUE_OR_FALSE(value & 0x20);
 
          break;
       }
@@ -1468,7 +1478,7 @@ static void write_cur (UINT16 address, UINT8 value)
 
       case APU_WRC0:
       {
-         apu.apus.triangle.holdnote_cur = TRUE_OR_FALSE((value & 0x80));
+         apu.apus.triangle.holdnote_cur = TRUE_OR_FALSE(value & 0x80);
 
          break;
       }
@@ -1487,7 +1497,7 @@ static void write_cur (UINT16 address, UINT8 value)
 
       case APU_WRD0:
       {
-         apu.apus.noise.holdnote_cur = TRUE_OR_FALSE((value & 0x20));
+         apu.apus.noise.holdnote_cur = TRUE_OR_FALSE(value & 0x20);
 
          break;
       }
@@ -1506,7 +1516,7 @@ static void write_cur (UINT16 address, UINT8 value)
       {
          apu.apus.dmc.freq_cur = dmc_clocks[(value & 0x0f)];
          apu.apus.dmc.phaseacc_cur = 0;
-         apu.apus.dmc.looping_cur = TRUE_OR_FALSE((value & 0x40));
+         apu.apus.dmc.looping_cur = TRUE_OR_FALSE(value & 0x40);
 
          if (value & 0x80)
          {

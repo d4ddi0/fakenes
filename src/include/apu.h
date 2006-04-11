@@ -217,7 +217,7 @@ typedef struct
 /* apu ring buffer member */
 typedef struct apudata_s
 {
-   unsigned timestamp;
+   int timestamp;
    UINT16 address;
    UINT8 value;
 
@@ -242,7 +242,7 @@ typedef struct apu_s
    int ex_q_head, ex_q_tail;
    ENUM exsound;
 
-   REAL elapsed_cycles;
+   int elapsed_cycles;
    REAL cycle_rate;
 
    REAL sample_rate;
