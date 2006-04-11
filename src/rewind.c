@@ -451,6 +451,8 @@ static BOOL unpack (void *outbuf, long *max, void *buffer, long size)
 
       memcpy (outbuf, buffer, size);
       *max = size;
+
+      return (TRUE);
    }
 
    if (uncompress (outbuf, max, buffer, size) != Z_OK)
