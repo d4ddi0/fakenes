@@ -18,19 +18,42 @@
 #include <zlib.h>
 #endif
 
-/* Maximum number of enries in the queue. */
-#define MAX_QUEUE_SIZE  300
-
 /* Maximum buffer file data size.  Buffer files are only used as temporary
    storage while saving/loading snapshots, therefor their size does not
    determine the amount of memory actually allocated for each frame in the
    queue.  The total size of a raw save state must not exceed this value. */
-#define MAX_BUFFER_FILE_DATA_SIZE   65536
+#define MAX_BUFFER_FILE_DATA_SIZE   262144
 
-/* Frame rate at which snapshots are saved/loaded.  Smaller values mean
+/* Whether or not real-time game rewinding is enabled.  Disabling this sweet
+   feature can give a significant speed boost and reduced memory usage.
+
+   Default: TRUE
+   */
+static BOOL enabled = TRUE;
+
+/* Frame rate at which snapshots are saved/loaded.  Larger values mean
    smoother backtracking at the cost of memory and a more constant speed it.
-   This should be a fractional value, even for whole numbers. */
-#define FRAME_RATE   (timing_get_speed () / 2.0f)
+
+   This should be a fractional value that represents a normalized percentage
+   of the current emulation speed (e.g, 0.5 of 50 Hz would be 25 FPS).
+
+   Default: 0.5
+   Minimum: Value of EPSILON
+   Maximum: 1.0
+   */
+static REAL frame_rate = 0.5f;
+
+/* How long the rewinder can backtrack, in seconds.  This is combined with
+   'frame_rate' to form the final value of 'max_queue_size'.
+
+   Default: 10
+   Minimum: 1
+   Maximum: NONE
+   */
+static int seconds = 10;
+
+/* Maximum number of enries in the queue, computed from 'seconds'. */
+static int max_queue_size = 0;
 
 /* Frame counter, used to enforce the frame rate. */
 static int wait_frames = 0;
@@ -65,6 +88,30 @@ static QUEUE_FRAME *dequeue (void);
 
 int rewind_init (void)
 {
+   /* Load configuration. */
+
+   enabled    = get_config_int   ("rewind", "enabled",    enabled);
+   frame_rate = get_config_float ("rewind", "frame_rate", frame_rate);
+   seconds    = get_config_int   ("rewind", "seconds",    seconds);
+
+   /* Enforce sane limits. */
+
+   if (frame_rate < EPSILON)
+      frame_rate = EPSILON;
+   if (frame_rate > 1.0f)
+      frame_rate = 1.0f;
+
+   if (seconds < 1)
+      seconds = 1;
+
+   /* Calculate rough maximum queue size.
+   
+      TODO: Add the necessary code here (and elsewhere) to make this
+      automatically adjust to the current emulation speed.  As-is, it
+      produces a queue about 20% larger than necessary for PAL.
+      */
+   max_queue_size = ROUND(((60.0f * frame_rate) * seconds));
+
    /* Clear everything. */
    rewind_clear ();
 
@@ -76,11 +123,20 @@ void rewind_exit (void)
 {
    /* Clear everything. */
    rewind_clear ();
+
+   /* Save configuration. */
+
+   set_config_int   ("rewind", "enabled",    enabled);
+   set_config_float ("rewind", "frame_rate", frame_rate);
+   set_config_int   ("rewind", "seconds",    seconds);
 }
 
 void rewind_clear (void)
 {
    QUEUE_FRAME *frame;
+
+   if (!enabled)
+      return;
 
    /* Clear queue. */
 
@@ -127,13 +183,17 @@ BOOL rewind_save_snapshot (void)
    PACKFILE *file;
    BUFFER_FILE buffer;
    long size;
+   REAL speed;
+
+   if (!enabled)
+      return (FALSE);
 
    if (wait_frames > 0)
       wait_frames--;
    if (wait_frames > 0)
       return (FALSE);
 
-   if (queue.size >= MAX_QUEUE_SIZE)
+   if (queue.size >= max_queue_size)
    {
       /* The queue is currently full - dequeue and destroy the oldest frame
          to make room for the new one. */
@@ -214,7 +274,10 @@ BOOL rewind_save_snapshot (void)
    }
 
    /* Set frame counter. */
-   wait_frames = ROUND((timing_get_speed () / FRAME_RATE));
+
+   speed = timing_get_speed ();
+
+   wait_frames = ROUND((speed / (speed * frame_rate)));
 
    /* Return success. */
    return (TRUE);
@@ -226,6 +289,10 @@ BOOL rewind_load_snapshot (void)
    PACKFILE *file;
    BUFFER_FILE buffer;
    long size;
+   REAL speed;
+
+   if (!enabled)
+      return (FALSE);
 
    if (wait_frames > 0)
       wait_frames--;
@@ -287,7 +354,10 @@ BOOL rewind_load_snapshot (void)
    free (frame);
 
    /* Set frame counter. */
-   wait_frames = ROUND((timing_get_speed () / FRAME_RATE));
+
+   speed = timing_get_speed ();
+
+   wait_frames = ROUND((speed / (speed * frame_rate)));
 
    /* Return success. */
    return (TRUE);
@@ -364,7 +434,7 @@ static BOOL enqueue (QUEUE_FRAME *frame)
 {
    QUEUE_FRAME *last;
 
-   if (queue.size >= MAX_QUEUE_SIZE)
+   if (queue.size >= max_queue_size)
       return (FALSE);
 
    /* Get last frame in queue. */

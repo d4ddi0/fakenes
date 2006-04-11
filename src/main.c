@@ -547,7 +547,7 @@ int main (int argc, char * argv [])
 
                if (key[KEY_BACKSLASH])
                {
-                  if (rewind_load_snapshot ())
+                  if (!rewind_load_snapshot ())
                   {
                      /* Skip remainder of this frame. */
                      /* TODO: Do user interface input processing before this
