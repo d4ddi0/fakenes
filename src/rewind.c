@@ -7,6 +7,7 @@
    You must read and accept the license prior to use. */
 
 #include <allegro.h>
+#include <stdlib.h>
 #include <string.h>
 #include "common.h"
 #include "debug.h"
