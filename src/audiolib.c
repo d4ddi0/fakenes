@@ -129,7 +129,7 @@ void audiolib_resume (void)
 
 static AUDIOSTREAM *audiolib_allegro_stream = NULL;
 
-int audiolib_allegro_init (void)
+static int audiolib_allegro_init (void)
 {
    if (audio_interpolation)
       set_mixer_quality (2);
@@ -164,12 +164,12 @@ int audiolib_allegro_init (void)
    return (0);
 }
 
-void audiolib_allegro_deinit (void)
+static void audiolib_allegro_deinit (void)
 {
    stop_audio_stream (audiolib_allegro_stream);
 }
 
-int audiolib_allegro_play (void)
+static int audiolib_allegro_play (void)
 {
    /* Create stream. */
 
@@ -188,18 +188,18 @@ int audiolib_allegro_play (void)
    return (0);
 }
 
-void audiolib_allegro_stop (void)
+static void audiolib_allegro_stop (void)
 {
    stop_audio_stream (audiolib_allegro_stream);
    audiolib_allegro_stream = NULL;
 }
 
-void *audiolib_allegro_get_buffer (void)
+static void *audiolib_allegro_get_buffer (void)
 {
    return (get_audio_stream_buffer (audiolib_allegro_stream));
 }
 
-void audiolib_allegro_free_buffer (void)
+static void audiolib_allegro_free_buffer (void)
 {
    free_audio_stream_buffer (audiolib_allegro_stream);
 
@@ -207,12 +207,12 @@ void audiolib_allegro_free_buffer (void)
    voice_start (audiolib_allegro_stream->voice);
 }
 
-void audiolib_allegro_suspend (void)
+static void audiolib_allegro_suspend (void)
 {
    voice_stop (audiolib_allegro_stream->voice);
 }
 
-void audiolib_allegro_resume (void)
+static void audiolib_allegro_resume (void)
 {
    voice_start (audiolib_allegro_stream->voice);
 }
@@ -251,10 +251,10 @@ typedef struct ALSTREAM
 
 } ALSTREAM;
 
-ALSTREAM *play_al_stream (int, int, int, int);
-void stop_al_stream (ALSTREAM *);
-void *get_al_stream_buffer (ALSTREAM *);
-void free_al_stream_buffer (ALSTREAM *);
+static ALSTREAM *play_al_stream (int, int, int, int);
+static void stop_al_stream (ALSTREAM *);
+static void *get_al_stream_buffer (ALSTREAM *);
+static void free_al_stream_buffer (ALSTREAM *);
 
 #define AL_CHECK() { \
    int error;  \
@@ -265,9 +265,9 @@ void free_al_stream_buffer (ALSTREAM *);
    }  \
 }
 
-#define NUM_BUFFERS  2
+#define NUM_BUFFERS  3
 
-ALSTREAM *play_al_stream (int len, int bits, int stereo, int freq)
+static ALSTREAM *play_al_stream (int len, int bits, int stereo, int freq)
 {
    ALSTREAM *stream;
    int index;
@@ -343,7 +343,7 @@ ALSTREAM *play_al_stream (int len, int bits, int stereo, int freq)
    return (stream);
 }
 
-void stop_al_stream (ALSTREAM *stream)
+static void stop_al_stream (ALSTREAM *stream)
 {
    RT_ASSERT(stream);
    RT_ASSERT(stream->albuffers);
@@ -363,7 +363,9 @@ void stop_al_stream (ALSTREAM *stream)
    free (stream);
 }
 
-void *get_al_stream_buffer (ALSTREAM *stream)
+static ALuint floating_buffer = 0;
+
+static void *get_al_stream_buffer (ALSTREAM *stream)
 {
    int processed;
 
@@ -376,48 +378,28 @@ void *get_al_stream_buffer (ALSTREAM *stream)
    if (processed == 0)
       return (NULL);
 
+   alSourceUnqueueBuffers (stream->source, 1, &floating_buffer);
+   AL_CHECK();
+
    return (stream->buffer);
 }
 
-void free_al_stream_buffer (ALSTREAM *stream)
+static void free_al_stream_buffer (ALSTREAM *stream)
 {
-   int processed;
-   ALuint buffer;
-
    RT_ASSERT(stream);
    RT_ASSERT(stream->buffer);
 
-   alGetSourcei (stream->source, AL_BUFFERS_PROCESSED, &processed);
-   AL_CHECK();
-
-   if (processed == 0)
-      return;
-
-   while (processed-- > 1)
-   {
-      // Hrmm... what should the proper behavior here be?
-
-      alSourceUnqueueBuffers (stream->source, 1, &buffer);
-      AL_CHECK();
-
-      alSourceQueueBuffers (stream->source, 1, &buffer);
-      AL_CHECK();
-   }
-
-   alSourceUnqueueBuffers (stream->source, 1, &buffer);
-   AL_CHECK();
-
-   alBufferData (buffer, stream->alformat, stream->buffer,
+   alBufferData (floating_buffer, stream->alformat, stream->buffer,
       stream->len_bytes, stream->freq);
    AL_CHECK();
 
-   alSourceQueueBuffers (stream->source, 1, &buffer);
+   alSourceQueueBuffers (stream->source, 1, &floating_buffer);
    AL_CHECK();
 }
 
 static ALSTREAM *audiolib_openal_stream = NULL;
 
-int audiolib_openal_init (void)
+static int audiolib_openal_init (void)
 {
    /* Interpolation is not supported. */
    audio_interpolation = FALSE;
@@ -441,14 +423,14 @@ int audiolib_openal_init (void)
    return (0);
 }
 
-void audiolib_openal_deinit (void)
+static void audiolib_openal_deinit (void)
 {
    stop_al_stream (audiolib_openal_stream);
 
    alutExit ();
 }
 
-int audiolib_openal_play (void)
+static int audiolib_openal_play (void)
 {
    /* Create stream. */
 
@@ -463,29 +445,29 @@ int audiolib_openal_play (void)
    return (0);
 }
 
-void audiolib_openal_stop (void)
+static void audiolib_openal_stop (void)
 {
    stop_al_stream (audiolib_openal_stream);
    audiolib_openal_stream = NULL;
 }
 
-void *audiolib_openal_get_buffer (void)
+static void *audiolib_openal_get_buffer (void)
 {
    return (get_al_stream_buffer (audiolib_openal_stream));
 }
 
-void audiolib_openal_free_buffer (void)
+static void audiolib_openal_free_buffer (void)
 {
    free_al_stream_buffer (audiolib_openal_stream);
 }
 
-void audiolib_openal_suspend (void)
+static void audiolib_openal_suspend (void)
 {
    alSourceStop (audiolib_openal_stream->source);
    AL_CHECK ();
 }
 
-void audiolib_openal_resume (void)
+static void audiolib_openal_resume (void)
 {
    alSourcePlay (audiolib_openal_stream->source);
    AL_CHECK ();
