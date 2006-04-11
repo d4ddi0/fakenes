@@ -854,10 +854,7 @@ void apu_process (void)
                      }
    
                      default:
-                        // We disable this since it probably means an
-                        // outdated version of a save state file.
-                        // WARN_GENERIC();
-                        break;
+                        WARN_GENERIC();
                   }
 
                   /* Convert to DSP format. */
@@ -1063,29 +1060,10 @@ void apu_save_state (PACKFILE *file, int version)
 
    RT_ASSERT(file);
 
-   /* Squares. */
-   for (index = 0; index < 2; index++)
-   {
-      int subindex;
+   /* Save registers. */
 
-      for (subindex = 0; subindex < 4; subindex++)
-         pack_putc (apu.apus.square[index].regs[subindex], file);
-   }
-
-   /* Triangle. */
-   for (index = 0; index < 3; index++)
-      pack_putc (apu.apus.triangle.regs[index], file);
-
-   /* Noise. */
-   for (index = 0; index < 3; index++)
-      pack_putc (apu.apus.noise.regs[index], file);
-
-   /* DMC. */
-   for (index = 0; index < 4; index++)
-      pack_putc (apu.apus.dmc.regs[index], file);
-
-   /* ExSound. */
-   pack_putc (apu.exsound, file);
+   for (index = 0; index < 0x16; index++)
+      pack_putc (apu.regs[index], file);
 }
 
 void apu_load_state (PACKFILE *file, int version)
@@ -1094,29 +1072,41 @@ void apu_load_state (PACKFILE *file, int version)
 
    RT_ASSERT(file);
 
-   for (index = 0; index < 0x16; index++)
+   if (version == 0x100)
    {
-      int value;
+      /* Old version 1.00 format. */
 
-      if (index == 0x14)
-         continue;
-
-      value = pack_getc (file);
-
-      if ((index >= 0x10) && (index <= 0x13))
+      /* Squares. */
+      for (index = 0; index < 2; index++)
       {
-         /* Write the DMC registers directly. */
-         apu.apus.dmc.regs[(index - 0x10)] = value;
+         int subindex;
+   
+         for (subindex = 0; subindex < 4; subindex++)
+            apu.apus.square[index].regs[subindex] = pack_getc (file);
       }
-      else
-      {
-         apu_write ((0x4000 + index), value);
-         write_cur ((0x4000 + index), value);
-      }
+   
+      /* Triangle. */
+      for (index = 0; index < 3; index++)
+         apu.apus.triangle.regs[index] = pack_getc (file);
+   
+      /* Noise. */
+      for (index = 0; index < 3; index++)
+         apu.apus.noise.regs[index] = pack_getc (file);
+   
+      /* DMC. */
+      for (index = 0; index < 4; index++)
+         apu.apus.dmc.regs[index] = pack_getc (file);
+
+      /* Skip unused ExSound byte. */
+      pack_getc (file);
    }
+   else
+   {
+      /* Load registers. */
 
-   /* ExSound. */
-   apu_set_exsound (pack_getc (file));
+      for (index = 0; index < 0x16; index++)
+         apu_write ((APU_WRA0 + index), pack_getc (file));
+   }
 }
 
 /* --- Internal functions. --- */
@@ -1164,6 +1154,7 @@ static void build_luts (int num_samples)
 static void regwrite (UINT32 address, UINT8 value)
 {  
    int chan;
+   int reg;
 
    /* TODO: This needs a major clean-up.  Some stuff here (such as ? TRUE :
             FALSE statements) just aren't neccessary.  Also, I noticed that
@@ -1171,6 +1162,12 @@ static void regwrite (UINT32 address, UINT8 value)
             good reason.  The result should be buffered instead.  I would
             also like to be able to wrap alot of this to 87 columns or so
             like the rest of the code. */
+
+   if ((address < APU_WRA0) || (address > APU_SMASK))
+      return;
+
+   /* For state saving. */
+   apu.regs[(address - APU_WRA0)] = value;
 
    switch (address)
    {

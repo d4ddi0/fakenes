@@ -55,7 +55,7 @@ extern "C" {
 
 typedef struct apu_chan_s
 {
-   int regs[4];
+   UINT8 regs[4];
 
    BOOL enabled;
 
@@ -228,6 +228,8 @@ typedef struct apu_s
    APU_APUSOUND  apus;
    APU_MMC5SOUND mmc5;
    APU_VRC6SOUND vrc6s;
+
+   UINT8 regs[0x16];
 
    FLAGS enable_reg;
    FLAGS enable_reg_cur;
