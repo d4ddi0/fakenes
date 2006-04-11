@@ -25,7 +25,7 @@
    storage while saving/loading snapshots, therefor their size does not
    determine the amount of memory actually allocated for each frame in the
    queue.  The total size of a raw save state must not exceed this value. */
-#define MAX_BUFFER_FILE_DATA_SIZE   16384
+#define MAX_BUFFER_FILE_DATA_SIZE   65536
 
 /* Queue. */
 
@@ -142,7 +142,7 @@ BOOL rewind_save_snapshot (void)
          return (FALSE);
 
       /* Clear frame. */
-      memset (frame, 0, sizeof (QUEUE_FRAME));
+      /* memset (frame, 0, sizeof (QUEUE_FRAME)); */
    }
 
    /* Clear buffer. */
