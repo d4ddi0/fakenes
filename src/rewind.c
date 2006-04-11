@@ -14,6 +14,9 @@
 #include "save.h"
 #include "timing.h"
 #include "types.h"
+#ifdef USE_ZLIB
+#include <zlib.h>
+#endif
 
 /* Maximum number of enries in the queue. */
 #define MAX_QUEUE_SIZE  600
@@ -46,6 +49,8 @@ typedef struct _QUEUE
 static QUEUE queue;
 
 /* Queue routines (defined later). */
+static BOOL pack (void *, long *);
+static BOOL unpack (void *, long *, void *, long);
 static BOOL enqueue (QUEUE_FRAME *);
 static QUEUE_FRAME *unenqueue (void);
 static QUEUE_FRAME *dequeue (void);
@@ -162,6 +167,13 @@ BOOL rewind_save_snapshot (void)
    /* Get data size. */
    size = buffer.pos;
 
+   /* Compress data. */
+   if (!pack (buffer.data, &size))
+   {
+      free (frame);
+      return (FALSE);
+   }
+
    /* Allocate frame data buffer. */
    frame->data = malloc (size);
    if (!frame->data)
@@ -194,6 +206,7 @@ BOOL rewind_load_snapshot (void)
    QUEUE_FRAME *frame;
    PACKFILE *file;
    BUFFER_FILE buffer;
+   long size;
 
    if (queue.size <= 0)
    {
@@ -217,8 +230,15 @@ BOOL rewind_load_snapshot (void)
    buffer.pos = 0;
    buffer.max = sizeof (buffer.data);
 
-   /* Copy frame data to buffer. */
-   memcpy (buffer.data, frame->data, frame->data_size);
+   size = buffer.max;
+
+   /* Uncompress data. */
+   if (!unpack (buffer.data, &size, frame->data, frame->data_size))
+   {
+      free (frame->data);
+      free (frame);
+      return (FALSE);
+   }
 
    /* Open buffer file. */
    file = pack_fopen_vtable (get_packfile_vtable (), &buffer);
@@ -247,6 +267,71 @@ BOOL rewind_load_snapshot (void)
 }
 
 /* --- Internal functions. --- */
+
+static BOOL pack (void *buffer, long *size)
+{
+   /* In-place Deflate compression, using zlib's fastest setting. */
+
+   void *packbuf;
+   long packsize;
+
+   RT_ASSERT(buffer);
+   RT_ASSERT(size);
+
+#ifdef USE_ZLIB
+
+   /* We add 16 bytes of slack just in case. */
+   packsize = (((*size * 1.01f) + 12) + 16);
+
+   packbuf = malloc (packsize);
+   if (!packbuf)
+      return (FALSE);
+
+   if (compress2 (packbuf, &packsize, buffer, *size, Z_BEST_SPEED) != Z_OK)
+   {
+      free (packbuf);
+      return (FALSE);
+   }
+
+   memcpy (buffer, packbuf, packsize);
+   *size = packsize;
+   
+   free (packbuf);
+
+#endif   /* USE_ZLIB */
+
+   return (TRUE);
+}
+
+static BOOL unpack (void *outbuf, long *max, void *buffer, long size)
+{
+   /* Same as above, but decompression instead.  If zlib is not available,
+      this performs a simple buffer copy instead.
+
+      outbuf - The output buffer.
+      max    - The maximum size of the output buffer (will be set to it's
+               actual length after decompression).
+      buffer - The input buffer.
+      size   - The size of the data in the input buffer. */
+
+   RT_ASSERT(outbuf);
+   RT_ASSERT(max);
+   RT_ASSERT(buffer);
+
+#ifdef USE_ZLIB
+
+   if (uncompress (outbuf, max, buffer, size) != Z_OK)
+      return (FALSE);
+
+#else /* USE_ZLIB */
+
+   memcpy (outbuf, buffer, size);
+   *max = size;
+
+#endif   /* !USE_ZLIB */
+
+   return (TRUE);
+}
 
 static BOOL enqueue (QUEUE_FRAME *frame)
 {
