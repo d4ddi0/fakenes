@@ -3269,6 +3269,7 @@ static int help_menu_version (void)
 static int machine_cheat_manager_dialog_list (DIALOG *dialog)
 {
    CPU_PATCH *patch;
+   DIALOG *main_dialog;
    DIALOG *obj_enabled;
 
    RT_ASSERT(dialog);
@@ -3278,7 +3279,11 @@ static int machine_cheat_manager_dialog_list (DIALOG *dialog)
 
    patch = &cpu_patch_info[dialog->d1];
 
-   obj_enabled = &dialog[MACHINE_CHEAT_MANAGER_DIALOG_ENABLED_CHECKBOX];
+   /* Get main dialog. */
+   main_dialog = machine_cheat_manager_dialog;
+
+   /* Get "Enabled" checkbox. */
+   obj_enabled = &main_dialog[MACHINE_CHEAT_MANAGER_DIALOG_ENABLED_CHECKBOX];
 
    if (patch->enabled)
       obj_enabled->flags |= D_SELECTED;
