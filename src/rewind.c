@@ -52,6 +52,14 @@ static REAL frame_rate = 0.5f;
    */
 static int seconds = 10;
 
+/* Compression level (when available).
+
+   Default: 1
+   Minimum: 0 (disabled)
+   Maximum: 9
+   */
+static int compression_level = 1;
+
 /* Maximum number of enries in the queue, computed from 'seconds'. */
 static int max_queue_size = 0;
 
@@ -90,9 +98,10 @@ int rewind_init (void)
 {
    /* Load configuration. */
 
-   enabled    = get_config_int   ("rewind", "enabled",    enabled);
-   frame_rate = get_config_float ("rewind", "frame_rate", frame_rate);
-   seconds    = get_config_int   ("rewind", "seconds",    seconds);
+   enabled           = get_config_int   ("rewind", "enabled",    enabled);
+   frame_rate        = get_config_float ("rewind", "frame_rate", frame_rate);
+   seconds           = get_config_int   ("rewind", "seconds",    seconds);
+   compression_level = get_config_int   ("rewind", "compress",   compression_level);
 
    /* Enforce sane limits. */
 
@@ -103,6 +112,11 @@ int rewind_init (void)
 
    if (seconds < 1)
       seconds = 1;
+
+   if (compression_level < 0)
+      compression_level = 0;
+   if (compression_level > 9)
+      compression_level = 9;
 
    /* Calculate rough maximum queue size.
    
@@ -129,6 +143,12 @@ void rewind_exit (void)
    set_config_int   ("rewind", "enabled",    enabled);
    set_config_float ("rewind", "frame_rate", frame_rate);
    set_config_int   ("rewind", "seconds",    seconds);
+
+#ifdef USE_ZLIB
+
+   set_config_int ("rewind", "compress", compression_level);
+
+#endif
 }
 
 void rewind_clear (void)
@@ -367,7 +387,7 @@ BOOL rewind_load_snapshot (void)
 
 static BOOL pack (void *buffer, long *size)
 {
-   /* In-place Deflate compression, using zlib's fastest setting. */
+   /* In-place Deflate compression. */
 
    void *packbuf;
    long packsize;
@@ -377,6 +397,12 @@ static BOOL pack (void *buffer, long *size)
 
 #ifdef USE_ZLIB
 
+   if (compression_level == 0)
+   {
+      /* Nothing to do. */
+      return (TRUE);
+   }
+
    /* We add 16 bytes of slack just in case. */
    packsize = (((*size * 1.01f) + 12) + 16);
 
@@ -384,7 +410,8 @@ static BOOL pack (void *buffer, long *size)
    if (!packbuf)
       return (FALSE);
 
-   if (compress2 (packbuf, &packsize, buffer, *size, Z_BEST_SPEED) != Z_OK)
+   if (compress2 (packbuf, &packsize, buffer, *size, compression_level) !=
+      Z_OK)
    {
       free (packbuf);
       return (FALSE);
@@ -417,10 +444,20 @@ static BOOL unpack (void *outbuf, long *max, void *buffer, long size)
 
 #ifdef USE_ZLIB
 
+   if (compression_level == 0)
+   {
+      /* Perform a normal buffer copy. */
+
+      memcpy (outbuf, buffer, size);
+      *max = size;
+   }
+
    if (uncompress (outbuf, max, buffer, size) != Z_OK)
       return (FALSE);
 
 #else /* USE_ZLIB */
+
+   /* Perform a normal buffer copy. */
 
    memcpy (outbuf, buffer, size);
    *max = size;
