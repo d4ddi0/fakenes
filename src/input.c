@@ -672,393 +672,236 @@ static INLINE void do_mouse (int player)
 }
 
 
-static int frames = 0;
-
-
-int input_process (void)
+void input_process (void)
 {
-    int player;
+   int player;
+   int want_poll = TRUE;
 
+   if (!(input_mode & INPUT_MODE_REPLAY_RECORD))
+   {
+      /* Timed autosave code.  Only executes when a replay isn't currently
+         recording, but is allowed to execute while a replay is playing. */
 
-    int want_exit = FALSE;
+      if (input_autosave_interval > 0)
+      {
+         static int frames = 0;
 
-    int want_poll = TRUE;
+         if (++frames == (input_autosave_interval * timing_get_speed ()))
+         {
+            /* Set trigger flag. */
+            input_autosave_triggered = TRUE;
+     
+            /* Simulate keypress. */
+            gui_handle_keypress ((KEY_F3 << 8));
 
+            /* Clear trigger flag. */
+            input_autosave_triggered = FALSE;
+     
+            /* Reset frame counter. */
+            frames = 0;
+         }
+      }
+   }
 
-    int speed;
+   if (input_mode & INPUT_MODE_REPLAY_PLAY)
+   {
+       /* Replay playback code.  Reads data from the replay file and feeds
+          it directly into the player button states. */
 
+      for (player = 0; player < 4; player++)
+      {
+         BOOL eof;
+         UINT8 data;
+         int button;
 
-    if (input_mode & INPUT_MODE_REPLAY_PLAY)
-    {
-        for (player = 0; player < 4; player ++)
-        {
-            BOOL eof;
+         eof = get_replay_data (&data);
 
-            UINT8 data;
+         for (button = 0; button < 8; button++)
+             buttons[player][button] = ((data & (1 << button)) ? 1 : 0);
 
+         if (eof)
+         {
+            /* End of replay reached. */
+            gui_stop_replay ();
+            return;
+         }
+      }
+   }
 
-            int button;
+   if (!(input_mode & INPUT_MODE_PLAY))
+   {
+      /* The remaining code should only execute in the normal gameplay
+         mode - bail out. */
+      return;
+   }
 
+   if (wait_frames > 0)
+      wait_frames--;
+   if (wait_frames > 0)
+      return;
 
-            eof = get_replay_data (&data);
+   for (player = 0; player < 4; player++)
+   {
+      switch (input_devices[player])
+      {
+         case INPUT_DEVICE_KEYBOARD_1:
+         {
+            do_keyboard_1 (player);
 
-
-            for (button = 0; button < 8; button ++)
+            break;
+         }
+ 
+         case INPUT_DEVICE_KEYBOARD_2:
+         {
+            do_keyboard_2 (player);
+ 
+            break;
+         }
+ 
+         case INPUT_DEVICE_JOYSTICK_1:
+         {
+            if (want_poll)
             {
-                buttons [player] [button] = ((data & (1 << button)) ? 1 : 0);
+               /* Some joystick devices require polling. */
+               poll_joystick ();
+
+               want_poll = FALSE;
+            }
+ 
+            do_joystick_1 (player);
+ 
+            break;
+         }
+ 
+         case INPUT_DEVICE_JOYSTICK_2:
+         {
+            if (want_poll)
+            {
+               poll_joystick ();
+ 
+               want_poll = FALSE;
+            }
+ 
+            do_joystick_2 (player);
+
+            break;
+         }
+
+         case INPUT_DEVICE_MOUSE:
+         {
+            poll_mouse ();
+ 
+            do_mouse (player);
+ 
+            break;
+         }
+      }
+ 
+      if (buttons[player][4] && buttons[player][5])
+      {
+         /* Prevent up and down from being pressed at the same time */
+          buttons[player][4] =
+          buttons[player][5] = 0;
+      }
+ 
+      if (buttons[player][6] && buttons[player][7])
+      {
+         /* Prevent left and right from being pressed at the same time */
+         buttons[player][6] =
+         buttons[player][7] = 0;
+      }
+ 
+      if (input_mode & INPUT_MODE_REPLAY_RECORD)
+      {
+         /* Send player button states to the replay file. */
+         UINT8 data = 0;
+         int button;
+ 
+         for (button = 0; button < 8; button++)
+         {
+            if (buttons[player][button])
+               data |= (1 << button);
+         }
+ 
+         save_replay_data (data);
+      }
+   }
+}
+
+
+void input_handle_keypress (int c)
+{
+   UINT8 code[2];
+
+   if (!(input_mode & INPUT_MODE_CHAT))
+      return;
+
+   switch ((c >> 8))
+   {
+      case KEY_BACKSPACE:
+      {
+         if (strlen (input_chat_text) > 0)
+         {
+            input_chat_text[(strlen (input_chat_text) - 1)] = NULL;
+
+            if (input_chat_offset > 0)
+               input_chat_offset --;
+         }
+
+         break;
+      }
+
+      case KEY_ENTER:
+      {
+         if (strlen (input_chat_text) > 0)
+         {
+            if (strlen (input_chat_name) > 0)
+            {
+               video_message ("%s: %s", input_chat_name,
+                  input_chat_text);
+            }
+            else
+            {
+               video_message (input_chat_text);
             }
 
+            video_message_duration = 5000;
 
-            if (eof)
+            memset (input_chat_text, 0, sizeof (input_chat_text));
+         }
+
+         input_chat_offset = 0;
+
+         input_mode &= ~INPUT_MODE_CHAT;
+
+         if (!(input_mode & INPUT_MODE_REPLAY_PLAY))
+            input_mode |= INPUT_MODE_PLAY;
+
+         wait_frames = (timing_get_speed () / 2);
+
+         return;
+      }
+
+      default:
+      {
+         code[0] = (c & 0xff);
+         code[1] = NULL;
+
+         if (strlen (input_chat_text) < ((sizeof (input_chat_text) - 1) -
+            1))
+         {
+            strcat (input_chat_text, code);
+
+            if (((text_length (font, input_chat_text) + 5) + 1) >
+               ((SCREEN_W - 4) - 1))
             {
-                gui_stop_replay ();
-
-                return (FALSE);
+               input_chat_offset++;
             }
-        }
-    }
+         }
 
-
-  stop:
-
-    if ((input_mode & INPUT_MODE_PLAY) || (input_mode & INPUT_MODE_CHAT))
-    {
-        if (! (input_mode & INPUT_MODE_REPLAY_RECORD))
-        {
-            if (input_autosave_interval > 0)
-            {
-                speed = ((machine_type == MACHINE_TYPE_NTSC) ? 60 : 50);
-        
-        
-                if (timing_half_speed)
-                {
-                    speed /= 2;
-                }
-        
-        
-                if (++ frames == (input_autosave_interval * speed))
-                {
-                    input_autosave_triggered = TRUE;
-        
-        
-                    /* Simulate keypress. */
-        
-                    gui_handle_keypress ((KEY_F3 << 8));
-        
-        
-                    input_autosave_triggered = FALSE;
-        
-        
-                    frames = 0;
-                }
-            }
-        }
-    }
-
-
-    if (input_mode & INPUT_MODE_PLAY)
-    {
-        if (wait_frames > 0)
-        {
-            wait_frames --;
-    
-    
-            return (FALSE);
-        }
-    }
-
-
-    while (keypressed ())
-    {
-        int index;
-
-
-        UINT8 code [2];
-
-
-        index = readkey ();
-
-
-        if (input_mode & INPUT_MODE_CHAT)
-        {
-            switch ((index >> 8))
-            {
-                case KEY_BACKSPACE:
-
-                    if (strlen (input_chat_text) > 0)
-                    {
-                        input_chat_text [(strlen (input_chat_text) - 1)] = NIL;
-
-
-                        if (input_chat_offset > 0)
-                        {
-                            input_chat_offset --;
-                        }
-                    }
-
-
-                    break;
-
-
-                case KEY_ENTER:
-
-                    if (strlen (input_chat_text) > 0)
-                    {
-                        if (strlen (input_chat_name) > 0)
-                        {
-                            video_message ("%s: %s", input_chat_name, input_chat_text);
-                        }
-                        else
-                        {
-                            video_message (input_chat_text);
-                        }
-
-
-                        video_message_duration = 5000;
-
-    
-                        memset (input_chat_text, NIL, sizeof (input_chat_text));
-                    }
-
-
-                    input_chat_offset = 0;
-
-
-                    input_mode &= ~INPUT_MODE_CHAT;
-
-
-                    if (! (input_mode & INPUT_MODE_REPLAY_PLAY))
-                    {
-                        input_mode |= INPUT_MODE_PLAY;
-                    }
-
-
-                    speed = ((machine_type == MACHINE_TYPE_NTSC) ? 60 : 50);
-            
-            
-                    if (timing_half_speed)
-                    {
-                        speed /= 2;
-                    }
-
-
-                    wait_frames = (speed / 2);
-
-
-                    return (FALSE);
-
-
-                    break;
-
-
-                default:
-
-                    code [0] = (index & 0xff);
-
-                    code [1] = NIL;
-
-
-                    if (strlen (input_chat_text) < ((sizeof (input_chat_text) - 1) - 1))
-                    {
-                        strcat (input_chat_text, code);
-
-
-                        if (((text_length (font, input_chat_text) + 5) + 1) > ((SCREEN_W - 4) - 1))
-                        {
-                            input_chat_offset ++;
-                        }
-                    }
-
-
-                    break;
-            }
-        }
-
-
-        switch ((index >> 8))
-        {
-            case KEY_ESC:
-
-                if (disable_gui)
-                {
-                    want_exit = TRUE;
-                }
-                else
-                {
-                    suspend_timing ();
-    
-    
-                  show:
-    
-                    want_exit = show_gui (FALSE);
-    
-    
-                    if (want_exit && rom_is_loaded)
-                    {
-                        audio_suspend ();
-    
-    
-                        if (alert ("- Confirmation -", NIL, "A ROM is currently loaded.  Really exit?", "&OK", "&Cancel", 0, 0) == 2)
-                        {
-                            want_exit = FALSE;
-    
-    
-                            gui_needs_restart = TRUE;
-                        }
-    
-    
-                        audio_resume ();
-                    }
-    
-    
-                    if (gui_needs_restart)
-                    {
-                        /* Ugh. */
-    
-                        goto show;
-                    }
-    
-    
-                    resume_timing ();
-                }
-
-
-                break;
-    
-    
-            case KEY_BACKSPACE:
-    
-                if (! (input_mode & INPUT_MODE_CHAT))
-                {
-                    input_mode &= ~INPUT_MODE_PLAY;
-    
-    
-                    input_mode |= INPUT_MODE_CHAT;
-                }
-    
-    
-                break;
-    
-    
-            default:
-    
-                break;
-        }
-    
-    
-        video_handle_keypress (index);
-    
-    
-        gui_handle_keypress (index);
-    }
-
-
-    if (input_mode & INPUT_MODE_PLAY)
-    {
-        for (player = 0; player < 4; player ++)
-        {
-            switch (input_devices [player])
-            {
-                case INPUT_DEVICE_KEYBOARD_1:
-    
-                    do_keyboard_1 (player);
-    
-    
-                    break;
-    
-    
-                case INPUT_DEVICE_KEYBOARD_2:
-    
-                    do_keyboard_2 (player);
-    
-    
-                    break;
-    
-    
-                case INPUT_DEVICE_JOYSTICK_1:
-    
-                    if (want_poll)
-                    {
-                        poll_joystick ();
-    
-    
-                        want_poll = FALSE;
-                    }
-    
-    
-                    do_joystick_1 (player);
-    
-    
-                    break;
-    
-    
-                case INPUT_DEVICE_JOYSTICK_2:
-    
-                    if (want_poll)
-                    {
-                        poll_joystick ();
-    
-    
-                        want_poll = FALSE;
-                    }
-    
-    
-                    do_joystick_2 (player);
-    
-    
-                    break;
-
-
-                case INPUT_DEVICE_MOUSE:
-    
-                    poll_mouse ();
-    
-    
-                    do_mouse (player);
-    
-    
-                    break;
-            }
-    
-    
-            /* Prevent up and down from being pressed at the same time */
-            if (buttons [player] [4] && buttons [player] [5])
-            {
-                buttons [player] [4] = buttons [player] [5] = 0;
-            }
-    
-    
-            /* Prevent left and right from being pressed at the same time */
-            if (buttons [player] [6] && buttons [player] [7])
-            {
-                buttons [player] [6] = buttons [player] [7] = 0;
-            }
-    
-    
-            if (input_mode & INPUT_MODE_REPLAY_RECORD)
-            {
-                UINT8 data = 0;
-    
-    
-                int button;
-    
-    
-                for (button = 0; button < 8; button ++)
-                {
-                    if (buttons [player] [button])
-                    {
-                        data |= (1 << button);
-                    }
-                }
-    
-
-                save_replay_data (data);
-            }
-        }
-    }
-
-
-    return (want_exit);
+         break;
+      }
+   }
 }
 
 

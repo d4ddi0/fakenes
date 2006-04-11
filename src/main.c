@@ -209,6 +209,8 @@ void resume_throttling (void)
 int main (int argc, char * argv [])
 {
     int result;
+    int want_exit = FALSE;
+
 
 
     /* Save argc and argv. */
@@ -413,19 +415,13 @@ int main (int argc, char * argv [])
         resume_timing ();
 
 
-        while (! input_process ())
+        while (! want_exit)
         {
-            int speed;
-
-
-            speed = ((machine_type == MACHINE_TYPE_NTSC) ? 60 : 50);
-
-
             if (frame_interrupt)
             {
                 if (average_fps == 0)
                 {
-                    average_fps = speed;
+                    average_fps = timing_get_speed ();
                 }
 
 
@@ -455,6 +451,8 @@ int main (int argc, char * argv [])
 
 
             executed_frames ++;
+
+            virtual_fps_count ++;
 
 
             /* decrement frame skip counter */
@@ -543,8 +541,117 @@ int main (int argc, char * argv [])
             }
 
 
-            virtual_fps_count ++;
-    
+            if (input_mode & INPUT_MODE_PLAY)
+            {
+               /* Game rewinding. */
+
+               if (key[KEY_BACKSLASH])
+               {
+                  if (rewind_load_snapshot ())
+                  {
+                     /* Skip remainder of this frame. */
+                     /* TODO: Do user interface input processing before this
+                        by splitting it away from the emulation input
+                        processing, somehow. */
+
+                     audio_update ();
+
+                     continue;
+                  }
+               }
+               else
+               {
+                  rewind_save_snapshot ();
+               }
+            }        
+
+            /* Process input. */
+            while (keypressed ())
+            {
+               int index = readkey ();
+
+               switch ((index >> 8))
+               {
+                  case KEY_ESC:
+                  {
+                      if (disable_gui)
+                      {
+                          want_exit = TRUE;
+                      }
+                      else
+                      {
+                          suspend_timing ();
+          
+          
+                        show2:
+          
+                          want_exit = show_gui (FALSE);
+          
+          
+                          if (want_exit && rom_is_loaded)
+                          {
+                              audio_suspend ();
+          
+          
+                              if (alert ("- Confirmation -", NIL, "A ROM is currently loaded.  Really exit?", "&OK", "&Cancel", 0, 0) == 2)
+                              {
+                                  want_exit = FALSE;
+          
+          
+                                  gui_needs_restart = TRUE;
+                              }
+          
+          
+                              audio_resume ();
+                          }
+          
+          
+                          if (gui_needs_restart)
+                          {
+                              /* Ugh. */
+          
+                              goto show2;
+                          }
+          
+          
+                          resume_timing ();
+                      }
+      
+      
+                      break;
+                   }
+
+          
+                  case KEY_BACKSPACE:
+                  {
+                      if (! (input_mode & INPUT_MODE_CHAT))
+                      {
+                          input_mode &= ~INPUT_MODE_PLAY;
+          
+          
+                          input_mode |= INPUT_MODE_CHAT;
+                      }
+          
+          
+                      break;
+                  }
+
+          
+                  default:
+                      break;
+              }
+          
+
+              input_handle_keypress (index);
+
+              video_handle_keypress (index);
+
+              gui_handle_keypress (index);
+          }
+            
+
+          input_process ();
+  
 
             switch (machine_type)
             {
@@ -761,17 +868,6 @@ int main (int argc, char * argv [])
 
                 audio_update ();
             }
-
-
-            if (input_mode & INPUT_MODE_PLAY)
-            {
-               /* Game rewinding. */
-
-               if (key[KEY_BACKSLASH])
-                  rewind_load_snapshot ();
-               else
-                  rewind_save_snapshot ();
-            }        
 
 
             if ((cpu_usage == CPU_USAGE_PASSIVE) ||

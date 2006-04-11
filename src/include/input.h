@@ -73,7 +73,9 @@ UINT8 input_read (UINT16);
 void input_write (UINT16, UINT8);
 
 
-int input_process (void);
+void input_process (void);
+
+void input_handle_keypress (int);
 
 
 void input_update_zapper (void);
