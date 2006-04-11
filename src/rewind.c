@@ -127,7 +127,7 @@ BOOL rewind_save_snapshot (void)
       }
 
       /* Clear frame for reuse. */
-      memset (frame, 0, sizeof (QUEUE_FRAME));
+      /* memset (frame, 0, sizeof (QUEUE_FRAME)); */
    }
    else
    {
@@ -141,9 +141,7 @@ BOOL rewind_save_snapshot (void)
    }
 
    /* Clear buffer. */
-   memset (&buffer, 0, sizeof (buffer));
-
-   /* Set maximum data size. */
+   buffer.pos = 0;
    buffer.max = sizeof (buffer.data);
 
    /* Open buffer file. */
@@ -216,9 +214,7 @@ BOOL rewind_load_snapshot (void)
    }
 
    /* Clear buffer. */
-   memset (&buffer, 0, sizeof (buffer));
-
-   /* Set maximum data size. */
+   buffer.pos = 0;
    buffer.max = sizeof (buffer.data);
 
    /* Copy frame data to buffer. */
