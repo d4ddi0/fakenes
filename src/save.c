@@ -129,15 +129,15 @@ static INLINE BOOL fnss_save (PACKFILE *file, const UCHAR *title)
    
    /* Write CPU chunk. */
    fnss_save_chunk (file, version, "CPU\0", cpu_save_state);
+
+   /* Write MMC chunk. */
+   fnss_save_chunk (file, version, "MMC\0", mmc_save_state);
    
    /* Write PPU chunk. */
    fnss_save_chunk (file, version, "PPU\0", ppu_save_state);
    
    /* Write APU chunk. */
    fnss_save_chunk (file, version, "APU\0", apu_save_state);
-   
-   /* Write MMC chunk. */
-   fnss_save_chunk (file, version, "MMC\0", mmc_save_state);
    
    /* Write CTRL chunk. */
    fnss_save_chunk (file, version, "CTRL", input_save_state);
@@ -199,18 +199,38 @@ static INLINE BOOL fnss_load (PACKFILE *file)
 
    /* Reset the virtual machine to it's initial state. */
    machine_reset ();
-    
-   /* Load CPU chunk. */
-   fnss_load_chunk (file, version, "CPU\0", cpu_load_state);
 
-   /* Load PPU chunk. */
-   fnss_load_chunk (file, version, "PPU\0", ppu_load_state);
+   if (version == 0x100)
+   {
+      /* Version 1.00 had a broken chunk order that might've caused problems
+         in the chunk-based code, but completely broke the raw code. */
 
-   /* Load APU chunk. */
-   fnss_load_chunk (file, version, "APU\0", apu_load_state);
+      /* Load CPU chunk. */
+      fnss_load_chunk (file, version, "CPU\0", cpu_load_state);
+   
+      /* Load PPU chunk. */
+      fnss_load_chunk (file, version, "PPU\0", ppu_load_state);
+   
+      /* Load APU chunk. */
+      fnss_load_chunk (file, version, "APU\0", apu_load_state);
+   
+      /* Load MMC chunk. */
+      fnss_load_chunk (file, version, "MMC\0", mmc_load_state);
+   }
+   else
+   {
+      /* Load CPU chunk. */
+      fnss_load_chunk (file, version, "CPU\0", cpu_load_state);
 
-   /* Load MMC chunk. */
-   fnss_load_chunk (file, version, "MMC\0", mmc_load_state);
+      /* Load MMC chunk. */
+      fnss_load_chunk (file, version, "MMC\0", mmc_load_state);
+   
+      /* Load PPU chunk. */
+      fnss_load_chunk (file, version, "PPU\0", ppu_load_state);
+   
+      /* Load APU chunk. */
+      fnss_load_chunk (file, version, "APU\0", apu_load_state);
+   }
 
    /* Load CTRL chunk. */
    fnss_load_chunk (file, version, "CTRL", input_load_state);
@@ -234,14 +254,14 @@ static INLINE BOOL fnss_save_raw (PACKFILE *file)
    /* Dump CPU state. */
    cpu_save_state (file, version);
 
+   /* Dump MMC state. */
+   mmc_save_state (file, version);
+
    /* Dump PPU state. */
    ppu_save_state (file, version);
 
    /* Dump APU state. */
    apu_save_state (file, version);
-
-   /* Dump MMC state. */
-   mmc_save_state (file, version);
 
    /* Dump input state. */
    input_save_state (file, version);
@@ -267,14 +287,14 @@ static INLINE BOOL fnss_load_raw (PACKFILE *file)
    /* Restore CPU state. */
    cpu_load_state (file, version);
 
+   /* Restore MMC state. */
+   mmc_load_state (file, version);
+
    /* Restore PPU state. */
    ppu_load_state (file, version);
 
    /* Restore APU state. */
    apu_load_state (file, version);
-
-   /* Restore MMC state. */
-   mmc_load_state (file, version);
 
    /* Restore input state. */
    input_load_state (file, version);
