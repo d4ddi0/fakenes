@@ -22,7 +22,7 @@
    storage while saving/loading snapshots, therefor their size does not
    determine the amount of memory actually allocated for each frame in the
    queue.  The total size of a raw save state must not exceed this value. */
-#define MAX_BUFFER_FILE_DATA_SIZE   65536
+#define MAX_BUFFER_FILE_DATA_SIZE   16384
 
 /* Queue. */
 
