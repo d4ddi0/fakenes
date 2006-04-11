@@ -22,7 +22,7 @@
    storage while saving/loading snapshots, therefor their size does not
    determine the amount of memory actually allocated for each frame in the
    queue.  The total size of a raw save state must not exceed this value. */
-#define MAX_BUFFER_FILE_DATA_SIZE   262144
+#define MAX_BUFFER_FILE_DATA_SIZE   131072
 
 /* Whether or not real-time game rewinding is enabled.  Disabling this sweet
    feature can give a significant speed boost and reduced memory usage.
