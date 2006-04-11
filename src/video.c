@@ -431,7 +431,7 @@ void video_exit (void)
 }
 
 
-static INLINE void shadow_textout (BITMAP * bitmap, FONT * font, const UINT8 * text, int x, int y, int color)
+static INLINE void shadow_textout (BITMAP * bitmap, FONT * font, const UCHAR * text, int x, int y, int color)
 {
     /* This is a pain to do for printf, so we just do that manually. */
 
@@ -603,20 +603,12 @@ void video_blit (BITMAP *bitmap)
 }
 
 
-void video_handle_keypress (int index)
+void video_handle_keypress (int c, int scancode)
 {
-    if (! (input_mode & INPUT_MODE_CHAT))
-    {
-        switch ((index >> 8))
-        {
-            default:
+    if (input_mode & INPUT_MODE_CHAT)
+        return;
 
-                break;
-        }
-    }
-
-
-    switch ((index >> 8))
+    switch (scancode)
     {
         case KEY_F10:
 
@@ -1536,23 +1528,16 @@ static void draw_messages (void)
 
     if (box)
     {
-        int length;
+        USTRING buffer;
 
+        /* TODO: Make this message scroll horizontally when it is too long
+           to be displayed entirely. */
 
-        length = text_length (font, &input_chat_text [input_chat_offset]);
+        USTRING_CLEAR(buffer);
+        ustrncat (buffer, input_chat_text, sizeof (buffer));
+        ustrncat (buffer, "_", sizeof (buffer));
 
-
-        shadow_textout (screen_buffer, font, &input_chat_text [input_chat_offset], x, y, VIDEO_COLOR_WHITE);
-
-
-        x += (length + 1);
-
-        y += (height_text - 1);
-
-
-        hline (screen_buffer, (x + 1), (y + 1), ((x + 5) + 1), VIDEO_COLOR_BLACK);
-
-        hline (screen_buffer, x, y, (x + 5), VIDEO_COLOR_WHITE);
+        shadow_textout (screen_buffer, font, buffer, x, y, VIDEO_COLOR_WHITE);
     }
 }
 

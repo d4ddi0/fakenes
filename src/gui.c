@@ -1082,9 +1082,9 @@ int show_gui (BOOL first_run)
 
 static INLINE void cycle_audio (void);
 
-void gui_handle_keypress (int c)
+void gui_handle_keypress (int c, int scancode)
 {
-   switch ((c >> 8))
+   switch (scancode)
    {
       case KEY_F1:
       {
@@ -1203,7 +1203,7 @@ void gui_handle_keypress (int c)
 
          if (!(input_mode & INPUT_MODE_CHAT))
          {
-            save_state_index = ((c >> 8) - KEY_0);
+            save_state_index = (scancode - KEY_0);
     
             message_local ("Machine state slot set to %d.",
                save_state_index);
@@ -3550,8 +3550,8 @@ static int options_input_configure_dialog_device_select (DIALOG *dialog)
 
 static int options_input_configure_dialog_set_buttons (DIALOG *dialog)
 {
-   int button;
-   int index;
+   int index, button;
+   int scancode;
 
    RT_ASSERT(dialog);
 
@@ -3599,11 +3599,11 @@ static int options_input_configure_dialog_set_buttons (DIALOG *dialog)
             gui_heartbeat ();
          }
     
-         index = (readkey () >> 8);
+         ureadkey (&scancode);
     
-         input_map_device_button (selected_player_device, button, index);
+         input_map_device_button (selected_player_device, button, scancode);
 
-         message_local ("Button mapped to scancode %d.", index);
+         message_local ("Button mapped to scancode %d.", scancode);
 
          break;
       }
@@ -3633,7 +3633,9 @@ static int options_input_configure_dialog_set_buttons (DIALOG *dialog)
     
                if (keypressed ())
                {
-                  if ((readkey () >> 8) == KEY_ESC)
+                  ureadkey (&scancode);
+
+                  if (scancode == KEY_ESC)
                   { 
                      gui_message (GUI_ERROR_COLOR, "Button mapping "
                         "canceled.");
@@ -3675,7 +3677,9 @@ static int options_input_configure_dialog_set_buttons (DIALOG *dialog)
     
             if (keypressed ())
             {
-               if ((readkey () >> 8) == KEY_ESC)
+               ureadkey (&scancode);
+
+               if (scancode == KEY_ESC)
                {
                   gui_message (GUI_ERROR_COLOR, "Button mapping canceled.");
     
@@ -3722,13 +3726,17 @@ static int options_input_configure_dialog_calibrate (DIALOG *dialog)
 
          while (joy[index].flags & JOYFLAG_CALIBRATE)
          {
+            int scancode;
+
             message_local ("%s, and press any key.\n",
                calibrate_joystick_name (index));
 
             while (!keypressed ())
                gui_heartbeat ();
 
-            if ((readkey () >> 8) == KEY_ESC)
+            ureadkey (&scancode);
+
+            if (scancode == KEY_ESC)
             {
                gui_message (GUI_ERROR_COLOR, "Joystick calibration "
                   "cancelled.");

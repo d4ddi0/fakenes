@@ -568,9 +568,11 @@ int main (int argc, char * argv [])
             /* Process input. */
             while (keypressed ())
             {
-               int index = readkey ();
+               int c, scancode;
 
-               switch ((index >> 8))
+               c = ureadkey (&scancode);
+
+               switch (scancode)
                {
                   case KEY_ESC:
                   {
@@ -642,11 +644,11 @@ int main (int argc, char * argv [])
               }
           
 
-              input_handle_keypress (index);
+              input_handle_keypress (c, scancode);
 
-              video_handle_keypress (index);
+              video_handle_keypress (c, scancode);
 
-              gui_handle_keypress (index);
+              gui_handle_keypress (c, scancode);
           }
             
 

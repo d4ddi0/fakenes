@@ -52,12 +52,7 @@ int input_mode;
 #define INPUT_MODE_CHAT             (1 << 4)
 
 
-UINT8 input_chat_name [256];
-
-UINT8 input_chat_text [256];
-
-
-int input_chat_offset;
+USTRING input_chat_text;
 
 
 int input_init (void);
@@ -75,7 +70,7 @@ void input_write (UINT16, UINT8);
 
 void input_process (void);
 
-void input_handle_keypress (int);
+void input_handle_keypress (int, int);
 
 
 void input_update_zapper (void);

@@ -27,12 +27,7 @@ int input_enable_zapper = FALSE;
 int input_mode = 0;
 
 
-UINT8 input_chat_name [256];
-
-UINT8 input_chat_text [256];
-
-
-int input_chat_offset = 0;
+USTRING input_chat_text;
 
 
 static int wait_frames = 0;
@@ -54,9 +49,9 @@ static UINT8 key1_defaults [25] = { "24 26 64 67 84 85 82 83\0" };
 static UINT8 key2_defaults [25] = { "38 40 44 46 45 39 41 43\0" };
 
 
-static UINT8 key1_buffer [50];
+static UINT8 key1_buffer [100];
                 
-static UINT8 key2_buffer [50];
+static UINT8 key2_buffer [100];
 
 
 static int key1_scancodes [8];
@@ -272,9 +267,7 @@ int input_init (void)
     load_joystick_layouts ();
 
 
-    memset (input_chat_name, NIL, sizeof (input_chat_name));
-
-    memset (input_chat_text, NIL, sizeof (input_chat_text));
+    USTRING_CLEAR(input_chat_text);
 
 
     input_mode = 0;
@@ -692,7 +685,7 @@ void input_process (void)
             input_autosave_triggered = TRUE;
      
             /* Simulate keypress. */
-            gui_handle_keypress ((KEY_F3 << 8));
+            gui_handle_keypress (0, KEY_F3);
 
             /* Clear trigger flag. */
             input_autosave_triggered = FALSE;
@@ -829,23 +822,21 @@ void input_process (void)
 }
 
 
-void input_handle_keypress (int c)
+void input_handle_keypress (int c, int scancode)
 {
-   UINT8 code[2];
-
    if (!(input_mode & INPUT_MODE_CHAT))
       return;
 
-   switch ((c >> 8))
+   /* TODO: Make these Unicode calls protect against buffer overflow. */
+
+   switch (scancode)
    {
       case KEY_BACKSPACE:
       {
-         if (strlen (input_chat_text) > 0)
+         if (ustrlen (input_chat_text) > 0)
          {
-            input_chat_text[(strlen (input_chat_text) - 1)] = NULL;
-
-            if (input_chat_offset > 0)
-               input_chat_offset --;
+            /* Remove the last character from the buffer. */
+            uremove (input_chat_text, (ustrlen (input_chat_text) - 1));
          }
 
          break;
@@ -853,24 +844,14 @@ void input_handle_keypress (int c)
 
       case KEY_ENTER:
       {
-         if (strlen (input_chat_text) > 0)
+         if (ustrlen (input_chat_text) > 0)
          {
-            if (strlen (input_chat_name) > 0)
-            {
-               video_message ("%s: %s", input_chat_name,
-                  input_chat_text);
-            }
-            else
-            {
-               video_message (input_chat_text);
-            }
-
+            video_message (input_chat_text);
             video_message_duration = 5000;
 
-            memset (input_chat_text, 0, sizeof (input_chat_text));
+            /* Clear buffer. */
+            USTRING_CLEAR(input_chat_text);
          }
-
-         input_chat_offset = 0;
 
          input_mode &= ~INPUT_MODE_CHAT;
 
@@ -884,19 +865,13 @@ void input_handle_keypress (int c)
 
       default:
       {
-         code[0] = (c & 0xff);
-         code[1] = NULL;
+         /* Not sure if this is correct, but it's better than a crash! */
 
-         if (strlen (input_chat_text) < ((sizeof (input_chat_text) - 1) -
-            1))
+         if (ustrsizez (input_chat_text) < ((sizeof (input_chat_text) -
+            uwidth_max (U_CURRENT)) - 1))
          {
-            strcat (input_chat_text, code);
-
-            if (((text_length (font, input_chat_text) + 5) + 1) >
-               ((SCREEN_W - 4) - 1))
-            {
-               input_chat_offset++;
-            }
+            /* Add character to the end of the buffer. */
+            uinsert (input_chat_text, ustrlen (input_chat_text), c);
          }
 
          break;

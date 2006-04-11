@@ -63,7 +63,7 @@ int video_reinit (void);
 void video_exit (void);
 void video_blit (BITMAP *);
 void video_filter (void);
-void video_handle_keypress (int);
+void video_handle_keypress (int, int);
 void video_set_palette (RGB *);
 void video_set_palette_id (int);
 int video_get_palette_id (void);

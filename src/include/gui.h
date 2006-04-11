@@ -48,7 +48,7 @@ void gui_exit (void);
 int show_gui (BOOL);
 void gui_message (int, const UCHAR *, ...);
 void gui_heartbeat (void);
-void gui_handle_keypress (int);
+void gui_handle_keypress (int, int);
 void gui_stop_replay (void);
 void gui_set_theme (const GUI_THEME *);
 
