@@ -3514,7 +3514,7 @@ static int options_input_configure_dialog_player_select (DIALOG *dialog)
    for (index = first; index <= last; index++)
       main_dialog[index].flags  &= ~D_SELECTED;
 
-   main_dialog[(first + selected_player_device)].flags |= D_SELECTED;
+   main_dialog[(first + (selected_player_device - 1))].flags |= D_SELECTED;
 
    scare_mouse ();
 
