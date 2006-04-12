@@ -7,6 +7,7 @@
    You must read and accept the license prior to use. */
 
 #include <allegro.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -308,58 +309,233 @@ BOOL dsp_get_effector_enabled (FLAGS effector)
 
 /* --- Rendering and filters. --- */
 
+typedef struct _DSP_CHANNEL_MIXER
+{
+   DSP_SAMPLE acc;         /* Accumulator. */
+   DSP_SAMPLE prev, next;  /* Only used by filters. */
+   INT32 out;              /* Output. */
+
+} DSP_CHANNEL_MIXER;
+
+typedef struct _DSP_MULTIMIXER
+{
+   DSP_CHANNEL_MIXER mixers[DSP_OUTPUT_CHANNELS_MAX];
+   int channels;
+
+} DSP_MULTIMIXER;
+
+/* Left/right mixing/output channels. */
+#define DSP_CHANNEL_LEFT   0
+#define DSP_CHANNEL_RIGHT  1
+
 /* Helper macros. */
 
-#define DSP_MIXER_LEFT   mixers[0]
-#define DSP_MIXER_RIGHT  mixers[1]
-#define DSP_OUTPUT_LEFT  outputs[0]
-#define DSP_OUTPUT_RIGHT outputs[1]
+/* Macros for multichannel (1-2+) audio.  They should only used by effectors
+   that are capable of multichannel processing. */
+#define DSP_MIXER       multimixer->mixers[channel].acc
+#define DSP_MIXER_LAST  multimixer->mixers[channel].prev
+#define DSP_MIXER_NEXT  multimixer->mixers[channel].next
+#define DSP_OUTPUT      multimixer->mixers[channel].out
 
-#define DSP_MIXER_TO_OUTPUT(mixer)  ROUND((mixer * 2147483647.0f))
-#define DSP_OUTPUT_SIGNED_BIT       0x80000000
-#define DSP_OUTPUT_SHIFTS_8         24
-#define DSP_OUTPUT_SHIFTS_16        16
+/* Macros for mono mixing ONLY. */
+#define DSP_MIXER_MONO  multimixer->mixers[0].acc
 
-#define DSP_BUFFER_OUTPUT_SAMPLES(count)                          \
-   {                                                              \
-      int index;                                                  \
-                                                                  \
-      switch (bits_per_sample)                                    \
-      {                                                           \
-         case 8:                                                  \
-         {                                                        \
-            UINT8 *out = buffer;                                  \
-                                                                  \
-            for (index = 0; index < count; index++)               \
-               *out++ = (outputs[index] >> DSP_OUTPUT_SHIFTS_8);  \
-                                                                  \
-            buffer = out;                                         \
-                                                                  \
-            break;                                                \
-         }                                                        \
-                                                                  \
-         case 16:                                                 \
-         {                                                        \
-            UINT16 *out = buffer;                                 \
-                                                                  \
-            for (index = 0; index < count; index++)               \
-               *out++ = (outputs[index] >> DSP_OUTPUT_SHIFTS_16); \
-                                                                  \
-            buffer = out;                                         \
-                                                                  \
-            break;                                                \
-         }                                                        \
-                                                                  \
-         default:                                                 \
-            WARN_GENERIC();                                       \
-      }                                                           \
+/* Macros for stereo mixing ONLY. */
+#define DSP_MIXER_LEFT     multimixer->mixers[DSP_CHANNEL_LEFT].acc
+#define DSP_MIXER_RIGHT    multimixer->mixers[DSP_CHANNEL_RIGHT].acc
+
+/* Effectors. */
+
+static INLINE void dsp_effector_low_pass_filter (DSP_MULTIMIXER *multimixer,
+   int channel, int type)
+{
+   RT_ASSERT(multimixer);
+
+   switch (type)
+   {
+      case 1:
+      {
+         /* Simple. */
+
+         DSP_MIXER += DSP_MIXER_LAST;
+         DSP_MIXER /= 2.0f;
+
+         break;
+      }
+
+      case 2:
+      {
+         /* Weighted. */
+
+         DSP_MIXER *= 3.0f;
+         DSP_MIXER += DSP_MIXER_LAST;
+         DSP_MIXER /= 4.0f;
+
+         DSP_MIXER_NEXT = DSP_MIXER;
+
+         break;
+      }
+
+      case 3:
+      {
+         /* Dynamic. */
+
+         DSP_MIXER += DSP_MIXER_LAST;
+         DSP_MIXER /= 2.0f;
+
+         DSP_MIXER_NEXT = DSP_MIXER;
+
+         break;
+      }
+
+      default:
+         WARN_GENERIC();
+   }
+}
+
+static INLINE void dsp_effector_high_pass_filter (DSP_MULTIMIXER
+   *multimixer, int channel)
+{
+   RT_ASSERT(multimixer);
+
+   DSP_MIXER -= DSP_MIXER_LAST;
+   DSP_MIXER *= 4.0f;
+}
+
+static INLINE void dsp_effector_delta_sigma_filter (DSP_MULTIMIXER
+   *multimixer, int channel)
+{
+   DSP_SAMPLE old;
+
+   RT_ASSERT(multimixer);
+
+   old = DSP_MIXER;
+
+   DSP_MIXER *= 3.0f;
+   DSP_MIXER += DSP_MIXER_LAST;
+   DSP_MIXER /= 4.0f;
+
+   DSP_MIXER_NEXT = DSP_MIXER;
+
+   DSP_MIXER += (DSP_MIXER - old);
+   DSP_MIXER -= ROUND(((rand () / ((REAL)RAND_MAX - 1)) * (DSP_MIXER *
+      0.01f)));
+}
+
+static INLINE void dsp_effector_swap_channels (DSP_MULTIMIXER *multimixer)
+{
+   DSP_SAMPLE old_left;
+
+   RT_ASSERT(multimixer);
+
+   if (multimixer->channels != 2)
+      return;
+
+   old_left = DSP_MIXER_LEFT;
+
+   DSP_MIXER_LEFT = DSP_MIXER_RIGHT;
+   DSP_MIXER_RIGHT = old_left;
+}
+
+static INLINE void dsp_effector_wide_stereo (DSP_MULTIMIXER *multimixer,
+   int type)
+{
+   RT_ASSERT(multimixer);
+
+   if (multimixer->channels != 2)
+      return;
+
+   switch (type)
+   {
+      case 1:
+      {
+         DSP_MIXER_LEFT += DSP_MIXER_RIGHT;
+         DSP_MIXER_LEFT /= 2.0f;
+
+         if (DSP_MIXER_LEFT < 0)
+            DSP_MIXER_RIGHT = fabs (DSP_MIXER_LEFT);
+         else
+            DSP_MIXER_RIGHT = (0 - DSP_MIXER_LEFT);
+
+         break;
+      }
+
+      case 2:
+      {
+         if (DSP_MIXER_RIGHT < 0)
+            DSP_MIXER_RIGHT = fabs (DSP_MIXER_RIGHT);
+         else
+            DSP_MIXER_RIGHT = (0 - DSP_MIXER_RIGHT);
+
+         break;
+      }
+
+      case 3:
+      {
+         DSP_SAMPLE old_left;
+         DSP_SAMPLE scrap1, scrap2;
+
+         /* thanks to kode54 */
+
+         old_left = DSP_MIXER_LEFT;
+
+         scrap1 = ((DSP_MIXER_LEFT + DSP_MIXER_RIGHT) / 2.0f);
+         scrap2 = (DSP_MIXER_RIGHT - scrap1);
+
+         DSP_MIXER_LEFT -= scrap2;
+         DSP_MIXER_RIGHT -= (old_left - scrap1);
+
+         break;
+      }
+
+      default:
+         WARN_GENERIC();
+   }
+}
+
+/* Renderer. */
+
+#define DSP_OUTPUT_SIGN_BIT   0x80000000
+#define DSP_OUTPUT_SHIFTS_8   24
+#define DSP_OUTPUT_SHIFTS_16  16
+
+#define DSP_MIXER_TO_OUTPUT() \
+   DSP_OUTPUT = ROUND((DSP_MIXER * 2147483647.0f))
+
+#define DSP_BUFFER_OUTPUT()                                    \
+   {                                                           \
+      switch (bits_per_sample)                                 \
+      {                                                        \
+         case 8:                                               \
+         {                                                     \
+            UINT8 *out = buffer;                               \
+                                                               \
+            *out++ = (DSP_OUTPUT >> DSP_OUTPUT_SHIFTS_8);      \
+                                                               \
+            buffer = out;                                      \
+                                                               \
+            break;                                             \
+         }                                                     \
+                                                               \
+         case 16:                                              \
+         {                                                     \
+            UINT16 *out = buffer;                              \
+                                                               \
+            *out++ = (DSP_OUTPUT >> DSP_OUTPUT_SHIFTS_16);     \
+                                                               \
+            buffer = out;                                      \
+                                                               \
+            break;                                             \
+         }                                                     \
+                                                               \
+         default:                                              \
+            WARN_GENERIC();                                    \
+      }                                                        \
    }
 
 void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
    unsigned_samples)
 {
-   int sample, channel;
-
    /* This function performs all applicable filtering on a completed DSP
       buffer (filled by dsp_write()), and stores the samples in the output
       buffer using the specified format.
@@ -382,6 +558,10 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
                          (TRUE).
    */
 
+   DSP_MULTIMIXER core_multimixer;
+   DSP_MULTIMIXER *multimixer;
+   int sample, channel;
+
    RT_ASSERT(buffer);
 
    DEBUG_PRINTF("dsp_render(buffer=0x%x,channels=%d,bits_per_sample=%d,"
@@ -402,14 +582,27 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
       bits_per_sample = 16;
    }
 
-   /* Quantize and store. */
+   /* Default to core multimixer. */
+   multimixer = &core_multimixer;
+
+   /* Initialize multimixer. */
+   memset (multimixer, 0, sizeof (DSP_MULTIMIXER));
+
+   /* Set multimixer parameters. */
+   multimixer->channels = channels;
+
+   /* For each sample... */
+
    for (sample = 0; sample < dsp_buffer_samples; sample++)
    {
-      DSP_SAMPLE mixers[DSP_OUTPUT_CHANNELS_MAX];
       INT32 outputs[DSP_OUTPUT_CHANNELS_MAX];
 
-      DSP_MIXER_LEFT  = 0;
-      DSP_MIXER_RIGHT = 0;
+      /* Clear multimixer ACC. */
+                                     
+      for (channel = 0; channel < multimixer->channels; channel++)
+         DSP_MIXER = 0;
+
+      /* Perform buffer-to-output channel mixdown. */
 
       for (channel = 0; channel < dsp_buffer_channels; channel++)
       {
@@ -420,95 +613,139 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
             continue;
 
          input = (DSP_BUFFER_SAMPLE(sample, channel) * params->volume);
-         input /= 2.0f; /* For stereo mixing. */
 
-         if (params->pan < (0 - EPSILON))
+         /* It seems we need this line to avoid distortion, even for mono
+            mixing.  Odd. */
+         input /= 2.0f;
+
+         switch (multimixer->channels)
          {
-            DSP_MIXER_LEFT  += input;
-            DSP_MIXER_RIGHT += (input / 2.0f);
-         }
-         else if (params->pan > (0 + EPSILON))
-         {
-            DSP_MIXER_LEFT  += (input / 2.0f);
-            DSP_MIXER_RIGHT += input;
-         }
-         else
-         {
-            DSP_MIXER_LEFT  += input;
-            DSP_MIXER_RIGHT += input;
+            case 1:
+            {
+               /* Mono. */
+
+               DSP_MIXER_MONO += input;
+
+               break;
+            }
+
+            case 2:
+            {
+               /* Stereo. */
+
+               if (params->pan < (0 - EPSILON))
+               {
+                  DSP_MIXER_LEFT  += input;
+                  DSP_MIXER_RIGHT += (input / 2.0f);
+               }
+               else if (params->pan > (0 + EPSILON))
+               {
+                  DSP_MIXER_LEFT  += (input / 2.0f);
+                  DSP_MIXER_RIGHT += input;
+               }
+               else
+               {
+                  DSP_MIXER_LEFT  += input;
+                  DSP_MIXER_RIGHT += input;
+               }
+
+               break;
+            }
+
+            default:
+               WARN_GENERIC();
          }
       }
 
-      /* Master volume control. */
-      DSP_MIXER_LEFT  *= dsp_master_volume;
-      DSP_MIXER_RIGHT *= dsp_master_volume;
+      /* Perform any effector processing. */
 
-      /* Clipping. */
+      for (channel = 0; channel < multimixer->channels; channel++)
+      {
+         DSP_MIXER_NEXT = DSP_MIXER;
 
-      DSP_MIXER_LEFT  = fixf (DSP_MIXER_LEFT,  DSP_SAMPLE_VALUE_MIN,
-         DSP_SAMPLE_VALUE_MAX);
-      DSP_MIXER_RIGHT = fixf (DSP_MIXER_RIGHT, DSP_SAMPLE_VALUE_MIN,
-         DSP_SAMPLE_VALUE_MAX);
+         /* Low-pass filters. */
 
-      if (dsp_effector_list & DSP_EFFECTOR_SWAP_CHANNELS)
+         if (dsp_get_effector_enabled (DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_1))
+            dsp_effector_low_pass_filter (multimixer, channel, 1);
+
+         if (dsp_get_effector_enabled (DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_2))
+            dsp_effector_low_pass_filter (multimixer, channel, 2);
+
+         if (dsp_get_effector_enabled (DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_3))
+            dsp_effector_low_pass_filter (multimixer, channel, 3);
+
+         if (dsp_get_effector_enabled (DSP_EFFECTOR_HIGH_PASS_FILTER))
+         {
+            /* High-pass filter. */
+            dsp_effector_high_pass_filter (multimixer, channel);
+         }
+
+         if (dsp_get_effector_enabled (DSP_EFFECTOR_DELTA_SIGMA_FILTER))
+         {
+            /* Delta-Sigma filter. */
+            dsp_effector_delta_sigma_filter (multimixer, channel);
+         }
+
+         DSP_MIXER_LAST = DSP_MIXER_NEXT;
+      }       
+
+      if (dsp_get_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS))
       {
          /* Swap stereo channels. */
-
-         DSP_SAMPLE old_left;
-
-         old_left = DSP_MIXER_LEFT;
-         DSP_MIXER_LEFT = DSP_MIXER_RIGHT;
-         DSP_MIXER_RIGHT = old_left;
+         dsp_effector_swap_channels (multimixer);
       }
 
-      /* Convert back to signed integer. */
+      /* Wide stereo. */
 
-      DSP_OUTPUT_LEFT  = DSP_MIXER_TO_OUTPUT(DSP_MIXER_LEFT);
-      DSP_OUTPUT_RIGHT = DSP_MIXER_TO_OUTPUT(DSP_MIXER_RIGHT);
+      if (dsp_get_effector_enabled (DSP_EFFECTOR_WIDE_STEREO_TYPE_1))
+         dsp_effector_wide_stereo (multimixer, 1);
 
-      if (unsigned_samples)
+      if (dsp_get_effector_enabled (DSP_EFFECTOR_WIDE_STEREO_TYPE_2))
+         dsp_effector_wide_stereo (multimixer, 2);
+
+      if (dsp_get_effector_enabled (DSP_EFFECTOR_WIDE_STEREO_TYPE_3))
+         dsp_effector_wide_stereo (multimixer, 3);
+
+      /* Post-process and output. */
+
+      for (channel = 0; channel < multimixer->channels; channel++)
       {
-         /* Convert signed to unsigned. */
+         /* Master volume control. */
+         DSP_MIXER *= dsp_master_volume;
 
-         DSP_OUTPUT_LEFT  ^= DSP_OUTPUT_SIGNED_BIT;
-         DSP_OUTPUT_RIGHT ^= DSP_OUTPUT_SIGNED_BIT;
-      }
-
-      if (dsp_effector_list & DSP_EFFECTOR_DITHER)
-      {
-         /* Dithering. */
-
-         DSP_OUTPUT_LEFT ^= ((DSP_OUTPUT_LEFT & (DSP_OUTPUT_SIGNED_BIT >>
-            bits_per_sample)) << 1);
-         DSP_OUTPUT_RIGHT ^= ((DSP_OUTPUT_RIGHT & (DSP_OUTPUT_SIGNED_BIT >>
-            bits_per_sample)) << 1);
-      }
-
-      /* Quantize and output samples. */
-
-      switch (channels)
-      {
-         case 1:  /* Mono. */
+#if 0
+         if ((DSP_MIXER < DSP_SAMPLE_VALUE_MIN) ||
+             (DSP_MIXER > DSP_SAMPLE_VALUE_MAX))
          {
-            /* Downmix to mono. */
+            /* Reduce gain. */
+            DSP_MIXER /= pow (fabs (DSP_MIXER), 2);
+         }                                            
+#endif
 
-            DSP_OUTPUT_LEFT >>= 1;
-            DSP_OUTPUT_LEFT += (DSP_OUTPUT_RIGHT >> 1);
+         /* Clipping. */
+                  
+         DSP_MIXER = fixf (DSP_MIXER, DSP_SAMPLE_VALUE_MIN,
+            DSP_SAMPLE_VALUE_MAX);
 
-            DSP_BUFFER_OUTPUT_SAMPLES(1);
+         /* Convert to output. */
+         DSP_MIXER_TO_OUTPUT();
 
-            break;
+         if (unsigned_samples)
+         {
+            /* Convert signed to unsigned. */
+            DSP_OUTPUT  ^= DSP_OUTPUT_SIGN_BIT;
          }
 
-         case 2:  /* Stereo. */
+         if (dsp_get_effector_enabled (DSP_EFFECTOR_DITHER))
          {
-            DSP_BUFFER_OUTPUT_SAMPLES(2);
+            /* Dithering. */
 
-            break;
+            DSP_OUTPUT ^= ((DSP_OUTPUT & (DSP_OUTPUT_SIGN_BIT >>
+               bits_per_sample)) << 1);
          }
 
-         default:
-            WARN_GENERIC();
+         /* Send output to buffer. */
+         DSP_BUFFER_OUTPUT();
       }
    }
 }
