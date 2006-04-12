@@ -418,7 +418,7 @@ static INLINE void dsp_effector_delta_sigma_filter (DSP_MULTIMIXER
    DSP_MIXER_NEXT = DSP_MIXER;
 
    DSP_MIXER += (DSP_MIXER - old);
-   DSP_MIXER -= ROUND(((rand () / ((REAL)RAND_MAX - 1)) * (DSP_MIXER *
+   DSP_MIXER -= ROUND((((REAL)rand32 () / RAND32_MAX) * (DSP_MIXER *
       0.01f)));
 }
 
@@ -511,41 +511,41 @@ static INLINE void dsp_effector_wide_stereo (DSP_MULTIMIXER *multimixer,
 /* Renderer. */
 
 #define DSP_OUTPUT_SIGN_BIT   0x80000000
-#define DSP_OUTPUT_SHIFTS_8   24
-#define DSP_OUTPUT_SHIFTS_16  16
+#define DSP_OUTPUT_SHIFTS     (32 - bits_per_sample)
+#define DSP_OUTPUT_MASK       (0xffffffff >> DSP_OUTPUT_SHIFTS)
 
 #define DSP_MIXER_TO_OUTPUT() \
    DSP_OUTPUT = ROUND((DSP_MIXER * 2147483647.0f))
 
-#define DSP_BUFFER_OUTPUT()                                    \
-   {                                                           \
-      switch (bits_per_sample)                                 \
-      {                                                        \
-         case 8:                                               \
-         {                                                     \
-            UINT8 *out = buffer;                               \
-                                                               \
-            *out++ = (DSP_OUTPUT >> DSP_OUTPUT_SHIFTS_8);      \
-                                                               \
-            buffer = out;                                      \
-                                                               \
-            break;                                             \
-         }                                                     \
-                                                               \
-         case 16:                                              \
-         {                                                     \
-            UINT16 *out = buffer;                              \
-                                                               \
-            *out++ = (DSP_OUTPUT >> DSP_OUTPUT_SHIFTS_16);     \
-                                                               \
-            buffer = out;                                      \
-                                                               \
-            break;                                             \
-         }                                                     \
-                                                               \
-         default:                                              \
-            WARN_GENERIC();                                    \
-      }                                                        \
+#define DSP_BUFFER_OUTPUT()                              \
+   {                                                     \
+      switch (bits_per_sample)                           \
+      {                                                  \
+         case 8:                                         \
+         {                                               \
+            UINT8 *out = buffer;                         \
+                                                         \
+            *out++ = (DSP_OUTPUT >> DSP_OUTPUT_SHIFTS);  \
+                                                         \
+            buffer = out;                                \
+                                                         \
+            break;                                       \
+         }                                               \
+                                                         \
+         case 16:                                        \
+         {                                               \
+            UINT16 *out = buffer;                        \
+                                                         \
+            *out++ = (DSP_OUTPUT >> DSP_OUTPUT_SHIFTS);  \
+                                                         \
+            buffer = out;                                \
+                                                         \
+            break;                                       \
+         }                                               \
+                                                         \
+         default:                                        \
+            WARN_GENERIC();                              \
+      }                                                  \
    }
 
 void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
@@ -759,18 +759,32 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
          /* Convert to output. */
          DSP_MIXER_TO_OUTPUT();
 
+         if (dsp_get_effector_enabled (DSP_EFFECTOR_DITHER))
+         {
+            INT32 out, error;
+
+            out = (DSP_OUTPUT >> DSP_OUTPUT_SHIFTS);
+            out &= DSP_OUTPUT_MASK;
+            out <<= DSP_OUTPUT_SHIFTS;
+
+            error = (DSP_OUTPUT - out);
+
+            if (error)
+            {
+               INT32 salt;
+
+               salt = (signed)rand32 ();
+               salt %= error;
+               salt >>= 1;
+
+               DSP_OUTPUT += salt;
+            }
+         }
+
          if (unsigned_samples)
          {
             /* Convert signed to unsigned. */
-            DSP_OUTPUT  ^= DSP_OUTPUT_SIGN_BIT;
-         }
-
-         if (dsp_get_effector_enabled (DSP_EFFECTOR_DITHER))
-         {
-            /* Dithering. */
-
-            DSP_OUTPUT ^= ((DSP_OUTPUT & (DSP_OUTPUT_SIGN_BIT >>
-               bits_per_sample)) << 1);
+            DSP_OUTPUT ^= DSP_OUTPUT_SIGN_BIT;
          }
 
          /* Send output to buffer. */
