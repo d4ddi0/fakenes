@@ -714,7 +714,9 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(audio_channels_menu_triangle_wave, dsp_get_channel_enabled (APU_CHANNEL_TRIANGLE));
    TOGGLE_MENU_ITEM(audio_channels_menu_white_noise,   dsp_get_channel_enabled (APU_CHANNEL_NOISE));
    TOGGLE_MENU_ITEM(audio_channels_menu_digital,       dsp_get_channel_enabled (APU_CHANNEL_DMC));
-   TOGGLE_MENU_ITEM(audio_channels_menu_extended,      dsp_get_channel_enabled (APU_CHANNEL_EXTRA));
+   TOGGLE_MENU_ITEM(audio_channels_menu_extended_1,    dsp_get_channel_enabled (APU_CHANNEL_EXTRA_1));
+   TOGGLE_MENU_ITEM(audio_channels_menu_extended_2,    dsp_get_channel_enabled (APU_CHANNEL_EXTRA_2));
+   TOGGLE_MENU_ITEM(audio_channels_menu_extended_3,    dsp_get_channel_enabled (APU_CHANNEL_EXTRA_3));
 
 #ifdef ALLEGRO_DOS
 
@@ -2504,14 +2506,38 @@ static int audio_channels_menu_digital (void)
    return (D_O_K);
 }
 
-static int audio_channels_menu_extended (void)
+static int audio_channels_menu_extended_1 (void)
 {
-   dsp_set_channel_enabled (APU_CHANNEL_EXTRA, DSP_SET_ENABLED_MODE_INVERT,
-      0);
+   dsp_set_channel_enabled (APU_CHANNEL_EXTRA_1,
+      DSP_SET_ENABLED_MODE_INVERT, 0);
    update_menus ();
 
-   message_local ("Audio extended channels %s.", get_enabled_text
-      (dsp_get_channel_enabled (APU_CHANNEL_EXTRA)));
+   message_local ("Audio extended channel #1 %s.", get_enabled_text
+      (dsp_get_channel_enabled (APU_CHANNEL_EXTRA_1)));
+
+   return (D_O_K);
+}
+
+static int audio_channels_menu_extended_2 (void)
+{
+   dsp_set_channel_enabled (APU_CHANNEL_EXTRA_2,
+      DSP_SET_ENABLED_MODE_INVERT, 0);
+   update_menus ();
+
+   message_local ("Audio extended channel #2 %s.", get_enabled_text
+      (dsp_get_channel_enabled (APU_CHANNEL_EXTRA_2)));
+
+   return (D_O_K);
+}
+
+static int audio_channels_menu_extended_3 (void)
+{
+   dsp_set_channel_enabled (APU_CHANNEL_EXTRA_3,
+      DSP_SET_ENABLED_MODE_INVERT, 0);
+   update_menus ();
+
+   message_local ("Audio extended channel #3 %s.", get_enabled_text
+      (dsp_get_channel_enabled (APU_CHANNEL_EXTRA_3)));
 
    return (D_O_K);
 }

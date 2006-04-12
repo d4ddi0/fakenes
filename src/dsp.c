@@ -186,7 +186,7 @@ void dsp_write (const DSP_SAMPLE *samples)
       value = samples[channel];
 
       /* Clipping. */
-      value = fixf (value, DSP_SAMPLE_VALUE_MIN, DSP_SAMPLE_VALUE_MAX);
+      /* value = fixf (value, DSP_SAMPLE_VALUE_MIN, DSP_SAMPLE_VALUE_MAX); */
 
       DSP_BUFFER_SAMPLE(sample, channel) = value;
    }
@@ -422,6 +422,21 @@ static INLINE void dsp_effector_delta_sigma_filter (DSP_MULTIMIXER
       0.01f)));
 }
 
+static INLINE void dsp_effector_blend_stereo (DSP_MULTIMIXER *multimixer)
+{
+   DSP_SAMPLE old_left;
+
+   RT_ASSERT(multimixer);
+
+   if (multimixer->channels != 2)
+      return;
+
+   old_left = DSP_MIXER_LEFT;
+
+   DSP_MIXER_LEFT  += (DSP_MIXER_RIGHT / 2.0f);
+   DSP_MIXER_RIGHT += (old_left / 2.0f);
+}
+
 static INLINE void dsp_effector_swap_channels (DSP_MULTIMIXER *multimixer)
 {
    DSP_SAMPLE old_left;
@@ -433,7 +448,7 @@ static INLINE void dsp_effector_swap_channels (DSP_MULTIMIXER *multimixer)
 
    old_left = DSP_MIXER_LEFT;
 
-   DSP_MIXER_LEFT = DSP_MIXER_RIGHT;
+   DSP_MIXER_LEFT  = DSP_MIXER_RIGHT;
    DSP_MIXER_RIGHT = old_left;
 }
 
@@ -631,23 +646,34 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
 
             case 2:
             {
+               REAL left_vol, right_vol;
+
                /* Stereo. */
 
                if (params->pan < (0 - EPSILON))
                {
-                  DSP_MIXER_LEFT  += input;
-                  DSP_MIXER_RIGHT += (input / 2.0f);
+                  /* Left panning. */
+
+                  left_vol  = fabs (params->pan);
+                  right_vol = (1.0f - left_vol);
                }
                else if (params->pan > (0 + EPSILON))
                {
-                  DSP_MIXER_LEFT  += (input / 2.0f);
-                  DSP_MIXER_RIGHT += input;
+                  /* Right panning. */
+
+                  right_vol = params->pan;
+                  left_vol  = (1.0f - right_vol);
                }
                else
                {
-                  DSP_MIXER_LEFT  += input;
-                  DSP_MIXER_RIGHT += input;
+                  /* Center panning. */
+
+                  left_vol  = 0.5f;
+                  right_vol = 0.5f;
                }
+
+               DSP_MIXER_LEFT  += (input * left_vol);
+               DSP_MIXER_RIGHT += (input * right_vol);
 
                break;
             }
@@ -688,6 +714,9 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
 
          DSP_MIXER_LAST = DSP_MIXER_NEXT;
       }       
+
+      /* Stereo blending (always enabled =). */
+      dsp_effector_blend_stereo (multimixer);
 
       if (dsp_get_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS))
       {

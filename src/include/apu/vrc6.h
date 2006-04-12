@@ -80,16 +80,6 @@ static INT32 APU_VRC6SoundSawRender(APU_VRC6_SAW *ch)
    return APU_LogToLinear(output, APU_LOG_LIN_BITS - APU_LIN_BITS - 16 - 1);
 }
 
-static INT32 APU_VRC6SoundRender(void)
-{
-    INT32 accum = 0;
-   /* output signed 16-bit */
-   accum += APU_VRC6SoundSquareRender(&apu.vrc6s.square[0]) >> 8;
-   accum += APU_VRC6SoundSquareRender(&apu.vrc6s.square[1]) >> 8;
-   accum += APU_VRC6SoundSawRender(&apu.vrc6s.saw) >> 8;
-	return accum;
-}
-
 static void APU_VRC6SoundVolume(UINT32 volume)
 {
    apu.vrc6s.mastervolume = (volume << (APU_LOG_BITS - 8)) << 1;

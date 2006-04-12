@@ -377,7 +377,9 @@ DEFINE_MENU_CALLBACK(audio_channels_menu_square_wave_b);
 DEFINE_MENU_CALLBACK(audio_channels_menu_triangle_wave);
 DEFINE_MENU_CALLBACK(audio_channels_menu_white_noise);
 DEFINE_MENU_CALLBACK(audio_channels_menu_digital);
-DEFINE_MENU_CALLBACK(audio_channels_menu_extended);
+DEFINE_MENU_CALLBACK(audio_channels_menu_extended_1);
+DEFINE_MENU_CALLBACK(audio_channels_menu_extended_2);
+DEFINE_MENU_CALLBACK(audio_channels_menu_extended_3);
 
 static const MENU audio_channels_menu_base[] =
 {
@@ -386,7 +388,9 @@ static const MENU audio_channels_menu_base[] =
    { "&Triangle Wave", audio_channels_menu_triangle_wave, NULL, 0, NULL },
    { "&White Noise",   audio_channels_menu_white_noise,   NULL, 0, NULL },
    { "&Digital",       audio_channels_menu_digital,       NULL, 0, NULL },
-   { "&Extended",      audio_channels_menu_extended,      NULL, 0, NULL },
+   { "&Extended 1",    audio_channels_menu_extended_1,    NULL, 0, NULL },
+   { "E&xtended 2",    audio_channels_menu_extended_2,    NULL, 0, NULL },
+   { "Exte&nded 3",    audio_channels_menu_extended_3,    NULL, 0, NULL },
    MENU_ENDCAP
 };
 

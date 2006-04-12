@@ -560,6 +560,97 @@ static INLINE REAL apu_dmc (apu_chan_t *chan)
    return (chan->output);
 }
 
+/* EXTRA SOUND
+   ========================= */
+
+static INLINE REAL apu_extra (ENUM channel)
+{
+   INT32 value = 0;
+
+   switch (apu.exsound)
+   {                         
+      case APU_EXSOUND_NONE:
+      {
+         /* Nothing to do. */
+         return (0);
+      }
+
+      case APU_EXSOUND_MMC5:
+      {
+         /* MMC5. */
+
+         switch (channel)
+         {
+            case APU_CHANNEL_EXTRA_1:
+            {
+               /* Square wave 3. */
+               value = APU_MMC5SoundSquareRender (&apu.mmc5.square[0]);
+
+               break;
+            }
+
+            case APU_CHANNEL_EXTRA_2:
+            {
+               /* Square wave 4. */
+               value = APU_MMC5SoundSquareRender (&apu.mmc5.square[1]);
+
+               break;
+            }
+
+            default:
+               break;
+         }
+
+         break;
+      }
+
+      case APU_EXSOUND_VRC6:
+      {
+         /* VRC6, VRC6V. */
+
+         switch (channel)
+         {
+            case APU_CHANNEL_EXTRA_1:
+            {
+               /* Square wave 3. */
+               value = APU_VRC6SoundSquareRender (&apu.vrc6s.square[0]);
+
+               break;
+            }
+
+            case APU_CHANNEL_EXTRA_2:
+            {
+               /* Square wave 4. */
+               value = APU_VRC6SoundSquareRender (&apu.vrc6s.square[1]);
+
+               break;
+            }
+
+            case APU_CHANNEL_EXTRA_3:
+            {
+               /* Saw wave. */
+               value = APU_VRC6SoundSawRender (&apu.vrc6s.saw);
+
+               break;
+            }
+
+            default:
+               break;
+         }
+
+         break;
+      }
+
+      default:
+         WARN_GENERIC();
+   }
+
+   /* Downshift to 16-bit. */
+   value >>= 8;
+
+   return (APU_TO_OUTPUT(value));
+}
+
 int apu_init (void)
 {
    /* Initialize DSP. */
@@ -574,7 +665,9 @@ int apu_init (void)
    DSP_ENABLE_CHANNEL_EX(APU_CHANNEL_TRIANGLE, get_config_int ("apu", "enable_triangle", TRUE));
    DSP_ENABLE_CHANNEL_EX(APU_CHANNEL_NOISE,    get_config_int ("apu", "enable_noise",    TRUE));
    DSP_ENABLE_CHANNEL_EX(APU_CHANNEL_DMC,      get_config_int ("apu", "enable_dmc",      TRUE));
-   DSP_ENABLE_CHANNEL_EX(APU_CHANNEL_EXTRA,    get_config_int ("apu", "enable_extra",    TRUE));
+   DSP_ENABLE_CHANNEL_EX(APU_CHANNEL_EXTRA_1,  get_config_int ("apu", "enable_extra_1",  TRUE));
+   DSP_ENABLE_CHANNEL_EX(APU_CHANNEL_EXTRA_2,  get_config_int ("apu", "enable_extra_2",  TRUE));
+   DSP_ENABLE_CHANNEL_EX(APU_CHANNEL_EXTRA_3,  get_config_int ("apu", "enable_extra_3",  TRUE));
 
    /* Initialize everything else. */
    apu_update ();
@@ -600,7 +693,9 @@ void apu_exit (void)
    set_config_int ("apu", "enable_triangle", dsp_get_channel_enabled (APU_CHANNEL_TRIANGLE));
    set_config_int ("apu", "enable_noise",    dsp_get_channel_enabled (APU_CHANNEL_NOISE));
    set_config_int ("apu", "enable_dmc",      dsp_get_channel_enabled (APU_CHANNEL_DMC));
-   set_config_int ("apu", "enable_extra",    dsp_get_channel_enabled (APU_CHANNEL_EXTRA));
+   set_config_int ("apu", "enable_extra_1",  dsp_get_channel_enabled (APU_CHANNEL_EXTRA_1));
+   set_config_int ("apu", "enable_extra_2",  dsp_get_channel_enabled (APU_CHANNEL_EXTRA_2));
+   set_config_int ("apu", "enable_extra_3",  dsp_get_channel_enabled (APU_CHANNEL_EXTRA_3));
 }  
 
 void apu_reset (void)
@@ -671,7 +766,9 @@ void apu_update (void)
          dsp_set_channel_params (APU_CHANNEL_TRIANGLE, 1.0f, -1.0f);
          dsp_set_channel_params (APU_CHANNEL_NOISE,    1.0f, +1.0f);
          dsp_set_channel_params (APU_CHANNEL_DMC,      1.0f, 0);
-         dsp_set_channel_params (APU_CHANNEL_EXTRA,    1.0f, 0);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_1,  1.0f, -1.0f);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_2,  1.0f, +1.0f);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_3,  1.0f, 0);
 
          break;
       }
@@ -686,7 +783,9 @@ void apu_update (void)
          dsp_set_channel_params (APU_CHANNEL_TRIANGLE, 1.0f, 0);
          dsp_set_channel_params (APU_CHANNEL_NOISE,    1.0f, 0);
          dsp_set_channel_params (APU_CHANNEL_DMC,      1.0f, 0);
-         dsp_set_channel_params (APU_CHANNEL_EXTRA,    1.0f, 0);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_1,  1.0f, -0.5f);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_2,  1.0f, +0.5f);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_3,  1.0f, 0);
 
          break;
       }
@@ -701,8 +800,10 @@ void apu_update (void)
          dsp_set_channel_params (APU_CHANNEL_NOISE,    1.0f, +1.0f);
          dsp_set_channel_params (APU_CHANNEL_DMC,      1.0f, +1.0f);
 
-         /* What should the behavior of ExSound be in this mode? */
-         dsp_set_channel_params (APU_CHANNEL_EXTRA, 1.0f, 0);
+         /* What should the behavior here be? */
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_1,  1.0f, 0);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_2,  1.0f, 0);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_3,  1.0f, 0);
 
          break;
       }
@@ -718,7 +819,9 @@ void apu_update (void)
          dsp_set_channel_params (APU_CHANNEL_TRIANGLE, 1.0f, 0);
          dsp_set_channel_params (APU_CHANNEL_NOISE,    1.0f, 0);
          dsp_set_channel_params (APU_CHANNEL_DMC,      1.0f, 0);
-         dsp_set_channel_params (APU_CHANNEL_EXTRA,    1.0f, 0);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_1,  1.0f, 0);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_2,  1.0f, 0);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_3,  1.0f, 0);
 
          break;
       }
@@ -838,40 +941,16 @@ void apu_process (void)
    
                   break; 
                } 
-   
-               case APU_CHANNEL_EXTRA:
+
+               case APU_CHANNEL_EXTRA_1:
+               case APU_CHANNEL_EXTRA_2:
+               case APU_CHANNEL_EXTRA_3:
                {
-                  INT32 value = 0;
-
-                  switch (apu.exsound)
-                  {
-                     case APU_EXSOUND_NONE:
-                        break;
-   
-                     case APU_EXSOUND_MMC5:
-                     {
-                        value = APU_MMC5SoundRender ();
-   
-                        break;
-                     }
-   
-                     case APU_EXSOUND_VRC6:
-                     {
-                        value = APU_VRC6SoundRender ();
-   
-                        break;
-                     }
-   
-                     default:
-                        WARN_GENERIC();
-                  }
-
-                  /* Convert to DSP format. */
-                  sample = APU_TO_OUTPUT(value);
+                  sample = apu_extra (channel);
 
                   break;
                }
-   
+
                default:
                   WARN_GENERIC();
             }
