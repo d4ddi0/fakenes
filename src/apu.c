@@ -415,7 +415,10 @@ static INLINE REAL apu_noise (apu_chan_t *chan)
       static int sreg = 0x4000;
       int bit0, tap, bit14;
 
-      chan->phaseacc += chan->freq;
+      /* Hack: We add 1 to the channel frequency during this loop just in
+         case it happens to be zero (and it does happen), in which this
+         while loop would become infinitely ... infinite. */
+      chan->phaseacc += (chan->freq + 1);
 
       bit0 = (sreg & 1);
       tap = ((sreg & chan->xor_tap) ? 1 : 0);
@@ -424,7 +427,7 @@ static INLINE REAL apu_noise (apu_chan_t *chan)
       sreg |= (bit14 << 14);
       noise_bit = (bit0 ^ 1);
 
-      sample_weight = chan->freq;
+      sample_weight = (chan->freq + 1);
 
       if (chan->phaseacc > 0)
          sample_weight -= chan->phaseacc;
@@ -752,7 +755,7 @@ void apu_process (void)
          DSP_SAMPLE dsp_samples[APU_CHANNELS];
 
          /* Truncate to integer. */
-         max_timestamp = ROUND(elapsed_cycles);
+         max_timestamp = elapsed_cycles;
 
          while (!APU_QEMPTY() &&
                 (apu.queue[apu.q_tail].timestamp <= max_timestamp))
@@ -903,14 +906,14 @@ void apu_process (void)
          /* Truncate to integer. */
          max_timestamp = elapsed_cycles;
 
-         while ((!APU_QEMPTY()) &&
+         while (!APU_QEMPTY() &&
                 (apu.queue[apu.q_tail].timestamp <= max_timestamp))
          {
             data = apu_dequeue ();
             regwrite (data->address, data->value);
          }
    
-         while ((!APU_EX_QEMPTY()) &&
+         while (!APU_EX_QEMPTY() &&
                 (apu.ex_queue[apu.ex_q_tail].timestamp <= max_timestamp))
          {
             data = apu_ex_dequeue ();
