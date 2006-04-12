@@ -13,15 +13,15 @@ extern "C" {
 #endif
 
 #define VERSION_MAJOR   0
-#define VERSION_MINOR   55
-#define VERSION         0x055
+#define VERSION_MINOR   56
+#define VERSION         0x056
 
 /* Version tag can be overriden by Makefiles. */
 #ifndef VERSION_TAG
 #define VERSION_TAG     "CVS"
 #endif
 
-#define VERSION_STRING  "0.5.5 (" VERSION_TAG ")"
+#define VERSION_STRING  "0.5.6 (" VERSION_TAG ")"
 
 #ifdef __cplusplus
 }
