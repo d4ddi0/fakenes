@@ -233,7 +233,11 @@ int video_init (void)
 
       /* Disable page buffering, since it is pointless. */
       video_enable_page_buffer = FALSE;
+
+      /* Disable VSync, since it crashes AllegroGL. */
+      video_enable_vsync = FALSE;
    }
+
 
 #endif   /* USE_ALLEGROGL */
 

@@ -707,8 +707,9 @@ static INLINE void update_menus (void)
 
 #ifdef USE_ALLEGROGL
 
-   /* Page buffer not supported in OpenGL mode. */
+   /* Page buffer and VSync are not supported in OpenGL mode. */
    SET_MENU_ITEM_ENABLED(video_menu_page_buffer, !video_is_opengl_mode ());
+   SET_MENU_ITEM_ENABLED(video_menu_vsync,       !video_is_opengl_mode ());
 
 #endif   /* USE_ALLEGROGL */
 
