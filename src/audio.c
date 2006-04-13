@@ -24,7 +24,7 @@ int  audio_sample_rate      = -1;   /* Autodetect. */
 int  audio_sample_size      = -1;   /* Autodetect. */
 BOOL audio_unsigned_samples = TRUE;
 BOOL audio_interpolation    = TRUE;
-int  audio_buffer_length    = 6;
+int  audio_buffer_length    = 4;
 
 /* Cachied copies of sensetive parameters to prevent memory leaks if any of
    them are changed before audio_exit() is called. */

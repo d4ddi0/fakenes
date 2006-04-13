@@ -245,6 +245,7 @@ static INLINE void load_menus (void)
    MENU_FROM_BASE(audio_mixing_frequency_menu);
    MENU_FROM_BASE(audio_mixing_quality_menu);
    MENU_FROM_BASE(audio_mixing_menu);
+   MENU_FROM_BASE(audio_buffer_menu);
    MENU_FROM_BASE(audio_effects_menu);
    MENU_FROM_BASE(audio_filters_menu);
    MENU_FROM_BASE(audio_channels_menu);
@@ -310,6 +311,7 @@ static INLINE void unload_menus (void)
    unload_menu (audio_mixing_frequency_menu);
    unload_menu (audio_mixing_quality_menu);
    unload_menu (audio_mixing_menu);
+   unload_menu (audio_buffer_menu);
    unload_menu (audio_effects_menu);
    unload_menu (audio_filters_menu);
    unload_menu (audio_channels_menu);
@@ -765,6 +767,15 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(audio_mixing_quality_menu_high_16_bit,   (audio_sample_size == 16));
    TOGGLE_MENU_ITEM(audio_mixing_quality_menu_interpolation, audio_interpolation);
    TOGGLE_MENU_ITEM(audio_mixing_quality_menu_dithering,     dsp_get_effector_enabled (DSP_EFFECTOR_DITHER));
+
+   TOGGLE_MENU_ITEM(audio_buffer_menu_1_frame,  (audio_buffer_length == 1));
+   TOGGLE_MENU_ITEM(audio_buffer_menu_2_frames, (audio_buffer_length == 2));
+   TOGGLE_MENU_ITEM(audio_buffer_menu_3_frames, (audio_buffer_length == 3));
+   TOGGLE_MENU_ITEM(audio_buffer_menu_4_frames, (audio_buffer_length == 4));
+   TOGGLE_MENU_ITEM(audio_buffer_menu_5_frames, (audio_buffer_length == 5));
+   TOGGLE_MENU_ITEM(audio_buffer_menu_6_frames, (audio_buffer_length == 6));
+   TOGGLE_MENU_ITEM(audio_buffer_menu_7_frames, (audio_buffer_length == 7));
+   TOGGLE_MENU_ITEM(audio_buffer_menu_8_frames, (audio_buffer_length == 8));
 
    TOGGLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_1, dsp_get_effector_enabled (DSP_EFFECTOR_WIDE_STEREO_TYPE_1));
    TOGGLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_2, dsp_get_effector_enabled (DSP_EFFECTOR_WIDE_STEREO_TYPE_2));
@@ -2446,6 +2457,28 @@ static int audio_mixing_quality_menu_dithering (void)
 
    return (D_O_K);
 }
+
+#define BUFFER_MENU_HANDLER(length, units)   \
+   static int audio_buffer_menu_##length##_##units (void)   \
+   {  \
+      audio_buffer_length = length; \
+      update_menus ();  \
+      cycle_audio ();   \
+      message_local ("Audio buffer length set to %d %s.", length, \
+         "##units##");  \
+      return (D_O_K);   \
+   }
+                        
+BUFFER_MENU_HANDLER(1, frame)
+BUFFER_MENU_HANDLER(2, frames)
+BUFFER_MENU_HANDLER(3, frames)
+BUFFER_MENU_HANDLER(4, frames)
+BUFFER_MENU_HANDLER(5, frames)
+BUFFER_MENU_HANDLER(6, frames)
+BUFFER_MENU_HANDLER(7, frames)
+BUFFER_MENU_HANDLER(8, frames)
+
+#undef BUFFER_MENU_HANDLER
 
 static int audio_effects_menu_wide_stereo_type_1 (void)
 {

@@ -27,6 +27,7 @@ DEFINE_MENU(audio_mixing_channels_menu);
 DEFINE_MENU(audio_mixing_frequency_menu);
 DEFINE_MENU(audio_mixing_quality_menu);
 DEFINE_MENU(audio_mixing_menu);
+DEFINE_MENU(audio_buffer_menu);
 DEFINE_MENU(audio_effects_menu);
 DEFINE_MENU(audio_filters_menu);
 DEFINE_MENU(audio_channels_menu);
@@ -344,6 +345,28 @@ static const MENU audio_mixing_menu_base[] =
    MENU_ENDCAP
 };
 
+DEFINE_MENU_CALLBACK(audio_buffer_menu_1_frame);
+DEFINE_MENU_CALLBACK(audio_buffer_menu_2_frames);
+DEFINE_MENU_CALLBACK(audio_buffer_menu_3_frames);
+DEFINE_MENU_CALLBACK(audio_buffer_menu_4_frames);
+DEFINE_MENU_CALLBACK(audio_buffer_menu_5_frames);
+DEFINE_MENU_CALLBACK(audio_buffer_menu_6_frames);
+DEFINE_MENU_CALLBACK(audio_buffer_menu_7_frames);
+DEFINE_MENU_CALLBACK(audio_buffer_menu_8_frames);
+
+static const MENU audio_buffer_menu_base[] =
+{
+   { "&1 Frame",  audio_buffer_menu_1_frame,  NULL, 0, NULL },
+   { "&2 Frames", audio_buffer_menu_2_frames, NULL, 0, NULL },
+   { "&3 Frames", audio_buffer_menu_3_frames, NULL, 0, NULL },
+   { "&4 Frames", audio_buffer_menu_4_frames, NULL, 0, NULL },
+   { "&5 Frames", audio_buffer_menu_5_frames, NULL, 0, NULL },
+   { "&6 Frames", audio_buffer_menu_6_frames, NULL, 0, NULL },
+   { "&7 Frames", audio_buffer_menu_7_frames, NULL, 0, NULL },
+   { "&8 Frames", audio_buffer_menu_8_frames, NULL, 0, NULL },
+   MENU_ENDCAP
+};                                             
+
 DEFINE_MENU_CALLBACK(audio_effects_menu_wide_stereo_type_1);
 DEFINE_MENU_CALLBACK(audio_effects_menu_wide_stereo_type_2);
 DEFINE_MENU_CALLBACK(audio_effects_menu_wide_stereo_type_3);
@@ -427,6 +450,7 @@ static const MENU audio_menu_base[] =
    MENU_SPLITTER,
    { "&Subsystem", NULL,               IMPORT_MENU(audio_subsystem_menu), 0, NULL },
    { "&Mixing",    NULL,               IMPORT_MENU(audio_mixing_menu),    0, NULL },
+   { "&Buffer",    NULL,               IMPORT_MENU(audio_buffer_menu),    0, NULL },
    MENU_SPLITTER,
    { "Effec&ts",   NULL,               IMPORT_MENU(audio_effects_menu),   0, NULL },
    { "&Filters",   NULL,               IMPORT_MENU(audio_filters_menu),   0, NULL },
