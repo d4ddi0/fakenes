@@ -879,6 +879,8 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(video_buffer_menu_320_240,          ((video_buffer_width == 320) && (video_buffer_height == 240)));
    TOGGLE_MENU_ITEM(video_buffer_menu_512_480,          ((video_buffer_width == 512) && (video_buffer_height == 480)));
    TOGGLE_MENU_ITEM(video_buffer_menu_640_480,          ((video_buffer_width == 640) && (video_buffer_height == 480)));
+   TOGGLE_MENU_ITEM(video_buffer_menu_256_256,          ((video_buffer_width == 256) && (video_buffer_height == 256)));
+   TOGGLE_MENU_ITEM(video_buffer_menu_512_512,          ((video_buffer_width == 512) && (video_buffer_height == 512)));
 
    TOGGLE_MENU_ITEM(video_blitter_menu_automatic,       (video_get_blitter () == VIDEO_BLITTER_AUTOMATIC));
    TOGGLE_MENU_ITEM(video_blitter_menu_normal,          (video_get_blitter () == VIDEO_BLITTER_NORMAL));

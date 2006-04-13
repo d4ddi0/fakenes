@@ -689,7 +689,6 @@ static const MENU video_buffer_menu_base[] =
    { "  &2: 320x240",     video_buffer_menu_320_240,          NULL, 0, NULL },
    { "  &3: 512x480",     video_buffer_menu_512_480,          NULL, 0, NULL },
    { "  &4: 640x480",     video_buffer_menu_640_480,          NULL, 0, NULL },
-   MENU_SPLITTER,                                     
    { "Square",            NULL,                               NULL, 0, NULL },
    { "  &5: 256x256",     video_buffer_menu_256_256,          NULL, 0, NULL },
    { "  &6: 512x512",     video_buffer_menu_512_512,          NULL, 0, NULL },
