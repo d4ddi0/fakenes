@@ -267,7 +267,7 @@ int video_init (void)
       if (!base_video_buffer || !video_buffer)
       {
          WARN("Couldn't create video buffer");
-         return (5);
+         return (3);
       }
 
       clear_bitmap (base_video_buffer);
@@ -279,7 +279,7 @@ int video_init (void)
    if (!mouse_sprite_remove_buffer)
    {
       WARN_GENERIC();
-      return (6);
+      return (4);
    }
 
    /* Create screen buffer.
@@ -407,7 +407,7 @@ int video_init_buffer (void)
    {
       destroy_bitmap (screen_buffer);
       WARN("Failed to create status buffer");
-      return (4);
+      return (2);
    }
 
    /* Set up blitter. */
