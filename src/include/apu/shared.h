@@ -2,7 +2,6 @@
 #define APU_SHARED_H_INCLUDED
 #include <math.h>
 
-#define APU_SAMPLE_RATE    apu.sample_rate
 #define APU_NES_BASECYCLES 21477270
 
 #define APU_LOG_BITS       12

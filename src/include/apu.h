@@ -50,7 +50,7 @@ extern "C" {
 
 #define APU_BASEFREQ_NTSC  (1.89e9 / 88 / 12)
 #define APU_BASEFREQ_PAL   (26601712.5 / 15)
-                        
+
 /* --- 2A03 support. --- */
 
 typedef struct apu_chan_s
@@ -132,81 +132,64 @@ typedef struct apu_apusound_s
 
 } APU_APUSOUND;
 
-/* --- VRC6 support. --- */
+/* --- VRC6 Sound support. --- */
 
-typedef struct
+typedef struct apu_vrc6s_chan_s
 {
-   int cps;
-   int cycles;
-   int spd;
-   int regs[3];
-   int update;
-   int adr;
-   int mute;
+   UINT32 cps;
+   INT32 cycles;
 
-} APU_VRC6_SQUARE;
+   UINT32 spd;
 
-typedef struct
+   UINT8 regs[3];
+   UINT8 update;
+   UINT8 adr;
+
+   /* For saw wave. */
+   UINT32 output;
+
+} apu_vrc6s_chan_t;
+
+typedef struct _APU_VRC6SOUND
 {
-   int cps;
-   int cycles;
-   int spd;
-   int output;
-   int regs[3];
-   int update;
-   int adr;
-   int mute;
-
-} APU_VRC6_SAW;
-
-typedef struct
-{
-   APU_VRC6_SQUARE square[2];
-   APU_VRC6_SAW saw;
-   int mastervolume;
+   apu_vrc6s_chan_t square[2];
+   apu_vrc6s_chan_t saw;
 
 } APU_VRC6SOUND;
 
-/* --- MMC5 support. --- */
+/* --- MMC5 Sound support. --- */
 
-typedef struct
+typedef struct _apu_mmc5s_chan_s
+{                       
+   UINT32 cps;
+   INT32 cycles;
+   INT32 sweepphase;
+   INT32 envphase;
+
+   UINT32 spd;
+   UINT32 envspd;
+   UINT32 sweepspd;
+
+   UINT32 length;
+   UINT32 freq;
+   UINT32 release;
+
+   UINT8 regs[4];
+   UINT8 update;
+   UINT8 key;
+   UINT8 adr;
+   UINT8 envadr;
+   UINT8 duty;
+
+   /* For digital audio. */
+   INT32 output;
+
+} apu_mmc5s_chan_t;
+
+typedef struct _APU_MMC5SOUND
 {
-   int cps;
-   int cycles;
-   int sweepphase;
-   int envphase;
-
-   int spd;
-   int envspd;
-   int sweepspd;
-
-   int length;
-   int freq;
-   int mastervolume;
-   int release;
-
-   int regs[4];
-   int update;
-   int key;
-   int adr;
-   int envadr;
-   int duty;
-   int mute;
-
-} APU_MMC5_SQUARE;
-
-typedef struct
-{
-   int output;
-   int key;
-   int mute;
-
-} APU_MMC5_DA;
-
-typedef struct
-{
-   APU_MMC5_SQUARE square[2];
-   APU_MMC5_DA da;
+   apu_mmc5s_chan_t square[2];
+   apu_mmc5s_chan_t da;
 
 } APU_MMC5SOUND;
 
@@ -223,10 +206,22 @@ typedef struct apudata_s
 
 } apudata_t;
 
+/* ExSound interface. */
+typedef struct _APU_EXSOUND
+{
+   const UINT8 *id;
+   void (*reset) (void);                  /* reset */
+   REAL (*process) (ENUM);                /* process channel */
+   void (*write) (UINT16, UINT8);         /* write to a port */
+   void (*save_state) (PACKFILE *, int);  /* save state */
+   void (*load_state) (PACKFILE *, int);  /* load state */
+
+} APU_EXSOUND;
+
 typedef struct apu_s
 {
    APU_APUSOUND  apus;
-   APU_MMC5SOUND mmc5;
+   APU_MMC5SOUND mmc5s;
    APU_VRC6SOUND vrc6s;
 
    UINT8 regs[0x16];
@@ -240,7 +235,7 @@ typedef struct apu_s
    // for ExSound
    apudata_t ex_queue[APUQUEUE_SIZE];
    int ex_q_head, ex_q_tail;
-   ENUM exsound;
+   const APU_EXSOUND *exsound;
 
    int elapsed_cycles;
    REAL cycle_rate;

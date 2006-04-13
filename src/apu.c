@@ -31,10 +31,6 @@
 #include "timing.h"
 #include "types.h"
 
-/* TODO: Split ExSound (MMC5/VRC6) channels into DSP channels, instead of
-   letting them do their own mixing.  This requires converting their
-   secondary renderers to the APU's signed 32-bit format, an easy task. */
-
 /* Stereo mode. */
 ENUM apu_stereo_mode = APU_STEREO_MODE_2;
 
@@ -49,7 +45,8 @@ static void write_cur (UINT16, UINT8);
 static void sync_apu_register (void);
 
 /* Macro to convert generated samples to normalized samples. */
-#define APU_TO_OUTPUT(value)  (value / 32767.0f)
+#define APU_TO_OUTPUT(value)     (value / 32767.0f)
+#define APU_TO_OUTPUT_24(value)  (value / 8388607.0f)
                                              
 /* --- Lookup tables. --- */
 
@@ -560,97 +557,6 @@ static INLINE REAL apu_dmc (apu_chan_t *chan)
    return (chan->output);
 }
 
-/* EXTRA SOUND
-   ========================= */
-
-static INLINE REAL apu_extra (ENUM channel)
-{
-   INT32 value = 0;
-
-   switch (apu.exsound)
-   {                         
-      case APU_EXSOUND_NONE:
-      {
-         /* Nothing to do. */
-         return (0);
-      }
-
-      case APU_EXSOUND_MMC5:
-      {
-         /* MMC5. */
-
-         switch (channel)
-         {
-            case APU_CHANNEL_EXTRA_1:
-            {
-               /* Square wave 3. */
-               value = APU_MMC5SoundSquareRender (&apu.mmc5.square[0]);
-
-               break;
-            }
-
-            case APU_CHANNEL_EXTRA_2:
-            {
-               /* Square wave 4. */
-               value = APU_MMC5SoundSquareRender (&apu.mmc5.square[1]);
-
-               break;
-            }
-
-            default:
-               break;
-         }
-
-         break;
-      }
-
-      case APU_EXSOUND_VRC6:
-      {
-         /* VRC6, VRC6V. */
-
-         switch (channel)
-         {
-            case APU_CHANNEL_EXTRA_1:
-            {
-               /* Square wave 3. */
-               value = APU_VRC6SoundSquareRender (&apu.vrc6s.square[0]);
-
-               break;
-            }
-
-            case APU_CHANNEL_EXTRA_2:
-            {
-               /* Square wave 4. */
-               value = APU_VRC6SoundSquareRender (&apu.vrc6s.square[1]);
-
-               break;
-            }
-
-            case APU_CHANNEL_EXTRA_3:
-            {
-               /* Saw wave. */
-               value = APU_VRC6SoundSawRender (&apu.vrc6s.saw);
-
-               break;
-            }
-
-            default:
-               break;
-         }
-
-         break;
-      }
-
-      default:
-         WARN_GENERIC();
-   }
-
-   /* Downshift to 16-bit. */
-   value >>= 8;
-
-   return (APU_TO_OUTPUT(value));
-}
-
 int apu_init (void)
 {
    /* Initialize DSP. */
@@ -703,7 +609,11 @@ void apu_reset (void)
    /* Initializes/resets emulated sound hardware, creates waveforms/voices
       */
 
+   const APU_EXSOUND *exsound;
    REAL sample_rate, refresh_rate;
+
+   /* Save ExSound interface. */
+   exsound = apu.exsound;
 
    /* Save parameters. */
 
@@ -723,16 +633,17 @@ void apu_reset (void)
    apu.apus.square[0].sweep_complement = TRUE;
    apu.apus.square[1].sweep_complement = FALSE;
 
+   /* Restore ExSound interface. */
+   apu.exsound = exsound;
+
    /* Restore parameters. */
    set_params (sample_rate, refresh_rate);
 
    // for ExSound
    APU_LogTableInitialize ();
 
-   APU_MMC5SoundReset ();
-   APU_MMC5SoundVolume (1);
-   APU_VRC6SoundReset ();
-   APU_VRC6SoundVolume (1);
+   if (apu.exsound && apu.exsound->reset)
+      apu.exsound->reset ();
 
    // for $4017:bit7 by T.Yano
    apu.cnt_rate = 5;
@@ -871,29 +782,9 @@ void apu_process (void)
                 (apu.ex_queue[apu.ex_q_tail].timestamp <= max_timestamp))
          {
             data = apu_ex_dequeue ();
-   
-            switch (apu.exsound)
-            {
-               case APU_EXSOUND_NONE:
-                  break;
-   
-               case APU_EXSOUND_MMC5:
-               {
-                  APU_MMC5SoundWrite (data->address, data->value);
-   
-                  break;
-               }
-   
-               case APU_EXSOUND_VRC6:
-               {
-                  APU_VRC6SoundWrite (data->address, data->value);
-   
-                  break;
-               }
-   
-               default:
-                  WARN_GENERIC();
-            }
+
+            if (apu.exsound && apu.exsound->write)
+               apu.exsound->write (data->address, data->value);
          }
    
          elapsed_cycles += apu.cycle_rate;
@@ -946,7 +837,8 @@ void apu_process (void)
                case APU_CHANNEL_EXTRA_2:
                case APU_CHANNEL_EXTRA_3:
                {
-                  sample = apu_extra (channel);
+                  if (apu.exsound && apu.exsound->process)
+                     sample = apu.exsound->process (channel);
 
                   break;
                }
@@ -996,29 +888,9 @@ void apu_process (void)
                 (apu.ex_queue[apu.ex_q_tail].timestamp <= max_timestamp))
          {
             data = apu_ex_dequeue ();
-   
-            switch (apu.exsound)
-            {
-               case APU_EXSOUND_NONE:
-                  break;
-   
-               case APU_EXSOUND_MMC5:
-               {
-                  APU_MMC5SoundWrite (data->address, data->value);
-   
-                  break;
-               }
-   
-               case APU_EXSOUND_VRC6:
-               {
-                  APU_VRC6SoundWrite (data->address, data->value);
-   
-                  break;
-               }
-   
-               default:
-                  WARN_GENERIC();
-            }
+
+            if (apu.exsound && apu.exsound->write)
+               apu.exsound->write (data->address, data->value);
          }
    
          elapsed_cycles += apu.cycle_rate;
@@ -1035,7 +907,38 @@ void apu_process (void)
 
 void apu_set_exsound (ENUM exsound)
 {
-   apu.exsound = exsound;
+   switch (exsound)
+   {
+      case APU_EXSOUND_NONE:
+      {
+         apu.exsound = NULL;
+
+         break;
+      }
+
+      case APU_EXSOUND_MMC5:
+      {
+         apu.exsound = &apu_mmc5s;
+
+         break;
+      }
+
+      case APU_EXSOUND_VRC6:
+      {
+         apu.exsound = &apu_vrc6s;
+
+         break;
+      }
+
+      default:
+         WARN_GENERIC();
+   }
+
+   // for ExSound
+   APU_LogTableInitialize ();
+
+   if (apu.exsound && apu.exsound->reset)
+      apu.exsound->reset ();
 }
 
 /* Read from $4000-$4017 */
@@ -1156,10 +1059,24 @@ void apu_save_state (PACKFILE *file, int version)
 
    for (index = 0; index < 0x16; index++)
       pack_putc (apu.regs[index], file);
+
+   if (apu.exsound)
+   {
+      /* Write ExSound ID. */
+      pack_fwrite (apu.exsound->id, 8, file);
+      
+      if (apu.exsound->save_state)
+         apu.exsound->save_state (file, version);
+   }
+   else
+   {
+      /* No ExSound hardware present. */
+      pack_fwrite ("NONE\0\0\0\0", 8, file);
+   }
 }
 
 void apu_load_state (PACKFILE *file, int version)
-{
+{              
    int index;
 
    RT_ASSERT(file);
@@ -1198,6 +1115,20 @@ void apu_load_state (PACKFILE *file, int version)
 
       for (index = 0; index < 0x16; index++)
          apu_write ((APU_WRA0 + index), pack_getc (file));
+
+      if (version >= 0x102)
+      {
+         /* ExSound support was added to save states in version 1.02. */
+
+         UINT8 signature[8];
+
+         /* Load ExSound ID. */
+         /* Will be set to NONE if no ExSound hardware is present. */
+         pack_fread (signature, 8, file);
+
+         if (apu.exsound && apu.exsound->load_state)
+            apu.exsound->load_state (file, version);
+      }
    }
 }
 

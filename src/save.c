@@ -27,7 +27,7 @@
 #define UNUSED_SLOT_TEXT   "Empty"
 
 /* FNSS version supported/created. */
-#define FNSS_VERSION 0x0101
+#define FNSS_VERSION 0x102
 
 static INLINE BOOL fnss_save_chunk (PACKFILE *file, int version, const char
    *id, void (*save_state) (PACKFILE *, int))
