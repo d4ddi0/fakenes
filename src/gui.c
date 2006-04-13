@@ -257,7 +257,6 @@ static INLINE void load_menus (void)
    MENU_FROM_BASE(video_driver_unix_menu);
    MENU_FROM_BASE(video_driver_menu);
    MENU_FROM_BASE(video_resolution_proportionate_menu);
-   MENU_FROM_BASE(video_resolution_extended_menu);
    MENU_FROM_BASE(video_resolution_menu);
    MENU_FROM_BASE(video_colors_menu);
    MENU_FROM_BASE(video_buffer_menu);
@@ -323,7 +322,6 @@ static INLINE void unload_menus (void)
    unload_menu (video_driver_unix_menu);
    unload_menu (video_driver_menu);
    unload_menu (video_resolution_proportionate_menu);
-   unload_menu (video_resolution_extended_menu);
    unload_menu (video_resolution_menu);
    unload_menu (video_colors_menu);
    unload_menu (video_buffer_menu);
@@ -858,17 +856,6 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(video_resolution_menu_1152_864,  ((SCREEN_W == 1152) && (SCREEN_H == 864)));
    TOGGLE_MENU_ITEM(video_resolution_menu_1280_1024, ((SCREEN_W == 1280) && (SCREEN_H == 1024)));
    TOGGLE_MENU_ITEM(video_resolution_menu_1600_1200, ((SCREEN_W == 1600) && (SCREEN_H == 1200)));
-
-   TOGGLE_MENU_ITEM(video_resolution_extended_menu_400_300,  ((SCREEN_W == 400)  && (SCREEN_H == 300)));
-   TOGGLE_MENU_ITEM(video_resolution_extended_menu_480_360,  ((SCREEN_W == 480)  && (SCREEN_H == 360)));
-   TOGGLE_MENU_ITEM(video_resolution_extended_menu_512_384,  ((SCREEN_W == 512)  && (SCREEN_H == 384)));
-   TOGGLE_MENU_ITEM(video_resolution_extended_menu_640_400,  ((SCREEN_W == 640)  && (SCREEN_H == 400)));
-   TOGGLE_MENU_ITEM(video_resolution_extended_menu_720_480,  ((SCREEN_W == 720)  && (SCREEN_H == 480)));
-   TOGGLE_MENU_ITEM(video_resolution_extended_menu_720_576,  ((SCREEN_W == 720)  && (SCREEN_H == 576)));
-   TOGGLE_MENU_ITEM(video_resolution_extended_menu_848_480,  ((SCREEN_W == 848)  && (SCREEN_H == 480)));
-   TOGGLE_MENU_ITEM(video_resolution_extended_menu_1280_720, ((SCREEN_W == 1280) && (SCREEN_H == 720)));
-   TOGGLE_MENU_ITEM(video_resolution_extended_menu_1280_960, ((SCREEN_W == 1280) && (SCREEN_H == 960)));
-   TOGGLE_MENU_ITEM(video_resolution_extended_menu_1360_768, ((SCREEN_W == 1360) && (SCREEN_H == 768)));
 
    TOGGLE_MENU_ITEM(video_colors_menu_paletted_8_bit,    (video_get_color_depth () == 8));
    TOGGLE_MENU_ITEM(video_colors_menu_true_color_15_bit, (video_get_color_depth () == 15));
@@ -2875,17 +2862,6 @@ RESOLUTION_MENU_HANDLER(1024, 768)
 RESOLUTION_MENU_HANDLER(1152, 864)
 RESOLUTION_MENU_HANDLER(1280, 1024)
 RESOLUTION_MENU_HANDLER(1600, 1200)
-
-RESOLUTION_MENU_HANDLER_EX(extended, 400,  300)
-RESOLUTION_MENU_HANDLER_EX(extended, 480,  360)
-RESOLUTION_MENU_HANDLER_EX(extended, 512,  384)
-RESOLUTION_MENU_HANDLER_EX(extended, 640,  400)
-RESOLUTION_MENU_HANDLER_EX(extended, 720,  480)
-RESOLUTION_MENU_HANDLER_EX(extended, 720,  576)
-RESOLUTION_MENU_HANDLER_EX(extended, 848,  480)
-RESOLUTION_MENU_HANDLER_EX(extended, 1280, 720)
-RESOLUTION_MENU_HANDLER_EX(extended, 1280, 960)
-RESOLUTION_MENU_HANDLER_EX(extended, 1360, 768)
 
 #undef RESOLUTION_MENU_HANDLER
 #undef RESOLUTION_MENU_HANDLER_EX
