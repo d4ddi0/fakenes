@@ -406,6 +406,8 @@ int video_init_buffer (void)
    if (!status_buffer)
    {
       destroy_bitmap (screen_buffer);
+      screen_buffer = NULL;
+
       WARN("Failed to create status buffer");
       return (2);
    }
@@ -452,23 +454,43 @@ void video_exit (void)
    /* Destroy buffers. */
 
    if (mouse_sprite_remove_buffer)
+   {
       destroy_bitmap (mouse_sprite_remove_buffer);
+      mouse_sprite_remove_buffer = NULL;
+   }
 
    if (!preserve_video_buffer)
    {
       if (video_buffer)
+      {
          destroy_bitmap (video_buffer);
+         video_buffer = NULL;
+      }
+
       if (base_video_buffer)
+      {
          destroy_bitmap (base_video_buffer);
+         video_buffer = NULL;
+      }
    }
 
    if (status_buffer)
+   {
       destroy_bitmap (status_buffer);
+      status_buffer = NULL;
+   }
+
    if (screen_buffer)
+   {
       destroy_bitmap (screen_buffer);
+      screen_buffer = NULL;
+   }
 
    if (page_buffer)
+   {
       destroy_bitmap (page_buffer);
+      page_buffer = NULL;
+   }
 
    /* Save configuration. */
 
