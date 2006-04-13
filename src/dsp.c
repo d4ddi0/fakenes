@@ -119,10 +119,11 @@ int dsp_open (int samples, int channels)
       dsp_write() can be called to store samples in the buffer.  It takes an
       array of DSP_SAMPLE data, with the array size being equal to the
       number of channels in the buffer.  The total dynamic range of the
-      samples should not exceed -0.5f or +0.5f.
+      samples should not exceed -1.0f or +1.0f.
    */
 
    /* Clamp values to sane minimums and maximums. */
+
    channels = fix (channels, DSP_INPUT_CHANNELS_MIN,
       DSP_INPUT_CHANNELS_MAX);
 
@@ -130,6 +131,7 @@ int dsp_open (int samples, int channels)
    size = ((samples * channels) * sizeof (DSP_SAMPLE));
 
    /* Allocate buffer. */
+
    dsp_buffer = malloc (size);
    if (!dsp_buffer)
    {
@@ -142,6 +144,7 @@ int dsp_open (int samples, int channels)
    memset (dsp_buffer, 0, size);
    
    /* Set buffer parameters. */
+
    dsp_buffer_samples  = samples;
    dsp_buffer_channels = channels;
 
@@ -156,6 +159,7 @@ void dsp_close (void)
    if (dsp_buffer)
    {
       /* Deallocate and nullify buffer. */
+
       free (dsp_buffer);
       dsp_buffer = NULL;
    }
@@ -180,16 +184,7 @@ void dsp_write (const DSP_SAMPLE *samples)
    sample = dsp_write_sample;
 
    for (channel = 0; channel < dsp_buffer_channels; channel++)
-   {
-      DSP_SAMPLE value;
-
-      value = samples[channel];
-
-      /* Clipping. */
-      /* value = fixf (value, DSP_SAMPLE_VALUE_MIN, DSP_SAMPLE_VALUE_MAX); */
-
-      DSP_BUFFER_SAMPLE(sample, channel) = value;
-   }
+      DSP_BUFFER_SAMPLE(sample, channel) = samples[channel];
 
    dsp_write_sample++;
 }
