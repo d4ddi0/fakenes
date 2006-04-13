@@ -42,6 +42,7 @@ DEFINE_MENU(video_resolution_proportionate_menu);
 DEFINE_MENU(video_resolution_extended_menu);
 DEFINE_MENU(video_resolution_menu);
 DEFINE_MENU(video_colors_menu);
+DEFINE_MENU(video_buffer_menu);
 DEFINE_MENU(video_blitter_menu);
 DEFINE_MENU(video_filters_menu);
 DEFINE_MENU(video_layers_menu);
@@ -673,6 +674,23 @@ static const MENU video_colors_menu_base[] =
    MENU_ENDCAP
 };
 
+DEFINE_MENU_CALLBACK(video_buffer_menu_match_resolution);
+DEFINE_MENU_CALLBACK(video_buffer_menu_256_240);
+DEFINE_MENU_CALLBACK(video_buffer_menu_320_240);
+DEFINE_MENU_CALLBACK(video_buffer_menu_512_480);
+DEFINE_MENU_CALLBACK(video_buffer_menu_640_480);
+
+static const MENU video_buffer_menu_base[] =
+{
+   { "&Match Resolution", video_buffer_menu_match_resolution, NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&1: 256x240",       video_buffer_menu_256_240,          NULL, 0, NULL },
+   { "&2: 320x240",       video_buffer_menu_320_240,          NULL, 0, NULL },
+   { "&3: 512x480",       video_buffer_menu_512_480,          NULL, 0, NULL },
+   { "&4: 640x480",       video_buffer_menu_640_480,          NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
 DEFINE_MENU_CALLBACK(video_blitter_menu_automatic);
 DEFINE_MENU_CALLBACK(video_blitter_menu_normal);
 DEFINE_MENU_CALLBACK(video_blitter_menu_des);
@@ -774,16 +792,20 @@ DEFINE_MENU_CALLBACK(video_menu_vsync);
 static const MENU video_menu_base[] =
 {                    
    { "&Fullscreen",  video_menu_fullscreen,  NULL,                               0, NULL },
+   MENU_SPLITTER,
    { "&Page Buffer", video_menu_page_buffer, NULL,                               0, NULL },
    { "&VSync",       video_menu_vsync,       NULL,                               0, NULL },
    MENU_SPLITTER,
    { "&Driver",      NULL,                   IMPORT_MENU(video_driver_menu),     0, NULL },
    { "&Resolution",  NULL,                   IMPORT_MENU(video_resolution_menu), 0, NULL },
    { "&Colors",      NULL,                   IMPORT_MENU(video_colors_menu),     0, NULL },
-   { "&Blitter",     NULL,                   IMPORT_MENU(video_blitter_menu),    0, NULL },
+   { "&Buffer",      NULL,                   IMPORT_MENU(video_buffer_menu),     0, NULL },
+   MENU_SPLITTER,
+   { "B&litter",     NULL,                   IMPORT_MENU(video_blitter_menu),    0, NULL },
    { "F&ilters",     NULL,                   IMPORT_MENU(video_filters_menu),    0, NULL },
-   { "&Layers",      NULL,                   IMPORT_MENU(video_layers_menu),     0, NULL },
-   { "P&alette",     NULL,                   IMPORT_MENU(video_palette_menu),    0, NULL },
+   MENU_SPLITTER,
+   { "L&ayers",      NULL,                   IMPORT_MENU(video_layers_menu),     0, NULL },
+   { "Pal&ette",     NULL,                   IMPORT_MENU(video_palette_menu),    0, NULL },
    MENU_ENDCAP
 };
 

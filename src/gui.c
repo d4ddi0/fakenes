@@ -260,6 +260,7 @@ static INLINE void load_menus (void)
    MENU_FROM_BASE(video_resolution_extended_menu);
    MENU_FROM_BASE(video_resolution_menu);
    MENU_FROM_BASE(video_colors_menu);
+   MENU_FROM_BASE(video_buffer_menu);
    MENU_FROM_BASE(video_blitter_menu);
    MENU_FROM_BASE(video_filters_menu);
    MENU_FROM_BASE(video_layers_menu);
@@ -325,6 +326,7 @@ static INLINE void unload_menus (void)
    unload_menu (video_resolution_extended_menu);
    unload_menu (video_resolution_menu);
    unload_menu (video_colors_menu);
+   unload_menu (video_buffer_menu);
    unload_menu (video_blitter_menu);
    unload_menu (video_filters_menu);
    unload_menu (video_layers_menu);
@@ -873,6 +875,12 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(video_colors_menu_true_color_16_bit, (video_get_color_depth () == 16));
    TOGGLE_MENU_ITEM(video_colors_menu_true_color_24_bit, (video_get_color_depth () == 24));
    TOGGLE_MENU_ITEM(video_colors_menu_true_color_32_bit, (video_get_color_depth () == 32));
+
+   TOGGLE_MENU_ITEM(video_buffer_menu_match_resolution, ((video_buffer_width == -1)  && (video_buffer_height == -1)));
+   TOGGLE_MENU_ITEM(video_buffer_menu_256_240,          ((video_buffer_width == 256) && (video_buffer_height == 240)));
+   TOGGLE_MENU_ITEM(video_buffer_menu_320_240,          ((video_buffer_width == 320) && (video_buffer_height == 240)));
+   TOGGLE_MENU_ITEM(video_buffer_menu_512_480,          ((video_buffer_width == 512) && (video_buffer_height == 480)));
+   TOGGLE_MENU_ITEM(video_buffer_menu_640_480,          ((video_buffer_width == 640) && (video_buffer_height == 480)));
 
    TOGGLE_MENU_ITEM(video_blitter_menu_automatic,       (video_get_blitter () == VIDEO_BLITTER_AUTOMATIC));
    TOGGLE_MENU_ITEM(video_blitter_menu_normal,          (video_get_blitter () == VIDEO_BLITTER_NORMAL));
@@ -2921,6 +2929,36 @@ static int video_colors_menu_true_color_32_bit (void)
    gui_needs_restart = TRUE;
    return (D_CLOSE);
 }
+
+static int video_buffer_menu_match_resolution (void)
+{
+   video_buffer_width  =
+   video_buffer_height = -1;
+   video_init_buffer ();
+
+   update_menus ();
+   cycle_video ();
+
+   return (D_O_K);
+}
+
+#define BUFFER_MENU_HANDLER(width, height)  \
+   static int video_buffer_menu_##width##_##height (void)   \
+   {  \
+      video_buffer_width = width;   \
+      video_buffer_height = height; \
+      video_init_buffer ();   \
+      update_menus ();  \
+      cycle_video ();   \
+      return (D_O_K);   \
+   }
+
+BUFFER_MENU_HANDLER(256, 240)
+BUFFER_MENU_HANDLER(320, 240)
+BUFFER_MENU_HANDLER(512, 480)
+BUFFER_MENU_HANDLER(640, 480)
+
+#undef BUFFER_MENU_HANDLER
 
 #define BLITTER_MENU_HANDLER(name, caption, id) \
    static int video_blitter_menu_##name (void)   \

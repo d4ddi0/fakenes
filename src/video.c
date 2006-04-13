@@ -26,14 +26,12 @@
 #include "types.h"
 #include "video.h"
 
-static int buffer_width = -1;
-static int buffer_height = -1;
+int video_buffer_width = 320;
+int video_buffer_height = 240;
 
-static BITMAP *screen_buffer = NULL;
 static BITMAP *page_buffer = NULL;
-
+static BITMAP *screen_buffer = NULL;
 static BITMAP *status_buffer = NULL;
-static BITMAP *mouse_sprite_remove_buffer = NULL;
 
 #define MAX_MESSAGES    10
 
@@ -58,6 +56,7 @@ int video_driver = 0;
 
 BITMAP *base_video_buffer = NULL;
 BITMAP *video_buffer = NULL;
+static BITMAP *mouse_sprite_remove_buffer = NULL;
 
 FONT *small_font = NULL;
 
@@ -90,7 +89,7 @@ static void *blit_buffer_in  = NULL;
 static void *blit_buffer_out = NULL;
 
 /* Blitter variables. */
-static int blitter_id         = VIDEO_BLITTER_STRETCHED;
+static int blitter_id         = VIDEO_BLITTER_NORMAL;
 static const BLITTER *blitter = NULL;   /* Blitter interface. */
 static int blit_x_offset      = 0;      
 static int blit_y_offset      = 0;      
@@ -121,6 +120,7 @@ int video_init (void)
 {
    int driver;
    int width, height;
+   int result;
    const CHAR *font_file;
 
    /* Install message timer. */
@@ -136,8 +136,8 @@ int video_init (void)
    screen_height            = get_config_int ("video", "screen_height",      screen_height);
    color_depth              = get_config_int ("video", "color_depth",        color_depth);
    video_force_fullscreen   = get_config_int ("video", "force_fullscreen",   video_force_fullscreen);
-   buffer_width             = get_config_int ("video", "buffer_width",       buffer_width);
-   buffer_height            = get_config_int ("video", "buffer_height",      buffer_height);
+   video_buffer_width       = get_config_int ("video", "buffer_width",       video_buffer_width);
+   video_buffer_height      = get_config_int ("video", "buffer_height",      video_buffer_height);
    blitter_id               = get_config_int ("video", "blitter",            blitter_id);
    filter_list              = get_config_int ("video", "filter_list",        filter_list);
    stretch_width            = get_config_int ("video", "stretch_width",      stretch_width);
@@ -239,21 +239,7 @@ int video_init (void)
 
    if (color_depth != 8)
       set_color_conversion ((COLORCONV_TOTAL | COLORCONV_KEEP_TRANS));
-         
-   /* Create screen buffer. */
-
-   width  = ((buffer_width  == -1) ? SCREEN_W : buffer_width);
-   height = ((buffer_height == -1) ? SCREEN_H : buffer_height);
-
-   screen_buffer = create_bitmap (width, height);
-   if (!screen_buffer)
-   {
-      WARN("Couldn't create screen buffer");
-      return (3);
-   }
-
-   clear_bitmap (screen_buffer);
-        
+       
    /* Create page buffer. */
 
    if (video_enable_page_buffer)
@@ -270,15 +256,6 @@ int video_init (void)
       page_buffer = NULL;
    }
 
-   /* Create status buffer. */
-   status_buffer = create_sub_bitmap (screen_buffer, 0, (screen_buffer->h -
-      128), 72, 128);
-   if (!status_buffer)
-   {
-      WARN("Failed to create status buffer");
-      return (4);
-   }
-  
    if (!preserve_video_buffer)
    {
       /* Create video buffer. */
@@ -305,6 +282,12 @@ int video_init (void)
       return (6);
    }
 
+   /* Create screen buffer.
+      Note: This automatically sets up the blitter, too. =P */
+
+   if ((result = video_init_buffer ()) != 0)
+      return ((8 + result));
+
    /* Set up palette. */
 
    if (preserve_palette)
@@ -319,9 +302,8 @@ int video_init (void)
       video_set_palette_id (DATA_INDEX(MODERN_NTSC_PALETTE));
    }
 
-   /* Set up blitter & filters. */
+   /* Set up filters. */
 
-   video_set_blitter (blitter_id);
    video_set_filter_list (filter_list);
 
    /* Set up fonts. */
@@ -394,6 +376,47 @@ int video_reinit (void)
    return (result);
 }
 
+int video_init_buffer (void)
+{
+   int width, height;
+
+   /* Fun. */
+
+   width  = ((video_buffer_width  == -1) ? SCREEN_W : video_buffer_width);
+   height = ((video_buffer_height == -1) ? SCREEN_H : video_buffer_height);
+
+   if (screen_buffer)
+      destroy_bitmap (screen_buffer);
+
+   screen_buffer = create_bitmap (width, height);
+   if (!screen_buffer)
+   {
+      WARN("Couldn't create screen buffer");
+      return (1);
+   }
+
+   clear_bitmap (screen_buffer);
+
+   if (status_buffer)
+      destroy_bitmap (status_buffer);
+
+   /* Create status buffer. */
+   status_buffer = create_sub_bitmap (screen_buffer, 0, (screen_buffer->h -
+      128), 72, 128);
+   if (!status_buffer)
+   {
+      destroy_bitmap (screen_buffer);
+      WARN("Failed to create status buffer");
+      return (4);
+   }
+
+   /* Set up blitter. */
+   video_set_blitter (blitter_id);
+
+   /* Return success. */
+   return (0);
+}
+
 void video_exit (void)
 {
    if (!is_windowed_mode ())
@@ -441,11 +464,11 @@ void video_exit (void)
 
    if (status_buffer)
       destroy_bitmap (status_buffer);
+   if (screen_buffer)
+      destroy_bitmap (screen_buffer);
 
    if (page_buffer)
       destroy_bitmap (page_buffer);
-   if (screen_buffer)
-      destroy_bitmap (screen_buffer);
 
    /* Save configuration. */
 
@@ -454,8 +477,8 @@ void video_exit (void)
    set_config_int ("video", "screen_height",      screen_height);
    set_config_int ("video", "color_depth",        color_depth);
    set_config_int ("video", "force_fullscreen",   video_force_fullscreen);
-   set_config_int ("video", "buffer_width",       buffer_width);
-   set_config_int ("video", "buffer_height",      buffer_height);
+   set_config_int ("video", "buffer_width",       video_buffer_width);
+   set_config_int ("video", "buffer_height",      video_buffer_height);
    set_config_int ("video", "blitter",            blitter_id);
    set_config_int ("video", "filter_list",        filter_list);
    set_config_int ("video", "stretch_width",      stretch_width);
@@ -1207,7 +1230,6 @@ void video_set_resolution (int width, int height)
         show_mouse (screen);
     }
 }
-
 
 int video_get_color_depth (void)
 {

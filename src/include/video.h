@@ -39,6 +39,9 @@ enum
 #define VIDEO_FILTER_SCANLINES_MEDIUM   2
 #define VIDEO_FILTER_SCANLINES_HIGH     4
 
+int video_buffer_width;
+int video_buffer_height;
+
 BOOL video_display_status;
 BOOL video_enable_page_buffer;
 BOOL video_enable_vsync;
@@ -60,6 +63,7 @@ RGB *video_palette;
 
 int video_init (void);
 int video_reinit (void);
+int video_init_buffer (void);
 void video_exit (void);
 void video_blit (BITMAP *);
 void video_filter (void);
