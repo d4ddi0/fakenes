@@ -32,13 +32,18 @@ static INLINE BOOL blitter_size_check (BITMAP *bmp, int width, int height)
 
    y = ((bmp->h / 2) - (text_height (font) / 2));
 
-   textout_centre_ex (bmp, font, "Your resolution is set too low.", (bmp->w
-      / 2), y, VIDEO_COLOR_WHITE, -1);
+   textout_centre_ex (bmp, font, "Your buffer is too small.", (bmp->w / 2),
+      y, VIDEO_COLOR_WHITE, -1);
+
+   y += ((text_height (font) + 1) * 2);
+
+   textprintf_centre_ex (bmp, font, (bmp->w / 2), y, VIDEO_COLOR_WHITE, -1,
+      "It must be %dx%d pixels or larger", width, height);
 
    y += (text_height (font) + 1);
 
    textprintf_centre_ex (bmp, font, (bmp->w / 2), y, VIDEO_COLOR_WHITE, -1,
-      "At least %dx%d pixels are required.", width, height);
+      "to use this blitter.");
                                                                                                                 \
    return (FALSE);
 }

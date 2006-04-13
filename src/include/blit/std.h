@@ -7,6 +7,9 @@ static void blit_normal (BITMAP *src, BITMAP *dest, int x_base, int y_base)
    RT_ASSERT(src);
    RT_ASSERT(dest);
 
+   if (!blitter_size_check (dest, 256, 240))
+      return;
+
    blit (src, dest, 0, 0, x_base, y_base, src->w, src->h);
 }
 
@@ -24,6 +27,9 @@ static void blit_stretched (BITMAP *src, BITMAP *dest, int x_base, int
 
    RT_ASSERT(src);
    RT_ASSERT(dest);
+
+   if (!blitter_size_check (dest, stretch_width, stretch_height))
+      return;
 
    if (color_depth != 8)
    {
