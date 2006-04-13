@@ -69,12 +69,26 @@ typedef union
 
 } PAIR;
 
-typedef signed char BOOL;  /* Boolean value. */
 typedef int ENUM;          /* Enumeration index. */
 typedef unsigned FLAGS;    /* Flags. */
 typedef float REAL;        /* Real number. */
 typedef char CHAR;         /* ASCII character. */
+
+#ifdef ALLEGRO_WINDOWS    
+
+/* Kludge to get around typedef conflicts with the Win32 API. */
+typedef signed char fakenes_boolean_t;
+typedef char        fakenes_utf8_char_t;
+
+#define BOOL  fakenes_boolean_t
+#define UCHAR fakenes_utf8_char_t
+
+#else /* ALLEGRO_WINDOWS */
+
+typedef signed char BOOL;  /* Boolean value. */
 typedef char UCHAR;        /* Unicode character. */
+
+#endif   /* !ALLEGRO_WINDOWS */
 
 typedef FLAGS LIST;        /* List of flags. */
 

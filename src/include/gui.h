@@ -46,6 +46,8 @@ RGB *gui_image_palette;
 int gui_init (void);
 void gui_exit (void);
 int show_gui (BOOL);
+int gui_alert (const UCHAR *, const UCHAR *, const UCHAR *, const UCHAR *,
+   const UCHAR *, int, int);
 void gui_message (int, const UCHAR *, ...);
 void gui_heartbeat (void);
 void gui_handle_keypress (int, int);

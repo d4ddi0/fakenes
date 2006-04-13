@@ -32,6 +32,9 @@ else
    OFLAGS = -pipe -O3 -ffast-math -fomit-frame-pointer
    DFLAGS = -DLSB_FIRST
 endif
+ifdef USE_ALLEGROGL
+   DFLAGS += -DUSE_ALLEGROGL
+endif
 ifndef NO_ZLIB
    DFLAGS += -DUSE_ZLIB
 endif
@@ -70,12 +73,19 @@ OBJECTS := ${OBJECT_PATH}/apu${OBJEXT} \
    ${OBJECT_PATH}/video${OBJEXT}
 
 # Libraries.
-LIBALLEG ?= -lalleg
-LIBRARIES := ${LIBALLEG}
+LIBRARIES :=
+ifdef USE_ALLEGROGL
+   LIBAGL ?= -lagl
+   LIBOPENGL ?= -lmesagl
+   LIBGLU ?= -lmesaglu
+   LIBRARIES += ${LIBAGL} ${LIBOPENGL} ${LIBGLU}
+endif
 ifndef NO_ZLIB
    LIBZ ?= -lz
    LIBRARIES += ${LIBZ}
 endif
+LIBALLEG ?= -lalleg
+LIBRARIES += ${LIBALLEG}
 
 # Dependancies.
 -include ${DEPEND}

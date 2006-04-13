@@ -58,7 +58,7 @@ OBJECTS := ${OBJECT_PATH}/apu${OBJEXT} \
 
 # Libraries.
 LIBALLEG = `allegro-config --libs`
-LIBRARIES = ${LIBALLEG} @LIBRARIES@
+LIBRARIES = @LIBRARIES@ ${LIBALLEG}
 
 # Dependancies.
 -include ${DEPEND}

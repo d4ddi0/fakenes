@@ -7,6 +7,9 @@
    You must read and accept the license prior to use. */
 
 #include <allegro.h>
+#ifdef USE_ALLEGROGL
+#include <alleggl.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -399,6 +402,8 @@ static INLINE void redraw (void)
    broadcast_dialog_message (MSG_DRAW, 0);
 }
 
+static INLINE void refresh (void);
+
 static INLINE void draw_message (int color)
 {
    /* This function draws the message currently present in message_buffer,
@@ -427,7 +432,7 @@ static INLINE void draw_message (int color)
       textout_centre_ex (bmp, font, message_buffer, ((bmp->w / 2) - 1),
          (((bmp->h - 19) - text_height (font)) - 1), color, -1);
 
-      /* refresh (); */
+      refresh ();
 
       log_printf ("GUI: %s\n", message_buffer);
    }
@@ -477,13 +482,68 @@ static INLINE void refresh (void)
    bmp = gui_get_screen ();
 
    if (bmp == screen)
+   {
+#ifdef USE_ALLEGROGL
+
+   if (video_is_opengl_mode ())
+   {
+      BITMAP *sprite, *saved;
+      int saved_x, saved_y;
+
+      /* Hack.  Combined with run_dialog(), this seems to work a bit better
+         than AllegroGL's algl_do_dialog() in most cases. */
+
+      /* Hack.  Lack of color conversion in AllegroGL's draw_sprite(). */
+      sprite = create_bitmap (mouse_sprite->w, mouse_sprite->h);
+      if (!sprite)
+         WARN_BREAK("Failed to create mouse sprite buffer for OpenGL");
+
+      blit (mouse_sprite, sprite, 0, 0, 0, 0, mouse_sprite->w,
+         mouse_sprite->h);
+
+      /* Hack.  Prevents mouse droppings from being left all over the screen
+         like would happen with algl_draw_mouse(). */
+      saved = create_bitmap (sprite->w, sprite->h);
+
+      /* Save mouse pointer position. */
+      saved_x = (mouse_x - mouse_x_focus);
+      saved_y = (mouse_y - mouse_y_focus);
+
+      if (saved)
+      {
+         /* Save area under the mouse pointer. */
+         blit (bmp, saved, saved_x, saved_y, 0, 0, saved->w, saved->h);
+      }
+
+      /* Draw the mouse pointer at the saved position. */
+      draw_sprite (bmp, sprite, saved_x, saved_y);
+
+      /* Update the screen. */
+      allegro_gl_flip ();
+
+      if (saved)
+      {
+         /* Restore area under the mouse pointer. */
+         blit (saved, bmp, 0, 0, saved_x, saved_y, saved->w, saved->h);
+
+         destroy_bitmap (saved);
+      }
+
+      destroy_bitmap (sprite);
+   }
+
+#endif   /* USE_ALLEGROGL */
+
       return;
+   }
 
    acquire_screen ();
    vsync ();
    stretch_blit (bmp, screen, 0, 0, bmp->w, bmp->h, 0, 0, SCREEN_W,
       SCREEN_H);
    release_screen ();
+
+   /* TODO: Add AllegroGL flip here? */
 }
 
 void gui_heartbeat (void)
@@ -643,6 +703,13 @@ static INLINE void update_menus (void)
       ENABLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_3);
    }
 
+#ifdef USE_ALLEGROGL
+
+   /* Page buffer not supported in OpenGL mode. */
+   SET_MENU_ITEM_ENABLED(video_menu_page_buffer, !video_is_opengl_mode ());
+
+#endif   /* USE_ALLEGROGL */
+
    TOGGLE_MENU_ITEM(main_open_recent_menu_lock, lock_recent);
 
    TOGGLE_MENU_ITEM(main_replay_select_menu_0, (replay_index == 0));
@@ -763,6 +830,14 @@ static INLINE void update_menus (void)
 
 #endif   /* ALLEGRO_UNIX */
 
+#ifdef USE_ALLEGROGL
+
+   TOGGLE_MENU_ITEM(video_driver_menu_opengl,      (gfx_driver->id == GFX_OPENGL));
+   TOGGLE_MENU_ITEM(video_driver_menu_opengl_full, (gfx_driver->id == GFX_OPENGL_FULLSCREEN));
+   TOGGLE_MENU_ITEM(video_driver_menu_opengl_win,  (gfx_driver->id == GFX_OPENGL_WINDOWED));
+
+#endif   /* USE_ALLEGROGL */
+
    TOGGLE_MENU_ITEM(video_resolution_proportionate_menu_256_224,   ((SCREEN_W == 256)  && (SCREEN_H == 224)));
    TOGGLE_MENU_ITEM(video_resolution_proportionate_menu_256_240,   ((SCREEN_W == 256)  && (SCREEN_H == 240)));
    TOGGLE_MENU_ITEM(video_resolution_proportionate_menu_512_448,   ((SCREEN_W == 512)  && (SCREEN_H == 448)));
@@ -873,6 +948,16 @@ static INLINE void draw_background (void)
    bmp = gui_get_screen ();
 
    rectfill (bmp, 0, 0, bmp->w, bmp->h, GUI_BACKGROUND_COLOR);
+
+#ifdef USE_ALLEGROGL
+
+   if (video_is_opengl_mode ())
+   {
+      /* Backgrounds aren't supported in OpenGL mode. */
+      return;
+   }
+
+#endif   /* USE_ALLEGROGL */
 
    if (background_image)
    {
@@ -1080,6 +1165,21 @@ int show_gui (BOOL first_run)
    audio_resume ();
 
    return (want_exit);
+}
+
+int gui_alert (const UCHAR *s1, const UCHAR *s2, const UCHAR *s3, const
+   UCHAR *b1, const UCHAR *b2, int c1, int c2)
+{
+   /* Custom alert() overloader that handles AllegroGL support. */
+
+#ifdef USE_ALLEGROGL
+
+   if (video_is_opengl_mode ())
+      return (algl_alert (s1, s2, s3, b1, b2, c1, c2));
+
+#endif   /* USE_ALLEGROGL */
+
+   return (alert (s1, s2, s3, b1, b2, c1, c2));
 }
 
 static INLINE void cycle_audio (void);
@@ -2655,7 +2755,15 @@ static int video_menu_vsync (void)
    return (D_O_K);
 }
 
-#define DRIVER_MENU_HANDLER(system, driver, id) \
+#define DRIVER_MENU_HANDLER(driver, id)   \
+   static int video_driver_menu_##driver (void) \
+   {  \
+      video_set_driver (id);  \
+      gui_needs_restart = TRUE;  \
+      return (D_CLOSE); \
+   }
+
+#define DRIVER_MENU_HANDLER_EX(system, driver, id) \
    static int video_driver_##system##_menu_##driver (void)   \
    {  \
       video_set_driver (id);  \
@@ -2663,64 +2771,67 @@ static int video_menu_vsync (void)
       return (D_CLOSE); \
    }
 
+DRIVER_MENU_HANDLER(automatic, GFX_AUTODETECT)
+
 #ifdef ALLEGRO_DOS
 
-DRIVER_MENU_HANDLER(dos, vga,           GFX_VGA)
-DRIVER_MENU_HANDLER(dos, vga_mode_x,    GFX_MODEX)
-DRIVER_MENU_HANDLER(dos, vesa,          GFX_VESA1)
-DRIVER_MENU_HANDLER(dos, vesa_2_banked, GFX_VESA2B)
-DRIVER_MENU_HANDLER(dos, vesa_2_linear, GFX_VESA2L)
-DRIVER_MENU_HANDLER(dos, vesa_3,        GFX_VESA3)
-DRIVER_MENU_HANDLER(dos, vesa_vbe_af,   GFX_VBEAF)
+DRIVER_MENU_HANDLER_EX(dos, vga,           GFX_VGA)
+DRIVER_MENU_HANDLER_EX(dos, vga_mode_x,    GFX_MODEX)
+DRIVER_MENU_HANDLER_EX(dos, vesa,          GFX_VESA1)
+DRIVER_MENU_HANDLER_EX(dos, vesa_2_banked, GFX_VESA2B)
+DRIVER_MENU_HANDLER_EX(dos, vesa_2_linear, GFX_VESA2L)
+DRIVER_MENU_HANDLER_EX(dos, vesa_3,        GFX_VESA3)
+DRIVER_MENU_HANDLER_EX(dos, vesa_vbe_af,   GFX_VBEAF)
 
 #endif   /* ALLEGRO_DOS */
 
 #ifdef ALLEGRO_WINDOWS
 
-DRIVER_MENU_HANDLER(windows, directx,         GFX_DIRECTX)
-DRIVER_MENU_HANDLER(windows, directx_window,  GFX_DIRECTX_WIN)
-DRIVER_MENU_HANDLER(windows, directx_overlay, GFX_DIRECTX_OVL)
-DRIVER_MENU_HANDLER(windows, gdi,             GFX_GDI)
-
+DRIVER_MENU_HANDLER_EX(windows, directx,         GFX_DIRECTX)
+DRIVER_MENU_HANDLER_EX(windows, directx_window,  GFX_DIRECTX_WIN)
+DRIVER_MENU_HANDLER_EX(windows, directx_overlay, GFX_DIRECTX_OVL)
+DRIVER_MENU_HANDLER_EX(windows, gdi,             GFX_GDI)
+                   
 #endif   /* ALLEGRO_WINDOWS */
 
 #ifdef ALLEGRO_LINUX
 
-DRIVER_MENU_HANDLER(linux, vga,         GFX_VGA)
-DRIVER_MENU_HANDLER(linux, vga_mode_x,  GFX_MODEX)
-DRIVER_MENU_HANDLER(linux, vesa_vbe_af, GFX_VBEAF)
-#ifdef GFX_FBCON
-DRIVER_MENU_HANDLER(linux, framebuffer, GFX_FBCON)
-#else
-DRIVER_MENU_HANDLER(linux, framebuffer, NULL)
+DRIVER_MENU_HANDLER_EX(linux, vga,         GFX_VGA)
+DRIVER_MENU_HANDLER_EX(linux, vga_mode_x,  GFX_MODEX)
+DRIVER_MENU_HANDLER_EX(linux, vesa_vbe_af, GFX_VBEAF)
+#ifdef GFX_FBCON   
+DRIVER_MENU_HANDLER_EX(linux, framebuffer, GFX_FBCON)
+#else              
+DRIVER_MENU_HANDLER_EX(linux, framebuffer, NULL)
 #endif
 #ifdef GFX_SVGALIB
-DRIVER_MENU_HANDLER(linux, svgalib,     GFX_SVGALIB)
+DRIVER_MENU_HANDLER_EX(linux, svgalib,     GFX_SVGALIB)
 #else
-DRIVER_MENU_HANDLER(linux, svgalib,     NULL)
+DRIVER_MENU_HANDLER_EX(linux, svgalib,     NULL)
 #endif
 
 #endif   /* ALLEGRO_LINUX */
 
 #ifdef ALLEGRO_UNIX
 
-DRIVER_MENU_HANDLER(unix, x_windows,      GFX_XWINDOWS)
-DRIVER_MENU_HANDLER(unix, x_windows_full, GFX_XWINDOWS_FULLSCREEN)
-DRIVER_MENU_HANDLER(unix, x_dga,          GFX_XDGA)
-DRIVER_MENU_HANDLER(unix, x_dga_full,     GFX_XDGA_FULLSCREEN)
-DRIVER_MENU_HANDLER(unix, x_dga_2,        GFX_XDGA2)
+DRIVER_MENU_HANDLER_EX(unix, x_windows,      GFX_XWINDOWS)
+DRIVER_MENU_HANDLER_EX(unix, x_windows_full, GFX_XWINDOWS_FULLSCREEN)
+DRIVER_MENU_HANDLER_EX(unix, x_dga,          GFX_XDGA)
+DRIVER_MENU_HANDLER_EX(unix, x_dga_full,     GFX_XDGA_FULLSCREEN)
+DRIVER_MENU_HANDLER_EX(unix, x_dga_2,        GFX_XDGA2)
 
 #endif   /* ALLEGRO_UNIX */
 
+#ifdef USE_ALLEGROGL
+
+DRIVER_MENU_HANDLER(opengl,      GFX_OPENGL)
+DRIVER_MENU_HANDLER(opengl_full, GFX_OPENGL_FULLSCREEN)
+DRIVER_MENU_HANDLER(opengl_win,  GFX_OPENGL_WINDOWED)
+
+#endif   /* USE_ALLEGROGL */
+
 #undef DRIVER_MENU_HANDLER
-
-static int video_driver_menu_automatic (void)
-{
-   video_set_driver (GFX_AUTODETECT);
-
-   gui_needs_restart = TRUE;
-   return (D_CLOSE);
-}
+#undef DRIVER_MENU_HANDLER_EX
 
 #define RESOLUTION_MENU_HANDLER(width, height)  \
    static int video_resolution_menu_##width##_##height (void)   \
@@ -2981,6 +3092,11 @@ static int video_layers_menu_flip_mirroring (void)
       message_local ("Video palette set to %s.", caption);  \
       return (D_O_K);   \
    }
+
+#ifdef ALLEGRO_WINDOWS
+/* Kludge to get around a conflict with Win32 API. */
+#undef DEFAULT_PALETTE
+#endif
 
 PALETTE_MENU_HANDLER(ntsc_color,     "NTSC color",     DEFAULT_PALETTE)
 PALETTE_MENU_HANDLER(ntsc_grayscale, "NTSC grayscale", GRAYSCALE_PALETTE)
@@ -3278,7 +3394,7 @@ static int help_menu_about (void)
 
 static int help_menu_version (void)
 {
-   alert ("FakeNES version " VERSION_STRING " " ALLEGRO_PLATFORM_STR, "",
+   gui_alert ("FakeNES version " VERSION_STRING " " ALLEGRO_PLATFORM_STR, "",
       "Get the latest from http://fakenes.sourceforge.net/.", "&OK", NULL,
          'o', 0);
 
@@ -3332,7 +3448,7 @@ static int machine_cheat_manager_dialog_add (DIALOG *dialog)
 
    if (cpu_patch_count >= CPU_MAX_PATCHES)
    {
-      alert ("- Error -", NULL, "The patch list is already full.", "&OK",
+      gui_alert ("- Error -", NULL, "The patch list is already full.", "&OK",
          NULL, 'o', 0);
 
       return (D_O_K);
@@ -3364,7 +3480,7 @@ static int machine_cheat_manager_dialog_add (DIALOG *dialog)
    if (cheats_decode (code, &patch->address, &patch->value,
       &patch->match_value) != 0)
    {
-      alert ("- Error -", NULL, "You must enter a valid Game Genie (or "
+      gui_alert ("- Error -", NULL, "You must enter a valid Game Genie (or "
          "NESticle raw) code.", "&OK", NULL, 'o', 0);
 
       return (D_O_K);
@@ -3409,7 +3525,7 @@ static int machine_cheat_manager_dialog_remove (DIALOG *dialog)
    /* Disable patch. */
    if (src->active)
    {
-      if (alert ("Confirmation", NULL, "Really deactivate and remove this "
+      if (gui_alert ("Confirmation", NULL, "Really deactivate and remove this "
          "patch?", "&OK", "&Cancel", 'o', 'c') == 2)
          return (D_O_K);
 
@@ -3558,7 +3674,7 @@ static int options_input_configure_dialog_device_select (DIALOG *dialog)
 
    if (selected_player < 0)
    {
-      alert ("- Error -", "", "Please select a player to modify first.",
+      gui_alert ("- Error -", "", "Please select a player to modify first.",
          "&OK", NULL, 'o', 0);
 
       return (D_O_K);
@@ -3580,7 +3696,7 @@ static int options_input_configure_dialog_set_buttons (DIALOG *dialog)
 
    if (selected_player < 0)
    {
-      alert ("- Error -", "", "Please select a player to modify first.",
+      gui_alert ("- Error -", "", "Please select a player to modify first.",
          "&OK", NULL, 'o', 0);
 
       return (D_O_K);
@@ -3596,7 +3712,7 @@ static int options_input_configure_dialog_set_buttons (DIALOG *dialog)
           (button == INPUT_DEVICE_BUTTON_LEFT) ||
           (button == INPUT_DEVICE_BUTTON_RIGHT))
       {
-         alert ("- Error -", "", "Unable to set direction buttons for "
+         gui_alert ("- Error -", "", "Unable to set direction buttons for "
             "joystick devices.", "&OK", NULL, 'o', 0);
     
          return (D_O_K);
@@ -3604,7 +3720,7 @@ static int options_input_configure_dialog_set_buttons (DIALOG *dialog)
    }
    else if (selected_player_device == INPUT_DEVICE_MOUSE)
    {
-      alert ("- Error -", "", "Unable to set buttons for mouse at this"
+      gui_alert ("- Error -", "", "Unable to set buttons for mouse at this"
          " time.", "&OK", NULL, 'o', 0);
    }
 
@@ -3732,7 +3848,7 @@ static int options_input_configure_dialog_calibrate (DIALOG *dialog)
 
    if (selected_player < 0)
    {
-      alert ("- Error -", "", "Please select a player to modify first.",
+      gui_alert ("- Error -", "", "Please select a player to modify first.",
          "&OK", NULL, 'o', 0);
 
       return (D_O_K);
@@ -3769,7 +3885,7 @@ static int options_input_configure_dialog_calibrate (DIALOG *dialog)
 
             if (calibrate_joystick (index) != 0)
             {
-               alert ("- Error -", "", "An unknown error occured while "
+               gui_alert ("- Error -", "", "An unknown error occured while "
                   "attempting to calibrate the device.", "&OK", NULL, 'o',
                      0);
    
@@ -3777,7 +3893,7 @@ static int options_input_configure_dialog_calibrate (DIALOG *dialog)
             }
          }
 
-         alert ("- Calibration Complete - ", "", "The selected device has "
+         gui_alert ("- Calibration Complete - ", "", "The selected device has "
             "been calibrated.", "&Save", NULL, 's', 0);
 
          save_joystick_data (NULL);
@@ -3787,7 +3903,7 @@ static int options_input_configure_dialog_calibrate (DIALOG *dialog)
 
       default:
       {
-         alert ("- Error -", "", "The selected device does not require "
+         gui_alert ("- Error -", "", "The selected device does not require "
             "calibration.", "&OK", NULL, 'o', 0);
 
          break;

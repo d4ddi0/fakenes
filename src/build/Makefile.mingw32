@@ -43,14 +43,17 @@ else
    OFLAGS = -pipe -O3 -ffast-math -fomit-frame-pointer
    DFLAGS = -DLSB_FIRST
 endif
-ifndef NO_ZLIB
-   DFLAGS += -DUSE_ZLIB
+ifdef USE_ALLEGROGL
+   DFLAGS += -DUSE_ALLEGROGL
 endif
 ifdef USE_HAWKNL
    DFLAGS += -DUSE_HAWKNL
 endif
 ifdef USE_OPENAL
    DFLAGS += -DUSE_OPENAL
+endif
+ifndef NO_ZLIB
+   DFLAGS += -DUSE_ZLIB
 endif
 ifdef TAG
    DFLAGS += -DVERSION_TAG=\"${TAG}\"
@@ -93,17 +96,12 @@ OBJECTS := ${OBJECT_PATH}/apu${OBJEXT} \
    ${OBJECT_PATH}/video${OBJEXT}
 
 # Libraries.
-LIBALLEG ?= -lalleg
-LIBALLEG_STATIC ?= -lalleg_s
-ifdef STATIC
-   LIBRARIES := ${LIBALLEG_STATIC}
-   LIBRARIES += -lgdi32 -ldxguid -lole32 -ldinput -lddraw -lwinmm -ldsound
-else
-   LIBRARIES := ${LIBALLEG}
-endif
-ifndef NO_ZLIB
-   LIBZ ?= -lz
-   LIBRARIES += ${LIBZ}
+LIBRARIES :=
+ifdef USE_ALLEGROGL
+   LIBAGL ?= -lagl
+   LIBOPENGL ?= -lopengl32
+   LIBGLU ?= -lglu32
+   LIBRARIES += ${LIBAGL} ${LIBOPENGL} ${LIBGLU} -luser32 -lgdi32
 endif
 ifdef USE_HAWKNL
    LIBNL ?= -lNL
@@ -113,6 +111,18 @@ ifdef USE_OPENAL
    LIBALUT ?= -lalut
    LIBOPENAL ?= -lOpenAL32
    LIBRARIES += ${LIBALUT} ${LIBOPENAL}
+endif
+ifndef NO_ZLIB
+   LIBZ ?= -lz
+   LIBRARIES += ${LIBZ}
+endif
+LIBALLEG ?= -lalleg
+LIBALLEG_STATIC ?= -lalleg_s
+ifdef STATIC
+   LIBRARIES += ${LIBALLEG_STATIC}
+   LIBRARIES += -lgdi32 -ldxguid -lole32 -ldinput -lddraw -lwinmm -ldsound
+else
+   LIBRARIES += ${LIBALLEG}
 endif
 
 RESOURCES := ${SOURCE_PATH}/support/resource.o

@@ -8,6 +8,9 @@
  
 #define ALLEGRO_USE_CONSOLE
 #include <allegro.h>
+#ifdef USE_ALLEGROGL
+#include <alleggl.h>
+#endif
 #include <stdio.h>
 #include "apu.h"
 #include "audio.h"
@@ -26,7 +29,6 @@
 #include "timing.h"
 #include "version.h"
 #include "video.h"
-
 
 int disable_gui = FALSE;
 
@@ -250,6 +252,9 @@ int main (int argc, char * argv [])
 
     allegro_init ();
 
+#ifdef USE_ALLEGROGL
+    install_allegro_gl ();
+#endif
 
     set_window_title ("FakeNES");
 
@@ -595,7 +600,7 @@ int main (int argc, char * argv [])
                               audio_suspend ();
           
           
-                              if (alert ("- Confirmation -", NIL, "A ROM is currently loaded.  Really exit?", "&OK", "&Cancel", 0, 0) == 2)
+                              if (gui_alert ("- Confirmation -", NIL, "A ROM is currently loaded.  Really exit?", "&OK", "&Cancel", 0, 0) == 2)
                               {
                                   want_exit = FALSE;
           

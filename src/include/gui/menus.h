@@ -553,14 +553,32 @@ static const MENU video_driver_unix_menu_base[] =
 
 DEFINE_MENU_CALLBACK(video_driver_menu_automatic);
 
+#ifdef USE_ALLEGROGL
+
+DEFINE_MENU_CALLBACK(video_driver_menu_opengl);
+DEFINE_MENU_CALLBACK(video_driver_menu_opengl_full);
+DEFINE_MENU_CALLBACK(video_driver_menu_opengl_win);
+
+#endif   /* USE_ALLEGROGL */
+
 static const MENU video_driver_menu_base[] =
 {
-   { "&Automatic", video_driver_menu_automatic, NULL,                                           0, NULL },
+   { "&Automatic",   video_driver_menu_automatic,   NULL,                                   0, NULL },
    MENU_SPLITTER,
-   { "&DOS",       NULL,                                IMPORT_MENU(video_driver_dos_menu),     0, NULL },
-   { "&Windows",   NULL,                                IMPORT_MENU(video_driver_windows_menu), 0, NULL },
-   { "&Linux",     NULL,                                IMPORT_MENU(video_driver_linux_menu),   0, NULL },
-   { "&Unix",      NULL,                                IMPORT_MENU(video_driver_unix_menu),    0, NULL },
+
+#ifdef USE_ALLEGROGL
+
+   { "&OpenGL",      video_driver_menu_opengl,      NULL,                                   0, NULL },
+   { "O&penGL Full", video_driver_menu_opengl_full, NULL,                                   0, NULL },
+   { "Op&enGL Win",  video_driver_menu_opengl_win,  NULL,                                   0, NULL },
+   MENU_SPLITTER,
+
+#endif   /* USE_ALLEGROGL */
+
+   { "&DOS",         NULL,                          IMPORT_MENU(video_driver_dos_menu),     0, NULL },
+   { "&Windows",     NULL,                          IMPORT_MENU(video_driver_windows_menu), 0, NULL },
+   { "&Linux",       NULL,                          IMPORT_MENU(video_driver_linux_menu),   0, NULL },
+   { "&Unix",        NULL,                          IMPORT_MENU(video_driver_unix_menu),    0, NULL },
    MENU_ENDCAP
 };
 

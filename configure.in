@@ -34,19 +34,32 @@ else
     OBJEXT=".$OBJEXT"
 fi
 
-AC_ARG_WITH(zlib,   [  --with-zlib             build with ZIP and gzip support [default=yes]], [USE_ZLIB=$withval], [USE_ZLIB=yes])
-AC_ARG_WITH(hawknl, [  --with-hawknl           build with NetPlay support [default=no]], [USE_HAWKNL=$withval], [USE_HAWKNL=no])
-AC_ARG_WITH(openal, [  --with-openal           build with OpenAL support [default=no]], [USE_OPENAL=$withval], [USE_OPENAL=no])
+AC_ARG_WITH(allegrogl, [  --with-allegrogl        build with OpenGL support [default=no]], [USE_ALLEGROGL=$withval], [USE_ALLEGROGL=no])
+AC_ARG_WITH(openal,    [  --with-openal           build with OpenAL support [default=no]], [USE_OPENAL=$withval], [USE_OPENAL=no])
+AC_ARG_WITH(hawknl,    [  --with-hawknl           build with NetPlay support [default=no]], [USE_HAWKNL=$withval], [USE_HAWKNL=no])
+AC_ARG_WITH(zlib,      [  --with-zlib             build with ZIP and gzip support [default=yes]], [USE_ZLIB=$withval], [USE_ZLIB=yes])
 
-AC_MSG_CHECKING(whether to enable ZIP and gzip support)
-if [[ "x$USE_ZLIB" = "xyes" ]]; then
-    DFLAGS="$DFLAGS -DUSE_ZLIB"
+AC_MSG_CHECKING(whether to enable OpenGL support)
+if [[ "x$USE_ALLEGROGL" = "xyes" ]]; then
+    DFLAGS="$DFLAGS -DUSE_ALLEGROGL"
     AC_MSG_RESULT(yes)
-    LIBRARIES="$LIBRARIES -lz"
-    echo if this is not what you want, use --without-zlib
+    LIBRARIES="$LIBRARIES -lagl -lGL -lGLU"
+    echo if this is not what you want, use --without-allegrogl
 else
     AC_MSG_RESULT(no)
-    echo if this is not what you want, use --with-zlib
+    echo if this is not what you want, use --with-allegrogl
+fi
+
+AC_MSG_CHECKING(whether to enable OpenAL support)
+if [[ "x$USE_OPENAL" = "xyes" ]]; then
+    DFLAGS="$DFLAGS -DUSE_OPENAL"
+    AC_MSG_RESULT(yes)
+    LIBRARIES="$LIBRARIES `openal-config --libs`"
+    LIBRARIES="$LIBRARIES -lalut"
+    echo if this is not what you want, use --without-openal
+else
+    AC_MSG_RESULT(no)
+    echo if this is not what you want, use --with-openal
 fi
 
 AC_MSG_CHECKING(whether to enable NetPlay support)
@@ -60,16 +73,15 @@ else
     echo if this is not what you want, use --with-hawknl
 fi
 
-AC_MSG_CHECKING(whether to enable OpenAL support)
-if [[ "x$USE_OPENAL" = "xyes" ]]; then
-    DFLAGS="$DFLAGS -DUSE_OPENAL"
+AC_MSG_CHECKING(whether to enable ZIP and gzip support)
+if [[ "x$USE_ZLIB" = "xyes" ]]; then
+    DFLAGS="$DFLAGS -DUSE_ZLIB"
     AC_MSG_RESULT(yes)
-    LIBRARIES="$LIBRARIES `openal-config --libs`"
-    LIBRARIES="$LIBRARIES -lalut"
-    echo if this is not what you want, use --without-openal
+    LIBRARIES="$LIBRARIES -lz"
+    echo if this is not what you want, use --without-zlib
 else
     AC_MSG_RESULT(no)
-    echo if this is not what you want, use --with-openal
+    echo if this is not what you want, use --with-zlib
 fi
 
 dnl Add -DLSB_FIRST to DFLAGS if on a little endian platform.

@@ -79,6 +79,7 @@ void video_set_resolution (int, int);
 int video_get_color_depth (void);
 void video_set_color_depth (int);
 void video_set_driver (int);
+BOOL video_is_opengl_mode (void);
 
 void video_message (const UCHAR *, ...);
 

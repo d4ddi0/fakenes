@@ -7,6 +7,9 @@
    You must read and accept the license prior to use. */
 
 #include <allegro.h>
+#ifdef USE_ALLEGROGL
+#include <alleggl.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include "audio.h"
@@ -175,6 +178,16 @@ int video_init (void)
       driver = video_driver;
    }
 
+#ifdef USE_ALLEGROGL
+
+   if (driver == GFX_OPENGL)
+   {
+      /* Hint at which mode we want for OpenGL. */
+      allegro_gl_set (AGL_WINDOWED, !video_force_fullscreen);
+   }
+
+#endif   /* USE_ALLEGROGL */
+
    /* Set color depth. */
 
    if (color_depth == -1)
@@ -205,9 +218,22 @@ int video_init (void)
       return (2);
    }
 
-   if (color_depth != 8)
-      set_color_conversion (COLORCONV_TOTAL);
+#ifdef USE_ALLEGROGL
 
+   if (video_is_opengl_mode ())
+   {
+      /* Enable Allegro graphics compatibility mode. */
+      allegro_gl_set_allegro_mode ();
+
+      /* Disable page buffering, since it is pointless. */
+      video_enable_page_buffer = FALSE;
+   }
+
+#endif   /* USE_ALLEGROGL */
+
+   if (color_depth != 8)
+      set_color_conversion ((COLORCONV_TOTAL | COLORCONV_KEEP_TRANS));
+         
    /* Create screen buffer. */
 
    screen_buffer = create_bitmap (SCREEN_W, SCREEN_H);
@@ -560,7 +586,7 @@ void video_blit (BITMAP *bitmap)
       draw_messages ();
    }
 
-    /* Send screen buffer to screen. */
+   /* Send screen buffer to screen. */
 
    if (page_buffer && is_video_bitmap (bitmap))
    {
@@ -590,6 +616,13 @@ void video_blit (BITMAP *bitmap)
          screen_buffer->h);
       release_bitmap (bitmap);
    }
+
+#ifdef USE_ALLEGROGL
+
+   if (video_is_opengl_mode ())
+      allegro_gl_flip ();
+
+#endif   /* USE_ALLEGROGL */
 
    if (((video_message_duration > 0) ||
         (input_mode & INPUT_MODE_CHAT)) && !gui_is_active)
@@ -1239,6 +1272,22 @@ void video_set_driver (int driver)
     }
 }
 
+
+BOOL video_is_opengl_mode (void)
+{
+   /* Returns TRUE if we're in an OpenGL mode, obviously. ;b */
+
+#ifdef USE_ALLEGROGL
+
+   return (((gfx_driver->id == GFX_OPENGL) ||
+            (gfx_driver->id == GFX_OPENGL_FULLSCREEN) || 
+            (gfx_driver->id == GFX_OPENGL_WINDOWED)));
+
+#endif   /* USE_ALLEGROGL */
+
+   /* Not built with AllegroGL. */
+   return (FALSE);
+}
 
 void video_set_filter_list (LIST filters)
 {
