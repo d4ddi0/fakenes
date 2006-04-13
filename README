@@ -9,9 +9,7 @@ well.  There are also official builds available for Mac OS X.
 
 The C core is portable but also slow.  Do not expect FakeNES to run
 blazingly fast on a 486, or even a Pentium.  I would recommend at least a
-300 MHz processor for full enjoyment.  If you are on an x86-based machine,
-however, you can enable low-level assembly replacements of large portions of
-the core for additional speed (this is automatic on DOS and Windows).
+300 MHz processor for full enjoyment.
 
 If you need any help regarding building FakeNES from the source code
 archive, please read the SOURCE text file that came with your source or
