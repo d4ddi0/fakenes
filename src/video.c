@@ -26,6 +26,9 @@
 #include "types.h"
 #include "video.h"
 
+static int buffer_width = -1;
+static int buffer_height = -1;
+
 static BITMAP *screen_buffer = NULL;
 static BITMAP *page_buffer = NULL;
 
@@ -117,6 +120,7 @@ static void switch_in_callback (void)
 int video_init (void)
 {
    int driver;
+   int width, height;
    const CHAR *font_file;
 
    /* Install message timer. */
@@ -132,6 +136,8 @@ int video_init (void)
    screen_height            = get_config_int ("video", "screen_height",      screen_height);
    color_depth              = get_config_int ("video", "color_depth",        color_depth);
    video_force_fullscreen   = get_config_int ("video", "force_fullscreen",   video_force_fullscreen);
+   buffer_width             = get_config_int ("video", "buffer_width",       buffer_width);
+   buffer_height            = get_config_int ("video", "buffer_height",      buffer_height);
    blitter_id               = get_config_int ("video", "blitter",            blitter_id);
    filter_list              = get_config_int ("video", "filter_list",        filter_list);
    stretch_width            = get_config_int ("video", "stretch_width",      stretch_width);
@@ -236,7 +242,10 @@ int video_init (void)
          
    /* Create screen buffer. */
 
-   screen_buffer = create_bitmap (SCREEN_W, SCREEN_H);
+   width  = ((buffer_width  == -1) ? SCREEN_W : buffer_width);
+   height = ((buffer_height == -1) ? SCREEN_H : buffer_height);
+
+   screen_buffer = create_bitmap (width, height);
    if (!screen_buffer)
    {
       WARN("Couldn't create screen buffer");
@@ -445,6 +454,8 @@ void video_exit (void)
    set_config_int ("video", "screen_height",      screen_height);
    set_config_int ("video", "color_depth",        color_depth);
    set_config_int ("video", "force_fullscreen",   video_force_fullscreen);
+   set_config_int ("video", "buffer_width",       buffer_width);
+   set_config_int ("video", "buffer_height",      buffer_height);
    set_config_int ("video", "blitter",            blitter_id);
    set_config_int ("video", "filter_list",        filter_list);
    set_config_int ("video", "stretch_width",      stretch_width);
@@ -517,6 +528,8 @@ static int flash_tick = 0;
 
 void video_blit (BITMAP *bitmap)
 {
+   BITMAP *dest;
+
    RT_ASSERT(bitmap);
 
    if (!rom_is_loaded)
@@ -588,32 +601,53 @@ void video_blit (BITMAP *bitmap)
 
    /* Send screen buffer to screen. */
 
-   if (page_buffer && is_video_bitmap (bitmap))
+   if (page_buffer && (bitmap == screen))
    {
       /* Reduce screen tearing by blitting to VRAM first, then doing a
          VRAM to VRAM blit to the visible portion of the screen, since
          such blits are much faster.  Of course, we could just do page
          flipping, but this way we keep things simple and compatible. */
 
-      acquire_bitmap (page_buffer);
-      blit (screen_buffer, page_buffer, 0, 0, 0, 0, screen_buffer->w,
-         screen_buffer->h);
-      release_bitmap (page_buffer);
-
-      acquire_bitmap (bitmap);
-      if (video_enable_vsync)
-         vsync ();
-      blit (page_buffer, bitmap, 0, 0, 0, 0, page_buffer->w,
-         page_buffer->h);
-      release_bitmap (bitmap);
+      /* Draw to page buffer first, then to screen (see above). */
+      dest = page_buffer;
    }
    else
    {
-      acquire_bitmap (bitmap);
-      if (video_enable_vsync)
-         vsync ();
-      blit (screen_buffer, bitmap, 0, 0, 0, 0, screen_buffer->w,
+      /* Draw directly to bitmap. */
+      dest = bitmap;
+   }
+
+   acquire_bitmap (dest);
+
+   if ((dest == screen) && video_enable_vsync)
+      vsync ();
+
+   if ((screen_buffer->w != dest->w) || (screen_buffer->h != dest->h))
+   {
+      /* Scaling is required. */
+
+      stretch_blit (screen_buffer, dest, 0, 0, screen_buffer->w,
+         screen_buffer->h, 0, 0, dest->w, dest->h);
+   }
+   else
+   {
+      /* No scaling is required. */
+
+      blit (screen_buffer, dest, 0, 0, 0, 0, screen_buffer->w,
          screen_buffer->h);
+   }
+
+   release_bitmap (dest);
+
+   if (dest != bitmap)
+   {
+      acquire_bitmap (bitmap);
+
+      if ((bitmap == screen) && video_enable_vsync)
+         vsync ();
+
+      blit (dest, bitmap, 0, 0, 0, 0, dest->w, dest->h);
+
       release_bitmap (bitmap);
    }
 
@@ -1047,11 +1081,11 @@ void video_create_gui_gradient (GUI_COLOR * start, GUI_COLOR * end, int slices)
 
 static INLINE int get_automatic_blitter (void)
 {
-   if ((SCREEN_W >= 1024) && (SCREEN_H >= 960))
+   if ((screen_buffer->w >= 1024) && (screen_buffer->h >= 960))
       return (VIDEO_BLITTER_HQ4X);
-   if ((SCREEN_W >= 768) && (SCREEN_H >= 720))
+   if ((screen_buffer->w >= 768) && (screen_buffer->h >= 720))
       return (VIDEO_BLITTER_HQ3X);
-   if ((SCREEN_W >= 512) && (SCREEN_H >= 480))
+   if ((screen_buffer->w >= 512) && (screen_buffer->h >= 480))
       return (VIDEO_BLITTER_HQ2X);
    else
       return (VIDEO_BLITTER_DES);
@@ -1400,7 +1434,7 @@ static INLINE int get_messages_height (void)
         length = text_length (font, &video_messages [index] [0]);
 
 
-        if (length > (SCREEN_W - 8))
+        if (length > (screen_buffer->w - 8))
         {
             height += ((text_height (font) + 1) * 2);
         }
@@ -1457,12 +1491,12 @@ static void draw_messages (void)
 
     x = 0;
 
-    y = ((SCREEN_H - (((height_text + 6) + height) + 3)) - 1);
+    y = ((screen_buffer->h - (((height_text + 6) + height) + 3)) - 1);
 
 
-    x2 = (SCREEN_W - 1);
+    x2 = (screen_buffer->w - 1);
 
-    y2 = (SCREEN_H - 1);
+    y2 = (screen_buffer->h - 1);
 
 
     if (box)
@@ -1483,7 +1517,7 @@ static void draw_messages (void)
     y ++;
 
 
-    x2 = ((SCREEN_W - 1) - 1);
+    x2 = ((screen_buffer->w - 1) - 1);
 
 
     if (box)
@@ -1494,7 +1528,7 @@ static void draw_messages (void)
 
     x = 0;
 
-    y = ((SCREEN_H - (height_text + 5)) - 1);
+    y = ((screen_buffer->h - (height_text + 5)) - 1);
 
 
     if (box)
@@ -1516,10 +1550,10 @@ static void draw_messages (void)
 
     x = 4;
 
-    y = ((SCREEN_H - ((height_text + 6) + height)) - 1);
+    y = ((screen_buffer->h - ((height_text + 6) + height)) - 1);
 
 
-    x2 = ((SCREEN_W - 4) - 1);
+    x2 = ((screen_buffer->w - 4) - 1);
 
 
     for (index = 0; index < MAX_MESSAGES; index ++)
@@ -1572,7 +1606,7 @@ static void draw_messages (void)
     }
 
 
-    y = ((SCREEN_H - (height_text + 2)) - 1);
+    y = ((screen_buffer->h - (height_text + 2)) - 1);
 
 
     if (box)
@@ -1617,12 +1651,12 @@ static void erase_messages (void)
 
     x = 0;
 
-    y = ((SCREEN_H - (((height_text + 6) + height) + 3)) - 1);
+    y = ((screen_buffer->h - (((height_text + 6) + height) + 3)) - 1);
 
 
-    x2 = (SCREEN_W - 1);
+    x2 = (screen_buffer->w - 1);
 
-    y2 = (SCREEN_H - 1);
+    y2 = (screen_buffer->h - 1);
 
 
     rectfill (screen_buffer, x, y, x2, y2, VIDEO_COLOR_BLACK);
