@@ -228,8 +228,8 @@ int video_init (void)
 
    if (video_is_opengl_mode ())
    {
-      /* Enable Allegro graphics compatibility mode. */
-      allegro_gl_set_allegro_mode ();
+      /* Enable OpenGL texturing. */
+      glEnable (GL_TEXTURE_2D);
 
       /* Disable page buffering, since it is pointless. */
       video_enable_page_buffer = FALSE;
@@ -644,6 +644,13 @@ void video_blit (BITMAP *bitmap)
       draw_messages ();
    }
 
+#ifdef USE_ALLEGROGL
+
+   if (video_is_opengl_mode ())
+      goto glblit;
+
+#endif   /* USE_ALLEGROGL */
+
    /* Send screen buffer to screen. */
 
    if (page_buffer && (bitmap == screen))
@@ -698,8 +705,56 @@ void video_blit (BITMAP *bitmap)
 
 #ifdef USE_ALLEGROGL
 
-   if (video_is_opengl_mode ())
-      allegro_gl_flip ();
+   glblit:
+   {
+      if (video_is_opengl_mode ())
+      {
+         GLuint texture_id;
+
+         /* Create and upload texture. */
+
+         texture_id = allegro_gl_make_texture (screen_buffer);
+         if (texture_id == 0)
+            WARN("Creation of OpenGL texture failed");
+
+         /* Select texture. */
+         glBindTexture (GL_TEXTURE_2D, texture_id);
+
+         /* Set texture properties. */
+
+         glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+         glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+         glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_CLAMP);
+         glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_CLAMP);
+
+         /* Disable environmental modifications. */
+         glTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+
+         /* Draw quad. */
+
+         glBegin (GL_QUADS);
+
+            glTexCoord2f (0, 0);
+            glVertex3f (-1.0f, -1.0f, 0);
+   
+            glTexCoord2f (1.0f, 0);
+            glVertex3f (1.0f, -1.0f, 0);
+   
+            glTexCoord2f (1.0f, 1.0f);
+            glVertex3f (1.0f, 1.0f, 0);
+                              
+            glTexCoord2f (0, 1.0f);
+            glVertex3f (-1.0f, 1.0f, 0);
+
+         glEnd ();
+
+         /* Update screen. */
+         allegro_gl_flip ();
+
+         /* Delete texture. */
+         glDeleteTextures (1, &texture_id);
+      }
+   }
 
 #endif   /* USE_ALLEGROGL */
 
