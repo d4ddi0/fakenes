@@ -1153,6 +1153,16 @@ int show_gui (BOOL first_run)
    /* Set up menus. */
    update_menus ();
 
+#ifdef USE_ALLEGROGL
+
+   if (video_is_opengl_mode ())
+   {
+      /* Enable Allegro graphics compatibility mode. */
+      allegro_gl_set_allegro_mode ();
+   }
+
+#endif   /* USE_ALLEGROGL */
+
    cycle_video ();
 
    if (first_run)
@@ -1165,6 +1175,16 @@ int show_gui (BOOL first_run)
 
    /* Shut down GUI. */
    gui_is_active = FALSE;
+
+#ifdef USE_ALLEGROGL
+
+   if (video_is_opengl_mode ())
+   {
+      /* Disable Allegro graphics compatibility mode. */
+      allegro_gl_unset_allegro_mode ();
+   }
+
+#endif   /* USE_ALLEGROGL */
 
    cycle_video ();
 
@@ -2966,6 +2986,8 @@ BUFFER_MENU_HANDLER(256, 240)
 BUFFER_MENU_HANDLER(320, 240)
 BUFFER_MENU_HANDLER(512, 480)
 BUFFER_MENU_HANDLER(640, 480)
+BUFFER_MENU_HANDLER(256, 256)
+BUFFER_MENU_HANDLER(512, 512)
 
 #undef BUFFER_MENU_HANDLER
 
