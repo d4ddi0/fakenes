@@ -34,6 +34,8 @@
 #include "version.h"
 #include "video.h"
 
+static BITMAP *gui_buffer = NULL;
+
 static int dialog_x = 0;
 static int dialog_y = 0;
 static BOOL restart_dialog = FALSE;
@@ -479,73 +481,14 @@ static INLINE void refresh (void)
    BITMAP *bmp;
 
    /* If the GUI is not being drawn directly to the screen, this function
-      stretch_blit()'s the GUI bitmap to the screen with vsync(). */
+      displays it via video_show_bitmap(). */
 
    bmp = gui_get_screen ();
 
    if (bmp == screen)
-   {
-#ifdef USE_ALLEGROGL
-
-   if (video_is_opengl_mode ())
-   {
-      BITMAP *sprite, *saved;
-      int saved_x, saved_y;
-
-      /* Hack.  Combined with run_dialog(), this seems to work a bit better
-         than AllegroGL's algl_do_dialog() in most cases. */
-
-      /* Hack.  Lack of color conversion in AllegroGL's draw_sprite(). */
-      sprite = create_bitmap (mouse_sprite->w, mouse_sprite->h);
-      if (!sprite)
-         WARN_BREAK("Failed to create mouse sprite buffer for OpenGL");
-
-      blit (mouse_sprite, sprite, 0, 0, 0, 0, mouse_sprite->w,
-         mouse_sprite->h);
-
-      /* Hack.  Prevents mouse droppings from being left all over the screen
-         like would happen with algl_draw_mouse(). */
-      saved = create_bitmap (sprite->w, sprite->h);
-
-      /* Save mouse pointer position. */
-      saved_x = (mouse_x - mouse_x_focus);
-      saved_y = (mouse_y - mouse_y_focus);
-
-      if (saved)
-      {
-         /* Save area under the mouse pointer. */
-         blit (bmp, saved, saved_x, saved_y, 0, 0, saved->w, saved->h);
-      }
-
-      /* Draw the mouse pointer at the saved position. */
-      draw_sprite (bmp, sprite, saved_x, saved_y);
-
-      /* Update the screen. */
-      allegro_gl_flip ();
-
-      if (saved)
-      {
-         /* Restore area under the mouse pointer. */
-         blit (saved, bmp, 0, 0, saved_x, saved_y, saved->w, saved->h);
-
-         destroy_bitmap (saved);
-      }
-
-      destroy_bitmap (sprite);
-   }
-
-#endif   /* USE_ALLEGROGL */
-
       return;
-   }
 
-   acquire_screen ();
-   vsync ();
-   stretch_blit (bmp, screen, 0, 0, bmp->w, bmp->h, 0, 0, SCREEN_W,
-      SCREEN_H);
-   release_screen ();
-
-   /* TODO: Add AllegroGL flip here? */
+   video_show_bitmap (bmp);
 }
 
 void gui_heartbeat (void)
@@ -705,13 +648,9 @@ static INLINE void update_menus (void)
       ENABLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_3);
    }
 
-#ifdef USE_ALLEGROGL
-
    /* Page buffer and VSync are not supported in OpenGL mode. */
    SET_MENU_ITEM_ENABLED(video_menu_page_buffer, !video_is_opengl_mode ());
    SET_MENU_ITEM_ENABLED(video_menu_vsync,       !video_is_opengl_mode ());
-
-#endif   /* USE_ALLEGROGL */
 
    TOGGLE_MENU_ITEM(main_open_recent_menu_lock, lock_recent);
 
@@ -958,16 +897,6 @@ static INLINE void draw_background (void)
 
    rectfill (bmp, 0, 0, bmp->w, bmp->h, GUI_BACKGROUND_COLOR);
 
-#ifdef USE_ALLEGROGL
-
-   if (video_is_opengl_mode ())
-   {
-      /* Backgrounds aren't supported in OpenGL mode. */
-      return;
-   }
-
-#endif   /* USE_ALLEGROGL */
-
    if (background_image)
    {
       if (background_image->h < 200)
@@ -1153,18 +1082,22 @@ int show_gui (BOOL first_run)
 
    want_exit = FALSE;
 
-   /* Set up menus. */
-   update_menus ();
-
-#ifdef USE_ALLEGROGL
-
    if (video_is_opengl_mode ())
    {
-      /* Enable Allegro graphics compatibility mode. */
-      allegro_gl_set_allegro_mode ();
+      /* Create drawing buffer. */
+      gui_buffer = create_bitmap (SCREEN_W, SCREEN_H);
+      if (!gui_buffer)
+      {
+         WARN("Couldn't create GUI drawing buffer");
+         return (1);
+      }
+   
+      /* Make Allegro use it. */
+      gui_set_screen (gui_buffer);
    }
 
-#endif   /* USE_ALLEGROGL */
+   /* Set up menus. */
+   update_menus ();
 
    cycle_video ();
 
@@ -1176,18 +1109,19 @@ int show_gui (BOOL first_run)
 
    run_dialog (main_dialog);
 
-   /* Shut down GUI. */
-   gui_is_active = FALSE;
-
-#ifdef USE_ALLEGROGL
-
-   if (video_is_opengl_mode ())
+   if (gui_buffer)
    {
-      /* Disable Allegro graphics compatibility mode. */
-      allegro_gl_unset_allegro_mode ();
+      /* Destroy and nullify drawing buffer. */
+
+      destroy_bitmap (gui_buffer);
+      gui_buffer = NULL;
+
+      /* Restore screen. */
+      gui_set_screen (screen);
    }
 
-#endif   /* USE_ALLEGROGL */
+   /* Shut down GUI. */
+   gui_is_active = FALSE;
 
    cycle_video ();
 
@@ -1419,7 +1353,11 @@ static INLINE void cycle_video (void)
       if (gui_mouse_sprite)
          set_mouse_sprite (gui_mouse_sprite);
       set_mouse_sprite_focus (8, 8);
-      show_mouse (bmp);
+
+      /* Note that we only show the mouse here if the drawing bitmap is the
+         screen; otherwise we let video_show_bitmap() handle it. */
+      if (bmp == screen)
+         show_mouse (bmp);
 
       message_local ("%dx%d %d-bit, %s.", bmp->w, bmp->h, bitmap_color_depth
          (bmp), gfx_driver->name);

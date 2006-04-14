@@ -652,7 +652,7 @@ void video_blit (BITMAP *bitmap)
 
 #ifdef USE_ALLEGROGL
 
-   if (video_is_opengl_mode ())
+   if (video_is_opengl_mode () && (bitmap == screen))
       goto glblit;
 
 #endif   /* USE_ALLEGROGL */
@@ -713,7 +713,7 @@ void video_blit (BITMAP *bitmap)
 
    glblit:
    {
-      if (video_is_opengl_mode ())
+      if (video_is_opengl_mode () && (bitmap == screen))
       {
          GLuint texture_id;
 
@@ -775,6 +775,56 @@ void video_blit (BITMAP *bitmap)
    clear (status_buffer);
 }
 
+void video_show_bitmap (BITMAP *bitmap)
+{
+   RT_ASSERT(bitmap);
+
+#ifdef USE_ALLEGROGL
+
+   if (video_is_opengl_mode ())
+   {
+      BITMAP *saved;
+      int saved_x, saved_y;
+
+      /* Save mouse coordinates. */
+      saved_x = (mouse_x - mouse_x_focus);
+      saved_y = (mouse_y - mouse_y_focus);
+
+      saved = create_bitmap (mouse_sprite->w, mouse_sprite->h);
+
+      if (saved)
+         blit (bitmap, saved, saved_x, saved_y, 0, 0, saved->w, saved->h);
+
+      /* Draw mouse pointer. */
+      draw_sprite (bitmap, mouse_sprite, saved_x, saved_y);
+
+      /* Enable Allegro compatibility mode. */
+      allegro_gl_set_allegro_mode ();
+
+      /* Copy bitmap to backbuffer. */
+      blit (bitmap, screen, 0, 0, 0, 0, bitmap->w, bitmap->h);
+
+      /* Disable Allegro compatibility mode. */
+      allegro_gl_unset_allegro_mode ();
+
+      /* Display backbuffer. */
+      allegro_gl_flip ();
+
+      if (saved)
+      {
+         /* Erase mouse pointer. */
+         blit (saved, bitmap, 0, 0, saved_x, saved_y, saved->w, saved->h);
+
+         destroy_bitmap (saved);
+      }
+
+      return;
+   }
+
+#endif   /* USE_ALLEGROGL */
+
+   blit (bitmap, screen, 0, 0, 0, 0, bitmap->w, bitmap->h);
+}
 
 void video_handle_keypress (int c, int scancode)
 {
