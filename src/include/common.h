@@ -76,6 +76,8 @@ static INLINE unsigned rand32 (void)
    return (value);
 }
 
+#define MAX3(a, b, c)   (MAX((a), MAX((b), (c))))
+      
 #ifdef __cplusplus
 }
 #endif

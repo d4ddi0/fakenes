@@ -501,7 +501,7 @@ void gui_heartbeat (void)
    rest (REST_TIME);
 }
 
-static INLINE int run_dialog (DIALOG *dialog)
+static INLINE int run_dialog (DIALOG *dialog, int focus)
 {
    DIALOG_PLAYER *player;
    int index;
@@ -512,7 +512,7 @@ static INLINE int run_dialog (DIALOG *dialog)
 
    RT_ASSERT(dialog);
 
-   player = init_dialog (dialog, -1);
+   player = init_dialog (dialog, focus);
 
    while (update_dialog (player))
       gui_heartbeat ();
@@ -524,7 +524,7 @@ static INLINE int run_dialog (DIALOG *dialog)
    return (index);
 }
 
-static INLINE int show_dialog (DIALOG *dialog)
+static INLINE int show_dialog (DIALOG *dialog, int focus)
 {
    BITMAP *bmp;
    BITMAP *saved;
@@ -575,7 +575,7 @@ static INLINE int show_dialog (DIALOG *dialog)
 
    next:
    {
-      index = run_dialog (dialog);
+      index = run_dialog (dialog, focus);
    
       scare_mouse ();
       blit (saved, bmp, 0, 0, 0, 0, saved->w, saved->h);
@@ -1073,14 +1073,15 @@ void gui_exit (void)
 
 static INLINE void cycle_video (void);
 
-int show_gui (BOOL first_run)
+static INLINE int gui_open (void)
 {
+   /* Helper function for show_gui() and gui_alert().  Enters the GUI
+      (e.g, sets up display buffer, etc.) but doesn't do anything else. */
+
    gui_needs_restart = FALSE;
    gui_is_active = TRUE;
 
    audio_suspend ();
-
-   want_exit = FALSE;
 
    if (video_is_opengl_mode ())
    {
@@ -1096,19 +1097,14 @@ int show_gui (BOOL first_run)
       gui_set_screen (gui_buffer);
    }
 
-   /* Set up menus. */
-   update_menus ();
-
    cycle_video ();
 
-   if (first_run)
-   {
-      /* Show welcome message. */
-      help_menu_version ();
-   }
+   /* Return success. */
+   return (0);
+}
 
-   run_dialog (main_dialog);
-
+static INLINE void gui_close (void)
+{
    if (gui_buffer)
    {
       /* Destroy and nullify drawing buffer. */
@@ -1120,29 +1116,182 @@ int show_gui (BOOL first_run)
       gui_set_screen (screen);
    }
 
-   /* Shut down GUI. */
+   /* Deactivate. */
    gui_is_active = FALSE;
 
    cycle_video ();
 
    audio_resume ();
+}
+
+int show_gui (BOOL first_run)
+{
+   int result;
+   static BOOL warned_about_opengl = FALSE;
+
+   /* Open GUI. */
+
+   result = gui_open ();
+
+   if (result != 0)
+   {
+      WARN("Failed to open GUI");
+      return ((8 + result));
+   }
+
+   /* Set up menus. */
+   update_menus ();
+
+   if (first_run)
+   {
+      /* Show welcome message. */
+      help_menu_version ();
+   }
+
+   if (video_is_opengl_mode () && !warned_about_opengl)
+   {
+      /* Warn about buggy OpenGL support in the GUI. */
+
+      gui_alert ("OpenGL Warning", "The GUI's OpenGL support is still a "
+         "bit buggy and incomplete.", NULL, "Proceed with caution.", "&OK",
+            NULL, 'o', 0);
+
+      warned_about_opengl = TRUE;
+   }
+
+   want_exit = FALSE;
+
+   /* Run main dialog. */
+   run_dialog (main_dialog, -1);
+
+   /* Close GUI. */
+   gui_close ();
 
    return (want_exit);
 }
 
-int gui_alert (const UCHAR *s1, const UCHAR *s2, const UCHAR *s3, const
-   UCHAR *b1, const UCHAR *b2, int c1, int c2)
+int gui_alert (const UCHAR *title, const UCHAR *s1, const UCHAR *s2, const
+   UCHAR *s3, const UCHAR *b1, const UCHAR *b2, int c1, int c2)
 {
-   /* Custom alert() overloader that handles AllegroGL support. */
+   /* Alert dialog with 1 or 2 buttons.  The title, first string, and first
+      button are required.  The rest are optional and may be NULL.
 
-#ifdef USE_ALLEGROGL
+      This function can even be called when the GUI isn't open.  It'll
+      automatically open the GUI long enough to display the dialog. */
 
-   if (video_is_opengl_mode ())
-      return (algl_alert (s1, s2, s3, b1, b2, c1, c2));
+   int result;
+   BOOL gui_opened = FALSE;
+   DIALOG *dialog;
+   DIALOG *objframe;
+   DIALOG *objxbutton;
+   DIALOG *objstr1, *objstr2, *objstr3;
+   DIALOG *objbtn1, *objbtn2;
+   int s1len, s2len, s3len;
 
-#endif   /* USE_ALLEGROGL */
+   RT_ASSERT(title);
+   RT_ASSERT(s1);
+   RT_ASSERT(b1);
 
-   return (alert (s1, s2, s3, b1, b2, c1, c2));
+   if (!gui_is_active)
+   {
+      /* Open GUI. */
+   
+      result = gui_open ();
+   
+      if (result != 0)
+      {
+         WARN("Failed to open GUI");
+         return ((8 + result));
+      }
+
+      gui_opened = TRUE;
+   }
+
+   /* Handle any NULL parameters. */
+   
+   if (!s2) s2 = empty_string;
+   if (!s3) s3 = empty_string;
+
+   /* Create dialog. */
+   dialog = load_dialog (alert_dialog_base);
+   if (!dialog)
+   {
+      WARN("Failed to create dialog structure");
+      return (-1);
+   }
+
+   /* Get all objects. */
+
+   objframe   = &dialog[ALERT_DIALOG_FRAME];
+   objxbutton = &dialog[ALERT_DIALOG_CLOSE_BUTTON];
+   objstr1    = &dialog[ALERT_DIALOG_STRING_1];
+   objstr2    = &dialog[ALERT_DIALOG_STRING_2];
+   objstr3    = &dialog[ALERT_DIALOG_STRING_3];
+   objbtn1    = &dialog[ALERT_DIALOG_BUTTON_1];
+   objbtn2    = &dialog[ALERT_DIALOG_BUTTON_2];
+
+   /* Calculate string lengths (in pixels). */
+
+   s1len = text_length (font, s1);
+   s2len = text_length (font, s2);
+   s3len = text_length (font, s3);
+
+   /* Set up frame. */
+
+   objframe->w   = (9 + MAX3(s1len, s2len, s3len) + 9);
+   objframe->dp2 = (char *)title;
+
+   objxbutton->x = ((objframe->w - objxbutton->w) - 4);
+
+   /* Set up strings. */
+                         
+   objstr1->x   = ((objframe->w / 2) - (s1len / 2));
+   objstr1->dp2 = (char *)s1;
+
+   objstr2->x   = ((objframe->w / 2) - (s2len / 2));
+   objstr2->dp2 = (char *)s2;
+
+   objstr3->x   = ((objframe->w / 2) - (s3len / 2));
+   objstr3->dp2 = (char *)s3;
+
+   /* Set up buttons. */
+
+   objbtn1->x   = ((objframe->w / 2) - (objbtn1->w / 2));
+   objbtn1->dp  = (char *)b1;
+   objbtn1->key = c1;
+
+   if (b2)
+   {
+      objbtn1->x -= ((objbtn2->w / 2) + 4);
+
+      objbtn2->x   = ((objbtn1->x + objbtn1->w) + 8);
+      objbtn2->dp  = (char *)b2;
+      objbtn2->key = c2;
+   }
+   else
+   {
+      /* Hide the unused button. */
+
+      objbtn2->flags |= D_HIDDEN;
+      objbtn2->flags |= D_DISABLED;
+   }
+
+   /* Show dialog. */
+   result = show_dialog (dialog, ALERT_DIALOG_BUTTON_1);
+
+   /* Destroy dialog. */
+   unload_dialog (dialog);
+
+   if (gui_opened)
+   {
+      /* Close GUI. */
+      gui_close ();
+   }
+
+   if (result == ALERT_DIALOG_BUTTON_1)
+      return (1); /* OK. */
+   else
+      return (2); /* Cancel. */
 }
 
 static INLINE void cycle_audio (void);
@@ -1870,7 +2019,7 @@ static int main_replay_record_menu_start (void)
       main_replay_record_start_dialog[4].d1 = (SAVE_TITLE_SIZE - 1);
       main_replay_record_start_dialog[4].dp = title;
 
-      if (show_dialog (main_replay_record_start_dialog) != 5)
+      if (show_dialog (main_replay_record_start_dialog, -1) != 5)
          return (D_O_K);
    }
 
@@ -2102,7 +2251,7 @@ static int machine_save_state_menu_save (void)
       machine_save_state_save_dialog[4].d1 = (SAVE_TITLE_SIZE - 1);
       machine_save_state_save_dialog[4].dp = title;
 
-      if (show_dialog (machine_save_state_save_dialog) != 5)
+      if (show_dialog (machine_save_state_save_dialog, -1) != 5)
          return (D_O_K);
    }
 
@@ -2222,7 +2371,7 @@ static int machine_region_menu_pal (void)
 
 static int machine_menu_cheat_manager (void)
 {
-   if (show_dialog (machine_cheat_manager_dialog) ==
+   if (show_dialog (machine_cheat_manager_dialog, -1) ==
       MACHINE_CHEAT_MANAGER_DIALOG_SAVE_BUTTON)
    {
       save_patches ();
@@ -3178,7 +3327,7 @@ static int options_input_menu_enable_zapper (void)
 
 static int options_input_menu_configure (void)
 {
-   show_dialog (options_input_configure_dialog);
+   show_dialog (options_input_configure_dialog, -1);
 
    return (D_O_K);
 }
@@ -3282,7 +3431,7 @@ static int netplay_menu_start_as_server (void)
    obj_nick->dp = nick;
 
    /* Display dialog. */
-   if (show_dialog (dialog) != NETPLAY_DIALOG_OK_BUTTON)
+   if (show_dialog (dialog, -1) != NETPLAY_DIALOG_OK_BUTTON)
       return (D_O_K);
 
    /* Integerize port. */
@@ -3360,7 +3509,7 @@ static int netplay_menu_start_as_client (void)
    obj_nick->dp = nick;
 
    /* Display dialog. */
-   if (show_dialog (dialog) != NETPLAY_DIALOG_OK_BUTTON)
+   if (show_dialog (dialog, -1) != NETPLAY_DIALOG_OK_BUTTON)
       return (D_O_K);
 
    /* Integerize port. */
@@ -3390,23 +3539,23 @@ static int netplay_menu_start_as_client (void)
 
 static int help_menu_shortcuts (void)
 {
-   show_dialog (help_shortcuts_dialog);
+   show_dialog (help_shortcuts_dialog, -1);
 
    return (D_O_K);
 }
 
 static int help_menu_about (void)
 {
-   show_dialog (help_about_dialog);
+   show_dialog (help_about_dialog, -1);
 
    return (D_O_K);
 }
 
 static int help_menu_version (void)
 {
-   gui_alert ("FakeNES version " VERSION_STRING " " ALLEGRO_PLATFORM_STR, "",
-      "Get the latest from http://fakenes.sourceforge.net/.", "&OK", NULL,
-         'o', 0);
+   gui_alert ("Version", "FakeNES version " VERSION_STRING " "
+      ALLEGRO_PLATFORM_STR, NULL, "Get the latest from "
+         "http://fakenes.sourceforge.net/.", "&OK", NULL, 'o', 0);
 
    return (D_O_K);
 }
@@ -3458,8 +3607,8 @@ static int machine_cheat_manager_dialog_add (DIALOG *dialog)
 
    if (cpu_patch_count >= CPU_MAX_PATCHES)
    {
-      gui_alert ("- Error -", NULL, "The patch list is already full.", "&OK",
-         NULL, 'o', 0);
+      gui_alert ("Error", "The patch list is already full.", NULL, NULL,
+         "&OK", NULL, 'o', 0);
 
       return (D_O_K);
    }
@@ -3482,7 +3631,7 @@ static int machine_cheat_manager_dialog_add (DIALOG *dialog)
    obj_code->dp = code;
 
    /* Show dialog. */
-   if (show_dialog (main_dialog) != MACHINE_CHEAT_MANAGER_ADD_DIALOG_OK_BUTTON)
+   if (show_dialog (main_dialog, -1) != MACHINE_CHEAT_MANAGER_ADD_DIALOG_OK_BUTTON)
       return (D_O_K);
 
    patch = &cpu_patch_info[cpu_patch_count];
@@ -3490,8 +3639,8 @@ static int machine_cheat_manager_dialog_add (DIALOG *dialog)
    if (cheats_decode (code, &patch->address, &patch->value,
       &patch->match_value) != 0)
    {
-      gui_alert ("- Error -", NULL, "You must enter a valid Game Genie (or "
-         "NESticle raw) code.", "&OK", NULL, 'o', 0);
+      gui_alert ("Error", "You must enter a valid Game Genie (or NESticle "
+         "raw) code.", NULL, NULL, "&OK", NULL, 'o', 0);
 
       return (D_O_K);
    }
@@ -3535,9 +3684,11 @@ static int machine_cheat_manager_dialog_remove (DIALOG *dialog)
    /* Disable patch. */
    if (src->active)
    {
-      if (gui_alert ("Confirmation", NULL, "Really deactivate and remove this "
-         "patch?", "&OK", "&Cancel", 'o', 'c') == 2)
+      if (gui_alert ("Confirmation", "Really deactivate and remove this "
+         "patch?", NULL, NULL, "&OK", "&Cancel", 'o', 'c') == 2)
+      {
          return (D_O_K);
+      }
 
       cpu_patch_table[src->address] = 0;
    }
@@ -3684,8 +3835,8 @@ static int options_input_configure_dialog_device_select (DIALOG *dialog)
 
    if (selected_player < 0)
    {
-      gui_alert ("- Error -", "", "Please select a player to modify first.",
-         "&OK", NULL, 'o', 0);
+      gui_alert ("Error", "Please select a player to modify first.", NULL,
+         NULL, "&OK", NULL, 'o', 0);
 
       return (D_O_K);
    }
@@ -3706,8 +3857,8 @@ static int options_input_configure_dialog_set_buttons (DIALOG *dialog)
 
    if (selected_player < 0)
    {
-      gui_alert ("- Error -", "", "Please select a player to modify first.",
-         "&OK", NULL, 'o', 0);
+      gui_alert ("Error", "Please select a player to modify first.", NULL,
+         NULL, "&OK", NULL, 'o', 0);
 
       return (D_O_K);
    }
@@ -3722,16 +3873,16 @@ static int options_input_configure_dialog_set_buttons (DIALOG *dialog)
           (button == INPUT_DEVICE_BUTTON_LEFT) ||
           (button == INPUT_DEVICE_BUTTON_RIGHT))
       {
-         gui_alert ("- Error -", "", "Unable to set direction buttons for "
-            "joystick devices.", "&OK", NULL, 'o', 0);
+         gui_alert ("Error", "Unable to set direction buttons for joystick "
+            "devices.", NULL, NULL, "&OK", NULL, 'o', 0);
     
          return (D_O_K);
       }
    }
    else if (selected_player_device == INPUT_DEVICE_MOUSE)
    {
-      gui_alert ("- Error -", "", "Unable to set buttons for mouse at this"
-         " time.", "&OK", NULL, 'o', 0);
+      gui_alert ("Error", "Unable to set buttons for mouse at this time.",
+         NULL, NULL, "&OK", NULL, 'o', 0);
    }
 
    switch (selected_player_device)
@@ -3858,8 +4009,8 @@ static int options_input_configure_dialog_calibrate (DIALOG *dialog)
 
    if (selected_player < 0)
    {
-      gui_alert ("- Error -", "", "Please select a player to modify first.",
-         "&OK", NULL, 'o', 0);
+      gui_alert ("Error", "Please select a player to modify first.", NULL,
+         NULL, "&OK", NULL, 'o', 0);
 
       return (D_O_K);
    }
@@ -3895,16 +4046,16 @@ static int options_input_configure_dialog_calibrate (DIALOG *dialog)
 
             if (calibrate_joystick (index) != 0)
             {
-               gui_alert ("- Error -", "", "An unknown error occured while "
-                  "attempting to calibrate the device.", "&OK", NULL, 'o',
-                     0);
+               gui_alert ("Error", "An unknown error occured while "
+                  "attempting to calibrate the device.", NULL, NULL, "&OK",
+                     NULL, 'o', 0);
    
                return (D_O_K);
             }
          }
 
-         gui_alert ("- Calibration Complete - ", "", "The selected device has "
-            "been calibrated.", "&Save", NULL, 's', 0);
+         gui_alert ("Calibration Complete", "The selected device has been "
+            "calibrated.", NULL, NULL, "&Save", NULL, 's', 0);
 
          save_joystick_data (NULL);
 
@@ -3913,8 +4064,8 @@ static int options_input_configure_dialog_calibrate (DIALOG *dialog)
 
       default:
       {
-         gui_alert ("- Error -", "", "The selected device does not require "
-            "calibration.", "&OK", NULL, 'o', 0);
+         gui_alert ("Error", "The selected device does not require "
+            "calibration.", NULL, NULL, "&OK", NULL, 'o', 0);
 
          break;
       }

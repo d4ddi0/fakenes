@@ -16,6 +16,30 @@ DEFINE_DIALOG(lobby_dialog);
 DEFINE_DIALOG(help_shortcuts_dialog);
 DEFINE_DIALOG(help_about_dialog);
 
+/* alert() replacement dialog, loaded and built by gui_alert(). */
+static const DIALOG alert_dialog_base[] =
+{
+   { sl_frame,      0, 0,  0,  83, 0, 0, 0, 0,      0, 0, NULL, NULL, NULL },
+   { sl_x_button,   0, 4,  16, 12, 0, 0, 0, D_EXIT, 0, 0, "X",  NULL, NULL },
+   { sl_text,       0, 28, 0,  0,  0, 0, 0, 0,      0, 0, NULL, NULL, NULL },
+   { sl_text,       0, 37, 0,  0,  0, 0, 0, 0,      0, 0, NULL, NULL, NULL },
+   { sl_text,       0, 46, 0,  0,  0, 0, 0, 0,      0, 0, NULL, NULL, NULL },
+   { d_button_proc, 0, 61, 44, 16, 0, 0, 0, D_EXIT, 0, 0, NULL, NULL, NULL },
+   { d_button_proc, 0, 61, 44, 16, 0, 0, 0, D_EXIT, 0, 0, NULL, NULL, NULL },
+   DIALOG_FRAME_ENDCAP
+};  
+
+enum
+{
+   ALERT_DIALOG_FRAME = 0,
+   ALERT_DIALOG_CLOSE_BUTTON,
+   ALERT_DIALOG_STRING_1,
+   ALERT_DIALOG_STRING_2,
+   ALERT_DIALOG_STRING_3,
+   ALERT_DIALOG_BUTTON_1,
+   ALERT_DIALOG_BUTTON_2
+};
+
 static const DIALOG main_dialog_base[] =
 {
    { d_menu_proc, 16, 16, 0, 0, 0, 0, 0, 0, 0, 0, IMPORT_MENU(top_menu), NULL, NULL },

@@ -600,7 +600,7 @@ int main (int argc, char * argv [])
                               audio_suspend ();
           
           
-                              if (gui_alert ("- Confirmation -", NIL, "A ROM is currently loaded.  Really exit?", "&OK", "&Cancel", 0, 0) == 2)
+                              if (gui_alert ("Confirmation", "A ROM is currently loaded.", NULL, "Really exit?", "&OK", "&Cancel", 0, 0) == 2)
                               {
                                   want_exit = FALSE;
           
