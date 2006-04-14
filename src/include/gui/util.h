@@ -39,7 +39,7 @@ static INLINE void refresh (void)
    if (bmp == screen)
       return;
 
-   video_show_bitmap (bmp);
+   video_show_bitmap (bmp, 1, TRUE);
 }
 
 static INLINE void draw_message (int color)

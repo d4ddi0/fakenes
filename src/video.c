@@ -723,52 +723,7 @@ void video_blit (BITMAP *bitmap)
    glblit:
    {
       if (video_is_opengl_mode () && (bitmap == screen))
-      {
-         GLuint texture_id;
-
-         /* Create and upload texture. */
-
-         texture_id = allegro_gl_make_texture (screen_buffer);
-         if (texture_id == 0)
-            WARN("Creation of OpenGL texture failed");
-
-         /* Select texture. */
-         glBindTexture (GL_TEXTURE_2D, texture_id);
-
-         /* Set texture properties. */
-
-         glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-         glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-         glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_CLAMP);
-         glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_CLAMP);
-
-         /* Disable environmental modifications. */
-         glTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-
-         /* Draw quad. */
-
-         glBegin (GL_QUADS);
-
-            glTexCoord2f (0, 0);
-            glVertex3f (-1.0f, -1.0f, 0);
-   
-            glTexCoord2f (1.0f, 0);
-            glVertex3f (1.0f, -1.0f, 0);
-   
-            glTexCoord2f (1.0f, 1.0f);
-            glVertex3f (1.0f, 1.0f, 0);
-                              
-            glTexCoord2f (0, 1.0f);
-            glVertex3f (-1.0f, 1.0f, 0);
-
-         glEnd ();
-
-         /* Update screen. */
-         allegro_gl_flip ();
-
-         /* Delete texture. */
-         glDeleteTextures (1, &texture_id);
-      }
+         video_show_bitmap (screen_buffer, 2, FALSE);
    }
 
 #endif   /* USE_ALLEGROGL */
@@ -784,42 +739,120 @@ void video_blit (BITMAP *bitmap)
    clear (status_buffer);
 }
 
-void video_show_bitmap (BITMAP *bitmap)
+void video_show_bitmap (BITMAP *bitmap, ENUM quality, BOOL with_mouse)
 {
+   /* Generic buffer-to-screen display function.
+
+      Under OpenGL, uses direct OpenGL calls instead of AllegroGL's
+      emulation layer.  It can optionally provide software drawing of the
+      mouse pointer, which is used by the GUI routines.
+
+      Quality settings:
+         0 - Default.
+         1 - OpenGL Map Nearest.
+         2 - OpenGL Map Linear. */
+
    RT_ASSERT(bitmap);
 
 #ifdef USE_ALLEGROGL
 
    if (video_is_opengl_mode ())
    {
-      BITMAP *saved;
-      int saved_x, saved_y;
+      BITMAP *saved = NULL;   /* Qwell warnings. */
+      int saved_x = 0, saved_y = 0;
+      GLuint texture_id;
 
-      /* Save mouse coordinates. */
-      saved_x = (mouse_x - mouse_x_focus);
-      saved_y = (mouse_y - mouse_y_focus);
+      if (with_mouse)
+      {
+         /* Save mouse coordinates. */
+         saved_x = (mouse_x - mouse_x_focus);
+         saved_y = (mouse_y - mouse_y_focus);
+   
+         saved = create_bitmap (mouse_sprite->w, mouse_sprite->h);
+   
+         if (saved)
+         {
+            blit (bitmap, saved, saved_x, saved_y, 0, 0, saved->w,
+               saved->h);
+         }
 
-      saved = create_bitmap (mouse_sprite->w, mouse_sprite->h);
+         /* Draw mouse pointer. */
+         draw_sprite (bitmap, mouse_sprite, saved_x, saved_y);
+      }
 
-      if (saved)
-         blit (bitmap, saved, saved_x, saved_y, 0, 0, saved->w, saved->h);
+      /* Create and upload texture. */
 
-      /* Draw mouse pointer. */
-      draw_sprite (bitmap, mouse_sprite, saved_x, saved_y);
+      texture_id = allegro_gl_make_texture (bitmap);
+      if (texture_id == 0)
+         WARN("Creation of OpenGL texture failed");
 
-      /* Enable Allegro compatibility mode. */
-      allegro_gl_set_allegro_mode ();
+      /* Select texture. */
+      glBindTexture (GL_TEXTURE_2D, texture_id);
 
-      /* Copy bitmap to backbuffer. */
-      blit (bitmap, screen, 0, 0, 0, 0, bitmap->w, bitmap->h);
+      /* Set texture properties. */
 
-      /* Disable Allegro compatibility mode. */
-      allegro_gl_unset_allegro_mode ();
+      switch (quality)
+      {
+         case 0:  /* Default. */
+            break;
 
-      /* Display backbuffer. */
+         case 1:  /* OpenGL Map Nearest. */
+         {
+            glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+               GL_NEAREST);
+            glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+               GL_NEAREST);
+
+            break;
+         }
+
+         case 2:  /* OpenGL Map Linear. */
+         {
+            glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+               GL_LINEAR);
+            glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+               GL_LINEAR);
+
+            break;
+         }
+
+         default:
+            WARN_GENERIC();
+      }
+
+      /* Clamp edges. */
+
+      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_CLAMP);
+      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_CLAMP);
+
+      /* Disable environmental modifications. */
+      glTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+
+      /* Draw quad. */
+
+      glBegin (GL_QUADS);
+
+         glTexCoord2f (0, 0);
+         glVertex3f (-1.0f, -1.0f, 0);
+
+         glTexCoord2f (1.0f, 0);
+         glVertex3f (1.0f, -1.0f, 0);
+
+         glTexCoord2f (1.0f, 1.0f);
+         glVertex3f (1.0f, 1.0f, 0);
+                           
+         glTexCoord2f (0, 1.0f);
+         glVertex3f (-1.0f, 1.0f, 0);
+
+      glEnd ();
+
+      /* Update screen. */
       allegro_gl_flip ();
 
-      if (saved)
+      /* Delete texture. */
+      glDeleteTextures (1, &texture_id);
+
+      if (with_mouse && saved)
       {
          /* Erase mouse pointer. */
          blit (saved, bitmap, 0, 0, saved_x, saved_y, saved->w, saved->h);

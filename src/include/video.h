@@ -84,7 +84,7 @@ int video_get_color_depth (void);
 void video_set_color_depth (int);
 void video_set_driver (int);
 BOOL video_is_opengl_mode (void);
-void video_show_bitmap (BITMAP *);
+void video_show_bitmap (BITMAP *, ENUM, BOOL);
 
 void video_message (const UCHAR *, ...);
 
