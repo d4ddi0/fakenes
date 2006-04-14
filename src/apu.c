@@ -151,7 +151,8 @@ static INLINE REAL apu_envelope (apu_chan_t *chan)
 
    while (chan->env_phase < 0)
    {
-      chan->env_phase += chan->env_delay;
+      /* MAX() kludge here to fix a possible lock-up in some games. */
+      chan->env_phase += MAX(chan->env_delay, 1);
 
       if (chan->holdnote)
          chan->env_vol = ((chan->env_vol + 1) & 0x0f);
@@ -212,7 +213,8 @@ static INLINE REAL apu_square (apu_chan_t *chan)
 
       while (chan->sweep_phase < 0)
       {
-         chan->sweep_phase += chan->sweep_delay;
+         /* MAX() kludge here to fix a possible lock-up in some games. */
+         chan->sweep_phase += MAX(chan->sweep_delay, 1);
 
          if (chan->sweep_inc)
          {
@@ -412,10 +414,8 @@ static INLINE REAL apu_noise (apu_chan_t *chan)
       static int sreg = 0x4000;
       int bit0, tap, bit14;
 
-      /* Hack: We add 1 to the channel frequency during this loop just in
-         case it happens to be zero (and it does happen), in which this
-         while loop would become infinitely ... infinite. */
-      chan->phaseacc += (chan->freq + 1);
+      /* MAX() kludge here to fix a possible lock-up in some games. */
+      chan->phaseacc += MAX(chan->freq, 1);
 
       bit0 = (sreg & 1);
       tap = ((sreg & chan->xor_tap) ? 1 : 0);
@@ -424,7 +424,7 @@ static INLINE REAL apu_noise (apu_chan_t *chan)
       sreg |= (bit14 << 14);
       noise_bit = (bit0 ^ 1);
 
-      sample_weight = (chan->freq + 1);
+      sample_weight = chan->freq;
 
       if (chan->phaseacc > 0)
          sample_weight -= chan->phaseacc;
@@ -478,7 +478,8 @@ static INLINE REAL apu_dmc (apu_chan_t *chan)
    
    while (chan->phaseacc < 0)
    {
-      chan->phaseacc += chan->freq;
+      /* MAX() kludge here to fix a possible lock-up in some games. */
+      chan->phaseacc += MAX(chan->freq, 1);
       
       if ((chan->dma_length & 7) == 0)
       {
@@ -518,7 +519,11 @@ static INLINE REAL apu_dmc (apu_chan_t *chan)
             total += ((chan->regs[1] << 8) * sample_weight);
 
             while (chan->phaseacc < 0)
-               chan->phaseacc += chan->freq;
+            {
+               /* MAX() kludge here to fix a possible lock-up in some
+                  games. */
+               chan->phaseacc += MAX(chan->freq, 1);
+            }
 
             chan->enabled = FALSE;
 
@@ -846,7 +851,7 @@ void apu_process (void)
                default:
                   WARN_GENERIC();
             }
-                 
+
             dsp_samples[channel] = sample;
          }
    

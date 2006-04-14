@@ -67,7 +67,8 @@ static INLINE REAL apu_mmc5s_square (apu_mmc5s_chan_t *chan)
 	{
       while (chan->envphase < 0)
 		{
-         chan->envphase += chan->envspd;
+         /* MAX() kludge here to fix a possible lock-up in some games. */
+         chan->envphase += MAX(chan->envspd, 1);
          chan->envadr++;
 		}
       chan->envadr &= 0x0F;
@@ -76,7 +77,8 @@ static INLINE REAL apu_mmc5s_square (apu_mmc5s_chan_t *chan)
 	{
       while (chan->envphase < 0)
 		{
-         chan->envphase += chan->envspd;
+         /* MAX() kludge here to fix a possible lock-up in some games. */
+         chan->envphase += MAX(chan->envspd, 1);
          chan->envadr += (chan->envadr < 15);
 		}
 	}
@@ -98,13 +100,17 @@ static INLINE REAL apu_mmc5s_square (apu_mmc5s_chan_t *chan)
          if (chan->regs[1] & 8)
             while (chan->sweepphase < 0)
 				{
-               chan->sweepphase += chan->sweepspd;
+               /* MAX() kludge here to fix a possible lock-up in some
+                  games. */
+               chan->sweepphase += MAX(chan->sweepspd, 1);
                chan->spd -= chan->spd >> (chan->regs[1] & 7);
 				}
 			else
             while (chan->sweepphase < 0)
 				{
-               chan->sweepphase += chan->sweepspd;
+               /* MAX() kludge here to fix a possible lock-up in some
+                  games. */
+               chan->sweepphase += MAX(chan->sweepspd, 1);
                chan->spd += chan->spd >> (chan->regs[1] & 7);
 				}
 		}
@@ -119,7 +125,8 @@ static INLINE REAL apu_mmc5s_square (apu_mmc5s_chan_t *chan)
    chan->cycles -= chan->cps;
    while (chan->cycles < 0)
 	{
-      chan->cycles += chan->spd;
+      /* MAX() kludge here to fix a possible lock-up in some games. */
+      chan->cycles += MAX(chan->spd, 1);
       chan->adr++;
 	}
    chan->adr &= 0x0F;

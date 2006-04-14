@@ -31,7 +31,8 @@ static INLINE REAL apu_vrc6s_square (apu_vrc6s_chan_t *chan)
    chan->cycles -= chan->cps;
    while (chan->cycles < 0)
 	{
-      chan->cycles += chan->spd;
+      /* MAX() kludge here to fix a possible lock-up in some games. */
+      chan->cycles += MAX(chan->spd, 1);
       chan->adr++;
 	}
    chan->adr &= 0xF;
@@ -70,7 +71,8 @@ static INLINE REAL apu_vrc6s_saw (apu_vrc6s_chan_t *chan)
    chan->cycles -= chan->cps;
    while (chan->cycles < 0)
 	{
-      chan->cycles += chan->spd;
+      /* MAX() kludge here to fix a possible lock-up in some games. */
+      chan->cycles += MAX(chan->spd, 1);
       chan->output += (chan->regs[0] & 0x3F);
       if (7 == ++chan->adr)
 		{
