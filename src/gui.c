@@ -57,7 +57,7 @@ static USTRING message_buffer;
 static PALETTE custom_palette;
 
 /* Time to rest in milliseconds (used by gui_heartbeat()). */
-#define REST_TIME 50
+#define REST_TIME 10
 
 static int save_state_index = 0; /* For save states. */
 static int replay_index = 0;     /* For replays. */
