@@ -8,9 +8,6 @@
  
 #define ALLEGRO_USE_CONSOLE
 #include <allegro.h>
-#ifdef USE_ALLEGROGL
-#include <alleggl.h>
-#endif
 #include <stdio.h>
 #include "apu.h"
 #include "audio.h"
@@ -252,9 +249,6 @@ int main (int argc, char * argv [])
 
     allegro_init ();
 
-#ifdef USE_ALLEGROGL
-    install_allegro_gl ();
-#endif
 
     set_window_title ("FakeNES");
 

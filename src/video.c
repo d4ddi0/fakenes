@@ -188,6 +188,9 @@ int video_init (void)
 
    if (driver == GFX_OPENGL)
    {
+      /* Install AllegroGL. */
+      install_allegro_gl ();
+
       /* Hint at which modes we want for OpenGL. */
                                        
       allegro_gl_set (AGL_FULLSCREEN,  video_force_fullscreen);
@@ -427,6 +430,12 @@ int video_init_buffer (void)
 
 void video_exit (void)
 {
+#ifdef USE_ALLEGROGL
+
+   remove_allegro_gl ();
+
+#endif   /* USE_ALLEGRO_GL */
+
    if (!is_windowed_mode ())
    {
       /* Remove callbacks. */
