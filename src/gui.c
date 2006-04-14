@@ -512,7 +512,7 @@ int show_gui (BOOL first_run)
       /* Warn about buggy OpenGL support in the GUI. */
 
       gui_alert ("OpenGL Warning", "The GUI's OpenGL support is still a "
-         "bit buggy and incomplete.", NULL, "Proceed with caution.", "&OK",
+         "bit buggy and incomplete.", "Proceed with caution.", NULL, "&OK",
             NULL, 'o', 0);
 
       warned_about_opengl = TRUE;
@@ -546,10 +546,21 @@ int gui_alert (const UCHAR *title, const UCHAR *s1, const UCHAR *s2, const
    DIALOG *objstr1, *objstr2, *objstr3;
    DIALOG *objbtn1, *objbtn2;
    int s1len, s2len, s3len;
+   int collapse = 0;
 
    RT_ASSERT(title);
    RT_ASSERT(s1);
    RT_ASSERT(b1);
+
+   /* Handle any NULL entries. */
+
+   if (!s2) s2 = empty_string;
+   if (!s3) s3 = empty_string;
+
+   if (ustrlen (s2) == 0)
+      collapse += (text_height (font) + 3);
+   if (ustrlen (s3) == 0)
+      collapse += (text_height (font) + 3);
 
    if (!gui_is_active)
    {
@@ -565,11 +576,6 @@ int gui_alert (const UCHAR *title, const UCHAR *s1, const UCHAR *s2, const
 
       gui_opened = TRUE;
    }
-
-   /* Handle any NULL parameters. */
-   
-   if (!s2) s2 = empty_string;
-   if (!s3) s3 = empty_string;
 
    /* Create dialog. */
    dialog = load_dialog (alert_dialog_base);
@@ -603,7 +609,7 @@ int gui_alert (const UCHAR *title, const UCHAR *s1, const UCHAR *s2, const
    objxbutton->x = ((objframe->w - objxbutton->w) - 4);
 
    /* Set up strings. */
-                         
+
    objstr1->x   = ((objframe->w / 2) - (s1len / 2));
    objstr1->dp2 = (char *)s1;
 
@@ -619,6 +625,8 @@ int gui_alert (const UCHAR *title, const UCHAR *s1, const UCHAR *s2, const
    objbtn1->dp  = (char *)b1;
    objbtn1->key = c1;
 
+   objbtn1->y -= collapse;
+
    if (b2)
    {
       objbtn1->x -= ((objbtn2->w / 2) + 4);
@@ -626,6 +634,8 @@ int gui_alert (const UCHAR *title, const UCHAR *s1, const UCHAR *s2, const
       objbtn2->x   = ((objbtn1->x + objbtn1->w) + 8);
       objbtn2->dp  = (char *)b2;
       objbtn2->key = c2;
+
+      objbtn2->y -= collapse;
    }
    else
    {
@@ -634,6 +644,9 @@ int gui_alert (const UCHAR *title, const UCHAR *s1, const UCHAR *s2, const
       objbtn2->flags |= D_HIDDEN;
       objbtn2->flags |= D_DISABLED;
    }
+
+   /* Collapse frame. */
+   objframe->h -= collapse;
 
    /* Show dialog. */
    result = show_dialog (dialog, ALERT_DIALOG_BUTTON_1);
@@ -2883,8 +2896,8 @@ static int help_menu_about (void)
 static int help_menu_version (void)
 {
    gui_alert ("Version", "FakeNES version " VERSION_STRING " "
-      ALLEGRO_PLATFORM_STR, NULL, "Get the latest from "
-         "http://fakenes.sourceforge.net/.", "&OK", NULL, 'o', 0);
+      ALLEGRO_PLATFORM_STR, "Get the latest from "
+         "http://fakenes.sourceforge.net/.", NULL, "&OK", NULL, 'o', 0);
 
    return (D_O_K);
 }
