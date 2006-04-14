@@ -26,6 +26,13 @@
 #include "types.h"
 #include "video.h"
 
+#ifdef USE_ALLEGROGL
+
+/* Botch. */
+static BOOL allegro_gl_installed = FALSE;
+
+#endif   /* USE_ALLEGROGL */
+
 int video_buffer_width = 320;
 int video_buffer_height = 240;
 
@@ -190,6 +197,12 @@ int video_init (void)
    {
       /* Install AllegroGL. */
       install_allegro_gl ();
+
+      /* Due to a bug in AllegroGL, we must make sure to remove it before
+         accessing any other video modes.  However, we must set this flag
+         to know that we've installed it, because there doesn't appear to
+         be any other way to tell. */
+      allegro_gl_installed = TRUE;
 
       /* Hint at which modes we want for OpenGL. */
                                        
@@ -432,7 +445,14 @@ void video_exit (void)
 {
 #ifdef USE_ALLEGROGL
 
-   remove_allegro_gl ();
+   if (allegro_gl_installed)
+   {
+      /* Remove AllegroGL and restore Allegro GFX drivers. */
+      remove_allegro_gl ();
+
+      /* Clear flag. */
+      allegro_gl_installed = FALSE;
+   }
 
 #endif   /* USE_ALLEGRO_GL */
 
