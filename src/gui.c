@@ -48,12 +48,6 @@ RGB *gui_image_palette = NULL;
 static BITMAP *gui_mouse_sprite = NULL;
 static BITMAP *background_image = NULL;
 
-/* Keep these in order! */
-#include "gui/themes.h"
-#include "gui/objects.h"
-#include "gui/menus.h"
-#include "gui/dialogs.h"
-
 BOOL gui_needs_restart = FALSE;
 BOOL gui_is_active = FALSE;
 static BOOL want_exit = FALSE;
@@ -85,524 +79,12 @@ static USTRING save_state_menu_texts[SAVE_STATE_SLOTS];
 
 static BOOL lock_recent = FALSE;
 
-static INLINE MENU *load_menu (const MENU *menu)
-{
-   MENU *new_menu;
-   int size = 0;
-   int index = 0;
-
-   RT_ASSERT(menu);
-
-   while (menu[index].text || menu[index].proc)
-   {
-       size += sizeof (MENU);
-
-       index++;
-   }
-
-   /* Once more for the end marker. */
-   size += sizeof (MENU);
-
-   if (!(new_menu = malloc (size)))
-   {
-      WARN("Failed to allocate menu structure");
-
-      return (NULL);
-   }
-
-   memcpy (new_menu, menu, size);
-
-   /* Reset counter. */
-   index = 0;
-
-   while (new_menu[index].text || new_menu[index].proc)
-   {
-      MENU *item = &new_menu[index];
-
-      /* Import menu by reference. */
-      if (item->child)
-         item->child = *(MENU **)item->child;
-
-      index++;
-   }
-
-   return (new_menu);
-}
-
-static INLINE DIALOG *load_dialog (const DIALOG *dialog)
-{
-   DIALOG *new_dialog;
-   int size = 0;
-   int index = 0;
-   int width, height;
-
-   RT_ASSERT(dialog);
-
-   while (dialog[index].proc)
-   {
-      size += sizeof (DIALOG);
-
-      index++;
-   }
-
-   /* Once more for the end marker. */
-   size += sizeof (DIALOG);
-
-   if (!(new_dialog = malloc (size)))
-   {
-       WARN("Failed to allocate dialog structure");
-
-       return (NULL);
-   }
-
-   memcpy (new_dialog, dialog, size);
-
-   /* Font scaling parameters. */
-   width = text_length (font, "X");
-   height = text_height (font);
-
-   /* Reset counter. */
-   index = 0;
-
-   while (new_dialog[index].proc)
-   {
-      DIALOG *object = &new_dialog[index];
-
-      /* Import menu by reference. */
-      if (object->proc == d_menu_proc)
-         object->dp = *(MENU **)object->dp;
-
-      /* Dialog to font scaling. */
-      if (font != small_font)
-      {
-         switch (index)
-         {
-            case 0: /* sl_frame. */
-            {
-               object->w = ROUND(((object->w / 5.0f) * width));
-               object->h = (ROUND(((object->h / 6.0f) * height)) - height);
-
-               break;
-            }
-         
-            case 1: /* sl_x_button. */
-            {
-               object->x = ROUND(((object->x / 5.0f) * width));
-     
-               break;
-            } 
-    
-            default:
-            {
-               object->x = ROUND(((object->x / 5.0f) * width));
-               object->y = (ROUND(((object->y / 6.0f) * height)) - height);
-               object->w = ROUND(((object->w / 5.0f) * width));
-               object->h = ROUND(((object->h / 6.0f) * height));
-    
-               break;
-            }
-         }
-
-      }
-
-      index++;
-    }
-
-    return (new_dialog);
-}
-
-static INLINE void unload_menu (MENU *menu)
-{
-   RT_ASSERT(menu);
-
-   free (menu);
-}
-
-static INLINE void unload_dialog (DIALOG *dialog)
-{
-   RT_ASSERT(dialog);
-
-   free (dialog);
-}
-
-/* Define helper macros. */
-#define MENU_FROM_BASE(name)    (name = load_menu (name ##_base))
-#define DIALOG_FROM_BASE(name)  (name = load_dialog (name ##_base))
-
-static INLINE void load_menus (void)
-{
-   MENU_FROM_BASE(main_open_recent_menu);
-   MENU_FROM_BASE(main_replay_select_menu);
-   MENU_FROM_BASE(main_replay_record_menu);
-   MENU_FROM_BASE(main_replay_play_menu);
-   MENU_FROM_BASE(main_replay_menu);
-   MENU_FROM_BASE(main_menu);
-   MENU_FROM_BASE(machine_save_state_select_menu);
-   MENU_FROM_BASE(machine_save_state_autosave_menu);
-   MENU_FROM_BASE(machine_save_state_menu);
-   MENU_FROM_BASE(machine_region_menu);
-   MENU_FROM_BASE(machine_menu);
-   MENU_FROM_BASE(audio_subsystem_menu);
-   MENU_FROM_BASE(audio_mixing_channels_menu);
-   MENU_FROM_BASE(audio_mixing_frequency_menu);
-   MENU_FROM_BASE(audio_mixing_quality_menu);
-   MENU_FROM_BASE(audio_mixing_menu);
-   MENU_FROM_BASE(audio_buffer_menu);
-   MENU_FROM_BASE(audio_effects_menu);
-   MENU_FROM_BASE(audio_filters_menu);
-   MENU_FROM_BASE(audio_channels_menu);
-   MENU_FROM_BASE(audio_volume_menu);
-   MENU_FROM_BASE(audio_record_menu);
-   MENU_FROM_BASE(audio_menu);
-   MENU_FROM_BASE(video_driver_dos_menu);
-   MENU_FROM_BASE(video_driver_windows_menu);
-   MENU_FROM_BASE(video_driver_linux_menu);
-   MENU_FROM_BASE(video_driver_unix_menu);
-   MENU_FROM_BASE(video_driver_menu);
-   MENU_FROM_BASE(video_resolution_proportionate_menu);
-   MENU_FROM_BASE(video_resolution_menu);
-   MENU_FROM_BASE(video_colors_menu);
-   MENU_FROM_BASE(video_buffer_menu);
-   MENU_FROM_BASE(video_blitter_menu);
-   MENU_FROM_BASE(video_filters_menu);
-   MENU_FROM_BASE(video_layers_menu);
-   MENU_FROM_BASE(video_palette_menu);
-   MENU_FROM_BASE(video_menu);
-   MENU_FROM_BASE(options_input_menu);
-   MENU_FROM_BASE(options_cpu_usage_menu);
-   MENU_FROM_BASE(options_gui_theme_menu);
-   MENU_FROM_BASE(options_menu);
-   MENU_FROM_BASE(netplay_menu);
-   MENU_FROM_BASE(help_menu);
-   MENU_FROM_BASE(top_menu);
-}
-
-static INLINE void load_dialogs (void)
-{
-   DIALOG_FROM_BASE(main_dialog);
-   DIALOG_FROM_BASE(main_replay_record_start_dialog);
-   DIALOG_FROM_BASE(machine_save_state_save_dialog);
-   DIALOG_FROM_BASE(machine_cheat_manager_add_dialog);
-   DIALOG_FROM_BASE(machine_cheat_manager_dialog);
-   DIALOG_FROM_BASE(options_input_configure_dialog);
-   DIALOG_FROM_BASE(netplay_dialog);
-   DIALOG_FROM_BASE(lobby_dialog);
-   DIALOG_FROM_BASE(help_shortcuts_dialog);
-   DIALOG_FROM_BASE(help_about_dialog);
-}
-
-/* Undefine helper macros. */
-#undef MENU_FROM_BASE
-#undef DIALOG_FROM_BASE
-
-static INLINE void unload_menus (void)
-{
-   unload_menu (main_open_recent_menu);
-   unload_menu (main_replay_select_menu);
-   unload_menu (main_replay_record_menu);
-   unload_menu (main_replay_play_menu);
-   unload_menu (main_replay_menu);
-   unload_menu (main_menu);
-   unload_menu (machine_save_state_select_menu);
-   unload_menu (machine_save_state_autosave_menu);
-   unload_menu (machine_save_state_menu);
-   unload_menu (machine_region_menu);
-   unload_menu (machine_menu);
-   unload_menu (audio_subsystem_menu);
-   unload_menu (audio_mixing_channels_menu);
-   unload_menu (audio_mixing_frequency_menu);
-   unload_menu (audio_mixing_quality_menu);
-   unload_menu (audio_mixing_menu);
-   unload_menu (audio_buffer_menu);
-   unload_menu (audio_effects_menu);
-   unload_menu (audio_filters_menu);
-   unload_menu (audio_channels_menu);
-   unload_menu (audio_volume_menu);
-   unload_menu (audio_record_menu);
-   unload_menu (audio_menu);
-   unload_menu (video_driver_dos_menu);
-   unload_menu (video_driver_windows_menu);
-   unload_menu (video_driver_linux_menu);
-   unload_menu (video_driver_unix_menu);
-   unload_menu (video_driver_menu);
-   unload_menu (video_resolution_proportionate_menu);
-   unload_menu (video_resolution_menu);
-   unload_menu (video_colors_menu);
-   unload_menu (video_buffer_menu);
-   unload_menu (video_blitter_menu);
-   unload_menu (video_filters_menu);
-   unload_menu (video_layers_menu);
-   unload_menu (video_palette_menu);
-   unload_menu (video_menu);
-   unload_menu (options_input_menu);
-   unload_menu (options_cpu_usage_menu);
-   unload_menu (options_gui_theme_menu);
-   unload_menu (options_menu);
-   unload_menu (netplay_menu);
-   unload_menu (help_menu);
-   unload_menu (top_menu);
-}
-
-static INLINE void unload_dialogs (void)
-{
-   unload_dialog (main_dialog);
-   unload_dialog (main_replay_record_start_dialog);
-   unload_dialog (machine_save_state_save_dialog);
-   unload_dialog (machine_cheat_manager_add_dialog);
-   unload_dialog (machine_cheat_manager_dialog);
-   unload_dialog (options_input_configure_dialog);
-   unload_dialog (netplay_dialog);
-   unload_dialog (lobby_dialog);
-   unload_dialog (help_shortcuts_dialog);
-   unload_dialog (help_about_dialog);
-}
-
-static INLINE void pack_color (GUI_COLOR *color)
-{
-    int r, g, b;
-
-    RT_ASSERT(color);
-
-    r = (color->r * 255);
-    g = (color->g * 255);
-    b = (color->b * 255);
-
-    color->packed = video_create_color (r, g, b);
-}
-
-void gui_set_theme (const GUI_THEME *theme)
-{
-   int index;
-
-   RT_ASSERT(theme);
-
-   last_theme = theme;
-
-   memcpy (&gui_theme, theme, sizeof (GUI_THEME));
-
-   video_set_palette (NULL);
-
-   for (index = 0; index < GUI_TOTAL_COLORS; index++)
-      pack_color (&gui_theme[index]);
-
-   gui_bg_color = GUI_FILL_COLOR;
-   gui_fg_color = GUI_TEXT_COLOR;
-   gui_mg_color = GUI_DISABLED_COLOR;
-}
-
-static INLINE void update_colors (void)
-{
-   /* This function simply re-sets the last (current) theme to make sure all
-      colors are correctly packed. */
-
-   if (last_theme)
-      gui_set_theme (last_theme);
-}
-
-static INLINE void redraw (void)
-{
-   /* This function redraws the current dialog. */
-
-   broadcast_dialog_message (MSG_DRAW, 0);
-}
-
-static INLINE void refresh (void);
-
-static INLINE void draw_message (int color)
-{
-   /* This function draws the message currently present in message_buffer,
-      either directly to the screen or by sending it to the video code. */
-
-   if (gui_is_active)
-   {
-      BITMAP *bmp;
-      int x1, y1, x2, y2;
-
-      bmp = gui_get_screen ();
-
-      x1 = 16;
-      y1 = (((bmp->h - 16) - text_height (font)) - 8);
-      x2 = (bmp->w - 16);
-      y2 = (bmp->h - 16);
-   
-      vline (bmp, (x2 + 1), (y1 + 1), (y2 + 1), GUI_SHADOW_COLOR);
-      hline (bmp, (x1 + 1), (y2 + 1), (x2 + 1), GUI_SHADOW_COLOR);
-   
-      rectfill (bmp, x1, y1, x2, y2, GUI_FILL_COLOR);
-      rect (bmp, x1, y1, x2, y2, GUI_BORDER_COLOR);
-   
-      textout_centre_ex (bmp, font, message_buffer, (bmp->w / 2), ((bmp->h
-         - 19) - text_height (font)), 0, -1);
-      textout_centre_ex (bmp, font, message_buffer, ((bmp->w / 2) - 1),
-         (((bmp->h - 19) - text_height (font)) - 1), color, -1);
-
-      refresh ();
-
-      log_printf ("GUI: %s\n", message_buffer);
-   }
-   else
-   {
-      video_message (message_buffer);
-      video_message_duration = 3000;
-   }
-}
-
-void gui_message (int color, const UCHAR *message, ...)
-{
-   va_list format;
-
-   RT_ASSERT(message);
-
-   va_start (format, message);
-   uvszprintf (message_buffer, USTRING_SIZE, message, format);
-   va_end (format);
-
-   draw_message (color);
-}
-
-static INLINE void message_local (const UCHAR *message, ...)
-{
-   /* This is identical to gui_message(), except that it always uses the
-      GUI text color. */
-
-   va_list format;
-
-   RT_ASSERT(message);
-
-   va_start (format, message);
-   uvszprintf (message_buffer, USTRING_SIZE, message, format);
-   va_end (format);
-
-   draw_message (GUI_TEXT_COLOR);
-}
-
-static INLINE void refresh (void)
-{
-   BITMAP *bmp;
-
-   /* If the GUI is not being drawn directly to the screen, this function
-      displays it via video_show_bitmap(). */
-
-   bmp = gui_get_screen ();
-
-   if (bmp == screen)
-      return;
-
-   video_show_bitmap (bmp);
-}
-
-void gui_heartbeat (void)
-{
-   /* Called by both run_dialog() and the custom, non-blocking menu objects
-      at a rate of (1000 / REST_TIME) milliseconds, or close enough. */
-
-   refresh ();
-
-   rest (REST_TIME);
-}
-
-static INLINE int run_dialog (DIALOG *dialog, int focus)
-{
-   DIALOG_PLAYER *player;
-   int index;
-
-   /* Similar to Allegro's do_dialog(), but is built to be non-blocking with
-      minimal CPU usage and automatic screen refresh for when the GUI is not
-      being drawn directly to the screen. */
-
-   RT_ASSERT(dialog);
-
-   player = init_dialog (dialog, focus);
-
-   while (update_dialog (player))
-      gui_heartbeat ();
-
-   index = player->obj;
-
-   shutdown_dialog (player);
-
-   return (index);
-}
-
-static INLINE int show_dialog (DIALOG *dialog, int focus)
-{
-   BITMAP *bmp;
-   BITMAP *saved;
-   int position;
-   UINT16 x = x, y = y; /* Kill warnings. */
-   BOOL moved = FALSE;
-   int index = 0;
-
-   RT_ASSERT(dialog);
-
-   bmp = gui_get_screen ();
-
-   saved = create_bitmap (bmp->w, bmp->h);
-   if (!saved)
-      WARN("Failed to create temporary background buffer; crash imminent");
-
-   scare_mouse ();
-   blit (bmp, saved, 0, 0, 0, 0, bmp->w, bmp->h);
-   unscare_mouse ();
-
-   position = get_config_hex ("dialogs", dialog[0].dp2, -1);
-
-   if (position == -1)
-   {
-      centre_dialog (dialog);
-   }
-   else
-   {
-      x = (position >> 16);
-      y = (position & 0x0000ffff);
-
-      position_dialog (dialog, x, y);
-   }
-
-   dialog[0].dp3 = DATA_TO_FONT(LARGE_FONT);
-
-   while (dialog[index].d1 != SL_FRAME_END)
-   {
-      /* Update colors. */
-
-      DIALOG *object = &dialog[index];
-
-      object->fg = GUI_TEXT_COLOR;
-      object->bg = gui_bg_color;
-
-      index++;
-   }
-
-   next:
-   {
-      index = run_dialog (dialog, focus);
-   
-      scare_mouse ();
-      blit (saved, bmp, 0, 0, 0, 0, saved->w, saved->h);
-      unscare_mouse ();
-   
-      if (restart_dialog)
-      {
-         restart_dialog = FALSE;
-
-         x = dialog_x;
-         y = dialog_y;
-   
-         position_dialog (dialog, x, y);
-   
-         moved = TRUE;
-   
-         goto next;
-      }
-   }
-
-   if (moved)
-      set_config_hex ("dialogs", dialog[0].dp2, ((x << 16) | y));
-
-   destroy_bitmap (saved);
-
-   return (index);
-}
+/* Keep these in order! */
+#include "gui/themes.h"
+#include "gui/objects.h"
+#include "gui/menus.h"
+#include "gui/dialogs.h"
+#include "gui/util.h"
 
 static INLINE void update_menus (void)
 {
@@ -886,48 +368,6 @@ static INLINE void update_menus (void)
    audio_volume_menu[0].text = audio_volume_text;
 }
 
-static INLINE void draw_background (void)
-{
-   BITMAP *bmp;
-
-   if (rom_is_loaded)
-      return;
-
-   bmp = gui_get_screen ();
-
-   rectfill (bmp, 0, 0, bmp->w, bmp->h, GUI_BACKGROUND_COLOR);
-
-   if (background_image)
-   {
-      if (background_image->h < 200)
-      {
-         blit (background_image, bmp, 0, 0, ((bmp->w / 2) -
-            (background_image->w / 2)), ((bmp->h / 2) - (background_image->h
-               / 2)), background_image->w, background_image->h);
-      }
-      else
-      {
-         BITMAP *buffer;
-   
-         /* Hack to handle color conversion. */
-   
-         buffer = create_bitmap (background_image->w, background_image->h);
-         if (!buffer)
-         {
-            WARN("Failed to create background buffer");
-            return;
-         }
-   
-         blit (background_image, buffer, 0, 0, 0, 0, background_image->w,
-            background_image->h);
-         stretch_blit (buffer, bmp, 0, 0, buffer->w, buffer->h, 0, 0,
-            bmp->w, bmp->h);
-   
-         destroy_bitmap (buffer);
-      }
-   }
-}
-
 int gui_init (void)
 {
    int index;
@@ -1041,59 +481,6 @@ void gui_exit (void)
 
    unload_menus ();
    unload_dialogs ();
-}
-
-static INLINE void cycle_video (void);
-
-static INLINE int gui_open (void)
-{
-   /* Helper function for show_gui() and gui_alert().  Enters the GUI
-      (e.g, sets up display buffer, etc.) but doesn't do anything else. */
-
-   gui_needs_restart = FALSE;
-   gui_is_active = TRUE;
-
-   audio_suspend ();
-
-   if (video_is_opengl_mode ())
-   {
-      /* Create drawing buffer. */
-      gui_buffer = create_bitmap (SCREEN_W, SCREEN_H);
-      if (!gui_buffer)
-      {
-         WARN("Couldn't create GUI drawing buffer");
-         return (1);
-      }
-   
-      /* Make Allegro use it. */
-      gui_set_screen (gui_buffer);
-   }
-
-   cycle_video ();
-
-   /* Return success. */
-   return (0);
-}
-
-static INLINE void gui_close (void)
-{
-   if (gui_buffer)
-   {
-      /* Destroy and nullify drawing buffer. */
-
-      destroy_bitmap (gui_buffer);
-      gui_buffer = NULL;
-
-      /* Restore screen. */
-      gui_set_screen (screen);
-   }
-
-   /* Deactivate. */
-   gui_is_active = FALSE;
-
-   cycle_video ();
-
-   audio_resume ();
 }
 
 int show_gui (BOOL first_run)
@@ -1266,7 +653,28 @@ int gui_alert (const UCHAR *title, const UCHAR *s1, const UCHAR *s2, const
       return (2); /* Cancel. */
 }
 
-static INLINE void cycle_audio (void);
+void gui_message (int color, const UCHAR *message, ...)
+{
+   va_list format;
+
+   RT_ASSERT(message);
+
+   va_start (format, message);
+   uvszprintf (message_buffer, USTRING_SIZE, message, format);
+   va_end (format);
+
+   draw_message (color);
+}
+
+void gui_heartbeat (void)
+{
+   /* Called by both run_dialog() and the custom, non-blocking menu objects
+      at a rate of (1000 / REST_TIME) milliseconds, or close enough. */
+
+   refresh ();
+
+   rest (REST_TIME);
+}
 
 void gui_handle_keypress (int c, int scancode)
 {
@@ -1424,6 +832,26 @@ void gui_stop_replay (void)
    main_replay_play_menu_stop ();
 }
 
+void gui_set_theme (const GUI_THEME *theme)
+{
+   int index;
+
+   RT_ASSERT(theme);
+
+   last_theme = theme;
+
+   memcpy (&gui_theme, theme, sizeof (GUI_THEME));
+
+   video_set_palette (NULL);
+
+   for (index = 0; index < GUI_TOTAL_COLORS; index++)
+      pack_color (&gui_theme[index]);
+
+   gui_bg_color = GUI_FILL_COLOR;
+   gui_fg_color = GUI_TEXT_COLOR;
+   gui_mg_color = GUI_DISABLED_COLOR;
+}
+
 /* --- Utility functions. --- */
 
 static INLINE void set_autosave (int interval)
@@ -1438,77 +866,6 @@ static INLINE void set_autosave (int interval)
       message_local ("Autosave disabled.");
    else
       message_local ("Autosave interval set to %d seconds.", interval);
-}
-
-static INLINE void cycle_audio (void)
-{
-   /* This function cycles (removes and reinstalls) the audio subsystem so
-      that any major parameter changes can take effect. */
-
-   audio_exit ();
-   audio_init ();
-   apu_update ();
-}
-
-static INLINE void cycle_video (void)
-{
-   BITMAP *bmp;
-
-   /* This function fixes any problems with the GUI after a video change
-      has taken effect (such as changing the screen color depth).  It also
-      gets called each time you enter and exit the GUI. */
-
-   bmp = gui_get_screen ();
-
-   clear_bitmap (bmp);
-   video_blit (bmp);
-
-   if (gui_is_active)
-   {
-      update_colors ();
-
-      draw_background ();
-
-      redraw ();
-
-      if (gui_mouse_sprite)
-         set_mouse_sprite (gui_mouse_sprite);
-      set_mouse_sprite_focus (8, 8);
-
-      /* Note that we only show the mouse here if the drawing bitmap is the
-         screen; otherwise we let video_show_bitmap() handle it. */
-      if (bmp == screen)
-         show_mouse (bmp);
-
-      message_local ("%dx%d %d-bit, %s.", bmp->w, bmp->h, bitmap_color_depth
-         (bmp), gfx_driver->name);
-   }
-   else
-   {
-      show_mouse (NULL);
-      set_mouse_sprite_focus (0, 0);
-   }
-
-   refresh ();
-}
-
-static INLINE const UCHAR *get_enabled_text (BOOL value)
-{
-   /* This simple function returns either "enabled" or "disabled", depending
-      on the value of the boolean parameter 'value'. */
-
-   return ((value ? "enabled" : "disabled"));
-}
-
-static INLINE const UCHAR *get_enabled_text_ex (BOOL value, const UCHAR
-   *enabled_text)
-{
-   /* Identical to the above function, except that it returns 'enabled_text'
-      instead of "enabled". */
-
-   RT_ASSERT(enabled_text);
-
-   return ((value ? enabled_text : "disabled"));
 }
 
 static void update_machine_type (void)

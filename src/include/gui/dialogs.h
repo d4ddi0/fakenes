@@ -325,3 +325,227 @@ static const DIALOG help_about_dialog_base[] =
 #undef DIALOG_ENDCAP
 #undef DIALOG_FRAME_ENDCAP
 #undef IMPORT_MENU
+
+static INLINE DIALOG *load_dialog (const DIALOG *dialog)
+{
+   DIALOG *new_dialog;
+   int size = 0;
+   int index = 0;
+   int width, height;
+
+   RT_ASSERT(dialog);
+
+   while (dialog[index].proc)
+   {
+      size += sizeof (DIALOG);
+
+      index++;
+   }
+
+   /* Once more for the end marker. */
+   size += sizeof (DIALOG);
+
+   if (!(new_dialog = malloc (size)))
+   {
+       WARN("Failed to allocate dialog structure");
+
+       return (NULL);
+   }
+
+   memcpy (new_dialog, dialog, size);
+
+   /* Font scaling parameters. */
+   width = text_length (font, "X");
+   height = text_height (font);
+
+   /* Reset counter. */
+   index = 0;
+
+   while (new_dialog[index].proc)
+   {
+      DIALOG *object = &new_dialog[index];
+
+      /* Import menu by reference. */
+      if (object->proc == d_menu_proc)
+         object->dp = *(MENU **)object->dp;
+
+      /* Dialog to font scaling. */
+      if (font != small_font)
+      {
+         switch (index)
+         {
+            case 0: /* sl_frame. */
+            {
+               object->w = ROUND(((object->w / 5.0f) * width));
+               object->h = (ROUND(((object->h / 6.0f) * height)) - height);
+
+               break;
+            }
+         
+            case 1: /* sl_x_button. */
+            {
+               object->x = ROUND(((object->x / 5.0f) * width));
+     
+               break;
+            } 
+    
+            default:
+            {
+               object->x = ROUND(((object->x / 5.0f) * width));
+               object->y = (ROUND(((object->y / 6.0f) * height)) - height);
+               object->w = ROUND(((object->w / 5.0f) * width));
+               object->h = ROUND(((object->h / 6.0f) * height));
+    
+               break;
+            }
+         }
+
+      }
+
+      index++;
+    }
+
+    return (new_dialog);
+}
+
+static INLINE void unload_dialog (DIALOG *dialog)
+{
+   RT_ASSERT(dialog);
+
+   free (dialog);
+}
+
+#define DIALOG_FROM_BASE(name)  (name = load_dialog (name ##_base))
+
+static INLINE void load_dialogs (void)
+{
+   DIALOG_FROM_BASE(main_dialog);
+   DIALOG_FROM_BASE(main_replay_record_start_dialog);
+   DIALOG_FROM_BASE(machine_save_state_save_dialog);
+   DIALOG_FROM_BASE(machine_cheat_manager_add_dialog);
+   DIALOG_FROM_BASE(machine_cheat_manager_dialog);
+   DIALOG_FROM_BASE(options_input_configure_dialog);
+   DIALOG_FROM_BASE(netplay_dialog);
+   DIALOG_FROM_BASE(lobby_dialog);
+   DIALOG_FROM_BASE(help_shortcuts_dialog);
+   DIALOG_FROM_BASE(help_about_dialog);
+}
+
+#undef DIALOG_FROM_BASE
+
+static INLINE void unload_dialogs (void)
+{
+   unload_dialog (main_dialog);
+   unload_dialog (main_replay_record_start_dialog);
+   unload_dialog (machine_save_state_save_dialog);
+   unload_dialog (machine_cheat_manager_add_dialog);
+   unload_dialog (machine_cheat_manager_dialog);
+   unload_dialog (options_input_configure_dialog);
+   unload_dialog (netplay_dialog);
+   unload_dialog (lobby_dialog);
+   unload_dialog (help_shortcuts_dialog);
+   unload_dialog (help_about_dialog);
+}
+
+static INLINE int run_dialog (DIALOG *dialog, int focus)
+{
+   DIALOG_PLAYER *player;
+   int index;
+
+   /* Similar to Allegro's do_dialog(), but is built to be non-blocking with
+      minimal CPU usage and automatic screen refresh for when the GUI is not
+      being drawn directly to the screen. */
+
+   RT_ASSERT(dialog);
+
+   player = init_dialog (dialog, focus);
+
+   while (update_dialog (player))
+      gui_heartbeat ();
+
+   index = player->obj;
+
+   shutdown_dialog (player);
+
+   return (index);
+}
+
+static INLINE int show_dialog (DIALOG *dialog, int focus)
+{
+   BITMAP *bmp;
+   BITMAP *saved;
+   int position;
+   UINT16 x = x, y = y; /* Kill warnings. */
+   BOOL moved = FALSE;
+   int index = 0;
+
+   RT_ASSERT(dialog);
+
+   bmp = gui_get_screen ();
+
+   saved = create_bitmap (bmp->w, bmp->h);
+   if (!saved)
+      WARN("Failed to create temporary background buffer; crash imminent");
+
+   scare_mouse ();
+   blit (bmp, saved, 0, 0, 0, 0, bmp->w, bmp->h);
+   unscare_mouse ();
+
+   position = get_config_hex ("dialogs", dialog[0].dp2, -1);
+
+   if (position == -1)
+   {
+      centre_dialog (dialog);
+   }
+   else
+   {
+      x = (position >> 16);
+      y = (position & 0x0000ffff);
+
+      position_dialog (dialog, x, y);
+   }
+
+   dialog[0].dp3 = DATA_TO_FONT(LARGE_FONT);
+
+   while (dialog[index].d1 != SL_FRAME_END)
+   {
+      /* Update colors. */
+
+      DIALOG *object = &dialog[index];
+
+      object->fg = GUI_TEXT_COLOR;
+      object->bg = gui_bg_color;
+
+      index++;
+   }
+
+   next:
+   {
+      index = run_dialog (dialog, focus);
+   
+      scare_mouse ();
+      blit (saved, bmp, 0, 0, 0, 0, saved->w, saved->h);
+      unscare_mouse ();
+   
+      if (restart_dialog)
+      {
+         restart_dialog = FALSE;
+
+         x = dialog_x;
+         y = dialog_y;
+   
+         position_dialog (dialog, x, y);
+   
+         moved = TRUE;
+   
+         goto next;
+      }
+   }
+
+   if (moved)
+      set_config_hex ("dialogs", dialog[0].dp2, ((x << 16) | y));
+
+   destroy_bitmap (saved);
+
+   return (index);
+}

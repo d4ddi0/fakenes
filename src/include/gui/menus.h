@@ -5,12 +5,6 @@
 #define MENU_SPLITTER               { "",   NULL, NULL, 0, NULL }
 #define MENU_ENDCAP                 { NULL, NULL, NULL, 0, NULL }
 
-#define SET_FLAG(var, flag, value) \
-   if (value)  \
-      var |= flag;   \
-   else  \
-      var &= ~ flag; \
-
 DEFINE_MENU(main_open_recent_menu);
 DEFINE_MENU(main_replay_select_menu);
 DEFINE_MENU(main_replay_record_menu);
@@ -915,6 +909,19 @@ static const MENU top_menu_base[] =
    MENU_ENDCAP
 };
 
+/* Undefine helper macros. */
+#undef DEFINE_MENU
+#undef DEFINE_MENU_CALLBACK
+#undef IMPORT_MENU
+#undef MENU_SPLITTER
+#undef MENU_ENDCAP
+
+#define SET_FLAG(var, flag, value) \
+   if (value)  \
+      var |= flag;   \
+   else  \
+      var &= ~ flag; \
+
 enum
 {
    MENU_PROPERTY_CHECKED,
@@ -949,6 +956,8 @@ static INLINE void set_menu_object_property (MENU *object, ENUM property,
          WARN_GENERIC();
    }
 }
+
+#undef SET_FLAG
 
 static INLINE BOOL set_menu_property (MENU *menu, void *callback, ENUM
    property, BOOL value)
@@ -1052,10 +1061,153 @@ static INLINE BOOL set_submenu_property (MENU *menu, const MENU *submenu,
 #define DISABLE_SUBMENU(submenu) \
    SET_SUBMENU_ENABLED(top_menu, submenu, FALSE)
 
-/* Undefine helper macros. */
-#undef DEFINE_MENU
-#undef DEFINE_MENU_CALLBACK
-#undef IMPORT_MENU
-#undef MENU_SPLITTER
-#undef MENU_ENDCAP
-#undef SET_FLAG
+static INLINE MENU *load_menu (const MENU *menu)
+{
+   MENU *new_menu;
+   int size = 0;
+   int index = 0;
+
+   RT_ASSERT(menu);
+
+   while (menu[index].text || menu[index].proc)
+   {
+       size += sizeof (MENU);
+
+       index++;
+   }
+
+   /* Once more for the end marker. */
+   size += sizeof (MENU);
+
+   if (!(new_menu = malloc (size)))
+   {
+      WARN("Failed to allocate menu structure");
+
+      return (NULL);
+   }
+
+   memcpy (new_menu, menu, size);
+
+   /* Reset counter. */
+   index = 0;
+
+   while (new_menu[index].text || new_menu[index].proc)
+   {
+      MENU *item = &new_menu[index];
+
+      /* Import menu by reference. */
+      if (item->child)
+         item->child = *(MENU **)item->child;
+
+      index++;
+   }
+
+   return (new_menu);
+}
+
+static INLINE void unload_menu (MENU *menu)
+{
+   RT_ASSERT(menu);
+
+   free (menu);
+}
+
+#define MENU_FROM_BASE(name)  (name = load_menu (name ##_base))
+
+static INLINE void load_menus (void)
+{
+   MENU_FROM_BASE(main_open_recent_menu);
+   MENU_FROM_BASE(main_replay_select_menu);
+   MENU_FROM_BASE(main_replay_record_menu);
+   MENU_FROM_BASE(main_replay_play_menu);
+   MENU_FROM_BASE(main_replay_menu);
+   MENU_FROM_BASE(main_menu);
+   MENU_FROM_BASE(machine_save_state_select_menu);
+   MENU_FROM_BASE(machine_save_state_autosave_menu);
+   MENU_FROM_BASE(machine_save_state_menu);
+   MENU_FROM_BASE(machine_region_menu);
+   MENU_FROM_BASE(machine_menu);
+   MENU_FROM_BASE(audio_subsystem_menu);
+   MENU_FROM_BASE(audio_mixing_channels_menu);
+   MENU_FROM_BASE(audio_mixing_frequency_menu);
+   MENU_FROM_BASE(audio_mixing_quality_menu);
+   MENU_FROM_BASE(audio_mixing_menu);
+   MENU_FROM_BASE(audio_buffer_menu);
+   MENU_FROM_BASE(audio_effects_menu);
+   MENU_FROM_BASE(audio_filters_menu);
+   MENU_FROM_BASE(audio_channels_menu);
+   MENU_FROM_BASE(audio_volume_menu);
+   MENU_FROM_BASE(audio_record_menu);
+   MENU_FROM_BASE(audio_menu);
+   MENU_FROM_BASE(video_driver_dos_menu);
+   MENU_FROM_BASE(video_driver_windows_menu);
+   MENU_FROM_BASE(video_driver_linux_menu);
+   MENU_FROM_BASE(video_driver_unix_menu);
+   MENU_FROM_BASE(video_driver_menu);
+   MENU_FROM_BASE(video_resolution_proportionate_menu);
+   MENU_FROM_BASE(video_resolution_menu);
+   MENU_FROM_BASE(video_colors_menu);
+   MENU_FROM_BASE(video_buffer_menu);
+   MENU_FROM_BASE(video_blitter_menu);
+   MENU_FROM_BASE(video_filters_menu);
+   MENU_FROM_BASE(video_layers_menu);
+   MENU_FROM_BASE(video_palette_menu);
+   MENU_FROM_BASE(video_menu);
+   MENU_FROM_BASE(options_input_menu);
+   MENU_FROM_BASE(options_cpu_usage_menu);
+   MENU_FROM_BASE(options_gui_theme_menu);
+   MENU_FROM_BASE(options_menu);
+   MENU_FROM_BASE(netplay_menu);
+   MENU_FROM_BASE(help_menu);
+   MENU_FROM_BASE(top_menu);
+}
+
+#undef MENU_FROM_BASE
+
+static INLINE void unload_menus (void)
+{
+   unload_menu (main_open_recent_menu);
+   unload_menu (main_replay_select_menu);
+   unload_menu (main_replay_record_menu);
+   unload_menu (main_replay_play_menu);
+   unload_menu (main_replay_menu);
+   unload_menu (main_menu);
+   unload_menu (machine_save_state_select_menu);
+   unload_menu (machine_save_state_autosave_menu);
+   unload_menu (machine_save_state_menu);
+   unload_menu (machine_region_menu);
+   unload_menu (machine_menu);
+   unload_menu (audio_subsystem_menu);
+   unload_menu (audio_mixing_channels_menu);
+   unload_menu (audio_mixing_frequency_menu);
+   unload_menu (audio_mixing_quality_menu);
+   unload_menu (audio_mixing_menu);
+   unload_menu (audio_buffer_menu);
+   unload_menu (audio_effects_menu);
+   unload_menu (audio_filters_menu);
+   unload_menu (audio_channels_menu);
+   unload_menu (audio_volume_menu);
+   unload_menu (audio_record_menu);
+   unload_menu (audio_menu);
+   unload_menu (video_driver_dos_menu);
+   unload_menu (video_driver_windows_menu);
+   unload_menu (video_driver_linux_menu);
+   unload_menu (video_driver_unix_menu);
+   unload_menu (video_driver_menu);
+   unload_menu (video_resolution_proportionate_menu);
+   unload_menu (video_resolution_menu);
+   unload_menu (video_colors_menu);
+   unload_menu (video_buffer_menu);
+   unload_menu (video_blitter_menu);
+   unload_menu (video_filters_menu);
+   unload_menu (video_layers_menu);
+   unload_menu (video_palette_menu);
+   unload_menu (video_menu);
+   unload_menu (options_input_menu);
+   unload_menu (options_cpu_usage_menu);
+   unload_menu (options_gui_theme_menu);
+   unload_menu (options_menu);
+   unload_menu (netplay_menu);
+   unload_menu (help_menu);
+   unload_menu (top_menu);
+}
