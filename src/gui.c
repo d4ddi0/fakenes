@@ -3066,7 +3066,7 @@ static int machine_cheat_manager_dialog_enabled (DIALOG *dialog)
 
    patch = &cpu_patch_info[obj_list->d1];
 
-   patch->enabled = (dialog->flags & D_SELECTED);
+   patch->enabled = TRUE_OR_FALSE(dialog->flags & D_SELECTED);
 
    /* Toggle patch. */
    if (!patch->enabled && patch->active)
