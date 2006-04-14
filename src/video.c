@@ -626,19 +626,19 @@ void video_blit (BITMAP *bitmap)
       if (video_edge_clipping & VIDEO_EDGE_CLIPPING_HORIZONTAL)
       {
          /* Left edge. */
-         rectfill (video_buffer, 0, 0, 8, h, 0);
+         rectfill (video_buffer, 0, 0, 8, h, 15);
    
          /* Right edge. */
-         rectfill (video_buffer, (w - 8), 0, w, h, 0);
+         rectfill (video_buffer, (w - 8), 0, w, h, 15);
       }
 
       if (video_edge_clipping & VIDEO_EDGE_CLIPPING_VERTICAL)
       {
          /* Top edge. */
-         rectfill (video_buffer, 0, 0, w, 8, 0);
+         rectfill (video_buffer, 0, 0, w, 8, 15);
                                           
          /* Bottom edge. */
-         rectfill (video_buffer, 0, (h - 8), w, h, 0);
+         rectfill (video_buffer, 0, (h - 8), w, h, 15);
       }
    }
 
