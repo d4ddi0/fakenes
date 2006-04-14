@@ -188,8 +188,10 @@ int video_init (void)
 
    if (driver == GFX_OPENGL)
    {
-      /* Hint at which mode we want for OpenGL. */
-      allegro_gl_set (AGL_WINDOWED, !video_force_fullscreen);
+      /* Hint at which modes we want for OpenGL. */
+                                       
+      allegro_gl_set (AGL_FULLSCREEN,  video_force_fullscreen);
+      allegro_gl_set (AGL_WINDOWED,   !video_force_fullscreen);
    }
 
 #endif   /* USE_ALLEGROGL */
