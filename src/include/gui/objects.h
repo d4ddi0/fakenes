@@ -232,6 +232,8 @@ int sl_frame (int message, DIALOG *dialog, int key)
 
                unscare_mouse ();
             }
+
+            gui_heartbeat ();
          }
 
          solid_mode ();
