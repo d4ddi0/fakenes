@@ -944,27 +944,9 @@ int gui_init (void)
 
    CHECK_MENU_ITEM(video_menu_fullscreen);
    DISABLE_MENU_ITEM(video_menu_fullscreen);
-   DISABLE_SUBMENU(video_driver_windows_menu);
-   DISABLE_SUBMENU(video_driver_linux_menu);
-   DISABLE_SUBMENU(video_driver_unix_menu);
-   DISABLE_SUBMENU(options_cpu_usage_menu);
-   DISABLE_SUBMENU(netplay_menu);
 
 #endif   /* ALLEGRO_DOS */
 
-#ifdef ALLEGRO_WINDOWS
-
-   DISABLE_SUBMENU(video_driver_dos_menu);
-   DISABLE_SUBMENU(video_driver_linux_menu);
-   DISABLE_SUBMENU(video_driver_unix_menu);
-
-#endif   /* ALLEGRO_WINDOWS */
-
-#ifdef ALLEGRO_UNIX
-
-   DISABLE_SUBMENU(video_driver_dos_menu);
-   DISABLE_SUBMENU(video_driver_windows_menu);
- 
 #ifdef ALLEGRO_LINUX
 
 #ifndef GFX_FBCON
@@ -974,17 +956,7 @@ int gui_init (void)
    DISABLE_MENU_ITEM(video_driver_linux_menu_svgalib);
 #endif
 
-#else /* ALLEGRO_LINUX */
-
-   DISABLE_SUBMENU(video_driver_linux_menu);
-
 #endif   /* !ALLEGRO_LINUX */
-
-#endif   /* ALLEGRO_UNIX */
-
-#ifndef USE_HAWKNL
-   DISABLE_SUBMENU(netplay_menu);
-#endif
 
    /* Select default palette. */
    CHECK_MENU_ITEM(video_palette_menu_modern_ntsc);

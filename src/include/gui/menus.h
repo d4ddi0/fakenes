@@ -601,10 +601,20 @@ static const MENU video_driver_menu_base[] =
 
 #endif   /* USE_ALLEGROGL */
 
+   /* Yay.  The cost of prettiness. :) */
+
+#ifdef ALLEGRO_DOS
    { "&DOS",         NULL,                          IMPORT_MENU(video_driver_dos_menu),     0, NULL },
+#endif
+#ifdef ALLEGRO_WINDOWS
    { "&Windows",     NULL,                          IMPORT_MENU(video_driver_windows_menu), 0, NULL },
+#endif
+#ifdef ALLEGRO_LINUX
    { "&Linux",       NULL,                          IMPORT_MENU(video_driver_linux_menu),   0, NULL },
+#endif
+#ifdef ALLEGRO_UNIX
    { "&Unix",        NULL,                          IMPORT_MENU(video_driver_unix_menu),    0, NULL },
+#endif
    MENU_ENDCAP
 };
 
@@ -870,8 +880,10 @@ static const MENU options_menu_base[] =
    { "&Show Status (F2)", options_menu_show_status,  NULL,                                0, NULL },
    MENU_SPLITTER,
    { "&Input",            NULL,                      IMPORT_MENU(options_input_menu),     0, NULL },
+#ifndef ALLEGRO_DOS
    { "&CPU Usage",        NULL,                      IMPORT_MENU(options_cpu_usage_menu), 0, NULL },
    MENU_SPLITTER,
+#endif
    { "&GUI Theme",        NULL,                      IMPORT_MENU(options_gui_theme_menu), 0, NULL },
    MENU_ENDCAP      
 };
@@ -896,7 +908,9 @@ static const MENU top_menu_base[] =
    { "&Audio",   NULL, IMPORT_MENU(audio_menu),   0, NULL },
    { "&Video",   NULL, IMPORT_MENU(video_menu),   0, NULL },
    { "&Options", NULL, IMPORT_MENU(options_menu), 0, NULL },
+#ifdef USE_HAWKNL
    { "&NetPlay", NULL, IMPORT_MENU(netplay_menu), 0, NULL },
+#endif
    { "&Help",    NULL, IMPORT_MENU(help_menu),    0, NULL },
    MENU_ENDCAP
 };
