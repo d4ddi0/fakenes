@@ -243,16 +243,16 @@ static void blit_hq3x (BITMAP *src, BITMAP *dest, int x_base, int y_base)
 
 static void init_hq4x (BITMAP *src, BITMAP *dest)
 {
-   RT_ASSERT(src);
-   RT_ASSERT(dest);
+   // RT_ASSERT(src);
+   // RT_ASSERT(dest);
 
    _init_hq (4, src, dest);
 }
 
 static void blit_hq4x (BITMAP *src, BITMAP *dest, int x_base, int y_base)
 {
-   RT_ASSERT(src);
-   RT_ASSERT(dest);
+   // RT_ASSERT(src);
+   // RT_ASSERT(dest);
 
    _blit_hq (4, src, dest, x_base, y_base);
 }
