@@ -519,37 +519,34 @@ int sl_radiobox (int message, DIALOG *dialog, int key)
       dp2 = Callback function.
    */
 
-   int (*handler) (DIALOG *);
-   int value;
-   int data;
-
    RT_ASSERT(dialog);
-
-   handler = dialog->dp2;
-
-   data = dialog->d2;
-   dialog->d2 = 1;
-
-   value = d_radio_proc (message, dialog, key);
-
-   dialog->d2 = data;
 
    switch (message)
    {
       case MSG_CLICK:
       case MSG_KEY:
       {
+         int (*handler) (DIALOG *);
+         int value;
+
+         handler = dialog->dp2;
+
+         d_radio_proc (message, dialog, key);
+
          if (handler)
             return (handler (dialog));
 
          break;
       }
 
+      case MSG_DRAW:
+         return (sl_checkbox (message, dialog, key));
+
       default:
          break;
    }
 
-   return (value);
+   return (d_radio_proc (message, dialog, key));
 }
 
 int sl_x_button (int message, DIALOG *dialog, int key)
