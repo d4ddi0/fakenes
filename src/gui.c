@@ -676,6 +676,9 @@ void gui_message (int color, const UCHAR *message, ...)
    uvszprintf (message_buffer, USTRING_SIZE, message, format);
    va_end (format);
 
+   if (color == -1)
+      color = GUI_TEXT_COLOR;
+
    draw_message (color);
 }
 
@@ -3138,7 +3141,7 @@ static char *machine_cheat_manager_dialog_list_filler (int index, int *list_size
 }
 
 static int selected_player = -1;
-static int selected_player_device = 0;
+static int selected_player_device = INPUT_DEVICE_NONE;
 
 static int options_input_configure_dialog_player_select (DIALOG *dialog)
 {
@@ -3148,18 +3151,18 @@ static int options_input_configure_dialog_player_select (DIALOG *dialog)
 
    RT_ASSERT(dialog);
 
-   selected_player = (dialog->d2 - 1);
+   selected_player = dialog->d2;
    selected_player_device = input_get_player_device (selected_player);
 
    main_dialog = options_input_configure_dialog;
 
-   first = OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_1_SELECT;
-   last  = OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_5_SELECT;
+   first = OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_0_SELECT;
+   last  = OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_7_SELECT;
 
    for (index = first; index <= last; index++)
-      main_dialog[index].flags  &= ~D_SELECTED;
+      main_dialog[index].flags &= ~D_SELECTED;
 
-   main_dialog[(first + (selected_player_device - 1))].flags |= D_SELECTED;
+   main_dialog[(first + selected_player_device)].flags |= D_SELECTED;
 
    scare_mouse ();
 
@@ -3205,142 +3208,27 @@ static int options_input_configure_dialog_set_buttons (DIALOG *dialog)
       return (D_O_K);
    }
 
-   button = dialog->d2;
-
-   if ((selected_player_device == INPUT_DEVICE_JOYSTICK_1) ||
-       (selected_player_device == INPUT_DEVICE_JOYSTICK_2))
+   if (selected_player_device == INPUT_DEVICE_NONE)
    {
-      if ((button == INPUT_DEVICE_BUTTON_UP) ||
-          (button == INPUT_DEVICE_BUTTON_DOWN) ||
-          (button == INPUT_DEVICE_BUTTON_LEFT) ||
-          (button == INPUT_DEVICE_BUTTON_RIGHT))
-      {
-         gui_alert ("Error", "Unable to set direction buttons for joystick "
-            "devices.", NULL, NULL, "&OK", NULL, 'o', 0);
-    
-         return (D_O_K);
-      }
+      gui_alert ("Error", "The selected player is currently disabled.",
+         NULL, NULL, "&OK", NULL, 'o', 0);
+
+      return (D_O_K);
    }
-   else if (selected_player_device == INPUT_DEVICE_MOUSE)
+
+   if (selected_player_device == INPUT_DEVICE_MOUSE)
    {
       gui_alert ("Error", "Unable to set buttons for mouse at this time.",
          NULL, NULL, "&OK", NULL, 'o', 0);
+
+      return (D_O_K);
    }
 
-   switch (selected_player_device)
-   {
-      case INPUT_DEVICE_KEYBOARD_1:
-      case INPUT_DEVICE_KEYBOARD_2:
-      {
-         message_local ("Press any key.");
+   button = dialog->d2;
+
+   message_local ("Scanning for device changes, press ESC to cancel.");
     
-         clear_keybuf ();
-
-         while (!keypressed ())
-         {
-            gui_heartbeat ();
-         }
-    
-         ureadkey (&scancode);
-    
-         input_map_device_button (selected_player_device, button, scancode);
-
-         message_local ("Button mapped to scancode %d.", scancode);
-
-         break;
-      }
-
-      case INPUT_DEVICE_JOYSTICK_1:
-      {
-         message_local ("Press any button on joystick #1.");
-    
-         clear_keybuf ();
-    
-         for (;;)
-         {
-            poll_joystick ();
-    
-            for (index = 0; index < joy[0].num_buttons; index++)
-            {
-               if (joy[0].button[index].b)
-               {
-                  input_map_device_button (selected_player_device, button,
-                     index);
-
-                  message_local ("Button mapped to joystick #1 button %d.",
-                     index);
-    
-                  return (D_O_K);
-               }
-    
-               if (keypressed ())
-               {
-                  ureadkey (&scancode);
-
-                  if (scancode == KEY_ESC)
-                  { 
-                     gui_message (GUI_ERROR_COLOR, "Button mapping "
-                        "canceled.");
-    
-                     return (D_O_K);
-                  }
-               }
-            }
-
-            gui_heartbeat ();
-         }
-
-         break;
-      }
-
-      case INPUT_DEVICE_JOYSTICK_2:
-      {
-         message_local ("Press any button on joystick #2.");
-    
-         clear_keybuf ();
-
-         for (;;)
-         {
-            poll_joystick ();
-    
-            for (index = 0; index < joy[1].num_buttons; index++)
-            {
-               if (joy[1].button[index].b)
-               {
-                  input_map_device_button (selected_player_device, button,
-                     index);
-                
-                  message_local ("Button mapped to joystick #1 button %d.",
-                     index);
-    
-                  return (D_O_K);
-               }
-            }
-    
-            if (keypressed ())
-            {
-               ureadkey (&scancode);
-
-               if (scancode == KEY_ESC)
-               {
-                  gui_message (GUI_ERROR_COLOR, "Button mapping canceled.");
-    
-                  return (D_O_K);
-               }
-            }
-
-            gui_heartbeat ();
-         }
-
-         break;
-      }
-
-      case INPUT_DEVICE_MOUSE:
-         break;
-
-      default:
-         WARN_GENERIC();
-   }
+   input_map_player_button (selected_player, button);
 
    return (D_O_K);
 }

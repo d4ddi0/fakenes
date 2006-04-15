@@ -15,114 +15,75 @@
 extern "C" {
 #endif
 
-
-int input_enable_zapper;
-
-
-int input_zapper_x_offset;
-
-int input_zapper_y_offset;
-
-
-int input_zapper_trigger;
-
-
-int input_zapper_on_screen;
-
-
-int input_autosave_interval;
-
-
-int input_mode;
-
-
-#define INPUT_MODE_PLAY             1
-
-
-#define INPUT_MODE_REPLAY           (1 << 1)
-
-
-#define INPUT_MODE_REPLAY_RECORD    (1 << 2)
-
-#define INPUT_MODE_REPLAY_PLAY      (1 << 3)
-
-
-#define INPUT_MODE_CHAT             (1 << 4)
-
-
+LIST input_mode;
 USTRING input_chat_text;
 
+int input_autosave_interval;
+BOOL input_enable_zapper;
+int input_zapper_x_offset;
+int input_zapper_y_offset;
+BOOL input_zapper_trigger;
+BOOL input_zapper_on_screen;
 
 int input_init (void);
-
 void input_exit (void);
-
-
 void input_reset (void);
-
-
 UINT8 input_read (UINT16);
-
 void input_write (UINT16, UINT8);
-
-
 void input_process (void);
-
-void input_handle_keypress (int, int);
-
-
 void input_update_zapper (void);
-
 void input_update_zapper_offsets (void);
-
-
-int input_get_player_device (int);
-
-void input_set_player_device (int, int);
-
-
-enum
-{
-    INPUT_DEVICE_NONE,
-
-
-    INPUT_DEVICE_KEYBOARD_1, INPUT_DEVICE_KEYBOARD_2,
-
-    INPUT_DEVICE_JOYSTICK_1, INPUT_DEVICE_JOYSTICK_2,
-
-    INPUT_DEVICE_MOUSE
-};
-
-
-void input_map_device_button (int, int, int);
-
-
-enum
-{
-    INPUT_DEVICE_BUTTON_A,
-
-    INPUT_DEVICE_BUTTON_B,
-
-
-    INPUT_DEVICE_BUTTON_SELECT,
-
-    INPUT_DEVICE_BUTTON_START,
-
-
-    INPUT_DEVICE_BUTTON_UP,
-
-    INPUT_DEVICE_BUTTON_DOWN,
-
-    INPUT_DEVICE_BUTTON_LEFT,
-
-    INPUT_DEVICE_BUTTON_RIGHT
-};
-
-
+void input_handle_keypress (int, int);
+ENUM input_get_player_device (ENUM);
+void input_set_player_device (ENUM, ENUM);
+void input_map_player_button (ENUM, ENUM);
 void input_save_state (PACKFILE *, int);
-
 void input_load_state (PACKFILE *, int);
 
+enum
+{
+   INPUT_MODE_PLAY          = (1 << 0),
+   INPUT_MODE_REPLAY        = (1 << 1),
+   INPUT_MODE_REPLAY_RECORD = (1 << 2),
+   INPUT_MODE_REPLAY_PLAY   = (1 << 3),
+   INPUT_MODE_CHAT          = (1 << 4)
+};
+
+enum
+{
+   INPUT_DEVICE_NONE = 0,
+   INPUT_DEVICE_KEYS_1,
+   INPUT_DEVICE_KEYS_2,
+   INPUT_DEVICE_JOYSTICK_1,
+   INPUT_DEVICE_JOYSTICK_2,
+   INPUT_DEVICE_JOYSTICK_3,
+   INPUT_DEVICE_JOYSTICK_4,
+   INPUT_DEVICE_MOUSE,
+   INPUT_DEVICES
+};
+
+enum
+{
+   INPUT_PLAYER_1 = 0,
+   INPUT_PLAYER_2,
+   INPUT_PLAYER_3,
+   INPUT_PLAYER_4,
+   INPUT_PLAYERS
+};
+
+/* Keep these in order! */
+enum
+{
+   INPUT_BUTTON_A = 0,
+   INPUT_BUTTON_B,
+   INPUT_BUTTON_SELECT,
+   INPUT_BUTTON_START,
+   INPUT_BUTTON_UP,
+   INPUT_BUTTON_DOWN,
+   INPUT_BUTTON_LEFT,
+   INPUT_BUTTON_RIGHT,
+   INPUT_BUTTONS
+};
 
 #ifdef __cplusplus
 }

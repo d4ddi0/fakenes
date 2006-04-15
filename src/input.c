@@ -11,6 +11,7 @@
 #include <string.h>
 #include "audio.h"
 #include "common.h"
+#include "debug.h"
 #include "gui.h"
 #include "input.h"
 #include "ppu.h"
@@ -20,653 +21,731 @@
 #include "types.h"
 #include "video.h"
 
+/* What mode were are currently in.  Technically, this should be called
+   'input_modes', since more than mode is possible. :p */
+LIST input_mode = 0;
 
-int input_enable_zapper = FALSE;
-
-
-int input_mode = 0;
-
-
+/* Nothing special here.  This string simply contains the current message
+   that the player is typing in the chat box. */
 USTRING input_chat_text;
 
+/* How often input_process() will attempt an autosave, in frames. */
+int input_autosave_interval = 0;
 
-static int wait_frames = 0;
+/* Player button states.  This is not a boolean array - values stored in it
+   must be either 0 (off) or 1 (on). */
+static int player_buttons[INPUT_PLAYERS][INPUT_BUTTONS];
 
+enum { BUTTON_OFF = 0 };
+enum { BUTTON_ON  = 1 };
 
-static int buttons [4] [8];
+#define BUTTON_ON_OR_OFF(x)   (x ? BUTTON_ON : BUTTON_OFF)
 
+/* Whether or not Zapper (light gun) emulation is enabled.  Having this
+   enabled when not necessary can make frameskipping less efficient, since
+   sometimes the PPU has to render skipped frames for Zapper hitscan. */
+BOOL input_enable_zapper = FALSE;
+
+/* Which input device a given player is using. */
+static ENUM input_devices[INPUT_PLAYERS];
+
+/* Other emulation-related variables. */
+static int zapper_mask = 0;
+static UINT8 last_write = 0;
+static UINT8 current_read_p1 = 0;
+static UINT8 current_read_p2 = 0;
+
+/* Keyboard configuration.  A slightly updated version of the old system
+   is used which now handles large (2**31) scancodes without crashing. */
+static int key1_scancodes[INPUT_BUTTONS];
+static int key2_scancodes[INPUT_BUTTONS];
+
+/* Number of supported joystick devices. */
+#define NUM_JOYSTICKS   4
+
+/* Format:
+      Axxx
+         Stick  (0-F)
+         Axis   (0-F)
+         Phase  (0-1)
+      Bxx
+         Button (0-FF)
+         */
+static char joystick_defaults[] =
+   { "B01 B00 B02 B03 A010 A011 A000 A001\0" };
+
+typedef struct _JOYSTICK_DATA
+{
+   ENUM type;
+
+   /* For axis-based input. */
+   int stick;
+   int axis;
+   int phase;
+
+   /* For button-based input. */
+   int index;
+
+} JOYSTICK_DATA;
+
+static JOYSTICK_DATA joystick_data[NUM_JOYSTICKS][INPUT_BUTTONS];
 
 enum
-{
-    INPUT_PLAYER_1, INPUT_PLAYER_2,
-
-    INPUT_PLAYER_3, INPUT_PLAYER_4
+{  
+   JOYSTICK_DATA_TYPE_NONE,
+   JOYSTICK_DATA_TYPE_AXIS,
+   JOYSTICK_DATA_TYPE_BUTTON
 };
 
+/* Joystick sensetivity threshold. */
+#define JOYSTICK_SENSETIVITY  72
 
-static UINT8 key1_defaults [25] = { "24 26 64 67 84 85 82 83\0" };
+/* TODO: Move into configurable variables. */
+/* TODO: These should somehow use the dimensions of 'screen_buffer' instead,
+   but that BITMAP* is not currently made public. */
+#define MOUSE_SENSETIVITY_X   (SCREEN_W / 128)
+#define MOUSE_SENSETIVITY_Y   (SCREEN_W / 128)
 
-static UINT8 key2_defaults [25] = { "38 40 44 46 45 39 41 43\0" };
+/* Number of frames to countdown before input will be processed again (this
+   only applies to INPUT_MODE_PLAY). */
+static int wait_frames = 0;
 
-
-static UINT8 key1_buffer [100];
-                
-static UINT8 key2_buffer [100];
-
-
-static int key1_scancodes [8];
-
-static int key2_scancodes [8];
-
-
-static UINT8 joy1_defaults [8] = { "1 0 2 3\0" };
-
-static UINT8 joy2_defaults [8] = { "1 0 2 3\0" };
-
-
-static UINT8 joy1_buffer [8];
-
-static UINT8 joy2_buffer [8];
-
-
-static int joy1_buttons [4];
-
-static int joy2_buttons [4];
-
-
-static int last_write = 0;
-
-
-static int current_read_p1 = 0;
-
-static int current_read_p2 = 0;
-
-
-static int input_devices [4];
-
-
-static int zapper_mask = 0;
-
-
-void input_update_zapper_offsets (void)
+static INLINE void load_keyboard_config (void)
 {
-    int mouse_needs_range_fixup = FALSE;
+   STRING defaults;
+   STRING buffer;
 
-    input_zapper_x_offset = mouse_x;
+   /* Build default key config in a portable manner. */
+   sprintf (defaults, "%d %d %d %d %d %d %d %d", KEY_X, KEY_Z, KEY_TAB,
+      KEY_ENTER, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT);
 
-    input_zapper_y_offset = mouse_y;
+   /* Unicode->ASCII here, is it a problem? */
+   sprintf (buffer, "%s", get_config_string ("input", "key1_buttons",
+      defaults));
 
-    input_zapper_trigger = (mouse_b & 0x01);
+   if (sscanf (buffer, "%d%d%d%d%d%d%d%d",
+         &key1_scancodes[0], &key1_scancodes[1], &key1_scancodes[2],
+         &key1_scancodes[3], &key1_scancodes[4], &key1_scancodes[5],
+         &key1_scancodes[6], &key1_scancodes[7]) < INPUT_BUTTONS)
+   {
+      sscanf (defaults, "%d%d%d%d%d%d%d%d",
+         &key1_scancodes[0], &key1_scancodes[1], &key1_scancodes[2],
+         &key1_scancodes[3], &key1_scancodes[4], &key1_scancodes[5],
+         &key1_scancodes[6], &key1_scancodes[7]);
+   }
 
+   sprintf (buffer, "%s", get_config_string ("input", "key2_buttons",
+      defaults));
 
-    /* Perform bounds checking */
-    if (input_zapper_x_offset >= 256)
-    {
-        mouse_needs_range_fixup = TRUE;
-        input_zapper_x_offset = 255;
-    }
-
-    if (input_zapper_y_offset >= 240)
-    {
-        mouse_needs_range_fixup = TRUE;
-        input_zapper_y_offset = 239;
-    }
-
-    if (mouse_needs_range_fixup)
-    {
-        position_mouse (input_zapper_x_offset, input_zapper_y_offset);
-    }
-
-
-    if ((input_zapper_x_offset < 256) && (input_zapper_y_offset < 240))
-    {
-        input_zapper_on_screen = TRUE;
-    }
-
-
-    if (! input_zapper_on_screen)
-    {
-        input_update_zapper ();
-    }
+   if (sscanf (buffer, "%d%d%d%d%d%d%d%d",
+         &key2_scancodes[0], &key2_scancodes[1], &key2_scancodes[2],
+         &key2_scancodes[3], &key2_scancodes[4], &key2_scancodes[5],
+         &key2_scancodes[6], &key2_scancodes[7]) < INPUT_BUTTONS)
+   {
+      sscanf (defaults, "%d%d%d%d%d%d%d%d",
+         &key2_scancodes[0], &key2_scancodes[1], &key2_scancodes[2],
+         &key2_scancodes[3], &key2_scancodes[4], &key2_scancodes[5],
+         &key2_scancodes[6], &key2_scancodes[7]);
+   }
 }
 
-
-void input_update_zapper (void)
+static INLINE void save_keyboard_config (void)
 {
-    int pixel;
+   STRING buffer;
 
+   sprintf (buffer, "%d %d %d %d %d %d %d %d",
+      key1_scancodes[0], key1_scancodes[1], key1_scancodes[2],
+      key1_scancodes[3], key1_scancodes[4], key1_scancodes[5],
+      key1_scancodes[6], key1_scancodes[7]);
 
-    zapper_mask = 0x08;
+   set_config_string ("input", "key1_buttons", buffer);
 
+   sprintf (buffer, "%d %d %d %d %d %d %d %d",
+      key2_scancodes[0], key2_scancodes[1], key2_scancodes[2],
+      key2_scancodes[3], key2_scancodes[4], key2_scancodes[5],
+      key2_scancodes[6], key2_scancodes[7]);
 
-    if (input_zapper_trigger)
-    {
-        /* Left button. */
-
-        zapper_mask |= 0x10;
-    }
-
-
-    if (input_zapper_on_screen)
-    {
-        pixel = (_getpixel (video_buffer, input_zapper_x_offset, input_zapper_y_offset) - 1);
-
-
-        if ((pixel == 32) || (pixel == 48))
-        {
-            zapper_mask &= ~0x08;
-        }
-    }
+   set_config_string ("input", "key2_buttons", buffer);
 }
 
-
-static INLINE void load_keyboard_layouts (void)
+static INLINE void load_joystick_config (void)
 {
-    memset (key1_buffer, NIL, sizeof (key1_buffer));
+   int index;
 
-    memset (key2_buffer, NIL, sizeof (key2_buffer));
+   for (index = 0; index < NUM_JOYSTICKS; index++)
+   {
+      USTRING key;
+      STRING buffer;
+      int buttons[INPUT_BUTTONS];
+      int subindex;
 
+      USTRING_CLEAR(key);
+      uszprintf (key, sizeof (key), "joy%d_buttons", (index + 1));
 
-    sprintf (key1_buffer, "%s", get_config_string ("input", "key1_scancodes", key1_defaults));
+      /* TODO: Possible conflict here going from Unicode to ASCII? */
+      sprintf (buffer, "%s", get_config_string ("input", key,
+         joystick_defaults));
 
-    sprintf (key2_buffer, "%s", get_config_string ("input", "key2_scancodes", key2_defaults));
+      if (sscanf (buffer, "%x%x%x%x%x%x%x%x",
+            &buttons[0], &buttons[1], &buttons[2], &buttons[3], &buttons[4],
+            &buttons[5], &buttons[6], &buttons[7]) < INPUT_BUTTONS)
+      {
+         /* Configuration is corrupt - restore defaults. */
 
+         sscanf (joystick_defaults, "%x%x%x%x%x%x%x%x",
+            &buttons[0], &buttons[1], &buttons[2], &buttons[3], &buttons[4],
+            &buttons[5], &buttons[6], &buttons[7]);
+      }
 
-    if (sscanf (key1_buffer, "%d%d%d%d%d%d%d%d",
-        &key1_scancodes [0], &key1_scancodes [1], &key1_scancodes [2],
-        &key1_scancodes [3], &key1_scancodes [4], &key1_scancodes [5],
-        &key1_scancodes [6], &key1_scancodes [7]) < 8)
-    {
-        sscanf (key1_defaults, "%d%d%d%d%d%d%d%d",
-        &key1_scancodes [0], &key1_scancodes [1], &key1_scancodes [2],
-        &key1_scancodes [3], &key1_scancodes [4], &key1_scancodes [5],
-        &key1_scancodes [6], &key1_scancodes [7]);
-    }
+      for (subindex = 0; subindex < INPUT_BUTTONS; subindex++)
+      {
+         JOYSTICK_DATA *data = &joystick_data[index][subindex];
+         int value = buttons[subindex];
 
+         /* Fill info structure. */
 
-    if (sscanf (key2_buffer, "%d%d%d%d%d%d%d%d",
-        &key2_scancodes [0], &key2_scancodes [1], &key2_scancodes [2],
-        &key2_scancodes [3], &key2_scancodes [4], &key2_scancodes [5],
-        &key2_scancodes [6], &key2_scancodes [7]) < 8)
-    {
-        sscanf (key2_defaults, "%d%d%d%d%d%d%d%d",
-        &key2_scancodes [0], &key2_scancodes [1], &key2_scancodes [2],
-        &key2_scancodes [3], &key2_scancodes [4], &key2_scancodes [5],
-        &key2_scancodes [6], &key2_scancodes [7]);
-    }
+         if (value >= 0xa000)
+            data->type = JOYSTICK_DATA_TYPE_AXIS;
+         else
+            data->type = JOYSTICK_DATA_TYPE_BUTTON;
+
+         switch (data->type)
+         {
+            case JOYSTICK_DATA_TYPE_AXIS:
+            {
+               data->stick = ((value >> 8) & 0xf);
+               data->axis = ((value >> 4) & 0xf);
+               data->phase = (value & 1);
+
+               break;
+            }
+
+            case JOYSTICK_DATA_TYPE_BUTTON:
+            {
+               data->index = (value & 0xff);
+
+               break;
+            }
+
+            default:
+               WARN_GENERIC();
+         }
+      }
+   }
 }
 
-
-static INLINE void load_joystick_layouts (void)
+static INLINE void save_joystick_config (void)
 {
-    memset (joy1_buffer, NIL, sizeof (joy1_buffer));
+   int index;
 
-    memset (joy2_buffer, NIL, sizeof (joy2_buffer));
+   for (index = 0; index < NUM_JOYSTICKS; index++)
+   {
+      STRING buffer;
+      int subindex;
+      int buttons[INPUT_BUTTONS];
+      USTRING key;
 
+      for (subindex = 0; subindex < INPUT_BUTTONS; subindex++)
+      {
+         const JOYSTICK_DATA *data = &joystick_data[index][subindex];
+         int value;
 
-    sprintf (joy1_buffer, "%s", get_config_string ("input", "joy1_buttons", joy1_defaults));
+         switch (data->type)
+         {
+            case JOYSTICK_DATA_TYPE_AXIS:
+            {
+               value = 0xa000;
+               value |= ((data->stick & 0xf) << 8);
+               value |= ((data->axis & 0xf) << 4);
+               value |= (data->phase & 1);
 
-    sprintf (joy2_buffer, "%s", get_config_string ("input", "joy2_buttons", joy2_defaults));
+               break;
+            }
 
+            case JOYSTICK_DATA_TYPE_BUTTON:
+            {
+               value = 0xb00;
+               value |= (data->index & 0xff);
 
-    if (sscanf (joy1_buffer, "%d%d%d%d", &joy1_buttons [0],
-        &joy1_buttons [1], &joy1_buttons [2], &joy1_buttons [3]) < 4)
-    {
-        sscanf (joy1_defaults, "%d%d%d%d", &joy1_buttons [0],
-        &joy1_buttons [1], &joy1_buttons [2], &joy1_buttons [3]);
-    }
+               break;
+            }
 
+            default:
+               WARN_GENERIC();
+         }
 
-    if (sscanf (joy2_buffer, "%d%d%d%d", &joy2_buttons [0],
-        &joy2_buttons [1], &joy2_buttons [2], &joy2_buttons [3]) < 4)
-    {
-        sscanf (joy2_defaults, "%d%d%d%d", &joy2_buttons [0],
-        &joy2_buttons [1], &joy2_buttons [2], &joy2_buttons [3]);
-    }
+         buttons[subindex] = value;
+      }
+
+      sprintf (buffer, "%x %x %x %x %x %x %x %x",
+         buttons[0], buttons[1], buttons[2], buttons[3], buttons[4],
+         buttons[5], buttons[6], buttons[7]);
+
+      USTRING_CLEAR(key);
+      uszprintf (key, sizeof (key), "joy%d_buttons", (index + 1));
+
+      set_config_string ("input", key, buffer);
+   }
 }
-
-
-int input_autosave_interval = 0;
 
 
 int input_init (void)
 {
-    install_keyboard ();
+   int player;
 
-    install_mouse ();
+   install_keyboard ();
+   install_mouse ();
 
+   if (load_joystick_data (NULL) != 0)
+   {
+      /* load_joystick_data() failed; reinitialize joystick system. */
+      install_joystick (JOY_TYPE_AUTODETECT);
+   }
 
-    if (load_joystick_data (NULL) != 0)
-    {
-        /* load_joystick_data() failed; reinitialize joystick system. */
+   for (player = 0; player < INPUT_PLAYERS; player++)
+   {
+      USTRING key;
+      ENUM defaults;
 
-        install_joystick (JOY_TYPE_AUTODETECT);
-    }
+      USTRING_CLEAR(key);
+      uszprintf (key, sizeof (key), "player_%d_device", (player + 1));
 
+      if (player == 0)
+         defaults = INPUT_DEVICE_KEYS_1;
+      else
+         defaults = INPUT_DEVICE_NONE;
 
-    input_devices [0] = get_config_int ("input", "player_1_device", INPUT_DEVICE_KEYBOARD_1);
+      input_devices[player] = get_config_int ("input", key, defaults);
+   }
 
-    input_devices [1] = get_config_int ("input", "player_2_device", INPUT_DEVICE_KEYBOARD_2);
+   input_enable_zapper = get_config_int ("input", "enable_zapper", input_enable_zapper);
 
+   /* This should probably be moved to another section. */
+   input_autosave_interval = get_config_int ("timing", "autosave_interval", input_autosave_interval);
 
-    input_devices [2] = get_config_int ("input", "player_3_device", INPUT_DEVICE_NONE);
+   load_keyboard_config ();
+   load_joystick_config ();
 
-    input_devices [3] = get_config_int ("input", "player_4_device", INPUT_DEVICE_NONE);
+   /* Clear chat text buffer. */
+   USTRING_CLEAR(input_chat_text);
 
+   /* Enter gameplay mode. */
+   input_mode = INPUT_MODE_PLAY;
 
-    input_enable_zapper = get_config_int ("input", "enable_zapper", FALSE);
-
-
-    input_autosave_interval = get_config_int ("timing", "autosave_interval", 0);
-
-
-    load_keyboard_layouts ();
-
-    load_joystick_layouts ();
-
-
-    USTRING_CLEAR(input_chat_text);
-
-
-    input_mode = 0;
-
-
-    input_mode |= INPUT_MODE_PLAY;
-
-
-    return (0);
+   /* Return success. */
+   return (0);
 }
-
 
 void input_exit (void)
 {
-    remove_keyboard ();
+   int player;
 
-    remove_mouse ();
+   /* Remove drivers. */
 
+   remove_keyboard ();
+   remove_mouse ();
+   remove_joystick ();
 
-    remove_joystick ();
+   /* Save configuration. */
 
+   for (player = 0; player < INPUT_PLAYERS; player++)
+   {
+      USTRING key;
 
-    set_config_int ("input", "player_1_device", input_devices [0]);
+      USTRING_CLEAR(key);
+      uszprintf (key, sizeof (key), "player_%d_device", (player + 1));
 
-    set_config_int ("input", "player_2_device", input_devices [1]);
+      set_config_int ("input", key, input_devices[player]);
+   }
 
+   set_config_int ("input", "enable_zapper", input_enable_zapper);
 
-    set_config_int ("input", "player_3_device", input_devices [2]);
+   set_config_int ("timing", "autosave_interval", input_autosave_interval);
 
-    set_config_int ("input", "player_4_device", input_devices [3]);
-
-
-    sprintf (key1_buffer, "%d %d %d %d %d %d %d %d", key1_scancodes [0], key1_scancodes [1],
-        key1_scancodes [2], key1_scancodes [3], key1_scancodes [4],
-        key1_scancodes [5], key1_scancodes [6], key1_scancodes [7]);
-
-    sprintf (key2_buffer, "%d %d %d %d %d %d %d %d", key2_scancodes [0], key2_scancodes [1],
-        key2_scancodes [2], key2_scancodes [3], key2_scancodes [4],
-        key2_scancodes [5], key2_scancodes [6], key2_scancodes [7]);
-
-
-    set_config_string ("input", "key1_scancodes", key1_buffer);
-
-    set_config_string ("input", "key2_scancodes", key2_buffer);
-
-
-    sprintf (joy1_buffer, "%d %d %d %d", joy1_buttons [0], joy1_buttons [1],
-        joy1_buttons [2], joy1_buttons [3]);
-
-    sprintf (joy2_buffer, "%d %d %d %d", joy2_buttons [0], joy2_buttons [1],
-        joy2_buttons [2], joy2_buttons [3]);
-
-
-    set_config_string ("input", "joy1_buttons", joy1_buffer);
-
-    set_config_string ("input", "joy2_buttons", joy2_buffer);
-
-
-    set_config_int ("input", "enable_zapper", input_enable_zapper);
-
-
-    set_config_int ("timing", "autosave_interval", input_autosave_interval);
+   save_keyboard_config ();
+   save_joystick_config ();
 }
-
 
 void input_reset (void)
 {
-    int index, player;
+   int player;
 
+   /* Reset button states. */
 
-    for (player = 0; player < 4; player ++)
-    {
-        for (index = 0; index < 8; index ++)
-        {
-            buttons [player] [index] = 1;
-        }
-    }
+   for (player = 0; player < INPUT_PLAYERS; player++)
+   {
+      int *buttons = &player_buttons[player][0];
+      int index;
 
+      /* Default to ON?  Is this even correct? */
+      for (index = 0; index < INPUT_BUTTONS; index++)
+         buttons[index] = BUTTON_ON;
+   }
 
-    last_write = 0;
-
-
-    current_read_p1 = 0;
-
-    current_read_p2 = 0;
+   /* Clear variables. */
+   last_write = 0;
+   current_read_p1 = 0;
+   current_read_p2 = 0;
 }
-
 
 UINT8 input_read (UINT16 address)               
 {
-    int index;
+   int index;
 
+   if (!input_enable_zapper)
+   {
+      /* Zapper disabled; clear mask. */
+      zapper_mask = 0;
+   }
 
-    if (! input_enable_zapper)
-    {
-        zapper_mask = 0x00;
-    }
+   switch (address)
+   {
+      case 0x4016:
+      {
+         /* 1st and 3rd players. */
 
+         if (current_read_p1 == 19)
+         {
+            /* Signature. */
 
-    switch (address)
-    {
-        case 0x4016:
+            /* Increment read counter. */
+            current_read_p1++;
 
-            /* 1st and 3rd players. */
+            /* Return ?? */
+            return (0x01);
+         }
+         else if ((current_read_p1 > 7) &&
+                  (current_read_p1 < 16))
+         {
+            /* Player 3 button status. */
 
-            if (current_read_p1 == 19)
-            {
-                /* Signature. */
+             /* Get button index. */
+             index = (current_read_p1 - 8);
 
-                current_read_p1 ++;
+             /* Increment read counter. */
+             current_read_p1++;
 
-                return (0x01);
-            }
-            else if ((current_read_p1 > 7) && (current_read_p1 < 16))
-            {
-                /* Player 3 button status. */
+             /* Return button status. */
+             return ((player_buttons[INPUT_PLAYER_3][index] | 0x40));
+         }
+         else if ((current_read_p1 > 15) &&
+                  (current_read_p1 < 23))
+         {
+            /* Ignored. */
 
-                index = (current_read_p1 - 8);
+            /* Increment read counter. */
+            current_read_p1++;
 
-
-                current_read_p1 ++;
-
-                return (buttons [INPUT_PLAYER_3] [index] | 0x40);
-            }
-            else if ((current_read_p1 > 15) && (current_read_p1 < 23))
-            {
-                /* Ignored. */
-
-                current_read_p1 ++;
-
-                return (0);
-            }
-            else if (current_read_p1 == 23)
-            {
-                /* Strobe flip-flop. */
-
-                current_read_p1 = 0;
-
-                return (0);
-            }
-            else
-            {
-                /* Player 1 button status. */
-
-                return (buttons [INPUT_PLAYER_1] [current_read_p1 ++] | 0x40);
-            }
-
-
-            break;
-
-
-        case 0x4017:
-
-            /* 2nd and 4th players. */
-
-            if (current_read_p2 == 18)
-            {
-                /* Signature. */
-
-                current_read_p2 ++;
-
-                return ((0x01 | zapper_mask));
-            }
-            else if ((current_read_p2 > 7) && (current_read_p2 < 16))
-            {
-                /* Player 4 button status. */
-
-                index = (current_read_p2 - 8);
-
-
-                current_read_p2 ++;
-
-                return (buttons [INPUT_PLAYER_4] [index] | zapper_mask | 0x40);
-            }
-            else if ((current_read_p2 > 15) && (current_read_p2 < 23))
-            {
-                /* Ignored. */
-
-                current_read_p2 ++;
-
-                return (zapper_mask);
-            }
-            else if (current_read_p2 == 23)
-            {
-                /* Strobe flip-flop. */
-
-                current_read_p2 = 0;
-
-                return (zapper_mask);
-            }
-            else
-            {
-                /* Player 2 button status. */
-
-                return (buttons [INPUT_PLAYER_2] [current_read_p2 ++] | zapper_mask | 0x40);
-            }
-
-
-            break;
-
-
-        default:
-
+            /* Return nothing. */
             return (0);
+         }
+         else if (current_read_p1 == 23)
+         {
+            /* Strobe flip-flop. */
 
+            /* Clear read counter. */
+            current_read_p1 = 0;
 
-            break;
+            /* Return nothing. */
+            return (0);
+         }
+         else
+         {
+            /* Player 1 button status. */
+
+            return ((player_buttons[INPUT_PLAYER_1][current_read_p1++] |
+               0x40));
+         }
+
+         break;
+      }
+
+      case 0x4017:
+      {
+         /* 2nd and 4th players. */
+
+         if (current_read_p2 == 18)
+         {
+            /* Signature. */
+
+            /* Increment read counter. */
+            current_read_p2++;
+
+            /* Return ?? */
+            return ((0x01 | zapper_mask));
+         }
+         else if ((current_read_p2 > 7) &&
+                  (current_read_p2 < 16))
+         {
+            /* Player 4 button status. */
+
+            /* Get button index. */
+            index = (current_read_p2 - 8);
+
+            /* Increment read counter. */
+            current_read_p2++;
+
+            /* Return button status. */
+            return (((player_buttons[INPUT_PLAYER_4][index] | 0x40) |
+               zapper_mask));
+         }
+         else if ((current_read_p2 > 15) &&
+                  (current_read_p2 < 23))
+         {
+            /* Ignored. */
+
+            /* Increment read counter. */
+            current_read_p2++;
+
+            /* Return nothing. */
+            return (zapper_mask);
+         }
+         else if (current_read_p2 == 23)
+         {
+            /* Strobe flip-flop. */
+
+            /* Clear read counter. */
+            current_read_p2 = 0;
+
+            /* Return nothing. */
+            return (zapper_mask);
+         }
+         else
+         {
+            /* Player 2 button status. */
+
+            return (((player_buttons[INPUT_PLAYER_2][current_read_p2++] |
+               0x40) | zapper_mask));
+         }
+
+         break;
+      }
+
+      default:
+      {
+         /* Untrapped port. */
+         return (0);
+      }
+
+      break;
    }
 }
-
 
 void input_write (UINT16 address, UINT8 value)
 {
-    switch (address)
-    {
-        case 0x4016:
+   switch (address)
+   {
+      case 0x4016:
+      {
+         /* 1st and 3rd players. */
 
-             /* 1st and 3rd players. */
+         if ((!(value & 0x01)) && (last_write & 0x01))
+         {
+            /* Full strobe. */
 
-            if ((! (value & 0x01)) && (last_write & 0x01))
-            {
-                /* Full strobe. */
+            /* Clear read counters. */
+            current_read_p1 = 0;
+            current_read_p2 = 0;
+         }
 
-                current_read_p1 = 0;
-            
-                current_read_p2 = 0;
-            }
+         last_write = value;
 
+         break;
+      }
 
-            last_write = value;
+      case 0x4017:
+      {
+         /* 2nd and 4th players. */
 
-
-            break;
-
-
-        case 0x4017:
-
-            /* 2nd and 4th players. */
-
-
-            break;
-
-
-        default:
-
-
-            break;
+         /* Do nothing. */
+         break;
+      }
+      
+      default:
+      {
+         /* Untrapped port. */
+         break;
+      }
    }
 }
 
+void input_update_zapper_offsets (void)
+{
+   BOOL adjust_mouse = FALSE;
 
-#define JOYSTICK_BUTTON(device, index)  \
-    ((joy [device].button [index].b) ? 1 : 0)
+   input_zapper_x_offset = (mouse_x - mouse_x_focus);
+   input_zapper_y_offset = (mouse_y - mouse_y_focus);
 
+   /* Trigger is left mouse button. */
+   input_zapper_trigger = TRUE_OR_FALSE(mouse_b & 1);
 
-#define JOYSTICK_LEFT(device)  \
-    ((joy [device].stick [0].axis [0].d1) ? 1 : 0)
+   /* Perform bounds checking */
+   if (input_zapper_x_offset >= 256)
+   {
+      input_zapper_x_offset = 255;
+      adjust_mouse = TRUE;
+   }
 
-#define JOYSTICK_RIGHT(device)   \
-    ((joy [device].stick [0].axis [0].d2) ? 1 : 0)
+   if (input_zapper_y_offset >= 240)
+   {
+      input_zapper_y_offset = 239;
+      adjust_mouse = TRUE;
+   }
 
+   if (adjust_mouse)
+      position_mouse (input_zapper_x_offset, input_zapper_y_offset);
 
-#define JOYSTICK_UP(device)  \
-    ((joy [device].stick [0].axis [1].d1) ? 1 : 0)
+   if ((input_zapper_x_offset < 256) && (input_zapper_y_offset < 240))
+      input_zapper_on_screen = TRUE;
 
-#define JOYSTICK_DOWN(device)    \
-    ((joy [device].stick [0].axis [1].d2) ? 1 : 0)
+   if (!input_zapper_on_screen)
+      input_update_zapper ();
+}
 
+void input_update_zapper (void)
+{
+   int pixel;
+
+   zapper_mask = 0x08;
+
+   if (input_zapper_trigger)
+   {
+      /* Left button. */
+      zapper_mask |= 0x10;
+   }
+
+   if (input_zapper_on_screen)
+   {
+      /* Note the (- 1) here is because NES colors in the video buffer begin
+         at 1 instead of 0.  This will need to be rewritten if the PPU is
+         updated with scalar rendering, regardless. */
+      pixel = (_getpixel (video_buffer, input_zapper_x_offset,
+         input_zapper_y_offset) - 1);
+
+      /* Check for white. */
+      if ((pixel == 32) || (pixel == 48))
+         zapper_mask &= ~0x08;
+   }
+}
+
+static INLINE BOOL joystick_reader (int which, int button)
+{
+   JOYSTICK_DATA *data = &joystick_data[which][button];
+
+   switch (data->type)
+   {
+      case JOYSTICK_DATA_TYPE_AXIS:
+      {
+         int meta, pos;
+
+         if (joy[which].stick[data->stick].flags & JOYFLAG_UNSIGNED)
+         {
+            /* This is probably a throttle control - require
+               double the threshold. */
+            meta = (JOYSTICK_SENSETIVITY << 1);
+         }
+         else
+            meta = JOYSTICK_SENSETIVITY;
+
+         pos = joy[which].stick[data->stick].axis[data->axis].pos;
+
+         if (data->phase > 0)
+            return (pos >= +meta);
+         else
+            return (pos <= -meta);
+
+         break;
+      }
+
+      case JOYSTICK_DATA_TYPE_BUTTON:
+      {
+         return (joy[which].button[data->index].b);
+
+         break;
+      }
+
+      break;
+   }
+
+   return (FALSE);
+}
 
 static INLINE void do_keyboard_1 (int player)
 {
-    int index;
+   int *buttons = &player_buttons[player][0];
+   int index;
 
+   /* Some may keyboards require polling. */
+   poll_keyboard ();
 
-    for (index = 0; index < 8; index ++)
-    {
-        buttons [player] [index] = (key [key1_scancodes [index]] ? 1 : 0);
-    }
+   for (index = 0; index < INPUT_BUTTONS; index++)
+      buttons[index] = BUTTON_ON_OR_OFF(key[key1_scancodes[index]]);
 }
-
 
 static INLINE void do_keyboard_2 (int player)
 {
-    int index;
+   int *buttons = &player_buttons[player][0];
+   int index;
 
+   /* Some may keyboards require polling. */
+   poll_keyboard ();
 
-    for (index = 0; index < 8; index ++)
-    {
-        buttons [player] [index] = (key [key2_scancodes [index]] ? 1 : 0);
-    }
+   for (index = 0; index < INPUT_BUTTONS; index++)
+      buttons[index] = BUTTON_ON_OR_OFF(key[key2_scancodes[index]]);
 }
 
-
-static INLINE void do_joystick_1 (int player)
+static INLINE void do_joystick (int player, int which)
 {
-    buttons [player] [0] = JOYSTICK_BUTTON (0, joy1_buttons [0]);
+   int *buttons = &player_buttons[player][0];
+   int index;
 
-    buttons [player] [1] = JOYSTICK_BUTTON (0, joy1_buttons [1]);
+   /* Some joysticks may require polling. */
+   poll_joystick ();
 
-
-    if (joy [0].num_buttons >= 4)
-    {
-        buttons [player] [2] = JOYSTICK_BUTTON (0, joy1_buttons [2]);
-
-        buttons [player] [3] = JOYSTICK_BUTTON (0, joy1_buttons [3]);
-    }
-    else
-    {
-        buttons [player] [2] = (key [key1_scancodes [2]] ? 1 : 0);
-
-        buttons [player] [3] = (key [key1_scancodes [3]] ? 1 : 0);
-    }
-
-
-    buttons [player] [4] = JOYSTICK_UP (0);
-
-    buttons [player] [5] = JOYSTICK_DOWN (0);
-
-
-    buttons [player] [6] = JOYSTICK_LEFT (0);
-
-    buttons [player] [7] = JOYSTICK_RIGHT (0);
+   for (index = 0; index < INPUT_BUTTONS; index++)
+      buttons[index] = BUTTON_ON_OR_OFF(joystick_reader (which, index));
 }
-
-
-static INLINE void do_joystick_2 (int player)
-{
-    buttons [player] [0] = JOYSTICK_BUTTON (1, joy1_buttons [0]);
-
-    buttons [player] [1] = JOYSTICK_BUTTON (1, joy1_buttons [1]);
-
-
-    if (joy [0].num_buttons >= 4)
-    {
-        buttons [player] [2] = JOYSTICK_BUTTON (1, joy1_buttons [2]);
-
-        buttons [player] [3] = JOYSTICK_BUTTON (1, joy1_buttons [3]);
-    }
-    else
-    {
-        buttons [player] [2] = (key [key2_scancodes [2]] ? 1 : 0);
-
-        buttons [player] [3] = (key [key2_scancodes [3]] ? 1 : 0);
-    }
-
-
-    buttons [player] [4] = JOYSTICK_UP (1);
-
-    buttons [player] [5] = JOYSTICK_DOWN (1);
-
-
-    buttons [player] [6] = JOYSTICK_LEFT (1);
-
-    buttons [player] [7] = JOYSTICK_RIGHT (1);
-}
-
-
-/* TODO: Move into configurable variables. */
-
-#define MOUSE_SENSETIVITY_X   (SCREEN_W / 128)
-
-#define MOUSE_SENSETIVITY_Y   (SCREEN_H / 128)
-
 
 static INLINE void do_mouse (int player)
 {
-    int mickey_x;
+   int *buttons = &player_buttons[player][0];
+   static int last_mouse_z = 0;
+   BOOL scroll = FALSE;
+   int mickey_x, mickey_y;
+   BOOL left, right, up, down;
 
-    int mickey_y;
+   /* Some mice may require polling. */
+   poll_mouse ();
 
+   /* Mouse wheel is used for Select. */
+   if (mouse_z != last_mouse_z)
+   {
+      last_mouse_z = mouse_z;
+      scroll = TRUE;
+   }
 
-    buttons [player] [0] = (mouse_b & 2); /* A. */
+   /* We use mickeys for an infinite range of movement. */
+   get_mouse_mickeys (&mickey_x, &mickey_y);
 
-    buttons [player] [1] = (mouse_b & 1); /* B. */
+   /* Directional control. */
+   left  = (mickey_x < -MOUSE_SENSETIVITY_X);
+   right = (mickey_x > +MOUSE_SENSETIVITY_X);
+   up    = (mickey_y < -MOUSE_SENSETIVITY_Y);
+   down  = (mickey_y > +MOUSE_SENSETIVITY_Y);
 
-
-    /* TODO: Support for mice with more than 2 buttons. */
-
-    buttons [player] [2] = (key [key1_scancodes [2]] ? 1 : 0);
-
-    buttons [player] [3] = (key [key1_scancodes [3]] ? 1 : 0);
-
-
-    get_mouse_mickeys (&mickey_x, &mickey_y);
-
-
-    buttons [player] [4] = ((mickey_y < -MOUSE_SENSETIVITY_Y) ? 1 : 0);
-
-    buttons [player] [5] = ((mickey_y > +MOUSE_SENSETIVITY_Y) ? 1 : 0);
-
-
-    buttons [player] [6] = ((mickey_x < -MOUSE_SENSETIVITY_X) ? 1 : 0);
-
-    buttons [player] [7] = ((mickey_x > +MOUSE_SENSETIVITY_X) ? 1 : 0);
+   buttons[INPUT_BUTTON_A]      = BUTTON_ON_OR_OFF(mouse_b & 2);
+   buttons[INPUT_BUTTON_B]      = BUTTON_ON_OR_OFF(mouse_b & 1);
+   buttons[INPUT_BUTTON_SELECT] = BUTTON_ON_OR_OFF(scroll);
+   buttons[INPUT_BUTTON_START]  = BUTTON_ON_OR_OFF(mouse_b & 4);
+   buttons[INPUT_BUTTON_UP]     = BUTTON_ON_OR_OFF(up);
+   buttons[INPUT_BUTTON_DOWN]   = BUTTON_ON_OR_OFF(down);
+   buttons[INPUT_BUTTON_LEFT]   = BUTTON_ON_OR_OFF(left);
+   buttons[INPUT_BUTTON_RIGHT]  = BUTTON_ON_OR_OFF(right);
 }
-
 
 void input_process (void)
 {
    int player;
-   int want_poll = TRUE;
 
    if (!(input_mode & INPUT_MODE_REPLAY_RECORD))
    {
@@ -693,16 +772,17 @@ void input_process (void)
        /* Replay playback code.  Reads data from the replay file and feeds
           it directly into the player button states. */
 
-      for (player = 0; player < 4; player++)
+      for (player = 0; player < INPUT_PLAYERS; player++)
       {
-         BOOL eof;
+         int *buttons = &player_buttons[player][0];
          UINT8 data;
-         int button;
+         BOOL eof;
+         int index;
 
          eof = get_replay_data (&data);
 
-         for (button = 0; button < 8; button++)
-             buttons[player][button] = ((data & (1 << button)) ? 1 : 0);
+         for (index = 0; index < INPUT_BUTTONS; index++)
+             buttons[index] = BUTTON_ON_OR_OFF(data & (1 << index));
 
          if (eof)
          {
@@ -725,18 +805,20 @@ void input_process (void)
    if (wait_frames > 0)
       return;
 
-   for (player = 0; player < 4; player++)
+   for (player = 0; player < INPUT_PLAYERS; player++)
    {
+      int *buttons = &player_buttons[player][0];
+
       switch (input_devices[player])
       {
-         case INPUT_DEVICE_KEYBOARD_1:
+         case INPUT_DEVICE_KEYS_1:
          {
             do_keyboard_1 (player);
 
             break;
          }
  
-         case INPUT_DEVICE_KEYBOARD_2:
+         case INPUT_DEVICE_KEYS_2:
          {
             do_keyboard_2 (player);
  
@@ -744,75 +826,57 @@ void input_process (void)
          }
  
          case INPUT_DEVICE_JOYSTICK_1:
-         {
-            if (want_poll)
-            {
-               /* Some joystick devices require polling. */
-               poll_joystick ();
-
-               want_poll = FALSE;
-            }
- 
-            do_joystick_1 (player);
- 
-            break;
-         }
- 
          case INPUT_DEVICE_JOYSTICK_2:
+         case INPUT_DEVICE_JOYSTICK_3:
+         case INPUT_DEVICE_JOYSTICK_4:
          {
-            if (want_poll)
-            {
-               poll_joystick ();
+            do_joystick (player, (input_devices[player] -
+               INPUT_DEVICE_JOYSTICK_1));
  
-               want_poll = FALSE;
-            }
- 
-            do_joystick_2 (player);
-
             break;
          }
-
+ 
          case INPUT_DEVICE_MOUSE:
          {
-            poll_mouse ();
- 
             do_mouse (player);
  
             break;
          }
       }
  
-      if (buttons[player][4] && buttons[player][5])
+      if (buttons[INPUT_BUTTON_UP] && buttons[INPUT_BUTTON_DOWN])
       {
          /* Prevent up and down from being pressed at the same time */
-          buttons[player][4] =
-          buttons[player][5] = 0;
+
+         buttons[INPUT_BUTTON_UP]   = BUTTON_OFF;
+         buttons[INPUT_BUTTON_DOWN] = BUTTON_OFF;
       }
  
-      if (buttons[player][6] && buttons[player][7])
+      if (buttons[INPUT_BUTTON_LEFT] && buttons[INPUT_BUTTON_RIGHT])
       {
          /* Prevent left and right from being pressed at the same time */
-         buttons[player][6] =
-         buttons[player][7] = 0;
+
+         buttons[INPUT_BUTTON_LEFT]  = BUTTON_OFF;
+         buttons[INPUT_BUTTON_RIGHT] = BUTTON_OFF;
       }
  
       if (input_mode & INPUT_MODE_REPLAY_RECORD)
       {
          /* Send player button states to the replay file. */
+
          UINT8 data = 0;
-         int button;
+         int index;
  
-         for (button = 0; button < 8; button++)
+         for (index = 0; index < INPUT_BUTTONS; index++)
          {
-            if (buttons[player][button])
-               data |= (1 << button);
+            if (buttons[index] == BUTTON_ON)
+               data |= (1 << index);
          }
  
          save_replay_data (data);
       }
    }
 }
-
 
 void input_handle_keypress (int c, int scancode)
 {
@@ -871,79 +935,266 @@ void input_handle_keypress (int c, int scancode)
    }
 }
 
-
-int input_get_player_device (int player)
+ENUM input_get_player_device (ENUM player)
 {
-    return (input_devices [player]);
+   return (input_devices[player]);
 }
 
-
-void input_set_player_device (int player, int device)
+void input_set_player_device (ENUM player, ENUM device)
 {
-    input_devices [player] = device;
+   input_devices[player] = device;
 }
 
-
-void input_map_device_button (int device, int button, int value)
+void input_map_player_button (ENUM player, ENUM button)
 {
-    switch (device)
-    {
-        case INPUT_DEVICE_KEYBOARD_1:
+   ENUM device;
+   int passes = 0;
 
-            key1_scancodes [button] = value;
+   /* This function scans 'player's input device for changes on all
+      supported inputs, then updates their configuration for 'button'.
 
+      It should *only* be called by the GUI, since it uses gui_heartbeat(),
+      and makes no attempts to provide it's own user interface. */
+
+   device = input_devices[player];
+
+   switch (device)
+   {
+      case INPUT_DEVICE_NONE:
+         return;
+
+      case INPUT_DEVICE_JOYSTICK_1:
+      case INPUT_DEVICE_JOYSTICK_2:
+      case INPUT_DEVICE_JOYSTICK_3:
+      case INPUT_DEVICE_JOYSTICK_4:
+      {
+         int index;
+
+         index = (device - INPUT_DEVICE_JOYSTICK_1);
+
+         if ((joy[index].flags & JOYFLAG_CALIB_DIGITAL) ||
+             (joy[index].flags & JOYFLAG_CALIB_ANALOGUE) ||
+             (joy[index].flags & JOYFLAG_CALIBRATE))
+         {
+            gui_alert ("Error", "This device must be calibrated first.",
+               NULL, NULL, "&OK", NULL, 'o', 0);
+
+            gui_message (-1, "Button mapping cancelled");
+
+            return;
+         }
+
+         break;
+      }
+
+      default:
+        break;
+   }
+
+   /* Clear keyboard buffer just in case. */
+   clear_keybuf ();
+
+   while (TRUE)
+   {
+      poll_keyboard ();
+
+      if (key[KEY_ESC])
+      {
+         /* Cancelled. */
+
+         /* Clear keyboard buffer to keep input configuration dialog from
+            being closed by the ESC signal. */
+         clear_keybuf ();
+
+         gui_message (-1, "Button mapping cancelled.");
+
+         return;
+      }
+
+      switch (device)
+      {
+         case INPUT_DEVICE_KEYS_1:
+         case INPUT_DEVICE_KEYS_2:
+         {
+            if (keypressed ())
+            {
+               int scancode;
+
+               ureadkey (&scancode);
+
+               switch (device)
+               {
+                  case INPUT_DEVICE_KEYS_1:
+                  {
+                     key1_scancodes[button] = scancode;
+
+                     break;
+                  }
+
+                  case INPUT_DEVICE_KEYS_2:
+                  {
+                     key2_scancodes[button] = scancode;
+
+                     break;
+                  }
+
+                  default:
+                     WARN_GENERIC();
+               }
+
+               gui_message (-1, "Button mapped to keyboard scancode %xh.",
+                  scancode);
+
+               return;
+            }
 
             break;
+         }
 
+         case INPUT_DEVICE_JOYSTICK_1:
+         case INPUT_DEVICE_JOYSTICK_2:
+         case INPUT_DEVICE_JOYSTICK_3:
+         case INPUT_DEVICE_JOYSTICK_4:
+         {
+            int index, stick, but;
+            ENUM type = JOYSTICK_DATA_TYPE_NONE;
+            int d1 = 0, d2 = 0, d3 = 0;   /* Kill warnings. */
+            JOYSTICK_DATA *data;
 
-        case INPUT_DEVICE_KEYBOARD_2:
+            poll_joystick ();
 
-            key2_scancodes [button] = value;
+            index = (device - INPUT_DEVICE_JOYSTICK_1);
 
+            /* Scan axis. */
+
+            for (stick = 0; stick < joy[index].num_sticks; stick++)
+            {
+               int meta;
+               int axis;
+
+               if (joy[index].stick[stick].flags & JOYFLAG_UNSIGNED)
+               {
+                  /* This is probably a throttle control - require
+                     double the threshold. */
+                  meta = (JOYSTICK_SENSETIVITY << 1);
+               }
+               else
+                  meta = JOYSTICK_SENSETIVITY;
+
+               for (axis = 0; axis < joy[index].stick[stick].num_axis;
+                  axis++)
+               {
+                  int pos;
+
+                  pos = joy[index].stick[stick].axis[axis].pos;
+
+                  if ((pos >= +meta) && (passes == 0))
+                  {
+                     gui_alert ("Uh-oh", "You seem to have an active "
+                        "throttle or other constant-fire mechanism on your "
+                        "controller.", "You might want to disable it for "
+                        "automapping to work properly.", NULL, "&OK", NULL,
+                           'o', 0);
+                  }
+
+                  if (pos <= -meta)
+                  {
+                     type = JOYSTICK_DATA_TYPE_AXIS;
+                     d1 = stick;
+                     d2 = axis;
+                     d3 = 0;
+                  }
+                  else if (pos >= +meta)
+                  {
+                     type = JOYSTICK_DATA_TYPE_AXIS;
+                     d1 = stick;
+                     d2 = axis;
+                     d3 = 1;
+                  }
+               }
+            }
+
+            /* Scan buttons. */
+
+            for (but = 0; but < joy[index].num_buttons; but++)
+            {
+               if (joy[index].button[but].b)
+               {
+                  type = JOYSTICK_DATA_TYPE_BUTTON;
+                  d1 = but;
+               }
+            }
+
+            if (type == JOYSTICK_DATA_TYPE_NONE)
+            {
+               /* Couldn't find any valid mappings. */
+               break;
+            }
+
+            data = &joystick_data[player][button];
+
+            switch (type)
+            {
+               case JOYSTICK_DATA_TYPE_AXIS:
+               {
+                  data->type  = type;
+                  data->stick = d1;
+                  data->axis  = d2;
+                  data->phase = d3;
+
+                  gui_message (-1, "Button mapped to joystick %d, stick "
+                     "%d, axis %d, phase %d.", index, d1, d2, d3);
+
+                  return;
+               }
+
+               case JOYSTICK_DATA_TYPE_BUTTON:
+               {
+                  data->type  = type;
+                  data->index = d1;
+
+                  gui_message (-1, "Button mapped to joystick %d, button "
+                     "%d.", index, d1);
+
+                  return;
+               }
+
+               default:
+                  WARN_GENERIC();
+            }
 
             break;
+         }
 
-
-        case INPUT_DEVICE_JOYSTICK_1:
-
-            joy1_buttons [button] = value;
-
-
+         case INPUT_DEVICE_MOUSE:
             break;
 
+         default:
+            WARN_GENERIC();
+      }
 
-        case INPUT_DEVICE_JOYSTICK_2:
+      gui_heartbeat ();
 
-            joy2_buttons [button] = value;
-
-
-            break;
-
-
-        default:
-
-            break;
-    }
+      passes++;
+   }
 }
 
-
-void input_save_state (PACKFILE * file, int version)
+void input_save_state (PACKFILE *file, int version)
 {
-    pack_putc (last_write, file);
+   RT_ASSERT(file);
 
+   pack_putc (last_write, file);
 
-    pack_putc (current_read_p1, file);
-
-    pack_putc (current_read_p2, file);
+   pack_putc (current_read_p1, file);
+   pack_putc (current_read_p2, file);
 }
 
-
-void input_load_state (PACKFILE * file, int version)
+void input_load_state (PACKFILE *file, int version)
 {
-    last_write = pack_getc (file);
+   RT_ASSERT(file);
 
+   last_write = pack_getc (file);
 
-    current_read_p1 = pack_getc (file);
-
-    current_read_p2 = pack_getc (file);
+   current_read_p1 = pack_getc (file);
+   current_read_p2 = pack_getc (file);
 }
