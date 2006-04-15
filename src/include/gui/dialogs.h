@@ -132,7 +132,7 @@ DEFINE_DIALOG_CALLBACK(options_input_configure_dialog_set_buttons);
 
 static const DIALOG options_input_configure_dialog_base[] =
 {
-   { sl_frame,    0,   0,   165, 174, 0, 0, 0,   0,      0, 0,                       NULL,           "Input",                                      NULL },
+   { sl_frame,    0,   0,   165, 173, 0, 0, 0,   0,      0, 0,                       NULL,           "Input",                                      NULL },
    { sl_x_button, 145, 4,   16,  12,  0, 0, 0,   D_EXIT, 0, 0,                       "X",            NULL,                                         NULL },
    { sl_text,     9,   28,  0,   0,   0, 0, 0,   0,      0, 0,                       NULL,           "Player:",                                    NULL },
    { sl_radiobox, 52,  28,  20,  6,   0, 0, '1', 0,      1, INPUT_PLAYER_1,          "&1",           options_input_configure_dialog_player_select, NULL },
@@ -148,7 +148,7 @@ static const DIALOG options_input_configure_dialog_base[] =
    { sl_radiobox, 18,  100, 68,  6,   0, 0, 0,   0,      2, INPUT_DEVICE_JOYSTICK_3, "Stick/Pad 3",  options_input_configure_dialog_device_select, NULL },
    { sl_radiobox, 18,  109, 68,  6,   0, 0, 0,   0,      2, INPUT_DEVICE_JOYSTICK_4, "Stick/Pad 4",  options_input_configure_dialog_device_select, NULL },
    { sl_radiobox, 18,  118, 68,  6,   0, 0, 'm', 0,      2, INPUT_DEVICE_MOUSE,      "&Mouse",        options_input_configure_dialog_device_select, NULL },
-   { sl_button,   18,  130, 68,  16,  0, 0, 'c', 0,      0, 0,                       "&Calibrate",   options_input_configure_dialog_calibrate,     NULL },
+   { sl_button,   18,  132, 68,  16,  0, 0, 'c', 0,      0, 0,                       "&Calibrate",   options_input_configure_dialog_calibrate,     NULL },
    { sl_text,     98,  43,  0,   0,   0, 0, 0,   0,      0, 0,                       NULL,           "Set Buttons:",                               NULL },
    { sl_button,   107, 55,  48,  12,  0, 0, 'u', 0,      0, INPUT_BUTTON_UP,         "&Up",          options_input_configure_dialog_set_buttons,   NULL },
    { sl_button,   107, 69,  48,  12,  0, 0, 'd', 0,      0, INPUT_BUTTON_DOWN,       "&Down",        options_input_configure_dialog_set_buttons,   NULL },
