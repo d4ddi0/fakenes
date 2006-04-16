@@ -631,8 +631,8 @@ static const MENU video_resolution_proportionate_menu_base[] =
    { " &4: 512x480",   video_resolution_proportionate_menu_512_480,   NULL, 0, NULL },
    { " &5: 768x672",   video_resolution_proportionate_menu_768_672,   NULL, 0, NULL },
    { " &6: 768x720",   video_resolution_proportionate_menu_768_720,   NULL, 0, NULL },
-   { " &7: 1152x896",  video_resolution_proportionate_menu_1024_896,  NULL, 0, NULL },
-   { " &8: 1152x960",  video_resolution_proportionate_menu_1024_960,  NULL, 0, NULL },
+   { " &7: 1024x896",  video_resolution_proportionate_menu_1024_896,  NULL, 0, NULL },
+   { " &8: 1024x960",  video_resolution_proportionate_menu_1024_960,  NULL, 0, NULL },
    { " &9: 1280x1120", video_resolution_proportionate_menu_1280_1120, NULL, 0, NULL },
    { "1&0: 1280x1200", video_resolution_proportionate_menu_1280_1200, NULL, 0, NULL },
    MENU_ENDCAP
@@ -643,6 +643,7 @@ DEFINE_MENU_CALLBACK(video_resolution_menu_640_480);
 DEFINE_MENU_CALLBACK(video_resolution_menu_800_600);
 DEFINE_MENU_CALLBACK(video_resolution_menu_1024_768);
 DEFINE_MENU_CALLBACK(video_resolution_menu_1152_864);
+DEFINE_MENU_CALLBACK(video_resolution_menu_1280_960);
 DEFINE_MENU_CALLBACK(video_resolution_menu_1280_1024);
 DEFINE_MENU_CALLBACK(video_resolution_menu_1600_1200);
 
@@ -655,8 +656,9 @@ static const MENU video_resolution_menu_base[] =
    { "&3: 800x600",    video_resolution_menu_800_600,   NULL,                                             0, NULL },
    { "&4: 1024x768",   video_resolution_menu_1024_768,  NULL,                                             0, NULL },
    { "&5: 1152x864",   video_resolution_menu_1152_864,  NULL,                                             0, NULL },
-   { "&6: 1280x1024",  video_resolution_menu_1280_1024, NULL,                                             0, NULL },
-   { "&7: 1600x1200",  video_resolution_menu_1600_1200, NULL,                                             0, NULL },
+   { "&6: 1280x960",   video_resolution_menu_1280_960,  NULL,                                             0, NULL },
+   { "&7: 1280x1024",  video_resolution_menu_1280_1024, NULL,                                             0, NULL },
+   { "&8: 1600x1200",  video_resolution_menu_1600_1200, NULL,                                             0, NULL },
    MENU_ENDCAP
 };
 
