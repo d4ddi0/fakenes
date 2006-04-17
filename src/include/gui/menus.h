@@ -112,8 +112,8 @@ DEFINE_MENU_CALLBACK(main_replay_record_menu_stop);
 
 static const MENU main_replay_record_menu_base[] =
 {
-   { "&Start (F12)", main_replay_record_menu_start, NULL, 0,          NULL },
-   { "S&top  (F12)", main_replay_record_menu_stop,  NULL, D_DISABLED, NULL },
+   { "&Start... (F12)", main_replay_record_menu_start, NULL, 0,          NULL },
+   { "S&top     (F12)", main_replay_record_menu_stop,  NULL, D_DISABLED, NULL },
    MENU_ENDCAP
 };
 
@@ -216,7 +216,7 @@ static const MENU machine_save_state_menu_base[] =
    MENU_SPLITTER,
    { "S&elect",          NULL,                               IMPORT_MENU(machine_save_state_select_menu),   0, NULL },
    MENU_SPLITTER,                                    
-   { "&Save       (F5)", machine_save_state_menu_save,       NULL,                                          0, NULL },
+   { "&Save...    (F5)", machine_save_state_menu_save,       NULL,                                          0, NULL },
    { "&Restore    (F6)", machine_save_state_menu_restore,    NULL,                                          0, NULL },
    MENU_SPLITTER,
    { "&Autosave",        NULL,                               IMPORT_MENU(machine_save_state_autosave_menu), 0, NULL },
@@ -649,6 +649,7 @@ DEFINE_MENU_CALLBACK(video_resolution_menu_1152_864);
 DEFINE_MENU_CALLBACK(video_resolution_menu_1280_960);
 DEFINE_MENU_CALLBACK(video_resolution_menu_1280_1024);
 DEFINE_MENU_CALLBACK(video_resolution_menu_1600_1200);
+DEFINE_MENU_CALLBACK(video_resolution_menu_custom);
 
 static const MENU video_resolution_menu_base[] =
 {
@@ -663,6 +664,8 @@ static const MENU video_resolution_menu_base[] =
    { "&7: 1280x960",   video_resolution_menu_1280_960,  NULL,                                             0, NULL },
    { "&8: 1280x1024",  video_resolution_menu_1280_1024, NULL,                                             0, NULL },
    { "&9: 1600x1200",  video_resolution_menu_1600_1200, NULL,                                             0, NULL },
+   MENU_SPLITTER,
+   { "&Custom...",     video_resolution_menu_custom,     NULL,                                             0, NULL },
    MENU_ENDCAP
 };
 
@@ -689,6 +692,7 @@ DEFINE_MENU_CALLBACK(video_buffer_menu_512_480);
 DEFINE_MENU_CALLBACK(video_buffer_menu_640_480);
 DEFINE_MENU_CALLBACK(video_buffer_menu_256_256);
 DEFINE_MENU_CALLBACK(video_buffer_menu_512_512);
+DEFINE_MENU_CALLBACK(video_buffer_menu_custom);
 
 static const MENU video_buffer_menu_base[] =
 {
@@ -702,6 +706,8 @@ static const MENU video_buffer_menu_base[] =
    { "Square",            NULL,                               NULL, 0, NULL },
    { "  &5: 256x256",     video_buffer_menu_256_256,          NULL, 0, NULL },
    { "  &6: 512x512",     video_buffer_menu_512_512,          NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&Custom...",        video_buffer_menu_custom,           NULL, 0, NULL },
    MENU_ENDCAP
 };
 
@@ -714,11 +720,12 @@ DEFINE_MENU_CALLBACK(video_blitter_menu_desii);
 DEFINE_MENU_CALLBACK(video_blitter_menu_super_2xscl);
 DEFINE_MENU_CALLBACK(video_blitter_menu_ultra_2xscl);
 DEFINE_MENU_CALLBACK(video_blitter_menu_hq2x);
+DEFINE_MENU_CALLBACK(video_blitter_menu_nes_ntsc);
 DEFINE_MENU_CALLBACK(video_blitter_menu_interpolated_3x);
 DEFINE_MENU_CALLBACK(video_blitter_menu_hq3x);
 DEFINE_MENU_CALLBACK(video_blitter_menu_hq4x);
 DEFINE_MENU_CALLBACK(video_blitter_menu_stretched);
-DEFINE_MENU_CALLBACK(video_blitter_menu_nes_ntsc);
+DEFINE_MENU_CALLBACK(video_blitter_menu_configure);
 
 static const MENU video_blitter_menu_base[] =
 {
@@ -737,6 +744,8 @@ static const MENU video_blitter_menu_base[] =
    { "11: &HQ3X",            video_blitter_menu_hq3x,            NULL, 0, NULL },
    { "11: H&Q4X",            video_blitter_menu_hq4x,            NULL, 0, NULL },
    { "13: &Stretched",       video_blitter_menu_stretched,       NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&Configure...",        video_blitter_menu_configure,       NULL, 0, NULL },
    MENU_ENDCAP
 };
 

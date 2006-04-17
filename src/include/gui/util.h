@@ -260,3 +260,60 @@ static INLINE void gui_close (void)
 
    audio_resume ();
 }
+
+static INLINE BOOL get_resolution_input (const UCHAR *title, int *width, int
+   *height)
+{
+   /* Pops up an abstract input dialog that allows the user to enter a
+      custom resolution (in pixels).
+
+      Returns FALSE if the dialog was cancelled, otherwise TRUE. */
+
+   DIALOG *dialog;
+   DIALOG *objframe;
+   DIALOG *objwidth;
+   DIALOG *objheight;
+   USTRING widthstr, heightstr;
+   int result;
+
+   /* Create dialog. */
+   dialog = load_dialog (resolution_dialog_base);
+   if (!dialog)
+   {
+      WARN("Failed to create dialog structure");
+      return (-1);
+   }
+
+   /* Get objects. */
+
+   objframe = &dialog[RESOLUTION_DIALOG_FRAME];
+   objwidth = &dialog[RESOLUTION_DIALOG_WIDTH];
+   objheight = &dialog[RESOLUTION_DIALOG_HEIGHT];
+
+   /* Set up objects. */
+
+   objframe->dp2 = (char *)title;
+
+   USTRING_CLEAR(widthstr);
+   objwidth->d1 = sizeof (widthstr);
+   objwidth->dp = widthstr;
+
+   USTRING_CLEAR(heightstr);
+   objheight->d1 = sizeof (heightstr);
+   objheight->dp = heightstr;
+
+   /* Show dialog. */
+   result = show_dialog (dialog, -1);
+
+   /* Destroy dialog. */
+   unload_dialog (dialog);
+
+   if (result != RESOLUTION_DIALOG_OK_BUTTON)
+      return (FALSE);
+
+   *width  = ROUND(uatof (widthstr));
+   *height = ROUND(uatof (heightstr));
+
+   /* Return success. */
+   return (TRUE);
+}

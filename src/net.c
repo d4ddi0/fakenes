@@ -11,6 +11,7 @@
 #include <string.h>
 #include "common.h"
 #include "debug.h"
+#include "log.h"
 #include "net.h"
 #include "types.h"
 
@@ -94,7 +95,7 @@ int net_init (void)
    nlHint (NL_REUSE_ADDRESS, NL_TRUE);
    nlEnable (NL_LITTLE_ENDIAN_DATA);
 
-   printf ("NET: Network initialized.\n");
+   log_printf ("NET: Network initialized.\n");
 
    return (0);
 }
@@ -103,7 +104,7 @@ void net_exit (void)
 {
    net_close ();
 
-   printf ("NET: Shutting down.\n");
+   log_printf ("NET: Shutting down.\n");
    nlShutdown ();
 }
 
@@ -127,7 +128,7 @@ int net_open (int port)
       return (2);
    }
 
-   printf ("NET: Root socket opened.\n");
+   log_printf ("NET: Root socket opened.\n");
 
    return (0);
 }
@@ -165,7 +166,7 @@ void net_close (void)
    nlClose (net_socket);
    net_socket = NL_INVALID;
 
-   printf ("NET: Root socket closed.\n");
+   log_printf ("NET: Root socket closed.\n");
 
    /* Clear client data. */
    memset (net_clients,     0, sizeof (net_clients));
@@ -207,7 +208,7 @@ int net_listen (void)
       /* Switch to server mode. */
       net_mode = NET_MODE_SERVER;
 
-      printf ("Server initialized.\n");
+      log_printf ("NET: Server initialized.\n");
 
       /* Set up client #0. */
 
@@ -221,7 +222,7 @@ int net_listen (void)
       /* Activate client. */
       client->active = TRUE;
 
-      printf ("Client #0 initialized.\n");
+      log_printf ("NET: Client #0 initialized.\n");
    }
 
    socket = nlAcceptConnection (net_socket);
@@ -249,7 +250,7 @@ int net_listen (void)
          /* Activate client. */
          client->active = TRUE;
 
-         printf ("Client #%d initialized.\n", index);
+         log_printf ("NET: Client #%d initialized.\n", index);
 
          return (index);
       }
@@ -309,7 +310,7 @@ int net_connect (const char *host, int port)
    /* Activate client. */
    client->active = TRUE;
 
-   printf ("Client #0 initialized.\n");
+   log_printf ("NET: Client #0 initialized.\n");
 
    return (TRUE);
 }

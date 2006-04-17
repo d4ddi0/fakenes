@@ -1,3 +1,8 @@
+
+/* Helper macros for scaling dialog objects to fonts. */
+#define FONT_SCALE_X(size) ROUND(((size / 5.0f) * text_length (font, "X")))
+#define FONT_SCALE_Y(size) ROUND(((size / 6.0f) * text_height (font)))
+
 static FONT *old_font = NULL;
 
 static INLINE void push_font (FONT *new_font)
@@ -460,6 +465,54 @@ int sl_viewer (int message, DIALOG *dialog, int key)
 
       default:
          return (d_textbox_proc (message, dialog, key));
+   }
+
+   return (D_O_K);
+}
+
+int sl_editbox (int message, DIALOG *dialog, int key)
+{
+   /*
+      Edit box with shadow.
+
+      Parameters are the same as d_edit_proc.
+   */
+
+   RT_ASSERT(dialog);
+
+   switch (message)
+   {
+      case MSG_DRAW:
+      {
+         int saved_x, saved_y, saved_w, saved_h;
+
+         /* Draw shadow box. */
+         d_shadow_box_proc (message, dialog, key);
+
+         saved_x = dialog->x;
+         saved_y = dialog->y;
+         saved_w = dialog->w;
+         saved_h = dialog->h;
+
+         /* Place edit box inside of shadow box. */
+
+         dialog->x += FONT_SCALE_X(2);
+         dialog->y += FONT_SCALE_Y(4);
+         dialog->w -= FONT_SCALE_X(4);
+         dialog->h -= FONT_SCALE_Y(2);
+
+         d_edit_proc (message, dialog, key);
+
+         dialog->x = saved_x;
+         dialog->y = saved_y;
+         dialog->w = saved_w;
+         dialog->h = saved_h;
+
+         break;
+      }
+
+      default:
+         return (d_edit_proc (message, dialog, key));
    }
 
    return (D_O_K);

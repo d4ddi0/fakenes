@@ -1361,13 +1361,21 @@ static int main_replay_record_menu_start (void)
                  
    if (gui_is_active)
    {
+      DIALOG *objtitle;
+
       /* Allow user to customize title before save. */
 
-      main_replay_record_start_dialog[4].d1 = (SAVE_TITLE_SIZE - 1);
-      main_replay_record_start_dialog[4].dp = title;
+      objtitle = &main_replay_record_start_dialog[MAIN_REPLAY_RECORD_START_DIALOG_TITLE];
 
-      if (show_dialog (main_replay_record_start_dialog, -1) != 5)
+      objtitle->d1 = (SAVE_TITLE_SIZE - 1);
+      objtitle->dp = title;
+
+      if (show_dialog (main_replay_record_start_dialog, -1) !=
+         MAIN_REPLAY_RECORD_START_DIALOG_OK_BUTTON)
+      {
+         /* Dialog was cancelled. */
          return (D_O_K);
+      }
    }
 
    /* Open replay file. */
@@ -1665,10 +1673,14 @@ static int machine_save_state_menu_save (void)
 
    if (gui_is_active)
    {
+      DIALOG *objtitle;
+
       /* Allow user to customize title before save. */
 
-      machine_save_state_save_dialog[4].d1 = (SAVE_TITLE_SIZE - 1);
-      machine_save_state_save_dialog[4].dp = title;
+      objtitle = &machine_save_state_save_dialog[MACHINE_SAVE_STATE_SAVE_DIALOG_TITLE];
+
+      objtitle->d1 = (SAVE_TITLE_SIZE - 1);
+      objtitle->dp = title;
 
       if (show_dialog (machine_save_state_save_dialog, -1) != 5)
          return (D_O_K);
@@ -2430,6 +2442,21 @@ RESOLUTION_MENU_HANDLER(1600, 1200)
 #undef RESOLUTION_MENU_HANDLER
 #undef RESOLUTION_MENU_HANDLER_EX
 
+static int video_resolution_menu_custom (void)
+{
+   int width, height;
+
+   if (get_resolution_input ("Custom", &width, &height))
+   {
+      video_set_resolution (width, height);
+
+      gui_needs_restart = TRUE;
+      return (D_CLOSE);
+   }
+      
+   return (D_O_K);
+}
+
 static int video_colors_menu_paletted_8_bit (void)
 {
    video_set_color_depth (8);
@@ -2502,6 +2529,24 @@ BUFFER_MENU_HANDLER(512, 512)
 
 #undef BUFFER_MENU_HANDLER
 
+static int video_buffer_menu_custom (void)
+{
+   int width, height;
+
+   if (get_resolution_input ("Custom", &width, &height))
+   {
+      video_buffer_width = width;
+      video_buffer_height = height;
+      video_init_buffer ();
+
+      update_menus ();
+
+      cycle_video ();
+   }
+      
+   return (D_O_K);
+}
+
 #define BLITTER_MENU_HANDLER(name, caption, id) \
    static int video_blitter_menu_##name (void)   \
    {  \
@@ -2528,6 +2573,14 @@ BLITTER_MENU_HANDLER(hq4x,            "hq4x filter",         VIDEO_BLITTER_HQ4X)
 BLITTER_MENU_HANDLER(stretched,       "stretched",           VIDEO_BLITTER_STRETCHED)
 
 #undef BLITTER_MENU_HANDLER
+
+static int video_blitter_menu_configure (void)
+{
+   gui_alert ("Error", "There are no configuration parameters available "
+      "for the selected blitter.", NULL, NULL, "&OK", NULL, 'o', 0);
+
+   return (D_O_K);
+}
 
 static int video_filters_menu_scanlines_25_percent (void)
 {

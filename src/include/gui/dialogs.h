@@ -19,13 +19,13 @@ DEFINE_DIALOG(help_about_dialog);
 /* alert() replacement dialog, loaded and built by gui_alert(). */
 static const DIALOG alert_dialog_base[] =
 {
-   { sl_frame,      0, 0,  0,  83, 0, 0, 0, 0,      0, 0, NULL, NULL, NULL },
-   { sl_x_button,   0, 4,  16, 12, 0, 0, 0, D_EXIT, 0, 0, "X",  NULL, NULL },
-   { sl_text,       0, 28, 0,  0,  0, 0, 0, 0,      0, 0, NULL, NULL, NULL },
-   { sl_text,       0, 37, 0,  0,  0, 0, 0, 0,      0, 0, NULL, NULL, NULL },
-   { sl_text,       0, 46, 0,  0,  0, 0, 0, 0,      0, 0, NULL, NULL, NULL },
-   { d_button_proc, 0, 61, 44, 16, 0, 0, 0, D_EXIT, 0, 0, NULL, NULL, NULL },
-   { d_button_proc, 0, 61, 44, 16, 0, 0, 0, D_EXIT, 0, 0, NULL, NULL, NULL },
+   { sl_frame,    0, 0,  0,  83, 0, 0, 0, 0,      0, 0, NULL, NULL, NULL },
+   { sl_x_button, 0, 4,  16, 12, 0, 0, 0, D_EXIT, 0, 0, "X",  NULL, NULL },
+   { sl_text,     0, 28, 0,  0,  0, 0, 0, 0,      0, 0, NULL, NULL, NULL },
+   { sl_text,     0, 37, 0,  0,  0, 0, 0, 0,      0, 0, NULL, NULL, NULL },
+   { sl_text,     0, 46, 0,  0,  0, 0, 0, 0,      0, 0, NULL, NULL, NULL },
+   { sl_button,   0, 61, 44, 16, 0, 0, 0, D_EXIT, 0, 0, NULL, NULL, NULL },
+   { sl_button,   0, 61, 44, 16, 0, 0, 0, D_EXIT, 0, 0, NULL, NULL, NULL },
    DIALOG_FRAME_ENDCAP
 };  
 
@@ -57,6 +57,31 @@ enum
    VIEWER_DIALOG_CLOSE_BUTTON_2,
 };
 
+static const DIALOG resolution_dialog_base[] =
+{
+   { sl_frame,    0,   0,  146, 74, 0, 0, 0,   0,      0, 0, NULL,      NULL,     NULL },
+   { sl_x_button, 127, 4,  16,  12, 0, 0, 0,   D_EXIT, 0, 0, "X",       NULL,     NULL },
+   { sl_editbox,  9,   28, 32,  14, 0, 0, 0,   0,      0, 0, NULL,      NULL,     NULL },
+   { sl_text,     50,  31, 0,   0,  0, 0, 0,   0,      0, 0, NULL,      "x",      NULL },
+   { sl_editbox,  64,  28, 32,  14, 0, 0, 0,   0,      0, 0, NULL,      NULL,     NULL },
+   { sl_text,     105, 31, 0,   0,  0, 0, 0,   0,      0, 0, NULL,      "pixels", NULL },
+   { sl_button,   9,   51, 48,  16, 0, 0, 'o', D_EXIT, 0, 0, "&OK",     NULL,     NULL },
+   { sl_button,   63,  51, 48,  16, 0, 0, 'c', D_EXIT, 0, 0, "&Cancel", NULL,     NULL },
+   DIALOG_FRAME_ENDCAP
+};
+
+enum
+{
+   RESOLUTION_DIALOG_FRAME = 0,
+   RESOLUTION_DIALOG_CLOSE_BUTTON,
+   RESOLUTION_DIALOG_WIDTH,
+   RESOLUTION_DIALOG_X_TEXT,
+   RESOLUTION_DIALOG_HEIGHT,
+   RESOLUTION_DIALOG_PIXELS_TEXT,
+   RESOLUTION_DIALOG_OK_BUTTON,
+   RESOLUTION_DIALOG_CANCEL_BUTTON
+};
+
 static const DIALOG main_dialog_base[] =
 {
    { d_menu_proc, 16, 16, 0, 0, 0, 0, 0, 0, 0, 0, IMPORT_MENU(top_menu), NULL, NULL },
@@ -65,37 +90,51 @@ static const DIALOG main_dialog_base[] =
 
 static const DIALOG main_replay_record_start_dialog_base[] =
 {
-   { sl_frame,          0,   0,  156, 84, 0, 0, 0,   0,      0, 0, NULL,  "Record Replay", NULL },
-   { sl_x_button,       136, 4,  16,  12, 0, 0, 0,   D_EXIT, 0, 0, "X",   NULL,            NULL },
-   { sl_text,           9,   36, 0,   0,  0, 0, 0,   0,      0, 0, NULL,  "&Title:",       NULL },
-   { d_shadow_box_proc, 48,  32, 96,  16, 0, 0, 0,   0,      0, 0, NULL,  NULL,            NULL },
-   { d_edit_proc,       50,  36, 92,  12, 0, 0, 't', 0,      0, 0, NULL,  NULL,            NULL },
-   { d_button_proc,     112, 56, 32,  16, 0, 0, 'o', D_EXIT, 0, 0, "&OK", NULL,            NULL },
+   { sl_frame,    0,   0,  156, 84, 0, 0, 0,   0,      0, 0, NULL,  "Record Replay", NULL },
+   { sl_x_button, 136, 4,  16,  12, 0, 0, 0,   D_EXIT, 0, 0, "X",   NULL,            NULL },
+   { sl_text,     9,   36, 0,   0,  0, 0, 0,   0,      0, 0, NULL,  "&Title:",       NULL },
+   { sl_editbox,  48,  32, 96,  16, 0, 0, 0,   0,      0, 0, NULL,  NULL,            NULL },
+   { sl_button,   112, 56, 32,  16, 0, 0, 'o', D_EXIT, 0, 0, "&OK", NULL,            NULL },
    DIALOG_FRAME_ENDCAP
 };  
 
+enum
+{
+   MAIN_REPLAY_RECORD_START_DIALOG_FRAME = 0,
+   MAIN_REPLAY_RECORD_START_DIALOG_CLOSE_BUTTON,
+   MAIN_REPLAY_RECORD_START_DIALOG_TITLE_LABEL,
+   MAIN_REPLAY_RECORD_START_DIALOG_TITLE,
+   MAIN_REPLAY_RECORD_START_DIALOG_OK_BUTTON
+};
+
 static const DIALOG machine_save_state_save_dialog_base[] =
 {
-   { sl_frame,          0,   0,  156, 84, 0, 0, 0,   0,      0, 0, NULL,  "Save State", NULL },
-   { sl_x_button,       136, 4,  16,  12, 0, 0, 0,   D_EXIT, 0, 0, "X",   NULL,         NULL },
-   { sl_text,           9,   36, 0,   0,  0, 0, 0,   0,      0, 0, NULL,  "&Title:",    NULL },
-   { d_shadow_box_proc, 48,  32, 96,  16, 0, 0, 0,   0,      0, 0, NULL,  NULL,         NULL },
-   { d_edit_proc,       50,  36, 92,  12, 0, 0, 't', 0,      0, 0, NULL,  NULL,         NULL },
-   { d_button_proc,     112, 56, 32,  16, 0, 0, 'o', D_EXIT, 0, 0, "&OK", NULL,         NULL },
+   { sl_frame,    0,   0,  156, 84, 0, 0, 0,   0,      0, 0, NULL,  "Save State", NULL },
+   { sl_x_button, 136, 4,  16,  12, 0, 0, 0,   D_EXIT, 0, 0, "X",   NULL,         NULL },
+   { sl_text,     9,   36, 0,   0,  0, 0, 0,   0,      0, 0, NULL,  "&Title:",    NULL },
+   { sl_editbox,  48,  32, 96,  16, 0, 0, 0,   0,      0, 0, NULL,  NULL,         NULL },
+   { sl_button,   112, 56, 32,  16, 0, 0, 'o', D_EXIT, 0, 0, "&OK", NULL,         NULL },
    DIALOG_FRAME_ENDCAP
+};
+
+enum
+{
+   MACHINE_SAVE_STATE_SAVE_DIALOG_FRAME = 0,
+   MACHINE_SAVE_STATE_SAVE_DIALOG_CLOSE_BUTTON,
+   MACHINE_SAVE_STATE_SAVE_DIALOG_TITLE_LABEL,
+   MACHINE_SAVE_STATE_SAVE_DIALOG_TITLE,
+   MACHINE_SAVE_STATE_SAVE_DIALOG_OK_BUTTON
 };
 
 static const DIALOG machine_cheat_manager_add_dialog_base[] =
 {
-   { sl_frame,          0,   0,  156, 100, 0, 0, 0,   0,      0, 0, NULL,  "Add Cheat", NULL },
-   { sl_x_button,       136, 4,  16,  12,  0, 0, 0,   D_EXIT, 0, 0, "X",   NULL,        NULL },
-   { sl_text,           9,   36, 0,   0,   0, 0, 't', 0,      0, 0, NULL,  "&Title:",   NULL },
-   { d_shadow_box_proc, 48,  32, 96,  16,  0, 0, 0,   0,      0, 0, NULL,  NULL,        NULL },
-   { d_edit_proc,       50,  36, 92,  12,  0, 0, 0,   0,      0, 0, NULL,  NULL,        NULL },
-   { sl_text,           14,  56, 0,   0,   0, 0, 'c', 0,      0, 0, NULL,  "&Code:",    NULL },
-   { d_shadow_box_proc, 48,  52, 61,  16,  0, 0, 0,   0,      0, 0, NULL,  NULL,        NULL },
-   { d_edit_proc,       50,  56, 57,  12,  0, 0, 0,   0,      0, 0, NULL,  NULL,        NULL },
-   { d_button_proc,     112, 76, 32,  16,  0, 0, 'o', D_EXIT, 0, 0, "&OK", NULL,        NULL },
+   { sl_frame,    0,   0,  156, 100, 0, 0, 0,   0,      0, 0, NULL,  "Add Cheat", NULL },
+   { sl_x_button, 136, 4,  16,  12,  0, 0, 0,   D_EXIT, 0, 0, "X",   NULL,        NULL },
+   { sl_text,     9,   36, 0,   0,   0, 0, 't', 0,      0, 0, NULL,  "&Title:",   NULL },
+   { sl_editbox,  48,  32, 96,  16,  0, 0, 0,   0,      0, 0, NULL,  NULL,        NULL },
+   { sl_text,     14,  56, 0,   0,   0, 0, 'c', 0,      0, 0, NULL,  "&Code:",    NULL },
+   { sl_editbox,  48,  52, 61,  16,  0, 0, 0,   0,      0, 0, NULL,  NULL,        NULL },
+   { sl_button,   112, 76, 32,  16,  0, 0, 'o', D_EXIT, 0, 0, "&OK", NULL,        NULL },
    DIALOG_FRAME_ENDCAP
 };
 
@@ -104,10 +143,8 @@ enum
    MACHINE_CHEAT_MANAGER_ADD_DIALOG_FRAME = 0,
    MACHINE_CHEAT_MANAGER_ADD_DIALOG_CLOSE_BUTTON,
    MACHINE_CHEAT_MANAGER_ADD_DIALOG_TITLE_LABEL,
-   MACHINE_CHEAT_MANAGER_ADD_DIALOG_TITLE_BOX,
    MACHINE_CHEAT_MANAGER_ADD_DIALOG_TITLE,
    MACHINE_CHEAT_MANAGER_ADD_DIALOG_CODE_LABEL,
-   MACHINE_CHEAT_MANAGER_ADD_DIALOG_CODE_BOX,
    MACHINE_CHEAT_MANAGER_ADD_DIALOG_CODE,
    MACHINE_CHEAT_MANAGER_ADD_DIALOG_OK_BUTTON
 };
@@ -121,13 +158,13 @@ static char *machine_cheat_manager_dialog_list_filler (int, int *);
 
 static const DIALOG machine_cheat_manager_dialog_base[] =
 {
-   { sl_frame,      0,   0,   226, 160, 0, 0, 0,   0,      0, 0, NULL,                                      "Cheat Manager",                      NULL                              },
-   { sl_x_button,   206, 4,   16,  12,  0, 0, 0,   D_EXIT, 0, 0, "X",                                       NULL,                                 NULL                              },
-   { sl_listbox,    9,   29,  207, 98,  0, 0, 0,   0,      0, 0, machine_cheat_manager_dialog_list_filler, NULL,                                  machine_cheat_manager_dialog_list },
-   { sl_button,     8,   136, 32,  16,  0, 0, 'a', 0,      0, 0, "&Add",                                    machine_cheat_manager_dialog_add,     NULL                              },
-   { sl_button,     48,  136, 53,  16,  0, 0, 'r', 0,      0, 0, "&Remove",                                 machine_cheat_manager_dialog_remove,  NULL                              },
-   { sl_checkbox,   121, 140, 64,  8,   0, 0, 'e', 0,      0, 0, "&Enabled",                                machine_cheat_manager_dialog_enabled, NULL                              },
-   { d_button_proc, 185, 136, 32,  16,  0, 0, 's', D_EXIT, 0, 0, "&Save",                                   NULL,                                 NULL                              },
+   { sl_frame,    0,   0,   226, 160, 0, 0, 0,   0,      0, 0, NULL,                                      "Cheat Manager",                      NULL                              },
+   { sl_x_button, 206, 4,   16,  12,  0, 0, 0,   D_EXIT, 0, 0, "X",                                       NULL,                                 NULL                              },
+   { sl_listbox,  9,   29,  207, 98,  0, 0, 0,   0,      0, 0, machine_cheat_manager_dialog_list_filler, NULL,                                  machine_cheat_manager_dialog_list },
+   { sl_button,   8,   136, 32,  16,  0, 0, 'a', 0,      0, 0, "&Add",                                    machine_cheat_manager_dialog_add,     NULL                              },
+   { sl_button,   48,  136, 53,  16,  0, 0, 'r', 0,      0, 0, "&Remove",                                 machine_cheat_manager_dialog_remove,  NULL                              },
+   { sl_checkbox, 121, 140, 64,  8,   0, 0, 'e', 0,      0, 0, "&Enabled",                                machine_cheat_manager_dialog_enabled, NULL                              },
+   { sl_button,   185, 136, 32,  16,  0, 0, 's', D_EXIT, 0, 0, "&Save",                                   NULL,                                 NULL                              },
    DIALOG_FRAME_ENDCAP
 };
 
@@ -210,20 +247,17 @@ enum
 
 static const DIALOG netplay_dialog_base[] =
 {
-   { sl_frame,          0,   0,  153, 108, 0, 0, 0,   0,      0, 0, NULL,      "NetPlay", NULL },
-   { sl_x_button,       133, 4,  16,  12,  0, 0, 0,   D_EXIT, 0, 0, "X",       NULL,      NULL },
-   { sl_text,           9,   31, 0,   0,   0, 0, 'h', 0,      0, 0, NULL,      "&Host:",  NULL },
-   { d_shadow_box_proc, 40,  27, 104, 14,  0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
-   { d_edit_proc,       42,  31, 100, 12,  0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
-   { sl_text,           9,   49, 0,   0,   0, 0, 'p', 0,      0, 0, NULL,      "&Port:",  NULL },
-   { d_shadow_box_proc, 40,  45, 40,  14,  0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
-   { d_edit_proc,       42,  49, 36,  12,  0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
-   { sl_text,           84,  49, 0,   0,   0, 0, 0,   0,      0, 0, NULL,      "TCP",     NULL },
-   { sl_text,           9,   69, 0,   0,   0, 0, 'n', 0,      0, 0, NULL,      "&Nick:",  NULL },
-   { d_shadow_box_proc, 40,  65, 88,  14,  0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
-   { d_edit_proc,       42,  69, 84,  12,  0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
-   { d_button_proc,     61,  86, 32,  16,  0, 0, 'o', D_EXIT, 0, 0, "&OK",     NULL,      NULL },
-   { d_button_proc,     97,  86, 48,  16,  0, 0, 'c', D_EXIT, 0, 0, "&Cancel", NULL,      NULL },
+   { sl_frame,    0,   0,  153, 108, 0, 0, 0,   0,      0, 0, NULL,      "NetPlay", NULL },
+   { sl_x_button, 133, 4,  16,  12,  0, 0, 0,   D_EXIT, 0, 0, "X",       NULL,      NULL },
+   { sl_text,     9,   31, 0,   0,   0, 0, 'h', 0,      0, 0, NULL,      "&Host:",  NULL },
+   { sl_editbox,  40,  27, 104, 14,  0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
+   { sl_text,     9,   49, 0,   0,   0, 0, 'p', 0,      0, 0, NULL,      "&Port:",  NULL },
+   { sl_editbox,  40,  45, 40,  14,  0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
+   { sl_text,     84,  49, 0,   0,   0, 0, 0,   0,      0, 0, NULL,      "TCP",     NULL },
+   { sl_text,     9,   69, 0,   0,   0, 0, 'n', 0,      0, 0, NULL,      "&Nick:",  NULL },
+   { sl_editbox,  40,  65, 88,  14,  0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
+   { sl_button,   61,  86, 32,  16,  0, 0, 'o', D_EXIT, 0, 0, "&OK",     NULL,      NULL },
+   { sl_button,   97,  86, 48,  16,  0, 0, 'c', D_EXIT, 0, 0, "&Cancel", NULL,      NULL },
    DIALOG_FRAME_ENDCAP
 };
 
@@ -232,14 +266,11 @@ enum
    NETPLAY_DIALOG_FRAME = 0,
    NETPLAY_DIALOG_CLOSE_BUTTON,
    NETPLAY_DIALOG_HOST_LABEL,
-   NETPLAY_DIALOG_HOST_BOX,
    NETPLAY_DIALOG_HOST,
    NETPLAY_DIALOG_PORT_LABEL,
-   NETPLAY_DIALOG_PORT_BOX,
    NETPLAY_DIALOG_PORT,
    NETPLAY_DIALOG_TCP_TEXT,
    NETPLAY_DIALOG_NICK_LABEL,
-   NETPLAY_DIALOG_NICK_BOX,
    NETPLAY_DIALOG_NICK,
    NETPLAY_DIALOG_OK_BUTTON,
    NETPLAY_DIALOG_CANCEL_BUTTON
@@ -258,9 +289,9 @@ static const DIALOG lobby_dialog_base[] =
    { sl_checkbox,       235, 160, 60,  8,   0, 0, '4', 0,          0, 0, "Player &4 ", NULL,      NULL },
    { d_shadow_box_proc, 10,  200, 302, 14,  0, 0, 0,   0,          0, 0, NULL,         NULL,      NULL },
    { sl_lobby_msgbox,   12,  204, 298, 12,  0, 0, 0,   0,          0, 0, NULL,         NULL,      NULL },
-   { d_button_proc,     131, 219, 64,  16,  0, 0, 'l', 0,          0, 0, "&Load...",   NULL,      NULL },
-   { d_button_proc,     203, 219, 52,  16,  0, 0, 'o', D_EXIT,     0, 0, "&OK",        NULL,      NULL },
-   { d_button_proc,     259, 219, 52,  16,  0, 0, 'c', D_EXIT,     0, 0, "&Cancel",    NULL,      NULL },
+   { sl_button,         131, 219, 64,  16,  0, 0, 'l', 0,          0, 0, "&Load...",   NULL,      NULL },
+   { sl_button,         203, 219, 52,  16,  0, 0, 'o', D_EXIT,     0, 0, "&OK",        NULL,      NULL },
+   { sl_button,         259, 219, 52,  16,  0, 0, 'c', D_EXIT,     0, 0, "&Cancel",    NULL,      NULL },
    DIALOG_FRAME_ENDCAP                                                               
 };
 
