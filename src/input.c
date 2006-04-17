@@ -5,7 +5,7 @@
    Copyright (c) 2001-2006, FakeNES Team.
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
-
+               
 #include <allegro.h>
 #include <stdio.h>
 #include <string.h>
@@ -675,8 +675,9 @@ static INLINE void do_keyboard_1 (int player)
    int *buttons = &player_buttons[player][0];
    int index;
 
-   /* Some may keyboards require polling. */
-   poll_keyboard ();
+   /* Some keyboards may require polling. */
+   if (keyboard_needs_poll ())
+      poll_keyboard ();
 
    for (index = 0; index < INPUT_BUTTONS; index++)
       buttons[index] = BUTTON_ON_OR_OFF(key[key1_scancodes[index]]);
@@ -687,8 +688,9 @@ static INLINE void do_keyboard_2 (int player)
    int *buttons = &player_buttons[player][0];
    int index;
 
-   /* Some may keyboards require polling. */
-   poll_keyboard ();
+   /* Some keyboards may require polling. */
+   if (keyboard_needs_poll ())
+      poll_keyboard ();
 
    for (index = 0; index < INPUT_BUTTONS; index++)
       buttons[index] = BUTTON_ON_OR_OFF(key[key2_scancodes[index]]);
@@ -715,7 +717,8 @@ static INLINE void do_mouse (int player)
    BOOL left, right, up, down;
 
    /* Some mice may require polling. */
-   poll_mouse ();
+   if (mouse_needs_poll ())
+      poll_mouse ();
 
    /* Mouse wheel is used for Select. */
    if (mouse_z != last_mouse_z)
@@ -996,7 +999,9 @@ void input_map_player_button (ENUM player, ENUM button)
 
    while (TRUE)
    {
-      poll_keyboard ();
+      /* Some keyboards may require polling. */
+      if (keyboard_needs_poll ())
+         poll_keyboard ();
 
       if (key[KEY_ESC])
       {
