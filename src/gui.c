@@ -1380,6 +1380,7 @@ static int main_replay_record_menu_start (void)
 
    DISABLE_MENU_ITEM(main_menu_open);
    DISABLE_SUBMENU(main_open_recent_menu);
+   DISABLE_MENU_ITEM(main_menu_close);
    DISABLE_MENU_ITEM(main_replay_record_menu_start);
    ENABLE_MENU_ITEM(main_replay_record_menu_stop);
    DISABLE_SUBMENU(main_replay_select_menu);
@@ -1410,6 +1411,7 @@ static int main_replay_record_menu_stop (void)
 
    ENABLE_MENU_ITEM(main_menu_open);
    ENABLE_SUBMENU(main_open_recent_menu);
+   ENABLE_MENU_ITEM(main_menu_close);
    ENABLE_MENU_ITEM(main_replay_record_menu_start);
    DISABLE_MENU_ITEM(main_replay_record_menu_stop);
    ENABLE_SUBMENU(main_replay_select_menu);
@@ -1433,6 +1435,7 @@ static int main_replay_play_menu_start (void)
 
    DISABLE_MENU_ITEM(main_menu_open);
    DISABLE_SUBMENU(main_open_recent_menu);
+   DISABLE_MENU_ITEM(main_menu_close);
    DISABLE_MENU_ITEM(main_replay_play_menu_start);
    ENABLE_MENU_ITEM(main_replay_play_menu_stop);
    DISABLE_SUBMENU(main_replay_select_menu);
@@ -1467,6 +1470,7 @@ static int main_replay_play_menu_stop (void)
 
    ENABLE_MENU_ITEM(main_menu_open);
    ENABLE_SUBMENU(main_open_recent_menu);
+   ENABLE_MENU_ITEM(main_menu_close);
    ENABLE_MENU_ITEM(main_replay_play_menu_start);
    DISABLE_MENU_ITEM(main_replay_play_menu_stop);
    ENABLE_SUBMENU(main_replay_select_menu);
