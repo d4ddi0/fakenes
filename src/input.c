@@ -116,8 +116,8 @@ static INLINE void load_keyboard_config (void)
    STRING buffer;
 
    /* Build default key config in a portable manner. */
-   sprintf (defaults, "%d %d %d %d %d %d %d %d", KEY_X, KEY_Z, KEY_TAB,
-      KEY_ENTER, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT);
+   sprintf (defaults, "%d %d %d %d %d %d %d %d", KEY_ALT, KEY_LCONTROL,
+      KEY_TAB, KEY_ENTER, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT);
 
    /* Unicode->ASCII here, is it a problem? */
    sprintf (buffer, "%s", get_config_string ("input", "key1_buttons",
@@ -1016,39 +1016,47 @@ void input_map_player_button (ENUM player, ENUM button)
          case INPUT_DEVICE_KEYS_1:
          case INPUT_DEVICE_KEYS_2:
          {
-            if (keypressed ())
+            int scancode = -1;
+            int index;
+
+            /* Check for modifier keys first, since they do not count
+               as keypresses. */
+            for (index = KEY_MODIFIERS; index < KEY_MAX; index++)
             {
-               int scancode;
-
-               ureadkey (&scancode);
-
-               switch (device)
-               {
-                  case INPUT_DEVICE_KEYS_1:
-                  {
-                     key1_scancodes[button] = scancode;
-
-                     break;
-                  }
-
-                  case INPUT_DEVICE_KEYS_2:
-                  {
-                     key2_scancodes[button] = scancode;
-
-                     break;
-                  }
-
-                  default:
-                     WARN_GENERIC();
-               }
-
-               gui_message (-1, "Button mapped to keyboard scancode %xh.",
-                  scancode);
-
-               return;
+               if (key[index])
+                  scancode = index;
             }
 
-            break;
+            if (keypressed ())
+               ureadkey (&scancode);
+
+            if (scancode == -1)
+               break;
+
+            switch (device)
+            {
+               case INPUT_DEVICE_KEYS_1:
+               {
+                  key1_scancodes[button] = scancode;
+
+                  break;
+               }
+
+               case INPUT_DEVICE_KEYS_2:
+               {
+                  key2_scancodes[button] = scancode;
+
+                  break;
+               }
+
+               default:
+                  WARN_GENERIC();
+            }
+
+            gui_message (-1, "Button mapped to keyboard scancode %xh.",
+               scancode);
+
+            return;
          }
 
          case INPUT_DEVICE_JOYSTICK_1:
