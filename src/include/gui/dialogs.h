@@ -499,7 +499,7 @@ static INLINE int show_dialog (DIALOG *dialog, int focus)
    BITMAP *bmp;
    BITMAP *saved;
    int position;
-   UINT16 x = x, y = y; /* Kill warnings. */
+   INT16 x = x, y = y; /* Kill warnings. */
    BOOL moved = FALSE;
    int index = 0;
 
@@ -526,7 +526,17 @@ static INLINE int show_dialog (DIALOG *dialog, int focus)
       x = (position >> 16);
       y = (position & 0x0000ffff);
 
-      position_dialog (dialog, x, y);
+      if (((x <= (0 - dialog[0].w)) || (x >= bmp->w)) ||
+          ((y <= (0 - dialog[0].h)) || (y >= bmp->h)))
+      {
+         /* Dialog is off the screen - center it instead. */
+         centre_dialog (dialog);
+      }
+      else
+      {
+         /* Restore saved dialog position. */
+         position_dialog (dialog, x, y);
+      }
    }
 
    dialog[0].dp3 = DATA_TO_FONT(LARGE_FONT);
