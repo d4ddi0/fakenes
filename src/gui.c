@@ -1516,6 +1516,74 @@ static int main_menu_save_snapshot (void)
    return (D_O_K);
 }
 
+static int main_menu_view_console (void)
+{
+   DIALOG *dialog;
+   DIALOG *objframe;
+   DIALOG *objview;
+
+   /* Create dialog. */
+   dialog = load_dialog (viewer_dialog_base);
+   if (!dialog)
+   {
+      WARN("Failed to create dialog structure");
+      return (-1);
+   }
+
+   /* Get objects. */
+
+   objframe = &dialog[VIEWER_DIALOG_FRAME];
+   objview  = &dialog[VIEWER_DIALOG_TEXT];
+
+   /* Set up objects. */
+
+   objframe->dp2 = "Console";
+
+   objview->dp = get_console_text ();
+
+   /* Show dialog. */
+   show_dialog (dialog, -1);
+
+   /* Destroy dialog. */
+   unload_dialog (dialog);
+
+   return (D_O_K);
+}
+
+static int main_menu_view_log (void)
+{
+   DIALOG *dialog;
+   DIALOG *objframe;
+   DIALOG *objview;
+
+   /* Create dialog. */
+   dialog = load_dialog (viewer_dialog_base);
+   if (!dialog)
+   {
+      WARN("Failed to create dialog structure");
+      return (-1);
+   }
+
+   /* Get objects. */
+
+   objframe = &dialog[VIEWER_DIALOG_FRAME];
+   objview  = &dialog[VIEWER_DIALOG_TEXT];
+
+   /* Set up objects. */
+
+   objframe->dp2 = "Log";
+
+   objview->dp = get_log_text ();
+
+   /* Show dialog. */
+   show_dialog (dialog, -1);
+
+   /* Destroy dialog. */
+   unload_dialog (dialog);
+
+   return (D_O_K);
+}
+
 static int main_menu_exit (void)
 {
    want_exit = TRUE;

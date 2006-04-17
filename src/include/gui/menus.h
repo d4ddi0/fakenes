@@ -140,23 +140,25 @@ DEFINE_MENU_CALLBACK(main_menu_resume);
 DEFINE_MENU_CALLBACK(main_menu_open);
 DEFINE_MENU_CALLBACK(main_menu_close);
 DEFINE_MENU_CALLBACK(main_menu_save_snapshot);
+DEFINE_MENU_CALLBACK(main_menu_view_console);
+DEFINE_MENU_CALLBACK(main_menu_view_log);
 DEFINE_MENU_CALLBACK(main_menu_exit);
 
 static const MENU main_menu_base[] =
 {
-   { "&Resume        (ESC)", main_menu_resume,        NULL,                               0,          NULL },
+   { "&Resume        (ESC)", main_menu_resume,        NULL,                               0, NULL },
    MENU_SPLITTER,                                                                       
-   { "&Open...",             main_menu_open,          NULL,                               0,          NULL },
-   { "O&pen Recent",         NULL,                    IMPORT_MENU(main_open_recent_menu), 0,          NULL },
-   { "&Close",               main_menu_close,         NULL,                               0,          NULL },
+   { "&Open...",             main_menu_open,          NULL,                               0, NULL },
+   { "O&pen Recent",         NULL,                    IMPORT_MENU(main_open_recent_menu), 0, NULL },
+   { "&Close",               main_menu_close,         NULL,                               0, NULL },
    MENU_SPLITTER,            
-   { "R&eplay",              NULL,                    IMPORT_MENU(main_replay_menu),      0,          NULL },
-   { "&Save Snapshot (F1)",  main_menu_save_snapshot, NULL,                               0,          NULL },
+   { "R&eplay",              NULL,                    IMPORT_MENU(main_replay_menu),      0, NULL },
+   { "&Save Snapshot (F1)",  main_menu_save_snapshot, NULL,                               0, NULL },
    MENU_SPLITTER,
-   { "&View Console...",     NULL,                    NULL,                               D_DISABLED, NULL },
-   { "V&iew Log...",         NULL,                    NULL,                               D_DISABLED, NULL },
+   { "&View Console...",     main_menu_view_console,  NULL,                               0, NULL },
+   { "V&iew Log...",         main_menu_view_log,      NULL,                               0, NULL },
    MENU_SPLITTER,       
-   { "E&xit",                main_menu_exit,          NULL,                               0,          NULL },
+   { "E&xit",                main_menu_exit,          NULL,                               0, NULL },
    MENU_ENDCAP
 };
 

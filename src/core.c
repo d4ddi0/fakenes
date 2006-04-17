@@ -15,7 +15,7 @@
 #include "core.h"
 #include "core/tables.h"
 #include "core/memory.h"
-
+#include "log.h"
 
 /* define some macros to help improve readability */
 
@@ -121,7 +121,7 @@ static UINT8 opcode_trace[10];
 
 void FN2A03_report_bad_opcode(UINT8 opcode, UINT16 address)
 {
-    printf ("[FN2A03] Unrecognized instruction: $%02X at PC=$%04X\n",
+    log_printf ("[FN2A03] Unrecognized instruction: $%02X at PC=$%04X",
         opcode, address);
 }
 
@@ -129,13 +129,12 @@ void FN2A03_report_bad_opcode(UINT8 opcode, UINT16 address)
 #ifdef DEBUG
 void FN2A03_opcode_fallback_trace(void)
 {
-    printf("\nOpcode fallback trace:\n\n");
+    log_printf("Opcode fallback trace:");
     for (opcode_count = 0; opcode_count < 10; opcode_count++)
     {
-        printf("$%02X ",opcode_trace[opcode_count]);
+        log_printf("$%02X ",opcode_trace[opcode_count]);
         opcode_trace[opcode_count] = 0;
     }
-    printf("\n\n");
     opcode_count = 0;
 }
 #endif

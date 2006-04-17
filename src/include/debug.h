@@ -23,8 +23,11 @@ extern "C" {
 
 /* Warning macros to help with debugging. */
 #define WARN(message)   \
-   (allegro_message ("WARNING\n\n" message "\n\nat line %d of %s",   \
-      __LINE__, __FILE__))
+{  \
+   allegro_message ("WARNING\n\n" message "\n\nat line %d of %s", \
+      __LINE__, __FILE__); \
+   log_printf ("Warning: " message " (line %d, %s)", __LINE__, __FILE__);  \
+}
 
 #define WARN_GENERIC()  WARN("Possible code fault")
 

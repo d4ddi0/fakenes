@@ -18,6 +18,8 @@
 
 static FILE *log_file = NULL;
 
+static USTRING log_text;
+
 void log_open (const char *filename)
 {
    time_t start;
@@ -37,6 +39,8 @@ void log_open (const char *filename)
 
    if (!log_file)
       WARN("Couldn't open log file");
+
+   USTRING_CLEAR(log_text);
 
    time (&start);
 
@@ -64,4 +68,37 @@ void log_printf (const UCHAR *message, ...)
    va_end (format);
 
    fputs (buffer, log_file);
+
+   ustrzncat (log_text, sizeof (log_text), buffer, sizeof (buffer));
+}
+
+UCHAR *get_log_text (void)
+{
+   return (log_text);
+}
+
+static USTRING console_text;
+
+void console_clear (void)
+{
+   USTRING_CLEAR(console_text);
+}
+
+void console_printf (const UCHAR *message, ...)
+{
+   va_list format;
+   USTRING buffer;
+
+   RT_ASSERT(message);
+
+   va_start (format, message);
+   uvszprintf (buffer, sizeof (buffer), message, format);
+   va_end (format);
+
+   ustrzncat (console_text, sizeof (console_text), buffer, sizeof (buffer));
+}
+
+UCHAR *get_console_text (void)
+{
+   return (console_text);
 }

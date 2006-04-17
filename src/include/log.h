@@ -17,6 +17,10 @@ extern "C" {
 void log_open (const char *);
 void log_close (void);
 void log_printf (const UCHAR *, ...);
+UCHAR *get_log_text (void);
+void console_clear (void);
+void console_printf (const UCHAR *, ...);
+UCHAR *get_console_text (void);
 
 #ifdef __cplusplus
 }

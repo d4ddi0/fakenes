@@ -14,8 +14,10 @@
 #include "common.h"
 #include "cpu.h"
 #include "data.h"
+#include "debug.h"
 #include "gui.h"
 #include "input.h"
+#include "log.h"
 #include "mmc.h"
 #include "net.h"
 #include "netplay.h"
@@ -217,34 +219,37 @@ int main (int argc, char * argv [])
     saved_argv = argv;
 
 
+    /* Clear the console. */
+    console_clear ();
+
+
     if (VERSION == 0x030)
     {
-        printf ("\nThis release is dedicated to those who fell in the 9/11 attacks.\n");
+        console_printf ("This release is dedicated to those who fell in the 9/11 attacks.\n\n");
     }
 
 
-    printf ("\n");
-    printf ("FakeNES version " VERSION_STRING ", by Siloh and TRAC.\n");
-    printf ("Using Allegro version " ALLEGRO_VERSION_STR " (" ALLEGRO_PLATFORM_STR ").\n");
-    printf ("\n");
-    printf ("Assistance provided by amit, Astxist, ipher, KCat,\n");
-    printf ("Lord_Nightmare, Mexandrew, and others.  See the\n");
-    printf ("About box for a complete listing.\n");
-    printf ("\n");
-    printf ("Uses the Nofrendo NES APU core by Matthew Conte.\n");
-    printf ("\n");
-    printf ("Be sure to visit http://fakenes.sourceforge.net/.\n");
-    printf ("Report bugs to fakenes-bugs@lists.sourceforge.net.\n");
-    printf ("\n");
-    printf ("Copyright (c) 2001-2006, FakeNES Team.\n");
+    console_printf ("FakeNES version " VERSION_STRING ", by Siloh and TRAC.\n");
+    console_printf ("Using Allegro version " ALLEGRO_VERSION_STR " (" ALLEGRO_PLATFORM_STR ").\n");
+    console_printf ("\n");
+    console_printf ("Assistance provided by amit, Astxist, ipher, KCat,\n");
+    console_printf ("Lord_Nightmare, Mexandrew, and others.  See the\n");
+    console_printf ("About box for a complete listing.\n");
+    console_printf ("\n");
+    console_printf ("Uses the Nofrendo NES APU core by Matthew Conte.\n");
+    console_printf ("\n");
+    console_printf ("Be sure to visit http://fakenes.sourceforge.net/.\n");
+    console_printf ("Report bugs to fakenes-bugs@lists.sourceforge.net.\n");
+    console_printf ("\n");
+    console_printf ("Copyright (c) 2001-2006, FakeNES Team.\n");
 #ifdef POSIX
-    printf ("This is free software.  See 'LICENSE' for details.\n");
-    printf ("You must read and accept the license prior to use.\n");
+    console_printf ("This is free software.  See 'LICENSE' for details.\n");
+    console_printf ("You must read and accept the license prior to use.\n");
 #else
-    printf ("This is free software.  See 'LICENSE.TXT' for details.\n");
-    printf ("You must read and accept the license prior to use.\n");
+    console_printf ("This is free software.  See 'LICENSE.TXT' for details.\n");
+    console_printf ("You must read and accept the license prior to use.\n");
 #endif
-    printf ("\n");
+    console_printf ("\n");
 
 
     allegro_init ();
@@ -281,7 +286,7 @@ int main (int argc, char * argv [])
 
     if (input_init () != 0)
     {
-        fprintf (stderr, "PANIC: Failed to initialize input interface!\n");
+        WARN("PANIC: Failed to initialize input interface");
 
 
         return (1);
@@ -295,7 +300,7 @@ int main (int argc, char * argv [])
     {
         if (load_rom (argv [1], &global_rom) != 0)
         {
-            fprintf (stderr, "PANIC: Failed to load ROM file (bad format?).\n");
+            WARN("PANIC: Failed to load ROM file (bad format?)");
 
 
             return (1);
@@ -308,9 +313,9 @@ int main (int argc, char * argv [])
     {
         if (disable_gui)
         {
-            fprintf (stderr, "The GUI is currently disabled in your configuration.\n");
-    
-            fprintf (stderr, "You must specify a path to a ROM file to load.\n");
+            allegro_message ("The GUI is currently disabled in your "
+               "configuration.\nYou must specify a path to a ROM file to "
+                  "load.");
     
     
             return (1);
@@ -324,7 +329,7 @@ int main (int argc, char * argv [])
 
     if (audio_init () != 0)
     {
-        fprintf (stderr, "PANIC: Failed to initialize audio interface!\n");
+        WARN("Failed to initialize audio interface");
 
 
         free_rom (&global_rom);
@@ -360,7 +365,7 @@ int main (int argc, char * argv [])
         set_gfx_mode (GFX_TEXT, 0, 0, 0, 0);
 
 
-        fprintf (stderr, "PANIC: Failed to initialize video interface!\n");
+        WARN("Failed to initialize video interface");
 
 
         free_rom (&global_rom);
@@ -930,16 +935,16 @@ int main (int argc, char * argv [])
     input_exit ();
 
 
-    platform_exit ();
-
-
     if (rom_is_loaded)
     {
-        printf ("Executed frames: %d (%d rendered).\n", executed_frames, rendered_frames);
+        log_printf ("Executed frames: %d (%d rendered).", executed_frames, rendered_frames);
 
 
         free_rom (&global_rom);
     }
+
+
+    platform_exit ();
 
 
     /* unload_datafile (data); */
@@ -963,7 +968,7 @@ int machine_init (void)
 
         if (mmc_init () != 0)
         {
-            fprintf (stderr, "PANIC: mmc_init() failed (unsupported mapper?).\n");
+            WARN("mmc_init() failed (unsupported mapper?)");
     
     
             free_rom (&global_rom);
@@ -974,7 +979,7 @@ int machine_init (void)
 
         if (cpu_init () != 0)
         {
-            fprintf (stderr, "PANIC: Failed to initialize the CPU core!\n");
+            WARN("Failed to initialize the CPU core");
     
     
             free_rom (&global_rom);
@@ -985,7 +990,7 @@ int machine_init (void)
         
         if (ppu_init () != 0)
         {
-            fprintf (stderr, "PANIC: Failed to initialize the PPU core!\n");
+            WARN("Failed to initialize the PPU core");
     
     
             free_rom (&global_rom);

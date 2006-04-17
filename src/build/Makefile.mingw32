@@ -146,10 +146,10 @@ ${DEPEND}: ${OBJECT_PATH}
 depend: ${DEPEND}
 ${BINARY}: ${OBJECTS}
 	@echo Building.
-	${CC} ${OBJECTS} ${RESOURCES} -o ${BINARY} -s ${LIBRARIES}
+	${CC} ${OBJECTS} ${RESOURCES} -o ${BINARY} -s ${LIBRARIES} -mwindows
 ${BINARY_DEBUG}: ${OBJECTS}
 	@echo Building.
-	${CC} ${OBJECTS} ${RESOURCES} -o ${BINARY_DEBUG} -g3 ${LIBRARIES}
+	${CC} ${OBJECTS} ${RESOURCES} -o ${BINARY_DEBUG} -g3 ${LIBRARIES} -mwindows
 .SUFFIXES: .c
 ${OBJECT_PATH}/%${OBJEXT}: %.c
 	${CC} ${CFLAGS} -c $< -o $@

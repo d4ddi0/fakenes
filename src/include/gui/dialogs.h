@@ -40,6 +40,23 @@ enum
    ALERT_DIALOG_BUTTON_2
 };
 
+static const DIALOG viewer_dialog_base[] =
+{
+   { sl_frame,    0,   0,   418, 232, 0, 0, 0,   0,      0, 0, NULL,     NULL, NULL },
+   { sl_x_button, 399, 4,   16,  12,  0, 0, 0,   D_EXIT, 0, 0, "X",      NULL, NULL },
+   { sl_viewer,   9,   28,  400, 175, 0, 0, 0,   0,      0, 0, NULL,     NULL, NULL },
+   { sl_button,   177, 209, 64,  16,  0, 0, 'c', D_EXIT, 0, 0, "&Close", NULL, NULL },
+   DIALOG_FRAME_ENDCAP
+};
+
+enum
+{
+   VIEWER_DIALOG_FRAME = 0,
+   VIEWER_DIALOG_CLOSE_BUTTON,
+   VIEWER_DIALOG_TEXT,
+   VIEWER_DIALOG_CLOSE_BUTTON_2,
+};
+
 static const DIALOG main_dialog_base[] =
 {
    { d_menu_proc, 16, 16, 0, 0, 0, 0, 0, 0, 0, 0, IMPORT_MENU(top_menu), NULL, NULL },
