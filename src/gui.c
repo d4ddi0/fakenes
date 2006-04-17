@@ -283,6 +283,7 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(video_resolution_proportionate_menu_1280_1200, ((SCREEN_W == 1280) && (SCREEN_H == 1200)));
 
    TOGGLE_MENU_ITEM(video_resolution_menu_320_240,   ((SCREEN_W == 320)  && (SCREEN_H == 240)));
+   TOGGLE_MENU_ITEM(video_resolution_menu_400_300,   ((SCREEN_W == 400)  && (SCREEN_H == 300)));
    TOGGLE_MENU_ITEM(video_resolution_menu_640_480,   ((SCREEN_W == 640)  && (SCREEN_H == 480)));
    TOGGLE_MENU_ITEM(video_resolution_menu_800_600,   ((SCREEN_W == 800)  && (SCREEN_H == 600)));
    TOGGLE_MENU_ITEM(video_resolution_menu_1024_768,  ((SCREEN_W == 1024) && (SCREEN_H == 768)));
@@ -2417,6 +2418,7 @@ RESOLUTION_MENU_HANDLER_EX(proportionate, 1280, 1120)
 RESOLUTION_MENU_HANDLER_EX(proportionate, 1280, 1200)
 
 RESOLUTION_MENU_HANDLER(320,  240)
+RESOLUTION_MENU_HANDLER(400,  300)
 RESOLUTION_MENU_HANDLER(640,  480)
 RESOLUTION_MENU_HANDLER(800,  600)
 RESOLUTION_MENU_HANDLER(1024, 768)
