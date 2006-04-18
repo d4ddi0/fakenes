@@ -616,6 +616,7 @@ void apu_reset (void)
 
    const APU_EXSOUND *exsound;
    REAL sample_rate, refresh_rate;
+   UINT16 address;
 
    /* Save ExSound interface. */
    exsound = apu.exsound;
@@ -643,6 +644,10 @@ void apu_reset (void)
 
    /* Restore parameters. */
    set_params (sample_rate, refresh_rate);
+
+   /* Clear registers. */
+   for (address = 0x4000; address <= 0x4015; address++)
+      apu_write (address, 0);
 
    // for ExSound
    APU_LogTableInitialize ();
