@@ -14,15 +14,22 @@ static BOOL             _nes_ntsc_interpolation;
 static void blit_nes_ntsc (BITMAP *src, BITMAP *dest, int x_base, int
    y_base)
 {
+   int w, h, wm, hm, hx;
    unsigned char *in;
    unsigned short *out;
-   int w, h, wm, hm;
    int y;
              
    RT_ASSERT(src);
    RT_ASSERT(dest);
 
-   if (!blitter_size_check (dest, 602, 480))
+   /* Calculate sizes. */
+   w = src->w;
+   h = src->h;
+   wm = NES_NTSC_OUT_WIDTH(w);
+   hm = 240;         /* Output height from nes_ntsc_blit(). */
+   hx = (240 * 2);   /* Output height from blit_nes_ntsc(). */
+
+   if (!blitter_size_check (dest, wm, hx))
       return;
 
    /* Check buffers. */
@@ -32,12 +39,6 @@ static void blit_nes_ntsc (BITMAP *src, BITMAP *dest, int x_base, int
    /* Set buffers. */
    in  = (unsigned char  *)blit_buffer_in;
    out = (unsigned short *)blit_buffer_out;
-
-   /* Calculate sizes. */
-   w = src->w;
-   h = src->h;
-   wm = 602;
-   hm = 240;
 
    /* Import source bitmap to input buffer. */
    for (y = 0; y < h; y++)
@@ -107,9 +108,11 @@ static void blit_nes_ntsc (BITMAP *src, BITMAP *dest, int x_base, int
 
             case 1:  /* Brighten. */
             {
-               r = fix ((r + 25), 0, 255);
-               g = fix ((g + 25), 0, 255);
-               b = fix ((b + 25), 0, 255);
+               /* Supposed to be 8.33, but we approximate to avoid floating
+                  point math here. */
+               r = fix ((r + (r / 8)), 0, 255);
+               g = fix ((g + (g / 8)), 0, 255);
+               b = fix ((b + (b / 8)), 0, 255);
 
                modify = TRUE;
 
@@ -118,9 +121,9 @@ static void blit_nes_ntsc (BITMAP *src, BITMAP *dest, int x_base, int
 
             case 2:  /* Darken. */
             {
-               r = fix ((r - 25), 0, 255);
-               g = fix ((g - 25), 0, 255);
-               b = fix ((b - 25), 0, 255);
+               r = fix ((r - (r / 8)), 0, 255);
+               g = fix ((g - (g / 8)), 0, 255);
+               b = fix ((b - (b / 8)), 0, 255);
 
                modify = TRUE;
 
@@ -187,7 +190,7 @@ static void init_nes_ntsc (BITMAP *src, BITMAP *dest)
    int preset;
    int merge_fields, doubling, interpolation;
    nes_ntsc_setup_t *setup;
-   int w, h, wm, hm;
+   int w, h, wm, hm, hx;
    
    RT_ASSERT(src);
    RT_ASSERT(dest);
@@ -277,8 +280,9 @@ static void init_nes_ntsc (BITMAP *src, BITMAP *dest)
    /* Calculate sizes. */
    w = src->w;
    h = src->h;
-   wm = 602;
-   hm = 240;
+   wm = NES_NTSC_OUT_WIDTH(w);
+   hm = 240;         /* Output height from nes_ntsc_blit(). */
+   hx = (240 * 2);   /* Output height from blit_nes_ntsc(). */
 
    /* Allocate input buffer. */
    blit_buffer_in = malloc (((w * h) * sizeof (unsigned char)));
@@ -294,8 +298,8 @@ static void init_nes_ntsc (BITMAP *src, BITMAP *dest)
       return;
    }
 
-   blit_x_offset = ((dest->w / 2) - (602 / 2));
-   blit_y_offset = ((dest->h / 2) - (480 / 2));
+   blit_x_offset = ((dest->w / 2) - (wm / 2));
+   blit_y_offset = ((dest->h / 2) - (hx / 2));
 }
 
 /* Deinitializer. */
