@@ -52,7 +52,10 @@ void APU_LogTableInitialize(void)
 static UINT32 APU_DivFix(UINT32 p1, UINT32 p2, UINT32 fix)
 {
     UINT32 ret;
-	ret = p1 / p2;
+   /* Fix for possible arithmetic exception on absolute 0. */
+   p1 = MAX(p1, 1);
+   p2 = MAX(p2, 1);
+   ret = p1 / p2;
 	p1  = p1 % p2;/* p1 = p1 - p2 * ret; */
 	while (fix--)
 	{
