@@ -261,6 +261,30 @@ static INLINE void gui_close (void)
    audio_resume ();
 }
 
+static INLINE DIALOG *create_dialog (const DIALOG *base, const UCHAR *title)
+{
+   /* Abstract function to create a new dialog of class 'base', and set it's
+      title to 'title'.  The resulting dialog must be later destroyed by a
+      call to unload_dialog(). */
+
+   DIALOG *dialog;
+
+   RT_ASSERT(base);
+   RT_ASSERT(title);
+
+   /* Create dialog. */
+   dialog = load_dialog (base);
+   if (!dialog)
+   {
+      WARN("Failed to create dialog structure");
+      return (NULL);
+   }
+
+   dialog[0].dp2 = (char *)title;
+
+   return (dialog);
+}
+
 static INLINE BOOL get_resolution_input (const UCHAR *title, int *width, int
    *height)
 {
@@ -270,35 +294,32 @@ static INLINE BOOL get_resolution_input (const UCHAR *title, int *width, int
       Returns FALSE if the dialog was cancelled, otherwise TRUE. */
 
    DIALOG *dialog;
-   DIALOG *objframe;
    DIALOG *objwidth;
    DIALOG *objheight;
    USTRING widthstr, heightstr;
    int result;
 
+   RT_ASSERT(title);
+   RT_ASSERT(width);
+   RT_ASSERT(height);
+
    /* Create dialog. */
-   dialog = load_dialog (resolution_dialog_base);
+   dialog = create_dialog (resolution_dialog_base, title);
    if (!dialog)
-   {
-      WARN("Failed to create dialog structure");
-      return (-1);
-   }
+      return (FALSE);
 
    /* Get objects. */
 
-   objframe = &dialog[RESOLUTION_DIALOG_FRAME];
    objwidth = &dialog[RESOLUTION_DIALOG_WIDTH];
    objheight = &dialog[RESOLUTION_DIALOG_HEIGHT];
 
    /* Set up objects. */
 
-   objframe->dp2 = (char *)title;
-
-   USTRING_CLEAR(widthstr);
+   uszprintf (widthstr, sizeof (widthstr), "%d", *width);
    objwidth->d1 = sizeof (widthstr);
    objwidth->dp = widthstr;
 
-   USTRING_CLEAR(heightstr);
+   uszprintf (heightstr, sizeof (heightstr), "%d", *height);
    objheight->d1 = sizeof (heightstr);
    objheight->dp = heightstr;
 

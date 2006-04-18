@@ -6,6 +6,7 @@
 static nes_ntsc_t       _nes_ntsc_ntsc;
 static nes_ntsc_setup_t _nes_ntsc_setup;
 static int              _nes_ntsc_phase;
+static int              _nes_ntsc_doubling;
 
 /* Blitter. */
 
@@ -66,7 +67,7 @@ static void blit_nes_ntsc (BITMAP *src, BITMAP *dest, int x_base, int
          int xo = (x_base + x);
          int c;
          int r, g, b;
-         int d1, d2;
+         int d1, d2 = d2;  /* Kill warning. */
          int yi;
 
          c = out[((y * wm) + x)];
@@ -77,23 +78,41 @@ static void blit_nes_ntsc (BITMAP *src, BITMAP *dest, int x_base, int
 
          d1 = video_create_color (r, g, b);
 
-         if (y < (hm - 1))
+         switch (_nes_ntsc_doubling)
          {
-            c = out[(((y + 1) * wm) + x)];
+            case 0:  /* Fast scanline doubling. */
+            {
+               d2 = d1;
 
-            r += (((c >> 11) & 0x1f) << 3);
-            g += (((c >> 5) & 0x3f) << 2);
-            b += ((c & 0x1f) << 3);
+               break;
+            }
 
-            r /= 2;
-            g /= 2;
-            b /= 2;
+            case 1:  /* Linear interpolated scanline doubling. */
+            {
+               if (y < (hm - 1))
+               {
+                  c = out[(((y + 1) * wm) + x)];
+      
+                  r += (((c >> 11) & 0x1f) << 3);
+                  g += (((c >> 5) & 0x3f) << 2);
+                  b += ((c & 0x1f) << 3);
+      
+                  r /= 2;
+                  g /= 2;
+                  b /= 2;
+      
+                  d2 = video_create_color (r, g, b);
+               }
+               else
+               {
+                  d2 = d1;
+               }
 
-            d2 = video_create_color (r, g, b);
-         }
-         else
-         {
-            d2 = d1;
+               break;
+            }
+
+            default:
+               WARN_GENERIC();
          }
 
          yi = (yo + 1);
@@ -144,15 +163,47 @@ static void blit_nes_ntsc (BITMAP *src, BITMAP *dest, int x_base, int
 
 static void init_nes_ntsc (BITMAP *src, BITMAP *dest)
 {
+   const char *section = "nes_ntsc";
+   int hue, saturation, contrast, brightness, sharpness, hue_warping;
+   int merge_fields;
+   int doubling;
+   nes_ntsc_setup_t *setup;
    int w, h, wm, hm;
-
+   
    RT_ASSERT(src);
    RT_ASSERT(dest);
 
+   /* Load configuration. */
+
+   /* All parameters range from -100 to +100. */
+
+   hue          = get_config_int (section, "hue",          0);
+   saturation   = get_config_int (section, "saturation",   0);
+   contrast     = get_config_int (section, "contrast",     0);
+   brightness   = get_config_int (section, "brightness",   0);
+   sharpness    = get_config_int (section, "sharpness",    0);
+   hue_warping  = get_config_int (section, "hue_warping",  0);
+   merge_fields = get_config_int (section, "merge_fields", 1);
+   doubling     = get_config_int (section, "doubling",     1);
+
    /* Initialize nes_ntsc. */
-   memset (&_nes_ntsc_setup, 0, sizeof (_nes_ntsc_setup));
-   _nes_ntsc_setup.merge_fields = 1;
-   nes_ntsc_init (&_nes_ntsc_ntsc, &_nes_ntsc_setup);
+
+   setup = &_nes_ntsc_setup;
+
+   memset (setup, 0, sizeof (nes_ntsc_setup_t));
+
+   setup->hue          = (hue         / 100.0f);
+   setup->saturation   = (saturation  / 100.0f);
+   setup->contrast     = (contrast    / 100.0f);
+   setup->brightness   = (brightness  / 100.0f);
+   setup->sharpness    = (sharpness   / 100.0f);
+   setup->hue_warping  = (hue_warping / 100.0f);
+
+   setup->merge_fields = merge_fields;
+
+   _nes_ntsc_doubling = fix (doubling, 0, 1);
+
+   nes_ntsc_init (&_nes_ntsc_ntsc, setup);
 
    /* Calculate sizes. */
    w = src->w;

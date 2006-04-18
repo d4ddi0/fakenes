@@ -13,6 +13,9 @@ static void blit_normal (BITMAP *src, BITMAP *dest, int x_base, int y_base)
    blit (src, dest, 0, 0, x_base, y_base, src->w, src->h);
 }
 
+static int stretch_width  = 512;
+static int stretch_height = 480;
+
 static void blit_stretched (BITMAP *src, BITMAP *dest, int x_base, int
    y_base)
 {
@@ -68,6 +71,11 @@ static void init_stretched (BITMAP *src, BITMAP *dest)
    RT_ASSERT(src);
    RT_ASSERT(dest);
 
+   /* Load configuration. */
+
+   stretch_width  = get_config_int ("video", "stretch_width",  stretch_width);
+   stretch_height = get_config_int ("video", "stretch_height", stretch_height);
+
    if (color_depth != 8)
    {
       blit_buffer_in = (void *)create_bitmap (src->w, src->h);
@@ -75,8 +83,6 @@ static void init_stretched (BITMAP *src, BITMAP *dest)
          WARN_BREAK_GENERIC();
    }
 
-   /* Note: Changing the values of 'stretch_width' or 'stretch_height' after
-      the blitter has been initialized could have bad side-effects. */
    blit_x_offset = ((dest->w / 2) - (stretch_width / 2));
    blit_y_offset = ((dest->h / 2) - (stretch_height / 2));
 }

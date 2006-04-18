@@ -77,6 +77,7 @@ int video_create_gradient (int, int, int, int, int);
 void video_create_gui_gradient (GUI_COLOR *, GUI_COLOR *, int);
 void video_set_blitter (ENUM);
 ENUM video_get_blitter (void);
+void video_blitter_reinit (void);
 void video_set_filter_list (LIST);
 LIST video_get_filter_list (void);
 void video_set_resolution (int, int);

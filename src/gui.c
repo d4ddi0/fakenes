@@ -2444,7 +2444,7 @@ RESOLUTION_MENU_HANDLER(1600, 1200)
 
 static int video_resolution_menu_custom (void)
 {
-   int width, height;
+   int width = 640, height = 480;
 
    if (get_resolution_input ("Custom", &width, &height))
    {
@@ -2531,7 +2531,7 @@ BUFFER_MENU_HANDLER(512, 512)
 
 static int video_buffer_menu_custom (void)
 {
-   int width, height;
+   int width = 320, height = 240;
 
    if (get_resolution_input ("Custom", &width, &height))
    {
@@ -2576,8 +2576,129 @@ BLITTER_MENU_HANDLER(stretched,       "stretched",           VIDEO_BLITTER_STRET
 
 static int video_blitter_menu_configure (void)
 {
-   gui_alert ("Error", "There are no configuration parameters available "
-      "for the selected blitter.", NULL, NULL, "&OK", NULL, 'o', 0);
+   switch (video_get_blitter ())
+   {
+      case VIDEO_BLITTER_NES_NTSC:
+      {
+         DIALOG *dialog;
+         DIALOG *objhue, *objsat, *objcon, *objbright, *objsharp, *objhuew;
+         DIALOG *objmerge;
+         DIALOG *objdbl[2];
+         int merge_fields;
+         int doubling;
+         int result;
+
+         /* Create dialog. */
+
+         dialog = create_dialog (nes_ntsc_config_dialog_base, "nes_ntsc");
+         if (!dialog)
+            break;
+
+         /* Get slider objects. */
+
+         objhue    = &dialog[NES_NTSC_CONFIG_DIALOG_HUE];
+         objsat    = &dialog[NES_NTSC_CONFIG_DIALOG_SATURATION];
+         objcon    = &dialog[NES_NTSC_CONFIG_DIALOG_CONTRAST];
+         objbright = &dialog[NES_NTSC_CONFIG_DIALOG_BRIGHTNESS];
+         objsharp  = &dialog[NES_NTSC_CONFIG_DIALOG_SHARPNESS];
+         objhuew   = &dialog[NES_NTSC_CONFIG_DIALOG_HUE_WARPING];
+         objmerge  = &dialog[NES_NTSC_CONFIG_DIALOG_REDUCE_FLICKER];
+         objdbl[0] = &dialog[NES_NTSC_CONFIG_DIALOG_SCANLINE_DOUBLING_FAST];
+         objdbl[1] = &dialog[NES_NTSC_CONFIG_DIALOG_SCANLINE_DOUBLING_INTERPOLATED];
+
+         /* Load configuration. */
+
+         objhue->d2    = (get_config_int ("nes_ntsc", "hue",         0) + 100);
+         objsat->d2    = (get_config_int ("nes_ntsc", "saturation",  0) + 100);
+         objcon->d2    = (get_config_int ("nes_ntsc", "contrast",    0) + 100);
+         objbright->d2 = (get_config_int ("nes_ntsc", "brightness",  0) + 100);
+         objsharp->d2  = (get_config_int ("nes_ntsc", "sharpness",   0) + 100);
+         objhuew->d2   = (get_config_int ("nes_ntsc", "hue_warping", 0) + 100);
+
+         merge_fields = get_config_int ("nes_ntsc", "merge_fields", 1);
+         if (merge_fields)
+            objmerge->flags |= D_SELECTED;
+         
+         doubling = fix (get_config_int ("nes_ntsc", "doubling", 1), 0, 1);
+
+         objdbl[doubling]->flags |= D_SELECTED;
+            
+         /* Show dialog. */
+         result = show_dialog (dialog, -1);
+
+         /* Destroy dialog. */
+         unload_dialog (dialog);
+
+         if (result == NES_NTSC_CONFIG_DIALOG_SAVE_BUTTON)
+         {
+            int index;
+
+            /* Save configuration. */
+
+            set_config_int ("nes_ntsc", "hue",         (objhue->d2    - 100));
+            set_config_int ("nes_ntsc", "saturation",  (objsat->d2    - 100));
+            set_config_int ("nes_ntsc", "contrast",    (objcon->d2    - 100));
+            set_config_int ("nes_ntsc", "brightness",  (objbright->d2 - 100));
+            set_config_int ("nes_ntsc", "sharpness",   (objsharp->d2  - 100));
+            set_config_int ("nes_ntsc", "hue_warping", (objhuew->d2   - 100));
+
+            merge_fields = ((objmerge->flags & D_SELECTED) ? 1 : 0);
+
+            set_config_int ("nes_ntsc", "merge_fields", merge_fields);
+
+            for (index = 0; index < 2; index++)
+            {
+               if (objdbl[index]->flags & D_SELECTED)
+                  doubling = index;
+            }
+
+            set_config_int ("nes_ntsc", "doubling", doubling);
+
+            /* Reinitialize blitter to the load new configuration. */
+            video_blitter_reinit ();
+
+            /* Display changes. */
+            cycle_video ();
+         }
+
+         break;
+      }
+
+      case VIDEO_BLITTER_STRETCHED:
+      {
+         int width, height;
+
+         /* Load configuration. */
+
+         width  = get_config_int ("video", "stretch_width",  512);
+         height = get_config_int ("video", "stretch_height", 480);
+
+         if (get_resolution_input ("Stretched", &width, &height))
+         {
+            /* Save configuration. */
+
+            set_config_int ("video", "stretch_width",  width);
+            set_config_int ("video", "stretch_height", height);
+
+            /* Reinitialize blitter to the load new configuration. */
+            video_blitter_reinit ();
+
+            /* Display changes. */
+            cycle_video ();
+         }
+
+         break;
+      }
+
+      default:
+      {
+         gui_alert ("Error", "There are no configuration parameters "
+            "available for the selected blitter.", NULL, NULL, "&OK", NULL,
+               'o', 0);
+
+         break;
+      }
+   }
 
    return (D_O_K);
 }

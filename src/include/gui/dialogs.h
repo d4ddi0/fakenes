@@ -374,6 +374,54 @@ static const DIALOG help_about_dialog_base[] =
    DIALOG_FRAME_ENDCAP
 };
 
+/* Dialog for configuration nes_ntsc parameters. */
+static const DIALOG nes_ntsc_config_dialog_base[] =
+{                                                           
+   { sl_frame,      0,   0,   144, 222, 0, 0, 0,   0,      0,   0, NULL,              NULL,                 NULL },
+   { sl_x_button,   125, 4,   16,  12,  0, 0, 0,   D_EXIT, 0,   0, "X",               NULL,                 NULL },
+   { sl_text,       9,   28,  0,   0,   0, 0, 0,   0,      0,   0, NULL,              "&Hue:",              NULL },
+   { d_slider_proc, 18,  37,  117, 5,   0, 0, 'h', 0,      200, 0, NULL,              NULL,                 NULL },
+   { sl_text,       9,   49,  0,   0,   0, 0, 0,   0,      0,   0, NULL,              "Hue &Warping:",      NULL },
+   { d_slider_proc, 18,  58,  117, 5,   0, 0, 'w', 0,      200, 0, NULL,              NULL,                 NULL },
+   { sl_text,       9,   70,  0,   0,   0, 0, 0,   0,      0,   0, NULL,              "&Saturation:",       NULL },
+   { d_slider_proc, 18,  79,  117, 5,   0, 0, 's', 0,      200, 0, NULL,               NULL,                NULL },
+   { sl_text,       9,   91,  0,   0,   0, 0, 0,   0,      0,   0, NULL,              "&Brightness:",       NULL },
+   { d_slider_proc, 18,  100, 117, 5,   0, 0, 'b', 0,      200, 0, NULL,              NULL,                 NULL },
+   { sl_text,       9,   112, 0,   0,   0, 0, 0,   0,      0,   0, NULL,              "&Contrast:",         NULL },
+   { d_slider_proc, 18,  121, 117, 5,   0, 0, 'c', 0,      200, 0, NULL,              NULL,                 NULL },
+   { sl_text,       9,   133, 0,   0,   0, 0, 0,   0,      0,   0, NULL,              "Sh&arpening:",       NULL },
+   { d_slider_proc, 18,  142, 117, 5,   0, 0, 'a', 0,      200, 0, NULL,              NULL,                 NULL },
+   { sl_checkbox,   9,   157, 80,  6,   0, 0, 'r', 0,      0,   0, "&Reduce Flicker", NULL,                 NULL },
+   { sl_text,       9,   172, 0,   0,   0, 0, 0,   0,      0,   0, NULL,              "Scanline Doubling:", NULL },
+   { sl_radiobox,   18,  181, 32,  6,   0, 0, 'f', 0,      1,   0, "&Fast",           NULL,                 NULL },
+   { sl_radiobox,   56,  181, 32,  6,   0, 0, 'i', 0,      1,   0, "&Interpolated",   NULL,                 NULL },
+   { sl_button,     48,  199, 48,  16,  0, 0, 'v', D_EXIT, 0,   0, "Sa&ve",           NULL,                 NULL },
+   DIALOG_FRAME_ENDCAP                                                               
+};  
+
+enum
+{
+   NES_NTSC_CONFIG_DIALOG_UNNAMED_OBJECT_1 = 0,
+   NES_NTSC_CONFIG_DIALOG_UNNAMED_OBJECT_2,
+   NES_NTSC_CONFIG_DIALOG_UNNAMED_OBJECT_3,
+   NES_NTSC_CONFIG_DIALOG_HUE,
+   NES_NTSC_CONFIG_DIALOG_UNNAMED_OBJECT_4,
+   NES_NTSC_CONFIG_DIALOG_HUE_WARPING,
+   NES_NTSC_CONFIG_DIALOG_UNNAMED_OBJECT_5,
+   NES_NTSC_CONFIG_DIALOG_SATURATION,
+   NES_NTSC_CONFIG_DIALOG_UNNAMED_OBJECT_6,
+   NES_NTSC_CONFIG_DIALOG_BRIGHTNESS,
+   NES_NTSC_CONFIG_DIALOG_UNNAMED_OBJECT_7,
+   NES_NTSC_CONFIG_DIALOG_CONTRAST,
+   NES_NTSC_CONFIG_DIALOG_UNNAMED_OBJECT_8,
+   NES_NTSC_CONFIG_DIALOG_SHARPNESS,
+   NES_NTSC_CONFIG_DIALOG_REDUCE_FLICKER,
+   NES_NTSC_CONFIG_DIALOG_UNNAMED_OBJECT_9,
+   NES_NTSC_CONFIG_DIALOG_SCANLINE_DOUBLING_FAST,
+   NES_NTSC_CONFIG_DIALOG_SCANLINE_DOUBLING_INTERPOLATED,
+   NES_NTSC_CONFIG_DIALOG_SAVE_BUTTON
+};
+
 /* Undefine helper macros. */
 #undef DEFINE_DIALOG
 #undef DEFINE_DIALOG_CALLBACK

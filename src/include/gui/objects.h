@@ -332,7 +332,7 @@ int sl_checkbox (int message, DIALOG *dialog, int key)
          if (handler)
             return (handler (dialog));
 
-         break;
+         return (D_O_K);
       }
 
       case MSG_DRAW:

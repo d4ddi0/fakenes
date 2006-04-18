@@ -100,8 +100,6 @@ static int blitter_id         = VIDEO_BLITTER_NORMAL;
 static const BLITTER *blitter = NULL;   /* Blitter interface. */
 static int blit_x_offset      = 0;      
 static int blit_y_offset      = 0;      
-static int stretch_width      = 512;
-static int stretch_height     = 480;
 
 /* Blitters. */
 #include "blit/2xscl.h"
@@ -147,8 +145,6 @@ int video_init (void)
    video_buffer_height      = get_config_int ("video", "buffer_height",      video_buffer_height);
    blitter_id               = get_config_int ("video", "blitter",            blitter_id);
    filter_list              = get_config_int ("video", "filter_list",        filter_list);
-   stretch_width            = get_config_int ("video", "stretch_width",      stretch_width);
-   stretch_height           = get_config_int ("video", "stretch_height",     stretch_height);
    brightness               = get_config_int ("video", "brightness",         brightness);
    video_display_status     = get_config_int ("video", "display_status",     video_display_status);
    video_enable_page_buffer = get_config_int ("video", "enable_page_buffer", video_enable_page_buffer);
@@ -538,8 +534,6 @@ void video_exit (void)
    set_config_int ("video", "buffer_height",      video_buffer_height);
    set_config_int ("video", "blitter",            blitter_id);
    set_config_int ("video", "filter_list",        filter_list);
-   set_config_int ("video", "stretch_width",      stretch_width);
-   set_config_int ("video", "stretch_height",     stretch_height);
    set_config_int ("video", "brightness",         brightness);
    set_config_int ("video", "display_status",     video_display_status);
    set_config_int ("video", "enable_page_buffer", video_enable_page_buffer);
@@ -1372,6 +1366,26 @@ ENUM video_get_blitter (void)
    return (blitter_id);
 }
 
+void video_blitter_reinit (void)
+{
+   /* Reinitializes the current blitter.  Usually used to reload the updated
+      blitter parameters (if any) from the configuration file. */
+
+   if (blitter)
+   {
+      if (blitter->deinit)
+      {
+         /* Deinitialize blitter. */
+         blitter->deinit ();
+      }
+
+      if (blitter->init)
+      {
+         /* Initialize blitter. */
+         blitter->init (video_buffer, screen_buffer);
+      }
+   }
+}
 
 void video_set_resolution (int width, int height)
 {
