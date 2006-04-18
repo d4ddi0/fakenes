@@ -500,9 +500,6 @@ int show_gui (BOOL first_run)
       return ((8 + result));
    }
 
-   /* Set up menus. */
-   update_menus ();
-
    if (first_run)
    {
       /* Show welcome message. */
@@ -527,8 +524,14 @@ int show_gui (BOOL first_run)
       /* Clear restart flag. */
       gui_needs_restart = FALSE;
 
+      /* Update menu states. */
+      update_menus ();
+
       /* Run main dialog. */
       run_dialog (main_dialog, -1);
+
+      if (gui_needs_restart)
+         cycle_video ();
 
    } while (gui_needs_restart);
 
