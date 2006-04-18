@@ -2581,12 +2581,12 @@ static int video_blitter_menu_configure (void)
       case VIDEO_BLITTER_NES_NTSC:
       {
          DIALOG *dialog;
-         DIALOG *objhue, *objsat, *objcon, *objbright, *objsharp, *objhuew;
-         DIALOG *objmerge;
-         DIALOG *objdbl[2];
-         int merge_fields;
-         int doubling;
+         DIALOG *objhue, *objsat, *objcon, *objbright, *objsharp, *objhuew,
+            *objgamma, *objres, *objart, *objfring, *objbleed, *objmerge,
+            *objdbl[3], *objinterp;
+         int merge_fields, doubling, interpolated;
          int result;
+         int index;
 
          /* Create dialog. */
 
@@ -2596,15 +2596,22 @@ static int video_blitter_menu_configure (void)
 
          /* Get slider objects. */
 
-         objhue    = &dialog[NES_NTSC_CONFIG_DIALOG_HUE];
-         objsat    = &dialog[NES_NTSC_CONFIG_DIALOG_SATURATION];
-         objcon    = &dialog[NES_NTSC_CONFIG_DIALOG_CONTRAST];
-         objbright = &dialog[NES_NTSC_CONFIG_DIALOG_BRIGHTNESS];
-         objsharp  = &dialog[NES_NTSC_CONFIG_DIALOG_SHARPNESS];
-         objhuew   = &dialog[NES_NTSC_CONFIG_DIALOG_HUE_WARPING];
-         objmerge  = &dialog[NES_NTSC_CONFIG_DIALOG_REDUCE_FLICKER];
-         objdbl[0] = &dialog[NES_NTSC_CONFIG_DIALOG_SCANLINE_DOUBLING_FAST];
-         objdbl[1] = &dialog[NES_NTSC_CONFIG_DIALOG_SCANLINE_DOUBLING_INTERPOLATED];
+         objhue     = &dialog[NES_NTSC_CONFIG_DIALOG_HUE];
+         objsat     = &dialog[NES_NTSC_CONFIG_DIALOG_SATURATION];
+         objcon     = &dialog[NES_NTSC_CONFIG_DIALOG_CONTRAST];
+         objbright  = &dialog[NES_NTSC_CONFIG_DIALOG_BRIGHTNESS];
+         objsharp   = &dialog[NES_NTSC_CONFIG_DIALOG_SHARPNESS];
+         objhuew    = &dialog[NES_NTSC_CONFIG_DIALOG_HUE_WARPING];
+         objgamma   = &dialog[NES_NTSC_CONFIG_DIALOG_GAMMA];
+         objres     = &dialog[NES_NTSC_CONFIG_DIALOG_RESOLUTION];
+         objart     = &dialog[NES_NTSC_CONFIG_DIALOG_ARTIFACTS];
+         objfring   = &dialog[NES_NTSC_CONFIG_DIALOG_FRINGING];
+         objbleed   = &dialog[NES_NTSC_CONFIG_DIALOG_COLOR_BLEED];
+         objmerge   = &dialog[NES_NTSC_CONFIG_DIALOG_REDUCE_FLICKER];
+         objdbl[0]  = &dialog[NES_NTSC_CONFIG_DIALOG_SCANLINE_DOUBLING_NORMAL];
+         objdbl[1]  = &dialog[NES_NTSC_CONFIG_DIALOG_SCANLINE_DOUBLING_BRIGHTEN];
+         objdbl[2]  = &dialog[NES_NTSC_CONFIG_DIALOG_SCANLINE_DOUBLING_DARKEN];
+         objinterp  = &dialog[NES_NTSC_CONFIG_DIALOG_INTERPOLATED];
 
          /* Load configuration. */
 
@@ -2614,15 +2621,24 @@ static int video_blitter_menu_configure (void)
          objbright->d2 = (get_config_int ("nes_ntsc", "brightness",  0) + 100);
          objsharp->d2  = (get_config_int ("nes_ntsc", "sharpness",   0) + 100);
          objhuew->d2   = (get_config_int ("nes_ntsc", "hue_warping", 0) + 100);
+         objgamma->d2  = (get_config_int ("nes_ntsc", "gamma",       0) + 100);
+         objres->d2    = (get_config_int ("nes_ntsc", "resolution",  0) + 100);
+         objart->d2    = (get_config_int ("nes_ntsc", "artifacts",   0) + 100);
+         objfring->d2  = (get_config_int ("nes_ntsc", "fringing",    0) + 100);
+         objbleed->d2  = (get_config_int ("nes_ntsc", "bleed",       0) + 100);
 
          merge_fields = get_config_int ("nes_ntsc", "merge_fields", 1);
          if (merge_fields)
             objmerge->flags |= D_SELECTED;
          
-         doubling = fix (get_config_int ("nes_ntsc", "doubling", 1), 0, 1);
+         doubling = fix (get_config_int ("nes_ntsc", "doubling", 0), 0, 2);
 
          objdbl[doubling]->flags |= D_SELECTED;
-            
+
+         interpolated = get_config_int ("nes_ntsc", "interpolated", 1);
+         if (interpolated)
+            objinterp->flags |= D_SELECTED;
+
          /* Show dialog. */
          result = show_dialog (dialog, -1);
 
@@ -2631,8 +2647,6 @@ static int video_blitter_menu_configure (void)
 
          if (result == NES_NTSC_CONFIG_DIALOG_SAVE_BUTTON)
          {
-            int index;
-
             /* Save configuration. */
 
             set_config_int ("nes_ntsc", "hue",         (objhue->d2    - 100));
@@ -2641,18 +2655,54 @@ static int video_blitter_menu_configure (void)
             set_config_int ("nes_ntsc", "brightness",  (objbright->d2 - 100));
             set_config_int ("nes_ntsc", "sharpness",   (objsharp->d2  - 100));
             set_config_int ("nes_ntsc", "hue_warping", (objhuew->d2   - 100));
+            set_config_int ("nes_ntsc", "gamma",       (objgamma->d2  - 100));
+            set_config_int ("nes_ntsc", "resolution",  (objres->d2    - 100));
+            set_config_int ("nes_ntsc", "artifacts",   (objart->d2    - 100));
+            set_config_int ("nes_ntsc", "fringing",    (objfring->d2  - 100));
+            set_config_int ("nes_ntsc", "bleed",       (objbleed->d2  - 100));
 
             merge_fields = ((objmerge->flags & D_SELECTED) ? 1 : 0);
 
             set_config_int ("nes_ntsc", "merge_fields", merge_fields);
 
-            for (index = 0; index < 2; index++)
+            for (index = 0; index < 3; index++)
             {
                if (objdbl[index]->flags & D_SELECTED)
                   doubling = index;
             }
 
             set_config_int ("nes_ntsc", "doubling", doubling);
+
+            interpolated = ((objinterp->flags & D_SELECTED) ? 1 : 0);
+
+            set_config_int ("nes_ntsc", "interpolated", interpolated);
+
+            /* Reinitialize blitter to the load new configuration. */
+            video_blitter_reinit ();
+
+            /* Display changes. */
+            cycle_video ();
+         }
+         else if (result == NES_NTSC_CONFIG_DIALOG_SET_BUTTON)
+         {
+            DIALOG *objpres[5];
+            int preset = -1;
+
+            /* Set a preset. */
+
+            objpres[0] = &dialog[NES_NTSC_CONFIG_DIALOG_PRESETS_DEFAULT];
+            objpres[1] = &dialog[NES_NTSC_CONFIG_DIALOG_PRESETS_COMPOSITE];
+            objpres[2] = &dialog[NES_NTSC_CONFIG_DIALOG_PRESETS_SVIDEO];
+            objpres[3] = &dialog[NES_NTSC_CONFIG_DIALOG_PRESETS_RGB];
+            objpres[4] = &dialog[NES_NTSC_CONFIG_DIALOG_PRESETS_MONOCHROME];
+
+            for (index = 0; index < 5; index++)
+            {
+               if (objpres[index]->flags & D_SELECTED)
+                  preset = index;
+            }
+
+            set_config_int ("nes_ntsc", "preset", preset);
 
             /* Reinitialize blitter to the load new configuration. */
             video_blitter_reinit ();
