@@ -2581,8 +2581,8 @@ static int video_blitter_menu_configure (void)
       case VIDEO_BLITTER_NES_NTSC:
       {
          DIALOG *dialog;
-         DIALOG *objhue, *objsat, *objcon, *objbright, *objsharp, *objhuew,
-            *objgamma, *objres, *objart, *objfring, *objbleed, *objmerge,
+         DIALOG *objhue, *objsat, *objhuew, *objbright, *objcon, *objgamma,
+            *objsharp, *objres, *objart, *objbleed, *objfring, *objmerge,
             *objdbl[3], *objinterp;
          int merge_fields, doubling, interpolated;
          int result;
@@ -2597,16 +2597,16 @@ static int video_blitter_menu_configure (void)
          /* Get slider objects. */
 
          objhue     = &dialog[NES_NTSC_CONFIG_DIALOG_HUE];
-         objsat     = &dialog[NES_NTSC_CONFIG_DIALOG_SATURATION];
-         objcon     = &dialog[NES_NTSC_CONFIG_DIALOG_CONTRAST];
-         objbright  = &dialog[NES_NTSC_CONFIG_DIALOG_BRIGHTNESS];
-         objsharp   = &dialog[NES_NTSC_CONFIG_DIALOG_SHARPNESS];
          objhuew    = &dialog[NES_NTSC_CONFIG_DIALOG_HUE_WARPING];
+         objsat     = &dialog[NES_NTSC_CONFIG_DIALOG_SATURATION];
+         objbright  = &dialog[NES_NTSC_CONFIG_DIALOG_BRIGHTNESS];
+         objcon     = &dialog[NES_NTSC_CONFIG_DIALOG_CONTRAST];
          objgamma   = &dialog[NES_NTSC_CONFIG_DIALOG_GAMMA];
+         objsharp   = &dialog[NES_NTSC_CONFIG_DIALOG_SHARPNESS];
          objres     = &dialog[NES_NTSC_CONFIG_DIALOG_RESOLUTION];
          objart     = &dialog[NES_NTSC_CONFIG_DIALOG_ARTIFACTS];
-         objfring   = &dialog[NES_NTSC_CONFIG_DIALOG_FRINGING];
          objbleed   = &dialog[NES_NTSC_CONFIG_DIALOG_COLOR_BLEED];
+         objfring   = &dialog[NES_NTSC_CONFIG_DIALOG_COLOR_FRINGING];
          objmerge   = &dialog[NES_NTSC_CONFIG_DIALOG_REDUCE_FLICKER];
          objdbl[0]  = &dialog[NES_NTSC_CONFIG_DIALOG_SCANLINE_DOUBLING_NORMAL];
          objdbl[1]  = &dialog[NES_NTSC_CONFIG_DIALOG_SCANLINE_DOUBLING_BRIGHTEN];
@@ -2616,16 +2616,16 @@ static int video_blitter_menu_configure (void)
          /* Load configuration. */
 
          objhue->d2    = (get_config_int ("nes_ntsc", "hue",         0) + 100);
-         objsat->d2    = (get_config_int ("nes_ntsc", "saturation",  0) + 100);
-         objcon->d2    = (get_config_int ("nes_ntsc", "contrast",    0) + 100);
-         objbright->d2 = (get_config_int ("nes_ntsc", "brightness",  0) + 100);
-         objsharp->d2  = (get_config_int ("nes_ntsc", "sharpness",   0) + 100);
          objhuew->d2   = (get_config_int ("nes_ntsc", "hue_warping", 0) + 100);
+         objsat->d2    = (get_config_int ("nes_ntsc", "saturation",  0) + 100);
+         objbright->d2 = (get_config_int ("nes_ntsc", "brightness",  0) + 100);
+         objcon->d2    = (get_config_int ("nes_ntsc", "contrast",    0) + 100);
          objgamma->d2  = (get_config_int ("nes_ntsc", "gamma",       0) + 100);
+         objsharp->d2  = (get_config_int ("nes_ntsc", "sharpness",   0) + 100);
          objres->d2    = (get_config_int ("nes_ntsc", "resolution",  0) + 100);
          objart->d2    = (get_config_int ("nes_ntsc", "artifacts",   0) + 100);
-         objfring->d2  = (get_config_int ("nes_ntsc", "fringing",    0) + 100);
          objbleed->d2  = (get_config_int ("nes_ntsc", "bleed",       0) + 100);
+         objfring->d2  = (get_config_int ("nes_ntsc", "fringing",    0) + 100);
 
          merge_fields = get_config_int ("nes_ntsc", "merge_fields", 1);
          if (merge_fields)
@@ -2650,16 +2650,16 @@ static int video_blitter_menu_configure (void)
             /* Save configuration. */
 
             set_config_int ("nes_ntsc", "hue",         (objhue->d2    - 100));
-            set_config_int ("nes_ntsc", "saturation",  (objsat->d2    - 100));
-            set_config_int ("nes_ntsc", "contrast",    (objcon->d2    - 100));
-            set_config_int ("nes_ntsc", "brightness",  (objbright->d2 - 100));
-            set_config_int ("nes_ntsc", "sharpness",   (objsharp->d2  - 100));
             set_config_int ("nes_ntsc", "hue_warping", (objhuew->d2   - 100));
+            set_config_int ("nes_ntsc", "saturation",  (objsat->d2    - 100));
+            set_config_int ("nes_ntsc", "brightness",  (objbright->d2 - 100));
+            set_config_int ("nes_ntsc", "contrast",    (objcon->d2    - 100));
             set_config_int ("nes_ntsc", "gamma",       (objgamma->d2  - 100));
+            set_config_int ("nes_ntsc", "sharpness",   (objsharp->d2  - 100));
             set_config_int ("nes_ntsc", "resolution",  (objres->d2    - 100));
             set_config_int ("nes_ntsc", "artifacts",   (objart->d2    - 100));
-            set_config_int ("nes_ntsc", "fringing",    (objfring->d2  - 100));
             set_config_int ("nes_ntsc", "bleed",       (objbleed->d2  - 100));
+            set_config_int ("nes_ntsc", "fringing",    (objfring->d2  - 100));
 
             merge_fields = ((objmerge->flags & D_SELECTED) ? 1 : 0);
 
