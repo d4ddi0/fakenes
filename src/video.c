@@ -104,7 +104,7 @@ static int blit_y_offset      = 0;
 /* Blitters. */
 #include "blit/2xscl.h"
 #include "blit/des.h"
-#include "blit/hq.h"
+#include "blit/hqx.h"
 #include "blit/interp.h"
 #include "blit/ntsc.h"
 #include "blit/std.h"

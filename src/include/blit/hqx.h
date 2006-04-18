@@ -8,7 +8,7 @@ extern void hq4x (unsigned char *, unsigned char *, int, int, int);
 
 /* Blitter framework. */
 
-static INLINE void _blit_hq (int size, BITMAP *src, BITMAP *dest, int
+static INLINE void _blit_hqx (int size, BITMAP *src, BITMAP *dest, int
    x_base, int y_base)
 {
    unsigned short *in;
@@ -160,7 +160,7 @@ static INLINE void _blit_hq (int size, BITMAP *src, BITMAP *dest, int
 
 /* Initializer framework. */
 
-static INLINE void _init_hq (int size, BITMAP *src, BITMAP *dest)
+static INLINE void _init_hqx (int size, BITMAP *src, BITMAP *dest)
 {
    int w, h, wm, hm;
 
@@ -193,7 +193,7 @@ static INLINE void _init_hq (int size, BITMAP *src, BITMAP *dest)
 
 /* Deinitializer. */
 
-static void deinit_hq (void)
+static void deinit_hqx (void)
 {
    /* Destroy buffers. */
 
@@ -214,7 +214,7 @@ static void init_hq2x (BITMAP *src, BITMAP *dest)
    // RT_ASSERT(src);
    // RT_ASSERT(dest);
 
-   _init_hq (2, src, dest);
+   _init_hqx (2, src, dest);
 }
 
 static void blit_hq2x (BITMAP *src, BITMAP *dest, int x_base, int y_base)
@@ -222,7 +222,7 @@ static void blit_hq2x (BITMAP *src, BITMAP *dest, int x_base, int y_base)
    // RT_ASSERT(src);
    // RT_ASSERT(dest);
 
-   _blit_hq (2, src, dest, x_base, y_base);
+   _blit_hqx (2, src, dest, x_base, y_base);
 }
 
 static void init_hq3x (BITMAP *src, BITMAP *dest)
@@ -230,7 +230,7 @@ static void init_hq3x (BITMAP *src, BITMAP *dest)
    // RT_ASSERT(src);
    // RT_ASSERT(dest);
 
-   _init_hq (3, src, dest);
+   _init_hqx (3, src, dest);
 }
 
 static void blit_hq3x (BITMAP *src, BITMAP *dest, int x_base, int y_base)
@@ -238,7 +238,7 @@ static void blit_hq3x (BITMAP *src, BITMAP *dest, int x_base, int y_base)
    // RT_ASSERT(src);
    // RT_ASSERT(dest);
 
-   _blit_hq (3, src, dest, x_base, y_base);
+   _blit_hqx (3, src, dest, x_base, y_base);
 }
 
 static void init_hq4x (BITMAP *src, BITMAP *dest)
@@ -246,7 +246,7 @@ static void init_hq4x (BITMAP *src, BITMAP *dest)
    // RT_ASSERT(src);
    // RT_ASSERT(dest);
 
-   _init_hq (4, src, dest);
+   _init_hqx (4, src, dest);
 }
 
 static void blit_hq4x (BITMAP *src, BITMAP *dest, int x_base, int y_base)
@@ -254,25 +254,25 @@ static void blit_hq4x (BITMAP *src, BITMAP *dest, int x_base, int y_base)
    // RT_ASSERT(src);
    // RT_ASSERT(dest);
 
-   _blit_hq (4, src, dest, x_base, y_base);
+   _blit_hqx (4, src, dest, x_base, y_base);
 }
 
 /* Interfaces. */
 
 static const BLITTER blitter_hq2x =
 {
-   init_hq2x, deinit_hq,
+   init_hq2x, deinit_hqx,
    blit_hq2x
 };
 
 static const BLITTER blitter_hq3x =
 {
-   init_hq3x, deinit_hq,
+   init_hq3x, deinit_hqx,
    blit_hq3x
 };
 
 static const BLITTER blitter_hq4x =
 {
-   init_hq4x, deinit_hq,
+   init_hq4x, deinit_hqx,
    blit_hq4x
 };
