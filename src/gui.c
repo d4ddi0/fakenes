@@ -162,6 +162,10 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(machine_region_menu_ntsc,      (machine_region == MACHINE_REGION_NTSC));
    TOGGLE_MENU_ITEM(machine_region_menu_pal,       (machine_region == MACHINE_REGION_PAL));
 
+   TOGGLE_MENU_ITEM(machine_speed_up_down_menu_50_percent,  COMPARE_TWO_REALS(timing_speed_multiplier, 0.5f));
+   TOGGLE_MENU_ITEM(machine_speed_up_down_menu_100_percent, COMPARE_TWO_REALS(timing_speed_multiplier, 1.0f));
+   TOGGLE_MENU_ITEM(machine_speed_up_down_menu_200_percent, COMPARE_TWO_REALS(timing_speed_multiplier, 2.0f));
+
    TOGGLE_MENU_ITEM(audio_menu_enabled, audio_enable_output);
 
    TOGGLE_MENU_ITEM(audio_subsystem_menu_none,   (audio_subsystem == AUDIO_SUBSYSTEM_NONE));
@@ -783,14 +787,7 @@ void gui_handle_keypress (int c, int scancode)
          /* Toggle half speed mode. */
 
          timing_half_speed = !timing_half_speed;
-
-         if (!gui_is_active)
-         {
-            suspend_timing ();
-            resume_timing ();
-         }
-
-         cycle_audio ();
+         timing_update_speed ();
 
          break;
       }
@@ -1773,6 +1770,61 @@ static int machine_region_menu_pal (void)
    update_menus ();
 
    message_local ("System region set to PAL.");
+
+   return (D_O_K);
+}
+
+static int machine_speed_up_down_menu_50_percent (void)
+{
+   timing_speed_multiplier = 0.5f;
+   timing_update_speed ();
+
+   update_menus ();
+
+   message_local ("Machine speed factor set to 50%%.");
+
+   return (D_O_K);
+}
+
+static int machine_speed_up_down_menu_100_percent (void)
+{
+   timing_speed_multiplier = 1.0f;
+   timing_update_speed ();
+
+   update_menus ();
+
+   message_local ("Machine speed factor set to 100%%.");
+
+   return (D_O_K);
+}
+
+static int machine_speed_up_down_menu_200_percent (void)
+{
+   timing_speed_multiplier = 2.0f;
+   timing_update_speed ();
+
+   update_menus ();
+
+   message_local ("Machine speed factor set to 200%%.");
+
+   return (D_O_K);
+}
+
+static int machine_speed_up_down_menu_custom (void)
+{
+   REAL value;
+
+   value = (timing_speed_multiplier * 100.0f);
+
+   if (get_float_input ("Custom", &value, "percent"))
+   {
+      timing_speed_multiplier = (value / 100.0f);
+      timing_update_speed ();
+
+      update_menus ();
+
+      message_local ("Machine speed factor set to custom.");
+   }
 
    return (D_O_K);
 }

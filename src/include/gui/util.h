@@ -348,3 +348,50 @@ static INLINE BOOL get_resolution_input (const UCHAR *title, int *width, int
    /* Return success. */
    return (TRUE);
 }
+
+static INLINE BOOL get_float_input (const UCHAR *title, REAL *value, const
+   UCHAR *units)
+{
+   /* Pops up an abstract input dialog that allows the user to enter a
+      floating point number specified in 'units' (e.g, frames, dots, etc.).
+
+      Returns FALSE if the dialog was cancelled, otherwise TRUE. */
+
+   DIALOG *dialog;
+   DIALOG *objvalue;
+   DIALOG *objunits;
+   USTRING valuestr;
+   int result;
+
+   /* Create dialog. */
+   dialog = create_dialog (amount_dialog_base, title);
+   if (!dialog)
+      return (FALSE);
+
+   /* Get objects. */
+
+   objvalue = &dialog[AMOUNT_DIALOG_VALUE];
+   objunits = &dialog[AMOUNT_DIALOG_UNITS_LABEL];
+
+   /* Set up objects. */
+
+   uszprintf (valuestr, sizeof (valuestr), "%g", *value);
+   objvalue->d1 = sizeof (valuestr);
+   objvalue->dp = valuestr;
+
+   objunits->dp2 = (char *)units;
+
+   /* Show dialog. */
+   result = show_dialog (dialog, -1);
+
+   /* Destroy dialog. */
+   unload_dialog (dialog);
+
+   if (result != AMOUNT_DIALOG_OK_BUTTON)
+      return (FALSE);
+
+   *value = uatof (valuestr);
+
+   /* Return success. */
+   return (TRUE);
+}

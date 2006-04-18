@@ -30,6 +30,10 @@ extern "C" {
 
 #define EPSILON   (1.0f / 256.0f)
 
+/* Macro to compare 2 REALs. */
+#define COMPARE_TWO_REALS(a, b)  \
+   TRUE_OR_FALSE((a >= (b - EPSILON)) && (a <= (b + EPSILON)))
+
 /* TODO: Remove all references to NIL and correct compiler warnings. */
 #define NIL    0
 

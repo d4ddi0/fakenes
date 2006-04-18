@@ -82,6 +82,27 @@ enum
    RESOLUTION_DIALOG_CANCEL_BUTTON
 };
 
+static const DIALOG amount_dialog_base[] =
+{
+   { sl_frame,    0,   0,  146, 74, 0, 0, 0,   0,      0, 0, NULL,      NULL,     NULL },
+   { sl_x_button, 127, 4,  16,  12, 0, 0, 0,   D_EXIT, 0, 0, "X",       NULL,     NULL },
+   { sl_editbox,  9,   28, 32,  14, 0, 0, 0,   0,      0, 0, NULL,      NULL,     NULL },
+   { sl_text,     50,  31, 0,   0,  0, 0, 0,   0,      0, 0, NULL,      NULL,     NULL },
+   { sl_button,   9,   51, 48,  16, 0, 0, 'o', D_EXIT, 0, 0, "&OK",     NULL,     NULL },
+   { sl_button,   63,  51, 48,  16, 0, 0, 'c', D_EXIT, 0, 0, "&Cancel", NULL,     NULL },
+   DIALOG_FRAME_ENDCAP
+};
+
+enum
+{
+   AMOUNT_DIALOG_FRAME = 0,
+   AMOUNT_DIALOG_CLOSE_BUTTON,
+   AMOUNT_DIALOG_VALUE,
+   AMOUNT_DIALOG_UNITS_LABEL,
+   AMOUNT_DIALOG_OK_BUTTON,
+   AMOUNT_DIALOG_CANCEL_BUTTON
+};
+
 static const DIALOG main_dialog_base[] =
 {
    { d_menu_proc, 16, 16, 0, 0, 0, 0, 0, 0, 0, 0, IMPORT_MENU(top_menu), NULL, NULL },

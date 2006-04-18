@@ -11,6 +11,7 @@
 #include "audio.h"
 #include "apu.h"
 #include "common.h"
+#include "gui.h"
 #include "rom.h"
 #include "types.h"
 #ifdef __cplusplus
@@ -25,6 +26,7 @@ int frame_skip_max;
 int timing_fps;
 int timing_hertz;
 int timing_audio_fps;
+REAL timing_speed_multiplier;
 BOOL timing_half_speed;
 
 int machine_init (void);
@@ -65,13 +67,31 @@ enum
 
 static INLINE int timing_get_speed (void)
 {
-   int speed;
+   REAL speed;
 
-   speed = (machine_type == MACHINE_TYPE_NTSC ? 60 : 50);
+   speed = (machine_type == MACHINE_TYPE_NTSC ? 60.0f : 50.0f);
+   speed *= timing_speed_multiplier;
    if (timing_half_speed)
-      speed /= 2;
+      speed /= 2.0f;
 
-   return (speed);
+   return (ROUND(speed));
+}
+
+static INLINE void timing_update_speed (void)
+{
+   if (!gui_is_active)
+   {
+      /* Cycle timers to match new emulation speeds. */
+      suspend_timing ();
+      resume_timing ();
+   }
+
+   /* Cycle audio to match new emulation speeds. */
+   audio_exit ();
+   audio_init ();
+
+   if (rom_is_loaded)
+      apu_update ();
 }
 
 static INLINE void timing_update_machine_type (void)
@@ -124,12 +144,7 @@ static INLINE void timing_update_machine_type (void)
       }
    }
 
-   /* Cycle audio to match new emulation speeds. */
-   audio_exit ();
-   audio_init ();
-
-   if (rom_is_loaded)
-      apu_reset ();
+   timing_update_speed ();
 }
 
 #ifdef __cplusplus

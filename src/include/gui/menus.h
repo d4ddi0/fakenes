@@ -15,6 +15,7 @@ DEFINE_MENU(machine_save_state_select_menu);
 DEFINE_MENU(machine_save_state_autosave_menu);
 DEFINE_MENU(machine_save_state_menu);
 DEFINE_MENU(machine_region_menu);
+DEFINE_MENU(machine_speed_up_down_menu);
 DEFINE_MENU(machine_menu);
 DEFINE_MENU(audio_subsystem_menu);
 DEFINE_MENU(audio_mixing_channels_menu);
@@ -236,19 +237,36 @@ static const MENU machine_region_menu_base[] =
    MENU_ENDCAP
 };
 
+DEFINE_MENU_CALLBACK(machine_speed_up_down_menu_50_percent);
+DEFINE_MENU_CALLBACK(machine_speed_up_down_menu_100_percent);
+DEFINE_MENU_CALLBACK(machine_speed_up_down_menu_200_percent);
+DEFINE_MENU_CALLBACK(machine_speed_up_down_menu_custom);
+
+static const MENU machine_speed_up_down_menu_base[] =
+{
+   { "&1: 50%",    machine_speed_up_down_menu_50_percent,  NULL, 0, NULL },
+   { "&2: 100%",   machine_speed_up_down_menu_100_percent, NULL, 0, NULL },
+   { "&3: 200%",   machine_speed_up_down_menu_200_percent, NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&Custom...", machine_speed_up_down_menu_custom,      NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
 DEFINE_MENU_CALLBACK(machine_menu_soft_reset);
 DEFINE_MENU_CALLBACK(machine_menu_hard_reset);
 DEFINE_MENU_CALLBACK(machine_menu_cheat_manager);
 
 static const MENU machine_menu_base[] =
 {
-   { "&Soft Reset",       machine_menu_soft_reset,    NULL,                                  0, NULL },
-   { "&Hard Reset",       machine_menu_hard_reset,    NULL,                                  0, NULL },
+   { "&Soft Reset",       machine_menu_soft_reset,    NULL,                                    0, NULL },
+   { "&Hard Reset",       machine_menu_hard_reset,    NULL,                                    0, NULL },
    MENU_SPLITTER,
-   { "&Save State",       NULL,                       IMPORT_MENU(machine_save_state_menu),  0, NULL },
-   { "&Region",           NULL,                       IMPORT_MENU(machine_region_menu),      0, NULL },
+   { "&Save State",       NULL,                       IMPORT_MENU(machine_save_state_menu),    0, NULL },
    MENU_SPLITTER,
-   { "&Cheat Manager...", machine_menu_cheat_manager, NULL,                                  0, NULL },
+   { "&Region",           NULL,                       IMPORT_MENU(machine_region_menu),        0, NULL },
+   { "Speed &Up/Down",    NULL,                       IMPORT_MENU(machine_speed_up_down_menu), 0, NULL },
+   MENU_SPLITTER,
+   { "&Cheat Manager...", machine_menu_cheat_manager, NULL,                                    0, NULL },
    MENU_ENDCAP
 };
 
@@ -1143,6 +1161,7 @@ static INLINE void load_menus (void)
    MENU_FROM_BASE(machine_save_state_autosave_menu);
    MENU_FROM_BASE(machine_save_state_menu);
    MENU_FROM_BASE(machine_region_menu);
+   MENU_FROM_BASE(machine_speed_up_down_menu);
    MENU_FROM_BASE(machine_menu);
    MENU_FROM_BASE(audio_subsystem_menu);
    MENU_FROM_BASE(audio_mixing_channels_menu);
@@ -1193,6 +1212,7 @@ static INLINE void unload_menus (void)
    unload_menu (machine_save_state_autosave_menu);
    unload_menu (machine_save_state_menu);
    unload_menu (machine_region_menu);
+   unload_menu (machine_speed_up_down_menu);
    unload_menu (machine_menu);
    unload_menu (audio_subsystem_menu);
    unload_menu (audio_mixing_channels_menu);

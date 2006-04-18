@@ -43,6 +43,7 @@ int timing_fps = 0;
 int timing_hertz = 0;
 int timing_audio_fps = 0;
 int timing_audio_hertz = 0;
+REAL timing_speed_multiplier = 1.0f;
 BOOL timing_half_speed = FALSE;
 static BOOL redraw_flag = TRUE;
 static int frame_count = 1;
@@ -180,6 +181,8 @@ int main (int argc, char *argv[])
    cpu_usage = get_config_int ("timing", "cpu_usage", CPU_USAGE_NORMAL);
 
    first_run = get_config_int ("gui", "first_run", TRUE);
+
+   timing_speed_multiplier = get_config_float ("timing", "speed_factor", 1.0f);
 
 
    install_timer ();
@@ -624,6 +627,8 @@ int main (int argc, char *argv[])
    set_config_int ("timing", "cpu_usage", cpu_usage);
 
    set_config_int ("gui", "first_run", first_run);
+
+   set_config_float ("timing", "speed_factor", timing_speed_multiplier);
 
 
    if (rom_is_loaded)
