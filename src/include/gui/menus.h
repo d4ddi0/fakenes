@@ -743,7 +743,6 @@ static const MENU video_blitter_menu_base[] =
    { "   &9: HQ2X",            video_blitter_menu_hq2x,            NULL, 0, NULL },
    { "  1&0: HQ3X",            video_blitter_menu_hq3x,            NULL, 0, NULL },
    { "  11: &HQ4X",            video_blitter_menu_hq4x,            NULL, 0, NULL },
-   MENU_SPLITTER,
    { "Dynamic",                NULL,                               NULL, 0, NULL },
    { "  12: &Stretched",       video_blitter_menu_stretched,       NULL, 0, NULL },
    { "  13: &nes_ntsc",        video_blitter_menu_nes_ntsc,        NULL, 0, NULL },
