@@ -105,12 +105,12 @@ static void nina_reset (void)
 
 static int nina_init (void)
 {
-   /* Set initial mappings. */
-   nina_reset ();
-
    /* Install write handlers. */
    cpu_set_write_handler_2k  (0x7800, nina_write_low);
    cpu_set_write_handler_32k (0x8000, nina_write_high);
+
+   /* Set initial mappings. */
+   nina_reset ();
 
    /* Return success. */
    return (0);

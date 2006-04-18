@@ -250,9 +250,6 @@ static int vrc6_base_init (void)
 {
    int index;
 
-   /* Set initial mappings. */
-   vrc6_reset ();
-
    /* Install write handler. */
    cpu_set_write_handler_32k (0x8000, vrc6_write);
 
@@ -261,6 +258,9 @@ static int vrc6_base_init (void)
 
    /* Select ExSound chip. */
    apu_set_exsound (APU_EXSOUND_VRC6);
+
+   /* Set initial mappings. */
+   vrc6_reset ();
 
    /* Return success. */
    return (0);

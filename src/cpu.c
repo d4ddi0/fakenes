@@ -27,6 +27,8 @@ UINT8 cpu_sram[CPU_SRAM_SIZE];
 
 int cpu_init (void)
 {
+   cpu_memmap_init ();
+
    memset (cpu_ram,  0, sizeof (cpu_ram));
    memset (cpu_sram, 0, sizeof (cpu_sram));
 
@@ -42,6 +44,8 @@ int cpu_init (void)
 
    memset (dummy_read,  0, sizeof (dummy_read));
    memset (dummy_write, 0, sizeof (dummy_write));
+
+   cpu_reset ();
 
    return (0);
 }

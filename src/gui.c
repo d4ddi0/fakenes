@@ -48,8 +48,8 @@ RGB *gui_image_palette = NULL;
 static BITMAP *gui_mouse_sprite = NULL;
 static BITMAP *background_image = NULL;
 
-BOOL gui_needs_restart = FALSE;
 BOOL gui_is_active = FALSE;
+static BOOL gui_needs_restart = FALSE;
 static BOOL want_exit = FALSE;
 
 static USTRING message_buffer;
@@ -522,11 +522,18 @@ int show_gui (BOOL first_run)
 
    want_exit = FALSE;
 
-   /* Run main dialog. */
-   run_dialog (main_dialog, -1);
+   do
+   {
+      /* Clear restart flag. */
+      gui_needs_restart = FALSE;
+
+      /* Run main dialog. */
+      run_dialog (main_dialog, -1);
+
+   } while (gui_needs_restart);
 
    /* Close GUI. */
-   gui_close ();
+   gui_close (want_exit);
 
    return (want_exit);
 }
@@ -659,7 +666,7 @@ int gui_alert (const UCHAR *title, const UCHAR *s1, const UCHAR *s2, const
    if (gui_opened)
    {
       /* Close GUI. */
-      gui_close ();
+      gui_close (FALSE);
    }
 
    if (result == ALERT_DIALOG_BUTTON_1)
@@ -886,60 +893,6 @@ static INLINE void set_autosave (int interval)
       message_local ("Autosave interval set to %d seconds.", interval);
 }
 
-static void update_machine_type (void)
-{
-   /* This function resyncs machine_type to the value of machine_region. */
-
-   switch (machine_region)
-   {
-      case MACHINE_REGION_AUTOMATIC:
-      {
-         if (rom_is_loaded)
-         {
-            /* Try to determine a suitable machine type by searching for
-               country codes in the ROM's filename. */
-
-            if (ustrstr (global_rom.filename, "(E)"))
-            {
-               /* Europe. */
-               machine_type = MACHINE_TYPE_PAL;
-            }
-            else
-            {
-               /* Default to NTSC. */
-               machine_type = MACHINE_TYPE_NTSC;
-            }
-         }
-         else  
-         {
-            /* Default to NTSC. */
-            machine_type = MACHINE_TYPE_NTSC;
-         }
-
-         break;
-      }
-
-      case MACHINE_REGION_NTSC:
-      {
-         /* NTSC (60 Hz). */
-         machine_type = MACHINE_TYPE_NTSC;
-
-         break;
-      }
-
-      case MACHINE_REGION_PAL:
-      {
-         /* PAL (50 Hz). */
-         machine_type = MACHINE_TYPE_PAL;
-
-         break;
-      }
-   }
-
-   /* Cycle audio to match new emulation speeds. */
-   cycle_audio ();
-}
-
 static int main_replay_menu_select (void);
 
 static INLINE int load_file (const UCHAR *filename)
@@ -977,9 +930,6 @@ static INLINE int load_file (const UCHAR *filename)
       main_replay_menu_select ();
 
       rom_is_loaded = TRUE;
-
-      /* Fixup machine type from region. */
-      update_machine_type ();
 
       /* Initialize machine. */
       machine_init ();
@@ -1291,6 +1241,9 @@ static int main_menu_close (void)
    /* Save patches. */
    save_patches ();
 
+   /* Close machine. */
+   machine_exit ();
+
    /* Unload ROM. */
    free_rom (&global_rom);
    rom_is_loaded = FALSE;
@@ -1595,9 +1548,30 @@ static int main_menu_view_log (void)
 
 static int main_menu_exit (void)
 {
-   want_exit = TRUE;
+   if (rom_is_loaded)
+   {
+      /* Confirm exit. */
 
-   return (D_CLOSE);
+      if (gui_alert ("Confirmation", "A ROM is currently loaded.", "Really exit?", NULL, "&OK", "&Cancel", 0, 0) == 2)
+      {
+         /* Cancelled. */
+         return (D_O_K);
+      }
+      else
+      {
+         want_exit = TRUE;
+      
+         return (D_CLOSE);
+      }
+   }
+   else
+   {
+      /* Just exit. */
+
+      want_exit = TRUE;
+   
+      return (D_CLOSE);
+   }
 }
 
 static int machine_menu_soft_reset (void)
@@ -1770,7 +1744,7 @@ static int machine_save_state_autosave_menu_60_seconds (void)
 static int machine_region_menu_automatic (void)
 {
    machine_region = MACHINE_REGION_AUTOMATIC;
-   update_machine_type ();
+   timing_update_machine_type ();
    update_menus ();
 
    message_local ("System region set to automatic.");
@@ -1781,7 +1755,7 @@ static int machine_region_menu_automatic (void)
 static int machine_region_menu_ntsc (void)
 {
    machine_region = MACHINE_REGION_NTSC;
-   update_machine_type ();
+   timing_update_machine_type ();
    update_menus ();
 
    message_local ("System region set to NTSC.");
@@ -1792,7 +1766,7 @@ static int machine_region_menu_ntsc (void)
 static int machine_region_menu_pal (void)
 {
    machine_region = MACHINE_REGION_PAL;
-   update_machine_type ();
+   timing_update_machine_type ();
    update_menus ();
 
    message_local ("System region set to PAL.");

@@ -215,10 +215,13 @@ static INLINE int gui_open (void)
    /* Helper function for show_gui() and gui_alert().  Enters the GUI
       (e.g, sets up display buffer, etc.) but doesn't do anything else. */
 
-   gui_needs_restart = FALSE;
-   gui_is_active = TRUE;
-
+   /* Pause audio. */
    audio_suspend ();
+
+   /* Suspend timers. */
+   suspend_timing ();
+
+   gui_is_active = TRUE;
 
    if (video_is_opengl_mode ())
    {
@@ -240,7 +243,7 @@ static INLINE int gui_open (void)
    return (0);
 }
 
-static INLINE void gui_close (void)
+static INLINE void gui_close (BOOL exiting)
 {
    if (gui_buffer)
    {
@@ -256,9 +259,16 @@ static INLINE void gui_close (void)
    /* Deactivate. */
    gui_is_active = FALSE;
 
-   cycle_video ();
+   if (!exiting)
+   {
+      cycle_video ();
 
-   audio_resume ();
+      /* Restart timers. */
+      resume_timing ();
+      
+      /* Unpause audio. */
+      audio_resume ();
+   }
 }
 
 static INLINE DIALOG *create_dialog (const DIALOG *base, const UCHAR *title)

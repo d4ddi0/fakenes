@@ -361,18 +361,21 @@ static void mmc3_reset (void)
     mmc3_chr_bank [5] = 7;
 
     mmc3_ppu_bank_sort ();
+
+
+    mmc3_disable_irqs = TRUE;
 }
 
 
 static int mmc3_init (void)
 {
-    mmc3_reset ();
-
     cpu_set_write_handler_32k (0x8000, mmc3_write);
 
 
     mmc_scanline_end = mmc3_irq_tick;
-    mmc3_disable_irqs = TRUE;
+
+
+    mmc3_reset ();
 
 
     return (0);

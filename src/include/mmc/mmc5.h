@@ -1009,6 +1009,9 @@ static void mmc5_reset (void)
     mmc5_set_wram_banking_8k (0x6000, mmc5_5100[0x13]);
     mmc5_update_prg_banking ();
     mmc5_update_chr_banking ();
+
+    mmc5_multiply_needs_update = TRUE;
+    mmc5_disable_irqs = TRUE;
 }
 
 
@@ -1052,23 +1055,20 @@ static int mmc5_init (void)
         mmc5_set_wram_size (8);
     }
 
-
-    mmc5_reset ();
-
+ 
     cpu_set_write_handler_2k (0x5000, mmc5_write);
     cpu_set_read_handler_2k (0x5000, mmc5_read);
     cpu_set_read_handler_2k (0x5800, mmc5_exram_read);
     cpu_set_write_handler_2k (0x5800, mmc5_exram_write);
 
-    mmc5_multiply_needs_update = TRUE;
-
     mmc_scanline_end = mmc5_irq_tick;
-    mmc5_disable_irqs = TRUE;
-
 
     /* Select ExSound chip. */
 
     apu_set_exsound (APU_EXSOUND_MMC5);
+
+
+    mmc5_reset ();
 
 
     return (0);

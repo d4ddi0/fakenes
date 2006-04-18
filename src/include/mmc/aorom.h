@@ -52,11 +52,11 @@ static int aorom_init (void)
    mmc_name_table_count = 2;
    ppu_set_mirroring (MIRRORING_ONE_SCREEN_2000);
 
-   /* Set initial mappings. */
-   aorom_reset ();
-
    /* Install write handler. */
    cpu_set_write_handler_32k (0x8000, aorom_write);
+
+   /* Set initial mappings. */
+   aorom_reset ();
 
    /* Return success. */
    return (0);

@@ -38,7 +38,6 @@ typedef struct _GUI_COLOR
 
 typedef GUI_COLOR GUI_THEME[GUI_TOTAL_COLORS];
 
-BOOL gui_needs_restart;
 BOOL gui_is_active;
 GUI_THEME gui_theme;
 RGB *gui_image_palette;

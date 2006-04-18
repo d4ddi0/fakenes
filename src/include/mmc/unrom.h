@@ -42,11 +42,11 @@ static int unrom_init (void)
    ppu_set_ram_8k_pattern_vram ();
    mmc_pattern_vram_in_use = TRUE;
 
-   /* Set initial mappings. */
-   unrom_reset ();
-
    /* Install write handler. */
    cpu_set_write_handler_32k (0x8000, unrom_write);
+
+   /* Set initial mappings. */
+   unrom_reset ();
 
    /* Return success. */
    return (0);

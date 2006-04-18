@@ -202,11 +202,11 @@ static int sunsoft4_init (void)
       sunsoft4_update_chr_bank (index);
    }
 
-   /* Set initial mappings. */
-   sunsoft4_reset ();
-
    /* Install write handler. */
    cpu_set_write_handler_32k (0x8000, sunsoft4_write);
+
+   /* Set initial mappings. */
+   sunsoft4_reset ();
 
    /* Return success. */
    return (0);

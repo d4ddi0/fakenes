@@ -113,14 +113,14 @@ static int ffe_f3_init (void)
     }
 
 
-    /* Set initial mappings. */
-
-    ffe_f3_reset ();
-
-
     /* Install write handler. */
 
     cpu_set_write_handler_32k (0x8000, ffe_f3_write);
+
+
+    /* Set initial mappings. */
+
+    ffe_f3_reset ();
 
 
     return (0);

@@ -223,9 +223,6 @@ static int bandai_init (void)
     }
 
 
-    bandai_reset ();
-
-
     /* Install write handlers. */
 
     cpu_set_write_handler_8k (0x6000, bandai_write);
@@ -236,6 +233,9 @@ static int bandai_init (void)
     /* Install IRQ tick handler. */
 
     mmc_scanline_end = bandai_irq_tick;
+
+
+    bandai_reset ();
 
 
     return (0);

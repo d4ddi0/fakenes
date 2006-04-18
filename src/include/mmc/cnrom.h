@@ -54,11 +54,11 @@ static int cnrom_init (void)
       return (-1);
    }
 
-   /* Set initial mappings. */
-   cnrom_reset ();
-
    /* Install write handler. */
    cpu_set_write_handler_32k (0x8000, cnrom_write);
+
+   /* Set initial mappings. */
+   cnrom_reset ();
 
    /* Return success. */
    return (0);

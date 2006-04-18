@@ -374,10 +374,10 @@ static int mmc1_init (void)
         ppu_set_ram_8k_pattern_vram ();
     }
 
+ 
+    cpu_set_write_handler_32k (0x8000, mmc1_write);
 
     mmc1_reset ();
-
-    cpu_set_write_handler_32k (0x8000, mmc1_write);
 
     return 0;
 }

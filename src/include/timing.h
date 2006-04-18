@@ -8,7 +8,10 @@
 
 #ifndef TIMING_H_INCLUDED
 #define TIMING_H_INCLUDED
+#include "audio.h"
+#include "apu.h"
 #include "common.h"
+#include "rom.h"
 #include "types.h"
 #ifdef __cplusplus
 extern "C" {
@@ -25,6 +28,7 @@ int timing_audio_fps;
 BOOL timing_half_speed;
 
 int machine_init (void);
+void machine_exit (void);
 void machine_reset (void);
 void suspend_timing (void);
 void resume_timing (void);
@@ -68,6 +72,64 @@ static INLINE int timing_get_speed (void)
       speed /= 2;
 
    return (speed);
+}
+
+static INLINE void timing_update_machine_type (void)
+{
+   /* This function resyncs machine_type to the value of machine_region. */
+
+   switch (machine_region)
+   {
+      case MACHINE_REGION_AUTOMATIC:
+      {
+         if (rom_is_loaded)
+         {
+            /* Try to determine a suitable machine type by searching for
+               country codes in the ROM's filename. */
+
+            if (ustrstr (global_rom.filename, "(E)"))
+            {
+               /* Europe. */
+               machine_type = MACHINE_TYPE_PAL;
+            }
+            else
+            {
+               /* Default to NTSC. */
+               machine_type = MACHINE_TYPE_NTSC;
+            }
+         }
+         else  
+         {
+            /* Default to NTSC. */
+            machine_type = MACHINE_TYPE_NTSC;
+         }
+
+         break;
+      }
+
+      case MACHINE_REGION_NTSC:
+      {
+         /* NTSC (60 Hz). */
+         machine_type = MACHINE_TYPE_NTSC;
+
+         break;
+      }
+
+      case MACHINE_REGION_PAL:
+      {
+         /* PAL (50 Hz). */
+         machine_type = MACHINE_TYPE_PAL;
+
+         break;
+      }
+   }
+
+   /* Cycle audio to match new emulation speeds. */
+   audio_exit ();
+   audio_init ();
+
+   if (rom_is_loaded)
+      apu_reset ();
 }
 
 #ifdef __cplusplus

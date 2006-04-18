@@ -332,6 +332,9 @@ int input_init (void)
    /* Enter gameplay mode. */
    input_mode = INPUT_MODE_PLAY;
 
+   /* Reset everything. */
+   input_reset ();
+
    /* Return success. */
    return (0);
 }

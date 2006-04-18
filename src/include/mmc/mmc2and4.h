@@ -250,13 +250,15 @@ static int mmc2_init (void)
 
 
     mmc2and4_rom_bank_size = FALSE;
-    mmc2_reset ();
 
     cpu_set_write_handler_8k (0xA000, mmc2and4_write);
     cpu_set_write_handler_16k (0xC000, mmc2and4_write);
 
 
     mmc_check_latches = mmc2and4_check_latches;
+
+
+    mmc2_reset ();
 
 
     return (0);
