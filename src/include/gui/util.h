@@ -395,3 +395,22 @@ static INLINE BOOL get_float_input (const UCHAR *title, REAL *value, const
    /* Return success. */
    return (TRUE);
 }
+
+static INLINE BOOL get_integer_input (const UCHAR *title, int *value, const
+   UCHAR *units)
+{
+   /* Same as above, but rounds the value off to an integer. */
+
+   REAL fvalue;
+
+   fvalue = *value;
+
+   if (get_float_input (title, &fvalue, units))
+   {
+      *value = ROUND(fvalue);
+
+      return (TRUE);
+   }
+
+   return (FALSE);
+}

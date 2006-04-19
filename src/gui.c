@@ -166,6 +166,21 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(machine_speed_up_down_menu_100_percent, COMPARE_TWO_REALS(timing_speed_multiplier, 1.0f));
    TOGGLE_MENU_ITEM(machine_speed_up_down_menu_200_percent, COMPARE_TWO_REALS(timing_speed_multiplier, 2.0f));
 
+   TOGGLE_MENU_ITEM(machine_menu_speed_cap, speed_cap);
+
+   TOGGLE_MENU_ITEM(machine_frame_skip_menu_automatic, (frame_skip == -1));
+   TOGGLE_MENU_ITEM(machine_frame_skip_menu_disabled,  (frame_skip == 0));
+   TOGGLE_MENU_ITEM(machine_frame_skip_menu_1_frames,  (frame_skip == 1));
+   TOGGLE_MENU_ITEM(machine_frame_skip_menu_2_frames,  (frame_skip == 2));
+   TOGGLE_MENU_ITEM(machine_frame_skip_menu_3_frames,  (frame_skip == 3));
+   TOGGLE_MENU_ITEM(machine_frame_skip_menu_4_frames,  (frame_skip == 4));
+   TOGGLE_MENU_ITEM(machine_frame_skip_menu_5_frames,  (frame_skip == 5));
+   TOGGLE_MENU_ITEM(machine_frame_skip_menu_6_frames,  (frame_skip == 6));
+   TOGGLE_MENU_ITEM(machine_frame_skip_menu_7_frames,  (frame_skip == 7));
+   TOGGLE_MENU_ITEM(machine_frame_skip_menu_8_frames,  (frame_skip == 8));
+   TOGGLE_MENU_ITEM(machine_frame_skip_menu_9_frames,  (frame_skip == 9));
+   TOGGLE_MENU_ITEM(machine_frame_skip_menu_10_frames, (frame_skip == 10));
+
    TOGGLE_MENU_ITEM(audio_menu_enabled, audio_enable_output);
 
    TOGGLE_MENU_ITEM(audio_subsystem_menu_none,   (audio_subsystem == AUDIO_SUBSYSTEM_NONE));
@@ -1824,6 +1839,74 @@ static int machine_speed_up_down_menu_custom (void)
       update_menus ();
 
       message_local ("Machine speed factor set to custom.");
+   }
+
+   return (D_O_K);
+}
+
+static int machine_menu_speed_cap (void)
+{
+   speed_cap = !speed_cap;
+   update_menus ();
+
+   message_local ("Speed cap %s.", get_enabled_text (speed_cap));
+
+   return (D_O_K);
+}
+
+
+static int machine_frame_skip_menu_automatic (void)
+{
+   frame_skip = -1;
+   update_menus ();
+
+   message_local ("Frame skip set to automatic.");
+
+   return (D_O_K);
+}
+
+static int machine_frame_skip_menu_disabled (void)
+{
+   frame_skip = 0;
+   update_menus ();
+
+   message_local ("Frame skip disabled.");
+
+   return (D_O_K);
+}
+
+#define FRAME_SKIP_MENU_HANDLER(frames)   \
+   static int machine_frame_skip_menu_##frames##_frames (void) \
+   {  \
+      frame_skip = frames; \
+      update_menus ();  \
+      message_local ("Frame skip set to %d frames.", frames);  \
+      return (D_O_K);   \
+   }
+
+FRAME_SKIP_MENU_HANDLER(1)
+FRAME_SKIP_MENU_HANDLER(2)
+FRAME_SKIP_MENU_HANDLER(3)
+FRAME_SKIP_MENU_HANDLER(4)
+FRAME_SKIP_MENU_HANDLER(5)
+FRAME_SKIP_MENU_HANDLER(6)
+FRAME_SKIP_MENU_HANDLER(7)
+FRAME_SKIP_MENU_HANDLER(8)
+FRAME_SKIP_MENU_HANDLER(9)
+FRAME_SKIP_MENU_HANDLER(10)
+
+#undef FRAME_SKIP_MENU_HANDLER
+
+static int machine_frame_skip_menu_custom (void)
+{
+   int frames;
+
+   if (get_integer_input ("Custom", &frames, "frames"))
+   {
+      frame_skip = frames;
+      update_menus ();
+   
+      message_local ("Frame skip set to %d frames.", frames);
    }
 
    return (D_O_K);

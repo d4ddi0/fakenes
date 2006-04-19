@@ -16,6 +16,7 @@ DEFINE_MENU(machine_save_state_autosave_menu);
 DEFINE_MENU(machine_save_state_menu);
 DEFINE_MENU(machine_region_menu);
 DEFINE_MENU(machine_speed_up_down_menu);
+DEFINE_MENU(machine_frame_skip_menu);
 DEFINE_MENU(machine_menu);
 DEFINE_MENU(audio_subsystem_menu);
 DEFINE_MENU(audio_mixing_channels_menu);
@@ -252,8 +253,43 @@ static const MENU machine_speed_up_down_menu_base[] =
    MENU_ENDCAP
 };
 
+DEFINE_MENU_CALLBACK(machine_frame_skip_menu_automatic);
+DEFINE_MENU_CALLBACK(machine_frame_skip_menu_disabled);
+DEFINE_MENU_CALLBACK(machine_frame_skip_menu_1_frames);
+DEFINE_MENU_CALLBACK(machine_frame_skip_menu_2_frames);
+DEFINE_MENU_CALLBACK(machine_frame_skip_menu_3_frames);
+DEFINE_MENU_CALLBACK(machine_frame_skip_menu_4_frames);
+DEFINE_MENU_CALLBACK(machine_frame_skip_menu_5_frames);
+DEFINE_MENU_CALLBACK(machine_frame_skip_menu_6_frames);
+DEFINE_MENU_CALLBACK(machine_frame_skip_menu_7_frames);
+DEFINE_MENU_CALLBACK(machine_frame_skip_menu_8_frames);
+DEFINE_MENU_CALLBACK(machine_frame_skip_menu_9_frames);
+DEFINE_MENU_CALLBACK(machine_frame_skip_menu_10_frames);
+DEFINE_MENU_CALLBACK(machine_frame_skip_menu_custom);
+
+static const MENU machine_frame_skip_menu_base[] =
+{
+   { "&Automatic", machine_frame_skip_menu_automatic, NULL, 0, NULL },
+   { "&Disabled",  machine_frame_skip_menu_disabled,  NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&1 Frames",  machine_frame_skip_menu_1_frames,  NULL, 0, NULL },
+   { "&2 Frames",  machine_frame_skip_menu_2_frames,  NULL, 0, NULL },
+   { "&3 Frames",  machine_frame_skip_menu_3_frames,  NULL, 0, NULL },
+   { "&4 Frames",  machine_frame_skip_menu_4_frames,  NULL, 0, NULL },
+   { "&5 Frames",  machine_frame_skip_menu_5_frames,  NULL, 0, NULL },
+   { "&6 Frames",  machine_frame_skip_menu_6_frames,  NULL, 0, NULL },
+   { "&7 Frames",  machine_frame_skip_menu_7_frames,  NULL, 0, NULL },
+   { "&8 Frames",  machine_frame_skip_menu_8_frames,  NULL, 0, NULL },
+   { "&9 Frames",  machine_frame_skip_menu_9_frames,  NULL, 0, NULL },
+   { "1&0 Frames", machine_frame_skip_menu_10_frames, NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&Custom...", machine_frame_skip_menu_custom,    NULL, 0, NULL },
+   MENU_ENDCAP
+};
+
 DEFINE_MENU_CALLBACK(machine_menu_soft_reset);
 DEFINE_MENU_CALLBACK(machine_menu_hard_reset);
+DEFINE_MENU_CALLBACK(machine_menu_speed_cap);
 DEFINE_MENU_CALLBACK(machine_menu_cheat_manager);
 
 static const MENU machine_menu_base[] =
@@ -263,8 +299,11 @@ static const MENU machine_menu_base[] =
    MENU_SPLITTER,
    { "&Save State",       NULL,                       IMPORT_MENU(machine_save_state_menu),    0, NULL },
    MENU_SPLITTER,
-   { "&Region",           NULL,                       IMPORT_MENU(machine_region_menu),        0, NULL },
    { "Speed &Up/Down",    NULL,                       IMPORT_MENU(machine_speed_up_down_menu), 0, NULL },
+   { "Speed &Cap",        machine_menu_speed_cap,     NULL,                                    0, NULL },
+   { "&Frame Skip",       NULL,                       IMPORT_MENU(machine_frame_skip_menu),    0, NULL },
+   MENU_SPLITTER,
+   { "&Region",           NULL,                       IMPORT_MENU(machine_region_menu),        0, NULL },
    MENU_SPLITTER,
    { "&Cheat Manager...", machine_menu_cheat_manager, NULL,                                    0, NULL },
    MENU_ENDCAP
@@ -1162,6 +1201,7 @@ static INLINE void load_menus (void)
    MENU_FROM_BASE(machine_save_state_menu);
    MENU_FROM_BASE(machine_region_menu);
    MENU_FROM_BASE(machine_speed_up_down_menu);
+   MENU_FROM_BASE(machine_frame_skip_menu);
    MENU_FROM_BASE(machine_menu);
    MENU_FROM_BASE(audio_subsystem_menu);
    MENU_FROM_BASE(audio_mixing_channels_menu);
@@ -1213,6 +1253,7 @@ static INLINE void unload_menus (void)
    unload_menu (machine_save_state_menu);
    unload_menu (machine_region_menu);
    unload_menu (machine_speed_up_down_menu);
+   unload_menu (machine_frame_skip_menu);
    unload_menu (machine_menu);
    unload_menu (audio_subsystem_menu);
    unload_menu (audio_mixing_channels_menu);
