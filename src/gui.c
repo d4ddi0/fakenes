@@ -1756,6 +1756,18 @@ static int machine_save_state_autosave_menu_60_seconds (void)
    return (D_O_K);
 }
 
+static int machine_save_state_autosave_menu_custom (void)
+{
+   int seconds;
+
+   seconds = input_autosave_interval;
+
+   if (get_integer_input ("Custom", &seconds, "seconds"))
+      set_autosave (seconds);
+
+   return (D_O_K);
+}
+
 static int machine_region_menu_automatic (void)
 {
    machine_region = MACHINE_REGION_AUTOMATIC;
@@ -1901,6 +1913,8 @@ static int machine_frame_skip_menu_custom (void)
 {
    int frames;
 
+   frames = frame_skip;
+
    if (get_integer_input ("Custom", &frames, "frames"))
    {
       frame_skip = frames;
@@ -1991,6 +2005,27 @@ MIXING_FREQUENCY_MENU_HANDLER(44100)
 MIXING_FREQUENCY_MENU_HANDLER(48000)
 MIXING_FREQUENCY_MENU_HANDLER(80200)
 MIXING_FREQUENCY_MENU_HANDLER(96000)
+
+#undef MIXING_FREQUENCY_MENU_HANDLER
+
+static int audio_mixing_frequency_menu_custom (void)
+{
+   int freq;
+
+   freq = audio_sample_rate;
+
+   if (get_integer_input ("Custom", &freq, "Hz"))
+   {
+      audio_sample_rate = freq;
+      update_menus ();
+
+      cycle_audio ();
+
+      message_local ("Audio mixing frequency set to %d Hz.", freq);
+   }
+
+   return (D_O_K);
+}
 
 static int audio_mixing_channels_menu_mono (void)
 {
@@ -2132,6 +2167,25 @@ BUFFER_MENU_HANDLER(7, frames)
 BUFFER_MENU_HANDLER(8, frames)
 
 #undef BUFFER_MENU_HANDLER
+
+static int audio_buffer_menu_custom (void) 
+{
+   int frames;
+
+   frames = audio_buffer_length;
+
+   if (get_integer_input ("Custom", &frames, "frames"))
+   {
+      audio_buffer_length = frames;
+      update_menus ();
+
+      cycle_audio ();
+
+      message_local ("Audio buffer length set to %d frames.", frames);
+   }
+
+   return (D_O_K);
+}
 
 static int audio_effects_menu_wide_stereo_type_1 (void)
 {
@@ -2349,6 +2403,23 @@ static int audio_volume_menu_decrease (void)
    return (D_O_K);
 }
 
+static int audio_volume_menu_custom (void)
+{
+   int percent;
+
+   percent = ROUND(dsp_master_volume * 100.0f);
+
+   if (get_integer_input ("Custom", &percent, "percent"))
+   {
+      dsp_master_volume = (percent / 100.0f);
+      update_menus ();
+   
+      message_local ("Audio master volume level set to %d%%.", percent);
+   }
+
+   return (D_O_K);
+}
+
 static int audio_volume_menu_reset (void)
 {
    dsp_master_volume = 1.0f;
@@ -2556,7 +2627,10 @@ RESOLUTION_MENU_HANDLER(1600, 1200)
 
 static int video_resolution_menu_custom (void)
 {
-   int width = 640, height = 480;
+   int width, height;
+
+   width  = SCREEN_W;
+   height = SCREEN_H;
 
    if (get_resolution_input ("Custom", &width, &height))
    {
@@ -2643,7 +2717,10 @@ BUFFER_MENU_HANDLER(512, 512)
 
 static int video_buffer_menu_custom (void)
 {
-   int width = 320, height = 240;
+   int width, height;
+
+   width  = video_buffer_width;
+   height = video_buffer_height;
 
    if (get_resolution_input ("Custom", &width, &height))
    {

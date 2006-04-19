@@ -194,6 +194,7 @@ DEFINE_MENU_CALLBACK(machine_save_state_autosave_menu_disabled);
 DEFINE_MENU_CALLBACK(machine_save_state_autosave_menu_10_seconds);
 DEFINE_MENU_CALLBACK(machine_save_state_autosave_menu_30_seconds);
 DEFINE_MENU_CALLBACK(machine_save_state_autosave_menu_60_seconds);
+DEFINE_MENU_CALLBACK(machine_save_state_autosave_menu_custom);
 
 static const MENU machine_save_state_autosave_menu_base[] =
 {
@@ -202,6 +203,8 @@ static const MENU machine_save_state_autosave_menu_base[] =
    { "&1: 10 Seconds", machine_save_state_autosave_menu_10_seconds, NULL, 0, NULL },
    { "&2: 30 Seconds", machine_save_state_autosave_menu_30_seconds, NULL, 0, NULL },
    { "&3: 60 Seconds", machine_save_state_autosave_menu_60_seconds, NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&Custom...",     machine_save_state_autosave_menu_custom,     NULL, 0, NULL },
    MENU_ENDCAP
 };
 
@@ -360,6 +363,7 @@ DEFINE_MENU_CALLBACK(audio_mixing_frequency_menu_44100_hz);
 DEFINE_MENU_CALLBACK(audio_mixing_frequency_menu_48000_hz);
 DEFINE_MENU_CALLBACK(audio_mixing_frequency_menu_80200_hz);
 DEFINE_MENU_CALLBACK(audio_mixing_frequency_menu_96000_hz);
+DEFINE_MENU_CALLBACK(audio_mixing_frequency_menu_custom);
 
 static const MENU audio_mixing_frequency_menu_base[] =
 {
@@ -372,6 +376,8 @@ static const MENU audio_mixing_frequency_menu_base[] =
    { "&7: 48000 Hz", audio_mixing_frequency_menu_48000_hz, NULL, 0, NULL },
    { "&8: 80200 Hz", audio_mixing_frequency_menu_80200_hz, NULL, 0, NULL },
    { "&9: 96000 Hz", audio_mixing_frequency_menu_96000_hz, NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&Custom...",   audio_mixing_frequency_menu_custom,   NULL, 0, NULL },
    MENU_ENDCAP
 };
 
@@ -406,17 +412,20 @@ DEFINE_MENU_CALLBACK(audio_buffer_menu_5_frames);
 DEFINE_MENU_CALLBACK(audio_buffer_menu_6_frames);
 DEFINE_MENU_CALLBACK(audio_buffer_menu_7_frames);
 DEFINE_MENU_CALLBACK(audio_buffer_menu_8_frames);
+DEFINE_MENU_CALLBACK(audio_buffer_menu_custom);
 
 static const MENU audio_buffer_menu_base[] =
 {
-   { "&1 Frame",  audio_buffer_menu_1_frame,  NULL, 0, NULL },
-   { "&2 Frames", audio_buffer_menu_2_frames, NULL, 0, NULL },
-   { "&3 Frames", audio_buffer_menu_3_frames, NULL, 0, NULL },
-   { "&4 Frames", audio_buffer_menu_4_frames, NULL, 0, NULL },
-   { "&5 Frames", audio_buffer_menu_5_frames, NULL, 0, NULL },
-   { "&6 Frames", audio_buffer_menu_6_frames, NULL, 0, NULL },
-   { "&7 Frames", audio_buffer_menu_7_frames, NULL, 0, NULL },
-   { "&8 Frames", audio_buffer_menu_8_frames, NULL, 0, NULL },
+   { "&1 Frame",   audio_buffer_menu_1_frame,  NULL, 0, NULL },
+   { "&2 Frames",  audio_buffer_menu_2_frames, NULL, 0, NULL },
+   { "&3 Frames",  audio_buffer_menu_3_frames, NULL, 0, NULL },
+   { "&4 Frames",  audio_buffer_menu_4_frames, NULL, 0, NULL },
+   { "&5 Frames",  audio_buffer_menu_5_frames, NULL, 0, NULL },
+   { "&6 Frames",  audio_buffer_menu_6_frames, NULL, 0, NULL },
+   { "&7 Frames",  audio_buffer_menu_7_frames, NULL, 0, NULL },
+   { "&8 Frames",  audio_buffer_menu_8_frames, NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&Custom...", audio_buffer_menu_custom,   NULL, 0, NULL },
    MENU_ENDCAP
 };                                             
 
@@ -472,6 +481,7 @@ static const MENU audio_channels_menu_base[] =
 
 DEFINE_MENU_CALLBACK(audio_volume_menu_increase);
 DEFINE_MENU_CALLBACK(audio_volume_menu_decrease);
+DEFINE_MENU_CALLBACK(audio_volume_menu_custom);
 DEFINE_MENU_CALLBACK(audio_volume_menu_reset);
 
 static const MENU audio_volume_menu_base[] =
@@ -481,6 +491,7 @@ static const MENU audio_volume_menu_base[] =
    { "  &Increase (+)",  audio_volume_menu_increase, NULL, 0, NULL },
    { "  &Decrease (-)",  audio_volume_menu_decrease, NULL, 0, NULL },
    MENU_SPLITTER,
+   { "  &Custom...",     audio_volume_menu_custom,   NULL, 0, NULL },
    { "  &Reset",         audio_volume_menu_reset,    NULL, 0, NULL },
    MENU_ENDCAP
 };
