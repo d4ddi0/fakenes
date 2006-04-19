@@ -20,18 +20,23 @@ extern "C" {
 
 ENUM machine_region;
 ENUM machine_type;
+
 ENUM cpu_usage;
-int frame_skip_min;
-int frame_skip_max;
+
+BOOL speed_cap;
+int frame_skip;
+
 int timing_fps;
 int timing_hertz;
 int timing_audio_fps;
+
 REAL timing_speed_multiplier;
 BOOL timing_half_speed;
 
 int machine_init (void);
 void machine_exit (void);
 void machine_reset (void);
+
 void suspend_timing (void);
 void resume_timing (void);
 
@@ -151,4 +156,3 @@ static INLINE void timing_update_machine_type (void)
 }
 #endif
 #endif   /* !TIMING_H_INCLUDED */
-
