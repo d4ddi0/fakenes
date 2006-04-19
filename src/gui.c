@@ -311,11 +311,11 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(video_resolution_menu_1280_1024, ((SCREEN_W == 1280) && (SCREEN_H == 1024)));
    TOGGLE_MENU_ITEM(video_resolution_menu_1600_1200, ((SCREEN_W == 1600) && (SCREEN_H == 1200)));
 
-   TOGGLE_MENU_ITEM(video_colors_menu_paletted_8_bit,    (video_get_color_depth () == 8));
-   TOGGLE_MENU_ITEM(video_colors_menu_true_color_15_bit, (video_get_color_depth () == 15));
-   TOGGLE_MENU_ITEM(video_colors_menu_true_color_16_bit, (video_get_color_depth () == 16));
-   TOGGLE_MENU_ITEM(video_colors_menu_true_color_24_bit, (video_get_color_depth () == 24));
-   TOGGLE_MENU_ITEM(video_colors_menu_true_color_32_bit, (video_get_color_depth () == 32));
+   TOGGLE_MENU_ITEM(video_color_depth_menu_paletted_8_bit,    (video_get_color_depth () == 8));
+   TOGGLE_MENU_ITEM(video_color_depth_menu_true_color_15_bit, (video_get_color_depth () == 15));
+   TOGGLE_MENU_ITEM(video_color_depth_menu_true_color_16_bit, (video_get_color_depth () == 16));
+   TOGGLE_MENU_ITEM(video_color_depth_menu_true_color_24_bit, (video_get_color_depth () == 24));
+   TOGGLE_MENU_ITEM(video_color_depth_menu_true_color_32_bit, (video_get_color_depth () == 32));
 
    TOGGLE_MENU_ITEM(video_buffer_menu_match_resolution, ((video_buffer_width == -1)  && (video_buffer_height == -1)));
    TOGGLE_MENU_ITEM(video_buffer_menu_256_240,          ((video_buffer_width == 256) && (video_buffer_height == 240)));
@@ -2507,6 +2507,70 @@ static int video_menu_vsync (void)
    return (D_O_K);
 }
 
+static int video_menu_color (void)
+{
+   DIALOG *dialog;
+   DIALOG *objhue, *objsat, *objbright, *objcon, *objgamma;
+   int result;
+
+   /* Get dialog. */
+   dialog = video_color_dialog;
+   
+   /* Get slider objects. */
+   
+   objhue    = &dialog[VIDEO_COLOR_DIALOG_HUE];
+   objsat    = &dialog[VIDEO_COLOR_DIALOG_SATURATION];
+   objbright = &dialog[VIDEO_COLOR_DIALOG_BRIGHTNESS];
+   objcon    = &dialog[VIDEO_COLOR_DIALOG_CONTRAST];
+   objgamma  = &dialog[VIDEO_COLOR_DIALOG_GAMMA];
+   
+   /* Load configuration. */
+   
+   objhue->d2    = (get_config_int ("video", "hue",        0) + 100);
+   objsat->d2    = (get_config_int ("video", "saturation", 0) + 100);
+   objbright->d2 = (get_config_int ("video", "brightness", 0) + 100);
+   objcon->d2    = (get_config_int ("video", "contrast",   0) + 100);
+   objgamma->d2  = (get_config_int ("video", "gamma",      0) + 100);
+   
+   /* Show dialog. */
+   result = show_dialog (dialog, -1);
+
+   if (result == VIDEO_COLOR_DIALOG_SAVE_BUTTON)
+   {
+      /* Save configuration. */
+   
+      set_config_int ("video", "hue",        (objhue->d2    - 100));
+      set_config_int ("video", "saturation", (objsat->d2    - 100));
+      set_config_int ("video", "brightness", (objbright->d2 - 100));
+      set_config_int ("video", "contrast",   (objcon->d2    - 100));
+      set_config_int ("video", "gamma",      (objgamma->d2  - 100));
+   
+      /* Reinitialize palette to the load new configuration. */
+      video_set_palette (NULL);
+   
+      /* Display changes. */
+      cycle_video ();
+   }
+   else if (result == VIDEO_COLOR_DIALOG_RESET_BUTTON)
+   {
+      /* Save defaults. */
+   
+      set_config_int ("video", "hue",        0);
+      set_config_int ("video", "saturation", 0);
+      set_config_int ("video", "brightness", 0);
+      set_config_int ("video", "contrast",   0);
+      set_config_int ("video", "gamma",      0);
+   
+      /* Reinitialize palette to the load new configuration. */
+      video_set_palette (NULL);
+   
+      /* Display changes. */
+      cycle_video ();
+   }
+
+   return (D_O_K);
+}
+
 #define DRIVER_MENU_HANDLER(driver, id)   \
    static int video_driver_menu_##driver (void) \
    {  \
@@ -2643,7 +2707,7 @@ static int video_resolution_menu_custom (void)
    return (D_O_K);
 }
 
-static int video_colors_menu_paletted_8_bit (void)
+static int video_color_depth_menu_paletted_8_bit (void)
 {
    video_set_color_depth (8);
 
@@ -2651,7 +2715,7 @@ static int video_colors_menu_paletted_8_bit (void)
    return (D_CLOSE);
 }
 
-static int video_colors_menu_true_color_15_bit (void)
+static int video_color_depth_menu_true_color_15_bit (void)
 {
    video_set_color_depth (15);
 
@@ -2659,7 +2723,7 @@ static int video_colors_menu_true_color_15_bit (void)
    return (D_CLOSE);
 }
 
-static int video_colors_menu_true_color_16_bit (void)
+static int video_color_depth_menu_true_color_16_bit (void)
 {
    video_set_color_depth (16);
 
@@ -2667,7 +2731,7 @@ static int video_colors_menu_true_color_16_bit (void)
    return (D_CLOSE);
 }
 
-static int video_colors_menu_true_color_24_bit (void)
+static int video_color_depth_menu_true_color_24_bit (void)
 {
    video_set_color_depth (24);
 
@@ -2675,7 +2739,7 @@ static int video_colors_menu_true_color_24_bit (void)
    return (D_CLOSE);
 }
 
-static int video_colors_menu_true_color_32_bit (void)
+static int video_color_depth_menu_true_color_32_bit (void)
 {
    video_set_color_depth (32);
 

@@ -10,6 +10,7 @@
 #ifdef USE_ALLEGROGL
 #include <alleggl.h>
 #endif
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include "audio.h"
@@ -18,6 +19,7 @@
 #include "data.h"
 #include "debug.h"
 #include "gui.h"
+#include "hsl.h"
 #include "input.h"
 #include "log.h"
 #include "ppu.h"
@@ -70,7 +72,13 @@ FONT *small_font = NULL;
 static int screen_width  = 640;
 static int screen_height = 480;
 static int color_depth   = -1;
-static int brightness    = 0;
+
+/* Color controls (-100 to 100). */
+static int video_hue        = 0;
+static int video_saturation = 0;
+static int video_brightness = 0;
+static int video_contrast   = 0;
+static int video_gamma      = 0;
                          
 static LIST filter_list = 0;
 
@@ -145,7 +153,11 @@ int video_init (void)
    video_buffer_height      = get_config_int ("video", "buffer_height",      video_buffer_height);
    blitter_id               = get_config_int ("video", "blitter",            blitter_id);
    filter_list              = get_config_int ("video", "filter_list",        filter_list);
-   brightness               = get_config_int ("video", "brightness",         brightness);
+   video_hue                = get_config_int ("video", "hue",                video_hue);
+   video_saturation         = get_config_int ("video", "saturation",         video_saturation);
+   video_brightness         = get_config_int ("video", "brightness",         video_brightness);
+   video_contrast           = get_config_int ("video", "contrast",           video_contrast);
+   video_gamma              = get_config_int ("video", "gamma",              video_gamma);
    video_display_status     = get_config_int ("video", "display_status",     video_display_status);
    video_enable_page_buffer = get_config_int ("video", "enable_page_buffer", video_enable_page_buffer);
    video_enable_vsync       = get_config_int ("video", "enable_vsync",       video_enable_vsync);
@@ -534,7 +546,11 @@ void video_exit (void)
    set_config_int ("video", "buffer_height",      video_buffer_height);
    set_config_int ("video", "blitter",            blitter_id);
    set_config_int ("video", "filter_list",        filter_list);
-   set_config_int ("video", "brightness",         brightness);
+   set_config_int ("video", "hue",                video_hue);
+   set_config_int ("video", "saturation",         video_saturation);
+   set_config_int ("video", "brightness",         video_brightness);
+   set_config_int ("video", "contrast",           video_contrast);
+   set_config_int ("video", "gamma",              video_gamma);
    set_config_int ("video", "display_status",     video_display_status);
    set_config_int ("video", "enable_page_buffer", video_enable_page_buffer);
    set_config_int ("video", "enable_vsync",       video_enable_vsync);
@@ -891,11 +907,11 @@ void video_handle_keypress (int c, int scancode)
     {
         case KEY_F10:
 
-            brightness -= 5;
+            video_brightness -= 5;
 
-            if (brightness < -100)
+            if (video_brightness < -100)
             {
-                brightness = -100;
+                video_brightness = -100;
             }
 
 
@@ -907,11 +923,11 @@ void video_handle_keypress (int c, int scancode)
 
         case KEY_F11:
 
-            brightness += 5;
+            video_brightness += 5;
 
-            if (brightness > 100)
+            if (video_brightness > 100)
             {
-               brightness = 100;
+               video_brightness = 100;
             }
 
 
@@ -928,153 +944,229 @@ void video_handle_keypress (int c, int scancode)
 }
 
 
-#define NES_PALETTE_SIZE                64
+#define NES_PALETTE_SIZE            64
+#define NES_PALETTE_START           1
+#define NES_PALETTE_END             (NES_PALETTE_START + NES_PALETTE_SIZE)
 
+#define GUI_GRADIENT_PALETTE_SIZE   64
+#define GUI_GRADIENT_PALETTE_START  (NES_PALETTE_END + 1)
+#define GUI_GRADIENT_PALETTE_END    (GUI_GRADIENT_PALETTE_START + GUI_GRADIENT_PALETTE_SIZE)
 
-#define NES_PALETTE_START               1
+#define GUI_COLORS_PALETTE_SIZE     GUI_TOTAL_COLORS
+#define GUI_COLORS_PALETTE_START    (GUI_GRADIENT_PALETTE_END + 1)
+#define GUI_COLORS_PALETTE_END      (GUI_COLORS_PALETTE_START + GUI_COLORS_PALETTE_SIZE)
 
-#define NES_PALETTE_END                 (NES_PALETTE_START + NES_PALETTE_SIZE)
+#define GUI_IMAGE_PALETTE_SIZE      112
+#define GUI_IMAGE_PALETTE_START     (256 - GUI_IMAGE_PALETTE_SIZE)
+#define GUI_IMAGE_PALETTE_END       (GUI_IMAGE_PALETTE_START + GUI_IMAGE_PALETTE_SIZE)
 
-
-#define GUI_GRADIENT_PALETTE_SIZE       64
-
-
-#define GUI_GRADIENT_PALETTE_START      (NES_PALETTE_END + 1)
-
-#define GUI_GRADIENT_PALETTE_END        (GUI_GRADIENT_PALETTE_START + GUI_GRADIENT_PALETTE_SIZE)
-
-
-#define GUI_COLORS_PALETTE_SIZE         GUI_TOTAL_COLORS
-
-
-#define GUI_COLORS_PALETTE_START        (GUI_GRADIENT_PALETTE_END + 1)
-
-#define GUI_COLORS_PALETTE_END          (GUI_COLORS_PALETTE_START + GUI_COLORS_PALETTE_SIZE)
-
-
-#define GUI_IMAGE_PALETTE_SIZE          112
-
-
-#define GUI_IMAGE_PALETTE_START         (256 - GUI_IMAGE_PALETTE_SIZE)
-
-#define GUI_IMAGE_PALETTE_END           (GUI_IMAGE_PALETTE_START + GUI_IMAGE_PALETTE_SIZE)
-
-
-static UINT16 solid_map [64] [64] [64];
-
-
+static UINT16 solid_map[64][64][64];
 static COLOR_MAP half_transparency_map;
 
-
-void video_set_palette (RGB * palette)
+void video_set_palette (RGB *palette)
 {
-    int index;
+   /* Sets a palette.  'palette' may be set to NULL to just reload the
+      configuration with the existing palette. */
 
+   PALETTE temp_pal;
+   int index;
+   int r, g, b;
 
-    int r;
+   if (palette)
+   {
+      /* Set palette pointer so the GUI, etc. knows which one we are
+         using. */
+      video_palette = palette;
 
-    int g;
+      /* Copy to internal palette. */
+      memcpy (internal_palette, palette, sizeof (internal_palette));
+   }
+   else
+   {
+      /* Looks like it's a call to update the palette to changed parameters,
+         so we should grab updated parameters from the config file. */
 
-    int b;
+      video_hue        = get_config_int ("video", "hue",        video_hue);
+      video_saturation = get_config_int ("video", "saturation", video_saturation);
+      video_brightness = get_config_int ("video", "brightness", video_brightness);
+      video_contrast   = get_config_int ("video", "contrast",   video_contrast);
+      video_gamma      = get_config_int ("video", "gamma",      video_gamma);
+   }
 
+   /* Copy the internal palette to the temporary palette to keep from
+      modifying the original. */
+   memcpy (temp_pal, internal_palette, sizeof (temp_pal));
 
-    int adjust;
+   for (index = NES_PALETTE_START; index < NES_PALETTE_END; index++)
+   {
+      RGB *rgb = &temp_pal[index];
+      REAL hue, saturation, brightness, contrast, gamma;
+      REAL h, s, l;
+      REAL nr, ng, nb;
 
+      /* Convert color control variables to a normalized format. */
+      hue        = (video_hue        / 100.0f);
+      saturation = (video_saturation / 100.0f);
+      brightness = (video_brightness / 100.0f);
+      contrast   = (video_contrast   / 100.0f);
+      gamma      = (video_gamma      / 100.0f);
 
-    if (palette)
-    {
-        video_palette = palette;
-    
-    
-        memcpy (internal_palette, palette, sizeof (internal_palette));
-    }
+      /* Collapse hue, brightness, and gamma. */
+      hue        /= 2.0f;
+      brightness /= 2.0f;
 
+      /* Convert from 0-63 range to 0-255 range. */
+      r = ROUND(((rgb->r / 63.0f) * 255.0f));
+      g = ROUND(((rgb->g / 63.0f) * 255.0f));
+      b = ROUND(((rgb->b / 63.0f) * 255.0f));
 
-    adjust = ROUND(((brightness / 100.0f) * 63.0f));
+      /* Convert to HSL. */
+      rgb_to_hsl (r, g, b, &h, &s, &l);
 
-    for (index = NES_PALETTE_START; index < NES_PALETTE_END; index ++)
-    {
-        internal_palette [index].r = fix ((internal_palette [index].r + adjust), 0, 63);
+      /* Apply hue control. */
+      if (hue)
+         h += hue;
 
-        internal_palette [index].g = fix ((internal_palette [index].g + adjust), 0, 63);
+      /* Apply saturation control. */
+      if (saturation)
+      {
+         if (saturation > 0)
+            s += (s * saturation);
+         else
+            s += saturation;
+      }
 
-        internal_palette [index].b = fix ((internal_palette [index].b + adjust), 0, 63);
-    }
+      /* Clip values. */
+      h = fixf (h, 0, 1.0f);
+      s = fixf (s, 0, 1.0f);
 
+      /* Convert back to RGB. */
+      hsl_to_rgb (h, s, l, &r, &g, &b);
 
-    if (gui_is_active)
-    {
-        video_create_gui_gradient (&gui_theme [0], &gui_theme [1], GUI_GRADIENT_PALETTE_SIZE);
-    
-    
-        for (index = GUI_GRADIENT_PALETTE_START; index < GUI_GRADIENT_PALETTE_END; index ++)
-        {
-            GUI_COLOR color;
-    
-    
-            video_create_gui_gradient (&color, NULL, NULL);
-    
-    
-            internal_palette [index].r = (color.r * 63);
-    
-            internal_palette [index].g = (color.g * 63);
-    
-            internal_palette [index].b = (color.b * 63);
-        }
-    
-    
-        for (index = GUI_COLORS_PALETTE_START; index < GUI_COLORS_PALETTE_END; index ++)
-        {
-            int color;
-    
-    
-            color = (index - GUI_COLORS_PALETTE_START);
-    
-    
-            internal_palette [index].r = (gui_theme [color].r * 63);
-    
-            internal_palette [index].g = (gui_theme [color].g * 63);
-    
-            internal_palette [index].b = (gui_theme [color].b * 63);
-        }
-    
-    
-        for (index = GUI_IMAGE_PALETTE_START; index < GUI_IMAGE_PALETTE_END; index ++)
-        {
-            internal_palette [index].r = gui_image_palette [index].r;
-    
-            internal_palette [index].g = gui_image_palette [index].g;
-    
-            internal_palette [index].b = gui_image_palette [index].b;
-        }
-    }
+      /* Convert to normalized floating point. */
+      nr = (r / 255.0f);
+      ng = (g / 255.0f);
+      nb = (b / 255.0f);
 
+      /* Apply contrast control. */
+      if (contrast)
+      {
+         nr += (nr * contrast);
+         ng += (ng * contrast);
+         nb += (nb * contrast);
 
-    set_palette (internal_palette);
+         if (contrast < 0)
+         {
+            REAL delta;
 
+            delta = fabs (0.5f - fabs (contrast));
 
-    if (color_depth < 24)
-    {
-        for (r = 0; r < 64; r ++)
-        {
-            for (g = 0; g < 64; g ++)
+            nr += delta;
+            ng += delta;
+            nb += delta;
+         }
+      }
+
+      /* Apply gamma control. */
+      if (gamma)
+      {
+         nr = pow (nr, (1.0f - gamma));
+         ng = pow (ng, (1.0f - gamma));
+         nb = pow (nb, (1.0f - gamma));
+      }
+
+      /* Apply brightness control. */
+      if (brightness)
+      {
+         nr += brightness;
+         ng += brightness;
+         nb += brightness;
+      }
+
+      /* Clip values. */
+      nr = fixf (nr, 0, 1.0f);
+      ng = fixf (ng, 0, 1.0f);
+      nb = fixf (nb, 0, 1.0f);
+
+      /* Convert back to 0-63 range. */
+      rgb->r = ROUND((nr * 63.0f));
+      rgb->g = ROUND((ng * 63.0f));
+      rgb->b = ROUND((nb * 63.0f));
+   }
+
+   if (gui_is_active)
+   {
+      video_create_gui_gradient (&gui_theme[0], &gui_theme[1],
+         GUI_GRADIENT_PALETTE_SIZE);
+    
+      for (index = GUI_GRADIENT_PALETTE_START; index <
+         GUI_GRADIENT_PALETTE_END; index++)
+      {
+         RGB *rgb = &temp_pal[index];
+         GUI_COLOR color;
+    
+         video_create_gui_gradient (&color, NULL, NULL);
+    
+         rgb->r = ROUND((color.r * 63.0f));
+         rgb->g = ROUND((color.g * 63.0f));
+         rgb->b = ROUND((color.b * 63.0f));
+      }
+    
+      for (index = GUI_COLORS_PALETTE_START; index < GUI_COLORS_PALETTE_END;
+         index++)
+      {
+         RGB *rgb = &temp_pal[index];
+         int color;
+    
+         color = (index - GUI_COLORS_PALETTE_START);
+    
+         rgb->r = ROUND((gui_theme[color].r * 63.0f));
+         rgb->g = ROUND((gui_theme[color].g * 63.0f));
+         rgb->b = ROUND((gui_theme[color].b * 63.0f));
+      }
+    
+      for (index = GUI_IMAGE_PALETTE_START; index < GUI_IMAGE_PALETTE_END;
+         index++)
+      {
+         RGB *rgb = &temp_pal[index];
+
+         rgb->r = gui_image_palette[index].r;
+         rgb->g = gui_image_palette[index].g;
+         rgb->b = gui_image_palette[index].b;
+      }
+   }
+
+   /* Set the new palette. */
+   set_palette (temp_pal);
+
+   /* Build 16-bit color LUT. */
+
+   if (color_depth < 24)
+   {
+      for (r = 0; r < 64; r++)
+      {
+         for (g = 0; g < 64; g++)
+         {
+            for (b = 0; b < 64; b++)
             {
-                for (b = 0; b < 64; b ++)
-                {
-                    solid_map [r] [g] [b] = makecol (((r / 63.0) * 255), ((g / 63.0) * 255), ((b / 63.0) * 255));
-                }
+               int rm, gm, bm;
+
+               rm = ROUND(((r / 63.0f) * 255.0f));
+               gm = ROUND(((g / 63.0f) * 255.0f));
+               bm = ROUND(((b / 63.0f) * 255.0f));
+
+               solid_map[r][g][b] = makecol (rm, gm, bm);
             }
-        }
-    }
+         }
+      }
+   }
 
+   /* Build transparency table. */
 
-    set_trans_blender (0, 0, 0, 127);
+   set_trans_blender (0, 0, 0, 127);
 
-
-    create_blender_table (&half_transparency_map, internal_palette, NULL);
-
-
-    color_map = &half_transparency_map;
+   create_blender_table (&half_transparency_map, temp_pal, NULL);
+   color_map = &half_transparency_map;
 }
 
 

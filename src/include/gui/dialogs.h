@@ -10,6 +10,7 @@ DEFINE_DIALOG(main_replay_record_start_dialog);
 DEFINE_DIALOG(machine_save_state_save_dialog);
 DEFINE_DIALOG(machine_cheat_manager_add_dialog);
 DEFINE_DIALOG(machine_cheat_manager_dialog);
+DEFINE_DIALOG(video_color_dialog);
 DEFINE_DIALOG(options_input_configure_dialog);
 DEFINE_DIALOG(netplay_dialog);
 DEFINE_DIALOG(lobby_dialog);
@@ -198,6 +199,43 @@ enum
    MACHINE_CHEAT_MANAGER_DIALOG_REMOVE_BUTTON,
    MACHINE_CHEAT_MANAGER_DIALOG_ENABLED_CHECKBOX,
    MACHINE_CHEAT_MANAGER_DIALOG_SAVE_BUTTON
+};
+
+static const DIALOG video_color_dialog_base[] =
+{                                                           
+   { sl_frame,      0,   0,   144, 163, 0, 0, 0,   0,      0,   0, NULL,     "Color",          NULL },
+   { sl_x_button,   125, 4,   16,  12,  0, 0, 0,   D_EXIT, 0,   0, "X",      NULL,             NULL },
+   { sl_text,       9,   28,  0,   0,   0, 0, 0,   0,      0,   0, NULL,     "&Hue:",          NULL },
+   { d_slider_proc, 18,  37,  117, 5,   0, 0, 'h', 0,      200, 0, NULL,     NULL,             NULL },
+   { sl_text,       9,   49,  0,   0,   0, 0, 0,   0,      0,   0, NULL,     "&Saturation:",   NULL },
+   { d_slider_proc, 18,  58,  117, 5,   0, 0, 's', 0,      200, 0, NULL,     NULL,             NULL },
+   { sl_text,       9,   70,  0,   0,   0, 0, 0,   0,      0,   0, NULL,     "&Brightness:",   NULL },
+   { d_slider_proc, 18,  79,  117, 5,   0, 0, 'b', 0,      200, 0, NULL,     NULL,             NULL },
+   { sl_text,       9,   91,  0,   0,   0, 0, 0,   0,      0,   0, NULL,     "&Contrast:",     NULL },
+   { d_slider_proc, 18,  100, 117, 5,   0, 0, 'c', 0,      200, 0, NULL,     NULL,             NULL },
+   { sl_text,       9,   112, 0,   0,   0, 0, 0,   0,      0,   0, NULL,     "&Gamma:",        NULL },
+   { d_slider_proc, 18,  121, 117, 5,   0, 0, 'g', 0,      200, 0, NULL,     NULL,             NULL },
+   { sl_button,     21,  138, 48,  16,  0, 0, 'a', D_EXIT, 0,   0, "S&ave",  NULL,             NULL },
+   { sl_button,     75,  138, 48,  16,  0, 0, 'r', D_EXIT, 0,   0, "&Reset", NULL,             NULL },
+   DIALOG_FRAME_ENDCAP                                                               
+};  
+
+enum
+{
+   VIDEO_COLOR_DIALOG_FRAME = 0,
+   VIDEO_COLOR_DIALOG_CLOSE_BUTTON,
+   VIDEO_COLOR_DIALOG_HUE_LABEL,
+   VIDEO_COLOR_DIALOG_HUE,
+   VIDEO_COLOR_DIALOG_SATURATION_LABEL,
+   VIDEO_COLOR_DIALOG_SATURATION,
+   VIDEO_COLOR_DIALOG_BRIGHTNESS_LABEL,
+   VIDEO_COLOR_DIALOG_BRIGHTNESS,
+   VIDEO_COLOR_DIALOG_CONTRAST_LABEL,
+   VIDEO_COLOR_DIALOG_CONTRAST,
+   VIDEO_COLOR_DIALOG_GAMMA_LABEL,
+   VIDEO_COLOR_DIALOG_GAMMA,
+   VIDEO_COLOR_DIALOG_SAVE_BUTTON,
+   VIDEO_COLOR_DIALOG_RESET_BUTTON
 };
 
 DEFINE_DIALOG_CALLBACK(options_input_configure_dialog_player_select);
@@ -588,6 +626,7 @@ static INLINE void load_dialogs (void)
    DIALOG_FROM_BASE(machine_save_state_save_dialog);
    DIALOG_FROM_BASE(machine_cheat_manager_add_dialog);
    DIALOG_FROM_BASE(machine_cheat_manager_dialog);
+   DIALOG_FROM_BASE(video_color_dialog);
    DIALOG_FROM_BASE(options_input_configure_dialog);
    DIALOG_FROM_BASE(netplay_dialog);
    DIALOG_FROM_BASE(lobby_dialog);
@@ -604,6 +643,7 @@ static INLINE void unload_dialogs (void)
    unload_dialog (machine_save_state_save_dialog);
    unload_dialog (machine_cheat_manager_add_dialog);
    unload_dialog (machine_cheat_manager_dialog);
+   unload_dialog (video_color_dialog);
    unload_dialog (options_input_configure_dialog);
    unload_dialog (netplay_dialog);
    unload_dialog (lobby_dialog);

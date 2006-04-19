@@ -37,7 +37,7 @@ DEFINE_MENU(video_driver_unix_menu);
 DEFINE_MENU(video_driver_menu);
 DEFINE_MENU(video_resolution_proportionate_menu);
 DEFINE_MENU(video_resolution_menu);
-DEFINE_MENU(video_colors_menu);
+DEFINE_MENU(video_color_depth_menu);
 DEFINE_MENU(video_buffer_menu);
 DEFINE_MENU(video_blitter_menu);
 DEFINE_MENU(video_filters_menu);
@@ -737,19 +737,19 @@ static const MENU video_resolution_menu_base[] =
    MENU_ENDCAP
 };
 
-DEFINE_MENU_CALLBACK(video_colors_menu_paletted_8_bit);
-DEFINE_MENU_CALLBACK(video_colors_menu_true_color_15_bit);
-DEFINE_MENU_CALLBACK(video_colors_menu_true_color_16_bit);
-DEFINE_MENU_CALLBACK(video_colors_menu_true_color_24_bit);
-DEFINE_MENU_CALLBACK(video_colors_menu_true_color_32_bit);
+DEFINE_MENU_CALLBACK(video_color_depth_menu_paletted_8_bit);
+DEFINE_MENU_CALLBACK(video_color_depth_menu_true_color_15_bit);
+DEFINE_MENU_CALLBACK(video_color_depth_menu_true_color_16_bit);
+DEFINE_MENU_CALLBACK(video_color_depth_menu_true_color_24_bit);
+DEFINE_MENU_CALLBACK(video_color_depth_menu_true_color_32_bit);
 
-static const MENU video_colors_menu_base[] =
+static const MENU video_color_depth_menu_base[] =
 {
-   { "&Paletted (8-bit)",    video_colors_menu_paletted_8_bit,    NULL, 0, NULL },
-   { "&True Color (15-bit)", video_colors_menu_true_color_15_bit, NULL, 0, NULL },
-   { "True &Color (16-bit)", video_colors_menu_true_color_16_bit, NULL, 0, NULL },
-   { "True C&olor (24-bit)", video_colors_menu_true_color_24_bit, NULL, 0, NULL },
-   { "True Co&lor (32-bit)", video_colors_menu_true_color_32_bit, NULL, 0, NULL },
+   { "&Paletted (8-bit)",    video_color_depth_menu_paletted_8_bit,    NULL, 0, NULL },
+   { "&True Color (15-bit)", video_color_depth_menu_true_color_15_bit, NULL, 0, NULL },
+   { "True &Color (16-bit)", video_color_depth_menu_true_color_16_bit, NULL, 0, NULL },
+   { "True C&olor (24-bit)", video_color_depth_menu_true_color_24_bit, NULL, 0, NULL },
+   { "True Co&lor (32-bit)", video_color_depth_menu_true_color_32_bit, NULL, 0, NULL },
    MENU_ENDCAP
 };
 
@@ -881,24 +881,27 @@ static const MENU video_palette_menu_base[] =
 DEFINE_MENU_CALLBACK(video_menu_fullscreen);
 DEFINE_MENU_CALLBACK(video_menu_page_buffer);
 DEFINE_MENU_CALLBACK(video_menu_vsync);
+DEFINE_MENU_CALLBACK(video_menu_color);
 
 static const MENU video_menu_base[] =
 {                    
-   { "&Fullscreen",  video_menu_fullscreen,  NULL,                               0, NULL },
+   { "&Fullscreen",  video_menu_fullscreen,     NULL,                                0, NULL },
    MENU_SPLITTER,
-   { "&Page Buffer", video_menu_page_buffer, NULL,                               0, NULL },
-   { "&VSync",       video_menu_vsync,       NULL,                               0, NULL },
+   { "&Page Buffer", video_menu_page_buffer,    NULL,                                0, NULL },
+   { "&VSync",       video_menu_vsync,          NULL,                                0, NULL },
+   MENU_SPLITTER,                                                                    
+   { "&Driver",      NULL,                      IMPORT_MENU(video_driver_menu),      0, NULL },
+   { "&Resolution",  NULL,                      IMPORT_MENU(video_resolution_menu),  0, NULL },
+   { "&Color Depth", NULL,                      IMPORT_MENU(video_color_depth_menu), 0, NULL },
+   { "&Buffer",      NULL,                      IMPORT_MENU(video_buffer_menu),      0, NULL },
+   MENU_SPLITTER,          
+   { "B&litter",     NULL,                      IMPORT_MENU(video_blitter_menu),     0, NULL },
+   { "F&ilters",     NULL,                      IMPORT_MENU(video_filters_menu),     0, NULL },
    MENU_SPLITTER,
-   { "&Driver",      NULL,                   IMPORT_MENU(video_driver_menu),     0, NULL },
-   { "&Resolution",  NULL,                   IMPORT_MENU(video_resolution_menu), 0, NULL },
-   { "&Colors",      NULL,                   IMPORT_MENU(video_colors_menu),     0, NULL },
-   { "&Buffer",      NULL,                   IMPORT_MENU(video_buffer_menu),     0, NULL },
+   { "L&ayers",      NULL,                      IMPORT_MENU(video_layers_menu),      0, NULL },
    MENU_SPLITTER,
-   { "B&litter",     NULL,                   IMPORT_MENU(video_blitter_menu),    0, NULL },
-   { "F&ilters",     NULL,                   IMPORT_MENU(video_filters_menu),    0, NULL },
-   MENU_SPLITTER,
-   { "L&ayers",      NULL,                   IMPORT_MENU(video_layers_menu),     0, NULL },
-   { "Pal&ette",     NULL,                   IMPORT_MENU(video_palette_menu),    0, NULL },
+   { "Pal&ette",     NULL,                      IMPORT_MENU(video_palette_menu),     0, NULL },
+   { "C&olor...",    video_menu_color,          NULL,                                0, NULL },
    MENU_ENDCAP
 };
 
@@ -1233,7 +1236,7 @@ static INLINE void load_menus (void)
    MENU_FROM_BASE(video_driver_menu);
    MENU_FROM_BASE(video_resolution_proportionate_menu);
    MENU_FROM_BASE(video_resolution_menu);
-   MENU_FROM_BASE(video_colors_menu);
+   MENU_FROM_BASE(video_color_depth_menu);
    MENU_FROM_BASE(video_buffer_menu);
    MENU_FROM_BASE(video_blitter_menu);
    MENU_FROM_BASE(video_filters_menu);
@@ -1285,7 +1288,7 @@ static INLINE void unload_menus (void)
    unload_menu (video_driver_menu);
    unload_menu (video_resolution_proportionate_menu);
    unload_menu (video_resolution_menu);
-   unload_menu (video_colors_menu);
+   unload_menu (video_color_depth_menu);
    unload_menu (video_buffer_menu);
    unload_menu (video_blitter_menu);
    unload_menu (video_filters_menu);
