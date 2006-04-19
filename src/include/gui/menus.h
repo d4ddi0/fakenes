@@ -151,14 +151,14 @@ static const MENU main_menu_base[] =
    { "&Resume        (ESC)", main_menu_resume,        NULL,                               0, NULL },
    MENU_SPLITTER,                                                                       
    { "&Open...",             main_menu_open,          NULL,                               0, NULL },
-   { "O&pen Recent",         NULL,                    IMPORT_MENU(main_open_recent_menu), 0, NULL },
+   { "Open R&ecent",         NULL,                    IMPORT_MENU(main_open_recent_menu), 0, NULL },
    { "&Close",               main_menu_close,         NULL,                               0, NULL },
    MENU_SPLITTER,            
-   { "R&eplay",              NULL,                    IMPORT_MENU(main_replay_menu),      0, NULL },
+   { "Re&play",              NULL,                    IMPORT_MENU(main_replay_menu),      0, NULL },
    { "&Save Snapshot (F1)",  main_menu_save_snapshot, NULL,                               0, NULL },
    MENU_SPLITTER,
    { "&View Console...",     main_menu_view_console,  NULL,                               0, NULL },
-   { "V&iew Log...",         main_menu_view_log,      NULL,                               0, NULL },
+   { "View &Log...",         main_menu_view_log,      NULL,                               0, NULL },
    MENU_SPLITTER,       
    { "E&xit",                main_menu_exit,          NULL,                               0, NULL },
    MENU_ENDCAP
@@ -219,12 +219,12 @@ static const MENU machine_save_state_menu_base[] =
    { "&Quick Save (F3)", machine_save_state_menu_quick_save, NULL,                                          0, NULL },
    { "Quick &Load (F4)", machine_save_state_menu_quick_load, NULL,                                          0, NULL },
    MENU_SPLITTER,
-   { "S&elect",          NULL,                               IMPORT_MENU(machine_save_state_select_menu),   0, NULL },
+   { "&Select",          NULL,                               IMPORT_MENU(machine_save_state_select_menu),   0, NULL },
    MENU_SPLITTER,                                    
-   { "&Save...    (F5)", machine_save_state_menu_save,       NULL,                                          0, NULL },
+   { "S&ave...    (F5)", machine_save_state_menu_save,       NULL,                                          0, NULL },
    { "&Restore    (F6)", machine_save_state_menu_restore,    NULL,                                          0, NULL },
    MENU_SPLITTER,
-   { "&Autosave",        NULL,                               IMPORT_MENU(machine_save_state_autosave_menu), 0, NULL },
+   { "A&utosave",        NULL,                               IMPORT_MENU(machine_save_state_autosave_menu), 0, NULL },
    MENU_ENDCAP
 };
 
@@ -300,7 +300,7 @@ static const MENU machine_menu_base[] =
    { "&Soft Reset",       machine_menu_soft_reset,    NULL,                                    0, NULL },
    { "&Hard Reset",       machine_menu_hard_reset,    NULL,                                    0, NULL },
    MENU_SPLITTER,
-   { "&Save State",       NULL,                       IMPORT_MENU(machine_save_state_menu),    0, NULL },
+   { "Save S&tate",       NULL,                       IMPORT_MENU(machine_save_state_menu),    0, NULL },
    MENU_SPLITTER,
    { "Speed &Up/Down",    NULL,                       IMPORT_MENU(machine_speed_up_down_menu), 0, NULL },
    { "Speed &Cap",        machine_menu_speed_cap,     NULL,                                    0, NULL },
@@ -308,7 +308,7 @@ static const MENU machine_menu_base[] =
    MENU_SPLITTER,
    { "&Region",           NULL,                       IMPORT_MENU(machine_region_menu),        0, NULL },
    MENU_SPLITTER,
-   { "&Cheat Manager...", machine_menu_cheat_manager, NULL,                                    0, NULL },
+   { "Cheat &Manager...", machine_menu_cheat_manager, NULL,                                    0, NULL },
    MENU_ENDCAP
 };
 
@@ -345,12 +345,12 @@ DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_swap_channels);
 static const MENU audio_mixing_channels_menu_base[] =
 {
    { "&Mono",                    audio_mixing_channels_menu_mono,                  NULL, 0, NULL },
-   { "St&ereo Mix",              audio_mixing_channels_menu_stereo_mix,            NULL, 0, NULL },
+   { "&Stereo Mix",              audio_mixing_channels_menu_stereo_mix,            NULL, 0, NULL },
    { "&Virtual Stereo (Mode 1)", audio_mixing_channels_menu_virtual_stereo_mode_1, NULL, 0, NULL },
-   { "V&irtual Stereo (Mode 2)", audio_mixing_channels_menu_virtual_stereo_mode_2, NULL, 0, NULL },
-   { "S&tereo",                  audio_mixing_channels_menu_stereo,                NULL, 0, NULL },
+   { "Virtual S&tereo (Mode 2)", audio_mixing_channels_menu_virtual_stereo_mode_2, NULL, 0, NULL },
+   { "St&ereo",                  audio_mixing_channels_menu_stereo,                NULL, 0, NULL },
    MENU_SPLITTER,
-   { "S&wap Channels",           audio_mixing_channels_menu_swap_channels,         NULL, 0, NULL },
+   { "Swap &Channels",           audio_mixing_channels_menu_swap_channels,         NULL, 0, NULL },
    MENU_ENDCAP
 };                                             
 
@@ -436,8 +436,8 @@ DEFINE_MENU_CALLBACK(audio_effects_menu_wide_stereo_type_3);
 static const MENU audio_effects_menu_base[] =
 {                          
    { "&Wide Stereo (Type 1)", audio_effects_menu_wide_stereo_type_1, NULL, 0, NULL },
-   { "W&ide Stereo (Type 2)", audio_effects_menu_wide_stereo_type_2, NULL, 0, NULL },
-   { "Wi&de Stereo (Type 3)", audio_effects_menu_wide_stereo_type_3, NULL, 0, NULL },
+   { "Wide &Stereo (Type 2)", audio_effects_menu_wide_stereo_type_2, NULL, 0, NULL },
+   { "Wide S&tereo (Type 3)", audio_effects_menu_wide_stereo_type_3, NULL, 0, NULL },
    MENU_ENDCAP   
 };
 
@@ -450,8 +450,8 @@ DEFINE_MENU_CALLBACK(audio_filters_menu_delta_sigma_filter);
 static const MENU audio_filters_menu_base[] =
 {     
    { "&Low Pass (Type 1)",  audio_filters_menu_low_pass_type_1,    NULL, 0, NULL },
-   { "L&ow Pass (Type 2)",  audio_filters_menu_low_pass_type_2,    NULL, 0, NULL },
-   { "Lo&w Pass (Type 3)",  audio_filters_menu_low_pass_type_3,    NULL, 0, NULL },
+   { "Low &Pass (Type 2)",  audio_filters_menu_low_pass_type_2,    NULL, 0, NULL },
+   { "Low P&ass (Type 3)",  audio_filters_menu_low_pass_type_3,    NULL, 0, NULL },
    { "&High Pass",          audio_filters_menu_high_pass,          NULL, 0, NULL },
    { "&Delta-Sigma Filter", audio_filters_menu_delta_sigma_filter, NULL, 0, NULL },
    MENU_ENDCAP
@@ -469,13 +469,13 @@ DEFINE_MENU_CALLBACK(audio_channels_menu_extended_3);
 static const MENU audio_channels_menu_base[] =
 {
    { "&Square Wave A", audio_channels_menu_square_wave_a, NULL, 0, NULL },
-   { "S&quare Wave B", audio_channels_menu_square_wave_b, NULL, 0, NULL },
+   { "Square &Wave B", audio_channels_menu_square_wave_b, NULL, 0, NULL },
    { "&Triangle Wave", audio_channels_menu_triangle_wave, NULL, 0, NULL },
-   { "&White Noise",   audio_channels_menu_white_noise,   NULL, 0, NULL },
+   { "White &Noise",   audio_channels_menu_white_noise,   NULL, 0, NULL },
    { "&Digital",       audio_channels_menu_digital,       NULL, 0, NULL },
    { "&Extended 1",    audio_channels_menu_extended_1,    NULL, 0, NULL },
-   { "E&xtended 2",    audio_channels_menu_extended_2,    NULL, 0, NULL },
-   { "Exte&nded 3",    audio_channels_menu_extended_3,    NULL, 0, NULL },
+   { "Extended &2",    audio_channels_menu_extended_2,    NULL, 0, NULL },
+   { "Extended &3",    audio_channels_menu_extended_3,    NULL, 0, NULL },
    MENU_ENDCAP
 };
 
@@ -516,8 +516,8 @@ static const MENU audio_menu_base[] =
    { "&Mixing",    NULL,               IMPORT_MENU(audio_mixing_menu),    0, NULL },
    { "&Buffer",    NULL,               IMPORT_MENU(audio_buffer_menu),    0, NULL },
    MENU_SPLITTER,
-   { "Effec&ts",   NULL,               IMPORT_MENU(audio_effects_menu),   0, NULL },
-   { "&Filters",   NULL,               IMPORT_MENU(audio_filters_menu),   0, NULL },
+   { "E&ffects",   NULL,               IMPORT_MENU(audio_effects_menu),   0, NULL },
+   { "F&ilters",   NULL,               IMPORT_MENU(audio_filters_menu),   0, NULL },
    MENU_SPLITTER,
    { "&Channels",  NULL,               IMPORT_MENU(audio_channels_menu),  0, NULL },
    { "&Volume",    NULL,               IMPORT_MENU(audio_volume_menu),    0, NULL },
@@ -659,8 +659,8 @@ static const MENU video_driver_menu_base[] =
 #ifdef USE_ALLEGROGL
 
    { "&OpenGL",      video_driver_menu_opengl,      NULL,                                   0, NULL },
-   { "O&penGL Full", video_driver_menu_opengl_full, NULL,                                   0, NULL },
-   { "Op&enGL Win",  video_driver_menu_opengl_win,  NULL,                                   0, NULL },
+   { "OpenGL &Full", video_driver_menu_opengl_full, NULL,                                   0, NULL },
+   { "OpenGL &Win",  video_driver_menu_opengl_win,  NULL,                                   0, NULL },
    MENU_SPLITTER,
 
 #endif   /* USE_ALLEGROGL */
@@ -747,9 +747,9 @@ static const MENU video_colors_menu_base[] =
 {
    { "&Paletted (8-bit)",    video_colors_menu_paletted_8_bit,    NULL, 0, NULL },
    { "&True Color (15-bit)", video_colors_menu_true_color_15_bit, NULL, 0, NULL },
-   { "T&rue Color (16-bit)", video_colors_menu_true_color_16_bit, NULL, 0, NULL },
-   { "Tr&ue Color (24-bit)", video_colors_menu_true_color_24_bit, NULL, 0, NULL },
-   { "Tru&e Color (32-bit)", video_colors_menu_true_color_32_bit, NULL, 0, NULL },
+   { "True &Color (16-bit)", video_colors_menu_true_color_16_bit, NULL, 0, NULL },
+   { "True C&olor (24-bit)", video_colors_menu_true_color_24_bit, NULL, 0, NULL },
+   { "True Co&lor (32-bit)", video_colors_menu_true_color_32_bit, NULL, 0, NULL },
    MENU_ENDCAP
 };
 
@@ -841,11 +841,11 @@ DEFINE_MENU_CALLBACK(video_layers_menu_flip_mirroring);
 static const MENU video_layers_menu_base[] =
 {
    { "&Sprites A  (F7)",     video_layers_menu_sprites_a,                 NULL, 0, NULL },
-   { "S&prites B  (F7)",     video_layers_menu_sprites_b,                 NULL, 0, NULL },
-   { "&Background (F8)",     video_layers_menu_background,                NULL, 0, NULL },
+   { "Sprites &B  (F7)",     video_layers_menu_sprites_b,                 NULL, 0, NULL },
+   { "B&ackground (F8)",     video_layers_menu_background,                NULL, 0, NULL },
    MENU_SPLITTER,
    { "&Hide Hor. Scrolling", video_layers_menu_hide_horizontal_scrolling, NULL, 0, NULL },
-   { "H&ide Ver. Scrolling", video_layers_menu_hide_vertical_scrolling,   NULL, 0, NULL },
+   { "Hide &Ver. Scrolling", video_layers_menu_hide_vertical_scrolling,   NULL, 0, NULL },
    MENU_SPLITTER,
    { "&Flip Mirroring",      video_layers_menu_flip_mirroring,            NULL, 0, NULL },
    MENU_ENDCAP
@@ -864,17 +864,17 @@ DEFINE_MENU_CALLBACK(video_palette_menu_custom);
 
 static const MENU video_palette_menu_base[] =
 {
-   { "NTSC &Color",     video_palette_menu_ntsc_color,     NULL, 0, NULL },
+   { "&NTSC Color",     video_palette_menu_ntsc_color,     NULL, 0, NULL },
    { "NTSC &Grayscale", video_palette_menu_ntsc_grayscale, NULL, 0, NULL },
    { "gn&uboy",         video_palette_menu_gnuboy,         NULL, 0, NULL },
-   { "&NESter",         video_palette_menu_nester,         NULL, 0, NULL },
-   { "N&ESticle",       video_palette_menu_nesticle,       NULL, 0, NULL },
+   { "N&ESter",         video_palette_menu_nester,         NULL, 0, NULL },
+   { "NE&Sticle",       video_palette_menu_nesticle,       NULL, 0, NULL },
    { "&Modern NTSC",    video_palette_menu_modern_ntsc,    NULL, 0, NULL },
    { "Modern &PAL",     video_palette_menu_modern_pal,     NULL, 0, NULL },
-   { "&EGA (Mode 1)",   video_palette_menu_ega_mode_1,     NULL, 0, NULL },
-   { "EG&A (Mode 2)",   video_palette_menu_ega_mode_2,     NULL, 0, NULL },
+   { "EG&A (Mode 1)",   video_palette_menu_ega_mode_1,     NULL, 0, NULL },
+   { "EGA (M&ode 2)",   video_palette_menu_ega_mode_2,     NULL, 0, NULL },
    MENU_SPLITTER,
-   { "Cu&stom",         video_palette_menu_custom,         NULL, 0, NULL },
+   { "&Custom",         video_palette_menu_custom,         NULL, 0, NULL },
    MENU_ENDCAP
 };
 
@@ -907,7 +907,7 @@ DEFINE_MENU_CALLBACK(options_input_menu_configure);
 
 static const MENU options_input_menu_base[] =
 {
-   { "Enable &Zapper", options_input_menu_enable_zapper, NULL, 0, NULL },
+   { "&Enable Zapper", options_input_menu_enable_zapper, NULL, 0, NULL },
    MENU_SPLITTER,
    { "&Configure...",  options_input_menu_configure,     NULL, 0, NULL },
    MENU_ENDCAP
@@ -983,8 +983,8 @@ static const MENU help_menu_base[] =
 static const MENU top_menu_base[] =
 { 
    { "&Main",    NULL, IMPORT_MENU(main_menu),    0, NULL },
-   { "&Machine", NULL, IMPORT_MENU(machine_menu), 0, NULL },
-   { "&Audio",   NULL, IMPORT_MENU(audio_menu),   0, NULL },
+   { "M&achine", NULL, IMPORT_MENU(machine_menu), 0, NULL },
+   { "A&udio",   NULL, IMPORT_MENU(audio_menu),   0, NULL },
    { "&Video",   NULL, IMPORT_MENU(video_menu),   0, NULL },
    { "&Options", NULL, IMPORT_MENU(options_menu), 0, NULL },
 #ifdef USE_HAWKNL
