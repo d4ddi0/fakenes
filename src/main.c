@@ -29,31 +29,43 @@
 #include "version.h"
 #include "video.h"
 
-ENUM machine_type = MACHINE_TYPE_NTSC;
-
-int frame_skip_min = 0;
-int frame_skip_max = 0;
-
-ENUM cpu_usage = CPU_USAGE_NORMAL;
-
-static BOOL fast_forward = FALSE;
+/* Whether or not this is the first run of the emulator. */
 static BOOL first_run = FALSE;
 
+/* Machine region (auto/NTSC/PAL). */
+ENUM machine_region = MACHINE_REGION_AUTOMATIC;
+
+/* Machine type (NTSC/PAL). */
+ENUM machine_type = MACHINE_TYPE_NTSC;
+
+/* CPU usage (passive/normal/aggressive). */
+ENUM cpu_usage = CPU_USAGE_NORMAL;
+
+/* Whether or not speeed will be capped at timing_get_speed(). */
+BOOL speed_cap = TRUE;
+
+/* Amount of frames to skip when we fall behind.  -1 = auto. */
+int frame_skip = -1;
+
+/* Speed modifiers (all apply in the order listed). */
+REAL timing_speed_multiplier = 1.0f;
+BOOL timing_half_speed = FALSE;
+
+/* Public counters (updated once per frame). */
 int timing_fps = 0;
 int timing_hertz = 0;
 int timing_audio_fps = 0;
-int timing_audio_hertz = 0;
-REAL timing_speed_multiplier = 1.0f;
-BOOL timing_half_speed = FALSE;
-static BOOL redraw_flag = TRUE;
-static int frame_count = 1;
+
+/* Counters. */
 static int executed_frames = 0;
 static int rendered_frames = 0;
+
+/* Internal stuff. */
 static int actual_fps_count = 0;
 static int virtual_fps_count = 0;
-static int average_fps = 0;
-static volatile int throttle_counter = 0;
+static int frame_count = 1;
 static volatile BOOL frame_interrupt = FALSE;
+static volatile int throttle_counter = 0;
 
 static void fps_timer (void)
 {
@@ -69,57 +81,29 @@ END_OF_STATIC_FUNCTION(throttle_timer);
 
 void suspend_timing (void)
 {
+   /* Remove timers. */
    remove_int (fps_timer);
    remove_int (throttle_timer);
 
-   redraw_flag = TRUE;
-
+   /* Reset variables. */
    actual_fps_count = 0;
    virtual_fps_count = 0;
-
    frame_count = 1;
-
-   throttle_counter = 0;
-
    frame_interrupt = FALSE;
+   throttle_counter = 0;
 }
 
 void resume_timing (void)
 {
-   redraw_flag = TRUE;
-
+   /* Reset variables. */
    actual_fps_count = 0;
    virtual_fps_count = 0;
-
    frame_count = 1;
-
-   throttle_counter = 0;
-
    frame_interrupt = FALSE;
+   throttle_counter = 0;
 
+   /* Install timers. */
    install_int_ex (fps_timer, BPS_TO_TIMER(1));
-   install_int_ex (throttle_timer, BPS_TO_TIMER(timing_get_speed ()));
-}
-
-void suspend_throttling (void)
-{
-   remove_int (throttle_timer);
-
-   redraw_flag = TRUE;
-
-   frame_count = 1;
-
-   throttle_counter = 0;
-}
-
-void resume_throttling (void)
-{
-   redraw_flag = TRUE;
-
-   frame_count = 1;
-
-   throttle_counter = 0;
-
    install_int_ex (throttle_timer, BPS_TO_TIMER(timing_get_speed ()));
 }
 
@@ -171,18 +155,18 @@ int main (int argc, char *argv[])
    if ((result = platform_init ()) != 0)
       return ((8 + result));
 
-   frame_skip_min = get_config_int ("timing", "frame_skip_min", 0);
-   frame_skip_max = get_config_int ("timing", "frame_skip_max", 4);
 
-   machine_region = get_config_int ("timing", "machine_region", MACHINE_REGION_AUTOMATIC);
+   /* Load configuration. */
 
-    /* Note: machine_type is set later by the ROM loading code. */
+   first_run               = get_config_int   ("gui",    "first_run",    first_run);
+   machine_region          = get_config_int   ("timing", "region",       machine_region);
+   cpu_usage               = get_config_int   ("timing", "cpu_usage",    cpu_usage);
+   speed_cap               = get_config_int   ("timing", "speed_cap",    speed_cap);
+   frame_skip              = get_config_int   ("timing", "frame_skip",   frame_skip);
+   timing_speed_multiplier = get_config_float ("timing", "speed_factor", timing_speed_multiplier);
 
-   cpu_usage = get_config_int ("timing", "cpu_usage", CPU_USAGE_NORMAL);
-
-   first_run = get_config_int ("gui", "first_run", TRUE);
-
-   timing_speed_multiplier = get_config_float ("timing", "speed_factor", 1.0f);
+    /* Note: machine_type is set later by the ROM loading code, or more
+       specifically, machine_init(). */
 
 
    install_timer ();
@@ -248,7 +232,7 @@ int main (int argc, char *argv[])
 
 
    LOCK_VARIABLE(frame_interrupt);
-   LOCK_VARIABLE(throttle_counter);
+   LOCK_VARIABLE(throttle_Counter);
    LOCK_FUNCTION(fps_timer);
    LOCK_FUNCTION(throttle_timer);
 
@@ -273,8 +257,13 @@ int main (int argc, char *argv[])
 
       if (rom_is_loaded)
       {
+         static BOOL fast_forward = FALSE;
+         BOOL redraw_flag;
+
          if (frame_interrupt)
          {
+            /* The FPS timer was triggered; sync counters. */
+
             timing_fps = actual_fps_count;
             timing_hertz = virtual_fps_count;
             timing_audio_fps = audio_fps;
@@ -283,76 +272,83 @@ int main (int argc, char *argv[])
             virtual_fps_count = 0;
             audio_fps = 0;
 
+            /* Clear interrupt flag so it doesn't fire again. */
             frame_interrupt = FALSE;
          }
 
-         executed_frames++;
-         virtual_fps_count++;
 
-         /* decrement frame skip counter */
-         /* when # of frame periods between start of first skipped frame  */
-         /*  before last drawn frame and end of last drawn frame have     */
-         /*  passed, draw another */
+         /* Fast forward. */
+
+         if ((key [KEY_TILDE]) && (!(input_mode & INPUT_MODE_CHAT)))
+         {
+            if (!fast_forward)
+            {
+               /* Enter fast forward mode. */
+               fast_forward = TRUE;
+            }
+         }
+         else
+         {
+            if (fast_forward)
+            {
+               /* Exit fast forward mode. */
+               fast_forward = FALSE;
+            }
+         }
+
+
          if (--frame_count > 0)
          {
+            /* This frame will be executed, but not drawn. */
             redraw_flag = FALSE;
          }
          else
          {
+            /* This frame will be executed, and drawn. */
             redraw_flag = TRUE;
- 
-            rendered_frames++;
-            actual_fps_count++;
-    
-            if ((key [KEY_TILDE]) && (!(input_mode & INPUT_MODE_CHAT)))
+
+            if (fast_forward)
             {
-               if (!fast_forward)
-               {
-                  /* Fast forward. */
-                  fast_forward = TRUE;
+               if (frame_skip == -1)
+                  frame_count = timing_get_speed ();
+               else
+                  frame_count = frame_skip;
 
-                  suspend_throttling ();
-               }
-
-               frame_count = frame_skip_max;
-
-               /* zero speed-throttle counter as we're bypassing it */
-               /* throttle_counter = 0; */
+               /* Clear throttle counter since we are bypassing it. */
+               throttle_counter = 0;
             }
             else
             {
-               if (fast_forward)
+               if (speed_cap)
                {
-                  fast_forward = FALSE;
-
-                  resume_throttling ();
-               }
-
-               if (frame_skip_min == 0)
-               {
+                  /* Speed throttling. */
+      
                   while (throttle_counter == 0)
                   {
                      if (cpu_usage == CPU_USAGE_NORMAL)
                         rest (0);
                      else if (cpu_usage == CPU_USAGE_PASSIVE)
                         rest (1);
-                   }
-                }
-    
-                frame_count = throttle_counter;
+                  }
+               }
+   
+               /* Get all currently pending frames into the frame
+                  counter. */
+               frame_count = throttle_counter;
+   
+               /* We use subtract here to avoid losing ticks if the timer
+                  fires between this and the last statement. */
+               throttle_counter -= frame_count;
+   
+               /* Enforce frame skip setting if it is not auto. */
+               if ((frame_skip != -1) &&
+                   (frame_count > frame_skip))
+               {
+                  frame_count = frame_skip;
+               }
+            }
+         }
 
-                /* update speed-throttle counter */
-                /* using subtract so as to not lose ticks */
-                throttle_counter -= frame_count;
-
-                /* enforce limits. */
-                /* if we hit one, don't check the other... */
-                if (frame_count >= frame_skip_max)
-                  frame_count = frame_skip_max;
-                else if (frame_count <= frame_skip_min)
-                  frame_count = frame_skip_min;
-             }
-          }
 
           if (input_mode & INPUT_MODE_PLAY)
           {
@@ -417,10 +413,13 @@ int main (int argc, char *argv[])
             gui_handle_keypress (c, scancode);
          }
          
-         input_process ();
-
 
          /* --- Emulation follows --- */
+
+         executed_frames++;
+         virtual_fps_count++;
+
+         input_process ();
 
          switch (machine_type)
          {
@@ -445,6 +444,9 @@ int main (int argc, char *argv[])
          if (redraw_flag)
          {
             /* Perform a full render. */
+
+            rendered_frames++;
+            actual_fps_count++;
 
             ppu_start_frame ();
 
@@ -619,15 +621,13 @@ int main (int argc, char *argv[])
    }
 
 
-   set_config_int ("timing", "frame_skip_min", frame_skip_min);
-   set_config_int ("timing", "frame_skip_max", frame_skip_max);
+   /* Save configuration. */
 
-   set_config_int ("timing", "machine_region", machine_region);
-
-   set_config_int ("timing", "cpu_usage", cpu_usage);
-
-   set_config_int ("gui", "first_run", first_run);
-
+   set_config_int   ("gui",    "first_run",    first_run);
+   set_config_int   ("timing", "region",       machine_region);
+   set_config_int   ("timing", "frame_skip",   frame_skip);
+   set_config_int   ("timing", "speed_cap",    speed_cap);
+   set_config_int   ("timing", "cpu_usage",    cpu_usage);
    set_config_float ("timing", "speed_factor", timing_speed_multiplier);
 
 
