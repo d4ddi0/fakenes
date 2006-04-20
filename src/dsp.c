@@ -413,8 +413,8 @@ static INLINE void dsp_effector_delta_sigma_filter (DSP_MULTIMIXER
    DSP_MIXER_NEXT = DSP_MIXER;
 
    DSP_MIXER += (DSP_MIXER - old);
-   DSP_MIXER -= ROUND((((REAL)rand32 () / RAND32_MAX) * (DSP_MIXER *
-      0.01f)));
+   DSP_MIXER -= ((rand () / (REAL)RAND_MAX) * (DSP_MIXER * 0.01f));
+
 }
 
 static INLINE void dsp_effector_blend_stereo (DSP_MULTIMIXER *multimixer)
