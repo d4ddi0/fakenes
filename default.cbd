@@ -1,0 +1,181 @@
+ifopt --verbose verbose 1
+                                       
+# --
+
+do ifopt --help
+  echo "
+CBuild options:
+    --help         Display this help message
+    --vebose       Enable more verbose command printing
+
+Target options:
+    clean          Clean a previously compiled build
+    debug          Compile a debug build
+    profile        Compile a profiling build
+
+Package options:
+    -alleggl       Do not use AllegroGL even if found
+    -hawknl        Do not use HawkNL even if found
+    -openal        Do not use OpenAL even if found
+    -zlib          Do not use zlib even if found
+
+Other options:
+    tag=TAG        Set version tag to TAG
+"
+
+  exit 0
+done
+
+# --
+
+do if "${PLAT}"=""
+  PLAT = default
+
+  ifplat macosx PLAT = 'macosx'
+  ifplat msdos  PLAT = 'msdos'
+  ifplat unix   PLAT = 'unix'
+  ifplat win32  PLAT = 'win32'
+done           
+
+ifopt debug   PLAT += 'debug'
+ifopt profile PLAT += 'profile'
+
+# Build directory (where the scripts are, and temporary files go).
+BUILD_DIR = 'build'
+
+# Object file directory.
+OBJ_DIR = "${BUILD_DIR}/${PLAT}"
+
+ifnexist "${OBJ_DIR}" mkdir "${OBJ_DIR}"
+
+# Dependancy directory.
+DEP_DIR = "${OBJ_DIR}"
+
+# --
+
+# Where our Source Code files are located.
+SRC_BASE = 'src'
+
+# --
+
+CPPFLAGS += " -I${SRC_BASE}/include"
+
+# Set default CFLAGS.
+CFLAGS ?= '-pipe -O3 -ffast-math -fomit-frame-pointer -s'
+
+# Overrides.
+ifopt debug   CFLAGS = '-O2 -g'
+ifopt profile CFLAGS = '-O2 -pg'
+
+# Extensions.
+CFLAGS += ' -W -Wall -Wno-unused'
+
+# Unix support.
+ifplat unix CFLAGS += ' -DPOSIX'
+
+# --
+
+STDOUT_LOG="${BUILD_DIR}/stdout.log"
+STDERR_LOG="${BUILD_DIR}/stderr.log"
+
+ifnopt -alleggl invoke "${BUILD_DIR}/alleggl.cbd"
+ifnopt -hawknl  invoke "${BUILD_DIR}/hawknl.cbd"
+ifnopt -openal  invoke "${BUILD_DIR}/openal.cbd"
+ifnopt -zlib    invoke "${BUILD_DIR}/zlib.cbd"
+
+invoke "${BUILD_DIR}/alleg.cbd"
+
+@rm "${STDOUT_LOG}"
+@rm "${STDERR_LOG}"
+
+# --
+
+EXE_NAME = 'fakenes'
+
+do ifplat win32
+   EXE_NAME += 'w'
+
+   LDFLAGS += ' -mwindows'
+   LDFLAGS += " support/resource.o"
+done
+
+# --
+
+# Our little configure script. =)
+
+CFG_HEADER = "${DEP_DIR}/config.h"
+
+do ifnexist "${CFG_HEADER}"
+   CFG_EXE = "configure${EXE_EXT}"
+
+   @!call "${CC} -o ${CFG_EXE} configure.c"
+   do ifnret 0
+      echo 'uh-oh, it looks like configure.c failed to build'
+      echo 'bailing out...'
+      exit 1
+   done
+
+   setstdout "${CFG_HEADER}"
+   @call "${CFG_EXE}"
+   setstdout ''
+
+   @rm "${CFG_EXE}"
+done
+
+CPPFLAGS += " -imacros ${CFG_HEADER}"
+
+# --
+
+src_paths "${SRC_BASE}"
+
+SRCFILES += 'apu.c '
+SRCFILES += 'audio.c '
+SRCFILES += 'audiolib.c '
+SRCFILES += 'core.c '
+SRCFILES += 'cpu.c '
+SRCFILES += 'crc.c '
+SRCFILES += 'data.c '
+SRCFILES += 'dsp.c '
+SRCFILES += 'gui.c '
+SRCFILES += 'hqx.c '
+SRCFILES += 'input.c '
+SRCFILES += 'log.c '
+SRCFILES += 'main.c '
+SRCFILES += 'mmc.c '
+SRCFILES += 'nes_ntsc.c '
+SRCFILES += 'net.c '
+SRCFILES += 'netplay.c '
+SRCFILES += 'platform.c '
+SRCFILES += 'ppu.c '
+SRCFILES += 'rewind.c '
+SRCFILES += 'rom.c '
+SRCFILES += 'save.c '
+SRCFILES += 'unzip.c '
+SRCFILES += 'video.c '
+
+# --
+
+ifopt clean goto clean
+
+# --
+
+compile "${SRCFILES}"
+
+# --
+
+linkexec "${EXE_NAME}"
+
+# Done building.
+exit 0
+
+# --
+
+:clean
+
+rm     "${CFG_HEADER}"
+rmobj  ${SRCFILES}
+rm     "${OBJ_DIR}"
+rmexec "${EXE_NAME}"
+
+# Done cleaning.
+exit 0

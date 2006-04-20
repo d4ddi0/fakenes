@@ -20,8 +20,6 @@ typedef signed char INT8;
 
 #ifdef POSIX
 
-#  include <config.h>
-
 #  if SIZEOF_SHORT_INT == 2
       typedef unsigned short int UINT16;
       typedef signed short int INT16;

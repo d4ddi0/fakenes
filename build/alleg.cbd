@@ -1,0 +1,42 @@
+setstdout "${STDOUT_LOG}"
+setstderr "${STDERR_LOG}"
+
+@!call "${CC} -E ${BUILD_DIR}/alleg.c"
+
+do ifnret 0    
+   setstdout ''
+   setstderr ''
+
+   echo 'you\'re missing Allegro, silly'
+   echo 'please install at least version 4.2 or higher'
+   echo 'bailing out...'
+
+   exit 1
+done
+
+setstdout ''
+setstderr ''
+
+# --
+
+do ifplat unix
+   ifopt debug   AC_PARAMS = 'debug '
+   ifopt profile AC_PARAMS = 'profile '
+
+   CFLAGS += ' `allegro-config --cflags ${AC_PARAMS}`'
+done
+
+# --
+
+do ifplat unix
+   ifplat macosx AC_PARAMS += '--frameworks '
+
+   LDFLAGS += " `allegro-config --libs ${AC_PARAMS}`"
+else
+   LIBALLEG = 'alleg'
+
+   ifopt debug   LIBALLEG = 'alld'
+   ifopt profile LIBALLEG = 'allp'
+
+   LDFLAGS += " -l${LIBALLEG}"
+done

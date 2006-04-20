@@ -1,19 +1,23 @@
-.EXPORT_ALL_VARIABLES:
+# Makefile to build cbuild
 
-include config.mk
+CFLAGS=-O2 -W -Wall
 
-BINARY_PATH = ..
+ifneq ($(MINGDIR)$(DJDIR),)
+	CC = gcc
+	EXEEXT = .exe
+else
+	EXEEXT =
+endif
 
-.PHONY: all clean depend distclean
-all:
-	${MAKE} -C src -f ${MAKEFILE} all
+CBUILD=cbuild$(EXEEXT)
 
-depend:
-	${MAKE} -C src -f ${MAKEFILE} depend
+all: $(CBUILD) msg
 
-clean:
-	${MAKE} -C src -f ${MAKEFILE} clean
+.PHONY: msg
 
-distclean:
-	${MAKE} -C src -f ${MAKEFILE} distclean
-	${RM} config.mk
+$(CBUILD): cbuild.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+msg: $(CBUILD)
+	@echo done, now type \'cbuild\' to build FakeNES
+	@echo for a list of all build options, type \'cbuild --help\'

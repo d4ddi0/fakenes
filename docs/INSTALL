@@ -1,0 +1,32 @@
+Requirements
+---
+
+GCC
+
+A GNU-compatible make utility
+
+Allegro, version 4.2 or higher
+Get it from http://alleg.sourceforge.net
+
+
+Building it
+---
+
+Just type 'make' and follow the instructions.  If it fails for whatever
+reason, drop me a line at stainless@users.sourceforge.net.
+
+
+Optional packages
+---
+
+AllegroGL (requires OpenGL and GLU)
+Get it at http://allegrogl.sourceforge.net
+
+HawkNL
+Get it at http://www.hawksoft.com
+
+OpenAL and freealut
+Get it at http://www.openal.org
+
+zlib
+Get it at http://www.gzip.org/zlib
