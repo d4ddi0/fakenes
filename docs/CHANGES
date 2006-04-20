@@ -1,3 +1,151 @@
+0.5.7
+AUDIO: Fixed all while() loops in the APU to never be truely infinite (thus preventing hard lock-ups), removed a previous hack that was added to get around such a thing.
+AUDIO: Implemented a new ExSound API.
+AUDIO: Added full save state support to VRC6 Sound and MMC5 Sound.
+AUDIO: Rreduced default audio buffer length from 6 to 4 frames to reduce latency.
+AUDIO: Added in mixing of MMC5's digital audio channel (untested).
+CODE: Moved a bunch of code out of 'gui.c' and into the GUI header files.
+CODE: Various code edits.
+DOCS: Updated docs.
+GUI: Added a GUI menu to configure the audio buffer length.
+GUI: Added a GUI menu to configure video buffer size.
+GUI: Enabled double buffered GUI while in OpenGL mode.
+GUI: Added custom drawing code for the 'sl_radiobox' object.
+GUI: Cleaned up the Help->About dialog and added 'loomsoft' under 'Special thanks to'.
+GUI: Added more splitters to the Audio and Video menus to better group submenus.
+GUI: Added a 'Close' button to the Help->Shortcuts dialog.
+GUI: Hide some menus when their respective features aren't available for whatever reason.
+GUI: Made 'sl_frame' object behave properly in a double buffered environment.
+GUI: Removed extended video resolutions, since if anyone wants to actually use any of the obscure things, they can set them manually via the configuration file.
+INPUT: Overhauled input system and input configuration system.
+MISC: Fixed a cosmetic bug where the 'enabled' flag of CPU patches were written to the *.fpt file with the value of '2' instead of '1' when enabled.
+VIDEO: Added (buggy) OpenGL support.
+VIDEO: Added support for a screen buffer smaller or larger than the actual screen (it will be scaled to fit).
+VIDEO: Set all bitmaps to NULL after destroying them in video_exit(), fixes various problems.
+VIDEO: Improved the operation of video_blit().
+VIDEO: Improved efficiency of HQ4X slightly by removing extra assertions.
+VIDEO: Added size checking to the 'Normal' and 'Stretched' blitters.
+VIDEO: Changed blitter error message.
+
+
+0.5.6
+AUDIO: Overhauled entire audio system almost completely.
+AUDIO: Added auto-detection of sound system sampling rate and sample depth on first run.
+AUDIO: Added a master volume control with GUI interface.
+AUDIO: Added support for recording audio to WAV files.
+AUDIO: Improved OpenAL support (still not correct).
+AUDIO: Renamed 'Pseudo Stereo' to 'Virtual Stereo', per Astxist's suggestion.
+AUDIO: Changed default audio mixing mode to Virtual Stereo Mode 2.
+AUDIO: Separated APU updates from resets, allowing APU parameters to be updated without adversely affecting gameplay.
+AUDIO: Disabled reinitialization of the audio system during a hard reset, since there is no longer any need for it, and it might've been causing problems.
+CODE: General code clean-ups.
+CODE: Split platform-specific initialization code into it's own file.
+CODE: Merged pAPU with APU.
+CODE: Merged HQ2X, HQ3X, and HQ4X into a single file.
+CORE: Quick and dirty clean-up of the CPU interface.
+CODE: Added support for linking against Allegro statically under Mingw32.
+CODE: Implemented separate directories for optimized, debug, and static builds under Mingw32.
+CODE: Added 'VERBOSE' makefile macro that passes -Q to gcc when defined (DJGPP/Mingw32).
+CODE: Now linking against ALUT when FakeNES is built with OpenAL support.
+CODE: Reorganized input handling code.
+CODE: Updated copyright messages.
+CODE: Removed Clarified Artistic License notice from file headers.
+CODE: Removed 'build.h' since DJGPP is no longer a primary development platform anyway.
+GUI: Fixed a crash in the Cheat Manager.
+GUI: Fixed a bug in the input configuration dialog.
+GUI: Added an entry to the Video menu to enable/disable page buffering.
+GUI: Updated and cleaned up the Help->Shortcuts dialog.
+GUI: Moved a few menus around.
+GUI: Reorganized Video menu a bit.
+INPUT: Made all input Unicode-compatible.
+MISC: Added real-time game rewinding (activated by holding down the backslash key on US keyboards).
+MISC: More reliable FPS reporting.
+MISC: Fixed a problem with the generic mouse pointer used by the color themes.
+MISC: Removed resync, since it is no longer required.
+MISC: Increased default maximum frame skip setting from 3 to 4 to improve performance on slow machines.
+VIDEO: Fixed a possible crash when the screen resolution was not sufficient for the selected blitter.
+VIDEO: Added support for multiple video filters of the same type.
+VIDEO: Reduced edge clipping from 12 to 8 pixels, which still seems sufficient enough to hide most scrolling artifacts.
+VIDEO: Added check for VRAM-based destination bitmap before attempting page buffering.
+VIDEO: Disabled page buffering by default, since it causes a significant speed hit.
+VIDEO: Disabled the drawing of message history when the chat box is not open.
+
+0.5.5
+AUDIO: Hard Sync option will now honor the current CPU usage setting.
+CODE: Moved GUI configuration saving code to gui_exit().
+CODE: Improved error handling in blitters.
+CODE: Minor clean ups and improved error handling in the MMC emulations.
+CODE: Greatly reduced redundancy in theme handling code.
+CODE: Made all MMC interfaces static.
+CODE: Fixed a GCC warning about a 'possibly uninitialized' variable in 'papu.c'.
+CODE: Replaced all references to 'state' with 'save state'.
+GUI: Added support for generic themes.
+GUI: Added 5 new color themes (Xodiac, Monochrome, Essence, Voodoo, Hugs and Kisses).
+GUI: Added custom drawing code for 'sl_checkbox' object.
+GUI: Fixed a cosmetic bug where save state loading and saving menu items in the GUI had the wrong function keys assigned.
+GUI: Considerable menu reorganizations.
+GUI: Added a recent files menu.
+GUI: Increased maximum number of replays to 10 (up from 5).
+GUI: General clean-ups.
+MISC: Fixed a bug where the FPS counters were never cleared when frame skipping was disabled, causing them to accumulate indefinitely.
+MISC: Changed default debug and optimization flags when building under DJGPP/Mingw32
+MISC: Minor cosmetic improvements to the build process.
+MISC: Added a soft reset feature.
+VIDEO: Implemented new blitter architecture.
+VIDEO: Re-added ability to flip PPU mirroring (this ability was previously assigned to a shortcut key that was removed in a recent version).
+VIDEO: Removed 'first_blit_line' and 'last_blit_line' (since they don't work with the new blitter setup).
+VIDEO: Removed color (de)emphasis overlays (color math will be re-added later as a native part of the PPU emulation).
+VIDEO: Added optional horizontal and vertical edge clipping to help hide scrolling.
+
+0.5.4
+CODE: Switched to zlib/libpng license.
+GUI:  Cleaned up input configuration dialog a bit.
+INPUT: Added ability to calibrate joystick devices.
+VIDEO: Added Blargg's 'nes_ntsc' as a selectable blitter (palettes are not supported).
+VIDEO: Removed support for image offset/zooming (as these features were never used anyway).
+VIDEO: Renamed 'light_adjustment' to 'brightness' and changed it's absolute range from 63 to 100.
+
+0.5.3
+CODE: Cleaned up timing code slightly.
+GUI: Removed all remaining hacks leftover from the old GUI menu code.
+MISC: Added quick save/quick load feature which uses it's own independant state slot.  Note that quicksave files have an extension of .fsv.
+MISC: Cleaned up ROM loading code.
+MISC: Made most code that deals with ROM filenames Unicode safe.
+MISC: Changed behavior upon task switch while running in windowed modes from 'SWITCH_PAUSE' to 'SWITCH_BACKGROUND'.
+MISC: Added callbacks to stop and later resume audio playback when a task switch occurs while running in fullscreen mode.
+MISC: Added region auto-detection for PAL (E) games (currently it defaults to NTSC for all others).  Note that this feature must be enabled from the System->Region menu by setting Region to 'Automatic'.
+NET: Initial work on new NetPlay engine.
+
+0.5.2
+AUDIO: Temporarily disabled OpenAL by default - There is nothing wrong with the code but OpenAL implementations don't like buffers as small as FakeNES uses, and thus produce silence.  That will be fixed when the audio system is overhauled.
+CORE: Fixed a runtime assertion error by adding a check for the existence of CHR-ROM before attempting to build a CRC32 of it.
+GUI: Fixed a bug that caused some GUI fonts to get screwed up after a moveable dialog was drawn.
+NET: Temporarily disabled all references to NetPlay, since it was never implemented in the first place.
+
+0.5.1
+AUDIO: Added audio Delta-Sigma filter.
+AUDIO: Fixed pseudo stereo mode 2 by disabling noise cycling.
+CODE: Changed default minimum CPU requirement on DJGPP and Mingw32 compiled builds to i586 (Pentium class), up from i486.
+CODE: Makefile improvements, including automagic dependancy list generation.
+CODE: Centralized all save data functions into 'save.c' and 'save.h'.
+CODE: Split 'misc.h' into 'common.h' and 'types.h'.
+CODE: Renamed 'crc32.c' and 'crc32.h' to 'crc.c' and 'crc.h', respectively, to allow for future additions to the CRC generation API.
+CODE: Fixed version number to read 0.5.1 instead of 0.4.0 - it was broken in the January 13th WIP release, which was supposed to be 0.5.0. x_x
+CORE: Removed x86 optimized core since it's benefits these days are questionable compared to the overhead it induces.
+GUI: GUI overhaul, partial Unicode support, and more.
+GUI: Added GUI toggle for Zapper emulation.
+GUI: Changed default GUI theme to 'Panta'.
+GUI: Changed display method for backgrounds less than 200 pixels high from stretched to centered.
+GUI: Fixed background drawing in color depths higher than 8 bits-per-pixel.
+INPUT: Added support for using the mouse as an input device.
+MISC: Added a CPU usage option and subsequently a GUI menu with which to configure it.
+VIDEO: Added support for 24-bit video modes (fullscreen and windowed).
+VIDEO: Removed outdated 2xSOE blitters.
+VIDEO: Overhauled all remaining blitters and combined multiple blitter variants together.
+VIDEO: Added new DES and DESii blitters.
+VIDEO: Added makeshift support for HQ2X, HQ3X, and HQ4X.
+VIDEO: Changed default display mode under windowed environments from fullscreen to windowed; use a platform-specific driver or the 'Force Fullscreen' option to override.
+
 Version 0.3.1
 ====--
 
