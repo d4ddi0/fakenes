@@ -201,7 +201,9 @@ int video_init (void)
 
 #ifdef USE_ALLEGROGL
 
-   if (driver == GFX_OPENGL)
+   if ((driver == GFX_OPENGL) ||
+       (driver == GFX_OPENGL_FULLSCREEN) ||
+       (driver == GFX_OPENGL_WINDOWED))
    {
       /* Install AllegroGL. */
       install_allegro_gl ();
@@ -263,7 +265,6 @@ int video_init (void)
       /* Disable VSync, since it crashes AllegroGL. */
       video_enable_vsync = FALSE;
    }
-
 
 #endif   /* USE_ALLEGROGL */
 
