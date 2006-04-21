@@ -670,6 +670,30 @@ static long buffered_fwrite (const void *p, long n, void *userdata)
    return (n);
 }
 
+int buffered_fseek (void *userdata, int offset)
+{
+   RT_ASSERT(userdata);
+
+   /* Not supported. */
+   return (-1);
+}
+
+int buffered_feof (void *userdata)
+{
+   RT_ASSERT(userdata);
+
+   /* Not supported. */
+   return (0);
+}
+
+int buffered_ferror (void *userdata)
+{
+   RT_ASSERT(userdata);
+
+   /* Not supported. */
+   return (0);
+}
+
 static PACKFILE_VTABLE packfile_vtable;
 
 static const PACKFILE_VTABLE *get_packfile_vtable (void)
@@ -684,6 +708,9 @@ static const PACKFILE_VTABLE *get_packfile_vtable (void)
    vtable->pf_fread  = buffered_fread;
    vtable->pf_putc   = buffered_putc;
    vtable->pf_fwrite = buffered_fwrite;
+   vtable->pf_fseek  = buffered_fseek;
+   vtable->pf_feof   = buffered_feof;
+   vtable->pf_ferror = buffered_ferror;
 
    return (vtable);
 }
