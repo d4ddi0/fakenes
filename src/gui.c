@@ -1348,16 +1348,19 @@ static int main_replay_record_menu_start (void)
                  
    if (gui_is_active)
    {
+      DIALOG *dialog;
       DIALOG *objtitle;
 
       /* Allow user to customize title before save. */
 
-      objtitle = &main_replay_record_start_dialog[MAIN_REPLAY_RECORD_START_DIALOG_TITLE];
+      dialog = main_replay_record_start_dialog;
 
-      objtitle->d1 = (SAVE_TITLE_SIZE - 1);
+      objtitle = &dialog[MAIN_REPLAY_RECORD_START_DIALOG_TITLE];
+
+      objtitle->d1 = NEW_SAVE_TITLE_SIZE;
       objtitle->dp = title;
 
-      if (show_dialog (main_replay_record_start_dialog, -1) !=
+      if (show_dialog (dialog, -1) !=
          MAIN_REPLAY_RECORD_START_DIALOG_OK_BUTTON)
       {
          /* Dialog was cancelled. */
@@ -1679,17 +1682,24 @@ static int machine_save_state_menu_save (void)
 
    if (gui_is_active)
    {
+      DIALOG *dialog;
       DIALOG *objtitle;
 
       /* Allow user to customize title before save. */
 
-      objtitle = &machine_save_state_save_dialog[MACHINE_SAVE_STATE_SAVE_DIALOG_TITLE];
+      dialog = machine_save_state_save_dialog;
 
-      objtitle->d1 = (SAVE_TITLE_SIZE - 1);
+      objtitle = &dialog[MACHINE_SAVE_STATE_SAVE_DIALOG_TITLE];
+
+      objtitle->d1 = NEW_SAVE_TITLE_SIZE;
       objtitle->dp = title;
 
-      if (show_dialog (machine_save_state_save_dialog, -1) != 5)
+      if (show_dialog (dialog, -1) !=
+         MACHINE_SAVE_STATE_SAVE_DIALOG_OK_BUTTON)
+      {
+         /* Cancelled. */
          return (D_O_K);
+      }
    }
 
    if (!save_state (save_state_index, title))
@@ -3627,7 +3637,7 @@ static int machine_cheat_manager_dialog_add (DIALOG *dialog)
    /* Set up dialog objects. */
 
    USTRING_CLEAR(title);
-   obj_title->d1 = (SAVE_TITLE_SIZE - 1);
+   obj_title->d1 = NEW_SAVE_TITLE_SIZE;
    obj_title->dp = title;
 
    USTRING_CLEAR(code);
@@ -3635,8 +3645,11 @@ static int machine_cheat_manager_dialog_add (DIALOG *dialog)
    obj_code->dp = code;
 
    /* Show dialog. */
-   if (show_dialog (main_dialog, -1) != MACHINE_CHEAT_MANAGER_ADD_DIALOG_OK_BUTTON)
+   if (show_dialog (main_dialog, -1) !=
+      MACHINE_CHEAT_MANAGER_ADD_DIALOG_OK_BUTTON)
+   {
       return (D_O_K);
+   }
 
    patch = &cpu_patch_info[cpu_patch_count];
 

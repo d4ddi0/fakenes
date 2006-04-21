@@ -16,7 +16,13 @@ extern "C" {
 #endif
 
 /* Max in-file title length for save states and replays. */
-#define SAVE_TITLE_SIZE    16
+/* This only applies to FNSS files of version 1.02 or lower. */
+#define SAVE_TITLE_SIZE       16
+
+/* Newer versions include a variable-length title field. */
+/* Because the size field is 8-bit, it has an upper limit of 255 bytes. */
+#define NEW_SAVE_TITLE_SIZE   255
+#define NEW_SAVE_TITLE_SIZE_Z (NEW_SAVE_TITLE_SIZE + 1)
 
 UCHAR *get_replay_title (int, UCHAR *, int);
 BOOL open_replay (int, const char *, const UCHAR *);

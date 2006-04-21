@@ -27,7 +27,7 @@
 #define UNUSED_SLOT_TEXT   "Empty"
 
 /* FNSS version supported/created. */
-#define FNSS_VERSION 0x102
+#define FNSS_VERSION 0x103
 
 static INLINE BOOL fnss_save_chunk (PACKFILE *file, int version, const char
    *id, void (*save_state) (PACKFILE *, int))
@@ -103,6 +103,8 @@ static INLINE BOOL fnss_load_chunk (PACKFILE *file, int version, const char
 static INLINE BOOL fnss_save (PACKFILE *file, const UCHAR *title)
 {
    UINT16 version;
+   UCHAR save_title[NEW_SAVE_TITLE_SIZE];
+   int size;
 
    /* Core FNSS (FakeNES save state) saving code.  Returns TRUE if the save
       suceeded or FALSE if the save failed (which can't happen). */
@@ -120,7 +122,16 @@ static INLINE BOOL fnss_save (PACKFILE *file, const UCHAR *title)
    pack_iputw (version, file);
    
    /* Write title. */
-   pack_fwrite (title, SAVE_TITLE_SIZE, file);
+   /* Version 1.03 of the format adds variable-length titles, up to a
+      maximum of 255 bytes (no NULL character is needed). */
+
+   USTRING_CLEAR_SIZE(save_title, sizeof (save_title));
+   ustrncat (save_title, title, sizeof (save_title));
+
+   size = ustrsize (save_title);
+   pack_putc (size, file);
+
+   pack_fwrite (save_title, size, file);
    
    /* Write CRC32s. */
    pack_iputl (global_rom.trainer_crc32, file);
@@ -153,7 +164,7 @@ static INLINE BOOL fnss_load (PACKFILE *file)
 
    UINT8 signature[4];
    UINT16 version;
-   UCHAR title[SAVE_TITLE_SIZE];
+   UCHAR title[NEW_SAVE_TITLE_SIZE_Z];
    UINT32 trainer_crc;
    UINT32 prg_rom_crc;
    UINT32 chr_rom_crc;
@@ -181,7 +192,13 @@ static INLINE BOOL fnss_load (PACKFILE *file)
    }
 
    /* Fetch save title. */
-   pack_fread (title, SAVE_TITLE_SIZE, file);
+
+   USTRING_CLEAR_SIZE(title, sizeof (title));
+
+   if (version <= 0x102)
+      pack_fread (title, SAVE_TITLE_SIZE, file);
+   else
+      pack_fread (title, pack_getc (file), file);
 
    /* Fetch CRC32s. */
    trainer_crc = pack_igetl (file);
@@ -406,7 +423,10 @@ static INLINE UCHAR *get_save_title (const UCHAR *filename, UCHAR *title,
       pack_fread (signature, 4, file);
       version = pack_igetw (file);
 
-      pack_fread (save_title, SAVE_TITLE_SIZE, file);
+      if (version <= 0x102)
+         pack_fread (save_title, SAVE_TITLE_SIZE, file);
+      else
+         pack_fread (save_title, pack_getc (file), file);
 
       pack_fclose (file);
 
@@ -714,8 +734,8 @@ BOOL load_patches (void)
    set_config_file (filename);
 
    /* Fetch and verify version. */
-   version = get_config_hex ("header", "version", 0x0100);
-   if (version > 0x100)
+   version = get_config_hex ("header", "version", 0x0101);
+   if (version > 0x101)
    {
       /* Verification failed. */
       pop_config_state ();
@@ -738,7 +758,7 @@ BOOL load_patches (void)
 
       /* Read title. */
       ustrncat (patch->title, get_config_string (section, "title", "?"),
-         SAVE_TITLE_SIZE);
+         NEW_SAVE_TITLE_SIZE_Z);
 
       /* Load data. */
       patch->address     = get_config_hex (section, "address",     0xffff);

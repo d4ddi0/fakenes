@@ -113,13 +113,14 @@ static const DIALOG main_dialog_base[] =
 
 static const DIALOG main_replay_record_start_dialog_base[] =
 {
-   { sl_frame,    0,   0,  156, 84, 0, 0, 0,   0,      0, 0, NULL,  "Record Replay", NULL },
-   { sl_x_button, 136, 4,  16,  12, 0, 0, 0,   D_EXIT, 0, 0, "X",   NULL,            NULL },
-   { sl_text,     9,   36, 0,   0,  0, 0, 0,   0,      0, 0, NULL,  "&Title:",       NULL },
-   { sl_editbox,  48,  32, 96,  16, 0, 0, 't', 0,      0, 0, NULL,  NULL,            NULL },
-   { sl_button,   112, 56, 32,  16, 0, 0, 'o', D_EXIT, 0, 0, "&OK", NULL,            NULL },
+   { sl_frame,    0,   0,  220, 89, 0, 0, 0,   0,      0, 0, NULL,      "Record Replay", NULL },
+   { sl_x_button, 200, 4,  16,  12, 0, 0, 0,   D_EXIT, 0, 0, "X",       NULL,            NULL },
+   { sl_text,     9,   28, 0,   0,  0, 0, 0,   0,      0, 0, NULL,      "&Title:",       NULL },
+   { sl_editbox,  9,   39, 202, 16, 0, 0, 't', 0,      0, 0, NULL,      NULL,            NULL },
+   { sl_button,   59,  64, 48,  16, 0, 0, 'o', D_EXIT, 0, 0, "&OK",     NULL,            NULL },
+   { sl_button,   113, 64, 48,  16, 0, 0, 'c', D_EXIT, 0, 0, "&Cancel", NULL,            NULL },
    DIALOG_FRAME_ENDCAP
-};  
+};
 
 enum
 {
@@ -127,16 +128,18 @@ enum
    MAIN_REPLAY_RECORD_START_DIALOG_CLOSE_BUTTON,
    MAIN_REPLAY_RECORD_START_DIALOG_TITLE_LABEL,
    MAIN_REPLAY_RECORD_START_DIALOG_TITLE,
-   MAIN_REPLAY_RECORD_START_DIALOG_OK_BUTTON
+   MAIN_REPLAY_RECORD_START_DIALOG_OK_BUTTON,
+   MAIN_REPLAY_RECORD_START_DIALOG_CANCEL_BUTTON
 };
 
 static const DIALOG machine_save_state_save_dialog_base[] =
 {
-   { sl_frame,    0,   0,  156, 84, 0, 0, 0,   0,      0, 0, NULL,  "Save State", NULL },
-   { sl_x_button, 136, 4,  16,  12, 0, 0, 0,   D_EXIT, 0, 0, "X",   NULL,         NULL },
-   { sl_text,     9,   36, 0,   0,  0, 0, 0,   0,      0, 0, NULL,  "&Title:",    NULL },
-   { sl_editbox,  48,  32, 96,  16, 0, 0, 't', 0,      0, 0, NULL,  NULL,         NULL },
-   { sl_button,   112, 56, 32,  16, 0, 0, 'o', D_EXIT, 0, 0, "&OK", NULL,         NULL },
+   { sl_frame,    0,   0,  220, 89, 0, 0, 0,   0,      0, 0, NULL,      "Save State", NULL },
+   { sl_x_button, 200, 4,  16,  12, 0, 0, 0,   D_EXIT, 0, 0, "X",       NULL,         NULL },
+   { sl_text,     9,   28, 0,   0,  0, 0, 0,   0,      0, 0, NULL,      "&Title:",    NULL },
+   { sl_editbox,  9,   39, 202, 16, 0, 0, 't', 0,      0, 0, NULL,      NULL,         NULL },
+   { sl_button,   59,  64, 48,  16, 0, 0, 'o', D_EXIT, 0, 0, "&OK",     NULL,         NULL },
+   { sl_button,   113, 64, 48,  16, 0, 0, 'c', D_EXIT, 0, 0, "&Cancel", NULL,         NULL },
    DIALOG_FRAME_ENDCAP
 };
 
@@ -146,7 +149,8 @@ enum
    MACHINE_SAVE_STATE_SAVE_DIALOG_CLOSE_BUTTON,
    MACHINE_SAVE_STATE_SAVE_DIALOG_TITLE_LABEL,
    MACHINE_SAVE_STATE_SAVE_DIALOG_TITLE,
-   MACHINE_SAVE_STATE_SAVE_DIALOG_OK_BUTTON
+   MACHINE_SAVE_STATE_SAVE_DIALOG_OK_BUTTON,
+   MACHINE_SAVE_STATE_SAVE_DIALOG_CANCEL_BUTTON
 };
 
 static const DIALOG machine_cheat_manager_add_dialog_base[] =
