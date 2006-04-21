@@ -60,6 +60,10 @@ int timing_audio_fps = 0;
 /* Game clock (in seconds). */
 unsigned timing_clock = 0;
 
+/* Number of frames to execute before re-entering the GUI automatically.
+   -1 = disabled */
+int frames_to_execute = -1;
+
 /* Counters. */
 static int executed_frames = 0;
 static int rendered_frames = 0;
@@ -629,6 +633,17 @@ int main (int argc, char *argv[])
             apu_process ();
 
             audio_update ();
+         }
+
+         if ((frames_to_execute != -1) &&
+             (frames_to_execute > 0))
+         {
+            frames_to_execute--;
+            if (frames_to_execute == 0)
+            {
+               frames_to_execute = -1; /* Disable. */
+               enter_gui = TRUE;       /* Schedule GUI reentry. */
+            }
          }
 
          if ((cpu_usage == CPU_USAGE_PASSIVE) ||

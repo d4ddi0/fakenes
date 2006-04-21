@@ -25,7 +25,6 @@ ENUM cpu_usage;
 
 BOOL speed_cap;
 int frame_skip;
-
 int timing_fps;
 int timing_hertz;
 int timing_audio_fps;
@@ -34,6 +33,8 @@ REAL timing_speed_multiplier;
 BOOL timing_half_speed;
 
 unsigned timing_clock;
+
+int frames_to_execute;
 
 int machine_init (void);
 void machine_exit (void);

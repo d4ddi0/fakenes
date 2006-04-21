@@ -103,6 +103,7 @@ static INLINE void update_menus (void)
       DISABLE_MENU_ITEM(main_menu_close);
       DISABLE_SUBMENU(main_replay_menu);
       DISABLE_MENU_ITEM(main_menu_save_snapshot);
+      DISABLE_MENU_ITEM(main_menu_advance_frame);
       DISABLE_MENU_ITEM(machine_menu_soft_reset);
       DISABLE_MENU_ITEM(machine_menu_hard_reset);
       DISABLE_SUBMENU(machine_save_state_menu);
@@ -963,6 +964,7 @@ static INLINE int load_file (const UCHAR *filename)
       ENABLE_MENU_ITEM(main_menu_close);
       ENABLE_SUBMENU(main_replay_menu);
       ENABLE_MENU_ITEM(main_menu_save_snapshot);
+      ENABLE_MENU_ITEM(main_menu_advance_frame);
       ENABLE_MENU_ITEM(machine_menu_soft_reset);
       ENABLE_MENU_ITEM(machine_menu_hard_reset);
       ENABLE_SUBMENU(machine_save_state_menu);
@@ -1515,6 +1517,13 @@ static int main_menu_save_snapshot (void)
    return (D_O_K);
 }
 
+static int main_menu_advance_frame (void)
+{
+   frames_to_execute = 1;
+
+   return (D_CLOSE);
+}
+
 static int main_menu_view_console (void)
 {
    DIALOG *dialog;
@@ -1609,27 +1618,6 @@ static int main_menu_exit (void)
    
       return (D_CLOSE);
    }
-}
-
-static int machine_menu_soft_reset (void)
-{
-   machine_reset ();
-
-   /* Clear the game clock. */
-   options_menu_reset_clock ();
-
-   return (D_CLOSE);
-}
-
-static int machine_menu_hard_reset (void)
-{
-   machine_exit ();
-   machine_init ();
-
-   /* Clear the game clock. */
-   options_menu_reset_clock ();
-
-   return (D_CLOSE);
 }
 
 #define SAVE_STATE_SELECT_MENU_HANDLER(index)   \
@@ -1887,17 +1875,6 @@ static int machine_speed_up_down_menu_custom (void)
    return (D_O_K);
 }
 
-static int machine_menu_speed_cap (void)
-{
-   speed_cap = !speed_cap;
-   update_menus ();
-
-   message_local ("Speed cap %s.", get_enabled_text (speed_cap));
-
-   return (D_O_K);
-}
-
-
 static int machine_frame_skip_menu_automatic (void)
 {
    frame_skip = -1;
@@ -1953,6 +1930,37 @@ static int machine_frame_skip_menu_custom (void)
    
       message_local ("Frame skip set to %d frames.", frames);
    }
+
+   return (D_O_K);
+}
+
+static int machine_menu_soft_reset (void)
+{
+   machine_reset ();
+
+   /* Clear the game clock. */
+   options_menu_reset_clock ();
+
+   return (D_CLOSE);
+}
+
+static int machine_menu_hard_reset (void)
+{
+   machine_exit ();
+   machine_init ();
+
+   /* Clear the game clock. */
+   options_menu_reset_clock ();
+
+   return (D_CLOSE);
+}
+
+static int machine_menu_speed_cap (void)
+{
+   speed_cap = !speed_cap;
+   update_menus ();
+
+   message_local ("Speed cap %s.", get_enabled_text (speed_cap));
 
    return (D_O_K);
 }

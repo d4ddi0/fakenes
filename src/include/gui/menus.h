@@ -142,6 +142,7 @@ DEFINE_MENU_CALLBACK(main_menu_resume);
 DEFINE_MENU_CALLBACK(main_menu_open);
 DEFINE_MENU_CALLBACK(main_menu_close);
 DEFINE_MENU_CALLBACK(main_menu_save_snapshot);
+DEFINE_MENU_CALLBACK(main_menu_advance_frame);
 DEFINE_MENU_CALLBACK(main_menu_view_console);
 DEFINE_MENU_CALLBACK(main_menu_view_log);
 DEFINE_MENU_CALLBACK(main_menu_exit);
@@ -155,7 +156,9 @@ static const MENU main_menu_base[] =
    { "&Close",               main_menu_close,         NULL,                               0, NULL },
    MENU_SPLITTER,            
    { "Re&play",              NULL,                    IMPORT_MENU(main_replay_menu),      0, NULL },
+   MENU_SPLITTER,            
    { "&Save Snapshot (F1)",  main_menu_save_snapshot, NULL,                               0, NULL },
+   { "&Advance Frame",       main_menu_advance_frame, NULL,                                    0, NULL },
    MENU_SPLITTER,
    { "&View Console...",     main_menu_view_console,  NULL,                               0, NULL },
    { "View &Log...",         main_menu_view_log,      NULL,                               0, NULL },
