@@ -600,6 +600,14 @@ static int buffered_getc (void *userdata)
    return (buffer->data[buffer->pos++]);
 }                  
 
+int buffered_ungetc (int c, void *userdata)
+{
+   RT_ASSERT(userdata);
+
+   /* Not supported. */
+   return (EOF);
+}
+
 static long buffered_fread (void *p, long n, void *userdata)
 {
    BUFFER_FILE *buffer;
@@ -672,6 +680,7 @@ static const PACKFILE_VTABLE *get_packfile_vtable (void)
 
    vtable->pf_fclose = buffered_fclose;
    vtable->pf_getc   = buffered_getc;
+   vtable->pf_ungetc = buffered_ungetc;
    vtable->pf_fread  = buffered_fread;
    vtable->pf_putc   = buffered_putc;
    vtable->pf_fwrite = buffered_fwrite;
