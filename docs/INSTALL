@@ -3,7 +3,7 @@ Requirements
 
 GCC
 
-A GNU-compatible make utility
+A GNU-compatible make utility (optional)
 
 Allegro, version 4.2 or higher
 Get it from http://alleg.sourceforge.net
@@ -12,8 +12,13 @@ Get it from http://alleg.sourceforge.net
 Building it
 ---
 
-Just type 'make' and follow the instructions.  If it fails for whatever
-reason, drop me a line at stainless@users.sourceforge.net.
+With make:
+   Just run make, obviously. ;)
+
+Without make:
+   Run './cbuild.c' from a Unix shell or compile and run CBuild yourself.
+
+If CBuild fails, drop me a line at stainless@users.sourceforge.net.
 
 
 Optional packages
