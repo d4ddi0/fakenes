@@ -98,7 +98,7 @@ CFLAGS += ' -W -Wall -Wno-unused'
 ifplat unix CFLAGS += ' -DPOSIX'
 
 # Version tagging.
-ifopt --tag CFLAGS += " -DVERSION_TAG=\"$('getoptval' --tag)\""
+ifopt --tag CFLAGS += " -DVERSION_TAG=\\\"$('getoptval' --tag)\\\""
 
 # --
 
