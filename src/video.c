@@ -474,9 +474,6 @@ void video_exit (void)
    /* Remove message timer. */
    remove_int (video_message_timer);
 
-   /* Return to text mode. */
-   set_gfx_mode (GFX_TEXT, 0, 0, 0, 0);
-
    if (using_custom_font)
    {
       /* Destroy font. */
@@ -534,6 +531,9 @@ void video_exit (void)
       destroy_bitmap (page_buffer);
       page_buffer = NULL;
    }
+
+   /* Return to text mode. */
+   set_gfx_mode (GFX_TEXT, 0, 0, 0, 0);
 
    /* Save configuration. */
 
