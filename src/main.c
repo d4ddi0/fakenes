@@ -31,7 +31,7 @@
 #include "video.h"
 
 /* Whether or not this is the first run of the emulator. */
-static BOOL first_run = FALSE;
+static BOOL first_run = TRUE;
 
 /* Machine region (auto/NTSC/PAL). */
 ENUM machine_region = MACHINE_REGION_AUTOMATIC;

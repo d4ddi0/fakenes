@@ -523,8 +523,8 @@ int show_gui (BOOL first_run)
 
    if (first_run)
    {
-      /* Show welcome message. */
-      help_menu_version ();
+      /* Show console. */
+      main_menu_view_console ();
    }
 
    if (video_is_opengl_mode () && !warned_about_opengl)
