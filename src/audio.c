@@ -369,7 +369,7 @@ static AUDIO_QUEUE_FRAME *audio_dequeue (void)
 
 static void audio_output (void *buffer)
 {
-   int frame_size, buffer_size;
+   unsigned frame_size, buffer_size;
    AUDIO_QUEUE_FRAME *frame;
    unsigned offset = 0;
 

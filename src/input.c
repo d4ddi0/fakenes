@@ -248,7 +248,7 @@ static INLINE void save_joystick_config (void)
       for (subindex = 0; subindex < INPUT_BUTTONS; subindex++)
       {
          const JOYSTICK_DATA *data = &joystick_data[index][subindex];
-         int value;
+         int value = 0; /* Kill warning. */
 
          switch (data->type)
          {
@@ -929,7 +929,7 @@ void input_handle_keypress (int c, int scancode)
       {
          /* Not sure if this is correct, but it's better than a crash! */
 
-         if (ustrsizez (input_chat_text) < ((sizeof (input_chat_text) -
+         if (ustrsizez (input_chat_text) < (((int)sizeof (input_chat_text) -
             uwidth_max (U_CURRENT)) - 1))
          {
             /* Add character to the end of the buffer. */

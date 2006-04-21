@@ -28,6 +28,7 @@
 #include "cpu.h"
 #include "debug.h"
 #include "dsp.h"
+#include "log.h"
 #include "timing.h"
 #include "types.h"
 
@@ -98,7 +99,7 @@ static INLINE void apu_enqueue (apudata_t *d)
    apu.q_head = ((apu.q_head + 1) & APUQUEUE_MASK);
 
    if (APU_QEMPTY())
-      DEBUG_PRINTF("apu: queue overflow\n");      
+      log_printf ("apu: queue overflow\n");      
 }
 
 static INLINE apudata_t *apu_dequeue (void)
@@ -106,7 +107,7 @@ static INLINE apudata_t *apu_dequeue (void)
    int loc;
 
    if (APU_QEMPTY())
-      DEBUG_PRINTF("apu: queue empty\n");
+      log_printf ("apu: queue empty\n");
 
    loc = apu.q_tail;
    apu.q_tail = ((apu.q_tail + 1) & APUQUEUE_MASK);
@@ -122,7 +123,7 @@ static INLINE void apu_ex_enqueue (apudata_t *d)
    apu.ex_q_head = ((apu.ex_q_head + 1) & APUQUEUE_MASK);
 
    if (APU_EX_QEMPTY())
-      DEBUG_PRINTF("ex_apu: queue overflow\n");      
+      log_printf ("ex_apu: queue overflow\n");      
 }
 
 static INLINE apudata_t *apu_ex_dequeue (void)
@@ -130,7 +131,7 @@ static INLINE apudata_t *apu_ex_dequeue (void)
    int loc;
 
    if (APU_EX_QEMPTY())
-      DEBUG_PRINTF("ex_apu: queue empty\n");
+      log_printf ("ex_apu: queue empty\n");
 
    loc = apu.ex_q_tail;
    apu.ex_q_tail = ((apu.ex_q_tail + 1) & APUQUEUE_MASK);
