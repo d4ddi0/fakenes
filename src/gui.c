@@ -1591,14 +1591,15 @@ static int main_menu_exit (void)
 
 static int machine_menu_soft_reset (void)
 {
-    cpu_reset ();
+    machine_reset ();
 
     return (D_CLOSE);
 }
 
 static int machine_menu_hard_reset (void)
 {
-    machine_reset ();
+    machine_exit ();
+    machine_init ();
 
     return (D_CLOSE);
 }
