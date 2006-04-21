@@ -1,7 +1,7 @@
 setstdout "${STDOUT_LOG}"
 setstderr "${STDERR_LOG}"
 
-@!call "${CC} -E ${BUILD_DIR}/zlib.c"
+@!call "${CC}" -E "${BUILD_DIR}/zlib.c"
 
 do ifnret 0
    setstdout ''
@@ -15,6 +15,10 @@ done
 
 setstdout ''
 setstderr ''
+
+# --
+
+SRCFILES += 'unzip.c '
 
 # --
 

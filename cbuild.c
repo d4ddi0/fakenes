@@ -1545,7 +1545,7 @@ static int check_obj_deps(char *base, char *src, time_t obj_time)
 	}
 
 	fseek(df, 0, SEEK_SET);
-	fread(buf, 1, bufsize, df);
+   bufsize = fread(buf, 1, bufsize, df)+1;
 	buf[bufsize-1] = 0;
 
 	fclose(df);
@@ -1578,6 +1578,7 @@ static int check_obj_deps(char *base, char *src, time_t obj_time)
 		if(strcmp(ptr, "\n") != 0 && (stat(ptr, &statbuf) != 0 ||
 		                              statbuf.st_mtime > obj_time))
 		{
+         /* fprintf(stderr, "'%s' failed, calling for rebuild\n", ptr); */
 			free(buf);
 			return 1;
 		}

@@ -3,7 +3,7 @@ ifopt --verbose verbose 1
 # --
 
 do ifopt --help
-  echo "
+   echo "
 CBuild options:
     --help         Display this help message
     --vebose       Enable more verbose command printing
@@ -23,42 +23,65 @@ Other options:
     tag=TAG        Set version tag to TAG
 "
 
-  exit 0
+   exit 0
 done
 
 # --
 
-do if "${PLAT}"=""
-  PLAT = default
+# Platform compatibility.
 
-  ifplat macosx PLAT = 'macosx'
-  ifplat msdos  PLAT = 'msdos'
-  ifplat unix   PLAT = 'unix'
-  ifplat win32  PLAT = 'win32'
-done           
+PLAT = 'generic'
 
-ifopt debug   PLAT += 'debug'
-ifopt profile PLAT += 'profile'
+ifplat macosx PLAT = 'macosx'
+ifplat msdos  PLAT = 'msdos'
+ifplat unix   PLAT = 'unix'
+ifplat win32  PLAT = 'win32'
+
+ifopt --verbose echo "Building for ${PLAT}..."
+
+PATH_SEP = '/'
+
+ifplat win32 PATH_SEP = '\\'
+ifplat msdos PATH_SEP = '\\'
+
+# --
 
 # Build directory (where the scripts are, and temporary files go).
 BUILD_DIR = 'build'
 
+# Where our Source Code files are located.
+SRC_DIR = 'src'
+
+# Where our support files (such as fakenes.dat) reside.
+SUPPORT_DIR = 'support'
+
 # Object file directory.
 OBJ_DIR = "${BUILD_DIR}/${PLAT}"
 
-ifnexist "${OBJ_DIR}" mkdir "${OBJ_DIR}"
+ifopt debug   OBJ_DIR += '-debug'
+ifopt profile OBJ_DIR += '-profile'
 
 # Dependancy directory.
-DEP_DIR = "${OBJ_DIR}"
+DEP_DIR = "${BUILD_DIR}/${PLAT}"
+
+ifopt debug   DEP_DIR += '-debug'
+ifopt profile DEP_DIR += '-profile'
+
+# Create missing directories.
+
+do ifnopt clean
+   ifnexist "${OBJ_DIR}" mkdir "${OBJ_DIR}"
+   ifnexist "${DEP_DIR}" mkdir "${DEP_DIR}"
+done
+
+# File list stubs (we will append to these later).
+CLEANFILES = ''
+SRCFILES   = ''
 
 # --
 
-# Where our Source Code files are located.
-SRC_BASE = 'src'
-
-# --
-
-CPPFLAGS += " -I${SRC_BASE}/include"
+# Includes.
+CPPFLAGS += " -I${DEP_DIR} -I${SRC_DIR}/include -I${SUPPORT_DIR}"
 
 # Set default CFLAGS.
 CFLAGS ?= '-pipe -O3 -ffast-math -fomit-frame-pointer -s'
@@ -85,19 +108,7 @@ ifnopt -zlib    invoke "${BUILD_DIR}/zlib.cbd"
 
 invoke "${BUILD_DIR}/alleg.cbd"
 
-@rm "${STDOUT_LOG}"
-@rm "${STDERR_LOG}"
-
-# --
-
-EXE_NAME = 'fakenes'
-
-do ifplat win32
-   EXE_NAME += 'w'
-
-   LDFLAGS += ' -mwindows'
-   LDFLAGS += " support/resource.o"
-done
+CLEANFILES += " ${STDOUT_LOG} ${STDERR_LOG}"
 
 # --
 
@@ -105,36 +116,139 @@ done
 
 CFG_HEADER = "${DEP_DIR}/config.h"
 
-do ifnexist "${CFG_HEADER}"
-   CFG_EXE = "configure${EXE_EXT}"
+do ifnopt clean
+   do ifnexist "${CFG_HEADER}"
+      CFG_EXE = "${BUILD_DIR}/configure${EXE_EXT}"
 
-   @!call "${CC} -o ${CFG_EXE} configure.c"
-   do ifnret 0
-      echo 'uh-oh, it looks like configure.c failed to build'
-      echo 'bailing out...'
-      exit 1
+      ifopt --verbose echo "Runner: ${CFG_EXE}"
+
+      @!call "${CC}" -o "${CFG_EXE}" "${BUILD_DIR}/configure.c"
+   
+      do ifnret 0
+         echo "uh-oh, it looks like ${CFG_EXE} failed to build"
+         echo 'bailing out...'
+   
+         exit 1
+      done
+
+      echo "Creating ${CFG_HEADER}..."
+
+      setstdout "${CFG_HEADER}"
+   
+      # Kludge due to Windows/DOS requiring \ instead of /.
+      @!call "${BUILD_DIR}${PATH_SEP}configure${EXE_EXT}"
+   
+      do ifnret 0
+         setstdout ''
+   
+         echo "uh-oh it looks like ${CFG_EXE} failed to run"
+         echo 'bailing out...'
+   
+         exit 1
+      done
+   
+      setstdout ''
+   
+      @rm "${CFG_EXE}"
    done
 
-   setstdout "${CFG_HEADER}"
-   @call "${CFG_EXE}"
-   setstdout ''
-
-   @rm "${CFG_EXE}"
+   CPPFLAGS += " -imacros ${CFG_HEADER}"
 done
 
-CPPFLAGS += " -imacros ${CFG_HEADER}"
+CLEANFILES += " ${CFG_HEADER}"
+
 
 # --
 
-src_paths "${SRC_BASE}"
+# Datafile conversion.
 
+DATA_SRC    = "${DEP_DIR}/datafile.c"
+DATA_HEADER = "${DEP_DIR}/datafile.h"
+
+do ifnopt clean
+   do ifnexist "${DATA_SRC}"
+      DAT2C_EXE = "${BUILD_DIR}/dat2c${EXE_EXT}"
+
+      ifopt --verbose echo "Runner: ${DAT2C_EXE}"
+
+      @!call "${CC}" -o "${DAT2C_EXE}" "${BUILD_DIR}/dat2c.c" "${DAT2C_FLAGS}"
+   
+      do ifnret 0
+         echo "uh-oh, it looks like ${DAT2C_EXE} failed to build"
+         echo 'bailing out...'
+   
+         exit 1
+      done
+
+      # Kludge due to Windows/DOS requiring \ instead of /.
+      @!call "${BUILD_DIR}${PATH_SEP}dat2c${EXE_EXT}" -o "${DATA_SRC}" -h "${DATA_HEADER}" -p datafile "${SUPPORT_DIR}/fakenes.dat"
+   
+      do ifnret 0
+         echo "uh-oh, it looks like ${DAT2C_EXE} failed to run"
+         echo 'bailing out...'
+   
+         exit 1
+      done
+   
+      @rm "${DAT2C_EXE}"
+   done
+done
+
+CLEANFILES += " ${DATA_SRC} ${DATA_HEADER}"
+
+# --
+
+# Windows resources.
+
+do ifplat win32
+   RESOURCE_OBJ = "${OBJ_DIR}/resource.o"
+
+   do ifnopt clean
+      do ifnexist "${RESOURCE_OBJ}"
+         echo "Creating ${RESOURCE_OBJ}..."
+
+         @!call echo ALLEGRO_ICON ICON "${SUPPORT_DIR}/fakenes.ico" | windres -O coff -o "${RESOURCE_OBJ}"
+   
+         do ifnret 0
+            echo "uh-oh, it looks like ${RESOURCE_OBJ} failed to compile"
+            echo 'bailing out...'
+   
+            exit 1
+         done
+      done
+
+      LDFLAGS += " ${RESOURCE_OBJ}"
+   done
+
+   CLEANFILES += " ${RESOURCE_OBJ}"
+done
+
+# --
+
+EXE_NAME = 'fakenes'
+
+ifopt debug EXE_NAME += 'd'
+
+do ifplat win32
+   EXE_NAME += 'w'
+
+   ifnopt clean LDFLAGS += ' -mwindows'
+done
+
+# --
+
+src_paths "${DEP_DIR}" "${SRC_DIR}" "${SUPPORT_DIR}"
+
+# Dependancies.
+SRCFILES += "datafile.c "
+
+# Source files.
 SRCFILES += 'apu.c '
 SRCFILES += 'audio.c '
 SRCFILES += 'audiolib.c '
 SRCFILES += 'core.c '
 SRCFILES += 'cpu.c '
 SRCFILES += 'crc.c '
-SRCFILES += 'data.c '
 SRCFILES += 'dsp.c '
 SRCFILES += 'gui.c '
 SRCFILES += 'hqx.c '
@@ -150,7 +264,6 @@ SRCFILES += 'ppu.c '
 SRCFILES += 'rewind.c '
 SRCFILES += 'rom.c '
 SRCFILES += 'save.c '
-SRCFILES += 'unzip.c '
 SRCFILES += 'video.c '
 
 # --
@@ -159,7 +272,7 @@ ifopt clean goto clean
 
 # --
 
-compile "${SRCFILES}"
+compile ${SRCFILES}
 
 # --
 
@@ -172,9 +285,10 @@ exit 0
 
 :clean
 
-rm     "${CFG_HEADER}"
+rm     ${CLEANFILES}
 rmobj  ${SRCFILES}
 rm     "${OBJ_DIR}"
+rm     "${DEP_DIR}"
 rmexec "${EXE_NAME}"
 
 # Done cleaning.

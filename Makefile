@@ -11,13 +11,12 @@ endif
 
 CBUILD=cbuild$(EXEEXT)
 
-all: $(CBUILD) msg
+all: $(CBUILD) exec
 
-.PHONY: msg
+.PHONY: exec
 
 $(CBUILD): cbuild.c
 	$(CC) $(CFLAGS) -o $@ $<
 
-msg: $(CBUILD)
-	@echo done, now type \'cbuild\' to build FakeNES
-	@echo for a list of all build options, type \'cbuild --help\'
+exec: $(CBUILD)
+	./$(CBUILD)

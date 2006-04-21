@@ -1,7 +1,7 @@
 setstdout "${STDOUT_LOG}"
 setstderr "${STDERR_LOG}"
 
-@!call "${CC} -E ${BUILD_DIR}/hawknl.c"
+@!call "${CC}" -E "${BUILD_DIR}/hawknl.c"
 
 do ifnret 0
    setstdout ''

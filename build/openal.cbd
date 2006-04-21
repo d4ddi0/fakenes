@@ -1,7 +1,7 @@
 setstdout "${STDOUT_LOG}"
 setstderr "${STDERR_LOG}"
 
-@!call "${CC} -E ${BUILD_DIR}/openal.c"
+@!call "${CC}" -E "${BUILD_DIR}/openal.c"
 
 do ifnret 0
    setstdout ''
@@ -22,4 +22,10 @@ CFLAGS += ' -DUSE_OPENAL'
 
 # --
 
-LDFLAGS += ' -lOpenAL32 -lalut'
+do ifplat unix
+   LDFLAGS += ' `openal-config --libs`'
+else
+   LDFLAGS += ' -lOpenAL32'
+done
+
+LDFLAGS += ' -lalut'

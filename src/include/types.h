@@ -8,6 +8,10 @@
 
 #ifndef TYPES_H_INCLUDED
 #define TYPES_H_INCLUDED
+#include <allegro.h>
+#ifdef ALLEGRO_WINDOWS
+#include <winalleg.h>
+#endif
 #include <string.h>
 #include "common.h"
 #ifdef __cplusplus
@@ -15,80 +19,96 @@ extern "C" {
 #endif
 
 /* Base types. */
-typedef unsigned char UINT8;
-typedef signed char INT8;
+typedef unsigned char fakenes_uint8_t;
+typedef signed char   fakenes_int8_t;
 
-#ifdef POSIX
+#if SIZEOF_SHORT == 2
+   typedef unsigned short fakenes_uint16_t;
+   typedef signed short   fakenes_int16_t;
+#elif SIZEOF_INT == 2
+   typedef unsigned int   fakenes_uint16_t;
+   typedef signed int     fakenes_int16_t;
+#else                             
+#  error No 16-bit type could be found.
+#endif
 
-#  if SIZEOF_SHORT_INT == 2
-      typedef unsigned short int UINT16;
-      typedef signed short int INT16;
-#  elif SIZEOF_INT == 2
-      typedef unsigned int UINT16;
-      typedef signed int INT16;
-#  else
-#     error No 16-bit type could be found.
-#  endif
+#if SIZEOF_INT == 4
+   typedef unsigned int  fakenes_uint32_t;
+   typedef signed int    fakenes_int32_t;
+#elif SIZEOF_LONG == 4
+   typedef unsigned long fakenes_uint32_t;
+   typedef signed long   fakenes_int32_t;
+#else
+#  error No 32-bit type could be found.
+#endif
 
-#  if SIZEOF_INT == 4
-      typedef unsigned int UINT32;
-      typedef signed int INT32;
-#  elif SIZEOF_LONG_INT == 4
-      typedef unsigned long int UINT32;
-      typedef signed long int INT32;
-#  else
-#     error No 32-bit type could be found.
-#  endif
+typedef int             fakenes_enum_t;   /* Enumeration index. */
+typedef unsigned        fakenes_flags_t;  /* Flags. */
+typedef float           fakenes_real_t;   /* Real number. */
+typedef char            fakenes_char_t;   /* ASCII character. */
+typedef signed char     fakenes_bool_t;   /* Boolean value. */
+typedef char            fakenes_uchar_t;  /* Unicode character. */
+typedef fakenes_flags_t fakenes_list_t;   /* List of flags. */
 
-#else /* POSIX */
+/* String data types. */
+#define STRING_SIZE_BASE   1024  /* Typical size. */
+#define STRING_SIZE        (STRING_SIZE_BASE * sizeof (fakenes_char_t))
+#define USTRING_SIZE       (STRING_SIZE_BASE * sizeof (fakenes_uchar_t))
 
-/* Use defaults. */
-typedef unsigned short int UINT16;
-typedef signed short int INT16;
-typedef unsigned int UINT32;
-typedef signed int INT32;
+typedef fakenes_char_t  fakenes_string_t[STRING_SIZE_BASE];
+typedef fakenes_uchar_t fakenes_ustring_t[STRING_SIZE_BASE];
 
-#endif /* POSIX */
-
-/* Extended data types. */
+/* Pair data type for CPU core. */
 typedef union
 {
    struct
    {
 #ifdef LSB_FIRST
-      UINT8 low, high;
+      fakenes_uint8_t low, high;
 #else
-      UINT8 high, low;
+      fakenes_uint8_t high, low;
 #endif
 
    } bytes;
 
-   UINT16 word;
+   fakenes_uint16_t word;
 
-} PAIR;
+} fakenes_pair_t;
 
-typedef int ENUM;          /* Enumeration index. */
-typedef unsigned FLAGS;    /* Flags. */
-typedef float REAL;        /* Real number. */
-typedef char CHAR;         /* ASCII character. */
+/* Shorthand aliases. */
+/* typedef where possible, otherwise #define. */
+typedef fakenes_uint8_t  UINT8;
+typedef fakenes_int8_t   INT8;
+typedef fakenes_uint16_t UINT16;
+typedef fakenes_int16_t  INT16;
 
-#ifdef ALLEGRO_WINDOWS    
+#ifdef ALLEGRO_WINDOWS
+   /* Override Win32 typedefs. */
+#  define UINT32 fakenes_uint32_t
+#  define INT32  fakenes_int32_t
+#else
+   typedef fakenes_uint32_t UINT32;
+   typedef fakenes_int32_t  INT32;
+#endif
 
-/* Kludge to get around typedef conflicts with the Win32 API. */
-typedef signed char fakenes_boolean_t;
-typedef char        fakenes_utf8_char_t;
+typedef fakenes_enum_t  ENUM;
+typedef fakenes_flags_t FLAGS;
+typedef fakenes_real_t  REAL;
+typedef fakenes_char_t  CHAR;
 
-#define BOOL  fakenes_boolean_t
-#define UCHAR fakenes_utf8_char_t
+#ifdef ALLEGRO_WINDOWS
+   /* Override Win23 typedefs. */
+#  define BOOL  fakenes_bool_t
+#  define UCHAR fakenes_uchar_t
+#else
+   typedef fakenes_bool_t  BOOL;
+   typedef fakenes_uchar_t UCHAR;
+#endif
 
-#else /* ALLEGRO_WINDOWS */
-
-typedef signed char BOOL;  /* Boolean value. */
-typedef char UCHAR;        /* Unicode character. */
-
-#endif   /* !ALLEGRO_WINDOWS */
-
-typedef FLAGS LIST;        /* List of flags. */
+typedef fakenes_list_t    LIST;
+typedef fakenes_string_t  STRING;
+typedef fakenes_ustring_t USTRING;
+typedef fakenes_pair_t    PAIR;
 
 /* List access macros. */
 #define LIST_ADD(list, flags)       (list |= flags)
@@ -96,20 +116,13 @@ typedef FLAGS LIST;        /* List of flags. */
 #define LIST_TOGGLE(list, flags)    (list ^= flags)
 #define LIST_COMPARE(list, flags)   TRUE_OR_FALSE(list & flags)
 
-/* String data types. */
-#define STRING_SIZE_BASE   1024  /* Typical size. */
-#define STRING_SIZE        (STRING_SIZE_BASE * sizeof (CHAR))
-#define USTRING_SIZE       (STRING_SIZE_BASE * sizeof (UCHAR))
-typedef CHAR STRING[STRING_SIZE_BASE];    /* ASCII string. */
-typedef UCHAR USTRING[STRING_SIZE_BASE];  /* Unicode string. */
-
 /* String clearing macros. */
 #define STRING_CLEAR_SIZE(str, size)   memset (str, 0, size)
 #define USTRING_CLEAR_SIZE             STRING_CLEAR_SIZE
-#define STRING_CLEAR(str)  STRING_CLEAR_SIZE(str, STRING_SIZE)
-#define USTRING_CLEAR(str) USTRING_CLEAR_SIZE(str, USTRING_SIZE)
+#define STRING_CLEAR(str)              STRING_CLEAR_SIZE(str, STRING_SIZE)
+#define USTRING_CLEAR(str)             USTRING_CLEAR_SIZE(str, USTRING_SIZE)
 
-#ifdef __cplusplus
+#ifdef __cplusplus                     
 }
 #endif
 #endif   /* !TYPES_H_INCLUDED */
