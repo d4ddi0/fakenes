@@ -748,6 +748,12 @@ void gui_handle_keypress (int c, int scancode)
          /* Quick save state. */
          machine_save_state_menu_quick_save ();
 
+         /* See if the save succeeded. */
+         if (check_save_state (-1))
+            message_local ("QuickSave: OK");
+         else
+            message_local ("QuickSave: Failed");
+            
          break;
       }
 

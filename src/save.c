@@ -613,6 +613,8 @@ BOOL save_state (int index, const UCHAR *title)
    USTRING filename;
    PACKFILE *file;
 
+   RT_ASSERT(title);
+
    /* Generate filename. */
    get_state_filename (filename, index, sizeof (filename));
 
@@ -670,6 +672,24 @@ BOOL load_state_raw (PACKFILE *file)
    RT_ASSERT(file);
 
    return (fnss_load_raw (file));
+}
+
+BOOL check_save_state (int index)
+{
+   /* index == -1 == quicksave.
+
+      This function tells whether or not a save state exists.  It is usually
+      used to make sure that a call to save_state() succeeded when the
+      return value of said call cannot be compared directly.
+
+      This function does *NOT* check if a save state is "valid". :b */
+
+   USTRING filename;
+
+   /* Generate filename. */
+   get_state_filename (filename, index, sizeof (filename));
+
+   return (exists (filename));
 }
 
 /* --- Patches. --- */

@@ -28,6 +28,7 @@ BOOL save_state (int, const UCHAR *);
 BOOL load_state (int);
 BOOL save_state_raw (PACKFILE *);
 BOOL load_state_raw (PACKFILE *);
+BOOL check_save_state (int);
 BOOL load_patches (void);
 BOOL save_patches (void);
 BOOL load_sram (void);
