@@ -431,8 +431,8 @@ int video_init_buffer (void)
       destroy_bitmap (status_buffer);
 
    /* Create status buffer. */
-   status_buffer = create_sub_bitmap (screen_buffer, 0, (screen_buffer->h -
-      128), 72, 128);
+   status_buffer = create_sub_bitmap (screen_buffer, 8, (screen_buffer->h -
+      100), 80, 100);
    if (!status_buffer)
    {
       destroy_bitmap (screen_buffer);
@@ -558,53 +558,81 @@ void video_exit (void)
 }
 
 
-static INLINE void shadow_textout (BITMAP * bitmap, FONT * font, const UCHAR * text, int x, int y, int color)
+static INLINE void shadow_textout (BITMAP *bitmap, FONT *font, const UCHAR
+   *text, int x, int y, int color)
 {
-    /* This is a pain to do for printf, so we just do that manually. */
+   RT_ASSERT(bitmap);
+   RT_ASSERT(font);
+   RT_ASSERT(text);
 
-    textout_ex (bitmap, font, text, (x + 1), (y + 1), VIDEO_COLOR_BLACK, -1);
+   textout_ex (bitmap, font, text, (x + 1), (y + 1), VIDEO_COLOR_BLACK, -1);
+   textout_ex (bitmap, font, text, x, y, color, -1);
+}
 
-    textout_ex (bitmap, font, text, x, y, color, -1);
+static INLINE void shadow_textprintf (BITMAP *bitmap, FONT *font, int x, int
+   y, int color, const UCHAR *text, ...)
+{
+   va_list format;
+   USTRING buffer;
+
+   RT_ASSERT(bitmap);
+   RT_ASSERT(font);
+   RT_ASSERT(text);
+
+   va_start (format, text);
+   uvszprintf (buffer, sizeof (buffer), text, format);
+   va_end (format);
+
+   /* Pass on to textout. */
+   shadow_textout (bitmap, font, buffer, x, y, color);
 }
 
 
 /* Todo: Find a better way to do all this. */
 
-static INLINE void display_status (BITMAP * bitmap, int color)
+static INLINE void display_status (BITMAP *bitmap, FONT *font, int color)
 {
-    shadow_textout (bitmap, small_font, "Video:", 16, (bitmap -> h - 114), color);
+   int y = 0;
+   int indent, line, spacer;
 
-    shadow_textout (bitmap, small_font, "Audio:", 16, (bitmap -> h - 82), color);
+   RT_ASSERT(bitmap);
+   RT_ASSERT(font);
 
+   indent = text_length (font, "XXX");
+   line   = ROUND((text_height (font) * 1.67f));
+   spacer = ROUND((line * 1.33f));
 
-    shadow_textout (bitmap, small_font, "Core:", 16, (bitmap -> h - 50), color);
+   shadow_textout (bitmap, font, "Video:", 0, y, color);
+   y += line;
 
+   shadow_textprintf (bitmap, font, indent, y, color, "%02d FPS",
+      timing_fps);
+   y += spacer;
 
-    textprintf_ex (bitmap, small_font, (20 + 1), ((bitmap -> h - 100) + 1), VIDEO_COLOR_BLACK, -1, "%02d FPS", timing_fps);
+   shadow_textout (bitmap, font, "Audio:", 0, y, color);
+   y += line;
 
-    textprintf_ex (bitmap, small_font, 20, (bitmap -> h - 100), color, -1, "%02d FPS", timing_fps);
+   if (audio_enable_output)
+   {
+      shadow_textprintf (bitmap, font, indent, y, color, "%02d FPS",
+         timing_audio_fps);
+   }
+   else
+   {
+      shadow_textout (bitmap, font, "Disabled", indent, y, color);
+   }
 
+   y += spacer;
 
-    if (audio_enable_output)
-    {
-        textprintf_ex (bitmap, small_font, (20 + 1), ((bitmap -> h - 68) + 1), VIDEO_COLOR_BLACK, -1, "%02d FPS", timing_audio_fps);
+   shadow_textout (bitmap, font, "Core:",  0, y, color);
+   y += line;
 
-        textprintf_ex (bitmap, small_font, 20, (bitmap -> h - 68), color, -1, "%02d FPS", timing_audio_fps);
-    }
-    else
-    {
-        shadow_textout (bitmap, small_font, "Disabled", 20, (bitmap -> h - 68), color);
-    }
+   shadow_textprintf (bitmap, font, indent, y, color, "%02d/%02d Hz",
+      timing_hertz, timing_get_speed ());
+   y += line;
 
-
-    textprintf_ex (bitmap, small_font, (20 + 1), ((bitmap -> h - 36) + 1), VIDEO_COLOR_BLACK, -1, "%02d Hz", timing_hertz);
-
-    textprintf_ex (bitmap, small_font, 20, (bitmap -> h - 36), color, -1, "%02d Hz", timing_hertz);
-
-
-    textprintf_ex (bitmap, small_font, (20 + 1), ((bitmap -> h - 22) + 1), VIDEO_COLOR_BLACK, -1, "PC: $%04X", * cpu_active_pc);
-
-    textprintf_ex (bitmap, small_font, 20, (bitmap -> h - 22), color, -1, "PC: $%04X", * cpu_active_pc);
+   shadow_textprintf (bitmap, font, indent, y, color, "PC: $%04X",
+      *cpu_active_pc);
 }
 
 
@@ -680,7 +708,7 @@ void video_blit (BITMAP *bitmap)
    video_filter ();
 
    if (video_display_status && !gui_is_active)
-      display_status (screen_buffer, VIDEO_COLOR_WHITE);
+      display_status (status_buffer, small_font, VIDEO_COLOR_WHITE);
 
    if (((video_message_duration > 0) ||
         (input_mode & INPUT_MODE_CHAT)) && !gui_is_active)
