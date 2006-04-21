@@ -43,7 +43,7 @@ BOOL netplay_open_client (const char *host, int port)
    if (netplay_mode != NETPLAY_MODE_INACTIVE)
       return (FALSE);
 
-   if (net_open (port) > 0)
+   if (net_open (0) > 0)
       return (FALSE);
 
    if (!net_connect (host, port))

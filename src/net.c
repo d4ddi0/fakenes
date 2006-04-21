@@ -32,8 +32,8 @@ static NLsocket net_socket = NL_INVALID;
 typedef struct _NET_PACKET_BUFFER
 {
    UINT8 data[NET_MAX_PACKET_SIZE]; /* Buffer containing the packet data.      */
-   unsigned long size;              /* Size of the packet data.                */
-   unsigned long pos;               /* Current buffer read/write offset.       */
+   unsigned size;                   /* Size of the packet data.                */
+   unsigned pos;                    /* Current buffer read/write offset.       */
    ENUM pipe;                       /* Pipe to which the packet is to be sent. */
 
 } NET_PACKET_BUFFER;
@@ -67,7 +67,7 @@ typedef struct NET_CLIENT_DATA
    NLsocket socket;
    NET_PACKET_BUFFER read_buffer;
    NET_PACKET_BUFFER write_buffer;
-   NET_PACKET_QUEUE write_queue;
+   NET_PACKET_QUEUE  write_queue;
 
 } NET_CLIENT_DATA;
 
@@ -116,7 +116,10 @@ int net_open (int port)
 
       Only one socket opened in this manner may be open at any given time.
       In a server configuration, additional sockets are created as needed
-      for each remote client by net_listen(). */
+      for each remote client by net_listen().
+
+      'port' should be 0 if trying to connect to a remote host, otherwise
+      HawkNL will throw an "App version not supported by DLL" error. */
 
    if (net_socket != NL_INVALID)
       return (1);
@@ -158,7 +161,7 @@ void net_close (void)
          /* Close socket. */
          nlClose (data->socket);
       }
-
+                             
       /* Clear queue. */
       net_clear_queue (&data->write_queue);
    }
@@ -317,11 +320,30 @@ int net_connect (const char *host, int port)
 
 void net_process (void)
 {
+   NET_CLIENT *client;
+   NET_CLIENT_DATA *data;
+   int index;
+
    /* This function handles all of the magic of sending and recieving
       packets. */
 
    if (net_mode == NET_MODE_INACTIVE)
       return;
+
+   for (index = NET_FIRST_REMOTE_CLIENT; index < NET_MAX_CLIENTS; index++)
+   {
+      /* Grab all incoming packets into the read queue, reading them in in
+         buffered fragments if necessary. */
+
+      client = &net_clients[index];
+
+      if (client->active)
+         continue;
+   }
+
+   client = &net_clients[NET_LOCAL_CLIENT];
+
+   /* TODO: Distribute all outgoing packets here. */
 }
 
 PACKFILE *net_open_packet (ENUM pipe)
@@ -341,7 +363,10 @@ PACKFILE *net_open_packet (ENUM pipe)
 
          packet = malloc (sizeof (NET_PACKET_BUFFER));
          if (!packet)
+         {
+            WARN_GENERIC();
             return (NULL);
+         }
 
          /* Grab a packet from the queue. */
          net_dequeue (queue, packet);
@@ -353,7 +378,10 @@ PACKFILE *net_open_packet (ENUM pipe)
       {
          packet = malloc (sizeof (NET_PACKET_BUFFER));
          if (!packet)
+         {
+            WARN_GENERIC();
             return (NULL);
+         }
 
          memset (packet, 0, sizeof (NET_PACKET_BUFFER));
 
@@ -373,6 +401,8 @@ PACKFILE *net_open_packet (ENUM pipe)
    packfile = pack_fopen_vtable (net_get_packfile_vtable (), packet);
    if (!packfile)
    {
+      WARN_GENERIC();
+
       free (packet);
       return (NULL);
    }
@@ -413,7 +443,10 @@ static void net_enqueue (NET_PACKET_QUEUE *queue, const NET_PACKET_BUFFER
 
    node = malloc (sizeof (NET_PACKET_QUEUE_NODE));
    if (!node)
+   {
+      WARN_GENERIC();
       return;
+   }
 
    memcpy (&node->packet, packet, sizeof (NET_PACKET_BUFFER));
    
