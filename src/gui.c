@@ -1110,6 +1110,7 @@ static int main_menu_resume (void)
 static int main_menu_open (void)
 {
    USTRING path;
+   BOOL locked;
    BITMAP *bmp;
    int w, h;
    int result;
@@ -1119,6 +1120,8 @@ static int main_menu_open (void)
    USTRING_CLEAR(path);
    ustrncat (path, get_config_string ("gui", "open_path", "/"), (sizeof
       (path) - 1));
+
+   locked = get_config_int ("gui", "lock_paths", FALSE);
 
    /* Get drawing surface. */
    bmp = gui_get_screen ();
@@ -1135,9 +1138,12 @@ static int main_menu_open (void)
       sizeof (path), w, h);
 #endif
 
-   /* Update path. */
-   set_config_string ("gui", "open_path", replace_filename (scratch, path,
-      "", sizeof (scratch)));
+   if (!locked)
+   {
+      /* Update path. */
+      set_config_string ("gui", "open_path", replace_filename (scratch,
+         path, "", sizeof (scratch)));
+   }
 
    if (result != 0)
    {
@@ -3229,6 +3235,62 @@ static int options_menu_show_status (void)
 
    return (D_O_K);
 }
+
+static int options_menu_paths (void)
+{
+   USTRING open_path, save_path;
+   BOOL locked;
+   DIALOG *dialog;
+   DIALOG *objopen, *objlock, *objsave;
+
+   /* Load configuration. */
+
+   USTRING_CLEAR(open_path);
+   ustrncat (open_path, get_config_string ("gui", "open_path", "/"),
+      (sizeof (open_path) - 1));
+
+   USTRING_CLEAR(save_path);
+   ustrncat (save_path, get_config_string ("gui", "save_path", "./"),
+      (sizeof (save_path) - 1));
+
+   locked = get_config_int ("gui", "lock_paths", FALSE);
+   
+   /* Get dialog. */
+   dialog = options_paths_dialog;
+
+   /* Get dialog objects. */
+
+   objopen = &dialog[OPTIONS_PATHS_DIALOG_OPEN_PATH];
+   objlock = &dialog[OPTIONS_PATHS_DIALOG_LOCKED];
+   objsave = &dialog[OPTIONS_PATHS_DIALOG_SAVE_PATH];
+
+   /* Set up objects. */
+
+   objopen->dp = open_path;
+   objopen->d1 = (sizeof (open_path) - 1);
+
+   objsave->dp = save_path;
+   objsave->d1 = (sizeof (save_path) - 1);
+
+   if (locked)
+      objlock->flags |= D_SELECTED;
+
+   /* Show dialog. */
+
+   if (show_dialog (dialog, -1) == OPTIONS_PATHS_DIALOG_OK_BUTTON)
+   {
+      /* Save configuration. */
+
+      set_config_string ("gui", "open_path", open_path);
+      set_config_string ("gui", "save_path", save_path);
+
+      set_config_int ("gui", "lock_paths",
+         TRUE_OR_FALSE(objlock->flags & D_SELECTED));
+   }
+
+   return (D_O_K);
+}
+
 
 static int options_input_menu_enable_zapper (void)
 {

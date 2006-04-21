@@ -956,6 +956,7 @@ static const MENU options_gui_theme_menu_base[] =
 };
 
 DEFINE_MENU_CALLBACK(options_menu_show_status);
+DEFINE_MENU_CALLBACK(options_menu_paths);
 
 static const MENU options_menu_base[] =
 {
@@ -967,6 +968,8 @@ static const MENU options_menu_base[] =
    MENU_SPLITTER,
 #endif
    { "&GUI Theme",        NULL,                      IMPORT_MENU(options_gui_theme_menu), 0, NULL },
+   MENU_SPLITTER,
+   { "&Paths...",         options_menu_paths,        NULL,                                0, NULL },
    MENU_ENDCAP      
 };
 

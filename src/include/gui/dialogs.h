@@ -12,6 +12,7 @@ DEFINE_DIALOG(machine_cheat_manager_add_dialog);
 DEFINE_DIALOG(machine_cheat_manager_dialog);
 DEFINE_DIALOG(video_color_dialog);
 DEFINE_DIALOG(options_input_configure_dialog);
+DEFINE_DIALOG(options_paths_dialog);
 DEFINE_DIALOG(netplay_dialog);
 DEFINE_DIALOG(lobby_dialog);
 DEFINE_DIALOG(help_shortcuts_dialog);
@@ -236,6 +237,33 @@ enum
    VIDEO_COLOR_DIALOG_GAMMA,
    VIDEO_COLOR_DIALOG_SAVE_BUTTON,
    VIDEO_COLOR_DIALOG_RESET_BUTTON
+};
+
+static const DIALOG options_paths_dialog_base[] =
+{
+   { sl_frame,    0,   0,   251, 135, 0, 0, 0,   0,      0, 0, NULL,      "Paths",       NULL },
+   { sl_x_button, 232, 4,   16,  12,  0, 0, 0,   D_EXIT, 0, 0, "X",       NULL,          NULL },
+   { sl_text,     9,   28,  0,   0,   0, 0, 0,   0,      0, 0, NULL,      "O&pen Path:", NULL },
+   { sl_editbox,  9,   39,  233, 14,  0, 0, 'p', 0,      0, 0, NULL,      NULL,          NULL },
+   { sl_checkbox, 18,  58,  64,  8,   0, 0, 'l', 0,      0, 0, "&Locked", NULL,          NULL },
+   { sl_text,     9,   76,  0,   0,   0, 0, 0,   0,      0, 0, NULL,      "&Save Path:", NULL },
+   { sl_editbox,  9,   87,  233, 14,  0, 0, 's', 0,      0, 0, NULL,      NULL,          NULL },
+   { sl_button,   75,  110, 48,  16,  0, 0, 'o', D_EXIT, 0, 0, "&OK",     NULL,          NULL },
+   { sl_button,   129, 110, 48,  16,  0, 0, 'c', D_EXIT, 0, 0, "&Cancel", NULL,          NULL },
+   DIALOG_FRAME_ENDCAP
+};
+
+enum
+{
+   OPTIONS_PATHS_DIALOG_FRAME = 0,
+   OPTIONS_PATHS_DIALOG_CLOSE_BUTTON,
+   OPTIONS_PATHS_DIALOG_OPEN_PATH_LABEL,
+   OPTIONS_PATHS_DIALOG_OPEN_PATH,
+   OPTIONS_PATHS_DIALOG_LOCKED,
+   OPTIONS_PATHS_DIALOG_SAVE_PATH_LABEL,
+   OPTIONS_PATHS_DIALOG_SAVE_PATH,
+   OPTIONS_PATHS_DIALOG_OK_BUTTON,
+   OPTIONS_PATHS_DIALOG_CANCEL_BUTTON
 };
 
 DEFINE_DIALOG_CALLBACK(options_input_configure_dialog_player_select);
@@ -628,6 +656,7 @@ static INLINE void load_dialogs (void)
    DIALOG_FROM_BASE(machine_cheat_manager_dialog);
    DIALOG_FROM_BASE(video_color_dialog);
    DIALOG_FROM_BASE(options_input_configure_dialog);
+   DIALOG_FROM_BASE(options_paths_dialog);
    DIALOG_FROM_BASE(netplay_dialog);
    DIALOG_FROM_BASE(lobby_dialog);
    DIALOG_FROM_BASE(help_shortcuts_dialog);
@@ -645,6 +674,7 @@ static INLINE void unload_dialogs (void)
    unload_dialog (machine_cheat_manager_dialog);
    unload_dialog (video_color_dialog);
    unload_dialog (options_input_configure_dialog);
+   unload_dialog (options_paths_dialog);
    unload_dialog (netplay_dialog);
    unload_dialog (lobby_dialog);
    unload_dialog (help_shortcuts_dialog);
