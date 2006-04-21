@@ -33,6 +33,8 @@ int timing_audio_fps;
 REAL timing_speed_multiplier;
 BOOL timing_half_speed;
 
+unsigned timing_clock;
+
 int machine_init (void);
 void machine_exit (void);
 void machine_reset (void);

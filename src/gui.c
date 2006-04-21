@@ -108,6 +108,7 @@ static INLINE void update_menus (void)
       DISABLE_SUBMENU(machine_save_state_menu);
       DISABLE_MENU_ITEM(machine_menu_cheat_manager);
       DISABLE_MENU_ITEM(video_layers_menu_flip_mirroring);
+      DISABLE_MENU_ITEM(options_menu_reset_clock);
    }
 
    if (!apu_stereo_mode)
@@ -955,6 +956,9 @@ static INLINE int load_file (const UCHAR *filename)
       /* Initialize machine. */
       machine_init ();
 
+      /* Clear the game clock. */
+      options_menu_reset_clock ();
+
       ENABLE_MENU_ITEM(main_menu_resume);
       ENABLE_MENU_ITEM(main_menu_close);
       ENABLE_SUBMENU(main_replay_menu);
@@ -964,6 +968,7 @@ static INLINE int load_file (const UCHAR *filename)
       ENABLE_SUBMENU(machine_save_state_menu);
       ENABLE_MENU_ITEM(machine_menu_cheat_manager);
       ENABLE_MENU_ITEM(video_layers_menu_flip_mirroring);
+      ENABLE_MENU_ITEM(options_menu_reset_clock);
 
       /* Update window title. */
       uszprintf (scratch, sizeof (scratch), "FakeNES - %s", get_filename
@@ -1608,17 +1613,23 @@ static int main_menu_exit (void)
 
 static int machine_menu_soft_reset (void)
 {
-    machine_reset ();
+   machine_reset ();
 
-    return (D_CLOSE);
+   /* Clear the game clock. */
+   options_menu_reset_clock ();
+
+   return (D_CLOSE);
 }
 
 static int machine_menu_hard_reset (void)
 {
-    machine_exit ();
-    machine_init ();
+   machine_exit ();
+   machine_init ();
 
-    return (D_CLOSE);
+   /* Clear the game clock. */
+   options_menu_reset_clock ();
+
+   return (D_CLOSE);
 }
 
 #define SAVE_STATE_SELECT_MENU_HANDLER(index)   \
@@ -3232,6 +3243,13 @@ static int options_menu_show_status (void)
 {
    video_display_status = (! video_display_status);
    update_menus ();
+
+   return (D_O_K);
+}
+
+static int options_menu_reset_clock (void)
+{
+   timing_clock = 0;
 
    return (D_O_K);
 }

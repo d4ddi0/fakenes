@@ -432,7 +432,7 @@ int video_init_buffer (void)
 
    /* Create status buffer. */
    status_buffer = create_sub_bitmap (screen_buffer, 8, (screen_buffer->h -
-      100), 80, 100);
+      116), 80, 100);
    if (!status_buffer)
    {
       destroy_bitmap (screen_buffer);
@@ -594,6 +594,8 @@ static INLINE void display_status (BITMAP *bitmap, FONT *font, int color)
 {
    int y = 0;
    int indent, line, spacer;
+   int hours = 0, minutes = 0, seconds = 0;
+   unsigned offset;
 
    RT_ASSERT(bitmap);
    RT_ASSERT(font);
@@ -601,6 +603,30 @@ static INLINE void display_status (BITMAP *bitmap, FONT *font, int color)
    indent = text_length (font, "XXX");
    line   = ROUND((text_height (font) * 1.67f));
    spacer = ROUND((line * 1.33f));
+
+   /* Convert seconds-elapsed to hours, minutes, and seconds. */
+
+   for (offset = 0; offset < timing_clock; offset++)
+   {
+      seconds++;
+      if (seconds >= 60)
+      {
+         seconds -= 60;
+         minutes++;
+         if (minutes >= 60)
+         {
+            minutes -= 60;
+            hours++;
+            if (hours > 60)
+               hours = 60;
+         }
+      }
+   }
+
+   shadow_textprintf (bitmap, font, 0, y, color, "%02d:%02d:%02d",
+      hours, minutes, seconds);
+
+   y += spacer;
 
    shadow_textout (bitmap, font, "Video:", 0, y, color);
    y += line;

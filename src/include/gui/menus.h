@@ -956,11 +956,13 @@ static const MENU options_gui_theme_menu_base[] =
 };
 
 DEFINE_MENU_CALLBACK(options_menu_show_status);
+DEFINE_MENU_CALLBACK(options_menu_reset_clock);
 DEFINE_MENU_CALLBACK(options_menu_paths);
 
 static const MENU options_menu_base[] =
 {
    { "&Show Status (F2)", options_menu_show_status,  NULL,                                0, NULL },
+   { "&Reset Clock",      options_menu_reset_clock,  NULL,                                0, NULL },
    MENU_SPLITTER,
    { "&Input",            NULL,                      IMPORT_MENU(options_input_menu),     0, NULL },
 #ifndef ALLEGRO_DOS

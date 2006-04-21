@@ -57,6 +57,9 @@ int timing_fps = 0;
 int timing_hertz = 0;
 int timing_audio_fps = 0;
 
+/* Game clock (in seconds). */
+unsigned timing_clock = 0;
+
 /* Counters. */
 static int executed_frames = 0;
 static int rendered_frames = 0;
@@ -284,6 +287,9 @@ int main (int argc, char *argv[])
             actual_fps_count = 0;
             virtual_fps_count = 0;
             audio_fps = 0;
+
+            /* Increment our clock by one second. */
+            timing_clock++;
 
             /* Clear interrupt flag so it doesn't fire again. */
             frame_interrupt = FALSE;
