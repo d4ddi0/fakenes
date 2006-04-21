@@ -116,7 +116,7 @@ static const DIALOG main_replay_record_start_dialog_base[] =
    { sl_frame,    0,   0,  156, 84, 0, 0, 0,   0,      0, 0, NULL,  "Record Replay", NULL },
    { sl_x_button, 136, 4,  16,  12, 0, 0, 0,   D_EXIT, 0, 0, "X",   NULL,            NULL },
    { sl_text,     9,   36, 0,   0,  0, 0, 0,   0,      0, 0, NULL,  "&Title:",       NULL },
-   { sl_editbox,  48,  32, 96,  16, 0, 0, 0,   0,      0, 0, NULL,  NULL,            NULL },
+   { sl_editbox,  48,  32, 96,  16, 0, 0, 't', 0,      0, 0, NULL,  NULL,            NULL },
    { sl_button,   112, 56, 32,  16, 0, 0, 'o', D_EXIT, 0, 0, "&OK", NULL,            NULL },
    DIALOG_FRAME_ENDCAP
 };  
@@ -135,7 +135,7 @@ static const DIALOG machine_save_state_save_dialog_base[] =
    { sl_frame,    0,   0,  156, 84, 0, 0, 0,   0,      0, 0, NULL,  "Save State", NULL },
    { sl_x_button, 136, 4,  16,  12, 0, 0, 0,   D_EXIT, 0, 0, "X",   NULL,         NULL },
    { sl_text,     9,   36, 0,   0,  0, 0, 0,   0,      0, 0, NULL,  "&Title:",    NULL },
-   { sl_editbox,  48,  32, 96,  16, 0, 0, 0,   0,      0, 0, NULL,  NULL,         NULL },
+   { sl_editbox,  48,  32, 96,  16, 0, 0, 't', 0,      0, 0, NULL,  NULL,         NULL },
    { sl_button,   112, 56, 32,  16, 0, 0, 'o', D_EXIT, 0, 0, "&OK", NULL,         NULL },
    DIALOG_FRAME_ENDCAP
 };
@@ -153,10 +153,10 @@ static const DIALOG machine_cheat_manager_add_dialog_base[] =
 {
    { sl_frame,    0,   0,  156, 100, 0, 0, 0,   0,      0, 0, NULL,  "Add Cheat", NULL },
    { sl_x_button, 136, 4,  16,  12,  0, 0, 0,   D_EXIT, 0, 0, "X",   NULL,        NULL },
-   { sl_text,     9,   36, 0,   0,   0, 0, 't', 0,      0, 0, NULL,  "&Title:",   NULL },
-   { sl_editbox,  48,  32, 96,  16,  0, 0, 0,   0,      0, 0, NULL,  NULL,        NULL },
-   { sl_text,     14,  56, 0,   0,   0, 0, 'c', 0,      0, 0, NULL,  "&Code:",    NULL },
-   { sl_editbox,  48,  52, 61,  16,  0, 0, 0,   0,      0, 0, NULL,  NULL,        NULL },
+   { sl_text,     9,   36, 0,   0,   0, 0, 0,   0,      0, 0, NULL,  "&Title:",   NULL },
+   { sl_editbox,  48,  32, 96,  16,  0, 0, 't', 0,      0, 0, NULL,  NULL,        NULL },
+   { sl_text,     14,  56, 0,   0,   0, 0, 0,   0,      0, 0, NULL,  "&Code:",    NULL },
+   { sl_editbox,  48,  52, 61,  16,  0, 0, 'c', 0,      0, 0, NULL,  NULL,        NULL },
    { sl_button,   112, 76, 32,  16,  0, 0, 'o', D_EXIT, 0, 0, "&OK", NULL,        NULL },
    DIALOG_FRAME_ENDCAP
 };
@@ -336,13 +336,13 @@ static const DIALOG netplay_dialog_base[] =
 {
    { sl_frame,    0,   0,  153, 108, 0, 0, 0,   0,      0, 0, NULL,      "NetPlay", NULL },
    { sl_x_button, 133, 4,  16,  12,  0, 0, 0,   D_EXIT, 0, 0, "X",       NULL,      NULL },
-   { sl_text,     9,   31, 0,   0,   0, 0, 'h', 0,      0, 0, NULL,      "&Host:",  NULL },
-   { sl_editbox,  40,  27, 104, 14,  0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
-   { sl_text,     9,   49, 0,   0,   0, 0, 'p', 0,      0, 0, NULL,      "&Port:",  NULL },
-   { sl_editbox,  40,  45, 40,  14,  0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
+   { sl_text,     9,   31, 0,   0,   0, 0, 0,   0,      0, 0, NULL,      "&Host:",  NULL },
+   { sl_editbox,  40,  27, 104, 14,  0, 0, 'h', 0,      0, 0, NULL,      NULL,      NULL },
+   { sl_text,     9,   49, 0,   0,   0, 0, 0,   0,      0, 0, NULL,      "&Port:",  NULL },
+   { sl_editbox,  40,  45, 40,  14,  0, 0, 'p', 0,      0, 0, NULL,      NULL,      NULL },
    { sl_text,     84,  49, 0,   0,   0, 0, 0,   0,      0, 0, NULL,      "TCP",     NULL },
-   { sl_text,     9,   69, 0,   0,   0, 0, 'n', 0,      0, 0, NULL,      "&Nick:",  NULL },
-   { sl_editbox,  40,  65, 88,  14,  0, 0, 0,   0,      0, 0, NULL,      NULL,      NULL },
+   { sl_text,     9,   69, 0,   0,   0, 0, 0,   0,      0, 0, NULL,      "&Nick:",  NULL },
+   { sl_editbox,  40,  65, 88,  14,  0, 0, 'n', 0,      0, 0, NULL,      NULL,      NULL },
    { sl_button,   61,  86, 32,  16,  0, 0, 'o', D_EXIT, 0, 0, "&OK",     NULL,      NULL },
    { sl_button,   97,  86, 48,  16,  0, 0, 'c', D_EXIT, 0, 0, "&Cancel", NULL,      NULL },
    DIALOG_FRAME_ENDCAP
