@@ -1,26 +1,27 @@
-ifopt --verbose verbose 1
-                                       
+ifopt --verbose     verbose 1
+
 # --
 
 do ifopt --help
    echo "
 CBuild options:
-    --help         Display this help message
-    --vebose       Enable more verbose command printing
+    --help           Display this help message
+    --vebose         Enable more verbose command printing
 
 Target options:
-    clean          Clean a previously compiled build
-    debug          Compile a debug build
-    profile        Compile a profiling build
+    clean            Clean a previously compiled build
+    debug            Compile a debug build
+    profile          Compile a profiling build
 
 Package options:
-    -alleggl       Do not use AllegroGL even if found
-    -hawknl        Do not use HawkNL even if found
-    -openal        Do not use OpenAL even if found
-    -zlib          Do not use zlib even if found
+    -alleggl         Do not use AllegroGL even if found
+    -hawknl          Do not use HawkNL even if found
+    -openal          Do not use OpenAL even if found
+    -zlib            Do not use zlib even if found
 
 Other options:
-    tag=TAG        Set version tag to TAG
+    --tag=TAG        Set version tag to TAG (e.g WIP)
+    --debug-level=X  Set debug information level to X
 "
 
    exit 0
@@ -87,7 +88,7 @@ CPPFLAGS += " -I${DEP_DIR} -I${SRC_DIR}/include -I${SUPPORT_DIR}"
 CFLAGS ?= '-pipe -O3 -ffast-math -fomit-frame-pointer -s'
 
 # Overrides.
-ifopt debug   CFLAGS = '-O2 -g'
+ifopt debug   CFLAGS = "-O0 -g$('getoptval' --debug-level)"
 ifopt profile CFLAGS = '-O2 -pg'
 
 # Extensions.
@@ -95,6 +96,9 @@ CFLAGS += ' -W -Wall -Wno-unused'
 
 # Unix support.
 ifplat unix CFLAGS += ' -DPOSIX'
+
+# Version tagging.
+ifopt --tag CFLAGS += " -DVERSION_TAG=\"$('getoptval' --tag)\""
 
 # --
 
