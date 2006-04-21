@@ -315,12 +315,13 @@ static INLINE UCHAR *get_save_filename (UCHAR *filename, const UCHAR *ext,
    RT_ASSERT(filename);
    RT_ASSERT(ext);
 
-   USTRING_CLEAR(path);
-   ustrncat (path, get_config_string ("gui", "save_path", "./"), (sizeof
-      (path) - 1));
-   put_backslash (path);
-   ustrncat (path, get_filename (global_rom.filename), (sizeof (path) - 1));
-   
+   /* Grab the filename of the currently loaded ROM. */
+   ustrzcpy (path, sizeof (path), get_filename (global_rom.filename));
+
+   /* Merge it with our save path. */
+   get_save_path (path, sizeof (path));
+
+   /* Change the extension. */
    replace_extension (path, path, ext, sizeof (path));
 
    /* Copy to output. */
@@ -333,7 +334,6 @@ static INLINE UCHAR *get_save_filename (UCHAR *filename, const UCHAR *ext,
 static INLINE UCHAR *get_state_filename (UCHAR *filename, int index, int
    size)
 {
-
    /* This function generates the path and filename for the state file
       associated with the state slot 'index'.  State files are stored in
       the save path, and have a .fn# extension.  If 'index' is -1, the
@@ -858,6 +858,31 @@ BOOL save_sram (void)
 }
 
 /* --- Miscellaneous. --- */
+
+UCHAR *get_save_path (UCHAR *filename, int size)
+{                                     
+   /* This function places the filename part of 'filename' at the end of
+      the currently defined save path.
+
+      This function modifies 'filename' in-place, so it should not be
+      constant.  'size' is the absolute maximum size of 'filename'. */
+
+   USTRING path;
+
+   RT_ASSERT(filename);
+
+   USTRING_CLEAR(path);
+   ustrncat (path, get_config_string ("gui", "save_path", "./"), (sizeof
+      (path) - 1));
+   put_backslash (path);
+   ustrncat (path, get_filename (filename), (sizeof (path) - 1));
+   
+   /* Copy to output. */
+   USTRING_CLEAR_SIZE(filename, size);
+   ustrncat (filename, path, (size - 1));
+
+   return (filename);
+}
 
 UCHAR *fix_save_title (UCHAR *title, int size)
 {

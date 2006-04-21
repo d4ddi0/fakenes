@@ -1477,11 +1477,16 @@ static int main_menu_save_snapshot (void)
 {
    int index;
 
-   for (index = 0; index < 9999; index++)
+   for (index = 0; index < 999; index++)
    {
+      USTRING path;
       USTRING filename;
 
-      uszprintf (filename, sizeof (filename), "snap%04d.pcx", index);
+      uszprintf (filename, sizeof (filename), "%s_%03d.pcx", get_filename
+         (global_rom.filename), index);
+
+      /* Merge it with our save path. */
+      get_save_path (filename, sizeof (filename));
 
       if (exists (filename))
          continue;
@@ -2443,11 +2448,15 @@ static int audio_record_menu_start (void)
 {
    int index;
 
-   for (index = 0; index < 9999; index++)
+   for (index = 0; index < 999; index++)
    {
       USTRING filename;
 
-      uszprintf (filename, sizeof (filename), "wave%04d.wav", index);
+      uszprintf (filename, sizeof (filename), "%s_%03d.wav", get_filename
+         (global_rom.filename), index);
+
+      /* Merge it with our save path. */
+      get_save_path (filename, sizeof (filename));
 
       if (exists (filename))
          continue;

@@ -33,6 +33,7 @@ BOOL load_patches (void);
 BOOL save_patches (void);
 BOOL load_sram (void);
 BOOL save_sram (void);
+UCHAR *get_save_path (UCHAR *, int);
 UCHAR *fix_save_title (UCHAR *, int);
 
 #ifdef __cplusplus
