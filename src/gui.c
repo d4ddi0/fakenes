@@ -1683,6 +1683,8 @@ static int machine_save_state_menu_save (void)
       return (D_O_K);
    }
 
+   message_local ("Machine state saved to slot %d.", save_state_index);
+
    /* Update save state titles. */
    machine_save_state_menu_select ();
 
