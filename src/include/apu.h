@@ -249,6 +249,8 @@ typedef struct apu_s
 } apu_t;
 
 /* Function prototypes */
+void apu_load_config (void);
+void apu_save_config (void);
 int apu_init (void);
 void apu_exit (void);
 void apu_reset (void);

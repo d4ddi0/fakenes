@@ -563,10 +563,12 @@ static INLINE REAL apu_dmc (apu_chan_t *chan)
    return (chan->output);
 }
 
-int apu_init (void)
+void apu_load_config (void)
 {
-   /* Initialize DSP. */
-   dsp_init ();
+   /* Like other components, the APU is both an interface and an emulation.
+      However, apu_init() and apu_exit() should only be called during
+      emulation (e.g, when a ROM is loaded/unloaded).  To load the
+      configuration, uses these two functions instead. */
 
    /* Load configuration. */
 
@@ -580,22 +582,10 @@ int apu_init (void)
    DSP_ENABLE_CHANNEL_EX(APU_CHANNEL_EXTRA_1,  get_config_int ("apu", "enable_extra_1",  TRUE));
    DSP_ENABLE_CHANNEL_EX(APU_CHANNEL_EXTRA_2,  get_config_int ("apu", "enable_extra_2",  TRUE));
    DSP_ENABLE_CHANNEL_EX(APU_CHANNEL_EXTRA_3,  get_config_int ("apu", "enable_extra_3",  TRUE));
-
-   /* Initialize everything else. */
-   apu_update ();
-
-   /* Reset APU. */
-   apu_reset ();
-
-   /* Return success. */
-   return (0);
 }
 
-void apu_exit (void)
+void apu_save_config (void)
 {
-   /* Deinitialize DSP. */
-   dsp_exit ();
-
    /* Save configuration. */
 
    set_config_int ("apu", "stereo_mode", apu_stereo_mode);
@@ -608,7 +598,24 @@ void apu_exit (void)
    set_config_int ("apu", "enable_extra_1",  dsp_get_channel_enabled (APU_CHANNEL_EXTRA_1));
    set_config_int ("apu", "enable_extra_2",  dsp_get_channel_enabled (APU_CHANNEL_EXTRA_2));
    set_config_int ("apu", "enable_extra_3",  dsp_get_channel_enabled (APU_CHANNEL_EXTRA_3));
-}  
+}
+
+int apu_init (void)
+{
+   /* Initialize everything else. */
+   apu_update ();
+
+   /* Reset APU. */
+   apu_reset ();
+
+   /* Return success. */
+   return (0);
+}
+
+void apu_exit (void)
+{
+   /* Do nothing. */
+}
 
 void apu_reset (void)
 {

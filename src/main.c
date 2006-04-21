@@ -15,6 +15,7 @@
 #include "cpu.h"
 #include "data.h"
 #include "debug.h"
+#include "dsp.h"
 #include "gui.h"
 #include "input.h"
 #include "log.h"
@@ -212,6 +213,18 @@ int main (int argc, char *argv[])
       free_rom (&global_rom);
       return (1);
    }
+
+
+   if (dsp_init () != 0)
+   {
+      WARN("Failed to initialize digital sound processor");
+
+      free_rom (&global_rom);
+      return (1);
+   }
+
+
+   apu_load_config ();
 
 
    fade_out (4);
@@ -643,6 +656,11 @@ int main (int argc, char *argv[])
 
    video_exit ();
 
+
+   apu_save_config ();
+
+
+   dsp_exit ();
 
    audio_exit ();
 
