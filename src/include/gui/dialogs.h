@@ -324,7 +324,7 @@ static const DIALOG options_input_configure_dialog_base[] =
    { sl_checkbox,   9,   193, 80,  7,   0, 0, 0,   0,      0,   0,                       "Toggled auto",                             NULL,                                         NULL },
    { sl_checkbox,   9,   203, 216, 7,   0, 0, 0,   0,      0,   0,                       "Merge players 3 && 4 with players 1 && 2", NULL,                                         NULL },
    { sl_text,       9,   219, 0,   0,   0, 0, 0,   0,      0,   0,                       NULL,                                       "Turbo:",                                     NULL },
-   { d_slider_proc, 48,  219, 192, 7,   0, 0, 0,   0,      200, 0,                       NULL,                                       NULL,                                         NULL },
+   { d_slider_proc, 48,  219, 192, 7,   0, 0, 0,   0,      100, 0,                       NULL,                                       NULL,                                         NULL },
    { sl_button,     104, 235, 48,  16,  0, 0, 0,   D_EXIT, 0,   0,                       "Save",                                     NULL,                                         NULL },
    DIALOG_FRAME_ENDCAP                                                                                                              
 };
