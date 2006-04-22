@@ -1337,7 +1337,7 @@ void input_map_player_button (ENUM player, ENUM button)
                break;
             }
 
-            data = &joystick_data[player][button];
+            data = &joystick_data[index][button];
 
             switch (type)
             {
