@@ -1,4 +1,3 @@
-
 /* Helper macros for scaling dialog objects to fonts. */
 #define FONT_SCALE_X(size) ROUND(((size / 5.0f) * text_length (font, "X")))
 #define FONT_SCALE_Y(size) ROUND(((size / 6.0f) * text_height (font)))
@@ -397,6 +396,41 @@ int sl_checkbox (int message, DIALOG *dialog, int key)
    return (d_check_proc (message, dialog, key));
 }
 
+int sl_hr (int message, DIALOG *dialog, int key)
+{
+   /*
+      Horizontal splitter.
+   */
+
+   RT_ASSERT(dialog);
+
+   switch (message)
+   {
+      case MSG_DRAW:
+      {
+         int x, y, x2;
+         BITMAP *bmp;
+
+         x = dialog->x;
+         y = dialog->y;
+         x2 = ((x + dialog->w) - 1);
+
+         bmp = gui_get_screen ();
+
+         hline (bmp, x, y,       x2, GUI_LIGHT_SHADOW_COLOR);
+         hline (bmp, x, (y + 1), x2, GUI_BACKGROUND_COLOR);
+         hline (bmp, x, (y + 2), x2, GUI_BORDER_COLOR);
+
+         break;
+      }
+
+      default:
+         break;
+   }
+
+   return (D_O_K);
+}
+
 int sl_listbox (int message, DIALOG *dialog, int key)
 {
    /*
@@ -593,7 +627,58 @@ int sl_radiobox (int message, DIALOG *dialog, int key)
       }
 
       case MSG_DRAW:
-         return (sl_checkbox (message, dialog, key));
+      {
+         int x1, y1, x2, y2;
+         int c;
+         BITMAP *bmp;
+
+         x1 = dialog->x;
+         y1 = dialog->y;
+         x2 = ((dialog->x + dialog->h) - 1);
+         y2 = ((dialog->y + dialog->h) - 1);
+
+         if (dialog->flags & D_DISABLED)
+            c = GUI_DISABLED_COLOR;
+         else
+            c = GUI_TEXT_COLOR;
+
+         bmp = gui_get_screen ();
+
+         /* Draw box border shadow. */
+         rect (bmp, (x1 + 1), (y1 + 1), (x2 + 1), (y2 + 1),
+            GUI_SHADOW_COLOR);
+
+         /* Draw inside of box. */
+         rectfill (bmp, x1, y1, x2, y2, GUI_FILL_COLOR);
+
+         /* Draw box border. */
+         rect (bmp, x1, y1, x2, y2, c);
+
+         if (dialog->flags & D_SELECTED)
+         {
+            /* Draw bullet. */
+            rectfill (bmp, (x1 + 2), (y1 + 2), (x2 - 2), (y2 - 2), c);
+         }
+
+         if (dialog->flags & D_GOTFOCUS)
+         {
+            /* Draw selection focus. */
+            rect (bmp, (x1 + 2), (y1 + 2), (x2 - 2), (y2 - 2),
+               GUI_BORDER_COLOR);
+         }
+
+         y1++;
+         x2 += 4;
+
+         /* Draw text shadow. */
+         gui_textout_ex (bmp, dialog->dp, (x2 + 1), (y1 + 1),
+            GUI_SHADOW_COLOR, -1, FALSE);
+
+         /* Draw text. */
+         gui_textout_ex (bmp, dialog->dp, x2, y1, c, -1, FALSE);
+
+         return (D_O_K);
+      }
 
       default:
          break;

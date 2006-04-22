@@ -41,6 +41,22 @@ enum { BUTTON_ON  = 1 };
 
 #define BUTTON_ON_OR_OFF(x)   (x ? BUTTON_ON : BUTTON_OFF)
 
+/* Button modifiers such as auto and turbo. */
+static LIST button_modifiers[INPUT_PLAYERS][INPUT_BUTTONS];
+
+/* There's a maximum of 4 of these due to how they are saved (see below). */
+enum {
+   BUTTON_MODIFIER_AUTO     = (1 << 0),
+   BUTTON_MODIFIER_TURBO    = (1 << 1),
+   BUTTON_MODIFIER_UNUSED_1 = (1 << 2),
+   BUTTON_MODIFIER_UNUSED_2 = (1 << 3),
+};
+
+/* Defines determining how button modifiers are packed into/loaded from a
+   LIST for storage in the configuration file. */
+#define MODIFIER_SHIFTS 4
+#define MODIFIER_MASK   0xf
+                            
 /* Whether or not Zapper (light gun) emulation is enabled.  Having this
    enabled when not necessary can make frameskipping less efficient, since
    sometimes the PPU has to render skipped frames for Zapper hitscan. */
@@ -109,6 +125,12 @@ enum
 /* Number of frames to countdown before input will be processed again (this
    only applies to INPUT_MODE_PLAY). */
 static int wait_frames = 0;
+
+/* General options. */
+static BOOL allow_conflicts = FALSE;
+static BOOL toggled_auto    = FALSE;
+static BOOL merge_players   = FALSE;
+static REAL turbo_rate      = 0.5f;
 
 static INLINE void load_keyboard_config (void)
 {
@@ -288,20 +310,58 @@ static INLINE void save_joystick_config (void)
    }
 }
 
-
-int input_init (void)
+static INLINE void load_modifier_config (void)
 {
    int player;
 
-   install_keyboard ();
-   install_mouse ();
-
-   if (load_joystick_data (NULL) != 0)
+   for (player = 0; player < INPUT_PLAYERS; player++)
    {
-      /* load_joystick_data() failed; reinitialize joystick system. */
-      install_joystick (JOY_TYPE_AUTODETECT);
-   }
+      USTRING key;
+      LIST list;
+      int button;
 
+      USTRING_CLEAR(key);
+      uszprintf (key, sizeof (key), "player_%d_modifiers", (player + 1));
+
+      list = get_config_int ("input", key, 0);
+
+      for (button = 0; button < INPUT_BUTTONS; button++)
+      {
+         button_modifiers[player][button] = (list & MODIFIER_MASK);
+         list >>= MODIFIER_SHIFTS;
+      }
+   }
+}
+
+static INLINE void save_modifier_config (void)
+{
+   int player;
+
+   for (player = 0; player < INPUT_PLAYERS; player++)
+   {
+      LIST list = 0;
+      int button;
+      USTRING key;
+
+      /* We have to go backwards when saving. ;p */
+
+      for (button = (INPUT_BUTTONS - 1); button >= 0; button--)
+      {
+         list <<= MODIFIER_SHIFTS;
+         list |= button_modifiers[player][button];
+      }
+
+      USTRING_CLEAR(key);
+      uszprintf (key, sizeof (key), "player_%d_modifiers", (player + 1));
+
+      set_config_int ("input", key, list);
+   }
+}
+
+void input_load_config (void)
+{
+   int player;
+   
    for (player = 0; player < INPUT_PLAYERS; player++)
    {
       USTRING key;
@@ -326,30 +386,20 @@ int input_init (void)
    load_keyboard_config ();
    load_joystick_config ();
 
-   /* Clear chat text buffer. */
-   USTRING_CLEAR(input_chat_text);
+   load_modifier_config ();
 
-   /* Enter gameplay mode. */
-   input_mode = INPUT_MODE_PLAY;
-
-   /* Reset everything. */
-   input_reset ();
-
-   /* Return success. */
-   return (0);
+   allow_conflicts = get_config_int   ("input", "allow_conflicts", allow_conflicts);
+   toggled_auto    = get_config_int   ("input", "toggled_auto",    toggled_auto);
+   merge_players   = get_config_int   ("input", "merge_players",   merge_players);
+   turbo_rate      = get_config_float ("input", "turbo_rate",      turbo_rate);
+   
+   if (turbo_rate < EPSILON)
+      turbo_rate = EPSILON;
 }
 
-void input_exit (void)
+void input_save_config (void)
 {
    int player;
-
-   /* Remove drivers. */
-
-   remove_keyboard ();
-   remove_mouse ();
-   remove_joystick ();
-
-   /* Save configuration. */
 
    for (player = 0; player < INPUT_PLAYERS; player++)
    {
@@ -367,6 +417,52 @@ void input_exit (void)
 
    save_keyboard_config ();
    save_joystick_config ();
+
+   save_modifier_config ();
+
+   set_config_int   ("input", "allow_conflicts", allow_conflicts);
+   set_config_int   ("input", "toggled_auto",    toggled_auto);
+   set_config_int   ("input", "merge_players",   merge_players);
+   set_config_float ("input", "turbo_rate",      turbo_rate);
+}
+
+int input_init (void)
+{
+   install_keyboard ();
+   install_mouse ();
+
+   if (load_joystick_data (NULL) != 0)
+   {
+      /* load_joystick_data() failed; reinitialize joystick system. */
+      install_joystick (JOY_TYPE_AUTODETECT);
+   }
+
+   /* Load configuration. */
+   input_load_config ();
+
+   /* Clear chat text buffer. */
+   USTRING_CLEAR(input_chat_text);
+
+   /* Enter gameplay mode. */
+   input_mode = INPUT_MODE_PLAY;
+
+   /* Reset everything. */
+   input_reset ();
+
+   /* Return success. */
+   return (0);
+}
+
+void input_exit (void)
+{
+   /* Remove drivers. */
+
+   remove_keyboard ();
+   remove_mouse ();
+   remove_joystick ();
+
+   /* Save configuration. */
+   input_save_config ();
 }
 
 void input_reset (void)
@@ -751,6 +847,8 @@ static INLINE void do_mouse (int player)
 
 void input_process (void)
 {
+   static int turbo_phase  = 0;
+   static int turbo_frames = 0;
    int player;
 
    if (!(input_mode & INPUT_MODE_REPLAY_RECORD))
@@ -814,6 +912,7 @@ void input_process (void)
    for (player = 0; player < INPUT_PLAYERS; player++)
    {
       int *buttons = &player_buttons[player][0];
+      int button;
 
       switch (input_devices[player])
       {
@@ -849,23 +948,99 @@ void input_process (void)
             break;
          }
       }
- 
-      if (buttons[INPUT_BUTTON_UP] && buttons[INPUT_BUTTON_DOWN])
-      {
-         /* Prevent up and down from being pressed at the same time */
 
-         buttons[INPUT_BUTTON_UP]   = BUTTON_OFF;
-         buttons[INPUT_BUTTON_DOWN] = BUTTON_OFF;
-      }
- 
-      if (buttons[INPUT_BUTTON_LEFT] && buttons[INPUT_BUTTON_RIGHT])
-      {
-         /* Prevent left and right from being pressed at the same time */
+      /* Apply modifiers. */
 
-         buttons[INPUT_BUTTON_LEFT]  = BUTTON_OFF;
-         buttons[INPUT_BUTTON_RIGHT] = BUTTON_OFF;
+      for (button = 0; button < INPUT_BUTTONS; button++)
+      {
+         static BOOL auto_cache[INPUT_PLAYERS][INPUT_BUTTONS];
+         const LIST *list = &button_modifiers[player][button];
+
+         if (LIST_COMPARE(*list, BUTTON_MODIFIER_AUTO))
+         {
+            if (toggled_auto)
+            {
+               if (buttons[button] == BUTTON_ON)
+               {
+                  /* Invert auto status and cache it for next time. */
+                  auto_cache[player][button] =
+                     BUTTON_ON_OR_OFF(!auto_cache[player][button]);
+               }
+
+               buttons[button] = auto_cache[player][button];
+            }
+            else
+            {
+               /* Always on. */
+               buttons[button] = BUTTON_ON;
+            }
+         }
+
+         if (LIST_COMPARE(*list, BUTTON_MODIFIER_TURBO))
+            buttons[button] = MIN(buttons[button], turbo_phase);
       }
- 
+
+      if (!allow_conflicts)
+      {
+         /* Fix up conflicting directional controls. */
+
+         if (buttons[INPUT_BUTTON_UP] && buttons[INPUT_BUTTON_DOWN])
+         {
+            /* Prevent up and down from being pressed at the same time */
+   
+            buttons[INPUT_BUTTON_UP]   = BUTTON_OFF;
+            buttons[INPUT_BUTTON_DOWN] = BUTTON_OFF;
+         }
+    
+         if (buttons[INPUT_BUTTON_LEFT] && buttons[INPUT_BUTTON_RIGHT])
+         {
+            /* Prevent left and right from being pressed at the same time */
+   
+            buttons[INPUT_BUTTON_LEFT]  = BUTTON_OFF;
+            buttons[INPUT_BUTTON_RIGHT] = BUTTON_OFF;
+         }
+      }
+
+      if (merge_players)
+      {
+         switch (player)
+         {
+            case INPUT_PLAYER_1:
+            {
+               /* Merge player 3 with player 1. */
+
+               for (button = 0; button < INPUT_BUTTONS; button++)
+               {
+                  buttons[button] = MAX(buttons[button],
+                     player_buttons[INPUT_PLAYER_3][button]);
+
+                  player_buttons[INPUT_PLAYER_3][button] = buttons[button];
+               }
+
+               break;
+            }
+
+            case INPUT_PLAYER_2:
+            {
+               /* Merge player 4 with player 2. */
+
+               for (button = 0; button < INPUT_BUTTONS; button++)
+               {
+                  buttons[button] = MAX(buttons[button],
+                     player_buttons[INPUT_PLAYER_4][button]);
+
+                  player_buttons[INPUT_PLAYER_4][button] = buttons[button];
+               }
+
+               break;
+            }
+
+            default:
+               break;
+         }
+      }
+
+
       if (input_mode & INPUT_MODE_REPLAY_RECORD)
       {
          /* Send player button states to the replay file. */
@@ -881,6 +1056,21 @@ void input_process (void)
  
          save_replay_data (data);
       }
+   }
+
+   if (--turbo_frames <= 0)
+   {
+      int speed;
+
+      /* Invert phase. */
+
+      turbo_phase = BUTTON_ON_OR_OFF(!turbo_phase);
+
+      /* Set frame counter. */
+   
+      speed = timing_get_speed ();
+   
+      turbo_frames = ROUND((speed / (speed * turbo_rate)));
    }
 }
 
@@ -1192,6 +1382,61 @@ void input_map_player_button (ENUM player, ENUM button)
       gui_heartbeat ();
 
       passes++;
+   }
+}
+
+int input_get_player_button_param (ENUM player, ENUM button, ENUM param)
+{
+   LIST *list;
+
+   list = &button_modifiers[player][button];
+
+   switch (param)
+   {
+      case INPUT_PLAYER_BUTTON_PARAM_AUTO:
+         return (LIST_COMPARE(*list, BUTTON_MODIFIER_AUTO));
+
+      case INPUT_PLAYER_BUTTON_PARAM_TURBO:
+         return (LIST_COMPARE(*list, BUTTON_MODIFIER_TURBO));
+
+      default:
+         WARN_GENERIC();
+   }
+
+   return (0);
+}
+
+void input_set_player_button_param (ENUM player, ENUM button, ENUM param,
+   int value)
+{
+   LIST *list;
+
+   list = &button_modifiers[player][button];
+
+   switch (param)
+   {
+      case INPUT_PLAYER_BUTTON_PARAM_AUTO:
+      {
+         if (value)
+            LIST_ADD(*list, BUTTON_MODIFIER_AUTO);
+         else
+            LIST_REMOVE(*list, BUTTON_MODIFIER_AUTO);
+
+         break;
+      }
+
+      case INPUT_PLAYER_BUTTON_PARAM_TURBO:
+      {
+         if (value)
+            LIST_ADD(*list, BUTTON_MODIFIER_TURBO);
+         else
+            LIST_REMOVE(*list, BUTTON_MODIFIER_TURBO);
+
+         break;
+      }
+
+      default:
+         WARN_GENERIC();
    }
 }
 

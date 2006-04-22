@@ -3341,7 +3341,68 @@ static int options_input_menu_enable_zapper (void)
 
 static int options_input_menu_configure (void)
 {
-   show_dialog (options_input_configure_dialog, -1);
+   BOOL allow_conflicts, toggled_auto, merge_players;
+   REAL turbo_rate;
+   DIALOG *dialog;
+   DIALOG *objconf, *objauto, *objmerge, *objturbo;
+
+   /* Load configuration. */
+
+   allow_conflicts = get_config_int   ("input", "allow_conflicts", FALSE);
+   toggled_auto    = get_config_int   ("input", "toggled_auto",    FALSE);
+   merge_players   = get_config_int   ("input", "merge_players",   FALSE);
+   turbo_rate      = get_config_float ("input", "turbo_rate",      0.5f);
+
+   /* Get dialog. */
+
+   dialog = options_input_configure_dialog;
+
+   /* Get dialog objects. */
+
+   objconf  = &dialog[OPTIONS_INPUT_CONFIGURE_DIALOG_ALLOW_CONFLICTS];
+   objauto  = &dialog[OPTIONS_INPUT_CONFIGURE_DIALOG_TOGGLED_AUTO];
+   objmerge = &dialog[OPTIONS_INPUT_CONFIGURE_DIALOG_MERGE_PLAYERS];
+   objturbo = &dialog[OPTIONS_INPUT_CONFIGURE_DIALOG_TURBO];
+
+   /* Set up objects. */
+
+   if (allow_conflicts)
+      objconf->flags |= D_SELECTED;
+
+   if (toggled_auto)
+      objauto->flags |= D_SELECTED;
+
+   if (merge_players)
+      objmerge->flags |= D_SELECTED;
+
+   objturbo->d2 = ROUND((turbo_rate * 100.0f));
+
+   /* Show dialog. */   
+
+   if (show_dialog (dialog, -1) ==
+      OPTIONS_INPUT_CONFIGURE_DIALOG_SAVE_BUTTON)
+   {
+      /* Save configuration. */
+
+      allow_conflicts = TRUE_OR_FALSE(objconf->flags  & D_SELECTED);
+      toggled_auto    = TRUE_OR_FALSE(objauto->flags  & D_SELECTED);
+      merge_players   = TRUE_OR_FALSE(objmerge->flags & D_SELECTED);
+
+      turbo_rate = (objturbo->d2 / 100.0f);
+
+      /* Save existing configuration so we don't lose it. */
+      input_save_config ();
+
+      /* Make any necessary changes. */
+
+      set_config_int   ("input", "allow_conflicts", allow_conflicts);
+      set_config_int   ("input", "toggled_auto",    toggled_auto);
+      set_config_int   ("input", "merge_players",   merge_players);
+      set_config_float ("input", "turbo_rate",      turbo_rate);
+
+      /* Reload configuration with our changes. */
+      input_load_config ();
+   }
 
    return (D_O_K);
 }
@@ -3841,6 +3902,50 @@ static int options_input_configure_dialog_player_select (DIALOG *dialog)
    for (index = first; index <= last; index++)
       object_message (&main_dialog[index],  MSG_DRAW, 0);
 
+   first = OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_1;
+   last  = OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_8;
+
+   for (index = first; index <= last; index++)
+   {
+      DIALOG *dialog = &main_dialog[index];
+
+      /* d2 = button. */
+
+      if (input_get_player_button_param (selected_player, dialog->d2,
+         INPUT_PLAYER_BUTTON_PARAM_AUTO))
+      {
+         dialog->flags |= D_SELECTED;
+      }
+      else
+      {
+         dialog->flags &= ~D_SELECTED;
+      }
+
+      object_message (dialog, MSG_DRAW, 0);
+   }
+
+   first = OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_1;
+   last  = OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_8;
+
+   for (index = first; index <= last; index++)
+   {
+      DIALOG *dialog = &main_dialog[index];
+
+      /* d2 = button. */
+
+      if (input_get_player_button_param (selected_player, dialog->d2,
+         INPUT_PLAYER_BUTTON_PARAM_TURBO))
+      {
+         dialog->flags |= D_SELECTED;
+      }
+      else
+      {
+         dialog->flags &= ~D_SELECTED;
+      }
+
+      object_message (dialog, MSG_DRAW, 0);
+   }
+
    unscare_mouse ();
 
    return (D_O_K);
@@ -3867,8 +3972,7 @@ static int options_input_configure_dialog_device_select (DIALOG *dialog)
 
 static int options_input_configure_dialog_set_buttons (DIALOG *dialog)
 {
-   int index, button;
-   int scancode;
+   int button;
 
    RT_ASSERT(dialog);
 
@@ -3877,30 +3981,60 @@ static int options_input_configure_dialog_set_buttons (DIALOG *dialog)
       gui_alert ("Error", "Please select a player to modify first.", NULL,
          NULL, "&OK", NULL, 'o', 0);
 
-      return (D_O_K);
-   }
-
-   if (selected_player_device == INPUT_DEVICE_NONE)
-   {
-      gui_alert ("Error", "The selected player is currently disabled.",
-         NULL, NULL, "&OK", NULL, 'o', 0);
-
-      return (D_O_K);
-   }
-
-   if (selected_player_device == INPUT_DEVICE_MOUSE)
-   {
-      gui_alert ("Error", "Unable to set buttons for mouse at this time.",
-         NULL, NULL, "&OK", NULL, 'o', 0);
+      if (dialog->proc == sl_checkbox)
+         dialog->flags ^= D_SELECTED;
 
       return (D_O_K);
    }
 
    button = dialog->d2;
 
-   message_local ("Scanning for device changes, press ESC to cancel.");
-    
-   input_map_player_button (selected_player, button);
+   switch (dialog->d1)
+   {
+      case 0:  /* Map button. */
+      {
+         if (selected_player_device == INPUT_DEVICE_NONE)
+         {
+            gui_alert ("Error", "The selected player is currently "
+               "disabled.", NULL, NULL, "&OK", NULL, 'o', 0);
+      
+            return (D_O_K);
+         }
+      
+         if (selected_player_device == INPUT_DEVICE_MOUSE)
+         {
+            gui_alert ("Error", "Unable to set buttons for mouse at this "
+               "time.", NULL, NULL, "&OK", NULL, 'o', 0);
+      
+            return (D_O_K);
+         }
+      
+         message_local ("Scanning for device changes, press ESC to cancel.");
+          
+         input_map_player_button (selected_player, button);
+
+         break;
+      }
+
+      case 1:  /* Set auto. */
+      {
+         input_set_player_button_param (selected_player, button,
+            INPUT_PLAYER_BUTTON_PARAM_AUTO, (dialog->flags & D_SELECTED));
+
+         break;
+      }
+
+      case 2:  /* Set turbo. */
+      {
+         input_set_player_button_param (selected_player, button,
+            INPUT_PLAYER_BUTTON_PARAM_TURBO, (dialog->flags & D_SELECTED));
+            
+         break;
+      }
+
+      default:
+         WARN_GENERIC();
+   }
 
    return (D_O_K);
 }

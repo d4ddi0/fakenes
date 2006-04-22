@@ -25,6 +25,8 @@ int input_zapper_y_offset;
 BOOL input_zapper_trigger;
 BOOL input_zapper_on_screen;
 
+void input_load_config (void);
+void input_save_config (void);
 int input_init (void);
 void input_exit (void);
 void input_reset (void);
@@ -37,6 +39,8 @@ void input_handle_keypress (int, int);
 ENUM input_get_player_device (ENUM);
 void input_set_player_device (ENUM, ENUM);
 void input_map_player_button (ENUM, ENUM);
+int input_get_player_button_param (ENUM, ENUM, ENUM);
+void input_set_player_button_param (ENUM, ENUM, ENUM, int);
 void input_save_state (PACKFILE *, int);
 void input_load_state (PACKFILE *, int);
 
@@ -83,6 +87,12 @@ enum
    INPUT_BUTTON_LEFT,
    INPUT_BUTTON_RIGHT,
    INPUT_BUTTONS
+};
+
+enum
+{
+   INPUT_PLAYER_BUTTON_PARAM_AUTO,
+   INPUT_PLAYER_BUTTON_PARAM_TURBO
 };
 
 #ifdef __cplusplus
