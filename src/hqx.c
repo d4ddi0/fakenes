@@ -103,237 +103,249 @@ static inline void Interp10(unsigned char * pc, int c1, int c2, int c3)
                  (((c1 & 0xFF00FF)*14 + (c2 & 0xFF00FF) + (c3 & 0xFF00FF) ) & 0x0FF00FF0)) >> 4;
 }
 
-#define PIXEL00_0     *((int*)(pOut)) = c[5];
-#define PIXEL00_10    Interp1(pOut, c[5], c[1]);
-#define PIXEL00_11    Interp1(pOut, c[5], c[4]);
-#define PIXEL00_12    Interp1(pOut, c[5], c[2]);
-#define PIXEL00_20    Interp2(pOut, c[5], c[4], c[2]);
-#define PIXEL00_21    Interp2(pOut, c[5], c[1], c[2]);
-#define PIXEL00_22    Interp2(pOut, c[5], c[1], c[4]);
-#define PIXEL00_60    Interp6(pOut, c[5], c[2], c[4]);
-#define PIXEL00_61    Interp6(pOut, c[5], c[4], c[2]);
-#define PIXEL00_70    Interp7(pOut, c[5], c[4], c[2]);
-#define PIXEL00_90    Interp9(pOut, c[5], c[4], c[2]);
-#define PIXEL00_100   Interp10(pOut, c[5], c[4], c[2]);
-#define PIXEL01_0     *((int*)(pOut+4)) = c[5];
-#define PIXEL01_10    Interp1(pOut+4, c[5], c[3]);
-#define PIXEL01_11    Interp1(pOut+4, c[5], c[2]);
-#define PIXEL01_12    Interp1(pOut+4, c[5], c[6]);
-#define PIXEL01_20    Interp2(pOut+4, c[5], c[2], c[6]);
-#define PIXEL01_21    Interp2(pOut+4, c[5], c[3], c[6]);
-#define PIXEL01_22    Interp2(pOut+4, c[5], c[3], c[2]);
-#define PIXEL01_60    Interp6(pOut+4, c[5], c[6], c[2]);
-#define PIXEL01_61    Interp6(pOut+4, c[5], c[2], c[6]);
-#define PIXEL01_70    Interp7(pOut+4, c[5], c[2], c[6]);
-#define PIXEL01_90    Interp9(pOut+4, c[5], c[2], c[6]);
-#define PIXEL01_100   Interp10(pOut+4, c[5], c[2], c[6]);
-#define PIXEL10_0     *((int*)(pOut+BpL)) = c[5];
-#define PIXEL10_10    Interp1(pOut+BpL, c[5], c[7]);
-#define PIXEL10_11    Interp1(pOut+BpL, c[5], c[8]);
-#define PIXEL10_12    Interp1(pOut+BpL, c[5], c[4]);
-#define PIXEL10_20    Interp2(pOut+BpL, c[5], c[8], c[4]);
-#define PIXEL10_21    Interp2(pOut+BpL, c[5], c[7], c[4]);
-#define PIXEL10_22    Interp2(pOut+BpL, c[5], c[7], c[8]);
-#define PIXEL10_60    Interp6(pOut+BpL, c[5], c[4], c[8]);
-#define PIXEL10_61    Interp6(pOut+BpL, c[5], c[8], c[4]);
-#define PIXEL10_70    Interp7(pOut+BpL, c[5], c[8], c[4]);
-#define PIXEL10_90    Interp9(pOut+BpL, c[5], c[8], c[4]);
-#define PIXEL10_100   Interp10(pOut+BpL, c[5], c[8], c[4]);
-#define PIXEL11_0     *((int*)(pOut+BpL+4)) = c[5];
-#define PIXEL11_10    Interp1(pOut+BpL+4, c[5], c[9]);
-#define PIXEL11_11    Interp1(pOut+BpL+4, c[5], c[6]);
-#define PIXEL11_12    Interp1(pOut+BpL+4, c[5], c[8]);
-#define PIXEL11_20    Interp2(pOut+BpL+4, c[5], c[6], c[8]);
-#define PIXEL11_21    Interp2(pOut+BpL+4, c[5], c[9], c[8]);
-#define PIXEL11_22    Interp2(pOut+BpL+4, c[5], c[9], c[6]);
-#define PIXEL11_60    Interp6(pOut+BpL+4, c[5], c[8], c[6]);
-#define PIXEL11_61    Interp6(pOut+BpL+4, c[5], c[6], c[8]);
-#define PIXEL11_70    Interp7(pOut+BpL+4, c[5], c[6], c[8]);
-#define PIXEL11_90    Interp9(pOut+BpL+4, c[5], c[6], c[8]);
-#define PIXEL11_100   Interp10(pOut+BpL+4, c[5], c[6], c[8]);
+#define HQ2X_PIXEL00_0     *((int*)(pOut)) = c[5];
+#define HQ2X_PIXEL00_10    Interp1(pOut, c[5], c[1]);
+#define HQ2X_PIXEL00_11    Interp1(pOut, c[5], c[4]);
+#define HQ2X_PIXEL00_12    Interp1(pOut, c[5], c[2]);
+#define HQ2X_PIXEL00_20    Interp2(pOut, c[5], c[4], c[2]);
+#define HQ2X_PIXEL00_21    Interp2(pOut, c[5], c[1], c[2]);
+#define HQ2X_PIXEL00_22    Interp2(pOut, c[5], c[1], c[4]);
+#define HQ2X_PIXEL00_60    Interp6(pOut, c[5], c[2], c[4]);
+#define HQ2X_PIXEL00_61    Interp6(pOut, c[5], c[4], c[2]);
+#define HQ2X_PIXEL00_70    Interp7(pOut, c[5], c[4], c[2]);
+#define HQ2X_PIXEL00_90    Interp9(pOut, c[5], c[4], c[2]);
+#define HQ2X_PIXEL00_100   Interp10(pOut, c[5], c[4], c[2]);
+#define HQ2X_PIXEL01_0     *((int*)(pOut+4)) = c[5];
+#define HQ2X_PIXEL01_10    Interp1(pOut+4, c[5], c[3]);
+#define HQ2X_PIXEL01_11    Interp1(pOut+4, c[5], c[2]);
+#define HQ2X_PIXEL01_12    Interp1(pOut+4, c[5], c[6]);
+#define HQ2X_PIXEL01_20    Interp2(pOut+4, c[5], c[2], c[6]);
+#define HQ2X_PIXEL01_21    Interp2(pOut+4, c[5], c[3], c[6]);
+#define HQ2X_PIXEL01_22    Interp2(pOut+4, c[5], c[3], c[2]);
+#define HQ2X_PIXEL01_60    Interp6(pOut+4, c[5], c[6], c[2]);
+#define HQ2X_PIXEL01_61    Interp6(pOut+4, c[5], c[2], c[6]);
+#define HQ2X_PIXEL01_70    Interp7(pOut+4, c[5], c[2], c[6]);
+#define HQ2X_PIXEL01_90    Interp9(pOut+4, c[5], c[2], c[6]);
+#define HQ2X_PIXEL01_100   Interp10(pOut+4, c[5], c[2], c[6]);
+#define HQ2X_PIXEL10_0     *((int*)(pOut+BpL)) = c[5];
+#define HQ2X_PIXEL10_10    Interp1(pOut+BpL, c[5], c[7]);
+#define HQ2X_PIXEL10_11    Interp1(pOut+BpL, c[5], c[8]);
+#define HQ2X_PIXEL10_12    Interp1(pOut+BpL, c[5], c[4]);
+#define HQ2X_PIXEL10_20    Interp2(pOut+BpL, c[5], c[8], c[4]);
+#define HQ2X_PIXEL10_21    Interp2(pOut+BpL, c[5], c[7], c[4]);
+#define HQ2X_PIXEL10_22    Interp2(pOut+BpL, c[5], c[7], c[8]);
+#define HQ2X_PIXEL10_60    Interp6(pOut+BpL, c[5], c[4], c[8]);
+#define HQ2X_PIXEL10_61    Interp6(pOut+BpL, c[5], c[8], c[4]);
+#define HQ2X_PIXEL10_70    Interp7(pOut+BpL, c[5], c[8], c[4]);
+#define HQ2X_PIXEL10_90    Interp9(pOut+BpL, c[5], c[8], c[4]);
+#define HQ2X_PIXEL10_100   Interp10(pOut+BpL, c[5], c[8], c[4]);
+#define HQ2X_PIXEL11_0     *((int*)(pOut+BpL+4)) = c[5];
+#define HQ2X_PIXEL11_10    Interp1(pOut+BpL+4, c[5], c[9]);
+#define HQ2X_PIXEL11_11    Interp1(pOut+BpL+4, c[5], c[6]);
+#define HQ2X_PIXEL11_12    Interp1(pOut+BpL+4, c[5], c[8]);
+#define HQ2X_PIXEL11_20    Interp2(pOut+BpL+4, c[5], c[6], c[8]);
+#define HQ2X_PIXEL11_21    Interp2(pOut+BpL+4, c[5], c[9], c[8]);
+#define HQ2X_PIXEL11_22    Interp2(pOut+BpL+4, c[5], c[9], c[6]);
+#define HQ2X_PIXEL11_60    Interp6(pOut+BpL+4, c[5], c[8], c[6]);
+#define HQ2X_PIXEL11_61    Interp6(pOut+BpL+4, c[5], c[6], c[8]);
+#define HQ2X_PIXEL11_70    Interp7(pOut+BpL+4, c[5], c[6], c[8]);
+#define HQ2X_PIXEL11_90    Interp9(pOut+BpL+4, c[5], c[6], c[8]);
+#define HQ2X_PIXEL11_100   Interp10(pOut+BpL+4, c[5], c[6], c[8]);
 
-#define PIXEL00_1M  Interp1(pOut, c[5], c[1]);
-#define PIXEL00_1U  Interp1(pOut, c[5], c[2]);
-#define PIXEL00_1L  Interp1(pOut, c[5], c[4]);
-#define PIXEL00_2   Interp2(pOut, c[5], c[4], c[2]);
-#define PIXEL00_4   Interp4(pOut, c[5], c[4], c[2]);
-#define PIXEL00_5   Interp5(pOut, c[4], c[2]);
-#define PIXEL00_C   *((int*)(pOut))   = c[5];
+#define HQ3X_PIXEL00_1M  Interp1(pOut, c[5], c[1]);
+#define HQ3X_PIXEL00_1U  Interp1(pOut, c[5], c[2]);
+#define HQ3X_PIXEL00_1L  Interp1(pOut, c[5], c[4]);
+#define HQ3X_PIXEL00_2   Interp2(pOut, c[5], c[4], c[2]);
+#define HQ3X_PIXEL00_4   Interp4(pOut, c[5], c[4], c[2]);
+#define HQ3X_PIXEL00_5   Interp5(pOut, c[4], c[2]);
+#define HQ3X_PIXEL00_C   *((int*)(pOut))   = c[5];
 
-#define PIXEL01_1   Interp1(pOut+4, c[5], c[2]);
-#define PIXEL01_3   Interp3(pOut+4, c[5], c[2]);
-#define PIXEL01_6   Interp1(pOut+4, c[2], c[5]);
-#define PIXEL01_C   *((int*)(pOut+4)) = c[5];
+#define HQ3X_PIXEL01_1   Interp1(pOut+4, c[5], c[2]);
+#define HQ3X_PIXEL01_3   Interp3(pOut+4, c[5], c[2]);
+#define HQ3X_PIXEL01_6   Interp1(pOut+4, c[2], c[5]);
+#define HQ3X_PIXEL01_C   *((int*)(pOut+4)) = c[5];
 
-#define PIXEL02_1M  Interp1(pOut+8, c[5], c[3]);
-#define PIXEL02_1U  Interp1(pOut+8, c[5], c[2]);
-#define PIXEL02_1R  Interp1(pOut+8, c[5], c[6]);
-#define PIXEL02_2   Interp2(pOut+8, c[5], c[2], c[6]);
-#define PIXEL02_4   Interp4(pOut+8, c[5], c[2], c[6]);
-#define PIXEL02_5   Interp5(pOut+8, c[2], c[6]);
-#define PIXEL02_C   *((int*)(pOut+8)) = c[5];
+#define HQ3X_PIXEL02_1M  Interp1(pOut+8, c[5], c[3]);
+#define HQ3X_PIXEL02_1U  Interp1(pOut+8, c[5], c[2]);
+#define HQ3X_PIXEL02_1R  Interp1(pOut+8, c[5], c[6]);
+#define HQ3X_PIXEL02_2   Interp2(pOut+8, c[5], c[2], c[6]);
+#define HQ3X_PIXEL02_4   Interp4(pOut+8, c[5], c[2], c[6]);
+#define HQ3X_PIXEL02_5   Interp5(pOut+8, c[2], c[6]);
+#define HQ3X_PIXEL02_C   *((int*)(pOut+8)) = c[5];
 
-#define PIXEL10_1   Interp1(pOut+BpL, c[5], c[4]);
-#define PIXEL10_3   Interp3(pOut+BpL, c[5], c[4]);
-#define PIXEL10_6   Interp1(pOut+BpL, c[4], c[5]);
-#define PIXEL10_C   *((int*)(pOut+BpL)) = c[5];
+#define HQ3X_PIXEL10_1   Interp1(pOut+BpL, c[5], c[4]);
+#define HQ3X_PIXEL10_3   Interp3(pOut+BpL, c[5], c[4]);
+#define HQ3X_PIXEL10_6   Interp1(pOut+BpL, c[4], c[5]);
+#define HQ3X_PIXEL10_C   *((int*)(pOut+BpL)) = c[5];
 
-#define PIXEL11     *((int*)(pOut+BpL+4)) = c[5];
+#define HQ3X_PIXEL11     *((int*)(pOut+BpL+4)) = c[5];
 
-#define PIXEL12_1   Interp1(pOut+BpL+8, c[5], c[6]);
-#define PIXEL12_3   Interp3(pOut+BpL+8, c[5], c[6]);
-#define PIXEL12_6   Interp1(pOut+BpL+8, c[6], c[5]);
-#define PIXEL12_C   *((int*)(pOut+BpL+8)) = c[5];
+#define HQ3X_PIXEL12_1   Interp1(pOut+BpL+8, c[5], c[6]);
+#define HQ3X_PIXEL12_3   Interp3(pOut+BpL+8, c[5], c[6]);
+#define HQ3X_PIXEL12_6   Interp1(pOut+BpL+8, c[6], c[5]);
+#define HQ3X_PIXEL12_C   *((int*)(pOut+BpL+8)) = c[5];
 
-#define PIXEL20_1M  Interp1(pOut+BpL+BpL, c[5], c[7]);
-#define PIXEL20_1D  Interp1(pOut+BpL+BpL, c[5], c[8]);
-#define PIXEL20_1L  Interp1(pOut+BpL+BpL, c[5], c[4]);
-#define PIXEL20_2   Interp2(pOut+BpL+BpL, c[5], c[8], c[4]);
-#define PIXEL20_4   Interp4(pOut+BpL+BpL, c[5], c[8], c[4]);
-#define PIXEL20_5   Interp5(pOut+BpL+BpL, c[8], c[4]);
-#define PIXEL20_C   *((int*)(pOut+BpL+BpL)) = c[5];
+#define HQ3X_PIXEL20_1M  Interp1(pOut+BpL+BpL, c[5], c[7]);
+#define HQ3X_PIXEL20_1D  Interp1(pOut+BpL+BpL, c[5], c[8]);
+#define HQ3X_PIXEL20_1L  Interp1(pOut+BpL+BpL, c[5], c[4]);
+#define HQ3X_PIXEL20_2   Interp2(pOut+BpL+BpL, c[5], c[8], c[4]);
+#define HQ3X_PIXEL20_4   Interp4(pOut+BpL+BpL, c[5], c[8], c[4]);
+#define HQ3X_PIXEL20_5   Interp5(pOut+BpL+BpL, c[8], c[4]);
+#define HQ3X_PIXEL20_C   *((int*)(pOut+BpL+BpL)) = c[5];
 
-#define PIXEL21_1   Interp1(pOut+BpL+BpL+4, c[5], c[8]);
-#define PIXEL21_3   Interp3(pOut+BpL+BpL+4, c[5], c[8]);
-#define PIXEL21_6   Interp1(pOut+BpL+BpL+4, c[8], c[5]);
-#define PIXEL21_C   *((int*)(pOut+BpL+BpL+4)) = c[5];
+#define HQ3X_PIXEL21_1   Interp1(pOut+BpL+BpL+4, c[5], c[8]);
+#define HQ3X_PIXEL21_3   Interp3(pOut+BpL+BpL+4, c[5], c[8]);
+#define HQ3X_PIXEL21_6   Interp1(pOut+BpL+BpL+4, c[8], c[5]);
+#define HQ3X_PIXEL21_C   *((int*)(pOut+BpL+BpL+4)) = c[5];
 
-#define PIXEL22_1M  Interp1(pOut+BpL+BpL+8, c[5], c[9]);
-#define PIXEL22_1D  Interp1(pOut+BpL+BpL+8, c[5], c[8]);
-#define PIXEL22_1R  Interp1(pOut+BpL+BpL+8, c[5], c[6]);
-#define PIXEL22_2   Interp2(pOut+BpL+BpL+8, c[5], c[6], c[8]);
-#define PIXEL22_4   Interp4(pOut+BpL+BpL+8, c[5], c[6], c[8]);
-#define PIXEL22_5   Interp5(pOut+BpL+BpL+8, c[6], c[8]);
-#define PIXEL22_C   *((int*)(pOut+BpL+BpL+8)) = c[5];
+#define HQ3X_PIXEL22_1M  Interp1(pOut+BpL+BpL+8, c[5], c[9]);
+#define HQ3X_PIXEL22_1D  Interp1(pOut+BpL+BpL+8, c[5], c[8]);
+#define HQ3X_PIXEL22_1R  Interp1(pOut+BpL+BpL+8, c[5], c[6]);
+#define HQ3X_PIXEL22_2   Interp2(pOut+BpL+BpL+8, c[5], c[6], c[8]);
+#define HQ3X_PIXEL22_4   Interp4(pOut+BpL+BpL+8, c[5], c[6], c[8]);
+#define HQ3X_PIXEL22_5   Interp5(pOut+BpL+BpL+8, c[6], c[8]);
+#define HQ3X_PIXEL22_C   *((int*)(pOut+BpL+BpL+8)) = c[5];
 
-#define PIXEL00_0     *((int*)(pOut)) = c[5];
-#define PIXEL00_11    Interp1(pOut, c[5], c[4]);
-#define PIXEL00_12    Interp1(pOut, c[5], c[2]);
-#define PIXEL00_50    Interp5(pOut, c[2], c[4]);
-#define PIXEL00_80    Interp8(pOut, c[5], c[1]);
-#define PIXEL00_81    Interp8(pOut, c[5], c[4]);
-#define PIXEL00_82    Interp8(pOut, c[5], c[2]);
-#define PIXEL01_0     *((int*)(pOut+4)) = c[5];
-#define PIXEL01_14    Interp1(pOut+4, c[2], c[5]);
-#define PIXEL01_31    Interp3(pOut+4, c[5], c[4]);
-#define PIXEL01_50    Interp5(pOut+4, c[2], c[5]);
-#define PIXEL01_82    Interp8(pOut+4, c[5], c[2]);
-#define PIXEL01_83    Interp8(pOut+4, c[2], c[4]);
-#define PIXEL02_0     *((int*)(pOut+8)) = c[5];
-#define PIXEL02_10    Interp1(pOut+8, c[5], c[3]);
-#define PIXEL02_11    Interp1(pOut+8, c[5], c[2]);
-#define PIXEL02_13    Interp1(pOut+8, c[2], c[5]);
-#define PIXEL02_21    Interp2(pOut+8, c[2], c[5], c[6]);
-#define PIXEL02_32    Interp3(pOut+8, c[5], c[6]);
-#define PIXEL02_50    Interp5(pOut+8, c[2], c[5]);
-#define PIXEL02_60    Interp6(pOut+8, c[5], c[2], c[6]);
-#define PIXEL02_61    Interp6(pOut+8, c[5], c[2], c[3]);
-#define PIXEL02_81    Interp8(pOut+8, c[5], c[2]);
-#define PIXEL02_83    Interp8(pOut+8, c[2], c[6]);
-#define PIXEL03_0     *((int*)(pOut+12)) = c[5];
-#define PIXEL03_11    Interp1(pOut+12, c[5], c[2]);
-#define PIXEL03_12    Interp1(pOut+12, c[5], c[6]);
-#define PIXEL03_20    Interp2(pOut+12, c[5], c[2], c[6]);
-#define PIXEL03_50    Interp5(pOut+12, c[2], c[6]);
-#define PIXEL03_80    Interp8(pOut+12, c[5], c[3]);
-#define PIXEL03_81    Interp8(pOut+12, c[5], c[2]);
-#define PIXEL03_82    Interp8(pOut+12, c[5], c[6]);
-#define PIXEL10_0     *((int*)(pOut+BpL)) = c[5];
-#define PIXEL10_13    Interp1(pOut+BpL, c[4], c[5]);
-#define PIXEL10_32    Interp3(pOut+BpL, c[5], c[2]);
-#define PIXEL10_50    Interp5(pOut+BpL, c[4], c[5]);
-#define PIXEL10_81    Interp8(pOut+BpL, c[5], c[4]);
-#define PIXEL10_83    Interp8(pOut+BpL, c[4], c[2]);
-#define PIXEL11_0     *((int*)(pOut+BpL+4)) = c[5];
-#define PIXEL11_30    Interp3(pOut+BpL+4, c[5], c[1]);
-#define PIXEL11_31    Interp3(pOut+BpL+4, c[5], c[4]);
-#define PIXEL11_32    Interp3(pOut+BpL+4, c[5], c[2]);
-#define PIXEL12_0     *((int*)(pOut+BpL+8)) = c[5];
-#define PIXEL12_30    Interp3(pOut+BpL+8, c[5], c[3]);
-#define PIXEL12_31    Interp3(pOut+BpL+8, c[5], c[2]);
-#define PIXEL12_32    Interp3(pOut+BpL+8, c[5], c[6]);
-#define PIXEL12_70    Interp7(pOut+BpL+8, c[5], c[6], c[2]);
-#define PIXEL13_0     *((int*)(pOut+BpL+12)) = c[5];
-#define PIXEL13_10    Interp1(pOut+BpL+12, c[5], c[3]);
-#define PIXEL13_12    Interp1(pOut+BpL+12, c[5], c[6]);
-#define PIXEL13_14    Interp1(pOut+BpL+12, c[6], c[5]);
-#define PIXEL13_21    Interp2(pOut+BpL+12, c[6], c[5], c[2]);
-#define PIXEL13_31    Interp3(pOut+BpL+12, c[5], c[2]);
-#define PIXEL13_50    Interp5(pOut+BpL+12, c[6], c[5]);
-#define PIXEL13_60    Interp6(pOut+BpL+12, c[5], c[6], c[2]);
-#define PIXEL13_61    Interp6(pOut+BpL+12, c[5], c[6], c[3]);
-#define PIXEL13_82    Interp8(pOut+BpL+12, c[5], c[6]);
-#define PIXEL13_83    Interp8(pOut+BpL+12, c[6], c[2]);
-#define PIXEL20_0     *((int*)(pOut+BpL+BpL)) = c[5];
-#define PIXEL20_10    Interp1(pOut+BpL+BpL, c[5], c[7]);
-#define PIXEL20_12    Interp1(pOut+BpL+BpL, c[5], c[4]);
-#define PIXEL20_14    Interp1(pOut+BpL+BpL, c[4], c[5]);
-#define PIXEL20_21    Interp2(pOut+BpL+BpL, c[4], c[5], c[8]);
-#define PIXEL20_31    Interp3(pOut+BpL+BpL, c[5], c[8]);
-#define PIXEL20_50    Interp5(pOut+BpL+BpL, c[4], c[5]);
-#define PIXEL20_60    Interp6(pOut+BpL+BpL, c[5], c[4], c[8]);
-#define PIXEL20_61    Interp6(pOut+BpL+BpL, c[5], c[4], c[7]);
-#define PIXEL20_82    Interp8(pOut+BpL+BpL, c[5], c[4]);
-#define PIXEL20_83    Interp8(pOut+BpL+BpL, c[4], c[8]);
-#define PIXEL21_0     *((int*)(pOut+BpL+BpL+4)) = c[5];
-#define PIXEL21_30    Interp3(pOut+BpL+BpL+4, c[5], c[7]);
-#define PIXEL21_31    Interp3(pOut+BpL+BpL+4, c[5], c[8]);
-#define PIXEL21_32    Interp3(pOut+BpL+BpL+4, c[5], c[4]);
-#define PIXEL21_70    Interp7(pOut+BpL+BpL+4, c[5], c[4], c[8]);
-#define PIXEL22_0     *((int*)(pOut+BpL+BpL+8)) = c[5];
-#define PIXEL22_30    Interp3(pOut+BpL+BpL+8, c[5], c[9]);
-#define PIXEL22_31    Interp3(pOut+BpL+BpL+8, c[5], c[6]);
-#define PIXEL22_32    Interp3(pOut+BpL+BpL+8, c[5], c[8]);
-#define PIXEL22_70    Interp7(pOut+BpL+BpL+8, c[5], c[6], c[8]);
-#define PIXEL23_0     *((int*)(pOut+BpL+BpL+12)) = c[5];
-#define PIXEL23_10    Interp1(pOut+BpL+BpL+12, c[5], c[9]);
-#define PIXEL23_11    Interp1(pOut+BpL+BpL+12, c[5], c[6]);
-#define PIXEL23_13    Interp1(pOut+BpL+BpL+12, c[6], c[5]);
-#define PIXEL23_21    Interp2(pOut+BpL+BpL+12, c[6], c[5], c[8]);
-#define PIXEL23_32    Interp3(pOut+BpL+BpL+12, c[5], c[8]);
-#define PIXEL23_50    Interp5(pOut+BpL+BpL+12, c[6], c[5]);
-#define PIXEL23_60    Interp6(pOut+BpL+BpL+12, c[5], c[6], c[8]);
-#define PIXEL23_61    Interp6(pOut+BpL+BpL+12, c[5], c[6], c[9]);
-#define PIXEL23_81    Interp8(pOut+BpL+BpL+12, c[5], c[6]);
-#define PIXEL23_83    Interp8(pOut+BpL+BpL+12, c[6], c[8]);
-#define PIXEL30_0     *((int*)(pOut+BpL+BpL+BpL)) = c[5];
-#define PIXEL30_11    Interp1(pOut+BpL+BpL+BpL, c[5], c[8]);
-#define PIXEL30_12    Interp1(pOut+BpL+BpL+BpL, c[5], c[4]);
-#define PIXEL30_20    Interp2(pOut+BpL+BpL+BpL, c[5], c[8], c[4]);
-#define PIXEL30_50    Interp5(pOut+BpL+BpL+BpL, c[8], c[4]);
-#define PIXEL30_80    Interp8(pOut+BpL+BpL+BpL, c[5], c[7]);
-#define PIXEL30_81    Interp8(pOut+BpL+BpL+BpL, c[5], c[8]);
-#define PIXEL30_82    Interp8(pOut+BpL+BpL+BpL, c[5], c[4]);
-#define PIXEL31_0     *((int*)(pOut+BpL+BpL+BpL+4)) = c[5];
-#define PIXEL31_10    Interp1(pOut+BpL+BpL+BpL+4, c[5], c[7]);
-#define PIXEL31_11    Interp1(pOut+BpL+BpL+BpL+4, c[5], c[8]);
-#define PIXEL31_13    Interp1(pOut+BpL+BpL+BpL+4, c[8], c[5]);
-#define PIXEL31_21    Interp2(pOut+BpL+BpL+BpL+4, c[8], c[5], c[4]);
-#define PIXEL31_32    Interp3(pOut+BpL+BpL+BpL+4, c[5], c[4]);
-#define PIXEL31_50    Interp5(pOut+BpL+BpL+BpL+4, c[8], c[5]);
-#define PIXEL31_60    Interp6(pOut+BpL+BpL+BpL+4, c[5], c[8], c[4]);
-#define PIXEL31_61    Interp6(pOut+BpL+BpL+BpL+4, c[5], c[8], c[7]);
-#define PIXEL31_81    Interp8(pOut+BpL+BpL+BpL+4, c[5], c[8]);
-#define PIXEL31_83    Interp8(pOut+BpL+BpL+BpL+4, c[8], c[4]);
-#define PIXEL32_0     *((int*)(pOut+BpL+BpL+BpL+8)) = c[5];
-#define PIXEL32_10    Interp1(pOut+BpL+BpL+BpL+8, c[5], c[9]);
-#define PIXEL32_12    Interp1(pOut+BpL+BpL+BpL+8, c[5], c[8]);
-#define PIXEL32_14    Interp1(pOut+BpL+BpL+BpL+8, c[8], c[5]);
-#define PIXEL32_21    Interp2(pOut+BpL+BpL+BpL+8, c[8], c[5], c[6]);
-#define PIXEL32_31    Interp3(pOut+BpL+BpL+BpL+8, c[5], c[6]);
-#define PIXEL32_50    Interp5(pOut+BpL+BpL+BpL+8, c[8], c[5]);
-#define PIXEL32_60    Interp6(pOut+BpL+BpL+BpL+8, c[5], c[8], c[6]);
-#define PIXEL32_61    Interp6(pOut+BpL+BpL+BpL+8, c[5], c[8], c[9]);
-#define PIXEL32_82    Interp8(pOut+BpL+BpL+BpL+8, c[5], c[8]);
-#define PIXEL32_83    Interp8(pOut+BpL+BpL+BpL+8, c[8], c[6]);
-#define PIXEL33_0     *((int*)(pOut+BpL+BpL+BpL+12)) = c[5];
-#define PIXEL33_11    Interp1(pOut+BpL+BpL+BpL+12, c[5], c[6]);
-#define PIXEL33_12    Interp1(pOut+BpL+BpL+BpL+12, c[5], c[8]);
-#define PIXEL33_20    Interp2(pOut+BpL+BpL+BpL+12, c[5], c[8], c[6]);
-#define PIXEL33_50    Interp5(pOut+BpL+BpL+BpL+12, c[8], c[6]);
-#define PIXEL33_80    Interp8(pOut+BpL+BpL+BpL+12, c[5], c[9]);
-#define PIXEL33_81    Interp8(pOut+BpL+BpL+BpL+12, c[5], c[6]);
-#define PIXEL33_82    Interp8(pOut+BpL+BpL+BpL+12, c[5], c[8]);
+#define HQ4X_PIXEL00_0     *((int*)(pOut)) = c[5];
+#define HQ4X_PIXEL00_11    Interp1(pOut, c[5], c[4]);
+#define HQ4X_PIXEL00_12    Interp1(pOut, c[5], c[2]);
+#define HQ4X_PIXEL00_20    Interp2(pOut, c[5], c[2], c[4]);
+#define HQ4X_PIXEL00_50    Interp5(pOut, c[2], c[4]);
+#define HQ4X_PIXEL00_80    Interp8(pOut, c[5], c[1]);
+#define HQ4X_PIXEL00_81    Interp8(pOut, c[5], c[4]);
+#define HQ4X_PIXEL00_82    Interp8(pOut, c[5], c[2]);
+#define HQ4X_PIXEL01_0     *((int*)(pOut+4)) = c[5];
+#define HQ4X_PIXEL01_10    Interp1(pOut+4, c[5], c[1]);
+#define HQ4X_PIXEL01_12    Interp1(pOut+4, c[5], c[2]);
+#define HQ4X_PIXEL01_14    Interp1(pOut+4, c[2], c[5]);
+#define HQ4X_PIXEL01_21    Interp2(pOut+4, c[2], c[5], c[4]);
+#define HQ4X_PIXEL01_31    Interp3(pOut+4, c[5], c[4]);
+#define HQ4X_PIXEL01_50    Interp5(pOut+4, c[2], c[5]);
+#define HQ4X_PIXEL01_60    Interp6(pOut+4, c[5], c[2], c[4]);
+#define HQ4X_PIXEL01_61    Interp6(pOut+4, c[5], c[2], c[1]);
+#define HQ4X_PIXEL01_82    Interp8(pOut+4, c[5], c[2]);
+#define HQ4X_PIXEL01_83    Interp8(pOut+4, c[2], c[4]);
+#define HQ4X_PIXEL02_0     *((int*)(pOut+8)) = c[5];
+#define HQ4X_PIXEL02_10    Interp1(pOut+8, c[5], c[3]);
+#define HQ4X_PIXEL02_11    Interp1(pOut+8, c[5], c[2]);
+#define HQ4X_PIXEL02_13    Interp1(pOut+8, c[2], c[5]);
+#define HQ4X_PIXEL02_21    Interp2(pOut+8, c[2], c[5], c[6]);
+#define HQ4X_PIXEL02_32    Interp3(pOut+8, c[5], c[6]);
+#define HQ4X_PIXEL02_50    Interp5(pOut+8, c[2], c[5]);
+#define HQ4X_PIXEL02_60    Interp6(pOut+8, c[5], c[2], c[6]);
+#define HQ4X_PIXEL02_61    Interp6(pOut+8, c[5], c[2], c[3]);
+#define HQ4X_PIXEL02_81    Interp8(pOut+8, c[5], c[2]);
+#define HQ4X_PIXEL02_83    Interp8(pOut+8, c[2], c[6]);
+#define HQ4X_PIXEL03_0     *((int*)(pOut+12)) = c[5];
+#define HQ4X_PIXEL03_11    Interp1(pOut+12, c[5], c[2]);
+#define HQ4X_PIXEL03_12    Interp1(pOut+12, c[5], c[6]);
+#define HQ4X_PIXEL03_20    Interp2(pOut+12, c[5], c[2], c[6]);
+#define HQ4X_PIXEL03_50    Interp5(pOut+12, c[2], c[6]);
+#define HQ4X_PIXEL03_80    Interp8(pOut+12, c[5], c[3]);
+#define HQ4X_PIXEL03_81    Interp8(pOut+12, c[5], c[2]);
+#define HQ4X_PIXEL03_82    Interp8(pOut+12, c[5], c[6]);
+#define HQ4X_PIXEL10_0     *((int*)(pOut+BpL)) = c[5];
+#define HQ4X_PIXEL10_10    Interp1(pOut+BpL, c[5], c[1]);
+#define HQ4X_PIXEL10_11    Interp1(pOut+BpL, c[5], c[4]);
+#define HQ4X_PIXEL10_13    Interp1(pOut+BpL, c[4], c[5]);
+#define HQ4X_PIXEL10_21    Interp2(pOut+BpL, c[4], c[5], c[2]);
+#define HQ4X_PIXEL10_32    Interp3(pOut+BpL, c[5], c[2]);
+#define HQ4X_PIXEL10_50    Interp5(pOut+BpL, c[4], c[5]);
+#define HQ4X_PIXEL10_60    Interp6(pOut+BpL, c[5], c[4], c[2]);
+#define HQ4X_PIXEL10_61    Interp6(pOut+BpL, c[5], c[4], c[1]);
+#define HQ4X_PIXEL10_81    Interp8(pOut+BpL, c[5], c[4]);
+#define HQ4X_PIXEL10_83    Interp8(pOut+BpL, c[4], c[2]);
+#define HQ4X_PIXEL11_0     *((int*)(pOut+BpL+4)) = c[5];
+#define HQ4X_PIXEL11_30    Interp3(pOut+BpL+4, c[5], c[1]);
+#define HQ4X_PIXEL11_31    Interp3(pOut+BpL+4, c[5], c[4]);
+#define HQ4X_PIXEL11_32    Interp3(pOut+BpL+4, c[5], c[2]);
+#define HQ4X_PIXEL11_70    Interp7(pOut+BpL+4, c[5], c[4], c[2]);
+#define HQ4X_PIXEL12_0     *((int*)(pOut+BpL+8)) = c[5];
+#define HQ4X_PIXEL12_30    Interp3(pOut+BpL+8, c[5], c[3]);
+#define HQ4X_PIXEL12_31    Interp3(pOut+BpL+8, c[5], c[2]);
+#define HQ4X_PIXEL12_32    Interp3(pOut+BpL+8, c[5], c[6]);
+#define HQ4X_PIXEL12_70    Interp7(pOut+BpL+8, c[5], c[6], c[2]);
+#define HQ4X_PIXEL13_0     *((int*)(pOut+BpL+12)) = c[5];
+#define HQ4X_PIXEL13_10    Interp1(pOut+BpL+12, c[5], c[3]);
+#define HQ4X_PIXEL13_12    Interp1(pOut+BpL+12, c[5], c[6]);
+#define HQ4X_PIXEL13_14    Interp1(pOut+BpL+12, c[6], c[5]);
+#define HQ4X_PIXEL13_21    Interp2(pOut+BpL+12, c[6], c[5], c[2]);
+#define HQ4X_PIXEL13_31    Interp3(pOut+BpL+12, c[5], c[2]);
+#define HQ4X_PIXEL13_50    Interp5(pOut+BpL+12, c[6], c[5]);
+#define HQ4X_PIXEL13_60    Interp6(pOut+BpL+12, c[5], c[6], c[2]);
+#define HQ4X_PIXEL13_61    Interp6(pOut+BpL+12, c[5], c[6], c[3]);
+#define HQ4X_PIXEL13_82    Interp8(pOut+BpL+12, c[5], c[6]);
+#define HQ4X_PIXEL13_83    Interp8(pOut+BpL+12, c[6], c[2]);
+#define HQ4X_PIXEL20_0     *((int*)(pOut+BpL+BpL)) = c[5];
+#define HQ4X_PIXEL20_10    Interp1(pOut+BpL+BpL, c[5], c[7]);
+#define HQ4X_PIXEL20_12    Interp1(pOut+BpL+BpL, c[5], c[4]);
+#define HQ4X_PIXEL20_14    Interp1(pOut+BpL+BpL, c[4], c[5]);
+#define HQ4X_PIXEL20_21    Interp2(pOut+BpL+BpL, c[4], c[5], c[8]);
+#define HQ4X_PIXEL20_31    Interp3(pOut+BpL+BpL, c[5], c[8]);
+#define HQ4X_PIXEL20_50    Interp5(pOut+BpL+BpL, c[4], c[5]);
+#define HQ4X_PIXEL20_60    Interp6(pOut+BpL+BpL, c[5], c[4], c[8]);
+#define HQ4X_PIXEL20_61    Interp6(pOut+BpL+BpL, c[5], c[4], c[7]);
+#define HQ4X_PIXEL20_82    Interp8(pOut+BpL+BpL, c[5], c[4]);
+#define HQ4X_PIXEL20_83    Interp8(pOut+BpL+BpL, c[4], c[8]);
+#define HQ4X_PIXEL21_0     *((int*)(pOut+BpL+BpL+4)) = c[5];
+#define HQ4X_PIXEL21_30    Interp3(pOut+BpL+BpL+4, c[5], c[7]);
+#define HQ4X_PIXEL21_31    Interp3(pOut+BpL+BpL+4, c[5], c[8]);
+#define HQ4X_PIXEL21_32    Interp3(pOut+BpL+BpL+4, c[5], c[4]);
+#define HQ4X_PIXEL21_70    Interp7(pOut+BpL+BpL+4, c[5], c[4], c[8]);
+#define HQ4X_PIXEL22_0     *((int*)(pOut+BpL+BpL+8)) = c[5];
+#define HQ4X_PIXEL22_30    Interp3(pOut+BpL+BpL+8, c[5], c[9]);
+#define HQ4X_PIXEL22_31    Interp3(pOut+BpL+BpL+8, c[5], c[6]);
+#define HQ4X_PIXEL22_32    Interp3(pOut+BpL+BpL+8, c[5], c[8]);
+#define HQ4X_PIXEL22_70    Interp7(pOut+BpL+BpL+8, c[5], c[6], c[8]);
+#define HQ4X_PIXEL23_0     *((int*)(pOut+BpL+BpL+12)) = c[5];
+#define HQ4X_PIXEL23_10    Interp1(pOut+BpL+BpL+12, c[5], c[9]);
+#define HQ4X_PIXEL23_11    Interp1(pOut+BpL+BpL+12, c[5], c[6]);
+#define HQ4X_PIXEL23_13    Interp1(pOut+BpL+BpL+12, c[6], c[5]);
+#define HQ4X_PIXEL23_21    Interp2(pOut+BpL+BpL+12, c[6], c[5], c[8]);
+#define HQ4X_PIXEL23_32    Interp3(pOut+BpL+BpL+12, c[5], c[8]);
+#define HQ4X_PIXEL23_50    Interp5(pOut+BpL+BpL+12, c[6], c[5]);
+#define HQ4X_PIXEL23_60    Interp6(pOut+BpL+BpL+12, c[5], c[6], c[8]);
+#define HQ4X_PIXEL23_61    Interp6(pOut+BpL+BpL+12, c[5], c[6], c[9]);
+#define HQ4X_PIXEL23_81    Interp8(pOut+BpL+BpL+12, c[5], c[6]);
+#define HQ4X_PIXEL23_83    Interp8(pOut+BpL+BpL+12, c[6], c[8]);
+#define HQ4X_PIXEL30_0     *((int*)(pOut+BpL+BpL+BpL)) = c[5];
+#define HQ4X_PIXEL30_11    Interp1(pOut+BpL+BpL+BpL, c[5], c[8]);
+#define HQ4X_PIXEL30_12    Interp1(pOut+BpL+BpL+BpL, c[5], c[4]);
+#define HQ4X_PIXEL30_20    Interp2(pOut+BpL+BpL+BpL, c[5], c[8], c[4]);
+#define HQ4X_PIXEL30_50    Interp5(pOut+BpL+BpL+BpL, c[8], c[4]);
+#define HQ4X_PIXEL30_80    Interp8(pOut+BpL+BpL+BpL, c[5], c[7]);
+#define HQ4X_PIXEL30_81    Interp8(pOut+BpL+BpL+BpL, c[5], c[8]);
+#define HQ4X_PIXEL30_82    Interp8(pOut+BpL+BpL+BpL, c[5], c[4]);
+#define HQ4X_PIXEL31_0     *((int*)(pOut+BpL+BpL+BpL+4)) = c[5];
+#define HQ4X_PIXEL31_10    Interp1(pOut+BpL+BpL+BpL+4, c[5], c[7]);
+#define HQ4X_PIXEL31_11    Interp1(pOut+BpL+BpL+BpL+4, c[5], c[8]);
+#define HQ4X_PIXEL31_13    Interp1(pOut+BpL+BpL+BpL+4, c[8], c[5]);
+#define HQ4X_PIXEL31_21    Interp2(pOut+BpL+BpL+BpL+4, c[8], c[5], c[4]);
+#define HQ4X_PIXEL31_32    Interp3(pOut+BpL+BpL+BpL+4, c[5], c[4]);
+#define HQ4X_PIXEL31_50    Interp5(pOut+BpL+BpL+BpL+4, c[8], c[5]);
+#define HQ4X_PIXEL31_60    Interp6(pOut+BpL+BpL+BpL+4, c[5], c[8], c[4]);
+#define HQ4X_PIXEL31_61    Interp6(pOut+BpL+BpL+BpL+4, c[5], c[8], c[7]);
+#define HQ4X_PIXEL31_81    Interp8(pOut+BpL+BpL+BpL+4, c[5], c[8]);
+#define HQ4X_PIXEL31_83    Interp8(pOut+BpL+BpL+BpL+4, c[8], c[4]);
+#define HQ4X_PIXEL32_0     *((int*)(pOut+BpL+BpL+BpL+8)) = c[5];
+#define HQ4X_PIXEL32_10    Interp1(pOut+BpL+BpL+BpL+8, c[5], c[9]);
+#define HQ4X_PIXEL32_12    Interp1(pOut+BpL+BpL+BpL+8, c[5], c[8]);
+#define HQ4X_PIXEL32_14    Interp1(pOut+BpL+BpL+BpL+8, c[8], c[5]);
+#define HQ4X_PIXEL32_21    Interp2(pOut+BpL+BpL+BpL+8, c[8], c[5], c[6]);
+#define HQ4X_PIXEL32_31    Interp3(pOut+BpL+BpL+BpL+8, c[5], c[6]);
+#define HQ4X_PIXEL32_50    Interp5(pOut+BpL+BpL+BpL+8, c[8], c[5]);
+#define HQ4X_PIXEL32_60    Interp6(pOut+BpL+BpL+BpL+8, c[5], c[8], c[6]);
+#define HQ4X_PIXEL32_61    Interp6(pOut+BpL+BpL+BpL+8, c[5], c[8], c[9]);
+#define HQ4X_PIXEL32_82    Interp8(pOut+BpL+BpL+BpL+8, c[5], c[8]);
+#define HQ4X_PIXEL32_83    Interp8(pOut+BpL+BpL+BpL+8, c[8], c[6]);
+#define HQ4X_PIXEL33_0     *((int*)(pOut+BpL+BpL+BpL+12)) = c[5];
+#define HQ4X_PIXEL33_11    Interp1(pOut+BpL+BpL+BpL+12, c[5], c[6]);
+#define HQ4X_PIXEL33_12    Interp1(pOut+BpL+BpL+BpL+12, c[5], c[8]);
+#define HQ4X_PIXEL33_20    Interp2(pOut+BpL+BpL+BpL+12, c[5], c[8], c[6]);
+#define HQ4X_PIXEL33_50    Interp5(pOut+BpL+BpL+BpL+12, c[8], c[6]);
+#define HQ4X_PIXEL33_80    Interp8(pOut+BpL+BpL+BpL+12, c[5], c[9]);
+#define HQ4X_PIXEL33_81    Interp8(pOut+BpL+BpL+BpL+12, c[5], c[6]);
+#define HQ4X_PIXEL33_82    Interp8(pOut+BpL+BpL+BpL+12, c[5], c[8]);
 
 static inline bool Diff(unsigned int w1, unsigned int w2)
 {
@@ -468,10 +480,10 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 37:
         case 165:
         {
-          PIXEL00_20
-          PIXEL01_20
-          PIXEL10_20
-          PIXEL11_20
+          HQ2X_PIXEL00_20
+          HQ2X_PIXEL01_20
+          HQ2X_PIXEL10_20
+          HQ2X_PIXEL11_20
           break;
         }
         case 2:
@@ -479,10 +491,10 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 130:
         case 162:
         {
-          PIXEL00_22
-          PIXEL01_21
-          PIXEL10_20
-          PIXEL11_20
+          HQ2X_PIXEL00_22
+          HQ2X_PIXEL01_21
+          HQ2X_PIXEL10_20
+          HQ2X_PIXEL11_20
           break;
         }
         case 16:
@@ -490,10 +502,10 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 48:
         case 49:
         {
-          PIXEL00_20
-          PIXEL01_22
-          PIXEL10_20
-          PIXEL11_21
+          HQ2X_PIXEL00_20
+          HQ2X_PIXEL01_22
+          HQ2X_PIXEL10_20
+          HQ2X_PIXEL11_21
           break;
         }
         case 64:
@@ -501,10 +513,10 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 68:
         case 69:
         {
-          PIXEL00_20
-          PIXEL01_20
-          PIXEL10_21
-          PIXEL11_22
+          HQ2X_PIXEL00_20
+          HQ2X_PIXEL01_20
+          HQ2X_PIXEL10_21
+          HQ2X_PIXEL11_22
           break;
         }
         case 8:
@@ -512,10 +524,10 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 136:
         case 140:
         {
-          PIXEL00_21
-          PIXEL01_20
-          PIXEL10_22
-          PIXEL11_20
+          HQ2X_PIXEL00_21
+          HQ2X_PIXEL01_20
+          HQ2X_PIXEL10_22
+          HQ2X_PIXEL11_20
           break;
         }
         case 3:
@@ -523,10 +535,10 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 131:
         case 163:
         {
-          PIXEL00_11
-          PIXEL01_21
-          PIXEL10_20
-          PIXEL11_20
+          HQ2X_PIXEL00_11
+          HQ2X_PIXEL01_21
+          HQ2X_PIXEL10_20
+          HQ2X_PIXEL11_20
           break;
         }
         case 6:
@@ -534,10 +546,10 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 134:
         case 166:
         {
-          PIXEL00_22
-          PIXEL01_12
-          PIXEL10_20
-          PIXEL11_20
+          HQ2X_PIXEL00_22
+          HQ2X_PIXEL01_12
+          HQ2X_PIXEL10_20
+          HQ2X_PIXEL11_20
           break;
         }
         case 20:
@@ -545,10 +557,10 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 52:
         case 53:
         {
-          PIXEL00_20
-          PIXEL01_11
-          PIXEL10_20
-          PIXEL11_21
+          HQ2X_PIXEL00_20
+          HQ2X_PIXEL01_11
+          HQ2X_PIXEL10_20
+          HQ2X_PIXEL11_21
           break;
         }
         case 144:
@@ -556,10 +568,10 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 176:
         case 177:
         {
-          PIXEL00_20
-          PIXEL01_22
-          PIXEL10_20
-          PIXEL11_12
+          HQ2X_PIXEL00_20
+          HQ2X_PIXEL01_22
+          HQ2X_PIXEL10_20
+          HQ2X_PIXEL11_12
           break;
         }
         case 192:
@@ -567,10 +579,10 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 196:
         case 197:
         {
-          PIXEL00_20
-          PIXEL01_20
-          PIXEL10_21
-          PIXEL11_11
+          HQ2X_PIXEL00_20
+          HQ2X_PIXEL01_20
+          HQ2X_PIXEL10_21
+          HQ2X_PIXEL11_11
           break;
         }
         case 96:
@@ -578,10 +590,10 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 100:
         case 101:
         {
-          PIXEL00_20
-          PIXEL01_20
-          PIXEL10_12
-          PIXEL11_22
+          HQ2X_PIXEL00_20
+          HQ2X_PIXEL01_20
+          HQ2X_PIXEL10_12
+          HQ2X_PIXEL11_22
           break;
         }
         case 40:
@@ -589,10 +601,10 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 168:
         case 172:
         {
-          PIXEL00_21
-          PIXEL01_20
-          PIXEL10_11
-          PIXEL11_20
+          HQ2X_PIXEL00_21
+          HQ2X_PIXEL01_20
+          HQ2X_PIXEL10_11
+          HQ2X_PIXEL11_20
           break;
         }
         case 9:
@@ -600,58 +612,58 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 137:
         case 141:
         {
-          PIXEL00_12
-          PIXEL01_20
-          PIXEL10_22
-          PIXEL11_20
+          HQ2X_PIXEL00_12
+          HQ2X_PIXEL01_20
+          HQ2X_PIXEL10_22
+          HQ2X_PIXEL11_20
           break;
         }
         case 18:
         case 50:
         {
-          PIXEL00_22
+          HQ2X_PIXEL00_22
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_10
+            HQ2X_PIXEL01_10
           }
           else
           {
-            PIXEL01_20
+            HQ2X_PIXEL01_20
           }
-          PIXEL10_20
-          PIXEL11_21
+          HQ2X_PIXEL10_20
+          HQ2X_PIXEL11_21
           break;
         }
         case 80:
         case 81:
         {
-          PIXEL00_20
-          PIXEL01_22
-          PIXEL10_21
+          HQ2X_PIXEL00_20
+          HQ2X_PIXEL01_22
+          HQ2X_PIXEL10_21
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_10
+            HQ2X_PIXEL11_10
           }
           else
           {
-            PIXEL11_20
+            HQ2X_PIXEL11_20
           }
           break;
         }
         case 72:
         case 76:
         {
-          PIXEL00_21
-          PIXEL01_20
+          HQ2X_PIXEL00_21
+          HQ2X_PIXEL01_20
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_10
+            HQ2X_PIXEL10_10
           }
           else
           {
-            PIXEL10_20
+            HQ2X_PIXEL10_20
           }
-          PIXEL11_22
+          HQ2X_PIXEL11_22
           break;
         }
         case 10:
@@ -659,119 +671,119 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_10
+            HQ2X_PIXEL00_10
           }
           else
           {
-            PIXEL00_20
+            HQ2X_PIXEL00_20
           }
-          PIXEL01_21
-          PIXEL10_22
-          PIXEL11_20
+          HQ2X_PIXEL01_21
+          HQ2X_PIXEL10_22
+          HQ2X_PIXEL11_20
           break;
         }
         case 66:
         {
-          PIXEL00_22
-          PIXEL01_21
-          PIXEL10_21
-          PIXEL11_22
+          HQ2X_PIXEL00_22
+          HQ2X_PIXEL01_21
+          HQ2X_PIXEL10_21
+          HQ2X_PIXEL11_22
           break;
         }
         case 24:
         {
-          PIXEL00_21
-          PIXEL01_22
-          PIXEL10_22
-          PIXEL11_21
+          HQ2X_PIXEL00_21
+          HQ2X_PIXEL01_22
+          HQ2X_PIXEL10_22
+          HQ2X_PIXEL11_21
           break;
         }
         case 7:
         case 39:
         case 135:
         {
-          PIXEL00_11
-          PIXEL01_12
-          PIXEL10_20
-          PIXEL11_20
+          HQ2X_PIXEL00_11
+          HQ2X_PIXEL01_12
+          HQ2X_PIXEL10_20
+          HQ2X_PIXEL11_20
           break;
         }
         case 148:
         case 149:
         case 180:
         {
-          PIXEL00_20
-          PIXEL01_11
-          PIXEL10_20
-          PIXEL11_12
+          HQ2X_PIXEL00_20
+          HQ2X_PIXEL01_11
+          HQ2X_PIXEL10_20
+          HQ2X_PIXEL11_12
           break;
         }
         case 224:
         case 228:
         case 225:
         {
-          PIXEL00_20
-          PIXEL01_20
-          PIXEL10_12
-          PIXEL11_11
+          HQ2X_PIXEL00_20
+          HQ2X_PIXEL01_20
+          HQ2X_PIXEL10_12
+          HQ2X_PIXEL11_11
           break;
         }
         case 41:
         case 169:
         case 45:
         {
-          PIXEL00_12
-          PIXEL01_20
-          PIXEL10_11
-          PIXEL11_20
+          HQ2X_PIXEL00_12
+          HQ2X_PIXEL01_20
+          HQ2X_PIXEL10_11
+          HQ2X_PIXEL11_20
           break;
         }
         case 22:
         case 54:
         {
-          PIXEL00_22
+          HQ2X_PIXEL00_22
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_20
+            HQ2X_PIXEL01_20
           }
-          PIXEL10_20
-          PIXEL11_21
+          HQ2X_PIXEL10_20
+          HQ2X_PIXEL11_21
           break;
         }
         case 208:
         case 209:
         {
-          PIXEL00_20
-          PIXEL01_22
-          PIXEL10_21
+          HQ2X_PIXEL00_20
+          HQ2X_PIXEL01_22
+          HQ2X_PIXEL10_21
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_20
+            HQ2X_PIXEL11_20
           }
           break;
         }
         case 104:
         case 108:
         {
-          PIXEL00_21
-          PIXEL01_20
+          HQ2X_PIXEL00_21
+          HQ2X_PIXEL01_20
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_20
+            HQ2X_PIXEL10_20
           }
-          PIXEL11_22
+          HQ2X_PIXEL11_22
           break;
         }
         case 11:
@@ -779,15 +791,15 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ2X_PIXEL00_20
           }
-          PIXEL01_21
-          PIXEL10_22
-          PIXEL11_20
+          HQ2X_PIXEL01_21
+          HQ2X_PIXEL10_22
+          HQ2X_PIXEL11_20
           break;
         }
         case 19:
@@ -795,83 +807,83 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[2], w[6]))
           {
-            PIXEL00_11
-            PIXEL01_10
+            HQ2X_PIXEL00_11
+            HQ2X_PIXEL01_10
           }
           else
           {
-            PIXEL00_60
-            PIXEL01_90
+            HQ2X_PIXEL00_60
+            HQ2X_PIXEL01_90
           }
-          PIXEL10_20
-          PIXEL11_21
+          HQ2X_PIXEL10_20
+          HQ2X_PIXEL11_21
           break;
         }
         case 146:
         case 178:
         {
-          PIXEL00_22
+          HQ2X_PIXEL00_22
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_10
-            PIXEL11_12
+            HQ2X_PIXEL01_10
+            HQ2X_PIXEL11_12
           }
           else
           {
-            PIXEL01_90
-            PIXEL11_61
+            HQ2X_PIXEL01_90
+            HQ2X_PIXEL11_61
           }
-          PIXEL10_20
+          HQ2X_PIXEL10_20
           break;
         }
         case 84:
         case 85:
         {
-          PIXEL00_20
+          HQ2X_PIXEL00_20
           if (Diff(w[6], w[8]))
           {
-            PIXEL01_11
-            PIXEL11_10
+            HQ2X_PIXEL01_11
+            HQ2X_PIXEL11_10
           }
           else
           {
-            PIXEL01_60
-            PIXEL11_90
+            HQ2X_PIXEL01_60
+            HQ2X_PIXEL11_90
           }
-          PIXEL10_21
+          HQ2X_PIXEL10_21
           break;
         }
         case 112:
         case 113:
         {
-          PIXEL00_20
-          PIXEL01_22
+          HQ2X_PIXEL00_20
+          HQ2X_PIXEL01_22
           if (Diff(w[6], w[8]))
           {
-            PIXEL10_12
-            PIXEL11_10
+            HQ2X_PIXEL10_12
+            HQ2X_PIXEL11_10
           }
           else
           {
-            PIXEL10_61
-            PIXEL11_90
+            HQ2X_PIXEL10_61
+            HQ2X_PIXEL11_90
           }
           break;
         }
         case 200:
         case 204:
         {
-          PIXEL00_21
-          PIXEL01_20
+          HQ2X_PIXEL00_21
+          HQ2X_PIXEL01_20
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_10
-            PIXEL11_11
+            HQ2X_PIXEL10_10
+            HQ2X_PIXEL11_11
           }
           else
           {
-            PIXEL10_90
-            PIXEL11_60
+            HQ2X_PIXEL10_90
+            HQ2X_PIXEL11_60
           }
           break;
         }
@@ -880,16 +892,16 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[8], w[4]))
           {
-            PIXEL00_12
-            PIXEL10_10
+            HQ2X_PIXEL00_12
+            HQ2X_PIXEL10_10
           }
           else
           {
-            PIXEL00_61
-            PIXEL10_90
+            HQ2X_PIXEL00_61
+            HQ2X_PIXEL10_90
           }
-          PIXEL01_20
-          PIXEL11_22
+          HQ2X_PIXEL01_20
+          HQ2X_PIXEL11_22
           break;
         }
         case 42:
@@ -897,16 +909,16 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_10
-            PIXEL10_11
+            HQ2X_PIXEL00_10
+            HQ2X_PIXEL10_11
           }
           else
           {
-            PIXEL00_90
-            PIXEL10_60
+            HQ2X_PIXEL00_90
+            HQ2X_PIXEL10_60
           }
-          PIXEL01_21
-          PIXEL11_20
+          HQ2X_PIXEL01_21
+          HQ2X_PIXEL11_20
           break;
         }
         case 14:
@@ -914,80 +926,80 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_10
-            PIXEL01_12
+            HQ2X_PIXEL00_10
+            HQ2X_PIXEL01_12
           }
           else
           {
-            PIXEL00_90
-            PIXEL01_61
+            HQ2X_PIXEL00_90
+            HQ2X_PIXEL01_61
           }
-          PIXEL10_22
-          PIXEL11_20
+          HQ2X_PIXEL10_22
+          HQ2X_PIXEL11_20
           break;
         }
         case 67:
         {
-          PIXEL00_11
-          PIXEL01_21
-          PIXEL10_21
-          PIXEL11_22
+          HQ2X_PIXEL00_11
+          HQ2X_PIXEL01_21
+          HQ2X_PIXEL10_21
+          HQ2X_PIXEL11_22
           break;
         }
         case 70:
         {
-          PIXEL00_22
-          PIXEL01_12
-          PIXEL10_21
-          PIXEL11_22
+          HQ2X_PIXEL00_22
+          HQ2X_PIXEL01_12
+          HQ2X_PIXEL10_21
+          HQ2X_PIXEL11_22
           break;
         }
         case 28:
         {
-          PIXEL00_21
-          PIXEL01_11
-          PIXEL10_22
-          PIXEL11_21
+          HQ2X_PIXEL00_21
+          HQ2X_PIXEL01_11
+          HQ2X_PIXEL10_22
+          HQ2X_PIXEL11_21
           break;
         }
         case 152:
         {
-          PIXEL00_21
-          PIXEL01_22
-          PIXEL10_22
-          PIXEL11_12
+          HQ2X_PIXEL00_21
+          HQ2X_PIXEL01_22
+          HQ2X_PIXEL10_22
+          HQ2X_PIXEL11_12
           break;
         }
         case 194:
         {
-          PIXEL00_22
-          PIXEL01_21
-          PIXEL10_21
-          PIXEL11_11
+          HQ2X_PIXEL00_22
+          HQ2X_PIXEL01_21
+          HQ2X_PIXEL10_21
+          HQ2X_PIXEL11_11
           break;
         }
         case 98:
         {
-          PIXEL00_22
-          PIXEL01_21
-          PIXEL10_12
-          PIXEL11_22
+          HQ2X_PIXEL00_22
+          HQ2X_PIXEL01_21
+          HQ2X_PIXEL10_12
+          HQ2X_PIXEL11_22
           break;
         }
         case 56:
         {
-          PIXEL00_21
-          PIXEL01_22
-          PIXEL10_11
-          PIXEL11_21
+          HQ2X_PIXEL00_21
+          HQ2X_PIXEL01_22
+          HQ2X_PIXEL10_11
+          HQ2X_PIXEL11_21
           break;
         }
         case 25:
         {
-          PIXEL00_12
-          PIXEL01_22
-          PIXEL10_22
-          PIXEL11_21
+          HQ2X_PIXEL00_12
+          HQ2X_PIXEL01_22
+          HQ2X_PIXEL10_22
+          HQ2X_PIXEL11_21
           break;
         }
         case 26:
@@ -995,67 +1007,67 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ2X_PIXEL00_20
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_20
+            HQ2X_PIXEL01_20
           }
-          PIXEL10_22
-          PIXEL11_21
+          HQ2X_PIXEL10_22
+          HQ2X_PIXEL11_21
           break;
         }
         case 82:
         case 214:
         {
-          PIXEL00_22
+          HQ2X_PIXEL00_22
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_20
+            HQ2X_PIXEL01_20
           }
-          PIXEL10_21
+          HQ2X_PIXEL10_21
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_20
+            HQ2X_PIXEL11_20
           }
           break;
         }
         case 88:
         case 248:
         {
-          PIXEL00_21
-          PIXEL01_22
+          HQ2X_PIXEL00_21
+          HQ2X_PIXEL01_22
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_20
+            HQ2X_PIXEL10_20
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_20
+            HQ2X_PIXEL11_20
           }
           break;
         }
@@ -1064,303 +1076,303 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ2X_PIXEL00_20
           }
-          PIXEL01_21
+          HQ2X_PIXEL01_21
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_20
+            HQ2X_PIXEL10_20
           }
-          PIXEL11_22
+          HQ2X_PIXEL11_22
           break;
         }
         case 27:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ2X_PIXEL00_20
           }
-          PIXEL01_10
-          PIXEL10_22
-          PIXEL11_21
+          HQ2X_PIXEL01_10
+          HQ2X_PIXEL10_22
+          HQ2X_PIXEL11_21
           break;
         }
         case 86:
         {
-          PIXEL00_22
+          HQ2X_PIXEL00_22
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_20
+            HQ2X_PIXEL01_20
           }
-          PIXEL10_21
-          PIXEL11_10
+          HQ2X_PIXEL10_21
+          HQ2X_PIXEL11_10
           break;
         }
         case 216:
         {
-          PIXEL00_21
-          PIXEL01_22
-          PIXEL10_10
+          HQ2X_PIXEL00_21
+          HQ2X_PIXEL01_22
+          HQ2X_PIXEL10_10
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_20
+            HQ2X_PIXEL11_20
           }
           break;
         }
         case 106:
         {
-          PIXEL00_10
-          PIXEL01_21
+          HQ2X_PIXEL00_10
+          HQ2X_PIXEL01_21
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_20
+            HQ2X_PIXEL10_20
           }
-          PIXEL11_22
+          HQ2X_PIXEL11_22
           break;
         }
         case 30:
         {
-          PIXEL00_10
+          HQ2X_PIXEL00_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_20
+            HQ2X_PIXEL01_20
           }
-          PIXEL10_22
-          PIXEL11_21
+          HQ2X_PIXEL10_22
+          HQ2X_PIXEL11_21
           break;
         }
         case 210:
         {
-          PIXEL00_22
-          PIXEL01_10
-          PIXEL10_21
+          HQ2X_PIXEL00_22
+          HQ2X_PIXEL01_10
+          HQ2X_PIXEL10_21
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_20
+            HQ2X_PIXEL11_20
           }
           break;
         }
         case 120:
         {
-          PIXEL00_21
-          PIXEL01_22
+          HQ2X_PIXEL00_21
+          HQ2X_PIXEL01_22
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_20
+            HQ2X_PIXEL10_20
           }
-          PIXEL11_10
+          HQ2X_PIXEL11_10
           break;
         }
         case 75:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ2X_PIXEL00_20
           }
-          PIXEL01_21
-          PIXEL10_10
-          PIXEL11_22
+          HQ2X_PIXEL01_21
+          HQ2X_PIXEL10_10
+          HQ2X_PIXEL11_22
           break;
         }
         case 29:
         {
-          PIXEL00_12
-          PIXEL01_11
-          PIXEL10_22
-          PIXEL11_21
+          HQ2X_PIXEL00_12
+          HQ2X_PIXEL01_11
+          HQ2X_PIXEL10_22
+          HQ2X_PIXEL11_21
           break;
         }
         case 198:
         {
-          PIXEL00_22
-          PIXEL01_12
-          PIXEL10_21
-          PIXEL11_11
+          HQ2X_PIXEL00_22
+          HQ2X_PIXEL01_12
+          HQ2X_PIXEL10_21
+          HQ2X_PIXEL11_11
           break;
         }
         case 184:
         {
-          PIXEL00_21
-          PIXEL01_22
-          PIXEL10_11
-          PIXEL11_12
+          HQ2X_PIXEL00_21
+          HQ2X_PIXEL01_22
+          HQ2X_PIXEL10_11
+          HQ2X_PIXEL11_12
           break;
         }
         case 99:
         {
-          PIXEL00_11
-          PIXEL01_21
-          PIXEL10_12
-          PIXEL11_22
+          HQ2X_PIXEL00_11
+          HQ2X_PIXEL01_21
+          HQ2X_PIXEL10_12
+          HQ2X_PIXEL11_22
           break;
         }
         case 57:
         {
-          PIXEL00_12
-          PIXEL01_22
-          PIXEL10_11
-          PIXEL11_21
+          HQ2X_PIXEL00_12
+          HQ2X_PIXEL01_22
+          HQ2X_PIXEL10_11
+          HQ2X_PIXEL11_21
           break;
         }
         case 71:
         {
-          PIXEL00_11
-          PIXEL01_12
-          PIXEL10_21
-          PIXEL11_22
+          HQ2X_PIXEL00_11
+          HQ2X_PIXEL01_12
+          HQ2X_PIXEL10_21
+          HQ2X_PIXEL11_22
           break;
         }
         case 156:
         {
-          PIXEL00_21
-          PIXEL01_11
-          PIXEL10_22
-          PIXEL11_12
+          HQ2X_PIXEL00_21
+          HQ2X_PIXEL01_11
+          HQ2X_PIXEL10_22
+          HQ2X_PIXEL11_12
           break;
         }
         case 226:
         {
-          PIXEL00_22
-          PIXEL01_21
-          PIXEL10_12
-          PIXEL11_11
+          HQ2X_PIXEL00_22
+          HQ2X_PIXEL01_21
+          HQ2X_PIXEL10_12
+          HQ2X_PIXEL11_11
           break;
         }
         case 60:
         {
-          PIXEL00_21
-          PIXEL01_11
-          PIXEL10_11
-          PIXEL11_21
+          HQ2X_PIXEL00_21
+          HQ2X_PIXEL01_11
+          HQ2X_PIXEL10_11
+          HQ2X_PIXEL11_21
           break;
         }
         case 195:
         {
-          PIXEL00_11
-          PIXEL01_21
-          PIXEL10_21
-          PIXEL11_11
+          HQ2X_PIXEL00_11
+          HQ2X_PIXEL01_21
+          HQ2X_PIXEL10_21
+          HQ2X_PIXEL11_11
           break;
         }
         case 102:
         {
-          PIXEL00_22
-          PIXEL01_12
-          PIXEL10_12
-          PIXEL11_22
+          HQ2X_PIXEL00_22
+          HQ2X_PIXEL01_12
+          HQ2X_PIXEL10_12
+          HQ2X_PIXEL11_22
           break;
         }
         case 153:
         {
-          PIXEL00_12
-          PIXEL01_22
-          PIXEL10_22
-          PIXEL11_12
+          HQ2X_PIXEL00_12
+          HQ2X_PIXEL01_22
+          HQ2X_PIXEL10_22
+          HQ2X_PIXEL11_12
           break;
         }
         case 58:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_10
+            HQ2X_PIXEL00_10
           }
           else
           {
-            PIXEL00_70
+            HQ2X_PIXEL00_70
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_10
+            HQ2X_PIXEL01_10
           }
           else
           {
-            PIXEL01_70
+            HQ2X_PIXEL01_70
           }
-          PIXEL10_11
-          PIXEL11_21
+          HQ2X_PIXEL10_11
+          HQ2X_PIXEL11_21
           break;
         }
         case 83:
         {
-          PIXEL00_11
+          HQ2X_PIXEL00_11
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_10
+            HQ2X_PIXEL01_10
           }
           else
           {
-            PIXEL01_70
+            HQ2X_PIXEL01_70
           }
-          PIXEL10_21
+          HQ2X_PIXEL10_21
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_10
+            HQ2X_PIXEL11_10
           }
           else
           {
-            PIXEL11_70
+            HQ2X_PIXEL11_70
           }
           break;
         }
         case 92:
         {
-          PIXEL00_21
-          PIXEL01_11
+          HQ2X_PIXEL00_21
+          HQ2X_PIXEL01_11
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_10
+            HQ2X_PIXEL10_10
           }
           else
           {
-            PIXEL10_70
+            HQ2X_PIXEL10_70
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_10
+            HQ2X_PIXEL11_10
           }
           else
           {
-            PIXEL11_70
+            HQ2X_PIXEL11_70
           }
           break;
         }
@@ -1368,109 +1380,109 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_10
+            HQ2X_PIXEL00_10
           }
           else
           {
-            PIXEL00_70
+            HQ2X_PIXEL00_70
           }
-          PIXEL01_21
+          HQ2X_PIXEL01_21
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_10
+            HQ2X_PIXEL10_10
           }
           else
           {
-            PIXEL10_70
+            HQ2X_PIXEL10_70
           }
-          PIXEL11_11
+          HQ2X_PIXEL11_11
           break;
         }
         case 78:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_10
+            HQ2X_PIXEL00_10
           }
           else
           {
-            PIXEL00_70
+            HQ2X_PIXEL00_70
           }
-          PIXEL01_12
+          HQ2X_PIXEL01_12
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_10
+            HQ2X_PIXEL10_10
           }
           else
           {
-            PIXEL10_70
+            HQ2X_PIXEL10_70
           }
-          PIXEL11_22
+          HQ2X_PIXEL11_22
           break;
         }
         case 154:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_10
+            HQ2X_PIXEL00_10
           }
           else
           {
-            PIXEL00_70
+            HQ2X_PIXEL00_70
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_10
+            HQ2X_PIXEL01_10
           }
           else
           {
-            PIXEL01_70
+            HQ2X_PIXEL01_70
           }
-          PIXEL10_22
-          PIXEL11_12
+          HQ2X_PIXEL10_22
+          HQ2X_PIXEL11_12
           break;
         }
         case 114:
         {
-          PIXEL00_22
+          HQ2X_PIXEL00_22
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_10
+            HQ2X_PIXEL01_10
           }
           else
           {
-            PIXEL01_70
+            HQ2X_PIXEL01_70
           }
-          PIXEL10_12
+          HQ2X_PIXEL10_12
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_10
+            HQ2X_PIXEL11_10
           }
           else
           {
-            PIXEL11_70
+            HQ2X_PIXEL11_70
           }
           break;
         }
         case 89:
         {
-          PIXEL00_12
-          PIXEL01_22
+          HQ2X_PIXEL00_12
+          HQ2X_PIXEL01_22
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_10
+            HQ2X_PIXEL10_10
           }
           else
           {
-            PIXEL10_70
+            HQ2X_PIXEL10_70
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_10
+            HQ2X_PIXEL11_10
           }
           else
           {
-            PIXEL11_70
+            HQ2X_PIXEL11_70
           }
           break;
         }
@@ -1478,35 +1490,35 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_10
+            HQ2X_PIXEL00_10
           }
           else
           {
-            PIXEL00_70
+            HQ2X_PIXEL00_70
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_10
+            HQ2X_PIXEL01_10
           }
           else
           {
-            PIXEL01_70
+            HQ2X_PIXEL01_70
           }
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_10
+            HQ2X_PIXEL10_10
           }
           else
           {
-            PIXEL10_70
+            HQ2X_PIXEL10_70
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_10
+            HQ2X_PIXEL11_10
           }
           else
           {
-            PIXEL11_70
+            HQ2X_PIXEL11_70
           }
           break;
         }
@@ -1515,83 +1527,83 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[2], w[6]))
           {
-            PIXEL00_11
-            PIXEL01_0
+            HQ2X_PIXEL00_11
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL00_60
-            PIXEL01_90
+            HQ2X_PIXEL00_60
+            HQ2X_PIXEL01_90
           }
-          PIXEL10_20
-          PIXEL11_21
+          HQ2X_PIXEL10_20
+          HQ2X_PIXEL11_21
           break;
         }
         case 182:
         case 150:
         {
-          PIXEL00_22
+          HQ2X_PIXEL00_22
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
-            PIXEL11_12
+            HQ2X_PIXEL01_0
+            HQ2X_PIXEL11_12
           }
           else
           {
-            PIXEL01_90
-            PIXEL11_61
+            HQ2X_PIXEL01_90
+            HQ2X_PIXEL11_61
           }
-          PIXEL10_20
+          HQ2X_PIXEL10_20
           break;
         }
         case 213:
         case 212:
         {
-          PIXEL00_20
+          HQ2X_PIXEL00_20
           if (Diff(w[6], w[8]))
           {
-            PIXEL01_11
-            PIXEL11_0
+            HQ2X_PIXEL01_11
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL01_60
-            PIXEL11_90
+            HQ2X_PIXEL01_60
+            HQ2X_PIXEL11_90
           }
-          PIXEL10_21
+          HQ2X_PIXEL10_21
           break;
         }
         case 241:
         case 240:
         {
-          PIXEL00_20
-          PIXEL01_22
+          HQ2X_PIXEL00_20
+          HQ2X_PIXEL01_22
           if (Diff(w[6], w[8]))
           {
-            PIXEL10_12
-            PIXEL11_0
+            HQ2X_PIXEL10_12
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL10_61
-            PIXEL11_90
+            HQ2X_PIXEL10_61
+            HQ2X_PIXEL11_90
           }
           break;
         }
         case 236:
         case 232:
         {
-          PIXEL00_21
-          PIXEL01_20
+          HQ2X_PIXEL00_21
+          HQ2X_PIXEL01_20
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
-            PIXEL11_11
+            HQ2X_PIXEL10_0
+            HQ2X_PIXEL11_11
           }
           else
           {
-            PIXEL10_90
-            PIXEL11_60
+            HQ2X_PIXEL10_90
+            HQ2X_PIXEL11_60
           }
           break;
         }
@@ -1600,16 +1612,16 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[8], w[4]))
           {
-            PIXEL00_12
-            PIXEL10_0
+            HQ2X_PIXEL00_12
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL00_61
-            PIXEL10_90
+            HQ2X_PIXEL00_61
+            HQ2X_PIXEL10_90
           }
-          PIXEL01_20
-          PIXEL11_22
+          HQ2X_PIXEL01_20
+          HQ2X_PIXEL11_22
           break;
         }
         case 171:
@@ -1617,16 +1629,16 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL10_11
+            HQ2X_PIXEL00_0
+            HQ2X_PIXEL10_11
           }
           else
           {
-            PIXEL00_90
-            PIXEL10_60
+            HQ2X_PIXEL00_90
+            HQ2X_PIXEL10_60
           }
-          PIXEL01_21
-          PIXEL11_20
+          HQ2X_PIXEL01_21
+          HQ2X_PIXEL11_20
           break;
         }
         case 143:
@@ -1634,221 +1646,221 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_12
+            HQ2X_PIXEL00_0
+            HQ2X_PIXEL01_12
           }
           else
           {
-            PIXEL00_90
-            PIXEL01_61
+            HQ2X_PIXEL00_90
+            HQ2X_PIXEL01_61
           }
-          PIXEL10_22
-          PIXEL11_20
+          HQ2X_PIXEL10_22
+          HQ2X_PIXEL11_20
           break;
         }
         case 124:
         {
-          PIXEL00_21
-          PIXEL01_11
+          HQ2X_PIXEL00_21
+          HQ2X_PIXEL01_11
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_20
+            HQ2X_PIXEL10_20
           }
-          PIXEL11_10
+          HQ2X_PIXEL11_10
           break;
         }
         case 203:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ2X_PIXEL00_20
           }
-          PIXEL01_21
-          PIXEL10_10
-          PIXEL11_11
+          HQ2X_PIXEL01_21
+          HQ2X_PIXEL10_10
+          HQ2X_PIXEL11_11
           break;
         }
         case 62:
         {
-          PIXEL00_10
+          HQ2X_PIXEL00_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_20
+            HQ2X_PIXEL01_20
           }
-          PIXEL10_11
-          PIXEL11_21
+          HQ2X_PIXEL10_11
+          HQ2X_PIXEL11_21
           break;
         }
         case 211:
         {
-          PIXEL00_11
-          PIXEL01_10
-          PIXEL10_21
+          HQ2X_PIXEL00_11
+          HQ2X_PIXEL01_10
+          HQ2X_PIXEL10_21
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_20
+            HQ2X_PIXEL11_20
           }
           break;
         }
         case 118:
         {
-          PIXEL00_22
+          HQ2X_PIXEL00_22
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_20
+            HQ2X_PIXEL01_20
           }
-          PIXEL10_12
-          PIXEL11_10
+          HQ2X_PIXEL10_12
+          HQ2X_PIXEL11_10
           break;
         }
         case 217:
         {
-          PIXEL00_12
-          PIXEL01_22
-          PIXEL10_10
+          HQ2X_PIXEL00_12
+          HQ2X_PIXEL01_22
+          HQ2X_PIXEL10_10
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_20
+            HQ2X_PIXEL11_20
           }
           break;
         }
         case 110:
         {
-          PIXEL00_10
-          PIXEL01_12
+          HQ2X_PIXEL00_10
+          HQ2X_PIXEL01_12
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_20
+            HQ2X_PIXEL10_20
           }
-          PIXEL11_22
+          HQ2X_PIXEL11_22
           break;
         }
         case 155:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ2X_PIXEL00_20
           }
-          PIXEL01_10
-          PIXEL10_22
-          PIXEL11_12
+          HQ2X_PIXEL01_10
+          HQ2X_PIXEL10_22
+          HQ2X_PIXEL11_12
           break;
         }
         case 188:
         {
-          PIXEL00_21
-          PIXEL01_11
-          PIXEL10_11
-          PIXEL11_12
+          HQ2X_PIXEL00_21
+          HQ2X_PIXEL01_11
+          HQ2X_PIXEL10_11
+          HQ2X_PIXEL11_12
           break;
         }
         case 185:
         {
-          PIXEL00_12
-          PIXEL01_22
-          PIXEL10_11
-          PIXEL11_12
+          HQ2X_PIXEL00_12
+          HQ2X_PIXEL01_22
+          HQ2X_PIXEL10_11
+          HQ2X_PIXEL11_12
           break;
         }
         case 61:
         {
-          PIXEL00_12
-          PIXEL01_11
-          PIXEL10_11
-          PIXEL11_21
+          HQ2X_PIXEL00_12
+          HQ2X_PIXEL01_11
+          HQ2X_PIXEL10_11
+          HQ2X_PIXEL11_21
           break;
         }
         case 157:
         {
-          PIXEL00_12
-          PIXEL01_11
-          PIXEL10_22
-          PIXEL11_12
+          HQ2X_PIXEL00_12
+          HQ2X_PIXEL01_11
+          HQ2X_PIXEL10_22
+          HQ2X_PIXEL11_12
           break;
         }
         case 103:
         {
-          PIXEL00_11
-          PIXEL01_12
-          PIXEL10_12
-          PIXEL11_22
+          HQ2X_PIXEL00_11
+          HQ2X_PIXEL01_12
+          HQ2X_PIXEL10_12
+          HQ2X_PIXEL11_22
           break;
         }
         case 227:
         {
-          PIXEL00_11
-          PIXEL01_21
-          PIXEL10_12
-          PIXEL11_11
+          HQ2X_PIXEL00_11
+          HQ2X_PIXEL01_21
+          HQ2X_PIXEL10_12
+          HQ2X_PIXEL11_11
           break;
         }
         case 230:
         {
-          PIXEL00_22
-          PIXEL01_12
-          PIXEL10_12
-          PIXEL11_11
+          HQ2X_PIXEL00_22
+          HQ2X_PIXEL01_12
+          HQ2X_PIXEL10_12
+          HQ2X_PIXEL11_11
           break;
         }
         case 199:
         {
-          PIXEL00_11
-          PIXEL01_12
-          PIXEL10_21
-          PIXEL11_11
+          HQ2X_PIXEL00_11
+          HQ2X_PIXEL01_12
+          HQ2X_PIXEL10_21
+          HQ2X_PIXEL11_11
           break;
         }
         case 220:
         {
-          PIXEL00_21
-          PIXEL01_11
+          HQ2X_PIXEL00_21
+          HQ2X_PIXEL01_11
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_10
+            HQ2X_PIXEL10_10
           }
           else
           {
-            PIXEL10_70
+            HQ2X_PIXEL10_70
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_20
+            HQ2X_PIXEL11_20
           }
           break;
         }
@@ -1856,65 +1868,65 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_10
+            HQ2X_PIXEL00_10
           }
           else
           {
-            PIXEL00_70
+            HQ2X_PIXEL00_70
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_20
+            HQ2X_PIXEL01_20
           }
-          PIXEL10_22
-          PIXEL11_12
+          HQ2X_PIXEL10_22
+          HQ2X_PIXEL11_12
           break;
         }
         case 234:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_10
+            HQ2X_PIXEL00_10
           }
           else
           {
-            PIXEL00_70
+            HQ2X_PIXEL00_70
           }
-          PIXEL01_21
+          HQ2X_PIXEL01_21
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_20
+            HQ2X_PIXEL10_20
           }
-          PIXEL11_11
+          HQ2X_PIXEL11_11
           break;
         }
         case 242:
         {
-          PIXEL00_22
+          HQ2X_PIXEL00_22
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_10
+            HQ2X_PIXEL01_10
           }
           else
           {
-            PIXEL01_70
+            HQ2X_PIXEL01_70
           }
-          PIXEL10_12
+          HQ2X_PIXEL10_12
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_20
+            HQ2X_PIXEL11_20
           }
           break;
         }
@@ -1922,65 +1934,65 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ2X_PIXEL00_20
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_10
+            HQ2X_PIXEL01_10
           }
           else
           {
-            PIXEL01_70
+            HQ2X_PIXEL01_70
           }
-          PIXEL10_11
-          PIXEL11_21
+          HQ2X_PIXEL10_11
+          HQ2X_PIXEL11_21
           break;
         }
         case 121:
         {
-          PIXEL00_12
-          PIXEL01_22
+          HQ2X_PIXEL00_12
+          HQ2X_PIXEL01_22
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_20
+            HQ2X_PIXEL10_20
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_10
+            HQ2X_PIXEL11_10
           }
           else
           {
-            PIXEL11_70
+            HQ2X_PIXEL11_70
           }
           break;
         }
         case 87:
         {
-          PIXEL00_11
+          HQ2X_PIXEL00_11
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_20
+            HQ2X_PIXEL01_20
           }
-          PIXEL10_21
+          HQ2X_PIXEL10_21
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_10
+            HQ2X_PIXEL11_10
           }
           else
           {
-            PIXEL11_70
+            HQ2X_PIXEL11_70
           }
           break;
         }
@@ -1988,57 +2000,57 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ2X_PIXEL00_20
           }
-          PIXEL01_12
+          HQ2X_PIXEL01_12
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_10
+            HQ2X_PIXEL10_10
           }
           else
           {
-            PIXEL10_70
+            HQ2X_PIXEL10_70
           }
-          PIXEL11_22
+          HQ2X_PIXEL11_22
           break;
         }
         case 122:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_10
+            HQ2X_PIXEL00_10
           }
           else
           {
-            PIXEL00_70
+            HQ2X_PIXEL00_70
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_10
+            HQ2X_PIXEL01_10
           }
           else
           {
-            PIXEL01_70
+            HQ2X_PIXEL01_70
           }
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_20
+            HQ2X_PIXEL10_20
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_10
+            HQ2X_PIXEL11_10
           }
           else
           {
-            PIXEL11_70
+            HQ2X_PIXEL11_70
           }
           break;
         }
@@ -2046,35 +2058,35 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_10
+            HQ2X_PIXEL00_10
           }
           else
           {
-            PIXEL00_70
+            HQ2X_PIXEL00_70
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_20
+            HQ2X_PIXEL01_20
           }
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_10
+            HQ2X_PIXEL10_10
           }
           else
           {
-            PIXEL10_70
+            HQ2X_PIXEL10_70
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_10
+            HQ2X_PIXEL11_10
           }
           else
           {
-            PIXEL11_70
+            HQ2X_PIXEL11_70
           }
           break;
         }
@@ -2082,35 +2094,35 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_10
+            HQ2X_PIXEL00_10
           }
           else
           {
-            PIXEL00_70
+            HQ2X_PIXEL00_70
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_10
+            HQ2X_PIXEL01_10
           }
           else
           {
-            PIXEL01_70
+            HQ2X_PIXEL01_70
           }
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_10
+            HQ2X_PIXEL10_10
           }
           else
           {
-            PIXEL10_70
+            HQ2X_PIXEL10_70
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_20
+            HQ2X_PIXEL11_20
           }
           break;
         }
@@ -2118,133 +2130,133 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ2X_PIXEL00_20
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_10
+            HQ2X_PIXEL01_10
           }
           else
           {
-            PIXEL01_70
+            HQ2X_PIXEL01_70
           }
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_10
+            HQ2X_PIXEL10_10
           }
           else
           {
-            PIXEL10_70
+            HQ2X_PIXEL10_70
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_10
+            HQ2X_PIXEL11_10
           }
           else
           {
-            PIXEL11_70
+            HQ2X_PIXEL11_70
           }
           break;
         }
         case 229:
         {
-          PIXEL00_20
-          PIXEL01_20
-          PIXEL10_12
-          PIXEL11_11
+          HQ2X_PIXEL00_20
+          HQ2X_PIXEL01_20
+          HQ2X_PIXEL10_12
+          HQ2X_PIXEL11_11
           break;
         }
         case 167:
         {
-          PIXEL00_11
-          PIXEL01_12
-          PIXEL10_20
-          PIXEL11_20
+          HQ2X_PIXEL00_11
+          HQ2X_PIXEL01_12
+          HQ2X_PIXEL10_20
+          HQ2X_PIXEL11_20
           break;
         }
         case 173:
         {
-          PIXEL00_12
-          PIXEL01_20
-          PIXEL10_11
-          PIXEL11_20
+          HQ2X_PIXEL00_12
+          HQ2X_PIXEL01_20
+          HQ2X_PIXEL10_11
+          HQ2X_PIXEL11_20
           break;
         }
         case 181:
         {
-          PIXEL00_20
-          PIXEL01_11
-          PIXEL10_20
-          PIXEL11_12
+          HQ2X_PIXEL00_20
+          HQ2X_PIXEL01_11
+          HQ2X_PIXEL10_20
+          HQ2X_PIXEL11_12
           break;
         }
         case 186:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_10
+            HQ2X_PIXEL00_10
           }
           else
           {
-            PIXEL00_70
+            HQ2X_PIXEL00_70
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_10
+            HQ2X_PIXEL01_10
           }
           else
           {
-            PIXEL01_70
+            HQ2X_PIXEL01_70
           }
-          PIXEL10_11
-          PIXEL11_12
+          HQ2X_PIXEL10_11
+          HQ2X_PIXEL11_12
           break;
         }
         case 115:
         {
-          PIXEL00_11
+          HQ2X_PIXEL00_11
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_10
+            HQ2X_PIXEL01_10
           }
           else
           {
-            PIXEL01_70
+            HQ2X_PIXEL01_70
           }
-          PIXEL10_12
+          HQ2X_PIXEL10_12
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_10
+            HQ2X_PIXEL11_10
           }
           else
           {
-            PIXEL11_70
+            HQ2X_PIXEL11_70
           }
           break;
         }
         case 93:
         {
-          PIXEL00_12
-          PIXEL01_11
+          HQ2X_PIXEL00_12
+          HQ2X_PIXEL01_11
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_10
+            HQ2X_PIXEL10_10
           }
           else
           {
-            PIXEL10_70
+            HQ2X_PIXEL10_70
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_10
+            HQ2X_PIXEL11_10
           }
           else
           {
-            PIXEL11_70
+            HQ2X_PIXEL11_70
           }
           break;
         }
@@ -2252,38 +2264,38 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_10
+            HQ2X_PIXEL00_10
           }
           else
           {
-            PIXEL00_70
+            HQ2X_PIXEL00_70
           }
-          PIXEL01_12
+          HQ2X_PIXEL01_12
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_10
+            HQ2X_PIXEL10_10
           }
           else
           {
-            PIXEL10_70
+            HQ2X_PIXEL10_70
           }
-          PIXEL11_11
+          HQ2X_PIXEL11_11
           break;
         }
         case 205:
         case 201:
         {
-          PIXEL00_12
-          PIXEL01_20
+          HQ2X_PIXEL00_12
+          HQ2X_PIXEL01_20
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_10
+            HQ2X_PIXEL10_10
           }
           else
           {
-            PIXEL10_70
+            HQ2X_PIXEL10_70
           }
-          PIXEL11_11
+          HQ2X_PIXEL11_11
           break;
         }
         case 174:
@@ -2291,106 +2303,106 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_10
+            HQ2X_PIXEL00_10
           }
           else
           {
-            PIXEL00_70
+            HQ2X_PIXEL00_70
           }
-          PIXEL01_12
-          PIXEL10_11
-          PIXEL11_20
+          HQ2X_PIXEL01_12
+          HQ2X_PIXEL10_11
+          HQ2X_PIXEL11_20
           break;
         }
         case 179:
         case 147:
         {
-          PIXEL00_11
+          HQ2X_PIXEL00_11
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_10
+            HQ2X_PIXEL01_10
           }
           else
           {
-            PIXEL01_70
+            HQ2X_PIXEL01_70
           }
-          PIXEL10_20
-          PIXEL11_12
+          HQ2X_PIXEL10_20
+          HQ2X_PIXEL11_12
           break;
         }
         case 117:
         case 116:
         {
-          PIXEL00_20
-          PIXEL01_11
-          PIXEL10_12
+          HQ2X_PIXEL00_20
+          HQ2X_PIXEL01_11
+          HQ2X_PIXEL10_12
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_10
+            HQ2X_PIXEL11_10
           }
           else
           {
-            PIXEL11_70
+            HQ2X_PIXEL11_70
           }
           break;
         }
         case 189:
         {
-          PIXEL00_12
-          PIXEL01_11
-          PIXEL10_11
-          PIXEL11_12
+          HQ2X_PIXEL00_12
+          HQ2X_PIXEL01_11
+          HQ2X_PIXEL10_11
+          HQ2X_PIXEL11_12
           break;
         }
         case 231:
         {
-          PIXEL00_11
-          PIXEL01_12
-          PIXEL10_12
-          PIXEL11_11
+          HQ2X_PIXEL00_11
+          HQ2X_PIXEL01_12
+          HQ2X_PIXEL10_12
+          HQ2X_PIXEL11_11
           break;
         }
         case 126:
         {
-          PIXEL00_10
+          HQ2X_PIXEL00_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_20
+            HQ2X_PIXEL01_20
           }
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_20
+            HQ2X_PIXEL10_20
           }
-          PIXEL11_10
+          HQ2X_PIXEL11_10
           break;
         }
         case 219:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ2X_PIXEL00_20
           }
-          PIXEL01_10
-          PIXEL10_10
+          HQ2X_PIXEL01_10
+          HQ2X_PIXEL10_10
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_20
+            HQ2X_PIXEL11_20
           }
           break;
         }
@@ -2398,111 +2410,111 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[8], w[4]))
           {
-            PIXEL00_12
-            PIXEL10_0
+            HQ2X_PIXEL00_12
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL00_61
-            PIXEL10_90
+            HQ2X_PIXEL00_61
+            HQ2X_PIXEL10_90
           }
-          PIXEL01_11
-          PIXEL11_10
+          HQ2X_PIXEL01_11
+          HQ2X_PIXEL11_10
           break;
         }
         case 221:
         {
-          PIXEL00_12
+          HQ2X_PIXEL00_12
           if (Diff(w[6], w[8]))
           {
-            PIXEL01_11
-            PIXEL11_0
+            HQ2X_PIXEL01_11
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL01_60
-            PIXEL11_90
+            HQ2X_PIXEL01_60
+            HQ2X_PIXEL11_90
           }
-          PIXEL10_10
+          HQ2X_PIXEL10_10
           break;
         }
         case 207:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_12
+            HQ2X_PIXEL00_0
+            HQ2X_PIXEL01_12
           }
           else
           {
-            PIXEL00_90
-            PIXEL01_61
+            HQ2X_PIXEL00_90
+            HQ2X_PIXEL01_61
           }
-          PIXEL10_10
-          PIXEL11_11
+          HQ2X_PIXEL10_10
+          HQ2X_PIXEL11_11
           break;
         }
         case 238:
         {
-          PIXEL00_10
-          PIXEL01_12
+          HQ2X_PIXEL00_10
+          HQ2X_PIXEL01_12
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
-            PIXEL11_11
+            HQ2X_PIXEL10_0
+            HQ2X_PIXEL11_11
           }
           else
           {
-            PIXEL10_90
-            PIXEL11_60
+            HQ2X_PIXEL10_90
+            HQ2X_PIXEL11_60
           }
           break;
         }
         case 190:
         {
-          PIXEL00_10
+          HQ2X_PIXEL00_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
-            PIXEL11_12
+            HQ2X_PIXEL01_0
+            HQ2X_PIXEL11_12
           }
           else
           {
-            PIXEL01_90
-            PIXEL11_61
+            HQ2X_PIXEL01_90
+            HQ2X_PIXEL11_61
           }
-          PIXEL10_11
+          HQ2X_PIXEL10_11
           break;
         }
         case 187:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL10_11
+            HQ2X_PIXEL00_0
+            HQ2X_PIXEL10_11
           }
           else
           {
-            PIXEL00_90
-            PIXEL10_60
+            HQ2X_PIXEL00_90
+            HQ2X_PIXEL10_60
           }
-          PIXEL01_10
-          PIXEL11_12
+          HQ2X_PIXEL01_10
+          HQ2X_PIXEL11_12
           break;
         }
         case 243:
         {
-          PIXEL00_11
-          PIXEL01_10
+          HQ2X_PIXEL00_11
+          HQ2X_PIXEL01_10
           if (Diff(w[6], w[8]))
           {
-            PIXEL10_12
-            PIXEL11_0
+            HQ2X_PIXEL10_12
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL10_61
-            PIXEL11_90
+            HQ2X_PIXEL10_61
+            HQ2X_PIXEL11_90
           }
           break;
         }
@@ -2510,32 +2522,32 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[2], w[6]))
           {
-            PIXEL00_11
-            PIXEL01_0
+            HQ2X_PIXEL00_11
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL00_60
-            PIXEL01_90
+            HQ2X_PIXEL00_60
+            HQ2X_PIXEL01_90
           }
-          PIXEL10_12
-          PIXEL11_10
+          HQ2X_PIXEL10_12
+          HQ2X_PIXEL11_10
           break;
         }
         case 237:
         case 233:
         {
-          PIXEL00_12
-          PIXEL01_20
+          HQ2X_PIXEL00_12
+          HQ2X_PIXEL01_20
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_100
+            HQ2X_PIXEL10_100
           }
-          PIXEL11_11
+          HQ2X_PIXEL11_11
           break;
         }
         case 175:
@@ -2543,68 +2555,68 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_100
+            HQ2X_PIXEL00_100
           }
-          PIXEL01_12
-          PIXEL10_11
-          PIXEL11_20
+          HQ2X_PIXEL01_12
+          HQ2X_PIXEL10_11
+          HQ2X_PIXEL11_20
           break;
         }
         case 183:
         case 151:
         {
-          PIXEL00_11
+          HQ2X_PIXEL00_11
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_100
+            HQ2X_PIXEL01_100
           }
-          PIXEL10_20
-          PIXEL11_12
+          HQ2X_PIXEL10_20
+          HQ2X_PIXEL11_12
           break;
         }
         case 245:
         case 244:
         {
-          PIXEL00_20
-          PIXEL01_11
-          PIXEL10_12
+          HQ2X_PIXEL00_20
+          HQ2X_PIXEL01_11
+          HQ2X_PIXEL10_12
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_100
+            HQ2X_PIXEL11_100
           }
           break;
         }
         case 250:
         {
-          PIXEL00_10
-          PIXEL01_10
+          HQ2X_PIXEL00_10
+          HQ2X_PIXEL01_10
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_20
+            HQ2X_PIXEL10_20
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_20
+            HQ2X_PIXEL11_20
           }
           break;
         }
@@ -2612,109 +2624,109 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ2X_PIXEL00_20
           }
-          PIXEL01_10
+          HQ2X_PIXEL01_10
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_20
+            HQ2X_PIXEL10_20
           }
-          PIXEL11_10
+          HQ2X_PIXEL11_10
           break;
         }
         case 95:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ2X_PIXEL00_20
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_20
+            HQ2X_PIXEL01_20
           }
-          PIXEL10_10
-          PIXEL11_10
+          HQ2X_PIXEL10_10
+          HQ2X_PIXEL11_10
           break;
         }
         case 222:
         {
-          PIXEL00_10
+          HQ2X_PIXEL00_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_20
+            HQ2X_PIXEL01_20
           }
-          PIXEL10_10
+          HQ2X_PIXEL10_10
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_20
+            HQ2X_PIXEL11_20
           }
           break;
         }
         case 252:
         {
-          PIXEL00_21
-          PIXEL01_11
+          HQ2X_PIXEL00_21
+          HQ2X_PIXEL01_11
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_20
+            HQ2X_PIXEL10_20
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_100
+            HQ2X_PIXEL11_100
           }
           break;
         }
         case 249:
         {
-          PIXEL00_12
-          PIXEL01_22
+          HQ2X_PIXEL00_12
+          HQ2X_PIXEL01_22
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_100
+            HQ2X_PIXEL10_100
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_20
+            HQ2X_PIXEL11_20
           }
           break;
         }
@@ -2722,182 +2734,182 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ2X_PIXEL00_20
           }
-          PIXEL01_21
+          HQ2X_PIXEL01_21
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_100
+            HQ2X_PIXEL10_100
           }
-          PIXEL11_11
+          HQ2X_PIXEL11_11
           break;
         }
         case 111:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_100
+            HQ2X_PIXEL00_100
           }
-          PIXEL01_12
+          HQ2X_PIXEL01_12
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_20
+            HQ2X_PIXEL10_20
           }
-          PIXEL11_22
+          HQ2X_PIXEL11_22
           break;
         }
         case 63:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_100
+            HQ2X_PIXEL00_100
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_20
+            HQ2X_PIXEL01_20
           }
-          PIXEL10_11
-          PIXEL11_21
+          HQ2X_PIXEL10_11
+          HQ2X_PIXEL11_21
           break;
         }
         case 159:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ2X_PIXEL00_20
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_100
+            HQ2X_PIXEL01_100
           }
-          PIXEL10_22
-          PIXEL11_12
+          HQ2X_PIXEL10_22
+          HQ2X_PIXEL11_12
           break;
         }
         case 215:
         {
-          PIXEL00_11
+          HQ2X_PIXEL00_11
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_100
+            HQ2X_PIXEL01_100
           }
-          PIXEL10_21
+          HQ2X_PIXEL10_21
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_20
+            HQ2X_PIXEL11_20
           }
           break;
         }
         case 246:
         {
-          PIXEL00_22
+          HQ2X_PIXEL00_22
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_20
+            HQ2X_PIXEL01_20
           }
-          PIXEL10_12
+          HQ2X_PIXEL10_12
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_100
+            HQ2X_PIXEL11_100
           }
           break;
         }
         case 254:
         {
-          PIXEL00_10
+          HQ2X_PIXEL00_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_20
+            HQ2X_PIXEL01_20
           }
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_20
+            HQ2X_PIXEL10_20
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_100
+            HQ2X_PIXEL11_100
           }
           break;
         }
         case 253:
         {
-          PIXEL00_12
-          PIXEL01_11
+          HQ2X_PIXEL00_12
+          HQ2X_PIXEL01_11
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_100
+            HQ2X_PIXEL10_100
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_100
+            HQ2X_PIXEL11_100
           }
           break;
         }
@@ -2905,28 +2917,28 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ2X_PIXEL00_20
           }
-          PIXEL01_10
+          HQ2X_PIXEL01_10
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_100
+            HQ2X_PIXEL10_100
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_20
+            HQ2X_PIXEL11_20
           }
           break;
         }
@@ -2934,123 +2946,123 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_100
+            HQ2X_PIXEL00_100
           }
-          PIXEL01_12
+          HQ2X_PIXEL01_12
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_100
+            HQ2X_PIXEL10_100
           }
-          PIXEL11_11
+          HQ2X_PIXEL11_11
           break;
         }
         case 127:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_100
+            HQ2X_PIXEL00_100
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_20
+            HQ2X_PIXEL01_20
           }
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_20
+            HQ2X_PIXEL10_20
           }
-          PIXEL11_10
+          HQ2X_PIXEL11_10
           break;
         }
         case 191:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_100
+            HQ2X_PIXEL00_100
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_100
+            HQ2X_PIXEL01_100
           }
-          PIXEL10_11
-          PIXEL11_12
+          HQ2X_PIXEL10_11
+          HQ2X_PIXEL11_12
           break;
         }
         case 223:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ2X_PIXEL00_20
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_100
+            HQ2X_PIXEL01_100
           }
-          PIXEL10_10
+          HQ2X_PIXEL10_10
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_20
+            HQ2X_PIXEL11_20
           }
           break;
         }
         case 247:
         {
-          PIXEL00_11
+          HQ2X_PIXEL00_11
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_100
+            HQ2X_PIXEL01_100
           }
-          PIXEL10_12
+          HQ2X_PIXEL10_12
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_100
+            HQ2X_PIXEL11_100
           }
           break;
         }
@@ -3058,35 +3070,35 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ2X_PIXEL00_0
           }
           else
           {
-            PIXEL00_100
+            HQ2X_PIXEL00_100
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_0
+            HQ2X_PIXEL01_0
           }
           else
           {
-            PIXEL01_100
+            HQ2X_PIXEL01_100
           }
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_0
+            HQ2X_PIXEL10_0
           }
           else
           {
-            PIXEL10_100
+            HQ2X_PIXEL10_100
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL11_0
+            HQ2X_PIXEL11_0
           }
           else
           {
-            PIXEL11_100
+            HQ2X_PIXEL11_100
           }
           break;
         }
@@ -3201,15 +3213,15 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 37:
         case 165:
         {
-          PIXEL00_2
-          PIXEL01_1
-          PIXEL02_2
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_2
-          PIXEL21_1
-          PIXEL22_2
+          HQ3X_PIXEL00_2
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_2
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_2
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_2
           break;
         }
         case 2:
@@ -3217,15 +3229,15 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 130:
         case 162:
         {
-          PIXEL00_1M
-          PIXEL01_C
-          PIXEL02_1M
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_2
-          PIXEL21_1
-          PIXEL22_2
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_2
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_2
           break;
         }
         case 16:
@@ -3233,15 +3245,15 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 48:
         case 49:
         {
-          PIXEL00_2
-          PIXEL01_1
-          PIXEL02_1M
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_2
-          PIXEL21_1
-          PIXEL22_1M
+          HQ3X_PIXEL00_2
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_2
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 64:
@@ -3249,15 +3261,15 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 68:
         case 69:
         {
-          PIXEL00_2
-          PIXEL01_1
-          PIXEL02_2
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1M
-          PIXEL21_C
-          PIXEL22_1M
+          HQ3X_PIXEL00_2
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_2
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1M
           break;
         }
         case 8:
@@ -3265,15 +3277,15 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 136:
         case 140:
         {
-          PIXEL00_1M
-          PIXEL01_1
-          PIXEL02_2
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1M
-          PIXEL21_1
-          PIXEL22_2
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_2
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_2
           break;
         }
         case 3:
@@ -3281,15 +3293,15 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 131:
         case 163:
         {
-          PIXEL00_1L
-          PIXEL01_C
-          PIXEL02_1M
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_2
-          PIXEL21_1
-          PIXEL22_2
+          HQ3X_PIXEL00_1L
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_2
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_2
           break;
         }
         case 6:
@@ -3297,15 +3309,15 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 134:
         case 166:
         {
-          PIXEL00_1M
-          PIXEL01_C
-          PIXEL02_1R
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_2
-          PIXEL21_1
-          PIXEL22_2
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1R
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_2
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_2
           break;
         }
         case 20:
@@ -3313,15 +3325,15 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 52:
         case 53:
         {
-          PIXEL00_2
-          PIXEL01_1
-          PIXEL02_1U
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_2
-          PIXEL21_1
-          PIXEL22_1M
+          HQ3X_PIXEL00_2
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1U
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_2
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 144:
@@ -3329,15 +3341,15 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 176:
         case 177:
         {
-          PIXEL00_2
-          PIXEL01_1
-          PIXEL02_1M
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_2
-          PIXEL21_1
-          PIXEL22_1D
+          HQ3X_PIXEL00_2
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_2
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1D
           break;
         }
         case 192:
@@ -3345,15 +3357,15 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 196:
         case 197:
         {
-          PIXEL00_2
-          PIXEL01_1
-          PIXEL02_2
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1M
-          PIXEL21_C
-          PIXEL22_1R
+          HQ3X_PIXEL00_2
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_2
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1R
           break;
         }
         case 96:
@@ -3361,15 +3373,15 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 100:
         case 101:
         {
-          PIXEL00_2
-          PIXEL01_1
-          PIXEL02_2
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1L
-          PIXEL21_C
-          PIXEL22_1M
+          HQ3X_PIXEL00_2
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_2
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1L
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1M
           break;
         }
         case 40:
@@ -3377,15 +3389,15 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 168:
         case 172:
         {
-          PIXEL00_1M
-          PIXEL01_1
-          PIXEL02_2
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1D
-          PIXEL21_1
-          PIXEL22_2
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_2
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1D
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_2
           break;
         }
         case 9:
@@ -3393,84 +3405,84 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 137:
         case 141:
         {
-          PIXEL00_1U
-          PIXEL01_1
-          PIXEL02_2
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1M
-          PIXEL21_1
-          PIXEL22_2
+          HQ3X_PIXEL00_1U
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_2
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_2
           break;
         }
         case 18:
         case 50:
         {
-          PIXEL00_1M
+          HQ3X_PIXEL00_1M
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_C
-            PIXEL02_1M
-            PIXEL12_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_1M
+            HQ3X_PIXEL12_C
           }
           else
           {
-            PIXEL01_3
-            PIXEL02_4
-            PIXEL12_3
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL02_4
+            HQ3X_PIXEL12_3
           }
-          PIXEL10_1
-          PIXEL11
-          PIXEL20_2
-          PIXEL21_1
-          PIXEL22_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_2
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 80:
         case 81:
         {
-          PIXEL00_2
-          PIXEL01_1
-          PIXEL02_1M
-          PIXEL10_1
-          PIXEL11
-          PIXEL20_1M
+          HQ3X_PIXEL00_2
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1M
           if (Diff(w[6], w[8]))
           {
-            PIXEL12_C
-            PIXEL21_C
-            PIXEL22_1M
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_1M
           }
           else
           {
-            PIXEL12_3
-            PIXEL21_3
-            PIXEL22_4
+            HQ3X_PIXEL12_3
+            HQ3X_PIXEL21_3
+            HQ3X_PIXEL22_4
           }
           break;
         }
         case 72:
         case 76:
         {
-          PIXEL00_1M
-          PIXEL01_1
-          PIXEL02_2
-          PIXEL11
-          PIXEL12_1
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_2
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_C
-            PIXEL20_1M
-            PIXEL21_C
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_1M
+            HQ3X_PIXEL21_C
           }
           else
           {
-            PIXEL10_3
-            PIXEL20_4
-            PIXEL21_3
+            HQ3X_PIXEL10_3
+            HQ3X_PIXEL20_4
+            HQ3X_PIXEL21_3
           }
-          PIXEL22_1M
+          HQ3X_PIXEL22_1M
           break;
         }
         case 10:
@@ -3478,177 +3490,177 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_1M
-            PIXEL01_C
-            PIXEL10_C
+            HQ3X_PIXEL00_1M
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL10_C
           }
           else
           {
-            PIXEL00_4
-            PIXEL01_3
-            PIXEL10_3
+            HQ3X_PIXEL00_4
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL10_3
           }
-          PIXEL02_1M
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1M
-          PIXEL21_1
-          PIXEL22_2
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_2
           break;
         }
         case 66:
         {
-          PIXEL00_1M
-          PIXEL01_C
-          PIXEL02_1M
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1M
-          PIXEL21_C
-          PIXEL22_1M
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1M
           break;
         }
         case 24:
         {
-          PIXEL00_1M
-          PIXEL01_1
-          PIXEL02_1M
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1M
-          PIXEL21_1
-          PIXEL22_1M
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 7:
         case 39:
         case 135:
         {
-          PIXEL00_1L
-          PIXEL01_C
-          PIXEL02_1R
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_2
-          PIXEL21_1
-          PIXEL22_2
+          HQ3X_PIXEL00_1L
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1R
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_2
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_2
           break;
         }
         case 148:
         case 149:
         case 180:
         {
-          PIXEL00_2
-          PIXEL01_1
-          PIXEL02_1U
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_2
-          PIXEL21_1
-          PIXEL22_1D
+          HQ3X_PIXEL00_2
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1U
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_2
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1D
           break;
         }
         case 224:
         case 228:
         case 225:
         {
-          PIXEL00_2
-          PIXEL01_1
-          PIXEL02_2
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1L
-          PIXEL21_C
-          PIXEL22_1R
+          HQ3X_PIXEL00_2
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_2
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1L
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1R
           break;
         }
         case 41:
         case 169:
         case 45:
         {
-          PIXEL00_1U
-          PIXEL01_1
-          PIXEL02_2
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1D
-          PIXEL21_1
-          PIXEL22_2
+          HQ3X_PIXEL00_1U
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_2
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1D
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_2
           break;
         }
         case 22:
         case 54:
         {
-          PIXEL00_1M
+          HQ3X_PIXEL00_1M
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_C
-            PIXEL02_C
-            PIXEL12_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_C
+            HQ3X_PIXEL12_C
           }
           else
           {
-            PIXEL01_3
-            PIXEL02_4
-            PIXEL12_3
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL02_4
+            HQ3X_PIXEL12_3
           }
-          PIXEL10_1
-          PIXEL11
-          PIXEL20_2
-          PIXEL21_1
-          PIXEL22_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_2
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 208:
         case 209:
         {
-          PIXEL00_2
-          PIXEL01_1
-          PIXEL02_1M
-          PIXEL10_1
-          PIXEL11
-          PIXEL20_1M
+          HQ3X_PIXEL00_2
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1M
           if (Diff(w[6], w[8]))
           {
-            PIXEL12_C
-            PIXEL21_C
-            PIXEL22_C
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL12_3
-            PIXEL21_3
-            PIXEL22_4
+            HQ3X_PIXEL12_3
+            HQ3X_PIXEL21_3
+            HQ3X_PIXEL22_4
           }
           break;
         }
         case 104:
         case 108:
         {
-          PIXEL00_1M
-          PIXEL01_1
-          PIXEL02_2
-          PIXEL11
-          PIXEL12_1
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_2
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_C
-            PIXEL20_C
-            PIXEL21_C
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_C
+            HQ3X_PIXEL21_C
           }
           else
           {
-            PIXEL10_3
-            PIXEL20_4
-            PIXEL21_3
+            HQ3X_PIXEL10_3
+            HQ3X_PIXEL20_4
+            HQ3X_PIXEL21_3
           }
-          PIXEL22_1M
+          HQ3X_PIXEL22_1M
           break;
         }
         case 11:
@@ -3656,22 +3668,22 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL01_C
-            PIXEL10_C
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL10_C
           }
           else
           {
-            PIXEL00_4
-            PIXEL01_3
-            PIXEL10_3
+            HQ3X_PIXEL00_4
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL10_3
           }
-          PIXEL02_1M
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1M
-          PIXEL21_1
-          PIXEL22_2
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_2
           break;
         }
         case 19:
@@ -3679,23 +3691,23 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[2], w[6]))
           {
-            PIXEL00_1L
-            PIXEL01_C
-            PIXEL02_1M
-            PIXEL12_C
+            HQ3X_PIXEL00_1L
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_1M
+            HQ3X_PIXEL12_C
           }
           else
           {
-            PIXEL00_2
-            PIXEL01_6
-            PIXEL02_5
-            PIXEL12_1
+            HQ3X_PIXEL00_2
+            HQ3X_PIXEL01_6
+            HQ3X_PIXEL02_5
+            HQ3X_PIXEL12_1
           }
-          PIXEL10_1
-          PIXEL11
-          PIXEL20_2
-          PIXEL21_1
-          PIXEL22_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_2
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 146:
@@ -3703,23 +3715,23 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_C
-            PIXEL02_1M
-            PIXEL12_C
-            PIXEL22_1D
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_1M
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL22_1D
           }
           else
           {
-            PIXEL01_1
-            PIXEL02_5
-            PIXEL12_6
-            PIXEL22_2
+            HQ3X_PIXEL01_1
+            HQ3X_PIXEL02_5
+            HQ3X_PIXEL12_6
+            HQ3X_PIXEL22_2
           }
-          PIXEL00_1M
-          PIXEL10_1
-          PIXEL11
-          PIXEL20_2
-          PIXEL21_1
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_2
+          HQ3X_PIXEL21_1
           break;
         }
         case 84:
@@ -3727,23 +3739,23 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[6], w[8]))
           {
-            PIXEL02_1U
-            PIXEL12_C
-            PIXEL21_C
-            PIXEL22_1M
+            HQ3X_PIXEL02_1U
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_1M
           }
           else
           {
-            PIXEL02_2
-            PIXEL12_6
-            PIXEL21_1
-            PIXEL22_5
+            HQ3X_PIXEL02_2
+            HQ3X_PIXEL12_6
+            HQ3X_PIXEL21_1
+            HQ3X_PIXEL22_5
           }
-          PIXEL00_2
-          PIXEL01_1
-          PIXEL10_1
-          PIXEL11
-          PIXEL20_1M
+          HQ3X_PIXEL00_2
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1M
           break;
         }
         case 112:
@@ -3751,23 +3763,23 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[6], w[8]))
           {
-            PIXEL12_C
-            PIXEL20_1L
-            PIXEL21_C
-            PIXEL22_1M
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL20_1L
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_1M
           }
           else
           {
-            PIXEL12_1
-            PIXEL20_2
-            PIXEL21_6
-            PIXEL22_5
+            HQ3X_PIXEL12_1
+            HQ3X_PIXEL20_2
+            HQ3X_PIXEL21_6
+            HQ3X_PIXEL22_5
           }
-          PIXEL00_2
-          PIXEL01_1
-          PIXEL02_1M
-          PIXEL10_1
-          PIXEL11
+          HQ3X_PIXEL00_2
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
           break;
         }
         case 200:
@@ -3775,23 +3787,23 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_C
-            PIXEL20_1M
-            PIXEL21_C
-            PIXEL22_1R
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_1M
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_1R
           }
           else
           {
-            PIXEL10_1
-            PIXEL20_5
-            PIXEL21_6
-            PIXEL22_2
+            HQ3X_PIXEL10_1
+            HQ3X_PIXEL20_5
+            HQ3X_PIXEL21_6
+            HQ3X_PIXEL22_2
           }
-          PIXEL00_1M
-          PIXEL01_1
-          PIXEL02_2
-          PIXEL11
-          PIXEL12_1
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_2
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
           break;
         }
         case 73:
@@ -3799,23 +3811,23 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[8], w[4]))
           {
-            PIXEL00_1U
-            PIXEL10_C
-            PIXEL20_1M
-            PIXEL21_C
+            HQ3X_PIXEL00_1U
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_1M
+            HQ3X_PIXEL21_C
           }
           else
           {
-            PIXEL00_2
-            PIXEL10_6
-            PIXEL20_5
-            PIXEL21_1
+            HQ3X_PIXEL00_2
+            HQ3X_PIXEL10_6
+            HQ3X_PIXEL20_5
+            HQ3X_PIXEL21_1
           }
-          PIXEL01_1
-          PIXEL02_2
-          PIXEL11
-          PIXEL12_1
-          PIXEL22_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_2
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 42:
@@ -3823,23 +3835,23 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_1M
-            PIXEL01_C
-            PIXEL10_C
-            PIXEL20_1D
+            HQ3X_PIXEL00_1M
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_1D
           }
           else
           {
-            PIXEL00_5
-            PIXEL01_1
-            PIXEL10_6
-            PIXEL20_2
+            HQ3X_PIXEL00_5
+            HQ3X_PIXEL01_1
+            HQ3X_PIXEL10_6
+            HQ3X_PIXEL20_2
           }
-          PIXEL02_1M
-          PIXEL11
-          PIXEL12_1
-          PIXEL21_1
-          PIXEL22_2
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_2
           break;
         }
         case 14:
@@ -3847,127 +3859,127 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_1M
-            PIXEL01_C
-            PIXEL02_1R
-            PIXEL10_C
+            HQ3X_PIXEL00_1M
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_1R
+            HQ3X_PIXEL10_C
           }
           else
           {
-            PIXEL00_5
-            PIXEL01_6
-            PIXEL02_2
-            PIXEL10_1
+            HQ3X_PIXEL00_5
+            HQ3X_PIXEL01_6
+            HQ3X_PIXEL02_2
+            HQ3X_PIXEL10_1
           }
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1M
-          PIXEL21_1
-          PIXEL22_2
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_2
           break;
         }
         case 67:
         {
-          PIXEL00_1L
-          PIXEL01_C
-          PIXEL02_1M
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1M
-          PIXEL21_C
-          PIXEL22_1M
+          HQ3X_PIXEL00_1L
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1M
           break;
         }
         case 70:
         {
-          PIXEL00_1M
-          PIXEL01_C
-          PIXEL02_1R
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1M
-          PIXEL21_C
-          PIXEL22_1M
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1R
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1M
           break;
         }
         case 28:
         {
-          PIXEL00_1M
-          PIXEL01_1
-          PIXEL02_1U
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1M
-          PIXEL21_1
-          PIXEL22_1M
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1U
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 152:
         {
-          PIXEL00_1M
-          PIXEL01_1
-          PIXEL02_1M
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1M
-          PIXEL21_1
-          PIXEL22_1D
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1D
           break;
         }
         case 194:
         {
-          PIXEL00_1M
-          PIXEL01_C
-          PIXEL02_1M
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1M
-          PIXEL21_C
-          PIXEL22_1R
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1R
           break;
         }
         case 98:
         {
-          PIXEL00_1M
-          PIXEL01_C
-          PIXEL02_1M
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1L
-          PIXEL21_C
-          PIXEL22_1M
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1L
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1M
           break;
         }
         case 56:
         {
-          PIXEL00_1M
-          PIXEL01_1
-          PIXEL02_1M
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1D
-          PIXEL21_1
-          PIXEL22_1M
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1D
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 25:
         {
-          PIXEL00_1U
-          PIXEL01_1
-          PIXEL02_1M
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1M
-          PIXEL21_1
-          PIXEL22_1M
+          HQ3X_PIXEL00_1U
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 26:
@@ -3975,88 +3987,88 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL10_C
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL10_C
           }
           else
           {
-            PIXEL00_4
-            PIXEL10_3
+            HQ3X_PIXEL00_4
+            HQ3X_PIXEL10_3
           }
-          PIXEL01_C
+          HQ3X_PIXEL01_C
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_C
-            PIXEL12_C
+            HQ3X_PIXEL02_C
+            HQ3X_PIXEL12_C
           }
           else
           {
-            PIXEL02_4
-            PIXEL12_3
+            HQ3X_PIXEL02_4
+            HQ3X_PIXEL12_3
           }
-          PIXEL11
-          PIXEL20_1M
-          PIXEL21_1
-          PIXEL22_1M
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 82:
         case 214:
         {
-          PIXEL00_1M
+          HQ3X_PIXEL00_1M
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_C
-            PIXEL02_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_C
           }
           else
           {
-            PIXEL01_3
-            PIXEL02_4
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL02_4
           }
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1M
           if (Diff(w[6], w[8]))
           {
-            PIXEL21_C
-            PIXEL22_C
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL21_3
-            PIXEL22_4
+            HQ3X_PIXEL21_3
+            HQ3X_PIXEL22_4
           }
           break;
         }
         case 88:
         case 248:
         {
-          PIXEL00_1M
-          PIXEL01_1
-          PIXEL02_1M
-          PIXEL11
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL11
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_C
-            PIXEL20_C
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_C
           }
           else
           {
-            PIXEL10_3
-            PIXEL20_4
+            HQ3X_PIXEL10_3
+            HQ3X_PIXEL20_4
           }
-          PIXEL21_C
+          HQ3X_PIXEL21_C
           if (Diff(w[6], w[8]))
           {
-            PIXEL12_C
-            PIXEL22_C
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL12_3
-            PIXEL22_4
+            HQ3X_PIXEL12_3
+            HQ3X_PIXEL22_4
           }
           break;
         }
@@ -4065,441 +4077,441 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL01_C
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL01_C
           }
           else
           {
-            PIXEL00_4
-            PIXEL01_3
+            HQ3X_PIXEL00_4
+            HQ3X_PIXEL01_3
           }
-          PIXEL02_1M
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_C
-            PIXEL21_C
+            HQ3X_PIXEL20_C
+            HQ3X_PIXEL21_C
           }
           else
           {
-            PIXEL20_4
-            PIXEL21_3
+            HQ3X_PIXEL20_4
+            HQ3X_PIXEL21_3
           }
-          PIXEL22_1M
+          HQ3X_PIXEL22_1M
           break;
         }
         case 27:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL01_C
-            PIXEL10_C
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL10_C
           }
           else
           {
-            PIXEL00_4
-            PIXEL01_3
-            PIXEL10_3
+            HQ3X_PIXEL00_4
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL10_3
           }
-          PIXEL02_1M
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1M
-          PIXEL21_1
-          PIXEL22_1M
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 86:
         {
-          PIXEL00_1M
+          HQ3X_PIXEL00_1M
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_C
-            PIXEL02_C
-            PIXEL12_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_C
+            HQ3X_PIXEL12_C
           }
           else
           {
-            PIXEL01_3
-            PIXEL02_4
-            PIXEL12_3
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL02_4
+            HQ3X_PIXEL12_3
           }
-          PIXEL10_1
-          PIXEL11
-          PIXEL20_1M
-          PIXEL21_C
-          PIXEL22_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1M
           break;
         }
         case 216:
         {
-          PIXEL00_1M
-          PIXEL01_1
-          PIXEL02_1M
-          PIXEL10_C
-          PIXEL11
-          PIXEL20_1M
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1M
           if (Diff(w[6], w[8]))
           {
-            PIXEL12_C
-            PIXEL21_C
-            PIXEL22_C
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL12_3
-            PIXEL21_3
-            PIXEL22_4
+            HQ3X_PIXEL12_3
+            HQ3X_PIXEL21_3
+            HQ3X_PIXEL22_4
           }
           break;
         }
         case 106:
         {
-          PIXEL00_1M
-          PIXEL01_C
-          PIXEL02_1M
-          PIXEL11
-          PIXEL12_1
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_C
-            PIXEL20_C
-            PIXEL21_C
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_C
+            HQ3X_PIXEL21_C
           }
           else
           {
-            PIXEL10_3
-            PIXEL20_4
-            PIXEL21_3
+            HQ3X_PIXEL10_3
+            HQ3X_PIXEL20_4
+            HQ3X_PIXEL21_3
           }
-          PIXEL22_1M
+          HQ3X_PIXEL22_1M
           break;
         }
         case 30:
         {
-          PIXEL00_1M
+          HQ3X_PIXEL00_1M
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_C
-            PIXEL02_C
-            PIXEL12_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_C
+            HQ3X_PIXEL12_C
           }
           else
           {
-            PIXEL01_3
-            PIXEL02_4
-            PIXEL12_3
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL02_4
+            HQ3X_PIXEL12_3
           }
-          PIXEL10_C
-          PIXEL11
-          PIXEL20_1M
-          PIXEL21_1
-          PIXEL22_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 210:
         {
-          PIXEL00_1M
-          PIXEL01_C
-          PIXEL02_1M
-          PIXEL10_1
-          PIXEL11
-          PIXEL20_1M
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1M
           if (Diff(w[6], w[8]))
           {
-            PIXEL12_C
-            PIXEL21_C
-            PIXEL22_C
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL12_3
-            PIXEL21_3
-            PIXEL22_4
+            HQ3X_PIXEL12_3
+            HQ3X_PIXEL21_3
+            HQ3X_PIXEL22_4
           }
           break;
         }
         case 120:
         {
-          PIXEL00_1M
-          PIXEL01_1
-          PIXEL02_1M
-          PIXEL11
-          PIXEL12_C
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_C
-            PIXEL20_C
-            PIXEL21_C
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_C
+            HQ3X_PIXEL21_C
           }
           else
           {
-            PIXEL10_3
-            PIXEL20_4
-            PIXEL21_3
+            HQ3X_PIXEL10_3
+            HQ3X_PIXEL20_4
+            HQ3X_PIXEL21_3
           }
-          PIXEL22_1M
+          HQ3X_PIXEL22_1M
           break;
         }
         case 75:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL01_C
-            PIXEL10_C
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL10_C
           }
           else
           {
-            PIXEL00_4
-            PIXEL01_3
-            PIXEL10_3
+            HQ3X_PIXEL00_4
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL10_3
           }
-          PIXEL02_1M
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1M
-          PIXEL21_C
-          PIXEL22_1M
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1M
           break;
         }
         case 29:
         {
-          PIXEL00_1U
-          PIXEL01_1
-          PIXEL02_1U
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1M
-          PIXEL21_1
-          PIXEL22_1M
+          HQ3X_PIXEL00_1U
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1U
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 198:
         {
-          PIXEL00_1M
-          PIXEL01_C
-          PIXEL02_1R
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1M
-          PIXEL21_C
-          PIXEL22_1R
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1R
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1R
           break;
         }
         case 184:
         {
-          PIXEL00_1M
-          PIXEL01_1
-          PIXEL02_1M
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1D
-          PIXEL21_1
-          PIXEL22_1D
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1D
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1D
           break;
         }
         case 99:
         {
-          PIXEL00_1L
-          PIXEL01_C
-          PIXEL02_1M
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1L
-          PIXEL21_C
-          PIXEL22_1M
+          HQ3X_PIXEL00_1L
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1L
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1M
           break;
         }
         case 57:
         {
-          PIXEL00_1U
-          PIXEL01_1
-          PIXEL02_1M
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1D
-          PIXEL21_1
-          PIXEL22_1M
+          HQ3X_PIXEL00_1U
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1D
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 71:
         {
-          PIXEL00_1L
-          PIXEL01_C
-          PIXEL02_1R
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1M
-          PIXEL21_C
-          PIXEL22_1M
+          HQ3X_PIXEL00_1L
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1R
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1M
           break;
         }
         case 156:
         {
-          PIXEL00_1M
-          PIXEL01_1
-          PIXEL02_1U
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1M
-          PIXEL21_1
-          PIXEL22_1D
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1U
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1D
           break;
         }
         case 226:
         {
-          PIXEL00_1M
-          PIXEL01_C
-          PIXEL02_1M
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1L
-          PIXEL21_C
-          PIXEL22_1R
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1L
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1R
           break;
         }
         case 60:
         {
-          PIXEL00_1M
-          PIXEL01_1
-          PIXEL02_1U
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1D
-          PIXEL21_1
-          PIXEL22_1M
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1U
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1D
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 195:
         {
-          PIXEL00_1L
-          PIXEL01_C
-          PIXEL02_1M
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1M
-          PIXEL21_C
-          PIXEL22_1R
+          HQ3X_PIXEL00_1L
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1R
           break;
         }
         case 102:
         {
-          PIXEL00_1M
-          PIXEL01_C
-          PIXEL02_1R
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1L
-          PIXEL21_C
-          PIXEL22_1M
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1R
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1L
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1M
           break;
         }
         case 153:
         {
-          PIXEL00_1U
-          PIXEL01_1
-          PIXEL02_1M
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1M
-          PIXEL21_1
-          PIXEL22_1D
+          HQ3X_PIXEL00_1U
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1D
           break;
         }
         case 58:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_1M
+            HQ3X_PIXEL00_1M
           }
           else
           {
-            PIXEL00_2
+            HQ3X_PIXEL00_2
           }
-          PIXEL01_C
+          HQ3X_PIXEL01_C
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_1M
+            HQ3X_PIXEL02_1M
           }
           else
           {
-            PIXEL02_2
+            HQ3X_PIXEL02_2
           }
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1D
-          PIXEL21_1
-          PIXEL22_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1D
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 83:
         {
-          PIXEL00_1L
-          PIXEL01_C
+          HQ3X_PIXEL00_1L
+          HQ3X_PIXEL01_C
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_1M
+            HQ3X_PIXEL02_1M
           }
           else
           {
-            PIXEL02_2
+            HQ3X_PIXEL02_2
           }
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1M
-          PIXEL21_C
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_C
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_1M
+            HQ3X_PIXEL22_1M
           }
           else
           {
-            PIXEL22_2
+            HQ3X_PIXEL22_2
           }
           break;
         }
         case 92:
         {
-          PIXEL00_1M
-          PIXEL01_1
-          PIXEL02_1U
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1U
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_1M
+            HQ3X_PIXEL20_1M
           }
           else
           {
-            PIXEL20_2
+            HQ3X_PIXEL20_2
           }
-          PIXEL21_C
+          HQ3X_PIXEL21_C
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_1M
+            HQ3X_PIXEL22_1M
           }
           else
           {
-            PIXEL22_2
+            HQ3X_PIXEL22_2
           }
           break;
         }
@@ -4507,134 +4519,134 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_1M
+            HQ3X_PIXEL00_1M
           }
           else
           {
-            PIXEL00_2
+            HQ3X_PIXEL00_2
           }
-          PIXEL01_C
-          PIXEL02_1M
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_1
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_1M
+            HQ3X_PIXEL20_1M
           }
           else
           {
-            PIXEL20_2
+            HQ3X_PIXEL20_2
           }
-          PIXEL21_C
-          PIXEL22_1R
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1R
           break;
         }
         case 78:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_1M
+            HQ3X_PIXEL00_1M
           }
           else
           {
-            PIXEL00_2
+            HQ3X_PIXEL00_2
           }
-          PIXEL01_C
-          PIXEL02_1R
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_1
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1R
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_1M
+            HQ3X_PIXEL20_1M
           }
           else
           {
-            PIXEL20_2
+            HQ3X_PIXEL20_2
           }
-          PIXEL21_C
-          PIXEL22_1M
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1M
           break;
         }
         case 154:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_1M
+            HQ3X_PIXEL00_1M
           }
           else
           {
-            PIXEL00_2
+            HQ3X_PIXEL00_2
           }
-          PIXEL01_C
+          HQ3X_PIXEL01_C
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_1M
+            HQ3X_PIXEL02_1M
           }
           else
           {
-            PIXEL02_2
+            HQ3X_PIXEL02_2
           }
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1M
-          PIXEL21_1
-          PIXEL22_1D
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1D
           break;
         }
         case 114:
         {
-          PIXEL00_1M
-          PIXEL01_C
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_C
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_1M
+            HQ3X_PIXEL02_1M
           }
           else
           {
-            PIXEL02_2
+            HQ3X_PIXEL02_2
           }
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1L
-          PIXEL21_C
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1L
+          HQ3X_PIXEL21_C
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_1M
+            HQ3X_PIXEL22_1M
           }
           else
           {
-            PIXEL22_2
+            HQ3X_PIXEL22_2
           }
           break;
         }
         case 89:
         {
-          PIXEL00_1U
-          PIXEL01_1
-          PIXEL02_1M
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
+          HQ3X_PIXEL00_1U
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_1M
+            HQ3X_PIXEL20_1M
           }
           else
           {
-            PIXEL20_2
+            HQ3X_PIXEL20_2
           }
-          PIXEL21_C
+          HQ3X_PIXEL21_C
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_1M
+            HQ3X_PIXEL22_1M
           }
           else
           {
-            PIXEL22_2
+            HQ3X_PIXEL22_2
           }
           break;
         }
@@ -4642,40 +4654,40 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_1M
+            HQ3X_PIXEL00_1M
           }
           else
           {
-            PIXEL00_2
+            HQ3X_PIXEL00_2
           }
-          PIXEL01_C
+          HQ3X_PIXEL01_C
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_1M
+            HQ3X_PIXEL02_1M
           }
           else
           {
-            PIXEL02_2
+            HQ3X_PIXEL02_2
           }
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_1M
+            HQ3X_PIXEL20_1M
           }
           else
           {
-            PIXEL20_2
+            HQ3X_PIXEL20_2
           }
-          PIXEL21_C
+          HQ3X_PIXEL21_C
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_1M
+            HQ3X_PIXEL22_1M
           }
           else
           {
-            PIXEL22_2
+            HQ3X_PIXEL22_2
           }
           break;
         }
@@ -4684,23 +4696,23 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[2], w[6]))
           {
-            PIXEL00_1L
-            PIXEL01_C
-            PIXEL02_C
-            PIXEL12_C
+            HQ3X_PIXEL00_1L
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_C
+            HQ3X_PIXEL12_C
           }
           else
           {
-            PIXEL00_2
-            PIXEL01_6
-            PIXEL02_5
-            PIXEL12_1
+            HQ3X_PIXEL00_2
+            HQ3X_PIXEL01_6
+            HQ3X_PIXEL02_5
+            HQ3X_PIXEL12_1
           }
-          PIXEL10_1
-          PIXEL11
-          PIXEL20_2
-          PIXEL21_1
-          PIXEL22_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_2
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 182:
@@ -4708,23 +4720,23 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_C
-            PIXEL02_C
-            PIXEL12_C
-            PIXEL22_1D
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_C
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL22_1D
           }
           else
           {
-            PIXEL01_1
-            PIXEL02_5
-            PIXEL12_6
-            PIXEL22_2
+            HQ3X_PIXEL01_1
+            HQ3X_PIXEL02_5
+            HQ3X_PIXEL12_6
+            HQ3X_PIXEL22_2
           }
-          PIXEL00_1M
-          PIXEL10_1
-          PIXEL11
-          PIXEL20_2
-          PIXEL21_1
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_2
+          HQ3X_PIXEL21_1
           break;
         }
         case 213:
@@ -4732,23 +4744,23 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[6], w[8]))
           {
-            PIXEL02_1U
-            PIXEL12_C
-            PIXEL21_C
-            PIXEL22_C
+            HQ3X_PIXEL02_1U
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL02_2
-            PIXEL12_6
-            PIXEL21_1
-            PIXEL22_5
+            HQ3X_PIXEL02_2
+            HQ3X_PIXEL12_6
+            HQ3X_PIXEL21_1
+            HQ3X_PIXEL22_5
           }
-          PIXEL00_2
-          PIXEL01_1
-          PIXEL10_1
-          PIXEL11
-          PIXEL20_1M
+          HQ3X_PIXEL00_2
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1M
           break;
         }
         case 241:
@@ -4756,23 +4768,23 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[6], w[8]))
           {
-            PIXEL12_C
-            PIXEL20_1L
-            PIXEL21_C
-            PIXEL22_C
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL20_1L
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL12_1
-            PIXEL20_2
-            PIXEL21_6
-            PIXEL22_5
+            HQ3X_PIXEL12_1
+            HQ3X_PIXEL20_2
+            HQ3X_PIXEL21_6
+            HQ3X_PIXEL22_5
           }
-          PIXEL00_2
-          PIXEL01_1
-          PIXEL02_1M
-          PIXEL10_1
-          PIXEL11
+          HQ3X_PIXEL00_2
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
           break;
         }
         case 236:
@@ -4780,23 +4792,23 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_C
-            PIXEL20_C
-            PIXEL21_C
-            PIXEL22_1R
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_C
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_1R
           }
           else
           {
-            PIXEL10_1
-            PIXEL20_5
-            PIXEL21_6
-            PIXEL22_2
+            HQ3X_PIXEL10_1
+            HQ3X_PIXEL20_5
+            HQ3X_PIXEL21_6
+            HQ3X_PIXEL22_2
           }
-          PIXEL00_1M
-          PIXEL01_1
-          PIXEL02_2
-          PIXEL11
-          PIXEL12_1
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_2
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
           break;
         }
         case 109:
@@ -4804,23 +4816,23 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[8], w[4]))
           {
-            PIXEL00_1U
-            PIXEL10_C
-            PIXEL20_C
-            PIXEL21_C
+            HQ3X_PIXEL00_1U
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_C
+            HQ3X_PIXEL21_C
           }
           else
           {
-            PIXEL00_2
-            PIXEL10_6
-            PIXEL20_5
-            PIXEL21_1
+            HQ3X_PIXEL00_2
+            HQ3X_PIXEL10_6
+            HQ3X_PIXEL20_5
+            HQ3X_PIXEL21_1
           }
-          PIXEL01_1
-          PIXEL02_2
-          PIXEL11
-          PIXEL12_1
-          PIXEL22_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_2
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 171:
@@ -4828,23 +4840,23 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL01_C
-            PIXEL10_C
-            PIXEL20_1D
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_1D
           }
           else
           {
-            PIXEL00_5
-            PIXEL01_1
-            PIXEL10_6
-            PIXEL20_2
+            HQ3X_PIXEL00_5
+            HQ3X_PIXEL01_1
+            HQ3X_PIXEL10_6
+            HQ3X_PIXEL20_2
           }
-          PIXEL02_1M
-          PIXEL11
-          PIXEL12_1
-          PIXEL21_1
-          PIXEL22_2
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_2
           break;
         }
         case 143:
@@ -4852,331 +4864,331 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL01_C
-            PIXEL02_1R
-            PIXEL10_C
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_1R
+            HQ3X_PIXEL10_C
           }
           else
           {
-            PIXEL00_5
-            PIXEL01_6
-            PIXEL02_2
-            PIXEL10_1
+            HQ3X_PIXEL00_5
+            HQ3X_PIXEL01_6
+            HQ3X_PIXEL02_2
+            HQ3X_PIXEL10_1
           }
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1M
-          PIXEL21_1
-          PIXEL22_2
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_2
           break;
         }
         case 124:
         {
-          PIXEL00_1M
-          PIXEL01_1
-          PIXEL02_1U
-          PIXEL11
-          PIXEL12_C
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1U
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_C
-            PIXEL20_C
-            PIXEL21_C
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_C
+            HQ3X_PIXEL21_C
           }
           else
           {
-            PIXEL10_3
-            PIXEL20_4
-            PIXEL21_3
+            HQ3X_PIXEL10_3
+            HQ3X_PIXEL20_4
+            HQ3X_PIXEL21_3
           }
-          PIXEL22_1M
+          HQ3X_PIXEL22_1M
           break;
         }
         case 203:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL01_C
-            PIXEL10_C
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL10_C
           }
           else
           {
-            PIXEL00_4
-            PIXEL01_3
-            PIXEL10_3
+            HQ3X_PIXEL00_4
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL10_3
           }
-          PIXEL02_1M
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1M
-          PIXEL21_C
-          PIXEL22_1R
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1R
           break;
         }
         case 62:
         {
-          PIXEL00_1M
+          HQ3X_PIXEL00_1M
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_C
-            PIXEL02_C
-            PIXEL12_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_C
+            HQ3X_PIXEL12_C
           }
           else
           {
-            PIXEL01_3
-            PIXEL02_4
-            PIXEL12_3
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL02_4
+            HQ3X_PIXEL12_3
           }
-          PIXEL10_C
-          PIXEL11
-          PIXEL20_1D
-          PIXEL21_1
-          PIXEL22_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1D
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 211:
         {
-          PIXEL00_1L
-          PIXEL01_C
-          PIXEL02_1M
-          PIXEL10_1
-          PIXEL11
-          PIXEL20_1M
+          HQ3X_PIXEL00_1L
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1M
           if (Diff(w[6], w[8]))
           {
-            PIXEL12_C
-            PIXEL21_C
-            PIXEL22_C
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL12_3
-            PIXEL21_3
-            PIXEL22_4
+            HQ3X_PIXEL12_3
+            HQ3X_PIXEL21_3
+            HQ3X_PIXEL22_4
           }
           break;
         }
         case 118:
         {
-          PIXEL00_1M
+          HQ3X_PIXEL00_1M
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_C
-            PIXEL02_C
-            PIXEL12_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_C
+            HQ3X_PIXEL12_C
           }
           else
           {
-            PIXEL01_3
-            PIXEL02_4
-            PIXEL12_3
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL02_4
+            HQ3X_PIXEL12_3
           }
-          PIXEL10_1
-          PIXEL11
-          PIXEL20_1L
-          PIXEL21_C
-          PIXEL22_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1L
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1M
           break;
         }
         case 217:
         {
-          PIXEL00_1U
-          PIXEL01_1
-          PIXEL02_1M
-          PIXEL10_C
-          PIXEL11
-          PIXEL20_1M
+          HQ3X_PIXEL00_1U
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1M
           if (Diff(w[6], w[8]))
           {
-            PIXEL12_C
-            PIXEL21_C
-            PIXEL22_C
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL12_3
-            PIXEL21_3
-            PIXEL22_4
+            HQ3X_PIXEL12_3
+            HQ3X_PIXEL21_3
+            HQ3X_PIXEL22_4
           }
           break;
         }
         case 110:
         {
-          PIXEL00_1M
-          PIXEL01_C
-          PIXEL02_1R
-          PIXEL11
-          PIXEL12_1
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1R
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_C
-            PIXEL20_C
-            PIXEL21_C
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_C
+            HQ3X_PIXEL21_C
           }
           else
           {
-            PIXEL10_3
-            PIXEL20_4
-            PIXEL21_3
+            HQ3X_PIXEL10_3
+            HQ3X_PIXEL20_4
+            HQ3X_PIXEL21_3
           }
-          PIXEL22_1M
+          HQ3X_PIXEL22_1M
           break;
         }
         case 155:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL01_C
-            PIXEL10_C
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL10_C
           }
           else
           {
-            PIXEL00_4
-            PIXEL01_3
-            PIXEL10_3
+            HQ3X_PIXEL00_4
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL10_3
           }
-          PIXEL02_1M
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1M
-          PIXEL21_1
-          PIXEL22_1D
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1D
           break;
         }
         case 188:
         {
-          PIXEL00_1M
-          PIXEL01_1
-          PIXEL02_1U
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1D
-          PIXEL21_1
-          PIXEL22_1D
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1U
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1D
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1D
           break;
         }
         case 185:
         {
-          PIXEL00_1U
-          PIXEL01_1
-          PIXEL02_1M
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1D
-          PIXEL21_1
-          PIXEL22_1D
+          HQ3X_PIXEL00_1U
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1D
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1D
           break;
         }
         case 61:
         {
-          PIXEL00_1U
-          PIXEL01_1
-          PIXEL02_1U
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1D
-          PIXEL21_1
-          PIXEL22_1M
+          HQ3X_PIXEL00_1U
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1U
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1D
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 157:
         {
-          PIXEL00_1U
-          PIXEL01_1
-          PIXEL02_1U
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1M
-          PIXEL21_1
-          PIXEL22_1D
+          HQ3X_PIXEL00_1U
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1U
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1D
           break;
         }
         case 103:
         {
-          PIXEL00_1L
-          PIXEL01_C
-          PIXEL02_1R
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1L
-          PIXEL21_C
-          PIXEL22_1M
+          HQ3X_PIXEL00_1L
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1R
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1L
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1M
           break;
         }
         case 227:
         {
-          PIXEL00_1L
-          PIXEL01_C
-          PIXEL02_1M
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1L
-          PIXEL21_C
-          PIXEL22_1R
+          HQ3X_PIXEL00_1L
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1L
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1R
           break;
         }
         case 230:
         {
-          PIXEL00_1M
-          PIXEL01_C
-          PIXEL02_1R
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1L
-          PIXEL21_C
-          PIXEL22_1R
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1R
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1L
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1R
           break;
         }
         case 199:
         {
-          PIXEL00_1L
-          PIXEL01_C
-          PIXEL02_1R
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1M
-          PIXEL21_C
-          PIXEL22_1R
+          HQ3X_PIXEL00_1L
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1R
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1R
           break;
         }
         case 220:
         {
-          PIXEL00_1M
-          PIXEL01_1
-          PIXEL02_1U
-          PIXEL10_C
-          PIXEL11
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1U
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_1M
+            HQ3X_PIXEL20_1M
           }
           else
           {
-            PIXEL20_2
+            HQ3X_PIXEL20_2
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL12_C
-            PIXEL21_C
-            PIXEL22_C
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL12_3
-            PIXEL21_3
-            PIXEL22_4
+            HQ3X_PIXEL12_3
+            HQ3X_PIXEL21_3
+            HQ3X_PIXEL22_4
           }
           break;
         }
@@ -5184,86 +5196,86 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_1M
+            HQ3X_PIXEL00_1M
           }
           else
           {
-            PIXEL00_2
+            HQ3X_PIXEL00_2
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_C
-            PIXEL02_C
-            PIXEL12_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_C
+            HQ3X_PIXEL12_C
           }
           else
           {
-            PIXEL01_3
-            PIXEL02_4
-            PIXEL12_3
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL02_4
+            HQ3X_PIXEL12_3
           }
-          PIXEL10_C
-          PIXEL11
-          PIXEL20_1M
-          PIXEL21_1
-          PIXEL22_1D
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1D
           break;
         }
         case 234:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_1M
+            HQ3X_PIXEL00_1M
           }
           else
           {
-            PIXEL00_2
+            HQ3X_PIXEL00_2
           }
-          PIXEL01_C
-          PIXEL02_1M
-          PIXEL11
-          PIXEL12_1
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_C
-            PIXEL20_C
-            PIXEL21_C
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_C
+            HQ3X_PIXEL21_C
           }
           else
           {
-            PIXEL10_3
-            PIXEL20_4
-            PIXEL21_3
+            HQ3X_PIXEL10_3
+            HQ3X_PIXEL20_4
+            HQ3X_PIXEL21_3
           }
-          PIXEL22_1R
+          HQ3X_PIXEL22_1R
           break;
         }
         case 242:
         {
-          PIXEL00_1M
-          PIXEL01_C
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_C
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_1M
+            HQ3X_PIXEL02_1M
           }
           else
           {
-            PIXEL02_2
+            HQ3X_PIXEL02_2
           }
-          PIXEL10_1
-          PIXEL11
-          PIXEL20_1L
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1L
           if (Diff(w[6], w[8]))
           {
-            PIXEL12_C
-            PIXEL21_C
-            PIXEL22_C
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL12_3
-            PIXEL21_3
-            PIXEL22_4
+            HQ3X_PIXEL12_3
+            HQ3X_PIXEL21_3
+            HQ3X_PIXEL22_4
           }
           break;
         }
@@ -5271,86 +5283,86 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL01_C
-            PIXEL10_C
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL10_C
           }
           else
           {
-            PIXEL00_4
-            PIXEL01_3
-            PIXEL10_3
+            HQ3X_PIXEL00_4
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL10_3
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_1M
+            HQ3X_PIXEL02_1M
           }
           else
           {
-            PIXEL02_2
+            HQ3X_PIXEL02_2
           }
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1D
-          PIXEL21_1
-          PIXEL22_1M
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1D
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 121:
         {
-          PIXEL00_1U
-          PIXEL01_1
-          PIXEL02_1M
-          PIXEL11
-          PIXEL12_C
+          HQ3X_PIXEL00_1U
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_C
-            PIXEL20_C
-            PIXEL21_C
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_C
+            HQ3X_PIXEL21_C
           }
           else
           {
-            PIXEL10_3
-            PIXEL20_4
-            PIXEL21_3
+            HQ3X_PIXEL10_3
+            HQ3X_PIXEL20_4
+            HQ3X_PIXEL21_3
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_1M
+            HQ3X_PIXEL22_1M
           }
           else
           {
-            PIXEL22_2
+            HQ3X_PIXEL22_2
           }
           break;
         }
         case 87:
         {
-          PIXEL00_1L
+          HQ3X_PIXEL00_1L
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_C
-            PIXEL02_C
-            PIXEL12_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_C
+            HQ3X_PIXEL12_C
           }
           else
           {
-            PIXEL01_3
-            PIXEL02_4
-            PIXEL12_3
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL02_4
+            HQ3X_PIXEL12_3
           }
-          PIXEL10_1
-          PIXEL11
-          PIXEL20_1M
-          PIXEL21_C
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_C
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_1M
+            HQ3X_PIXEL22_1M
           }
           else
           {
-            PIXEL22_2
+            HQ3X_PIXEL22_2
           }
           break;
         }
@@ -5358,71 +5370,71 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL01_C
-            PIXEL10_C
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL10_C
           }
           else
           {
-            PIXEL00_4
-            PIXEL01_3
-            PIXEL10_3
+            HQ3X_PIXEL00_4
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL10_3
           }
-          PIXEL02_1R
-          PIXEL11
-          PIXEL12_1
+          HQ3X_PIXEL02_1R
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_1M
+            HQ3X_PIXEL20_1M
           }
           else
           {
-            PIXEL20_2
+            HQ3X_PIXEL20_2
           }
-          PIXEL21_C
-          PIXEL22_1M
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1M
           break;
         }
         case 122:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_1M
+            HQ3X_PIXEL00_1M
           }
           else
           {
-            PIXEL00_2
+            HQ3X_PIXEL00_2
           }
-          PIXEL01_C
+          HQ3X_PIXEL01_C
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_1M
+            HQ3X_PIXEL02_1M
           }
           else
           {
-            PIXEL02_2
+            HQ3X_PIXEL02_2
           }
-          PIXEL11
-          PIXEL12_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_C
-            PIXEL20_C
-            PIXEL21_C
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_C
+            HQ3X_PIXEL21_C
           }
           else
           {
-            PIXEL10_3
-            PIXEL20_4
-            PIXEL21_3
+            HQ3X_PIXEL10_3
+            HQ3X_PIXEL20_4
+            HQ3X_PIXEL21_3
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_1M
+            HQ3X_PIXEL22_1M
           }
           else
           {
-            PIXEL22_2
+            HQ3X_PIXEL22_2
           }
           break;
         }
@@ -5430,42 +5442,42 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_1M
+            HQ3X_PIXEL00_1M
           }
           else
           {
-            PIXEL00_2
+            HQ3X_PIXEL00_2
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_C
-            PIXEL02_C
-            PIXEL12_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_C
+            HQ3X_PIXEL12_C
           }
           else
           {
-            PIXEL01_3
-            PIXEL02_4
-            PIXEL12_3
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL02_4
+            HQ3X_PIXEL12_3
           }
-          PIXEL10_C
-          PIXEL11
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_1M
+            HQ3X_PIXEL20_1M
           }
           else
           {
-            PIXEL20_2
+            HQ3X_PIXEL20_2
           }
-          PIXEL21_C
+          HQ3X_PIXEL21_C
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_1M
+            HQ3X_PIXEL22_1M
           }
           else
           {
-            PIXEL22_2
+            HQ3X_PIXEL22_2
           }
           break;
         }
@@ -5473,42 +5485,42 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_1M
+            HQ3X_PIXEL00_1M
           }
           else
           {
-            PIXEL00_2
+            HQ3X_PIXEL00_2
           }
-          PIXEL01_C
+          HQ3X_PIXEL01_C
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_1M
+            HQ3X_PIXEL02_1M
           }
           else
           {
-            PIXEL02_2
+            HQ3X_PIXEL02_2
           }
-          PIXEL10_C
-          PIXEL11
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_1M
+            HQ3X_PIXEL20_1M
           }
           else
           {
-            PIXEL20_2
+            HQ3X_PIXEL20_2
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL12_C
-            PIXEL21_C
-            PIXEL22_C
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL12_3
-            PIXEL21_3
-            PIXEL22_4
+            HQ3X_PIXEL12_3
+            HQ3X_PIXEL21_3
+            HQ3X_PIXEL22_4
           }
           break;
         }
@@ -5516,175 +5528,175 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL01_C
-            PIXEL10_C
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL10_C
           }
           else
           {
-            PIXEL00_4
-            PIXEL01_3
-            PIXEL10_3
+            HQ3X_PIXEL00_4
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL10_3
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_1M
+            HQ3X_PIXEL02_1M
           }
           else
           {
-            PIXEL02_2
+            HQ3X_PIXEL02_2
           }
-          PIXEL11
-          PIXEL12_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_1M
+            HQ3X_PIXEL20_1M
           }
           else
           {
-            PIXEL20_2
+            HQ3X_PIXEL20_2
           }
-          PIXEL21_C
+          HQ3X_PIXEL21_C
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_1M
+            HQ3X_PIXEL22_1M
           }
           else
           {
-            PIXEL22_2
+            HQ3X_PIXEL22_2
           }
           break;
         }
         case 229:
         {
-          PIXEL00_2
-          PIXEL01_1
-          PIXEL02_2
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1L
-          PIXEL21_C
-          PIXEL22_1R
+          HQ3X_PIXEL00_2
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_2
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1L
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1R
           break;
         }
         case 167:
         {
-          PIXEL00_1L
-          PIXEL01_C
-          PIXEL02_1R
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_2
-          PIXEL21_1
-          PIXEL22_2
+          HQ3X_PIXEL00_1L
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1R
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_2
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_2
           break;
         }
         case 173:
         {
-          PIXEL00_1U
-          PIXEL01_1
-          PIXEL02_2
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1D
-          PIXEL21_1
-          PIXEL22_2
+          HQ3X_PIXEL00_1U
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_2
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1D
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_2
           break;
         }
         case 181:
         {
-          PIXEL00_2
-          PIXEL01_1
-          PIXEL02_1U
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_2
-          PIXEL21_1
-          PIXEL22_1D
+          HQ3X_PIXEL00_2
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1U
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_2
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1D
           break;
         }
         case 186:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_1M
+            HQ3X_PIXEL00_1M
           }
           else
           {
-            PIXEL00_2
+            HQ3X_PIXEL00_2
           }
-          PIXEL01_C
+          HQ3X_PIXEL01_C
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_1M
+            HQ3X_PIXEL02_1M
           }
           else
           {
-            PIXEL02_2
+            HQ3X_PIXEL02_2
           }
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1D
-          PIXEL21_1
-          PIXEL22_1D
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1D
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1D
           break;
         }
         case 115:
         {
-          PIXEL00_1L
-          PIXEL01_C
+          HQ3X_PIXEL00_1L
+          HQ3X_PIXEL01_C
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_1M
+            HQ3X_PIXEL02_1M
           }
           else
           {
-            PIXEL02_2
+            HQ3X_PIXEL02_2
           }
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1L
-          PIXEL21_C
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1L
+          HQ3X_PIXEL21_C
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_1M
+            HQ3X_PIXEL22_1M
           }
           else
           {
-            PIXEL22_2
+            HQ3X_PIXEL22_2
           }
           break;
         }
         case 93:
         {
-          PIXEL00_1U
-          PIXEL01_1
-          PIXEL02_1U
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
+          HQ3X_PIXEL00_1U
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1U
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_1M
+            HQ3X_PIXEL20_1M
           }
           else
           {
-            PIXEL20_2
+            HQ3X_PIXEL20_2
           }
-          PIXEL21_C
+          HQ3X_PIXEL21_C
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_1M
+            HQ3X_PIXEL22_1M
           }
           else
           {
-            PIXEL22_2
+            HQ3X_PIXEL22_2
           }
           break;
         }
@@ -5692,48 +5704,48 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_1M
+            HQ3X_PIXEL00_1M
           }
           else
           {
-            PIXEL00_2
+            HQ3X_PIXEL00_2
           }
-          PIXEL01_C
-          PIXEL02_1R
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_1
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1R
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_1M
+            HQ3X_PIXEL20_1M
           }
           else
           {
-            PIXEL20_2
+            HQ3X_PIXEL20_2
           }
-          PIXEL21_C
-          PIXEL22_1R
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1R
           break;
         }
         case 205:
         case 201:
         {
-          PIXEL00_1U
-          PIXEL01_1
-          PIXEL02_2
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_1
+          HQ3X_PIXEL00_1U
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_2
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_1M
+            HQ3X_PIXEL20_1M
           }
           else
           {
-            PIXEL20_2
+            HQ3X_PIXEL20_2
           }
-          PIXEL21_C
-          PIXEL22_1R
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1R
           break;
         }
         case 174:
@@ -5741,149 +5753,149 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_1M
+            HQ3X_PIXEL00_1M
           }
           else
           {
-            PIXEL00_2
+            HQ3X_PIXEL00_2
           }
-          PIXEL01_C
-          PIXEL02_1R
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1D
-          PIXEL21_1
-          PIXEL22_2
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1R
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1D
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_2
           break;
         }
         case 179:
         case 147:
         {
-          PIXEL00_1L
-          PIXEL01_C
+          HQ3X_PIXEL00_1L
+          HQ3X_PIXEL01_C
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_1M
+            HQ3X_PIXEL02_1M
           }
           else
           {
-            PIXEL02_2
+            HQ3X_PIXEL02_2
           }
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_2
-          PIXEL21_1
-          PIXEL22_1D
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_2
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1D
           break;
         }
         case 117:
         case 116:
         {
-          PIXEL00_2
-          PIXEL01_1
-          PIXEL02_1U
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1L
-          PIXEL21_C
+          HQ3X_PIXEL00_2
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1U
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1L
+          HQ3X_PIXEL21_C
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_1M
+            HQ3X_PIXEL22_1M
           }
           else
           {
-            PIXEL22_2
+            HQ3X_PIXEL22_2
           }
           break;
         }
         case 189:
         {
-          PIXEL00_1U
-          PIXEL01_1
-          PIXEL02_1U
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1D
-          PIXEL21_1
-          PIXEL22_1D
+          HQ3X_PIXEL00_1U
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1U
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1D
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1D
           break;
         }
         case 231:
         {
-          PIXEL00_1L
-          PIXEL01_C
-          PIXEL02_1R
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1L
-          PIXEL21_C
-          PIXEL22_1R
+          HQ3X_PIXEL00_1L
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1R
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1L
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1R
           break;
         }
         case 126:
         {
-          PIXEL00_1M
+          HQ3X_PIXEL00_1M
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_C
-            PIXEL02_C
-            PIXEL12_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_C
+            HQ3X_PIXEL12_C
           }
           else
           {
-            PIXEL01_3
-            PIXEL02_4
-            PIXEL12_3
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL02_4
+            HQ3X_PIXEL12_3
           }
-          PIXEL11
+          HQ3X_PIXEL11
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_C
-            PIXEL20_C
-            PIXEL21_C
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_C
+            HQ3X_PIXEL21_C
           }
           else
           {
-            PIXEL10_3
-            PIXEL20_4
-            PIXEL21_3
+            HQ3X_PIXEL10_3
+            HQ3X_PIXEL20_4
+            HQ3X_PIXEL21_3
           }
-          PIXEL22_1M
+          HQ3X_PIXEL22_1M
           break;
         }
         case 219:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL01_C
-            PIXEL10_C
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL10_C
           }
           else
           {
-            PIXEL00_4
-            PIXEL01_3
-            PIXEL10_3
+            HQ3X_PIXEL00_4
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL10_3
           }
-          PIXEL02_1M
-          PIXEL11
-          PIXEL20_1M
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1M
           if (Diff(w[6], w[8]))
           {
-            PIXEL12_C
-            PIXEL21_C
-            PIXEL22_C
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL12_3
-            PIXEL21_3
-            PIXEL22_4
+            HQ3X_PIXEL12_3
+            HQ3X_PIXEL21_3
+            HQ3X_PIXEL22_4
           }
           break;
         }
@@ -5891,205 +5903,205 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[8], w[4]))
           {
-            PIXEL00_1U
-            PIXEL10_C
-            PIXEL20_C
-            PIXEL21_C
+            HQ3X_PIXEL00_1U
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_C
+            HQ3X_PIXEL21_C
           }
           else
           {
-            PIXEL00_2
-            PIXEL10_6
-            PIXEL20_5
-            PIXEL21_1
+            HQ3X_PIXEL00_2
+            HQ3X_PIXEL10_6
+            HQ3X_PIXEL20_5
+            HQ3X_PIXEL21_1
           }
-          PIXEL01_1
-          PIXEL02_1U
-          PIXEL11
-          PIXEL12_C
-          PIXEL22_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1U
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL22_1M
           break;
         }
         case 221:
         {
           if (Diff(w[6], w[8]))
           {
-            PIXEL02_1U
-            PIXEL12_C
-            PIXEL21_C
-            PIXEL22_C
+            HQ3X_PIXEL02_1U
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL02_2
-            PIXEL12_6
-            PIXEL21_1
-            PIXEL22_5
+            HQ3X_PIXEL02_2
+            HQ3X_PIXEL12_6
+            HQ3X_PIXEL21_1
+            HQ3X_PIXEL22_5
           }
-          PIXEL00_1U
-          PIXEL01_1
-          PIXEL10_C
-          PIXEL11
-          PIXEL20_1M
+          HQ3X_PIXEL00_1U
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1M
           break;
         }
         case 207:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL01_C
-            PIXEL02_1R
-            PIXEL10_C
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_1R
+            HQ3X_PIXEL10_C
           }
           else
           {
-            PIXEL00_5
-            PIXEL01_6
-            PIXEL02_2
-            PIXEL10_1
+            HQ3X_PIXEL00_5
+            HQ3X_PIXEL01_6
+            HQ3X_PIXEL02_2
+            HQ3X_PIXEL10_1
           }
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1M
-          PIXEL21_C
-          PIXEL22_1R
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1R
           break;
         }
         case 238:
         {
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_C
-            PIXEL20_C
-            PIXEL21_C
-            PIXEL22_1R
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_C
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_1R
           }
           else
           {
-            PIXEL10_1
-            PIXEL20_5
-            PIXEL21_6
-            PIXEL22_2
+            HQ3X_PIXEL10_1
+            HQ3X_PIXEL20_5
+            HQ3X_PIXEL21_6
+            HQ3X_PIXEL22_2
           }
-          PIXEL00_1M
-          PIXEL01_C
-          PIXEL02_1R
-          PIXEL11
-          PIXEL12_1
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1R
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
           break;
         }
         case 190:
         {
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_C
-            PIXEL02_C
-            PIXEL12_C
-            PIXEL22_1D
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_C
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL22_1D
           }
           else
           {
-            PIXEL01_1
-            PIXEL02_5
-            PIXEL12_6
-            PIXEL22_2
+            HQ3X_PIXEL01_1
+            HQ3X_PIXEL02_5
+            HQ3X_PIXEL12_6
+            HQ3X_PIXEL22_2
           }
-          PIXEL00_1M
-          PIXEL10_C
-          PIXEL11
-          PIXEL20_1D
-          PIXEL21_1
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1D
+          HQ3X_PIXEL21_1
           break;
         }
         case 187:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL01_C
-            PIXEL10_C
-            PIXEL20_1D
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_1D
           }
           else
           {
-            PIXEL00_5
-            PIXEL01_1
-            PIXEL10_6
-            PIXEL20_2
+            HQ3X_PIXEL00_5
+            HQ3X_PIXEL01_1
+            HQ3X_PIXEL10_6
+            HQ3X_PIXEL20_2
           }
-          PIXEL02_1M
-          PIXEL11
-          PIXEL12_C
-          PIXEL21_1
-          PIXEL22_1D
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1D
           break;
         }
         case 243:
         {
           if (Diff(w[6], w[8]))
           {
-            PIXEL12_C
-            PIXEL20_1L
-            PIXEL21_C
-            PIXEL22_C
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL20_1L
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL12_1
-            PIXEL20_2
-            PIXEL21_6
-            PIXEL22_5
+            HQ3X_PIXEL12_1
+            HQ3X_PIXEL20_2
+            HQ3X_PIXEL21_6
+            HQ3X_PIXEL22_5
           }
-          PIXEL00_1L
-          PIXEL01_C
-          PIXEL02_1M
-          PIXEL10_1
-          PIXEL11
+          HQ3X_PIXEL00_1L
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
           break;
         }
         case 119:
         {
           if (Diff(w[2], w[6]))
           {
-            PIXEL00_1L
-            PIXEL01_C
-            PIXEL02_C
-            PIXEL12_C
+            HQ3X_PIXEL00_1L
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_C
+            HQ3X_PIXEL12_C
           }
           else
           {
-            PIXEL00_2
-            PIXEL01_6
-            PIXEL02_5
-            PIXEL12_1
+            HQ3X_PIXEL00_2
+            HQ3X_PIXEL01_6
+            HQ3X_PIXEL02_5
+            HQ3X_PIXEL12_1
           }
-          PIXEL10_1
-          PIXEL11
-          PIXEL20_1L
-          PIXEL21_C
-          PIXEL22_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1L
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1M
           break;
         }
         case 237:
         case 233:
         {
-          PIXEL00_1U
-          PIXEL01_1
-          PIXEL02_2
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_1
+          HQ3X_PIXEL00_1U
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_2
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_C
+            HQ3X_PIXEL20_C
           }
           else
           {
-            PIXEL20_2
+            HQ3X_PIXEL20_2
           }
-          PIXEL21_C
-          PIXEL22_1R
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1R
           break;
         }
         case 175:
@@ -6097,90 +6109,90 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
+            HQ3X_PIXEL00_C
           }
           else
           {
-            PIXEL00_2
+            HQ3X_PIXEL00_2
           }
-          PIXEL01_C
-          PIXEL02_1R
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_1
-          PIXEL20_1D
-          PIXEL21_1
-          PIXEL22_2
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1R
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
+          HQ3X_PIXEL20_1D
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_2
           break;
         }
         case 183:
         case 151:
         {
-          PIXEL00_1L
-          PIXEL01_C
+          HQ3X_PIXEL00_1L
+          HQ3X_PIXEL01_C
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_C
+            HQ3X_PIXEL02_C
           }
           else
           {
-            PIXEL02_2
+            HQ3X_PIXEL02_2
           }
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_2
-          PIXEL21_1
-          PIXEL22_1D
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_2
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1D
           break;
         }
         case 245:
         case 244:
         {
-          PIXEL00_2
-          PIXEL01_1
-          PIXEL02_1U
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1L
-          PIXEL21_C
+          HQ3X_PIXEL00_2
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1U
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1L
+          HQ3X_PIXEL21_C
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL22_2
+            HQ3X_PIXEL22_2
           }
           break;
         }
         case 250:
         {
-          PIXEL00_1M
-          PIXEL01_C
-          PIXEL02_1M
-          PIXEL11
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL11
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_C
-            PIXEL20_C
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_C
           }
           else
           {
-            PIXEL10_3
-            PIXEL20_4
+            HQ3X_PIXEL10_3
+            HQ3X_PIXEL20_4
           }
-          PIXEL21_C
+          HQ3X_PIXEL21_C
           if (Diff(w[6], w[8]))
           {
-            PIXEL12_C
-            PIXEL22_C
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL12_3
-            PIXEL22_4
+            HQ3X_PIXEL12_3
+            HQ3X_PIXEL22_4
           }
           break;
         }
@@ -6188,142 +6200,142 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL01_C
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL01_C
           }
           else
           {
-            PIXEL00_4
-            PIXEL01_3
+            HQ3X_PIXEL00_4
+            HQ3X_PIXEL01_3
           }
-          PIXEL02_1M
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_C
-            PIXEL21_C
+            HQ3X_PIXEL20_C
+            HQ3X_PIXEL21_C
           }
           else
           {
-            PIXEL20_4
-            PIXEL21_3
+            HQ3X_PIXEL20_4
+            HQ3X_PIXEL21_3
           }
-          PIXEL22_1M
+          HQ3X_PIXEL22_1M
           break;
         }
         case 95:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL10_C
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL10_C
           }
           else
           {
-            PIXEL00_4
-            PIXEL10_3
+            HQ3X_PIXEL00_4
+            HQ3X_PIXEL10_3
           }
-          PIXEL01_C
+          HQ3X_PIXEL01_C
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_C
-            PIXEL12_C
+            HQ3X_PIXEL02_C
+            HQ3X_PIXEL12_C
           }
           else
           {
-            PIXEL02_4
-            PIXEL12_3
+            HQ3X_PIXEL02_4
+            HQ3X_PIXEL12_3
           }
-          PIXEL11
-          PIXEL20_1M
-          PIXEL21_C
-          PIXEL22_1M
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1M
           break;
         }
         case 222:
         {
-          PIXEL00_1M
+          HQ3X_PIXEL00_1M
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_C
-            PIXEL02_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_C
           }
           else
           {
-            PIXEL01_3
-            PIXEL02_4
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL02_4
           }
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1M
           if (Diff(w[6], w[8]))
           {
-            PIXEL21_C
-            PIXEL22_C
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL21_3
-            PIXEL22_4
+            HQ3X_PIXEL21_3
+            HQ3X_PIXEL22_4
           }
           break;
         }
         case 252:
         {
-          PIXEL00_1M
-          PIXEL01_1
-          PIXEL02_1U
-          PIXEL11
-          PIXEL12_C
+          HQ3X_PIXEL00_1M
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1U
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_C
-            PIXEL20_C
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_C
           }
           else
           {
-            PIXEL10_3
-            PIXEL20_4
+            HQ3X_PIXEL10_3
+            HQ3X_PIXEL20_4
           }
-          PIXEL21_C
+          HQ3X_PIXEL21_C
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL22_2
+            HQ3X_PIXEL22_2
           }
           break;
         }
         case 249:
         {
-          PIXEL00_1U
-          PIXEL01_1
-          PIXEL02_1M
-          PIXEL10_C
-          PIXEL11
+          HQ3X_PIXEL00_1U
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_C
+            HQ3X_PIXEL20_C
           }
           else
           {
-            PIXEL20_2
+            HQ3X_PIXEL20_2
           }
-          PIXEL21_C
+          HQ3X_PIXEL21_C
           if (Diff(w[6], w[8]))
           {
-            PIXEL12_C
-            PIXEL22_C
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL12_3
-            PIXEL22_4
+            HQ3X_PIXEL12_3
+            HQ3X_PIXEL22_4
           }
           break;
         }
@@ -6331,232 +6343,232 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL01_C
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL01_C
           }
           else
           {
-            PIXEL00_4
-            PIXEL01_3
+            HQ3X_PIXEL00_4
+            HQ3X_PIXEL01_3
           }
-          PIXEL02_1M
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_1
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_C
+            HQ3X_PIXEL20_C
           }
           else
           {
-            PIXEL20_2
+            HQ3X_PIXEL20_2
           }
-          PIXEL21_C
-          PIXEL22_1R
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1R
           break;
         }
         case 111:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
+            HQ3X_PIXEL00_C
           }
           else
           {
-            PIXEL00_2
+            HQ3X_PIXEL00_2
           }
-          PIXEL01_C
-          PIXEL02_1R
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_1
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1R
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_C
-            PIXEL21_C
+            HQ3X_PIXEL20_C
+            HQ3X_PIXEL21_C
           }
           else
           {
-            PIXEL20_4
-            PIXEL21_3
+            HQ3X_PIXEL20_4
+            HQ3X_PIXEL21_3
           }
-          PIXEL22_1M
+          HQ3X_PIXEL22_1M
           break;
         }
         case 63:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
+            HQ3X_PIXEL00_C
           }
           else
           {
-            PIXEL00_2
+            HQ3X_PIXEL00_2
           }
-          PIXEL01_C
+          HQ3X_PIXEL01_C
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_C
-            PIXEL12_C
+            HQ3X_PIXEL02_C
+            HQ3X_PIXEL12_C
           }
           else
           {
-            PIXEL02_4
-            PIXEL12_3
+            HQ3X_PIXEL02_4
+            HQ3X_PIXEL12_3
           }
-          PIXEL10_C
-          PIXEL11
-          PIXEL20_1D
-          PIXEL21_1
-          PIXEL22_1M
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1D
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1M
           break;
         }
         case 159:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL10_C
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL10_C
           }
           else
           {
-            PIXEL00_4
-            PIXEL10_3
+            HQ3X_PIXEL00_4
+            HQ3X_PIXEL10_3
           }
-          PIXEL01_C
+          HQ3X_PIXEL01_C
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_C
+            HQ3X_PIXEL02_C
           }
           else
           {
-            PIXEL02_2
+            HQ3X_PIXEL02_2
           }
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1M
-          PIXEL21_1
-          PIXEL22_1D
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1M
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1D
           break;
         }
         case 215:
         {
-          PIXEL00_1L
-          PIXEL01_C
+          HQ3X_PIXEL00_1L
+          HQ3X_PIXEL01_C
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_C
+            HQ3X_PIXEL02_C
           }
           else
           {
-            PIXEL02_2
+            HQ3X_PIXEL02_2
           }
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1M
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1M
           if (Diff(w[6], w[8]))
           {
-            PIXEL21_C
-            PIXEL22_C
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL21_3
-            PIXEL22_4
+            HQ3X_PIXEL21_3
+            HQ3X_PIXEL22_4
           }
           break;
         }
         case 246:
         {
-          PIXEL00_1M
+          HQ3X_PIXEL00_1M
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_C
-            PIXEL02_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_C
           }
           else
           {
-            PIXEL01_3
-            PIXEL02_4
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL02_4
           }
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1L
-          PIXEL21_C
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1L
+          HQ3X_PIXEL21_C
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL22_2
+            HQ3X_PIXEL22_2
           }
           break;
         }
         case 254:
         {
-          PIXEL00_1M
+          HQ3X_PIXEL00_1M
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_C
-            PIXEL02_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_C
           }
           else
           {
-            PIXEL01_3
-            PIXEL02_4
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL02_4
           }
-          PIXEL11
+          HQ3X_PIXEL11
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_C
-            PIXEL20_C
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_C
           }
           else
           {
-            PIXEL10_3
-            PIXEL20_4
+            HQ3X_PIXEL10_3
+            HQ3X_PIXEL20_4
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL12_C
-            PIXEL21_C
-            PIXEL22_C
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL12_3
-            PIXEL21_3
-            PIXEL22_2
+            HQ3X_PIXEL12_3
+            HQ3X_PIXEL21_3
+            HQ3X_PIXEL22_2
           }
           break;
         }
         case 253:
         {
-          PIXEL00_1U
-          PIXEL01_1
-          PIXEL02_1U
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
+          HQ3X_PIXEL00_1U
+          HQ3X_PIXEL01_1
+          HQ3X_PIXEL02_1U
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_C
+            HQ3X_PIXEL20_C
           }
           else
           {
-            PIXEL20_2
+            HQ3X_PIXEL20_2
           }
-          PIXEL21_C
+          HQ3X_PIXEL21_C
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL22_2
+            HQ3X_PIXEL22_2
           }
           break;
         }
@@ -6564,37 +6576,37 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL01_C
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL01_C
           }
           else
           {
-            PIXEL00_4
-            PIXEL01_3
+            HQ3X_PIXEL00_4
+            HQ3X_PIXEL01_3
           }
-          PIXEL02_1M
-          PIXEL11
+          HQ3X_PIXEL02_1M
+          HQ3X_PIXEL11
           if (Diff(w[8], w[4]))
           {
-            PIXEL10_C
-            PIXEL20_C
-            PIXEL21_C
+            HQ3X_PIXEL10_C
+            HQ3X_PIXEL20_C
+            HQ3X_PIXEL21_C
           }
           else
           {
-            PIXEL10_3
-            PIXEL20_2
-            PIXEL21_3
+            HQ3X_PIXEL10_3
+            HQ3X_PIXEL20_2
+            HQ3X_PIXEL21_3
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL12_C
-            PIXEL22_C
+            HQ3X_PIXEL12_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL12_3
-            PIXEL22_4
+            HQ3X_PIXEL12_3
+            HQ3X_PIXEL22_4
           }
           break;
         }
@@ -6602,156 +6614,156 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
+            HQ3X_PIXEL00_C
           }
           else
           {
-            PIXEL00_2
+            HQ3X_PIXEL00_2
           }
-          PIXEL01_C
-          PIXEL02_1R
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_1
+          HQ3X_PIXEL01_C
+          HQ3X_PIXEL02_1R
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_1
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_C
+            HQ3X_PIXEL20_C
           }
           else
           {
-            PIXEL20_2
+            HQ3X_PIXEL20_2
           }
-          PIXEL21_C
-          PIXEL22_1R
+          HQ3X_PIXEL21_C
+          HQ3X_PIXEL22_1R
           break;
         }
         case 127:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL01_C
-            PIXEL10_C
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL10_C
           }
           else
           {
-            PIXEL00_2
-            PIXEL01_3
-            PIXEL10_3
+            HQ3X_PIXEL00_2
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL10_3
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_C
-            PIXEL12_C
+            HQ3X_PIXEL02_C
+            HQ3X_PIXEL12_C
           }
           else
           {
-            PIXEL02_4
-            PIXEL12_3
+            HQ3X_PIXEL02_4
+            HQ3X_PIXEL12_3
           }
-          PIXEL11
+          HQ3X_PIXEL11
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_C
-            PIXEL21_C
+            HQ3X_PIXEL20_C
+            HQ3X_PIXEL21_C
           }
           else
           {
-            PIXEL20_4
-            PIXEL21_3
+            HQ3X_PIXEL20_4
+            HQ3X_PIXEL21_3
           }
-          PIXEL22_1M
+          HQ3X_PIXEL22_1M
           break;
         }
         case 191:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
+            HQ3X_PIXEL00_C
           }
           else
           {
-            PIXEL00_2
+            HQ3X_PIXEL00_2
           }
-          PIXEL01_C
+          HQ3X_PIXEL01_C
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_C
+            HQ3X_PIXEL02_C
           }
           else
           {
-            PIXEL02_2
+            HQ3X_PIXEL02_2
           }
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1D
-          PIXEL21_1
-          PIXEL22_1D
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1D
+          HQ3X_PIXEL21_1
+          HQ3X_PIXEL22_1D
           break;
         }
         case 223:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
-            PIXEL10_C
+            HQ3X_PIXEL00_C
+            HQ3X_PIXEL10_C
           }
           else
           {
-            PIXEL00_4
-            PIXEL10_3
+            HQ3X_PIXEL00_4
+            HQ3X_PIXEL10_3
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL01_C
-            PIXEL02_C
-            PIXEL12_C
+            HQ3X_PIXEL01_C
+            HQ3X_PIXEL02_C
+            HQ3X_PIXEL12_C
           }
           else
           {
-            PIXEL01_3
-            PIXEL02_2
-            PIXEL12_3
+            HQ3X_PIXEL01_3
+            HQ3X_PIXEL02_2
+            HQ3X_PIXEL12_3
           }
-          PIXEL11
-          PIXEL20_1M
+          HQ3X_PIXEL11
+          HQ3X_PIXEL20_1M
           if (Diff(w[6], w[8]))
           {
-            PIXEL21_C
-            PIXEL22_C
+            HQ3X_PIXEL21_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL21_3
-            PIXEL22_4
+            HQ3X_PIXEL21_3
+            HQ3X_PIXEL22_4
           }
           break;
         }
         case 247:
         {
-          PIXEL00_1L
-          PIXEL01_C
+          HQ3X_PIXEL00_1L
+          HQ3X_PIXEL01_C
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_C
+            HQ3X_PIXEL02_C
           }
           else
           {
-            PIXEL02_2
+            HQ3X_PIXEL02_2
           }
-          PIXEL10_1
-          PIXEL11
-          PIXEL12_C
-          PIXEL20_1L
-          PIXEL21_C
+          HQ3X_PIXEL10_1
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
+          HQ3X_PIXEL20_1L
+          HQ3X_PIXEL21_C
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL22_2
+            HQ3X_PIXEL22_2
           }
           break;
         }
@@ -6759,40 +6771,40 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_C
+            HQ3X_PIXEL00_C
           }
           else
           {
-            PIXEL00_2
+            HQ3X_PIXEL00_2
           }
-          PIXEL01_C
+          HQ3X_PIXEL01_C
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_C
+            HQ3X_PIXEL02_C
           }
           else
           {
-            PIXEL02_2
+            HQ3X_PIXEL02_2
           }
-          PIXEL10_C
-          PIXEL11
-          PIXEL12_C
+          HQ3X_PIXEL10_C
+          HQ3X_PIXEL11
+          HQ3X_PIXEL12_C
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_C
+            HQ3X_PIXEL20_C
           }
           else
           {
-            PIXEL20_2
+            HQ3X_PIXEL20_2
           }
-          PIXEL21_C
+          HQ3X_PIXEL21_C
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_C
+            HQ3X_PIXEL22_C
           }
           else
           {
-            PIXEL22_2
+            HQ3X_PIXEL22_2
           }
           break;
         }
@@ -6908,22 +6920,22 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 37:
         case 165:
         {
-          PIXEL00_20
-          PIXEL01_60
-          PIXEL02_60
-          PIXEL03_20
-          PIXEL10_60
-          PIXEL11_70
-          PIXEL12_70
-          PIXEL13_60
-          PIXEL20_60
-          PIXEL21_70
-          PIXEL22_70
-          PIXEL23_60
-          PIXEL30_20
-          PIXEL31_60
-          PIXEL32_60
-          PIXEL33_20
+          HQ4X_PIXEL00_20
+          HQ4X_PIXEL01_60
+          HQ4X_PIXEL02_60
+          HQ4X_PIXEL03_20
+          HQ4X_PIXEL10_60
+          HQ4X_PIXEL11_70
+          HQ4X_PIXEL12_70
+          HQ4X_PIXEL13_60
+          HQ4X_PIXEL20_60
+          HQ4X_PIXEL21_70
+          HQ4X_PIXEL22_70
+          HQ4X_PIXEL23_60
+          HQ4X_PIXEL30_20
+          HQ4X_PIXEL31_60
+          HQ4X_PIXEL32_60
+          HQ4X_PIXEL33_20
           break;
         }
         case 2:
@@ -6931,22 +6943,22 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 130:
         case 162:
         {
-          PIXEL00_80
-          PIXEL01_10
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL10_61
-          PIXEL11_30
-          PIXEL12_30
-          PIXEL13_61
-          PIXEL20_60
-          PIXEL21_70
-          PIXEL22_70
-          PIXEL23_60
-          PIXEL30_20
-          PIXEL31_60
-          PIXEL32_60
-          PIXEL33_20
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_61
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_61
+          HQ4X_PIXEL20_60
+          HQ4X_PIXEL21_70
+          HQ4X_PIXEL22_70
+          HQ4X_PIXEL23_60
+          HQ4X_PIXEL30_20
+          HQ4X_PIXEL31_60
+          HQ4X_PIXEL32_60
+          HQ4X_PIXEL33_20
           break;
         }
         case 16:
@@ -6954,22 +6966,22 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 48:
         case 49:
         {
-          PIXEL00_20
-          PIXEL01_60
-          PIXEL02_61
-          PIXEL03_80
-          PIXEL10_60
-          PIXEL11_70
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_60
-          PIXEL21_70
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_20
-          PIXEL31_60
-          PIXEL32_61
-          PIXEL33_80
+          HQ4X_PIXEL00_20
+          HQ4X_PIXEL01_60
+          HQ4X_PIXEL02_61
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_60
+          HQ4X_PIXEL11_70
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_60
+          HQ4X_PIXEL21_70
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_20
+          HQ4X_PIXEL31_60
+          HQ4X_PIXEL32_61
+          HQ4X_PIXEL33_80
           break;
         }
         case 64:
@@ -6977,22 +6989,22 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 68:
         case 69:
         {
-          PIXEL00_20
-          PIXEL01_60
-          PIXEL02_60
-          PIXEL03_20
-          PIXEL10_60
-          PIXEL11_70
-          PIXEL12_70
-          PIXEL13_60
-          PIXEL20_61
-          PIXEL21_30
-          PIXEL22_30
-          PIXEL23_61
-          PIXEL30_80
-          PIXEL31_10
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL00_20
+          HQ4X_PIXEL01_60
+          HQ4X_PIXEL02_60
+          HQ4X_PIXEL03_20
+          HQ4X_PIXEL10_60
+          HQ4X_PIXEL11_70
+          HQ4X_PIXEL12_70
+          HQ4X_PIXEL13_60
+          HQ4X_PIXEL20_61
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_61
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 8:
@@ -7000,22 +7012,22 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 136:
         case 140:
         {
-          PIXEL00_80
-          PIXEL01_61
-          PIXEL02_60
-          PIXEL03_20
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_70
-          PIXEL13_60
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_70
-          PIXEL23_60
-          PIXEL30_80
-          PIXEL31_61
-          PIXEL32_60
-          PIXEL33_20
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_61
+          HQ4X_PIXEL02_60
+          HQ4X_PIXEL03_20
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_70
+          HQ4X_PIXEL13_60
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_70
+          HQ4X_PIXEL23_60
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_61
+          HQ4X_PIXEL32_60
+          HQ4X_PIXEL33_20
           break;
         }
         case 3:
@@ -7023,22 +7035,22 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 131:
         case 163:
         {
-          PIXEL00_81
-          PIXEL01_31
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL12_30
-          PIXEL13_61
-          PIXEL20_60
-          PIXEL21_70
-          PIXEL22_70
-          PIXEL23_60
-          PIXEL30_20
-          PIXEL31_60
-          PIXEL32_60
-          PIXEL33_20
+          HQ4X_PIXEL00_81
+          HQ4X_PIXEL01_31
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_61
+          HQ4X_PIXEL20_60
+          HQ4X_PIXEL21_70
+          HQ4X_PIXEL22_70
+          HQ4X_PIXEL23_60
+          HQ4X_PIXEL30_20
+          HQ4X_PIXEL31_60
+          HQ4X_PIXEL32_60
+          HQ4X_PIXEL33_20
           break;
         }
         case 6:
@@ -7046,22 +7058,22 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 134:
         case 166:
         {
-          PIXEL00_80
-          PIXEL01_10
-          PIXEL02_32
-          PIXEL03_82
-          PIXEL10_61
-          PIXEL11_30
-          PIXEL12_32
-          PIXEL13_82
-          PIXEL20_60
-          PIXEL21_70
-          PIXEL22_70
-          PIXEL23_60
-          PIXEL30_20
-          PIXEL31_60
-          PIXEL32_60
-          PIXEL33_20
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
+          HQ4X_PIXEL02_32
+          HQ4X_PIXEL03_82
+          HQ4X_PIXEL10_61
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
+          HQ4X_PIXEL20_60
+          HQ4X_PIXEL21_70
+          HQ4X_PIXEL22_70
+          HQ4X_PIXEL23_60
+          HQ4X_PIXEL30_20
+          HQ4X_PIXEL31_60
+          HQ4X_PIXEL32_60
+          HQ4X_PIXEL33_20
           break;
         }
         case 20:
@@ -7069,22 +7081,22 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 52:
         case 53:
         {
-          PIXEL00_20
-          PIXEL01_60
-          PIXEL02_81
-          PIXEL03_81
-          PIXEL10_60
-          PIXEL11_70
-          PIXEL12_31
-          PIXEL13_31
-          PIXEL20_60
-          PIXEL21_70
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_20
-          PIXEL31_60
-          PIXEL32_61
-          PIXEL33_80
+          HQ4X_PIXEL00_20
+          HQ4X_PIXEL01_60
+          HQ4X_PIXEL02_81
+          HQ4X_PIXEL03_81
+          HQ4X_PIXEL10_60
+          HQ4X_PIXEL11_70
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL13_31
+          HQ4X_PIXEL20_60
+          HQ4X_PIXEL21_70
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_20
+          HQ4X_PIXEL31_60
+          HQ4X_PIXEL32_61
+          HQ4X_PIXEL33_80
           break;
         }
         case 144:
@@ -7092,22 +7104,22 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 176:
         case 177:
         {
-          PIXEL00_20
-          PIXEL01_60
-          PIXEL02_61
-          PIXEL03_80
-          PIXEL10_60
-          PIXEL11_70
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_60
-          PIXEL21_70
-          PIXEL22_32
-          PIXEL23_32
-          PIXEL30_20
-          PIXEL31_60
-          PIXEL32_82
-          PIXEL33_82
+          HQ4X_PIXEL00_20
+          HQ4X_PIXEL01_60
+          HQ4X_PIXEL02_61
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_60
+          HQ4X_PIXEL11_70
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_60
+          HQ4X_PIXEL21_70
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL23_32
+          HQ4X_PIXEL30_20
+          HQ4X_PIXEL31_60
+          HQ4X_PIXEL32_82
+          HQ4X_PIXEL33_82
           break;
         }
         case 192:
@@ -7115,22 +7127,22 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 196:
         case 197:
         {
-          PIXEL00_20
-          PIXEL01_60
-          PIXEL02_60
-          PIXEL03_20
-          PIXEL10_60
-          PIXEL11_70
-          PIXEL12_70
-          PIXEL13_60
-          PIXEL20_61
-          PIXEL21_30
-          PIXEL22_31
-          PIXEL23_81
-          PIXEL30_80
-          PIXEL31_10
-          PIXEL32_31
-          PIXEL33_81
+          HQ4X_PIXEL00_20
+          HQ4X_PIXEL01_60
+          HQ4X_PIXEL02_60
+          HQ4X_PIXEL03_20
+          HQ4X_PIXEL10_60
+          HQ4X_PIXEL11_70
+          HQ4X_PIXEL12_70
+          HQ4X_PIXEL13_60
+          HQ4X_PIXEL20_61
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
+          HQ4X_PIXEL32_31
+          HQ4X_PIXEL33_81
           break;
         }
         case 96:
@@ -7138,22 +7150,22 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 100:
         case 101:
         {
-          PIXEL00_20
-          PIXEL01_60
-          PIXEL02_60
-          PIXEL03_20
-          PIXEL10_60
-          PIXEL11_70
-          PIXEL12_70
-          PIXEL13_60
-          PIXEL20_82
-          PIXEL21_32
-          PIXEL22_30
-          PIXEL23_61
-          PIXEL30_82
-          PIXEL31_32
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL00_20
+          HQ4X_PIXEL01_60
+          HQ4X_PIXEL02_60
+          HQ4X_PIXEL03_20
+          HQ4X_PIXEL10_60
+          HQ4X_PIXEL11_70
+          HQ4X_PIXEL12_70
+          HQ4X_PIXEL13_60
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_61
+          HQ4X_PIXEL30_82
+          HQ4X_PIXEL31_32
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 40:
@@ -7161,22 +7173,22 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 168:
         case 172:
         {
-          PIXEL00_80
-          PIXEL01_61
-          PIXEL02_60
-          PIXEL03_20
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_70
-          PIXEL13_60
-          PIXEL20_31
-          PIXEL21_31
-          PIXEL22_70
-          PIXEL23_60
-          PIXEL30_81
-          PIXEL31_81
-          PIXEL32_60
-          PIXEL33_20
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_61
+          HQ4X_PIXEL02_60
+          HQ4X_PIXEL03_20
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_70
+          HQ4X_PIXEL13_60
+          HQ4X_PIXEL20_31
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_70
+          HQ4X_PIXEL23_60
+          HQ4X_PIXEL30_81
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_60
+          HQ4X_PIXEL33_20
           break;
         }
         case 9:
@@ -7184,115 +7196,115 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         case 137:
         case 141:
         {
-          PIXEL00_82
-          PIXEL01_82
-          PIXEL02_60
-          PIXEL03_20
-          PIXEL10_32
-          PIXEL11_32
-          PIXEL12_70
-          PIXEL13_60
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_70
-          PIXEL23_60
-          PIXEL30_80
-          PIXEL31_61
-          PIXEL32_60
-          PIXEL33_20
+          HQ4X_PIXEL00_82
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_60
+          HQ4X_PIXEL03_20
+          HQ4X_PIXEL10_32
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_70
+          HQ4X_PIXEL13_60
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_70
+          HQ4X_PIXEL23_60
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_61
+          HQ4X_PIXEL32_60
+          HQ4X_PIXEL33_20
           break;
         }
         case 18:
         case 50:
         {
-          PIXEL00_80
-          PIXEL01_10
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_10
-            PIXEL03_80
-            PIXEL12_30
-            PIXEL13_10
+            HQ4X_PIXEL02_10
+            HQ4X_PIXEL03_80
+            HQ4X_PIXEL12_30
+            HQ4X_PIXEL13_10
           }
           else
           {
-            PIXEL02_50
-            PIXEL03_50
-            PIXEL12_0
-            PIXEL13_50
+            HQ4X_PIXEL02_50
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL12_0
+            HQ4X_PIXEL13_50
           }
-          PIXEL10_61
-          PIXEL11_30
-          PIXEL20_60
-          PIXEL21_70
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_20
-          PIXEL31_60
-          PIXEL32_61
-          PIXEL33_80
+          HQ4X_PIXEL10_61
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL20_60
+          HQ4X_PIXEL21_70
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_20
+          HQ4X_PIXEL31_60
+          HQ4X_PIXEL32_61
+          HQ4X_PIXEL33_80
           break;
         }
         case 80:
         case 81:
         {
-          PIXEL00_20
-          PIXEL01_60
-          PIXEL02_61
-          PIXEL03_80
-          PIXEL10_60
-          PIXEL11_70
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_61
-          PIXEL21_30
+          HQ4X_PIXEL00_20
+          HQ4X_PIXEL01_60
+          HQ4X_PIXEL02_61
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_60
+          HQ4X_PIXEL11_70
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_61
+          HQ4X_PIXEL21_30
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_30
-            PIXEL23_10
-            PIXEL32_10
-            PIXEL33_80
+            HQ4X_PIXEL22_30
+            HQ4X_PIXEL23_10
+            HQ4X_PIXEL32_10
+            HQ4X_PIXEL33_80
           }
           else
           {
-            PIXEL22_0
-            PIXEL23_50
-            PIXEL32_50
-            PIXEL33_50
+            HQ4X_PIXEL22_0
+            HQ4X_PIXEL23_50
+            HQ4X_PIXEL32_50
+            HQ4X_PIXEL33_50
           }
-          PIXEL30_80
-          PIXEL31_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
           break;
         }
         case 72:
         case 76:
         {
-          PIXEL00_80
-          PIXEL01_61
-          PIXEL02_60
-          PIXEL03_20
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_70
-          PIXEL13_60
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_61
+          HQ4X_PIXEL02_60
+          HQ4X_PIXEL03_20
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_70
+          HQ4X_PIXEL13_60
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_10
-            PIXEL21_30
-            PIXEL30_80
-            PIXEL31_10
+            HQ4X_PIXEL20_10
+            HQ4X_PIXEL21_30
+            HQ4X_PIXEL30_80
+            HQ4X_PIXEL31_10
           }
           else
           {
-            PIXEL20_50
-            PIXEL21_0
-            PIXEL30_50
-            PIXEL31_50
+            HQ4X_PIXEL20_50
+            HQ4X_PIXEL21_0
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_50
           }
-          PIXEL22_30
-          PIXEL23_61
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_61
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 10:
@@ -7300,248 +7312,248 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_80
-            PIXEL01_10
-            PIXEL10_10
-            PIXEL11_30
+            HQ4X_PIXEL00_80
+            HQ4X_PIXEL01_10
+            HQ4X_PIXEL10_10
+            HQ4X_PIXEL11_30
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_50
-            PIXEL10_50
-            PIXEL11_0
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_50
+            HQ4X_PIXEL10_50
+            HQ4X_PIXEL11_0
           }
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL12_30
-          PIXEL13_61
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_70
-          PIXEL23_60
-          PIXEL30_80
-          PIXEL31_61
-          PIXEL32_60
-          PIXEL33_20
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_61
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_70
+          HQ4X_PIXEL23_60
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_61
+          HQ4X_PIXEL32_60
+          HQ4X_PIXEL33_20
           break;
         }
         case 66:
         {
-          PIXEL00_80
-          PIXEL01_10
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL10_61
-          PIXEL11_30
-          PIXEL12_30
-          PIXEL13_61
-          PIXEL20_61
-          PIXEL21_30
-          PIXEL22_30
-          PIXEL23_61
-          PIXEL30_80
-          PIXEL31_10
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_61
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_61
+          HQ4X_PIXEL20_61
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_61
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 24:
         {
-          PIXEL00_80
-          PIXEL01_61
-          PIXEL02_61
-          PIXEL03_80
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_80
-          PIXEL31_61
-          PIXEL32_61
-          PIXEL33_80
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_61
+          HQ4X_PIXEL02_61
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_61
+          HQ4X_PIXEL32_61
+          HQ4X_PIXEL33_80
           break;
         }
         case 7:
         case 39:
         case 135:
         {
-          PIXEL00_81
-          PIXEL01_31
-          PIXEL02_32
-          PIXEL03_82
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL12_32
-          PIXEL13_82
-          PIXEL20_60
-          PIXEL21_70
-          PIXEL22_70
-          PIXEL23_60
-          PIXEL30_20
-          PIXEL31_60
-          PIXEL32_60
-          PIXEL33_20
+          HQ4X_PIXEL00_81
+          HQ4X_PIXEL01_31
+          HQ4X_PIXEL02_32
+          HQ4X_PIXEL03_82
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
+          HQ4X_PIXEL20_60
+          HQ4X_PIXEL21_70
+          HQ4X_PIXEL22_70
+          HQ4X_PIXEL23_60
+          HQ4X_PIXEL30_20
+          HQ4X_PIXEL31_60
+          HQ4X_PIXEL32_60
+          HQ4X_PIXEL33_20
           break;
         }
         case 148:
         case 149:
         case 180:
         {
-          PIXEL00_20
-          PIXEL01_60
-          PIXEL02_81
-          PIXEL03_81
-          PIXEL10_60
-          PIXEL11_70
-          PIXEL12_31
-          PIXEL13_31
-          PIXEL20_60
-          PIXEL21_70
-          PIXEL22_32
-          PIXEL23_32
-          PIXEL30_20
-          PIXEL31_60
-          PIXEL32_82
-          PIXEL33_82
+          HQ4X_PIXEL00_20
+          HQ4X_PIXEL01_60
+          HQ4X_PIXEL02_81
+          HQ4X_PIXEL03_81
+          HQ4X_PIXEL10_60
+          HQ4X_PIXEL11_70
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL13_31
+          HQ4X_PIXEL20_60
+          HQ4X_PIXEL21_70
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL23_32
+          HQ4X_PIXEL30_20
+          HQ4X_PIXEL31_60
+          HQ4X_PIXEL32_82
+          HQ4X_PIXEL33_82
           break;
         }
         case 224:
         case 228:
         case 225:
         {
-          PIXEL00_20
-          PIXEL01_60
-          PIXEL02_60
-          PIXEL03_20
-          PIXEL10_60
-          PIXEL11_70
-          PIXEL12_70
-          PIXEL13_60
-          PIXEL20_82
-          PIXEL21_32
-          PIXEL22_31
-          PIXEL23_81
-          PIXEL30_82
-          PIXEL31_32
-          PIXEL32_31
-          PIXEL33_81
+          HQ4X_PIXEL00_20
+          HQ4X_PIXEL01_60
+          HQ4X_PIXEL02_60
+          HQ4X_PIXEL03_20
+          HQ4X_PIXEL10_60
+          HQ4X_PIXEL11_70
+          HQ4X_PIXEL12_70
+          HQ4X_PIXEL13_60
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
+          HQ4X_PIXEL30_82
+          HQ4X_PIXEL31_32
+          HQ4X_PIXEL32_31
+          HQ4X_PIXEL33_81
           break;
         }
         case 41:
         case 169:
         case 45:
         {
-          PIXEL00_82
-          PIXEL01_82
-          PIXEL02_60
-          PIXEL03_20
-          PIXEL10_32
-          PIXEL11_32
-          PIXEL12_70
-          PIXEL13_60
-          PIXEL20_31
-          PIXEL21_31
-          PIXEL22_70
-          PIXEL23_60
-          PIXEL30_81
-          PIXEL31_81
-          PIXEL32_60
-          PIXEL33_20
+          HQ4X_PIXEL00_82
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_60
+          HQ4X_PIXEL03_20
+          HQ4X_PIXEL10_32
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_70
+          HQ4X_PIXEL13_60
+          HQ4X_PIXEL20_31
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_70
+          HQ4X_PIXEL23_60
+          HQ4X_PIXEL30_81
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_60
+          HQ4X_PIXEL33_20
           break;
         }
         case 22:
         case 54:
         {
-          PIXEL00_80
-          PIXEL01_10
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_0
-            PIXEL03_0
-            PIXEL13_0
+            HQ4X_PIXEL02_0
+            HQ4X_PIXEL03_0
+            HQ4X_PIXEL13_0
           }
           else
           {
-            PIXEL02_50
-            PIXEL03_50
-            PIXEL13_50
+            HQ4X_PIXEL02_50
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL13_50
           }
-          PIXEL10_61
-          PIXEL11_30
-          PIXEL12_0
-          PIXEL20_60
-          PIXEL21_70
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_20
-          PIXEL31_60
-          PIXEL32_61
-          PIXEL33_80
+          HQ4X_PIXEL10_61
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_0
+          HQ4X_PIXEL20_60
+          HQ4X_PIXEL21_70
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_20
+          HQ4X_PIXEL31_60
+          HQ4X_PIXEL32_61
+          HQ4X_PIXEL33_80
           break;
         }
         case 208:
         case 209:
         {
-          PIXEL00_20
-          PIXEL01_60
-          PIXEL02_61
-          PIXEL03_80
-          PIXEL10_60
-          PIXEL11_70
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_61
-          PIXEL21_30
-          PIXEL22_0
+          HQ4X_PIXEL00_20
+          HQ4X_PIXEL01_60
+          HQ4X_PIXEL02_61
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_60
+          HQ4X_PIXEL11_70
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_61
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL23_0
-            PIXEL32_0
-            PIXEL33_0
+            HQ4X_PIXEL23_0
+            HQ4X_PIXEL32_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL23_50
-            PIXEL32_50
-            PIXEL33_50
+            HQ4X_PIXEL23_50
+            HQ4X_PIXEL32_50
+            HQ4X_PIXEL33_50
           }
-          PIXEL30_80
-          PIXEL31_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
           break;
         }
         case 104:
         case 108:
         {
-          PIXEL00_80
-          PIXEL01_61
-          PIXEL02_60
-          PIXEL03_20
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_70
-          PIXEL13_60
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_61
+          HQ4X_PIXEL02_60
+          HQ4X_PIXEL03_20
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_70
+          HQ4X_PIXEL13_60
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_0
-            PIXEL30_0
-            PIXEL31_0
+            HQ4X_PIXEL20_0
+            HQ4X_PIXEL30_0
+            HQ4X_PIXEL31_0
           }
           else
           {
-            PIXEL20_50
-            PIXEL30_50
-            PIXEL31_50
+            HQ4X_PIXEL20_50
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_50
           }
-          PIXEL21_0
-          PIXEL22_30
-          PIXEL23_61
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_61
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 11:
@@ -7549,29 +7561,29 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_0
-            PIXEL10_0
+            HQ4X_PIXEL00_0
+            HQ4X_PIXEL01_0
+            HQ4X_PIXEL10_0
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_50
-            PIXEL10_50
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_50
+            HQ4X_PIXEL10_50
           }
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL11_0
-          PIXEL12_30
-          PIXEL13_61
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_70
-          PIXEL23_60
-          PIXEL30_80
-          PIXEL31_61
-          PIXEL32_60
-          PIXEL33_20
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_61
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_70
+          HQ4X_PIXEL23_60
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_61
+          HQ4X_PIXEL32_60
+          HQ4X_PIXEL33_20
           break;
         }
         case 19:
@@ -7579,164 +7591,164 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[2], w[6]))
           {
-            PIXEL00_81
-            PIXEL01_31
-            PIXEL02_10
-            PIXEL03_80
-            PIXEL12_30
-            PIXEL13_10
+            HQ4X_PIXEL00_81
+            HQ4X_PIXEL01_31
+            HQ4X_PIXEL02_10
+            HQ4X_PIXEL03_80
+            HQ4X_PIXEL12_30
+            HQ4X_PIXEL13_10
           }
           else
           {
-            PIXEL00_12
-            PIXEL01_14
-            PIXEL02_83
-            PIXEL03_50
-            PIXEL12_70
-            PIXEL13_21
+            HQ4X_PIXEL00_12
+            HQ4X_PIXEL01_14
+            HQ4X_PIXEL02_83
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL12_70
+            HQ4X_PIXEL13_21
           }
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL20_60
-          PIXEL21_70
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_20
-          PIXEL31_60
-          PIXEL32_61
-          PIXEL33_80
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL20_60
+          HQ4X_PIXEL21_70
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_20
+          HQ4X_PIXEL31_60
+          HQ4X_PIXEL32_61
+          HQ4X_PIXEL33_80
           break;
         }
         case 146:
         case 178:
         {
-          PIXEL00_80
-          PIXEL01_10
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_10
-            PIXEL03_80
-            PIXEL12_30
-            PIXEL13_10
-            PIXEL23_32
-            PIXEL33_82
+            HQ4X_PIXEL02_10
+            HQ4X_PIXEL03_80
+            HQ4X_PIXEL12_30
+            HQ4X_PIXEL13_10
+            HQ4X_PIXEL23_32
+            HQ4X_PIXEL33_82
           }
           else
           {
-            PIXEL02_21
-            PIXEL03_50
-            PIXEL12_70
-            PIXEL13_83
-            PIXEL23_13
-            PIXEL33_11
+            HQ4X_PIXEL02_21
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL12_70
+            HQ4X_PIXEL13_83
+            HQ4X_PIXEL23_13
+            HQ4X_PIXEL33_11
           }
-          PIXEL10_61
-          PIXEL11_30
-          PIXEL20_60
-          PIXEL21_70
-          PIXEL22_32
-          PIXEL30_20
-          PIXEL31_60
-          PIXEL32_82
+          HQ4X_PIXEL10_61
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL20_60
+          HQ4X_PIXEL21_70
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL30_20
+          HQ4X_PIXEL31_60
+          HQ4X_PIXEL32_82
           break;
         }
         case 84:
         case 85:
         {
-          PIXEL00_20
-          PIXEL01_60
-          PIXEL02_81
+          HQ4X_PIXEL00_20
+          HQ4X_PIXEL01_60
+          HQ4X_PIXEL02_81
           if (Diff(w[6], w[8]))
           {
-            PIXEL03_81
-            PIXEL13_31
-            PIXEL22_30
-            PIXEL23_10
-            PIXEL32_10
-            PIXEL33_80
+            HQ4X_PIXEL03_81
+            HQ4X_PIXEL13_31
+            HQ4X_PIXEL22_30
+            HQ4X_PIXEL23_10
+            HQ4X_PIXEL32_10
+            HQ4X_PIXEL33_80
           }
           else
           {
-            PIXEL03_12
-            PIXEL13_14
-            PIXEL22_70
-            PIXEL23_83
-            PIXEL32_21
-            PIXEL33_50
+            HQ4X_PIXEL03_12
+            HQ4X_PIXEL13_14
+            HQ4X_PIXEL22_70
+            HQ4X_PIXEL23_83
+            HQ4X_PIXEL32_21
+            HQ4X_PIXEL33_50
           }
-          PIXEL10_60
-          PIXEL11_70
-          PIXEL12_31
-          PIXEL20_61
-          PIXEL21_30
-          PIXEL30_80
-          PIXEL31_10
+          HQ4X_PIXEL10_60
+          HQ4X_PIXEL11_70
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL20_61
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
           break;
         }
         case 112:
         case 113:
         {
-          PIXEL00_20
-          PIXEL01_60
-          PIXEL02_61
-          PIXEL03_80
-          PIXEL10_60
-          PIXEL11_70
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_82
-          PIXEL21_32
+          HQ4X_PIXEL00_20
+          HQ4X_PIXEL01_60
+          HQ4X_PIXEL02_61
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_60
+          HQ4X_PIXEL11_70
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_30
-            PIXEL23_10
-            PIXEL30_82
-            PIXEL31_32
-            PIXEL32_10
-            PIXEL33_80
+            HQ4X_PIXEL22_30
+            HQ4X_PIXEL23_10
+            HQ4X_PIXEL30_82
+            HQ4X_PIXEL31_32
+            HQ4X_PIXEL32_10
+            HQ4X_PIXEL33_80
           }
           else
           {
-            PIXEL22_70
-            PIXEL23_21
-            PIXEL30_11
-            PIXEL31_13
-            PIXEL32_83
-            PIXEL33_50
+            HQ4X_PIXEL22_70
+            HQ4X_PIXEL23_21
+            HQ4X_PIXEL30_11
+            HQ4X_PIXEL31_13
+            HQ4X_PIXEL32_83
+            HQ4X_PIXEL33_50
           }
           break;
         }
         case 200:
         case 204:
         {
-          PIXEL00_80
-          PIXEL01_61
-          PIXEL02_60
-          PIXEL03_20
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_70
-          PIXEL13_60
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_61
+          HQ4X_PIXEL02_60
+          HQ4X_PIXEL03_20
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_70
+          HQ4X_PIXEL13_60
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_10
-            PIXEL21_30
-            PIXEL30_80
-            PIXEL31_10
-            PIXEL32_31
-            PIXEL33_81
+            HQ4X_PIXEL20_10
+            HQ4X_PIXEL21_30
+            HQ4X_PIXEL30_80
+            HQ4X_PIXEL31_10
+            HQ4X_PIXEL32_31
+            HQ4X_PIXEL33_81
           }
           else
           {
-            PIXEL20_21
-            PIXEL21_70
-            PIXEL30_50
-            PIXEL31_83
-            PIXEL32_14
-            PIXEL33_12
+            HQ4X_PIXEL20_21
+            HQ4X_PIXEL21_70
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_83
+            HQ4X_PIXEL32_14
+            HQ4X_PIXEL33_12
           }
-          PIXEL22_31
-          PIXEL23_81
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
           break;
         }
         case 73:
@@ -7744,32 +7756,32 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[8], w[4]))
           {
-            PIXEL00_82
-            PIXEL10_32
-            PIXEL20_10
-            PIXEL21_30
-            PIXEL30_80
-            PIXEL31_10
+            HQ4X_PIXEL00_82
+            HQ4X_PIXEL10_32
+            HQ4X_PIXEL20_10
+            HQ4X_PIXEL21_30
+            HQ4X_PIXEL30_80
+            HQ4X_PIXEL31_10
           }
           else
           {
-            PIXEL00_11
-            PIXEL10_13
-            PIXEL20_83
-            PIXEL21_70
-            PIXEL30_50
-            PIXEL31_21
+            HQ4X_PIXEL00_11
+            HQ4X_PIXEL10_13
+            HQ4X_PIXEL20_83
+            HQ4X_PIXEL21_70
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_21
           }
-          PIXEL01_82
-          PIXEL02_60
-          PIXEL03_20
-          PIXEL11_32
-          PIXEL12_70
-          PIXEL13_60
-          PIXEL22_30
-          PIXEL23_61
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_60
+          HQ4X_PIXEL03_20
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_70
+          HQ4X_PIXEL13_60
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_61
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 42:
@@ -7777,32 +7789,32 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_80
-            PIXEL01_10
-            PIXEL10_10
-            PIXEL11_30
-            PIXEL20_31
-            PIXEL30_81
+            HQ4X_PIXEL00_80
+            HQ4X_PIXEL01_10
+            HQ4X_PIXEL10_10
+            HQ4X_PIXEL11_30
+            HQ4X_PIXEL20_31
+            HQ4X_PIXEL30_81
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_21
-            PIXEL10_83
-            PIXEL11_70
-            PIXEL20_14
-            PIXEL30_12
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_21
+            HQ4X_PIXEL10_83
+            HQ4X_PIXEL11_70
+            HQ4X_PIXEL20_14
+            HQ4X_PIXEL30_12
           }
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL12_30
-          PIXEL13_61
-          PIXEL21_31
-          PIXEL22_70
-          PIXEL23_60
-          PIXEL31_81
-          PIXEL32_60
-          PIXEL33_20
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_61
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_70
+          HQ4X_PIXEL23_60
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_60
+          HQ4X_PIXEL33_20
           break;
         }
         case 14:
@@ -7810,192 +7822,192 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_80
-            PIXEL01_10
-            PIXEL02_32
-            PIXEL03_82
-            PIXEL10_10
-            PIXEL11_30
+            HQ4X_PIXEL00_80
+            HQ4X_PIXEL01_10
+            HQ4X_PIXEL02_32
+            HQ4X_PIXEL03_82
+            HQ4X_PIXEL10_10
+            HQ4X_PIXEL11_30
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_83
-            PIXEL02_13
-            PIXEL03_11
-            PIXEL10_21
-            PIXEL11_70
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_83
+            HQ4X_PIXEL02_13
+            HQ4X_PIXEL03_11
+            HQ4X_PIXEL10_21
+            HQ4X_PIXEL11_70
           }
-          PIXEL12_32
-          PIXEL13_82
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_70
-          PIXEL23_60
-          PIXEL30_80
-          PIXEL31_61
-          PIXEL32_60
-          PIXEL33_20
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_70
+          HQ4X_PIXEL23_60
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_61
+          HQ4X_PIXEL32_60
+          HQ4X_PIXEL33_20
           break;
         }
         case 67:
         {
-          PIXEL00_81
-          PIXEL01_31
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL12_30
-          PIXEL13_61
-          PIXEL20_61
-          PIXEL21_30
-          PIXEL22_30
-          PIXEL23_61
-          PIXEL30_80
-          PIXEL31_10
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL00_81
+          HQ4X_PIXEL01_31
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_61
+          HQ4X_PIXEL20_61
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_61
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 70:
         {
-          PIXEL00_80
-          PIXEL01_10
-          PIXEL02_32
-          PIXEL03_82
-          PIXEL10_61
-          PIXEL11_30
-          PIXEL12_32
-          PIXEL13_82
-          PIXEL20_61
-          PIXEL21_30
-          PIXEL22_30
-          PIXEL23_61
-          PIXEL30_80
-          PIXEL31_10
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
+          HQ4X_PIXEL02_32
+          HQ4X_PIXEL03_82
+          HQ4X_PIXEL10_61
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
+          HQ4X_PIXEL20_61
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_61
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 28:
         {
-          PIXEL00_80
-          PIXEL01_61
-          PIXEL02_81
-          PIXEL03_81
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_31
-          PIXEL13_31
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_80
-          PIXEL31_61
-          PIXEL32_61
-          PIXEL33_80
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_61
+          HQ4X_PIXEL02_81
+          HQ4X_PIXEL03_81
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL13_31
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_61
+          HQ4X_PIXEL32_61
+          HQ4X_PIXEL33_80
           break;
         }
         case 152:
         {
-          PIXEL00_80
-          PIXEL01_61
-          PIXEL02_61
-          PIXEL03_80
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_32
-          PIXEL23_32
-          PIXEL30_80
-          PIXEL31_61
-          PIXEL32_82
-          PIXEL33_82
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_61
+          HQ4X_PIXEL02_61
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL23_32
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_61
+          HQ4X_PIXEL32_82
+          HQ4X_PIXEL33_82
           break;
         }
         case 194:
         {
-          PIXEL00_80
-          PIXEL01_10
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL10_61
-          PIXEL11_30
-          PIXEL12_30
-          PIXEL13_61
-          PIXEL20_61
-          PIXEL21_30
-          PIXEL22_31
-          PIXEL23_81
-          PIXEL30_80
-          PIXEL31_10
-          PIXEL32_31
-          PIXEL33_81
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_61
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_61
+          HQ4X_PIXEL20_61
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
+          HQ4X_PIXEL32_31
+          HQ4X_PIXEL33_81
           break;
         }
         case 98:
         {
-          PIXEL00_80
-          PIXEL01_10
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL10_61
-          PIXEL11_30
-          PIXEL12_30
-          PIXEL13_61
-          PIXEL20_82
-          PIXEL21_32
-          PIXEL22_30
-          PIXEL23_61
-          PIXEL30_82
-          PIXEL31_32
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_61
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_61
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_61
+          HQ4X_PIXEL30_82
+          HQ4X_PIXEL31_32
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 56:
         {
-          PIXEL00_80
-          PIXEL01_61
-          PIXEL02_61
-          PIXEL03_80
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_31
-          PIXEL21_31
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_81
-          PIXEL31_81
-          PIXEL32_61
-          PIXEL33_80
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_61
+          HQ4X_PIXEL02_61
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_31
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_81
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_61
+          HQ4X_PIXEL33_80
           break;
         }
         case 25:
         {
-          PIXEL00_82
-          PIXEL01_82
-          PIXEL02_61
-          PIXEL03_80
-          PIXEL10_32
-          PIXEL11_32
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_80
-          PIXEL31_61
-          PIXEL32_61
-          PIXEL33_80
+          HQ4X_PIXEL00_82
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_61
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_32
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_61
+          HQ4X_PIXEL32_61
+          HQ4X_PIXEL33_80
           break;
         }
         case 26:
@@ -8003,115 +8015,115 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_0
-            PIXEL10_0
+            HQ4X_PIXEL00_0
+            HQ4X_PIXEL01_0
+            HQ4X_PIXEL10_0
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_50
-            PIXEL10_50
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_50
+            HQ4X_PIXEL10_50
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_0
-            PIXEL03_0
-            PIXEL13_0
+            HQ4X_PIXEL02_0
+            HQ4X_PIXEL03_0
+            HQ4X_PIXEL13_0
           }
           else
           {
-            PIXEL02_50
-            PIXEL03_50
-            PIXEL13_50
+            HQ4X_PIXEL02_50
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL13_50
           }
-          PIXEL11_0
-          PIXEL12_0
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_80
-          PIXEL31_61
-          PIXEL32_61
-          PIXEL33_80
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_0
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_61
+          HQ4X_PIXEL32_61
+          HQ4X_PIXEL33_80
           break;
         }
         case 82:
         case 214:
         {
-          PIXEL00_80
-          PIXEL01_10
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_0
-            PIXEL03_0
-            PIXEL13_0
+            HQ4X_PIXEL02_0
+            HQ4X_PIXEL03_0
+            HQ4X_PIXEL13_0
           }
           else
           {
-            PIXEL02_50
-            PIXEL03_50
-            PIXEL13_50
+            HQ4X_PIXEL02_50
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL13_50
           }
-          PIXEL10_61
-          PIXEL11_30
-          PIXEL12_0
-          PIXEL20_61
-          PIXEL21_30
-          PIXEL22_0
+          HQ4X_PIXEL10_61
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_0
+          HQ4X_PIXEL20_61
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL23_0
-            PIXEL32_0
-            PIXEL33_0
+            HQ4X_PIXEL23_0
+            HQ4X_PIXEL32_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL23_50
-            PIXEL32_50
-            PIXEL33_50
+            HQ4X_PIXEL23_50
+            HQ4X_PIXEL32_50
+            HQ4X_PIXEL33_50
           }
-          PIXEL30_80
-          PIXEL31_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
           break;
         }
         case 88:
         case 248:
         {
-          PIXEL00_80
-          PIXEL01_61
-          PIXEL02_61
-          PIXEL03_80
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_30
-          PIXEL13_10
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_61
+          HQ4X_PIXEL02_61
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_0
-            PIXEL30_0
-            PIXEL31_0
+            HQ4X_PIXEL20_0
+            HQ4X_PIXEL30_0
+            HQ4X_PIXEL31_0
           }
           else
           {
-            PIXEL20_50
-            PIXEL30_50
-            PIXEL31_50
+            HQ4X_PIXEL20_50
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_50
           }
-          PIXEL21_0
-          PIXEL22_0
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL23_0
-            PIXEL32_0
-            PIXEL33_0
+            HQ4X_PIXEL23_0
+            HQ4X_PIXEL32_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL23_50
-            PIXEL32_50
-            PIXEL33_50
+            HQ4X_PIXEL23_50
+            HQ4X_PIXEL32_50
+            HQ4X_PIXEL33_50
           }
           break;
         }
@@ -8120,629 +8132,629 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_0
-            PIXEL10_0
+            HQ4X_PIXEL00_0
+            HQ4X_PIXEL01_0
+            HQ4X_PIXEL10_0
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_50
-            PIXEL10_50
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_50
+            HQ4X_PIXEL10_50
           }
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL11_0
-          PIXEL12_30
-          PIXEL13_61
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_61
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_0
-            PIXEL30_0
-            PIXEL31_0
+            HQ4X_PIXEL20_0
+            HQ4X_PIXEL30_0
+            HQ4X_PIXEL31_0
           }
           else
           {
-            PIXEL20_50
-            PIXEL30_50
-            PIXEL31_50
+            HQ4X_PIXEL20_50
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_50
           }
-          PIXEL21_0
-          PIXEL22_30
-          PIXEL23_61
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_61
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 27:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_0
-            PIXEL10_0
+            HQ4X_PIXEL00_0
+            HQ4X_PIXEL01_0
+            HQ4X_PIXEL10_0
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_50
-            PIXEL10_50
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_50
+            HQ4X_PIXEL10_50
           }
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL11_0
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_80
-          PIXEL31_61
-          PIXEL32_61
-          PIXEL33_80
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_61
+          HQ4X_PIXEL32_61
+          HQ4X_PIXEL33_80
           break;
         }
         case 86:
         {
-          PIXEL00_80
-          PIXEL01_10
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_0
-            PIXEL03_0
-            PIXEL13_0
+            HQ4X_PIXEL02_0
+            HQ4X_PIXEL03_0
+            HQ4X_PIXEL13_0
           }
           else
           {
-            PIXEL02_50
-            PIXEL03_50
-            PIXEL13_50
+            HQ4X_PIXEL02_50
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL13_50
           }
-          PIXEL10_61
-          PIXEL11_30
-          PIXEL12_0
-          PIXEL20_61
-          PIXEL21_30
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_80
-          PIXEL31_10
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL10_61
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_0
+          HQ4X_PIXEL20_61
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 216:
         {
-          PIXEL00_80
-          PIXEL01_61
-          PIXEL02_61
-          PIXEL03_80
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_0
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_61
+          HQ4X_PIXEL02_61
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL23_0
-            PIXEL32_0
-            PIXEL33_0
+            HQ4X_PIXEL23_0
+            HQ4X_PIXEL32_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL23_50
-            PIXEL32_50
-            PIXEL33_50
+            HQ4X_PIXEL23_50
+            HQ4X_PIXEL32_50
+            HQ4X_PIXEL33_50
           }
-          PIXEL30_80
-          PIXEL31_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
           break;
         }
         case 106:
         {
-          PIXEL00_80
-          PIXEL01_10
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_30
-          PIXEL13_61
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_61
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_0
-            PIXEL30_0
-            PIXEL31_0
+            HQ4X_PIXEL20_0
+            HQ4X_PIXEL30_0
+            HQ4X_PIXEL31_0
           }
           else
           {
-            PIXEL20_50
-            PIXEL30_50
-            PIXEL31_50
+            HQ4X_PIXEL20_50
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_50
           }
-          PIXEL21_0
-          PIXEL22_30
-          PIXEL23_61
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_61
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 30:
         {
-          PIXEL00_80
-          PIXEL01_10
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_0
-            PIXEL03_0
-            PIXEL13_0
+            HQ4X_PIXEL02_0
+            HQ4X_PIXEL03_0
+            HQ4X_PIXEL13_0
           }
           else
           {
-            PIXEL02_50
-            PIXEL03_50
-            PIXEL13_50
+            HQ4X_PIXEL02_50
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL13_50
           }
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_0
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_80
-          PIXEL31_61
-          PIXEL32_61
-          PIXEL33_80
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_0
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_61
+          HQ4X_PIXEL32_61
+          HQ4X_PIXEL33_80
           break;
         }
         case 210:
         {
-          PIXEL00_80
-          PIXEL01_10
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL10_61
-          PIXEL11_30
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_61
-          PIXEL21_30
-          PIXEL22_0
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_61
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_61
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL23_0
-            PIXEL32_0
-            PIXEL33_0
+            HQ4X_PIXEL23_0
+            HQ4X_PIXEL32_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL23_50
-            PIXEL32_50
-            PIXEL33_50
+            HQ4X_PIXEL23_50
+            HQ4X_PIXEL32_50
+            HQ4X_PIXEL33_50
           }
-          PIXEL30_80
-          PIXEL31_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
           break;
         }
         case 120:
         {
-          PIXEL00_80
-          PIXEL01_61
-          PIXEL02_61
-          PIXEL03_80
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_30
-          PIXEL13_10
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_61
+          HQ4X_PIXEL02_61
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_0
-            PIXEL30_0
-            PIXEL31_0
+            HQ4X_PIXEL20_0
+            HQ4X_PIXEL30_0
+            HQ4X_PIXEL31_0
           }
           else
           {
-            PIXEL20_50
-            PIXEL30_50
-            PIXEL31_50
+            HQ4X_PIXEL20_50
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_50
           }
-          PIXEL21_0
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 75:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_0
-            PIXEL10_0
+            HQ4X_PIXEL00_0
+            HQ4X_PIXEL01_0
+            HQ4X_PIXEL10_0
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_50
-            PIXEL10_50
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_50
+            HQ4X_PIXEL10_50
           }
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL11_0
-          PIXEL12_30
-          PIXEL13_61
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_30
-          PIXEL23_61
-          PIXEL30_80
-          PIXEL31_10
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_61
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_61
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 29:
         {
-          PIXEL00_82
-          PIXEL01_82
-          PIXEL02_81
-          PIXEL03_81
-          PIXEL10_32
-          PIXEL11_32
-          PIXEL12_31
-          PIXEL13_31
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_80
-          PIXEL31_61
-          PIXEL32_61
-          PIXEL33_80
+          HQ4X_PIXEL00_82
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_81
+          HQ4X_PIXEL03_81
+          HQ4X_PIXEL10_32
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL13_31
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_61
+          HQ4X_PIXEL32_61
+          HQ4X_PIXEL33_80
           break;
         }
         case 198:
         {
-          PIXEL00_80
-          PIXEL01_10
-          PIXEL02_32
-          PIXEL03_82
-          PIXEL10_61
-          PIXEL11_30
-          PIXEL12_32
-          PIXEL13_82
-          PIXEL20_61
-          PIXEL21_30
-          PIXEL22_31
-          PIXEL23_81
-          PIXEL30_80
-          PIXEL31_10
-          PIXEL32_31
-          PIXEL33_81
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
+          HQ4X_PIXEL02_32
+          HQ4X_PIXEL03_82
+          HQ4X_PIXEL10_61
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
+          HQ4X_PIXEL20_61
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
+          HQ4X_PIXEL32_31
+          HQ4X_PIXEL33_81
           break;
         }
         case 184:
         {
-          PIXEL00_80
-          PIXEL01_61
-          PIXEL02_61
-          PIXEL03_80
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_31
-          PIXEL21_31
-          PIXEL22_32
-          PIXEL23_32
-          PIXEL30_81
-          PIXEL31_81
-          PIXEL32_82
-          PIXEL33_82
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_61
+          HQ4X_PIXEL02_61
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_31
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL23_32
+          HQ4X_PIXEL30_81
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_82
+          HQ4X_PIXEL33_82
           break;
         }
         case 99:
         {
-          PIXEL00_81
-          PIXEL01_31
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL12_30
-          PIXEL13_61
-          PIXEL20_82
-          PIXEL21_32
-          PIXEL22_30
-          PIXEL23_61
-          PIXEL30_82
-          PIXEL31_32
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL00_81
+          HQ4X_PIXEL01_31
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_61
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_61
+          HQ4X_PIXEL30_82
+          HQ4X_PIXEL31_32
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 57:
         {
-          PIXEL00_82
-          PIXEL01_82
-          PIXEL02_61
-          PIXEL03_80
-          PIXEL10_32
-          PIXEL11_32
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_31
-          PIXEL21_31
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_81
-          PIXEL31_81
-          PIXEL32_61
-          PIXEL33_80
+          HQ4X_PIXEL00_82
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_61
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_32
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_31
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_81
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_61
+          HQ4X_PIXEL33_80
           break;
         }
         case 71:
         {
-          PIXEL00_81
-          PIXEL01_31
-          PIXEL02_32
-          PIXEL03_82
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL12_32
-          PIXEL13_82
-          PIXEL20_61
-          PIXEL21_30
-          PIXEL22_30
-          PIXEL23_61
-          PIXEL30_80
-          PIXEL31_10
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL00_81
+          HQ4X_PIXEL01_31
+          HQ4X_PIXEL02_32
+          HQ4X_PIXEL03_82
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
+          HQ4X_PIXEL20_61
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_61
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 156:
         {
-          PIXEL00_80
-          PIXEL01_61
-          PIXEL02_81
-          PIXEL03_81
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_31
-          PIXEL13_31
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_32
-          PIXEL23_32
-          PIXEL30_80
-          PIXEL31_61
-          PIXEL32_82
-          PIXEL33_82
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_61
+          HQ4X_PIXEL02_81
+          HQ4X_PIXEL03_81
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL13_31
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL23_32
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_61
+          HQ4X_PIXEL32_82
+          HQ4X_PIXEL33_82
           break;
         }
         case 226:
         {
-          PIXEL00_80
-          PIXEL01_10
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL10_61
-          PIXEL11_30
-          PIXEL12_30
-          PIXEL13_61
-          PIXEL20_82
-          PIXEL21_32
-          PIXEL22_31
-          PIXEL23_81
-          PIXEL30_82
-          PIXEL31_32
-          PIXEL32_31
-          PIXEL33_81
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_61
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_61
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
+          HQ4X_PIXEL30_82
+          HQ4X_PIXEL31_32
+          HQ4X_PIXEL32_31
+          HQ4X_PIXEL33_81
           break;
         }
         case 60:
         {
-          PIXEL00_80
-          PIXEL01_61
-          PIXEL02_81
-          PIXEL03_81
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_31
-          PIXEL13_31
-          PIXEL20_31
-          PIXEL21_31
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_81
-          PIXEL31_81
-          PIXEL32_61
-          PIXEL33_80
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_61
+          HQ4X_PIXEL02_81
+          HQ4X_PIXEL03_81
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL13_31
+          HQ4X_PIXEL20_31
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_81
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_61
+          HQ4X_PIXEL33_80
           break;
         }
         case 195:
         {
-          PIXEL00_81
-          PIXEL01_31
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL12_30
-          PIXEL13_61
-          PIXEL20_61
-          PIXEL21_30
-          PIXEL22_31
-          PIXEL23_81
-          PIXEL30_80
-          PIXEL31_10
-          PIXEL32_31
-          PIXEL33_81
+          HQ4X_PIXEL00_81
+          HQ4X_PIXEL01_31
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_61
+          HQ4X_PIXEL20_61
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
+          HQ4X_PIXEL32_31
+          HQ4X_PIXEL33_81
           break;
         }
         case 102:
         {
-          PIXEL00_80
-          PIXEL01_10
-          PIXEL02_32
-          PIXEL03_82
-          PIXEL10_61
-          PIXEL11_30
-          PIXEL12_32
-          PIXEL13_82
-          PIXEL20_82
-          PIXEL21_32
-          PIXEL22_30
-          PIXEL23_61
-          PIXEL30_82
-          PIXEL31_32
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
+          HQ4X_PIXEL02_32
+          HQ4X_PIXEL03_82
+          HQ4X_PIXEL10_61
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_61
+          HQ4X_PIXEL30_82
+          HQ4X_PIXEL31_32
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 153:
         {
-          PIXEL00_82
-          PIXEL01_82
-          PIXEL02_61
-          PIXEL03_80
-          PIXEL10_32
-          PIXEL11_32
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_32
-          PIXEL23_32
-          PIXEL30_80
-          PIXEL31_61
-          PIXEL32_82
-          PIXEL33_82
+          HQ4X_PIXEL00_82
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_61
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_32
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL23_32
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_61
+          HQ4X_PIXEL32_82
+          HQ4X_PIXEL33_82
           break;
         }
         case 58:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_80
-            PIXEL01_10
-            PIXEL10_10
-            PIXEL11_30
+            HQ4X_PIXEL00_80
+            HQ4X_PIXEL01_10
+            HQ4X_PIXEL10_10
+            HQ4X_PIXEL11_30
           }
           else
           {
-            PIXEL00_20
-            PIXEL01_12
-            PIXEL10_11
-            PIXEL11_0
+            HQ4X_PIXEL00_20
+            HQ4X_PIXEL01_12
+            HQ4X_PIXEL10_11
+            HQ4X_PIXEL11_0
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_10
-            PIXEL03_80
-            PIXEL12_30
-            PIXEL13_10
+            HQ4X_PIXEL02_10
+            HQ4X_PIXEL03_80
+            HQ4X_PIXEL12_30
+            HQ4X_PIXEL13_10
           }
           else
           {
-            PIXEL02_11
-            PIXEL03_20
-            PIXEL12_0
-            PIXEL13_12
+            HQ4X_PIXEL02_11
+            HQ4X_PIXEL03_20
+            HQ4X_PIXEL12_0
+            HQ4X_PIXEL13_12
           }
-          PIXEL20_31
-          PIXEL21_31
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_81
-          PIXEL31_81
-          PIXEL32_61
-          PIXEL33_80
+          HQ4X_PIXEL20_31
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_81
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_61
+          HQ4X_PIXEL33_80
           break;
         }
         case 83:
         {
-          PIXEL00_81
-          PIXEL01_31
+          HQ4X_PIXEL00_81
+          HQ4X_PIXEL01_31
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_10
-            PIXEL03_80
-            PIXEL12_30
-            PIXEL13_10
+            HQ4X_PIXEL02_10
+            HQ4X_PIXEL03_80
+            HQ4X_PIXEL12_30
+            HQ4X_PIXEL13_10
           }
           else
           {
-            PIXEL02_11
-            PIXEL03_20
-            PIXEL12_0
-            PIXEL13_12
+            HQ4X_PIXEL02_11
+            HQ4X_PIXEL03_20
+            HQ4X_PIXEL12_0
+            HQ4X_PIXEL13_12
           }
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL20_61
-          PIXEL21_30
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL20_61
+          HQ4X_PIXEL21_30
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_30
-            PIXEL23_10
-            PIXEL32_10
-            PIXEL33_80
+            HQ4X_PIXEL22_30
+            HQ4X_PIXEL23_10
+            HQ4X_PIXEL32_10
+            HQ4X_PIXEL33_80
           }
           else
           {
-            PIXEL22_0
-            PIXEL23_11
-            PIXEL32_12
-            PIXEL33_20
+            HQ4X_PIXEL22_0
+            HQ4X_PIXEL23_11
+            HQ4X_PIXEL32_12
+            HQ4X_PIXEL33_20
           }
-          PIXEL30_80
-          PIXEL31_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
           break;
         }
         case 92:
         {
-          PIXEL00_80
-          PIXEL01_61
-          PIXEL02_81
-          PIXEL03_81
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_31
-          PIXEL13_31
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_61
+          HQ4X_PIXEL02_81
+          HQ4X_PIXEL03_81
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL13_31
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_10
-            PIXEL21_30
-            PIXEL30_80
-            PIXEL31_10
+            HQ4X_PIXEL20_10
+            HQ4X_PIXEL21_30
+            HQ4X_PIXEL30_80
+            HQ4X_PIXEL31_10
           }
           else
           {
-            PIXEL20_12
-            PIXEL21_0
-            PIXEL30_20
-            PIXEL31_11
+            HQ4X_PIXEL20_12
+            HQ4X_PIXEL21_0
+            HQ4X_PIXEL30_20
+            HQ4X_PIXEL31_11
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_30
-            PIXEL23_10
-            PIXEL32_10
-            PIXEL33_80
+            HQ4X_PIXEL22_30
+            HQ4X_PIXEL23_10
+            HQ4X_PIXEL32_10
+            HQ4X_PIXEL33_80
           }
           else
           {
-            PIXEL22_0
-            PIXEL23_11
-            PIXEL32_12
-            PIXEL33_20
+            HQ4X_PIXEL22_0
+            HQ4X_PIXEL23_11
+            HQ4X_PIXEL32_12
+            HQ4X_PIXEL33_20
           }
           break;
         }
@@ -8750,199 +8762,199 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_80
-            PIXEL01_10
-            PIXEL10_10
-            PIXEL11_30
+            HQ4X_PIXEL00_80
+            HQ4X_PIXEL01_10
+            HQ4X_PIXEL10_10
+            HQ4X_PIXEL11_30
           }
           else
           {
-            PIXEL00_20
-            PIXEL01_12
-            PIXEL10_11
-            PIXEL11_0
+            HQ4X_PIXEL00_20
+            HQ4X_PIXEL01_12
+            HQ4X_PIXEL10_11
+            HQ4X_PIXEL11_0
           }
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL12_30
-          PIXEL13_61
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_61
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_10
-            PIXEL21_30
-            PIXEL30_80
-            PIXEL31_10
+            HQ4X_PIXEL20_10
+            HQ4X_PIXEL21_30
+            HQ4X_PIXEL30_80
+            HQ4X_PIXEL31_10
           }
           else
           {
-            PIXEL20_12
-            PIXEL21_0
-            PIXEL30_20
-            PIXEL31_11
+            HQ4X_PIXEL20_12
+            HQ4X_PIXEL21_0
+            HQ4X_PIXEL30_20
+            HQ4X_PIXEL31_11
           }
-          PIXEL22_31
-          PIXEL23_81
-          PIXEL32_31
-          PIXEL33_81
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
+          HQ4X_PIXEL32_31
+          HQ4X_PIXEL33_81
           break;
         }
         case 78:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_80
-            PIXEL01_10
-            PIXEL10_10
-            PIXEL11_30
+            HQ4X_PIXEL00_80
+            HQ4X_PIXEL01_10
+            HQ4X_PIXEL10_10
+            HQ4X_PIXEL11_30
           }
           else
           {
-            PIXEL00_20
-            PIXEL01_12
-            PIXEL10_11
-            PIXEL11_0
+            HQ4X_PIXEL00_20
+            HQ4X_PIXEL01_12
+            HQ4X_PIXEL10_11
+            HQ4X_PIXEL11_0
           }
-          PIXEL02_32
-          PIXEL03_82
-          PIXEL12_32
-          PIXEL13_82
+          HQ4X_PIXEL02_32
+          HQ4X_PIXEL03_82
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_10
-            PIXEL21_30
-            PIXEL30_80
-            PIXEL31_10
+            HQ4X_PIXEL20_10
+            HQ4X_PIXEL21_30
+            HQ4X_PIXEL30_80
+            HQ4X_PIXEL31_10
           }
           else
           {
-            PIXEL20_12
-            PIXEL21_0
-            PIXEL30_20
-            PIXEL31_11
+            HQ4X_PIXEL20_12
+            HQ4X_PIXEL21_0
+            HQ4X_PIXEL30_20
+            HQ4X_PIXEL31_11
           }
-          PIXEL22_30
-          PIXEL23_61
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_61
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 154:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_80
-            PIXEL01_10
-            PIXEL10_10
-            PIXEL11_30
+            HQ4X_PIXEL00_80
+            HQ4X_PIXEL01_10
+            HQ4X_PIXEL10_10
+            HQ4X_PIXEL11_30
           }
           else
           {
-            PIXEL00_20
-            PIXEL01_12
-            PIXEL10_11
-            PIXEL11_0
+            HQ4X_PIXEL00_20
+            HQ4X_PIXEL01_12
+            HQ4X_PIXEL10_11
+            HQ4X_PIXEL11_0
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_10
-            PIXEL03_80
-            PIXEL12_30
-            PIXEL13_10
+            HQ4X_PIXEL02_10
+            HQ4X_PIXEL03_80
+            HQ4X_PIXEL12_30
+            HQ4X_PIXEL13_10
           }
           else
           {
-            PIXEL02_11
-            PIXEL03_20
-            PIXEL12_0
-            PIXEL13_12
+            HQ4X_PIXEL02_11
+            HQ4X_PIXEL03_20
+            HQ4X_PIXEL12_0
+            HQ4X_PIXEL13_12
           }
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_32
-          PIXEL23_32
-          PIXEL30_80
-          PIXEL31_61
-          PIXEL32_82
-          PIXEL33_82
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL23_32
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_61
+          HQ4X_PIXEL32_82
+          HQ4X_PIXEL33_82
           break;
         }
         case 114:
         {
-          PIXEL00_80
-          PIXEL01_10
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_10
-            PIXEL03_80
-            PIXEL12_30
-            PIXEL13_10
+            HQ4X_PIXEL02_10
+            HQ4X_PIXEL03_80
+            HQ4X_PIXEL12_30
+            HQ4X_PIXEL13_10
           }
           else
           {
-            PIXEL02_11
-            PIXEL03_20
-            PIXEL12_0
-            PIXEL13_12
+            HQ4X_PIXEL02_11
+            HQ4X_PIXEL03_20
+            HQ4X_PIXEL12_0
+            HQ4X_PIXEL13_12
           }
-          PIXEL10_61
-          PIXEL11_30
-          PIXEL20_82
-          PIXEL21_32
+          HQ4X_PIXEL10_61
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_30
-            PIXEL23_10
-            PIXEL32_10
-            PIXEL33_80
+            HQ4X_PIXEL22_30
+            HQ4X_PIXEL23_10
+            HQ4X_PIXEL32_10
+            HQ4X_PIXEL33_80
           }
           else
           {
-            PIXEL22_0
-            PIXEL23_11
-            PIXEL32_12
-            PIXEL33_20
+            HQ4X_PIXEL22_0
+            HQ4X_PIXEL23_11
+            HQ4X_PIXEL32_12
+            HQ4X_PIXEL33_20
           }
-          PIXEL30_82
-          PIXEL31_32
+          HQ4X_PIXEL30_82
+          HQ4X_PIXEL31_32
           break;
         }
         case 89:
         {
-          PIXEL00_82
-          PIXEL01_82
-          PIXEL02_61
-          PIXEL03_80
-          PIXEL10_32
-          PIXEL11_32
-          PIXEL12_30
-          PIXEL13_10
+          HQ4X_PIXEL00_82
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_61
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_32
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_10
-            PIXEL21_30
-            PIXEL30_80
-            PIXEL31_10
+            HQ4X_PIXEL20_10
+            HQ4X_PIXEL21_30
+            HQ4X_PIXEL30_80
+            HQ4X_PIXEL31_10
           }
           else
           {
-            PIXEL20_12
-            PIXEL21_0
-            PIXEL30_20
-            PIXEL31_11
+            HQ4X_PIXEL20_12
+            HQ4X_PIXEL21_0
+            HQ4X_PIXEL30_20
+            HQ4X_PIXEL31_11
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_30
-            PIXEL23_10
-            PIXEL32_10
-            PIXEL33_80
+            HQ4X_PIXEL22_30
+            HQ4X_PIXEL23_10
+            HQ4X_PIXEL32_10
+            HQ4X_PIXEL33_80
           }
           else
           {
-            PIXEL22_0
-            PIXEL23_11
-            PIXEL32_12
-            PIXEL33_20
+            HQ4X_PIXEL22_0
+            HQ4X_PIXEL23_11
+            HQ4X_PIXEL32_12
+            HQ4X_PIXEL33_20
           }
           break;
         }
@@ -8950,59 +8962,59 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_80
-            PIXEL01_10
-            PIXEL10_10
-            PIXEL11_30
+            HQ4X_PIXEL00_80
+            HQ4X_PIXEL01_10
+            HQ4X_PIXEL10_10
+            HQ4X_PIXEL11_30
           }
           else
           {
-            PIXEL00_20
-            PIXEL01_12
-            PIXEL10_11
-            PIXEL11_0
+            HQ4X_PIXEL00_20
+            HQ4X_PIXEL01_12
+            HQ4X_PIXEL10_11
+            HQ4X_PIXEL11_0
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_10
-            PIXEL03_80
-            PIXEL12_30
-            PIXEL13_10
+            HQ4X_PIXEL02_10
+            HQ4X_PIXEL03_80
+            HQ4X_PIXEL12_30
+            HQ4X_PIXEL13_10
           }
           else
           {
-            PIXEL02_11
-            PIXEL03_20
-            PIXEL12_0
-            PIXEL13_12
+            HQ4X_PIXEL02_11
+            HQ4X_PIXEL03_20
+            HQ4X_PIXEL12_0
+            HQ4X_PIXEL13_12
           }
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_10
-            PIXEL21_30
-            PIXEL30_80
-            PIXEL31_10
+            HQ4X_PIXEL20_10
+            HQ4X_PIXEL21_30
+            HQ4X_PIXEL30_80
+            HQ4X_PIXEL31_10
           }
           else
           {
-            PIXEL20_12
-            PIXEL21_0
-            PIXEL30_20
-            PIXEL31_11
+            HQ4X_PIXEL20_12
+            HQ4X_PIXEL21_0
+            HQ4X_PIXEL30_20
+            HQ4X_PIXEL31_11
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_30
-            PIXEL23_10
-            PIXEL32_10
-            PIXEL33_80
+            HQ4X_PIXEL22_30
+            HQ4X_PIXEL23_10
+            HQ4X_PIXEL32_10
+            HQ4X_PIXEL33_80
           }
           else
           {
-            PIXEL22_0
-            PIXEL23_11
-            PIXEL32_12
-            PIXEL33_20
+            HQ4X_PIXEL22_0
+            HQ4X_PIXEL23_11
+            HQ4X_PIXEL32_12
+            HQ4X_PIXEL33_20
           }
           break;
         }
@@ -9011,164 +9023,164 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[2], w[6]))
           {
-            PIXEL00_81
-            PIXEL01_31
-            PIXEL02_0
-            PIXEL03_0
-            PIXEL12_0
-            PIXEL13_0
+            HQ4X_PIXEL00_81
+            HQ4X_PIXEL01_31
+            HQ4X_PIXEL02_0
+            HQ4X_PIXEL03_0
+            HQ4X_PIXEL12_0
+            HQ4X_PIXEL13_0
           }
           else
           {
-            PIXEL00_12
-            PIXEL01_14
-            PIXEL02_83
-            PIXEL03_50
-            PIXEL12_70
-            PIXEL13_21
+            HQ4X_PIXEL00_12
+            HQ4X_PIXEL01_14
+            HQ4X_PIXEL02_83
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL12_70
+            HQ4X_PIXEL13_21
           }
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL20_60
-          PIXEL21_70
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_20
-          PIXEL31_60
-          PIXEL32_61
-          PIXEL33_80
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL20_60
+          HQ4X_PIXEL21_70
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_20
+          HQ4X_PIXEL31_60
+          HQ4X_PIXEL32_61
+          HQ4X_PIXEL33_80
           break;
         }
         case 182:
         case 150:
         {
-          PIXEL00_80
-          PIXEL01_10
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_0
-            PIXEL03_0
-            PIXEL12_0
-            PIXEL13_0
-            PIXEL23_32
-            PIXEL33_82
+            HQ4X_PIXEL02_0
+            HQ4X_PIXEL03_0
+            HQ4X_PIXEL12_0
+            HQ4X_PIXEL13_0
+            HQ4X_PIXEL23_32
+            HQ4X_PIXEL33_82
           }
           else
           {
-            PIXEL02_21
-            PIXEL03_50
-            PIXEL12_70
-            PIXEL13_83
-            PIXEL23_13
-            PIXEL33_11
+            HQ4X_PIXEL02_21
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL12_70
+            HQ4X_PIXEL13_83
+            HQ4X_PIXEL23_13
+            HQ4X_PIXEL33_11
           }
-          PIXEL10_61
-          PIXEL11_30
-          PIXEL20_60
-          PIXEL21_70
-          PIXEL22_32
-          PIXEL30_20
-          PIXEL31_60
-          PIXEL32_82
+          HQ4X_PIXEL10_61
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL20_60
+          HQ4X_PIXEL21_70
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL30_20
+          HQ4X_PIXEL31_60
+          HQ4X_PIXEL32_82
           break;
         }
         case 213:
         case 212:
         {
-          PIXEL00_20
-          PIXEL01_60
-          PIXEL02_81
+          HQ4X_PIXEL00_20
+          HQ4X_PIXEL01_60
+          HQ4X_PIXEL02_81
           if (Diff(w[6], w[8]))
           {
-            PIXEL03_81
-            PIXEL13_31
-            PIXEL22_0
-            PIXEL23_0
-            PIXEL32_0
-            PIXEL33_0
+            HQ4X_PIXEL03_81
+            HQ4X_PIXEL13_31
+            HQ4X_PIXEL22_0
+            HQ4X_PIXEL23_0
+            HQ4X_PIXEL32_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL03_12
-            PIXEL13_14
-            PIXEL22_70
-            PIXEL23_83
-            PIXEL32_21
-            PIXEL33_50
+            HQ4X_PIXEL03_12
+            HQ4X_PIXEL13_14
+            HQ4X_PIXEL22_70
+            HQ4X_PIXEL23_83
+            HQ4X_PIXEL32_21
+            HQ4X_PIXEL33_50
           }
-          PIXEL10_60
-          PIXEL11_70
-          PIXEL12_31
-          PIXEL20_61
-          PIXEL21_30
-          PIXEL30_80
-          PIXEL31_10
+          HQ4X_PIXEL10_60
+          HQ4X_PIXEL11_70
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL20_61
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
           break;
         }
         case 241:
         case 240:
         {
-          PIXEL00_20
-          PIXEL01_60
-          PIXEL02_61
-          PIXEL03_80
-          PIXEL10_60
-          PIXEL11_70
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_82
-          PIXEL21_32
+          HQ4X_PIXEL00_20
+          HQ4X_PIXEL01_60
+          HQ4X_PIXEL02_61
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_60
+          HQ4X_PIXEL11_70
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_0
-            PIXEL23_0
-            PIXEL30_82
-            PIXEL31_32
-            PIXEL32_0
-            PIXEL33_0
+            HQ4X_PIXEL22_0
+            HQ4X_PIXEL23_0
+            HQ4X_PIXEL30_82
+            HQ4X_PIXEL31_32
+            HQ4X_PIXEL32_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL22_70
-            PIXEL23_21
-            PIXEL30_11
-            PIXEL31_13
-            PIXEL32_83
-            PIXEL33_50
+            HQ4X_PIXEL22_70
+            HQ4X_PIXEL23_21
+            HQ4X_PIXEL30_11
+            HQ4X_PIXEL31_13
+            HQ4X_PIXEL32_83
+            HQ4X_PIXEL33_50
           }
           break;
         }
         case 236:
         case 232:
         {
-          PIXEL00_80
-          PIXEL01_61
-          PIXEL02_60
-          PIXEL03_20
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_70
-          PIXEL13_60
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_61
+          HQ4X_PIXEL02_60
+          HQ4X_PIXEL03_20
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_70
+          HQ4X_PIXEL13_60
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_0
-            PIXEL21_0
-            PIXEL30_0
-            PIXEL31_0
-            PIXEL32_31
-            PIXEL33_81
+            HQ4X_PIXEL20_0
+            HQ4X_PIXEL21_0
+            HQ4X_PIXEL30_0
+            HQ4X_PIXEL31_0
+            HQ4X_PIXEL32_31
+            HQ4X_PIXEL33_81
           }
           else
           {
-            PIXEL20_21
-            PIXEL21_70
-            PIXEL30_50
-            PIXEL31_83
-            PIXEL32_14
-            PIXEL33_12
+            HQ4X_PIXEL20_21
+            HQ4X_PIXEL21_70
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_83
+            HQ4X_PIXEL32_14
+            HQ4X_PIXEL33_12
           }
-          PIXEL22_31
-          PIXEL23_81
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
           break;
         }
         case 109:
@@ -9176,32 +9188,32 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[8], w[4]))
           {
-            PIXEL00_82
-            PIXEL10_32
-            PIXEL20_0
-            PIXEL21_0
-            PIXEL30_0
-            PIXEL31_0
+            HQ4X_PIXEL00_82
+            HQ4X_PIXEL10_32
+            HQ4X_PIXEL20_0
+            HQ4X_PIXEL21_0
+            HQ4X_PIXEL30_0
+            HQ4X_PIXEL31_0
           }
           else
           {
-            PIXEL00_11
-            PIXEL10_13
-            PIXEL20_83
-            PIXEL21_70
-            PIXEL30_50
-            PIXEL31_21
+            HQ4X_PIXEL00_11
+            HQ4X_PIXEL10_13
+            HQ4X_PIXEL20_83
+            HQ4X_PIXEL21_70
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_21
           }
-          PIXEL01_82
-          PIXEL02_60
-          PIXEL03_20
-          PIXEL11_32
-          PIXEL12_70
-          PIXEL13_60
-          PIXEL22_30
-          PIXEL23_61
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_60
+          HQ4X_PIXEL03_20
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_70
+          HQ4X_PIXEL13_60
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_61
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 171:
@@ -9209,32 +9221,32 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_0
-            PIXEL10_0
-            PIXEL11_0
-            PIXEL20_31
-            PIXEL30_81
+            HQ4X_PIXEL00_0
+            HQ4X_PIXEL01_0
+            HQ4X_PIXEL10_0
+            HQ4X_PIXEL11_0
+            HQ4X_PIXEL20_31
+            HQ4X_PIXEL30_81
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_21
-            PIXEL10_83
-            PIXEL11_70
-            PIXEL20_14
-            PIXEL30_12
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_21
+            HQ4X_PIXEL10_83
+            HQ4X_PIXEL11_70
+            HQ4X_PIXEL20_14
+            HQ4X_PIXEL30_12
           }
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL12_30
-          PIXEL13_61
-          PIXEL21_31
-          PIXEL22_70
-          PIXEL23_60
-          PIXEL31_81
-          PIXEL32_60
-          PIXEL33_20
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_61
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_70
+          HQ4X_PIXEL23_60
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_60
+          HQ4X_PIXEL33_20
           break;
         }
         case 143:
@@ -9242,462 +9254,462 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_0
-            PIXEL02_32
-            PIXEL03_82
-            PIXEL10_0
-            PIXEL11_0
+            HQ4X_PIXEL00_0
+            HQ4X_PIXEL01_0
+            HQ4X_PIXEL02_32
+            HQ4X_PIXEL03_82
+            HQ4X_PIXEL10_0
+            HQ4X_PIXEL11_0
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_83
-            PIXEL02_13
-            PIXEL03_11
-            PIXEL10_21
-            PIXEL11_70
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_83
+            HQ4X_PIXEL02_13
+            HQ4X_PIXEL03_11
+            HQ4X_PIXEL10_21
+            HQ4X_PIXEL11_70
           }
-          PIXEL12_32
-          PIXEL13_82
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_70
-          PIXEL23_60
-          PIXEL30_80
-          PIXEL31_61
-          PIXEL32_60
-          PIXEL33_20
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_70
+          HQ4X_PIXEL23_60
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_61
+          HQ4X_PIXEL32_60
+          HQ4X_PIXEL33_20
           break;
         }
         case 124:
         {
-          PIXEL00_80
-          PIXEL01_61
-          PIXEL02_81
-          PIXEL03_81
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_31
-          PIXEL13_31
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_61
+          HQ4X_PIXEL02_81
+          HQ4X_PIXEL03_81
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL13_31
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_0
-            PIXEL30_0
-            PIXEL31_0
+            HQ4X_PIXEL20_0
+            HQ4X_PIXEL30_0
+            HQ4X_PIXEL31_0
           }
           else
           {
-            PIXEL20_50
-            PIXEL30_50
-            PIXEL31_50
+            HQ4X_PIXEL20_50
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_50
           }
-          PIXEL21_0
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 203:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_0
-            PIXEL10_0
+            HQ4X_PIXEL00_0
+            HQ4X_PIXEL01_0
+            HQ4X_PIXEL10_0
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_50
-            PIXEL10_50
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_50
+            HQ4X_PIXEL10_50
           }
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL11_0
-          PIXEL12_30
-          PIXEL13_61
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_31
-          PIXEL23_81
-          PIXEL30_80
-          PIXEL31_10
-          PIXEL32_31
-          PIXEL33_81
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_61
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
+          HQ4X_PIXEL32_31
+          HQ4X_PIXEL33_81
           break;
         }
         case 62:
         {
-          PIXEL00_80
-          PIXEL01_10
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_0
-            PIXEL03_0
-            PIXEL13_0
+            HQ4X_PIXEL02_0
+            HQ4X_PIXEL03_0
+            HQ4X_PIXEL13_0
           }
           else
           {
-            PIXEL02_50
-            PIXEL03_50
-            PIXEL13_50
+            HQ4X_PIXEL02_50
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL13_50
           }
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_0
-          PIXEL20_31
-          PIXEL21_31
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_81
-          PIXEL31_81
-          PIXEL32_61
-          PIXEL33_80
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_0
+          HQ4X_PIXEL20_31
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_81
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_61
+          HQ4X_PIXEL33_80
           break;
         }
         case 211:
         {
-          PIXEL00_81
-          PIXEL01_31
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_61
-          PIXEL21_30
-          PIXEL22_0
+          HQ4X_PIXEL00_81
+          HQ4X_PIXEL01_31
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_61
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL23_0
-            PIXEL32_0
-            PIXEL33_0
+            HQ4X_PIXEL23_0
+            HQ4X_PIXEL32_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL23_50
-            PIXEL32_50
-            PIXEL33_50
+            HQ4X_PIXEL23_50
+            HQ4X_PIXEL32_50
+            HQ4X_PIXEL33_50
           }
-          PIXEL30_80
-          PIXEL31_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
           break;
         }
         case 118:
         {
-          PIXEL00_80
-          PIXEL01_10
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_0
-            PIXEL03_0
-            PIXEL13_0
+            HQ4X_PIXEL02_0
+            HQ4X_PIXEL03_0
+            HQ4X_PIXEL13_0
           }
           else
           {
-            PIXEL02_50
-            PIXEL03_50
-            PIXEL13_50
+            HQ4X_PIXEL02_50
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL13_50
           }
-          PIXEL10_61
-          PIXEL11_30
-          PIXEL12_0
-          PIXEL20_82
-          PIXEL21_32
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_82
-          PIXEL31_32
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL10_61
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_0
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_82
+          HQ4X_PIXEL31_32
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 217:
         {
-          PIXEL00_82
-          PIXEL01_82
-          PIXEL02_61
-          PIXEL03_80
-          PIXEL10_32
-          PIXEL11_32
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_0
+          HQ4X_PIXEL00_82
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_61
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_32
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL23_0
-            PIXEL32_0
-            PIXEL33_0
+            HQ4X_PIXEL23_0
+            HQ4X_PIXEL32_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL23_50
-            PIXEL32_50
-            PIXEL33_50
+            HQ4X_PIXEL23_50
+            HQ4X_PIXEL32_50
+            HQ4X_PIXEL33_50
           }
-          PIXEL30_80
-          PIXEL31_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
           break;
         }
         case 110:
         {
-          PIXEL00_80
-          PIXEL01_10
-          PIXEL02_32
-          PIXEL03_82
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_32
-          PIXEL13_82
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
+          HQ4X_PIXEL02_32
+          HQ4X_PIXEL03_82
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_0
-            PIXEL30_0
-            PIXEL31_0
+            HQ4X_PIXEL20_0
+            HQ4X_PIXEL30_0
+            HQ4X_PIXEL31_0
           }
           else
           {
-            PIXEL20_50
-            PIXEL30_50
-            PIXEL31_50
+            HQ4X_PIXEL20_50
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_50
           }
-          PIXEL21_0
-          PIXEL22_30
-          PIXEL23_61
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_61
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 155:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_0
-            PIXEL10_0
+            HQ4X_PIXEL00_0
+            HQ4X_PIXEL01_0
+            HQ4X_PIXEL10_0
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_50
-            PIXEL10_50
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_50
+            HQ4X_PIXEL10_50
           }
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL11_0
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_32
-          PIXEL23_32
-          PIXEL30_80
-          PIXEL31_61
-          PIXEL32_82
-          PIXEL33_82
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL23_32
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_61
+          HQ4X_PIXEL32_82
+          HQ4X_PIXEL33_82
           break;
         }
         case 188:
         {
-          PIXEL00_80
-          PIXEL01_61
-          PIXEL02_81
-          PIXEL03_81
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_31
-          PIXEL13_31
-          PIXEL20_31
-          PIXEL21_31
-          PIXEL22_32
-          PIXEL23_32
-          PIXEL30_81
-          PIXEL31_81
-          PIXEL32_82
-          PIXEL33_82
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_61
+          HQ4X_PIXEL02_81
+          HQ4X_PIXEL03_81
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL13_31
+          HQ4X_PIXEL20_31
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL23_32
+          HQ4X_PIXEL30_81
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_82
+          HQ4X_PIXEL33_82
           break;
         }
         case 185:
         {
-          PIXEL00_82
-          PIXEL01_82
-          PIXEL02_61
-          PIXEL03_80
-          PIXEL10_32
-          PIXEL11_32
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_31
-          PIXEL21_31
-          PIXEL22_32
-          PIXEL23_32
-          PIXEL30_81
-          PIXEL31_81
-          PIXEL32_82
-          PIXEL33_82
+          HQ4X_PIXEL00_82
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_61
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_32
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_31
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL23_32
+          HQ4X_PIXEL30_81
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_82
+          HQ4X_PIXEL33_82
           break;
         }
         case 61:
         {
-          PIXEL00_82
-          PIXEL01_82
-          PIXEL02_81
-          PIXEL03_81
-          PIXEL10_32
-          PIXEL11_32
-          PIXEL12_31
-          PIXEL13_31
-          PIXEL20_31
-          PIXEL21_31
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_81
-          PIXEL31_81
-          PIXEL32_61
-          PIXEL33_80
+          HQ4X_PIXEL00_82
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_81
+          HQ4X_PIXEL03_81
+          HQ4X_PIXEL10_32
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL13_31
+          HQ4X_PIXEL20_31
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_81
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_61
+          HQ4X_PIXEL33_80
           break;
         }
         case 157:
         {
-          PIXEL00_82
-          PIXEL01_82
-          PIXEL02_81
-          PIXEL03_81
-          PIXEL10_32
-          PIXEL11_32
-          PIXEL12_31
-          PIXEL13_31
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_32
-          PIXEL23_32
-          PIXEL30_80
-          PIXEL31_61
-          PIXEL32_82
-          PIXEL33_82
+          HQ4X_PIXEL00_82
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_81
+          HQ4X_PIXEL03_81
+          HQ4X_PIXEL10_32
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL13_31
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL23_32
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_61
+          HQ4X_PIXEL32_82
+          HQ4X_PIXEL33_82
           break;
         }
         case 103:
         {
-          PIXEL00_81
-          PIXEL01_31
-          PIXEL02_32
-          PIXEL03_82
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL12_32
-          PIXEL13_82
-          PIXEL20_82
-          PIXEL21_32
-          PIXEL22_30
-          PIXEL23_61
-          PIXEL30_82
-          PIXEL31_32
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL00_81
+          HQ4X_PIXEL01_31
+          HQ4X_PIXEL02_32
+          HQ4X_PIXEL03_82
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_61
+          HQ4X_PIXEL30_82
+          HQ4X_PIXEL31_32
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 227:
         {
-          PIXEL00_81
-          PIXEL01_31
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL12_30
-          PIXEL13_61
-          PIXEL20_82
-          PIXEL21_32
-          PIXEL22_31
-          PIXEL23_81
-          PIXEL30_82
-          PIXEL31_32
-          PIXEL32_31
-          PIXEL33_81
+          HQ4X_PIXEL00_81
+          HQ4X_PIXEL01_31
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_61
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
+          HQ4X_PIXEL30_82
+          HQ4X_PIXEL31_32
+          HQ4X_PIXEL32_31
+          HQ4X_PIXEL33_81
           break;
         }
         case 230:
         {
-          PIXEL00_80
-          PIXEL01_10
-          PIXEL02_32
-          PIXEL03_82
-          PIXEL10_61
-          PIXEL11_30
-          PIXEL12_32
-          PIXEL13_82
-          PIXEL20_82
-          PIXEL21_32
-          PIXEL22_31
-          PIXEL23_81
-          PIXEL30_82
-          PIXEL31_32
-          PIXEL32_31
-          PIXEL33_81
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
+          HQ4X_PIXEL02_32
+          HQ4X_PIXEL03_82
+          HQ4X_PIXEL10_61
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
+          HQ4X_PIXEL30_82
+          HQ4X_PIXEL31_32
+          HQ4X_PIXEL32_31
+          HQ4X_PIXEL33_81
           break;
         }
         case 199:
         {
-          PIXEL00_81
-          PIXEL01_31
-          PIXEL02_32
-          PIXEL03_82
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL12_32
-          PIXEL13_82
-          PIXEL20_61
-          PIXEL21_30
-          PIXEL22_31
-          PIXEL23_81
-          PIXEL30_80
-          PIXEL31_10
-          PIXEL32_31
-          PIXEL33_81
+          HQ4X_PIXEL00_81
+          HQ4X_PIXEL01_31
+          HQ4X_PIXEL02_32
+          HQ4X_PIXEL03_82
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
+          HQ4X_PIXEL20_61
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
+          HQ4X_PIXEL32_31
+          HQ4X_PIXEL33_81
           break;
         }
         case 220:
         {
-          PIXEL00_80
-          PIXEL01_61
-          PIXEL02_81
-          PIXEL03_81
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_31
-          PIXEL13_31
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_61
+          HQ4X_PIXEL02_81
+          HQ4X_PIXEL03_81
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL13_31
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_10
-            PIXEL21_30
-            PIXEL30_80
-            PIXEL31_10
+            HQ4X_PIXEL20_10
+            HQ4X_PIXEL21_30
+            HQ4X_PIXEL30_80
+            HQ4X_PIXEL31_10
           }
           else
           {
-            PIXEL20_12
-            PIXEL21_0
-            PIXEL30_20
-            PIXEL31_11
+            HQ4X_PIXEL20_12
+            HQ4X_PIXEL21_0
+            HQ4X_PIXEL30_20
+            HQ4X_PIXEL31_11
           }
-          PIXEL22_0
+          HQ4X_PIXEL22_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL23_0
-            PIXEL32_0
-            PIXEL33_0
+            HQ4X_PIXEL23_0
+            HQ4X_PIXEL32_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL23_50
-            PIXEL32_50
-            PIXEL33_50
+            HQ4X_PIXEL23_50
+            HQ4X_PIXEL32_50
+            HQ4X_PIXEL33_50
           }
           break;
         }
@@ -9705,331 +9717,331 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_80
-            PIXEL01_10
-            PIXEL10_10
-            PIXEL11_30
+            HQ4X_PIXEL00_80
+            HQ4X_PIXEL01_10
+            HQ4X_PIXEL10_10
+            HQ4X_PIXEL11_30
           }
           else
           {
-            PIXEL00_20
-            PIXEL01_12
-            PIXEL10_11
-            PIXEL11_0
+            HQ4X_PIXEL00_20
+            HQ4X_PIXEL01_12
+            HQ4X_PIXEL10_11
+            HQ4X_PIXEL11_0
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_0
-            PIXEL03_0
-            PIXEL13_0
+            HQ4X_PIXEL02_0
+            HQ4X_PIXEL03_0
+            HQ4X_PIXEL13_0
           }
           else
           {
-            PIXEL02_50
-            PIXEL03_50
-            PIXEL13_50
+            HQ4X_PIXEL02_50
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL13_50
           }
-          PIXEL12_0
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_32
-          PIXEL23_32
-          PIXEL30_80
-          PIXEL31_61
-          PIXEL32_82
-          PIXEL33_82
+          HQ4X_PIXEL12_0
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL23_32
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_61
+          HQ4X_PIXEL32_82
+          HQ4X_PIXEL33_82
           break;
         }
         case 234:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_80
-            PIXEL01_10
-            PIXEL10_10
-            PIXEL11_30
+            HQ4X_PIXEL00_80
+            HQ4X_PIXEL01_10
+            HQ4X_PIXEL10_10
+            HQ4X_PIXEL11_30
           }
           else
           {
-            PIXEL00_20
-            PIXEL01_12
-            PIXEL10_11
-            PIXEL11_0
+            HQ4X_PIXEL00_20
+            HQ4X_PIXEL01_12
+            HQ4X_PIXEL10_11
+            HQ4X_PIXEL11_0
           }
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL12_30
-          PIXEL13_61
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_61
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_0
-            PIXEL30_0
-            PIXEL31_0
+            HQ4X_PIXEL20_0
+            HQ4X_PIXEL30_0
+            HQ4X_PIXEL31_0
           }
           else
           {
-            PIXEL20_50
-            PIXEL30_50
-            PIXEL31_50
+            HQ4X_PIXEL20_50
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_50
           }
-          PIXEL21_0
-          PIXEL22_31
-          PIXEL23_81
-          PIXEL32_31
-          PIXEL33_81
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
+          HQ4X_PIXEL32_31
+          HQ4X_PIXEL33_81
           break;
         }
         case 242:
         {
-          PIXEL00_80
-          PIXEL01_10
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_10
-            PIXEL03_80
-            PIXEL12_30
-            PIXEL13_10
+            HQ4X_PIXEL02_10
+            HQ4X_PIXEL03_80
+            HQ4X_PIXEL12_30
+            HQ4X_PIXEL13_10
           }
           else
           {
-            PIXEL02_11
-            PIXEL03_20
-            PIXEL12_0
-            PIXEL13_12
+            HQ4X_PIXEL02_11
+            HQ4X_PIXEL03_20
+            HQ4X_PIXEL12_0
+            HQ4X_PIXEL13_12
           }
-          PIXEL10_61
-          PIXEL11_30
-          PIXEL20_82
-          PIXEL21_32
-          PIXEL22_0
+          HQ4X_PIXEL10_61
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
+          HQ4X_PIXEL22_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL23_0
-            PIXEL32_0
-            PIXEL33_0
+            HQ4X_PIXEL23_0
+            HQ4X_PIXEL32_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL23_50
-            PIXEL32_50
-            PIXEL33_50
+            HQ4X_PIXEL23_50
+            HQ4X_PIXEL32_50
+            HQ4X_PIXEL33_50
           }
-          PIXEL30_82
-          PIXEL31_32
+          HQ4X_PIXEL30_82
+          HQ4X_PIXEL31_32
           break;
         }
         case 59:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_0
-            PIXEL10_0
+            HQ4X_PIXEL00_0
+            HQ4X_PIXEL01_0
+            HQ4X_PIXEL10_0
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_50
-            PIXEL10_50
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_50
+            HQ4X_PIXEL10_50
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_10
-            PIXEL03_80
-            PIXEL12_30
-            PIXEL13_10
+            HQ4X_PIXEL02_10
+            HQ4X_PIXEL03_80
+            HQ4X_PIXEL12_30
+            HQ4X_PIXEL13_10
           }
           else
           {
-            PIXEL02_11
-            PIXEL03_20
-            PIXEL12_0
-            PIXEL13_12
+            HQ4X_PIXEL02_11
+            HQ4X_PIXEL03_20
+            HQ4X_PIXEL12_0
+            HQ4X_PIXEL13_12
           }
-          PIXEL11_0
-          PIXEL20_31
-          PIXEL21_31
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_81
-          PIXEL31_81
-          PIXEL32_61
-          PIXEL33_80
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL20_31
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_81
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_61
+          HQ4X_PIXEL33_80
           break;
         }
         case 121:
         {
-          PIXEL00_82
-          PIXEL01_82
-          PIXEL02_61
-          PIXEL03_80
-          PIXEL10_32
-          PIXEL11_32
-          PIXEL12_30
-          PIXEL13_10
+          HQ4X_PIXEL00_82
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_61
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_32
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_0
-            PIXEL30_0
-            PIXEL31_0
+            HQ4X_PIXEL20_0
+            HQ4X_PIXEL30_0
+            HQ4X_PIXEL31_0
           }
           else
           {
-            PIXEL20_50
-            PIXEL30_50
-            PIXEL31_50
+            HQ4X_PIXEL20_50
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_50
           }
-          PIXEL21_0
+          HQ4X_PIXEL21_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_30
-            PIXEL23_10
-            PIXEL32_10
-            PIXEL33_80
+            HQ4X_PIXEL22_30
+            HQ4X_PIXEL23_10
+            HQ4X_PIXEL32_10
+            HQ4X_PIXEL33_80
           }
           else
           {
-            PIXEL22_0
-            PIXEL23_11
-            PIXEL32_12
-            PIXEL33_20
+            HQ4X_PIXEL22_0
+            HQ4X_PIXEL23_11
+            HQ4X_PIXEL32_12
+            HQ4X_PIXEL33_20
           }
           break;
         }
         case 87:
         {
-          PIXEL00_81
-          PIXEL01_31
+          HQ4X_PIXEL00_81
+          HQ4X_PIXEL01_31
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_0
-            PIXEL03_0
-            PIXEL13_0
+            HQ4X_PIXEL02_0
+            HQ4X_PIXEL03_0
+            HQ4X_PIXEL13_0
           }
           else
           {
-            PIXEL02_50
-            PIXEL03_50
-            PIXEL13_50
+            HQ4X_PIXEL02_50
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL13_50
           }
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL12_0
-          PIXEL20_61
-          PIXEL21_30
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL12_0
+          HQ4X_PIXEL20_61
+          HQ4X_PIXEL21_30
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_30
-            PIXEL23_10
-            PIXEL32_10
-            PIXEL33_80
+            HQ4X_PIXEL22_30
+            HQ4X_PIXEL23_10
+            HQ4X_PIXEL32_10
+            HQ4X_PIXEL33_80
           }
           else
           {
-            PIXEL22_0
-            PIXEL23_11
-            PIXEL32_12
-            PIXEL33_20
+            HQ4X_PIXEL22_0
+            HQ4X_PIXEL23_11
+            HQ4X_PIXEL32_12
+            HQ4X_PIXEL33_20
           }
-          PIXEL30_80
-          PIXEL31_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
           break;
         }
         case 79:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_0
-            PIXEL10_0
+            HQ4X_PIXEL00_0
+            HQ4X_PIXEL01_0
+            HQ4X_PIXEL10_0
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_50
-            PIXEL10_50
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_50
+            HQ4X_PIXEL10_50
           }
-          PIXEL02_32
-          PIXEL03_82
-          PIXEL11_0
-          PIXEL12_32
-          PIXEL13_82
+          HQ4X_PIXEL02_32
+          HQ4X_PIXEL03_82
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_10
-            PIXEL21_30
-            PIXEL30_80
-            PIXEL31_10
+            HQ4X_PIXEL20_10
+            HQ4X_PIXEL21_30
+            HQ4X_PIXEL30_80
+            HQ4X_PIXEL31_10
           }
           else
           {
-            PIXEL20_12
-            PIXEL21_0
-            PIXEL30_20
-            PIXEL31_11
+            HQ4X_PIXEL20_12
+            HQ4X_PIXEL21_0
+            HQ4X_PIXEL30_20
+            HQ4X_PIXEL31_11
           }
-          PIXEL22_30
-          PIXEL23_61
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_61
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 122:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_80
-            PIXEL01_10
-            PIXEL10_10
-            PIXEL11_30
+            HQ4X_PIXEL00_80
+            HQ4X_PIXEL01_10
+            HQ4X_PIXEL10_10
+            HQ4X_PIXEL11_30
           }
           else
           {
-            PIXEL00_20
-            PIXEL01_12
-            PIXEL10_11
-            PIXEL11_0
+            HQ4X_PIXEL00_20
+            HQ4X_PIXEL01_12
+            HQ4X_PIXEL10_11
+            HQ4X_PIXEL11_0
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_10
-            PIXEL03_80
-            PIXEL12_30
-            PIXEL13_10
+            HQ4X_PIXEL02_10
+            HQ4X_PIXEL03_80
+            HQ4X_PIXEL12_30
+            HQ4X_PIXEL13_10
           }
           else
           {
-            PIXEL02_11
-            PIXEL03_20
-            PIXEL12_0
-            PIXEL13_12
+            HQ4X_PIXEL02_11
+            HQ4X_PIXEL03_20
+            HQ4X_PIXEL12_0
+            HQ4X_PIXEL13_12
           }
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_0
-            PIXEL30_0
-            PIXEL31_0
+            HQ4X_PIXEL20_0
+            HQ4X_PIXEL30_0
+            HQ4X_PIXEL31_0
           }
           else
           {
-            PIXEL20_50
-            PIXEL30_50
-            PIXEL31_50
+            HQ4X_PIXEL20_50
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_50
           }
-          PIXEL21_0
+          HQ4X_PIXEL21_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_30
-            PIXEL23_10
-            PIXEL32_10
-            PIXEL33_80
+            HQ4X_PIXEL22_30
+            HQ4X_PIXEL23_10
+            HQ4X_PIXEL32_10
+            HQ4X_PIXEL33_80
           }
           else
           {
-            PIXEL22_0
-            PIXEL23_11
-            PIXEL32_12
-            PIXEL33_20
+            HQ4X_PIXEL22_0
+            HQ4X_PIXEL23_11
+            HQ4X_PIXEL32_12
+            HQ4X_PIXEL33_20
           }
           break;
         }
@@ -10037,58 +10049,58 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_80
-            PIXEL01_10
-            PIXEL10_10
-            PIXEL11_30
+            HQ4X_PIXEL00_80
+            HQ4X_PIXEL01_10
+            HQ4X_PIXEL10_10
+            HQ4X_PIXEL11_30
           }
           else
           {
-            PIXEL00_20
-            PIXEL01_12
-            PIXEL10_11
-            PIXEL11_0
+            HQ4X_PIXEL00_20
+            HQ4X_PIXEL01_12
+            HQ4X_PIXEL10_11
+            HQ4X_PIXEL11_0
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_0
-            PIXEL03_0
-            PIXEL13_0
+            HQ4X_PIXEL02_0
+            HQ4X_PIXEL03_0
+            HQ4X_PIXEL13_0
           }
           else
           {
-            PIXEL02_50
-            PIXEL03_50
-            PIXEL13_50
+            HQ4X_PIXEL02_50
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL13_50
           }
-          PIXEL12_0
+          HQ4X_PIXEL12_0
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_10
-            PIXEL21_30
-            PIXEL30_80
-            PIXEL31_10
+            HQ4X_PIXEL20_10
+            HQ4X_PIXEL21_30
+            HQ4X_PIXEL30_80
+            HQ4X_PIXEL31_10
           }
           else
           {
-            PIXEL20_12
-            PIXEL21_0
-            PIXEL30_20
-            PIXEL31_11
+            HQ4X_PIXEL20_12
+            HQ4X_PIXEL21_0
+            HQ4X_PIXEL30_20
+            HQ4X_PIXEL31_11
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_30
-            PIXEL23_10
-            PIXEL32_10
-            PIXEL33_80
+            HQ4X_PIXEL22_30
+            HQ4X_PIXEL23_10
+            HQ4X_PIXEL32_10
+            HQ4X_PIXEL33_80
           }
           else
           {
-            PIXEL22_0
-            PIXEL23_11
-            PIXEL32_12
-            PIXEL33_20
+            HQ4X_PIXEL22_0
+            HQ4X_PIXEL23_11
+            HQ4X_PIXEL32_12
+            HQ4X_PIXEL33_20
           }
           break;
         }
@@ -10096,58 +10108,58 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_80
-            PIXEL01_10
-            PIXEL10_10
-            PIXEL11_30
+            HQ4X_PIXEL00_80
+            HQ4X_PIXEL01_10
+            HQ4X_PIXEL10_10
+            HQ4X_PIXEL11_30
           }
           else
           {
-            PIXEL00_20
-            PIXEL01_12
-            PIXEL10_11
-            PIXEL11_0
+            HQ4X_PIXEL00_20
+            HQ4X_PIXEL01_12
+            HQ4X_PIXEL10_11
+            HQ4X_PIXEL11_0
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_10
-            PIXEL03_80
-            PIXEL12_30
-            PIXEL13_10
+            HQ4X_PIXEL02_10
+            HQ4X_PIXEL03_80
+            HQ4X_PIXEL12_30
+            HQ4X_PIXEL13_10
           }
           else
           {
-            PIXEL02_11
-            PIXEL03_20
-            PIXEL12_0
-            PIXEL13_12
+            HQ4X_PIXEL02_11
+            HQ4X_PIXEL03_20
+            HQ4X_PIXEL12_0
+            HQ4X_PIXEL13_12
           }
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_10
-            PIXEL21_30
-            PIXEL30_80
-            PIXEL31_10
+            HQ4X_PIXEL20_10
+            HQ4X_PIXEL21_30
+            HQ4X_PIXEL30_80
+            HQ4X_PIXEL31_10
           }
           else
           {
-            PIXEL20_12
-            PIXEL21_0
-            PIXEL30_20
-            PIXEL31_11
+            HQ4X_PIXEL20_12
+            HQ4X_PIXEL21_0
+            HQ4X_PIXEL30_20
+            HQ4X_PIXEL31_11
           }
-          PIXEL22_0
+          HQ4X_PIXEL22_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL23_0
-            PIXEL32_0
-            PIXEL33_0
+            HQ4X_PIXEL23_0
+            HQ4X_PIXEL32_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL23_50
-            PIXEL32_50
-            PIXEL33_50
+            HQ4X_PIXEL23_50
+            HQ4X_PIXEL32_50
+            HQ4X_PIXEL33_50
           }
           break;
         }
@@ -10155,258 +10167,258 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_0
-            PIXEL10_0
+            HQ4X_PIXEL00_0
+            HQ4X_PIXEL01_0
+            HQ4X_PIXEL10_0
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_50
-            PIXEL10_50
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_50
+            HQ4X_PIXEL10_50
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_10
-            PIXEL03_80
-            PIXEL12_30
-            PIXEL13_10
+            HQ4X_PIXEL02_10
+            HQ4X_PIXEL03_80
+            HQ4X_PIXEL12_30
+            HQ4X_PIXEL13_10
           }
           else
           {
-            PIXEL02_11
-            PIXEL03_20
-            PIXEL12_0
-            PIXEL13_12
+            HQ4X_PIXEL02_11
+            HQ4X_PIXEL03_20
+            HQ4X_PIXEL12_0
+            HQ4X_PIXEL13_12
           }
-          PIXEL11_0
+          HQ4X_PIXEL11_0
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_10
-            PIXEL21_30
-            PIXEL30_80
-            PIXEL31_10
+            HQ4X_PIXEL20_10
+            HQ4X_PIXEL21_30
+            HQ4X_PIXEL30_80
+            HQ4X_PIXEL31_10
           }
           else
           {
-            PIXEL20_12
-            PIXEL21_0
-            PIXEL30_20
-            PIXEL31_11
+            HQ4X_PIXEL20_12
+            HQ4X_PIXEL21_0
+            HQ4X_PIXEL30_20
+            HQ4X_PIXEL31_11
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_30
-            PIXEL23_10
-            PIXEL32_10
-            PIXEL33_80
+            HQ4X_PIXEL22_30
+            HQ4X_PIXEL23_10
+            HQ4X_PIXEL32_10
+            HQ4X_PIXEL33_80
           }
           else
           {
-            PIXEL22_0
-            PIXEL23_11
-            PIXEL32_12
-            PIXEL33_20
+            HQ4X_PIXEL22_0
+            HQ4X_PIXEL23_11
+            HQ4X_PIXEL32_12
+            HQ4X_PIXEL33_20
           }
           break;
         }
         case 229:
         {
-          PIXEL00_20
-          PIXEL01_60
-          PIXEL02_60
-          PIXEL03_20
-          PIXEL10_60
-          PIXEL11_70
-          PIXEL12_70
-          PIXEL13_60
-          PIXEL20_82
-          PIXEL21_32
-          PIXEL22_31
-          PIXEL23_81
-          PIXEL30_82
-          PIXEL31_32
-          PIXEL32_31
-          PIXEL33_81
+          HQ4X_PIXEL00_20
+          HQ4X_PIXEL01_60
+          HQ4X_PIXEL02_60
+          HQ4X_PIXEL03_20
+          HQ4X_PIXEL10_60
+          HQ4X_PIXEL11_70
+          HQ4X_PIXEL12_70
+          HQ4X_PIXEL13_60
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
+          HQ4X_PIXEL30_82
+          HQ4X_PIXEL31_32
+          HQ4X_PIXEL32_31
+          HQ4X_PIXEL33_81
           break;
         }
         case 167:
         {
-          PIXEL00_81
-          PIXEL01_31
-          PIXEL02_32
-          PIXEL03_82
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL12_32
-          PIXEL13_82
-          PIXEL20_60
-          PIXEL21_70
-          PIXEL22_70
-          PIXEL23_60
-          PIXEL30_20
-          PIXEL31_60
-          PIXEL32_60
-          PIXEL33_20
+          HQ4X_PIXEL00_81
+          HQ4X_PIXEL01_31
+          HQ4X_PIXEL02_32
+          HQ4X_PIXEL03_82
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
+          HQ4X_PIXEL20_60
+          HQ4X_PIXEL21_70
+          HQ4X_PIXEL22_70
+          HQ4X_PIXEL23_60
+          HQ4X_PIXEL30_20
+          HQ4X_PIXEL31_60
+          HQ4X_PIXEL32_60
+          HQ4X_PIXEL33_20
           break;
         }
         case 173:
         {
-          PIXEL00_82
-          PIXEL01_82
-          PIXEL02_60
-          PIXEL03_20
-          PIXEL10_32
-          PIXEL11_32
-          PIXEL12_70
-          PIXEL13_60
-          PIXEL20_31
-          PIXEL21_31
-          PIXEL22_70
-          PIXEL23_60
-          PIXEL30_81
-          PIXEL31_81
-          PIXEL32_60
-          PIXEL33_20
+          HQ4X_PIXEL00_82
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_60
+          HQ4X_PIXEL03_20
+          HQ4X_PIXEL10_32
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_70
+          HQ4X_PIXEL13_60
+          HQ4X_PIXEL20_31
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_70
+          HQ4X_PIXEL23_60
+          HQ4X_PIXEL30_81
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_60
+          HQ4X_PIXEL33_20
           break;
         }
         case 181:
         {
-          PIXEL00_20
-          PIXEL01_60
-          PIXEL02_81
-          PIXEL03_81
-          PIXEL10_60
-          PIXEL11_70
-          PIXEL12_31
-          PIXEL13_31
-          PIXEL20_60
-          PIXEL21_70
-          PIXEL22_32
-          PIXEL23_32
-          PIXEL30_20
-          PIXEL31_60
-          PIXEL32_82
-          PIXEL33_82
+          HQ4X_PIXEL00_20
+          HQ4X_PIXEL01_60
+          HQ4X_PIXEL02_81
+          HQ4X_PIXEL03_81
+          HQ4X_PIXEL10_60
+          HQ4X_PIXEL11_70
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL13_31
+          HQ4X_PIXEL20_60
+          HQ4X_PIXEL21_70
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL23_32
+          HQ4X_PIXEL30_20
+          HQ4X_PIXEL31_60
+          HQ4X_PIXEL32_82
+          HQ4X_PIXEL33_82
           break;
         }
         case 186:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_80
-            PIXEL01_10
-            PIXEL10_10
-            PIXEL11_30
+            HQ4X_PIXEL00_80
+            HQ4X_PIXEL01_10
+            HQ4X_PIXEL10_10
+            HQ4X_PIXEL11_30
           }
           else
           {
-            PIXEL00_20
-            PIXEL01_12
-            PIXEL10_11
-            PIXEL11_0
+            HQ4X_PIXEL00_20
+            HQ4X_PIXEL01_12
+            HQ4X_PIXEL10_11
+            HQ4X_PIXEL11_0
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_10
-            PIXEL03_80
-            PIXEL12_30
-            PIXEL13_10
+            HQ4X_PIXEL02_10
+            HQ4X_PIXEL03_80
+            HQ4X_PIXEL12_30
+            HQ4X_PIXEL13_10
           }
           else
           {
-            PIXEL02_11
-            PIXEL03_20
-            PIXEL12_0
-            PIXEL13_12
+            HQ4X_PIXEL02_11
+            HQ4X_PIXEL03_20
+            HQ4X_PIXEL12_0
+            HQ4X_PIXEL13_12
           }
-          PIXEL20_31
-          PIXEL21_31
-          PIXEL22_32
-          PIXEL23_32
-          PIXEL30_81
-          PIXEL31_81
-          PIXEL32_82
-          PIXEL33_82
+          HQ4X_PIXEL20_31
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL23_32
+          HQ4X_PIXEL30_81
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_82
+          HQ4X_PIXEL33_82
           break;
         }
         case 115:
         {
-          PIXEL00_81
-          PIXEL01_31
+          HQ4X_PIXEL00_81
+          HQ4X_PIXEL01_31
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_10
-            PIXEL03_80
-            PIXEL12_30
-            PIXEL13_10
+            HQ4X_PIXEL02_10
+            HQ4X_PIXEL03_80
+            HQ4X_PIXEL12_30
+            HQ4X_PIXEL13_10
           }
           else
           {
-            PIXEL02_11
-            PIXEL03_20
-            PIXEL12_0
-            PIXEL13_12
+            HQ4X_PIXEL02_11
+            HQ4X_PIXEL03_20
+            HQ4X_PIXEL12_0
+            HQ4X_PIXEL13_12
           }
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL20_82
-          PIXEL21_32
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_30
-            PIXEL23_10
-            PIXEL32_10
-            PIXEL33_80
+            HQ4X_PIXEL22_30
+            HQ4X_PIXEL23_10
+            HQ4X_PIXEL32_10
+            HQ4X_PIXEL33_80
           }
           else
           {
-            PIXEL22_0
-            PIXEL23_11
-            PIXEL32_12
-            PIXEL33_20
+            HQ4X_PIXEL22_0
+            HQ4X_PIXEL23_11
+            HQ4X_PIXEL32_12
+            HQ4X_PIXEL33_20
           }
-          PIXEL30_82
-          PIXEL31_32
+          HQ4X_PIXEL30_82
+          HQ4X_PIXEL31_32
           break;
         }
         case 93:
         {
-          PIXEL00_82
-          PIXEL01_82
-          PIXEL02_81
-          PIXEL03_81
-          PIXEL10_32
-          PIXEL11_32
-          PIXEL12_31
-          PIXEL13_31
+          HQ4X_PIXEL00_82
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_81
+          HQ4X_PIXEL03_81
+          HQ4X_PIXEL10_32
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL13_31
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_10
-            PIXEL21_30
-            PIXEL30_80
-            PIXEL31_10
+            HQ4X_PIXEL20_10
+            HQ4X_PIXEL21_30
+            HQ4X_PIXEL30_80
+            HQ4X_PIXEL31_10
           }
           else
           {
-            PIXEL20_12
-            PIXEL21_0
-            PIXEL30_20
-            PIXEL31_11
+            HQ4X_PIXEL20_12
+            HQ4X_PIXEL21_0
+            HQ4X_PIXEL30_20
+            HQ4X_PIXEL31_11
           }
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_30
-            PIXEL23_10
-            PIXEL32_10
-            PIXEL33_80
+            HQ4X_PIXEL22_30
+            HQ4X_PIXEL23_10
+            HQ4X_PIXEL32_10
+            HQ4X_PIXEL33_80
           }
           else
           {
-            PIXEL22_0
-            PIXEL23_11
-            PIXEL32_12
-            PIXEL33_20
+            HQ4X_PIXEL22_0
+            HQ4X_PIXEL23_11
+            HQ4X_PIXEL32_12
+            HQ4X_PIXEL33_20
           }
           break;
         }
@@ -10414,71 +10426,71 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_80
-            PIXEL01_10
-            PIXEL10_10
-            PIXEL11_30
+            HQ4X_PIXEL00_80
+            HQ4X_PIXEL01_10
+            HQ4X_PIXEL10_10
+            HQ4X_PIXEL11_30
           }
           else
           {
-            PIXEL00_20
-            PIXEL01_12
-            PIXEL10_11
-            PIXEL11_0
+            HQ4X_PIXEL00_20
+            HQ4X_PIXEL01_12
+            HQ4X_PIXEL10_11
+            HQ4X_PIXEL11_0
           }
-          PIXEL02_32
-          PIXEL03_82
-          PIXEL12_32
-          PIXEL13_82
+          HQ4X_PIXEL02_32
+          HQ4X_PIXEL03_82
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_10
-            PIXEL21_30
-            PIXEL30_80
-            PIXEL31_10
+            HQ4X_PIXEL20_10
+            HQ4X_PIXEL21_30
+            HQ4X_PIXEL30_80
+            HQ4X_PIXEL31_10
           }
           else
           {
-            PIXEL20_12
-            PIXEL21_0
-            PIXEL30_20
-            PIXEL31_11
+            HQ4X_PIXEL20_12
+            HQ4X_PIXEL21_0
+            HQ4X_PIXEL30_20
+            HQ4X_PIXEL31_11
           }
-          PIXEL22_31
-          PIXEL23_81
-          PIXEL32_31
-          PIXEL33_81
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
+          HQ4X_PIXEL32_31
+          HQ4X_PIXEL33_81
           break;
         }
         case 205:
         case 201:
         {
-          PIXEL00_82
-          PIXEL01_82
-          PIXEL02_60
-          PIXEL03_20
-          PIXEL10_32
-          PIXEL11_32
-          PIXEL12_70
-          PIXEL13_60
+          HQ4X_PIXEL00_82
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_60
+          HQ4X_PIXEL03_20
+          HQ4X_PIXEL10_32
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_70
+          HQ4X_PIXEL13_60
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_10
-            PIXEL21_30
-            PIXEL30_80
-            PIXEL31_10
+            HQ4X_PIXEL20_10
+            HQ4X_PIXEL21_30
+            HQ4X_PIXEL30_80
+            HQ4X_PIXEL31_10
           }
           else
           {
-            PIXEL20_12
-            PIXEL21_0
-            PIXEL30_20
-            PIXEL31_11
+            HQ4X_PIXEL20_12
+            HQ4X_PIXEL21_0
+            HQ4X_PIXEL30_20
+            HQ4X_PIXEL31_11
           }
-          PIXEL22_31
-          PIXEL23_81
-          PIXEL32_31
-          PIXEL33_81
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
+          HQ4X_PIXEL32_31
+          HQ4X_PIXEL33_81
           break;
         }
         case 174:
@@ -10486,431 +10498,431 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_80
-            PIXEL01_10
-            PIXEL10_10
-            PIXEL11_30
+            HQ4X_PIXEL00_80
+            HQ4X_PIXEL01_10
+            HQ4X_PIXEL10_10
+            HQ4X_PIXEL11_30
           }
           else
           {
-            PIXEL00_20
-            PIXEL01_12
-            PIXEL10_11
-            PIXEL11_0
+            HQ4X_PIXEL00_20
+            HQ4X_PIXEL01_12
+            HQ4X_PIXEL10_11
+            HQ4X_PIXEL11_0
           }
-          PIXEL02_32
-          PIXEL03_82
-          PIXEL12_32
-          PIXEL13_82
-          PIXEL20_31
-          PIXEL21_31
-          PIXEL22_70
-          PIXEL23_60
-          PIXEL30_81
-          PIXEL31_81
-          PIXEL32_60
-          PIXEL33_20
+          HQ4X_PIXEL02_32
+          HQ4X_PIXEL03_82
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
+          HQ4X_PIXEL20_31
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_70
+          HQ4X_PIXEL23_60
+          HQ4X_PIXEL30_81
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_60
+          HQ4X_PIXEL33_20
           break;
         }
         case 179:
         case 147:
         {
-          PIXEL00_81
-          PIXEL01_31
+          HQ4X_PIXEL00_81
+          HQ4X_PIXEL01_31
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_10
-            PIXEL03_80
-            PIXEL12_30
-            PIXEL13_10
+            HQ4X_PIXEL02_10
+            HQ4X_PIXEL03_80
+            HQ4X_PIXEL12_30
+            HQ4X_PIXEL13_10
           }
           else
           {
-            PIXEL02_11
-            PIXEL03_20
-            PIXEL12_0
-            PIXEL13_12
+            HQ4X_PIXEL02_11
+            HQ4X_PIXEL03_20
+            HQ4X_PIXEL12_0
+            HQ4X_PIXEL13_12
           }
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL20_60
-          PIXEL21_70
-          PIXEL22_32
-          PIXEL23_32
-          PIXEL30_20
-          PIXEL31_60
-          PIXEL32_82
-          PIXEL33_82
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL20_60
+          HQ4X_PIXEL21_70
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL23_32
+          HQ4X_PIXEL30_20
+          HQ4X_PIXEL31_60
+          HQ4X_PIXEL32_82
+          HQ4X_PIXEL33_82
           break;
         }
         case 117:
         case 116:
         {
-          PIXEL00_20
-          PIXEL01_60
-          PIXEL02_81
-          PIXEL03_81
-          PIXEL10_60
-          PIXEL11_70
-          PIXEL12_31
-          PIXEL13_31
-          PIXEL20_82
-          PIXEL21_32
+          HQ4X_PIXEL00_20
+          HQ4X_PIXEL01_60
+          HQ4X_PIXEL02_81
+          HQ4X_PIXEL03_81
+          HQ4X_PIXEL10_60
+          HQ4X_PIXEL11_70
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL13_31
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_30
-            PIXEL23_10
-            PIXEL32_10
-            PIXEL33_80
+            HQ4X_PIXEL22_30
+            HQ4X_PIXEL23_10
+            HQ4X_PIXEL32_10
+            HQ4X_PIXEL33_80
           }
           else
           {
-            PIXEL22_0
-            PIXEL23_11
-            PIXEL32_12
-            PIXEL33_20
+            HQ4X_PIXEL22_0
+            HQ4X_PIXEL23_11
+            HQ4X_PIXEL32_12
+            HQ4X_PIXEL33_20
           }
-          PIXEL30_82
-          PIXEL31_32
+          HQ4X_PIXEL30_82
+          HQ4X_PIXEL31_32
           break;
         }
         case 189:
         {
-          PIXEL00_82
-          PIXEL01_82
-          PIXEL02_81
-          PIXEL03_81
-          PIXEL10_32
-          PIXEL11_32
-          PIXEL12_31
-          PIXEL13_31
-          PIXEL20_31
-          PIXEL21_31
-          PIXEL22_32
-          PIXEL23_32
-          PIXEL30_81
-          PIXEL31_81
-          PIXEL32_82
-          PIXEL33_82
+          HQ4X_PIXEL00_82
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_81
+          HQ4X_PIXEL03_81
+          HQ4X_PIXEL10_32
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL13_31
+          HQ4X_PIXEL20_31
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL23_32
+          HQ4X_PIXEL30_81
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_82
+          HQ4X_PIXEL33_82
           break;
         }
         case 231:
         {
-          PIXEL00_81
-          PIXEL01_31
-          PIXEL02_32
-          PIXEL03_82
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL12_32
-          PIXEL13_82
-          PIXEL20_82
-          PIXEL21_32
-          PIXEL22_31
-          PIXEL23_81
-          PIXEL30_82
-          PIXEL31_32
-          PIXEL32_31
-          PIXEL33_81
+          HQ4X_PIXEL00_81
+          HQ4X_PIXEL01_31
+          HQ4X_PIXEL02_32
+          HQ4X_PIXEL03_82
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
+          HQ4X_PIXEL30_82
+          HQ4X_PIXEL31_32
+          HQ4X_PIXEL32_31
+          HQ4X_PIXEL33_81
           break;
         }
         case 126:
         {
-          PIXEL00_80
-          PIXEL01_10
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_0
-            PIXEL03_0
-            PIXEL13_0
+            HQ4X_PIXEL02_0
+            HQ4X_PIXEL03_0
+            HQ4X_PIXEL13_0
           }
           else
           {
-            PIXEL02_50
-            PIXEL03_50
-            PIXEL13_50
+            HQ4X_PIXEL02_50
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL13_50
           }
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_0
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_0
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_0
-            PIXEL30_0
-            PIXEL31_0
+            HQ4X_PIXEL20_0
+            HQ4X_PIXEL30_0
+            HQ4X_PIXEL31_0
           }
           else
           {
-            PIXEL20_50
-            PIXEL30_50
-            PIXEL31_50
+            HQ4X_PIXEL20_50
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_50
           }
-          PIXEL21_0
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 219:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_0
-            PIXEL10_0
+            HQ4X_PIXEL00_0
+            HQ4X_PIXEL01_0
+            HQ4X_PIXEL10_0
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_50
-            PIXEL10_50
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_50
+            HQ4X_PIXEL10_50
           }
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL11_0
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_0
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL23_0
-            PIXEL32_0
-            PIXEL33_0
+            HQ4X_PIXEL23_0
+            HQ4X_PIXEL32_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL23_50
-            PIXEL32_50
-            PIXEL33_50
+            HQ4X_PIXEL23_50
+            HQ4X_PIXEL32_50
+            HQ4X_PIXEL33_50
           }
-          PIXEL30_80
-          PIXEL31_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
           break;
         }
         case 125:
         {
           if (Diff(w[8], w[4]))
           {
-            PIXEL00_82
-            PIXEL10_32
-            PIXEL20_0
-            PIXEL21_0
-            PIXEL30_0
-            PIXEL31_0
+            HQ4X_PIXEL00_82
+            HQ4X_PIXEL10_32
+            HQ4X_PIXEL20_0
+            HQ4X_PIXEL21_0
+            HQ4X_PIXEL30_0
+            HQ4X_PIXEL31_0
           }
           else
           {
-            PIXEL00_11
-            PIXEL10_13
-            PIXEL20_83
-            PIXEL21_70
-            PIXEL30_50
-            PIXEL31_21
+            HQ4X_PIXEL00_11
+            HQ4X_PIXEL10_13
+            HQ4X_PIXEL20_83
+            HQ4X_PIXEL21_70
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_21
           }
-          PIXEL01_82
-          PIXEL02_81
-          PIXEL03_81
-          PIXEL11_32
-          PIXEL12_31
-          PIXEL13_31
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_81
+          HQ4X_PIXEL03_81
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL13_31
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 221:
         {
-          PIXEL00_82
-          PIXEL01_82
-          PIXEL02_81
+          HQ4X_PIXEL00_82
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_81
           if (Diff(w[6], w[8]))
           {
-            PIXEL03_81
-            PIXEL13_31
-            PIXEL22_0
-            PIXEL23_0
-            PIXEL32_0
-            PIXEL33_0
+            HQ4X_PIXEL03_81
+            HQ4X_PIXEL13_31
+            HQ4X_PIXEL22_0
+            HQ4X_PIXEL23_0
+            HQ4X_PIXEL32_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL03_12
-            PIXEL13_14
-            PIXEL22_70
-            PIXEL23_83
-            PIXEL32_21
-            PIXEL33_50
+            HQ4X_PIXEL03_12
+            HQ4X_PIXEL13_14
+            HQ4X_PIXEL22_70
+            HQ4X_PIXEL23_83
+            HQ4X_PIXEL32_21
+            HQ4X_PIXEL33_50
           }
-          PIXEL10_32
-          PIXEL11_32
-          PIXEL12_31
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL30_80
-          PIXEL31_10
+          HQ4X_PIXEL10_32
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
           break;
         }
         case 207:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_0
-            PIXEL02_32
-            PIXEL03_82
-            PIXEL10_0
-            PIXEL11_0
+            HQ4X_PIXEL00_0
+            HQ4X_PIXEL01_0
+            HQ4X_PIXEL02_32
+            HQ4X_PIXEL03_82
+            HQ4X_PIXEL10_0
+            HQ4X_PIXEL11_0
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_83
-            PIXEL02_13
-            PIXEL03_11
-            PIXEL10_21
-            PIXEL11_70
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_83
+            HQ4X_PIXEL02_13
+            HQ4X_PIXEL03_11
+            HQ4X_PIXEL10_21
+            HQ4X_PIXEL11_70
           }
-          PIXEL12_32
-          PIXEL13_82
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_31
-          PIXEL23_81
-          PIXEL30_80
-          PIXEL31_10
-          PIXEL32_31
-          PIXEL33_81
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
+          HQ4X_PIXEL32_31
+          HQ4X_PIXEL33_81
           break;
         }
         case 238:
         {
-          PIXEL00_80
-          PIXEL01_10
-          PIXEL02_32
-          PIXEL03_82
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_32
-          PIXEL13_82
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
+          HQ4X_PIXEL02_32
+          HQ4X_PIXEL03_82
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_0
-            PIXEL21_0
-            PIXEL30_0
-            PIXEL31_0
-            PIXEL32_31
-            PIXEL33_81
+            HQ4X_PIXEL20_0
+            HQ4X_PIXEL21_0
+            HQ4X_PIXEL30_0
+            HQ4X_PIXEL31_0
+            HQ4X_PIXEL32_31
+            HQ4X_PIXEL33_81
           }
           else
           {
-            PIXEL20_21
-            PIXEL21_70
-            PIXEL30_50
-            PIXEL31_83
-            PIXEL32_14
-            PIXEL33_12
+            HQ4X_PIXEL20_21
+            HQ4X_PIXEL21_70
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_83
+            HQ4X_PIXEL32_14
+            HQ4X_PIXEL33_12
           }
-          PIXEL22_31
-          PIXEL23_81
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
           break;
         }
         case 190:
         {
-          PIXEL00_80
-          PIXEL01_10
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_0
-            PIXEL03_0
-            PIXEL12_0
-            PIXEL13_0
-            PIXEL23_32
-            PIXEL33_82
+            HQ4X_PIXEL02_0
+            HQ4X_PIXEL03_0
+            HQ4X_PIXEL12_0
+            HQ4X_PIXEL13_0
+            HQ4X_PIXEL23_32
+            HQ4X_PIXEL33_82
           }
           else
           {
-            PIXEL02_21
-            PIXEL03_50
-            PIXEL12_70
-            PIXEL13_83
-            PIXEL23_13
-            PIXEL33_11
+            HQ4X_PIXEL02_21
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL12_70
+            HQ4X_PIXEL13_83
+            HQ4X_PIXEL23_13
+            HQ4X_PIXEL33_11
           }
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL20_31
-          PIXEL21_31
-          PIXEL22_32
-          PIXEL30_81
-          PIXEL31_81
-          PIXEL32_82
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL20_31
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL30_81
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_82
           break;
         }
         case 187:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_0
-            PIXEL10_0
-            PIXEL11_0
-            PIXEL20_31
-            PIXEL30_81
+            HQ4X_PIXEL00_0
+            HQ4X_PIXEL01_0
+            HQ4X_PIXEL10_0
+            HQ4X_PIXEL11_0
+            HQ4X_PIXEL20_31
+            HQ4X_PIXEL30_81
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_21
-            PIXEL10_83
-            PIXEL11_70
-            PIXEL20_14
-            PIXEL30_12
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_21
+            HQ4X_PIXEL10_83
+            HQ4X_PIXEL11_70
+            HQ4X_PIXEL20_14
+            HQ4X_PIXEL30_12
           }
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL21_31
-          PIXEL22_32
-          PIXEL23_32
-          PIXEL31_81
-          PIXEL32_82
-          PIXEL33_82
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL23_32
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_82
+          HQ4X_PIXEL33_82
           break;
         }
         case 243:
         {
-          PIXEL00_81
-          PIXEL01_31
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_82
-          PIXEL21_32
+          HQ4X_PIXEL00_81
+          HQ4X_PIXEL01_31
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
           if (Diff(w[6], w[8]))
           {
-            PIXEL22_0
-            PIXEL23_0
-            PIXEL30_82
-            PIXEL31_32
-            PIXEL32_0
-            PIXEL33_0
+            HQ4X_PIXEL22_0
+            HQ4X_PIXEL23_0
+            HQ4X_PIXEL30_82
+            HQ4X_PIXEL31_32
+            HQ4X_PIXEL32_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL22_70
-            PIXEL23_21
-            PIXEL30_11
-            PIXEL31_13
-            PIXEL32_83
-            PIXEL33_50
+            HQ4X_PIXEL22_70
+            HQ4X_PIXEL23_21
+            HQ4X_PIXEL30_11
+            HQ4X_PIXEL31_13
+            HQ4X_PIXEL32_83
+            HQ4X_PIXEL33_50
           }
           break;
         }
@@ -10918,60 +10930,60 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[2], w[6]))
           {
-            PIXEL00_81
-            PIXEL01_31
-            PIXEL02_0
-            PIXEL03_0
-            PIXEL12_0
-            PIXEL13_0
+            HQ4X_PIXEL00_81
+            HQ4X_PIXEL01_31
+            HQ4X_PIXEL02_0
+            HQ4X_PIXEL03_0
+            HQ4X_PIXEL12_0
+            HQ4X_PIXEL13_0
           }
           else
           {
-            PIXEL00_12
-            PIXEL01_14
-            PIXEL02_83
-            PIXEL03_50
-            PIXEL12_70
-            PIXEL13_21
+            HQ4X_PIXEL00_12
+            HQ4X_PIXEL01_14
+            HQ4X_PIXEL02_83
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL12_70
+            HQ4X_PIXEL13_21
           }
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL20_82
-          PIXEL21_32
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_82
-          PIXEL31_32
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_82
+          HQ4X_PIXEL31_32
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 237:
         case 233:
         {
-          PIXEL00_82
-          PIXEL01_82
-          PIXEL02_60
-          PIXEL03_20
-          PIXEL10_32
-          PIXEL11_32
-          PIXEL12_70
-          PIXEL13_60
-          PIXEL20_0
-          PIXEL21_0
-          PIXEL22_31
-          PIXEL23_81
+          HQ4X_PIXEL00_82
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_60
+          HQ4X_PIXEL03_20
+          HQ4X_PIXEL10_32
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_70
+          HQ4X_PIXEL13_60
+          HQ4X_PIXEL20_0
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
           if (Diff(w[8], w[4]))
           {
-            PIXEL30_0
+            HQ4X_PIXEL30_0
           }
           else
           {
-            PIXEL30_20
+            HQ4X_PIXEL30_20
           }
-          PIXEL31_0
-          PIXEL32_31
-          PIXEL33_81
+          HQ4X_PIXEL31_0
+          HQ4X_PIXEL32_31
+          HQ4X_PIXEL33_81
           break;
         }
         case 175:
@@ -10979,120 +10991,120 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ4X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ4X_PIXEL00_20
           }
-          PIXEL01_0
-          PIXEL02_32
-          PIXEL03_82
-          PIXEL10_0
-          PIXEL11_0
-          PIXEL12_32
-          PIXEL13_82
-          PIXEL20_31
-          PIXEL21_31
-          PIXEL22_70
-          PIXEL23_60
-          PIXEL30_81
-          PIXEL31_81
-          PIXEL32_60
-          PIXEL33_20
+          HQ4X_PIXEL01_0
+          HQ4X_PIXEL02_32
+          HQ4X_PIXEL03_82
+          HQ4X_PIXEL10_0
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
+          HQ4X_PIXEL20_31
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_70
+          HQ4X_PIXEL23_60
+          HQ4X_PIXEL30_81
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_60
+          HQ4X_PIXEL33_20
           break;
         }
         case 183:
         case 151:
         {
-          PIXEL00_81
-          PIXEL01_31
-          PIXEL02_0
+          HQ4X_PIXEL00_81
+          HQ4X_PIXEL01_31
+          HQ4X_PIXEL02_0
           if (Diff(w[2], w[6]))
           {
-            PIXEL03_0
+            HQ4X_PIXEL03_0
           }
           else
           {
-            PIXEL03_20
+            HQ4X_PIXEL03_20
           }
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL12_0
-          PIXEL13_0
-          PIXEL20_60
-          PIXEL21_70
-          PIXEL22_32
-          PIXEL23_32
-          PIXEL30_20
-          PIXEL31_60
-          PIXEL32_82
-          PIXEL33_82
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL12_0
+          HQ4X_PIXEL13_0
+          HQ4X_PIXEL20_60
+          HQ4X_PIXEL21_70
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL23_32
+          HQ4X_PIXEL30_20
+          HQ4X_PIXEL31_60
+          HQ4X_PIXEL32_82
+          HQ4X_PIXEL33_82
           break;
         }
         case 245:
         case 244:
         {
-          PIXEL00_20
-          PIXEL01_60
-          PIXEL02_81
-          PIXEL03_81
-          PIXEL10_60
-          PIXEL11_70
-          PIXEL12_31
-          PIXEL13_31
-          PIXEL20_82
-          PIXEL21_32
-          PIXEL22_0
-          PIXEL23_0
-          PIXEL30_82
-          PIXEL31_32
-          PIXEL32_0
+          HQ4X_PIXEL00_20
+          HQ4X_PIXEL01_60
+          HQ4X_PIXEL02_81
+          HQ4X_PIXEL03_81
+          HQ4X_PIXEL10_60
+          HQ4X_PIXEL11_70
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL13_31
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
+          HQ4X_PIXEL22_0
+          HQ4X_PIXEL23_0
+          HQ4X_PIXEL30_82
+          HQ4X_PIXEL31_32
+          HQ4X_PIXEL32_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL33_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL33_20
+            HQ4X_PIXEL33_20
           }
           break;
         }
         case 250:
         {
-          PIXEL00_80
-          PIXEL01_10
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_30
-          PIXEL13_10
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_0
-            PIXEL30_0
-            PIXEL31_0
+            HQ4X_PIXEL20_0
+            HQ4X_PIXEL30_0
+            HQ4X_PIXEL31_0
           }
           else
           {
-            PIXEL20_50
-            PIXEL30_50
-            PIXEL31_50
+            HQ4X_PIXEL20_50
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_50
           }
-          PIXEL21_0
-          PIXEL22_0
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL23_0
-            PIXEL32_0
-            PIXEL33_0
+            HQ4X_PIXEL23_0
+            HQ4X_PIXEL32_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL23_50
-            PIXEL32_50
-            PIXEL33_50
+            HQ4X_PIXEL23_50
+            HQ4X_PIXEL32_50
+            HQ4X_PIXEL33_50
           }
           break;
         }
@@ -11100,480 +11112,480 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_0
-            PIXEL10_0
+            HQ4X_PIXEL00_0
+            HQ4X_PIXEL01_0
+            HQ4X_PIXEL10_0
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_50
-            PIXEL10_50
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_50
+            HQ4X_PIXEL10_50
           }
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL11_0
-          PIXEL12_30
-          PIXEL13_10
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_0
-            PIXEL30_0
-            PIXEL31_0
+            HQ4X_PIXEL20_0
+            HQ4X_PIXEL30_0
+            HQ4X_PIXEL31_0
           }
           else
           {
-            PIXEL20_50
-            PIXEL30_50
-            PIXEL31_50
+            HQ4X_PIXEL20_50
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_50
           }
-          PIXEL21_0
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 95:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_0
-            PIXEL10_0
+            HQ4X_PIXEL00_0
+            HQ4X_PIXEL01_0
+            HQ4X_PIXEL10_0
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_50
-            PIXEL10_50
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_50
+            HQ4X_PIXEL10_50
           }
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_0
-            PIXEL03_0
-            PIXEL13_0
+            HQ4X_PIXEL02_0
+            HQ4X_PIXEL03_0
+            HQ4X_PIXEL13_0
           }
           else
           {
-            PIXEL02_50
-            PIXEL03_50
-            PIXEL13_50
+            HQ4X_PIXEL02_50
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL13_50
           }
-          PIXEL11_0
-          PIXEL12_0
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_80
-          PIXEL31_10
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_0
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 222:
         {
-          PIXEL00_80
-          PIXEL01_10
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_0
-            PIXEL03_0
-            PIXEL13_0
+            HQ4X_PIXEL02_0
+            HQ4X_PIXEL03_0
+            HQ4X_PIXEL13_0
           }
           else
           {
-            PIXEL02_50
-            PIXEL03_50
-            PIXEL13_50
+            HQ4X_PIXEL02_50
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL13_50
           }
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_0
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_0
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_0
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL23_0
-            PIXEL32_0
-            PIXEL33_0
+            HQ4X_PIXEL23_0
+            HQ4X_PIXEL32_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL23_50
-            PIXEL32_50
-            PIXEL33_50
+            HQ4X_PIXEL23_50
+            HQ4X_PIXEL32_50
+            HQ4X_PIXEL33_50
           }
-          PIXEL30_80
-          PIXEL31_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
           break;
         }
         case 252:
         {
-          PIXEL00_80
-          PIXEL01_61
-          PIXEL02_81
-          PIXEL03_81
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_31
-          PIXEL13_31
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_61
+          HQ4X_PIXEL02_81
+          HQ4X_PIXEL03_81
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL13_31
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_0
-            PIXEL30_0
-            PIXEL31_0
+            HQ4X_PIXEL20_0
+            HQ4X_PIXEL30_0
+            HQ4X_PIXEL31_0
           }
           else
           {
-            PIXEL20_50
-            PIXEL30_50
-            PIXEL31_50
+            HQ4X_PIXEL20_50
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_50
           }
-          PIXEL21_0
-          PIXEL22_0
-          PIXEL23_0
-          PIXEL32_0
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_0
+          HQ4X_PIXEL23_0
+          HQ4X_PIXEL32_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL33_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL33_20
+            HQ4X_PIXEL33_20
           }
           break;
         }
         case 249:
         {
-          PIXEL00_82
-          PIXEL01_82
-          PIXEL02_61
-          PIXEL03_80
-          PIXEL10_32
-          PIXEL11_32
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_0
-          PIXEL21_0
-          PIXEL22_0
+          HQ4X_PIXEL00_82
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_61
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL10_32
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_0
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL23_0
-            PIXEL32_0
-            PIXEL33_0
+            HQ4X_PIXEL23_0
+            HQ4X_PIXEL32_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL23_50
-            PIXEL32_50
-            PIXEL33_50
+            HQ4X_PIXEL23_50
+            HQ4X_PIXEL32_50
+            HQ4X_PIXEL33_50
           }
           if (Diff(w[8], w[4]))
           {
-            PIXEL30_0
+            HQ4X_PIXEL30_0
           }
           else
           {
-            PIXEL30_20
+            HQ4X_PIXEL30_20
           }
-          PIXEL31_0
+          HQ4X_PIXEL31_0
           break;
         }
         case 235:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_0
-            PIXEL10_0
+            HQ4X_PIXEL00_0
+            HQ4X_PIXEL01_0
+            HQ4X_PIXEL10_0
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_50
-            PIXEL10_50
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_50
+            HQ4X_PIXEL10_50
           }
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL11_0
-          PIXEL12_30
-          PIXEL13_61
-          PIXEL20_0
-          PIXEL21_0
-          PIXEL22_31
-          PIXEL23_81
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_61
+          HQ4X_PIXEL20_0
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
           if (Diff(w[8], w[4]))
           {
-            PIXEL30_0
+            HQ4X_PIXEL30_0
           }
           else
           {
-            PIXEL30_20
+            HQ4X_PIXEL30_20
           }
-          PIXEL31_0
-          PIXEL32_31
-          PIXEL33_81
+          HQ4X_PIXEL31_0
+          HQ4X_PIXEL32_31
+          HQ4X_PIXEL33_81
           break;
         }
         case 111:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ4X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ4X_PIXEL00_20
           }
-          PIXEL01_0
-          PIXEL02_32
-          PIXEL03_82
-          PIXEL10_0
-          PIXEL11_0
-          PIXEL12_32
-          PIXEL13_82
+          HQ4X_PIXEL01_0
+          HQ4X_PIXEL02_32
+          HQ4X_PIXEL03_82
+          HQ4X_PIXEL10_0
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_0
-            PIXEL30_0
-            PIXEL31_0
+            HQ4X_PIXEL20_0
+            HQ4X_PIXEL30_0
+            HQ4X_PIXEL31_0
           }
           else
           {
-            PIXEL20_50
-            PIXEL30_50
-            PIXEL31_50
+            HQ4X_PIXEL20_50
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_50
           }
-          PIXEL21_0
-          PIXEL22_30
-          PIXEL23_61
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_61
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 63:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ4X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ4X_PIXEL00_20
           }
-          PIXEL01_0
+          HQ4X_PIXEL01_0
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_0
-            PIXEL03_0
-            PIXEL13_0
+            HQ4X_PIXEL02_0
+            HQ4X_PIXEL03_0
+            HQ4X_PIXEL13_0
           }
           else
           {
-            PIXEL02_50
-            PIXEL03_50
-            PIXEL13_50
+            HQ4X_PIXEL02_50
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL13_50
           }
-          PIXEL10_0
-          PIXEL11_0
-          PIXEL12_0
-          PIXEL20_31
-          PIXEL21_31
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL30_81
-          PIXEL31_81
-          PIXEL32_61
-          PIXEL33_80
+          HQ4X_PIXEL10_0
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_0
+          HQ4X_PIXEL20_31
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL30_81
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_61
+          HQ4X_PIXEL33_80
           break;
         }
         case 159:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_0
-            PIXEL10_0
+            HQ4X_PIXEL00_0
+            HQ4X_PIXEL01_0
+            HQ4X_PIXEL10_0
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_50
-            PIXEL10_50
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_50
+            HQ4X_PIXEL10_50
           }
-          PIXEL02_0
+          HQ4X_PIXEL02_0
           if (Diff(w[2], w[6]))
           {
-            PIXEL03_0
+            HQ4X_PIXEL03_0
           }
           else
           {
-            PIXEL03_20
+            HQ4X_PIXEL03_20
           }
-          PIXEL11_0
-          PIXEL12_0
-          PIXEL13_0
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_32
-          PIXEL23_32
-          PIXEL30_80
-          PIXEL31_61
-          PIXEL32_82
-          PIXEL33_82
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_0
+          HQ4X_PIXEL13_0
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL23_32
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_61
+          HQ4X_PIXEL32_82
+          HQ4X_PIXEL33_82
           break;
         }
         case 215:
         {
-          PIXEL00_81
-          PIXEL01_31
-          PIXEL02_0
+          HQ4X_PIXEL00_81
+          HQ4X_PIXEL01_31
+          HQ4X_PIXEL02_0
           if (Diff(w[2], w[6]))
           {
-            PIXEL03_0
+            HQ4X_PIXEL03_0
           }
           else
           {
-            PIXEL03_20
+            HQ4X_PIXEL03_20
           }
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL12_0
-          PIXEL13_0
-          PIXEL20_61
-          PIXEL21_30
-          PIXEL22_0
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL12_0
+          HQ4X_PIXEL13_0
+          HQ4X_PIXEL20_61
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL23_0
-            PIXEL32_0
-            PIXEL33_0
+            HQ4X_PIXEL23_0
+            HQ4X_PIXEL32_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL23_50
-            PIXEL32_50
-            PIXEL33_50
+            HQ4X_PIXEL23_50
+            HQ4X_PIXEL32_50
+            HQ4X_PIXEL33_50
           }
-          PIXEL30_80
-          PIXEL31_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
           break;
         }
         case 246:
         {
-          PIXEL00_80
-          PIXEL01_10
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_0
-            PIXEL03_0
-            PIXEL13_0
+            HQ4X_PIXEL02_0
+            HQ4X_PIXEL03_0
+            HQ4X_PIXEL13_0
           }
           else
           {
-            PIXEL02_50
-            PIXEL03_50
-            PIXEL13_50
+            HQ4X_PIXEL02_50
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL13_50
           }
-          PIXEL10_61
-          PIXEL11_30
-          PIXEL12_0
-          PIXEL20_82
-          PIXEL21_32
-          PIXEL22_0
-          PIXEL23_0
-          PIXEL30_82
-          PIXEL31_32
-          PIXEL32_0
+          HQ4X_PIXEL10_61
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_0
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
+          HQ4X_PIXEL22_0
+          HQ4X_PIXEL23_0
+          HQ4X_PIXEL30_82
+          HQ4X_PIXEL31_32
+          HQ4X_PIXEL32_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL33_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL33_20
+            HQ4X_PIXEL33_20
           }
           break;
         }
         case 254:
         {
-          PIXEL00_80
-          PIXEL01_10
+          HQ4X_PIXEL00_80
+          HQ4X_PIXEL01_10
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_0
-            PIXEL03_0
-            PIXEL13_0
+            HQ4X_PIXEL02_0
+            HQ4X_PIXEL03_0
+            HQ4X_PIXEL13_0
           }
           else
           {
-            PIXEL02_50
-            PIXEL03_50
-            PIXEL13_50
+            HQ4X_PIXEL02_50
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL13_50
           }
-          PIXEL10_10
-          PIXEL11_30
-          PIXEL12_0
+          HQ4X_PIXEL10_10
+          HQ4X_PIXEL11_30
+          HQ4X_PIXEL12_0
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_0
-            PIXEL30_0
-            PIXEL31_0
+            HQ4X_PIXEL20_0
+            HQ4X_PIXEL30_0
+            HQ4X_PIXEL31_0
           }
           else
           {
-            PIXEL20_50
-            PIXEL30_50
-            PIXEL31_50
+            HQ4X_PIXEL20_50
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_50
           }
-          PIXEL21_0
-          PIXEL22_0
-          PIXEL23_0
-          PIXEL32_0
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_0
+          HQ4X_PIXEL23_0
+          HQ4X_PIXEL32_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL33_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL33_20
+            HQ4X_PIXEL33_20
           }
           break;
         }
         case 253:
         {
-          PIXEL00_82
-          PIXEL01_82
-          PIXEL02_81
-          PIXEL03_81
-          PIXEL10_32
-          PIXEL11_32
-          PIXEL12_31
-          PIXEL13_31
-          PIXEL20_0
-          PIXEL21_0
-          PIXEL22_0
-          PIXEL23_0
+          HQ4X_PIXEL00_82
+          HQ4X_PIXEL01_82
+          HQ4X_PIXEL02_81
+          HQ4X_PIXEL03_81
+          HQ4X_PIXEL10_32
+          HQ4X_PIXEL11_32
+          HQ4X_PIXEL12_31
+          HQ4X_PIXEL13_31
+          HQ4X_PIXEL20_0
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_0
+          HQ4X_PIXEL23_0
           if (Diff(w[8], w[4]))
           {
-            PIXEL30_0
+            HQ4X_PIXEL30_0
           }
           else
           {
-            PIXEL30_20
+            HQ4X_PIXEL30_20
           }
-          PIXEL31_0
-          PIXEL32_0
+          HQ4X_PIXEL31_0
+          HQ4X_PIXEL32_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL33_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL33_20
+            HQ4X_PIXEL33_20
           }
           break;
         }
@@ -11581,236 +11593,236 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_0
-            PIXEL10_0
+            HQ4X_PIXEL00_0
+            HQ4X_PIXEL01_0
+            HQ4X_PIXEL10_0
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_50
-            PIXEL10_50
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_50
+            HQ4X_PIXEL10_50
           }
-          PIXEL02_10
-          PIXEL03_80
-          PIXEL11_0
-          PIXEL12_30
-          PIXEL13_10
-          PIXEL20_0
-          PIXEL21_0
-          PIXEL22_0
+          HQ4X_PIXEL02_10
+          HQ4X_PIXEL03_80
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_30
+          HQ4X_PIXEL13_10
+          HQ4X_PIXEL20_0
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL23_0
-            PIXEL32_0
-            PIXEL33_0
+            HQ4X_PIXEL23_0
+            HQ4X_PIXEL32_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL23_50
-            PIXEL32_50
-            PIXEL33_50
+            HQ4X_PIXEL23_50
+            HQ4X_PIXEL32_50
+            HQ4X_PIXEL33_50
           }
           if (Diff(w[8], w[4]))
           {
-            PIXEL30_0
+            HQ4X_PIXEL30_0
           }
           else
           {
-            PIXEL30_20
+            HQ4X_PIXEL30_20
           }
-          PIXEL31_0
+          HQ4X_PIXEL31_0
           break;
         }
         case 239:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ4X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ4X_PIXEL00_20
           }
-          PIXEL01_0
-          PIXEL02_32
-          PIXEL03_82
-          PIXEL10_0
-          PIXEL11_0
-          PIXEL12_32
-          PIXEL13_82
-          PIXEL20_0
-          PIXEL21_0
-          PIXEL22_31
-          PIXEL23_81
+          HQ4X_PIXEL01_0
+          HQ4X_PIXEL02_32
+          HQ4X_PIXEL03_82
+          HQ4X_PIXEL10_0
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_32
+          HQ4X_PIXEL13_82
+          HQ4X_PIXEL20_0
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_31
+          HQ4X_PIXEL23_81
           if (Diff(w[8], w[4]))
           {
-            PIXEL30_0
+            HQ4X_PIXEL30_0
           }
           else
           {
-            PIXEL30_20
+            HQ4X_PIXEL30_20
           }
-          PIXEL31_0
-          PIXEL32_31
-          PIXEL33_81
+          HQ4X_PIXEL31_0
+          HQ4X_PIXEL32_31
+          HQ4X_PIXEL33_81
           break;
         }
         case 127:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ4X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ4X_PIXEL00_20
           }
-          PIXEL01_0
+          HQ4X_PIXEL01_0
           if (Diff(w[2], w[6]))
           {
-            PIXEL02_0
-            PIXEL03_0
-            PIXEL13_0
+            HQ4X_PIXEL02_0
+            HQ4X_PIXEL03_0
+            HQ4X_PIXEL13_0
           }
           else
           {
-            PIXEL02_50
-            PIXEL03_50
-            PIXEL13_50
+            HQ4X_PIXEL02_50
+            HQ4X_PIXEL03_50
+            HQ4X_PIXEL13_50
           }
-          PIXEL10_0
-          PIXEL11_0
-          PIXEL12_0
+          HQ4X_PIXEL10_0
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_0
           if (Diff(w[8], w[4]))
           {
-            PIXEL20_0
-            PIXEL30_0
-            PIXEL31_0
+            HQ4X_PIXEL20_0
+            HQ4X_PIXEL30_0
+            HQ4X_PIXEL31_0
           }
           else
           {
-            PIXEL20_50
-            PIXEL30_50
-            PIXEL31_50
+            HQ4X_PIXEL20_50
+            HQ4X_PIXEL30_50
+            HQ4X_PIXEL31_50
           }
-          PIXEL21_0
-          PIXEL22_30
-          PIXEL23_10
-          PIXEL32_10
-          PIXEL33_80
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_30
+          HQ4X_PIXEL23_10
+          HQ4X_PIXEL32_10
+          HQ4X_PIXEL33_80
           break;
         }
         case 191:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ4X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ4X_PIXEL00_20
           }
-          PIXEL01_0
-          PIXEL02_0
+          HQ4X_PIXEL01_0
+          HQ4X_PIXEL02_0
           if (Diff(w[2], w[6]))
           {
-            PIXEL03_0
+            HQ4X_PIXEL03_0
           }
           else
           {
-            PIXEL03_20
+            HQ4X_PIXEL03_20
           }
-          PIXEL10_0
-          PIXEL11_0
-          PIXEL12_0
-          PIXEL13_0
-          PIXEL20_31
-          PIXEL21_31
-          PIXEL22_32
-          PIXEL23_32
-          PIXEL30_81
-          PIXEL31_81
-          PIXEL32_82
-          PIXEL33_82
+          HQ4X_PIXEL10_0
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_0
+          HQ4X_PIXEL13_0
+          HQ4X_PIXEL20_31
+          HQ4X_PIXEL21_31
+          HQ4X_PIXEL22_32
+          HQ4X_PIXEL23_32
+          HQ4X_PIXEL30_81
+          HQ4X_PIXEL31_81
+          HQ4X_PIXEL32_82
+          HQ4X_PIXEL33_82
           break;
         }
         case 223:
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
-            PIXEL01_0
-            PIXEL10_0
+            HQ4X_PIXEL00_0
+            HQ4X_PIXEL01_0
+            HQ4X_PIXEL10_0
           }
           else
           {
-            PIXEL00_50
-            PIXEL01_50
-            PIXEL10_50
+            HQ4X_PIXEL00_50
+            HQ4X_PIXEL01_50
+            HQ4X_PIXEL10_50
           }
-          PIXEL02_0
+          HQ4X_PIXEL02_0
           if (Diff(w[2], w[6]))
           {
-            PIXEL03_0
+            HQ4X_PIXEL03_0
           }
           else
           {
-            PIXEL03_20
+            HQ4X_PIXEL03_20
           }
-          PIXEL11_0
-          PIXEL12_0
-          PIXEL13_0
-          PIXEL20_10
-          PIXEL21_30
-          PIXEL22_0
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_0
+          HQ4X_PIXEL13_0
+          HQ4X_PIXEL20_10
+          HQ4X_PIXEL21_30
+          HQ4X_PIXEL22_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL23_0
-            PIXEL32_0
-            PIXEL33_0
+            HQ4X_PIXEL23_0
+            HQ4X_PIXEL32_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL23_50
-            PIXEL32_50
-            PIXEL33_50
+            HQ4X_PIXEL23_50
+            HQ4X_PIXEL32_50
+            HQ4X_PIXEL33_50
           }
-          PIXEL30_80
-          PIXEL31_10
+          HQ4X_PIXEL30_80
+          HQ4X_PIXEL31_10
           break;
         }
         case 247:
         {
-          PIXEL00_81
-          PIXEL01_31
-          PIXEL02_0
+          HQ4X_PIXEL00_81
+          HQ4X_PIXEL01_31
+          HQ4X_PIXEL02_0
           if (Diff(w[2], w[6]))
           {
-            PIXEL03_0
+            HQ4X_PIXEL03_0
           }
           else
           {
-            PIXEL03_20
+            HQ4X_PIXEL03_20
           }
-          PIXEL10_81
-          PIXEL11_31
-          PIXEL12_0
-          PIXEL13_0
-          PIXEL20_82
-          PIXEL21_32
-          PIXEL22_0
-          PIXEL23_0
-          PIXEL30_82
-          PIXEL31_32
-          PIXEL32_0
+          HQ4X_PIXEL10_81
+          HQ4X_PIXEL11_31
+          HQ4X_PIXEL12_0
+          HQ4X_PIXEL13_0
+          HQ4X_PIXEL20_82
+          HQ4X_PIXEL21_32
+          HQ4X_PIXEL22_0
+          HQ4X_PIXEL23_0
+          HQ4X_PIXEL30_82
+          HQ4X_PIXEL31_32
+          HQ4X_PIXEL32_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL33_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL33_20
+            HQ4X_PIXEL33_20
           }
           break;
         }
@@ -11818,47 +11830,47 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
         {
           if (Diff(w[4], w[2]))
           {
-            PIXEL00_0
+            HQ4X_PIXEL00_0
           }
           else
           {
-            PIXEL00_20
+            HQ4X_PIXEL00_20
           }
-          PIXEL01_0
-          PIXEL02_0
+          HQ4X_PIXEL01_0
+          HQ4X_PIXEL02_0
           if (Diff(w[2], w[6]))
           {
-            PIXEL03_0
+            HQ4X_PIXEL03_0
           }
           else
           {
-            PIXEL03_20
+            HQ4X_PIXEL03_20
           }
-          PIXEL10_0
-          PIXEL11_0
-          PIXEL12_0
-          PIXEL13_0
-          PIXEL20_0
-          PIXEL21_0
-          PIXEL22_0
-          PIXEL23_0
+          HQ4X_PIXEL10_0
+          HQ4X_PIXEL11_0
+          HQ4X_PIXEL12_0
+          HQ4X_PIXEL13_0
+          HQ4X_PIXEL20_0
+          HQ4X_PIXEL21_0
+          HQ4X_PIXEL22_0
+          HQ4X_PIXEL23_0
           if (Diff(w[8], w[4]))
           {
-            PIXEL30_0
+            HQ4X_PIXEL30_0
           }
           else
           {
-            PIXEL30_20
+            HQ4X_PIXEL30_20
           }
-          PIXEL31_0
-          PIXEL32_0
+          HQ4X_PIXEL31_0
+          HQ4X_PIXEL32_0
           if (Diff(w[6], w[8]))
           {
-            PIXEL33_0
+            HQ4X_PIXEL33_0
           }
           else
           {
-            PIXEL33_20
+            HQ4X_PIXEL33_20
           }
           break;
         }
