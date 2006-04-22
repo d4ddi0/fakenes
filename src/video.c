@@ -60,6 +60,7 @@ BOOL video_display_status = FALSE;
 BOOL video_enable_page_buffer = FALSE;
 BOOL video_enable_vsync = FALSE;
 BOOL video_force_fullscreen = FALSE;
+int video_cached_color_depth = 0;   /* Read only. */
 
 int video_driver = 0;
 
@@ -84,6 +85,9 @@ static LIST filter_list = 0;
 
 #define VIDEO_COLOR_BLACK   palette_color[0]
 #define VIDEO_COLOR_WHITE   palette_color[33]
+
+/* 15-bit color mapping for 256 color modes. */
+UINT8 video_color_map[32][32][32];
 
 static BOOL preserve_video_buffer = FALSE;
 static BOOL preserve_palette = FALSE;
@@ -241,6 +245,9 @@ int video_init (void)
       WARN("Invalid color depth");
       return (1);
    }
+
+   /* Let filters know directly what color depth we're using. */
+   video_cached_color_depth = color_depth;
 
    set_color_depth (color_depth);
 
@@ -1015,7 +1022,6 @@ void video_handle_keypress (int c, int scancode)
 #define GUI_IMAGE_PALETTE_START     (256 - GUI_IMAGE_PALETTE_SIZE)
 #define GUI_IMAGE_PALETTE_END       (GUI_IMAGE_PALETTE_START + GUI_IMAGE_PALETTE_SIZE)
 
-static UINT16 solid_map[64][64][64];
 static COLOR_MAP half_transparency_map;
 
 void video_set_palette (RGB *palette)
@@ -1194,23 +1200,23 @@ void video_set_palette (RGB *palette)
    /* Set the new palette. */
    set_palette (temp_pal);
 
-   /* Build 16-bit color LUT. */
+   /* Build color map. */
 
-   if (color_depth < 24)
+   if (color_depth == 8)
    {
-      for (r = 0; r < 64; r++)
+      for (r = 0; r < 32; r++)
       {
-         for (g = 0; g < 64; g++)
+         for (g = 0; g < 32; g++)
          {
-            for (b = 0; b < 64; b++)
+            for (b = 0; b < 32; b++)
             {
                int rm, gm, bm;
-
-               rm = ROUND(((r / 63.0f) * 255.0f));
-               gm = ROUND(((g / 63.0f) * 255.0f));
-               bm = ROUND(((b / 63.0f) * 255.0f));
-
-               solid_map[r][g][b] = makecol (rm, gm, bm);
+   
+               rm = ROUND(((r / 31.0f) * 255.0f));
+               gm = ROUND(((g / 31.0f) * 255.0f));
+               bm = ROUND(((b / 31.0f) * 255.0f));
+   
+               video_color_map[r][g][b] = makecol (rm, gm, bm);
             }
          }
       }
@@ -1234,36 +1240,6 @@ void video_set_palette_id (int id)
 int video_get_palette_id (void)
 {
    return (video_palette_id);
-}
-
-
-int video_create_color (int r, int g, int b)
-{
-    switch (color_depth)
-    {
-        case 8:
-
-        case 15:
-
-        case 16:
-
-            return (solid_map [(r / 4)] [(g / 4)] [(b / 4)]);
-
-
-        case 24:
-
-            return (makecol24 (r, g, b));
-
-
-        case 32:
-
-            return (makecol32 (r, g, b));
-
-
-        default:
-
-            return (0);
-    }
 }
 
 

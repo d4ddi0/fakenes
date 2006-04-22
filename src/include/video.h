@@ -9,6 +9,7 @@
 #ifndef VIDEO_H_INCLUDED
 #define VIDEO_H_INCLUDED
 #include "common.h"
+#include "debug.h"
 #include "gui.h"
 #include "types.h"
 #ifdef __cplusplus
@@ -46,9 +47,10 @@ BOOL video_display_status;
 BOOL video_enable_page_buffer;
 BOOL video_enable_vsync;
 BOOL video_force_fullscreen;
+int video_cached_color_depth; /* Read only. */
 
 int video_driver;
-
+   
 BITMAP *base_video_buffer;
 BITMAP *video_buffer;
 
@@ -71,7 +73,6 @@ void video_handle_keypress (int, int);
 void video_set_palette (RGB *);
 void video_set_palette_id (int);
 int video_get_palette_id (void);
-int video_create_color (int, int, int);
 int video_create_color_dither (int, int, int, int, int);
 int video_create_gradient (int, int, int, int, int);
 void video_create_gui_gradient (GUI_COLOR *, GUI_COLOR *, int);
@@ -88,6 +89,35 @@ BOOL video_is_opengl_mode (void);
 void video_show_bitmap (BITMAP *, ENUM, BOOL);
 
 void video_message (const UCHAR *, ...);
+
+UINT8 video_color_map[32][32][32];
+
+static INLINE int video_create_color (int r, int g, int b)
+{
+   /* Note: Don't use the makecol() or makecol8() functions here, as they
+      don't appear to be inlined by Allegro. */
+
+   switch (video_cached_color_depth)
+   {
+      case 8:
+         return (video_color_map[(r >> 3)][(g >> 3)][(b >> 3)]);
+
+      case 15:
+         return (makecol15 (r, g, b));
+
+      case 16:
+         return (makecol16 (r, g, b));
+
+      case 24:
+         return (makecol24 (r, g, b));
+
+      case 32:
+         return (makecol32 (r, g, b));
+
+      default:
+         WARN_GENERIC();
+   }
+}
 
 #ifdef __cplusplus
 }
