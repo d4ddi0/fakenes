@@ -459,19 +459,6 @@ int video_init_buffer (void)
 
 void video_exit (void)
 {
-#ifdef USE_ALLEGROGL
-
-   if (allegro_gl_installed)
-   {
-      /* Remove AllegroGL and restore Allegro GFX drivers. */
-      remove_allegro_gl ();
-
-      /* Clear flag. */
-      allegro_gl_installed = FALSE;
-   }
-
-#endif   /* USE_ALLEGRO_GL */
-
    if (!is_windowed_mode ())
    {
       /* Remove callbacks. */
@@ -539,6 +526,19 @@ void video_exit (void)
       destroy_bitmap (page_buffer);
       page_buffer = NULL;
    }
+
+#ifdef USE_ALLEGROGL
+
+   if (allegro_gl_installed)
+   {
+      /* Remove AllegroGL and restore Allegro GFX drivers. */
+      remove_allegro_gl ();
+
+      /* Clear flag. */
+      allegro_gl_installed = FALSE;
+   }
+
+#endif   /* USE_ALLEGRO_GL */
 
    /* Return to text mode. */
    set_gfx_mode (GFX_TEXT, 0, 0, 0, 0);
