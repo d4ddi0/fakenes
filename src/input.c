@@ -132,6 +132,13 @@ static BOOL toggled_auto    = FALSE;
 static BOOL merge_players   = FALSE;
 static REAL turbo_rate      = 0.5f;
 
+/* Cached values of player button states used for toggled autofire. */
+static BOOL auto_cache[INPUT_PLAYERS][INPUT_BUTTONS];
+
+/* Turbo stuff.  We keep it here so we can reset it. */
+static int turbo_phase  = 0;
+static int turbo_frames = 0;
+
 static INLINE void load_keyboard_config (void)
 {
    STRING defaults;
@@ -476,15 +483,22 @@ void input_reset (void)
       int *buttons = &player_buttons[player][0];
       int index;
 
-      /* Default to ON?  Is this even correct? */
       for (index = 0; index < INPUT_BUTTONS; index++)
+      {
          buttons[index] = BUTTON_ON;
+
+         /* Sync to autofire cache. */
+         auto_cache[player][index] = buttons[index];
+      }
    }
 
    /* Clear variables. */
-   last_write = 0;
+   wait_frames     = 0;
+   last_write      = 0;
    current_read_p1 = 0;
    current_read_p2 = 0;
+   turbo_phase     = 0;
+   turbo_frames    = 0;
 }
 
 UINT8 input_read (UINT16 address)               
@@ -847,8 +861,6 @@ static INLINE void do_mouse (int player)
 
 void input_process (void)
 {
-   static int turbo_phase  = 0;
-   static int turbo_frames = 0;
    int player;
 
    if (!(input_mode & INPUT_MODE_REPLAY_RECORD))
@@ -909,6 +921,8 @@ void input_process (void)
    if (wait_frames > 0)
       return;
 
+   /* Phase 1 - Gathering input and applying modifiers. */
+
    for (player = 0; player < INPUT_PLAYERS; player++)
    {
       int *buttons = &player_buttons[player][0];
@@ -916,6 +930,14 @@ void input_process (void)
 
       switch (input_devices[player])
       {
+         case INPUT_DEVICE_NONE:
+         {
+            for (button = 0; button < INPUT_BUTTONS; button++)
+               buttons[button] = BUTTON_OFF;
+
+            break;
+         }
+
          case INPUT_DEVICE_KEYS_1:
          {
             do_keyboard_1 (player);
@@ -953,7 +975,6 @@ void input_process (void)
 
       for (button = 0; button < INPUT_BUTTONS; button++)
       {
-         static BOOL auto_cache[INPUT_PLAYERS][INPUT_BUTTONS];
          const LIST *list = &button_modifiers[player][button];
 
          if (LIST_COMPARE(*list, BUTTON_MODIFIER_AUTO))
@@ -979,9 +1000,66 @@ void input_process (void)
          if (LIST_COMPARE(*list, BUTTON_MODIFIER_TURBO))
             buttons[button] = MIN(buttons[button], turbo_phase);
       }
+   }
 
-      if (!allow_conflicts)
+   /* Phase 2 - Merging players together. */
+
+   if (merge_players)
+   {
+      for (player = 0; player < INPUT_PLAYERS; player++)
       {
+         int *buttons = &player_buttons[player][0];
+
+         switch (player)
+         {
+            case INPUT_PLAYER_1:
+            {
+               int button;
+
+               /* Merge player 3 with player 1. */
+
+               for (button = 0; button < INPUT_BUTTONS; button++)
+               {
+                  buttons[button] = MAX(buttons[button],
+                     player_buttons[INPUT_PLAYER_3][button]);
+
+                  player_buttons[INPUT_PLAYER_3][button] = buttons[button];
+               }
+
+               break;
+            }
+
+            case INPUT_PLAYER_2:
+            {
+               int button;
+
+               /* Merge player 4 with player 2. */
+
+               for (button = 0; button < INPUT_BUTTONS; button++)
+               {
+                  buttons[button] = MAX(buttons[button],
+                     player_buttons[INPUT_PLAYER_4][button]);
+
+                  player_buttons[INPUT_PLAYER_4][button] = buttons[button];
+               }
+
+               break;
+            }
+
+            default:
+               break;
+         }
+      }
+   }
+
+   /* Phase 3 - Preventing conflicts. */
+
+   if (!allow_conflicts)
+   {
+      for (player = 0; player < INPUT_PLAYERS; player++)
+      {
+         int *buttons = &player_buttons[player][0];
+
          /* Fix up conflicting directional controls. */
 
          if (buttons[INPUT_BUTTON_UP] && buttons[INPUT_BUTTON_DOWN])
@@ -1000,58 +1078,24 @@ void input_process (void)
             buttons[INPUT_BUTTON_RIGHT] = BUTTON_OFF;
          }
       }
+   }
 
-      if (merge_players)
+   /* Part IV - Saving replay data. */
+
+   if (input_mode & INPUT_MODE_REPLAY_RECORD)
+   {
+      /* Send player button states to the replay file. */
+
+      for (player = 0; player < INPUT_PLAYERS; player++)
       {
-         switch (player)
-         {
-            case INPUT_PLAYER_1:
-            {
-               /* Merge player 3 with player 1. */
-
-               for (button = 0; button < INPUT_BUTTONS; button++)
-               {
-                  buttons[button] = MAX(buttons[button],
-                     player_buttons[INPUT_PLAYER_3][button]);
-
-                  player_buttons[INPUT_PLAYER_3][button] = buttons[button];
-               }
-
-               break;
-            }
-
-            case INPUT_PLAYER_2:
-            {
-               /* Merge player 4 with player 2. */
-
-               for (button = 0; button < INPUT_BUTTONS; button++)
-               {
-                  buttons[button] = MAX(buttons[button],
-                     player_buttons[INPUT_PLAYER_4][button]);
-
-                  player_buttons[INPUT_PLAYER_4][button] = buttons[button];
-               }
-
-               break;
-            }
-
-            default:
-               break;
-         }
-      }
-
-
-      if (input_mode & INPUT_MODE_REPLAY_RECORD)
-      {
-         /* Send player button states to the replay file. */
-
+         int *buttons = &player_buttons[player][0];
          UINT8 data = 0;
-         int index;
- 
-         for (index = 0; index < INPUT_BUTTONS; index++)
+         int button;
+      
+         for (button = 0; button < INPUT_BUTTONS; button++)
          {
-            if (buttons[index] == BUTTON_ON)
-               data |= (1 << index);
+            if (buttons[button] == BUTTON_ON)
+               data |= (1 << button);
          }
  
          save_replay_data (data);
