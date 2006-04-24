@@ -4063,7 +4063,7 @@ static int options_input_configure_dialog_calibrate (DIALOG *dialog)
          {
             int scancode;
 
-            message_local ("%s, and press any key.\n",
+            message_local ("%s, and press any key.",
                calibrate_joystick_name (index));
 
             while (!keypressed ())

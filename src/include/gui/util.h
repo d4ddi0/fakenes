@@ -72,7 +72,7 @@ static INLINE void draw_message (int color)
 
       refresh ();
 
-      log_printf ("GUI: %s\n", message_buffer);
+      log_printf ("GUI: %s", message_buffer);
    }
    else
    {
