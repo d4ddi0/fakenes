@@ -406,9 +406,6 @@ int video_reinit (void)
    {
       preserve_video_buffer = FALSE;
       preserve_palette = FALSE;
-    
-      if (gui_is_active)
-         show_mouse (screen);
    }
 
    return (result);
@@ -1555,12 +1552,6 @@ void video_set_resolution (int width, int height)
     preserve_video_buffer = FALSE;
 
     preserve_palette = FALSE;
-
-
-    if (gui_is_active)
-    {
-        show_mouse (screen);
-    }
 }
 
 int video_get_color_depth (void)
@@ -1606,12 +1597,6 @@ void video_set_color_depth (int depth)
     preserve_video_buffer = FALSE;
 
     preserve_palette = FALSE;
-
-
-    if (gui_is_active)
-    {
-        show_mouse (screen);
-    }
 }
 
 
@@ -1652,12 +1637,6 @@ void video_set_driver (int driver)
     preserve_video_buffer = FALSE;
 
     preserve_palette = FALSE;
-
-
-    if (gui_is_active)
-    {
-        show_mouse (screen);
-    }
 }
 
 
