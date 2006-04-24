@@ -1682,10 +1682,6 @@ BOOL video_is_opengl_mode (void)
 
 #ifdef USE_ALLEGROGL
 
-      if (!allegro_gl_installed)
-      log_printf ("AllegroGL Isn't installed!");
-
-   log_printf("Driver ID: %c%c%c%c\n", gfx_driver->id>>24, (gfx_driver->id>>16)&255, (gfx_driver->id>>8)&255, gfx_driver->id&255);
    return (((gfx_driver->id == GFX_OPENGL) ||
             (gfx_driver->id == GFX_OPENGL_FULLSCREEN) || 
             (gfx_driver->id == GFX_OPENGL_WINDOWED)));
