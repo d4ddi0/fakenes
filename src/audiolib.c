@@ -265,7 +265,7 @@ static void free_al_stream_buffer (ALSTREAM *);
    }  \
 }
 
-#define NUM_BUFFERS  3
+#define NUM_BUFFERS  2
 
 static ALSTREAM *play_al_stream (int len, int bits, int stereo, int freq)
 {
@@ -386,6 +386,8 @@ static void *get_al_stream_buffer (ALSTREAM *stream)
 
 static void free_al_stream_buffer (ALSTREAM *stream)
 {
+   int state;
+
    RT_ASSERT(stream);
    RT_ASSERT(stream->buffer);
 
@@ -395,6 +397,15 @@ static void free_al_stream_buffer (ALSTREAM *stream)
 
    alSourceQueueBuffers (stream->source, 1, &floating_buffer);
    AL_CHECK();
+
+   alGetSourcei (stream->source, AL_SOURCE_STATE, &state);
+   AL_CHECK();
+
+   if (state == AL_STOPPED)
+   {
+      alSourcePlay (stream->source);
+      AL_CHECK();
+   }
 }
 
 static ALSTREAM *audiolib_openal_stream = NULL;
