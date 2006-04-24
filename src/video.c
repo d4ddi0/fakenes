@@ -140,6 +140,8 @@ int video_init (void)
    int result;
    const CHAR *font_file;
 
+   log_printf ("VIDEO: Entering video_init().");
+
    /* Install message timer. */
 
    LOCK_VARIABLE (video_message_duration);
@@ -147,6 +149,8 @@ int video_init (void)
    install_int_ex (video_message_timer, BPS_TO_TIMER(1));
 
    /* Load configuration. */
+
+   log_printf ("VIDEO: Loading configuration.");
 
    video_driver             = get_config_id  ("video", "driver",             video_driver);
    screen_width             = get_config_int ("video", "screen_width",       screen_width);
@@ -209,6 +213,8 @@ int video_init (void)
        (driver == GFX_OPENGL_FULLSCREEN) ||
        (driver == GFX_OPENGL_WINDOWED))
    {
+      log_printf ("VIDEO: Installing AllegroGL.\n");
+
       /* Install AllegroGL. */
       install_allegro_gl ();
 
@@ -222,6 +228,8 @@ int video_init (void)
                                        
       allegro_gl_set (AGL_FULLSCREEN,  video_force_fullscreen);
       allegro_gl_set (AGL_WINDOWED,   !video_force_fullscreen);
+
+      allegro_gl_set (AGL_SUGGEST, (AGL_FULLSCREEN | AGL_WINDOWED));
    }
 
 #endif   /* USE_ALLEGROGL */
@@ -253,6 +261,8 @@ int video_init (void)
 
    /* Enter graphics mode. */
 
+   log_printf ("VIDEO: Entering graphics mode.");
+
    if (set_gfx_mode (driver, screen_width, screen_height, 0, 0) != 0)
    {
       WARN("set_gfx_mode() failed");
@@ -263,6 +273,8 @@ int video_init (void)
 
    if (video_is_opengl_mode ())
    {
+      log_printf ("VIDEO: Setting up OpenGL.\n");
+
       /* Enable OpenGL texturing. */
       glEnable (GL_TEXTURE_2D);
 
@@ -282,6 +294,8 @@ int video_init (void)
 
    if (video_enable_page_buffer)
    {
+      log_printf ("VIDEO: Creating page buffer.");
+
       page_buffer = create_video_bitmap (SCREEN_W, SCREEN_H);
       if (!page_buffer)
       {
@@ -297,6 +311,8 @@ int video_init (void)
    if (!preserve_video_buffer)
    {
       /* Create video buffer. */
+
+      log_printf ("VIDEO: Creating video buffer.");
 
       base_video_buffer = create_bitmap_ex (8, ((8 + 256) + 8), ((16 + 240)
          + 16));
@@ -387,6 +403,8 @@ int video_init (void)
       set_display_switch_callback (SWITCH_OUT, switch_out_callback);
    }
 
+   log_printf ("VIDEO: Exiting video_init().");
+
    /* Return success. */
    return (0);
 }
@@ -423,6 +441,8 @@ int video_init_buffer (void)
    if (screen_buffer)
       destroy_bitmap (screen_buffer);
 
+   log_printf ("VIDEO: Creating screen buffer.");
+
    screen_buffer = create_bitmap (width, height);
    if (!screen_buffer)
    {
@@ -456,6 +476,8 @@ int video_init_buffer (void)
 
 void video_exit (void)
 {
+   log_printf ("VIDEO: Entering video_exit().");
+
    if (!is_windowed_mode ())
    {
       /* Remove callbacks. */
@@ -493,6 +515,8 @@ void video_exit (void)
 
    if (!preserve_video_buffer)
    {
+      log_printf ("VIDEO: Destroying video buffer.");
+
       if (video_buffer)
       {
          destroy_bitmap (video_buffer);
@@ -505,6 +529,8 @@ void video_exit (void)
          video_buffer = NULL;
       }
    }
+
+   log_printf ("VIDEO: Destroying screen buffer.");
 
    if (status_buffer)
    {
@@ -520,14 +546,23 @@ void video_exit (void)
 
    if (page_buffer)
    {
+      log_printf ("VIDEO: Destroying page buffer.");
+
       destroy_bitmap (page_buffer);
       page_buffer = NULL;
    }
+
+   log_printf ("VIDEO: Exiting graphics mode.");
+
+   /* Return to text mode. */
+   set_gfx_mode (GFX_TEXT, 0, 0, 0, 0);
 
 #ifdef USE_ALLEGROGL
 
    if (allegro_gl_installed)
    {
+      log_printf ("VIDEO: Uninstalling AllegroGL.");
+
       /* Remove AllegroGL and restore Allegro GFX drivers. */
       remove_allegro_gl ();
 
@@ -537,10 +572,9 @@ void video_exit (void)
 
 #endif   /* USE_ALLEGRO_GL */
 
-   /* Return to text mode. */
-   set_gfx_mode (GFX_TEXT, 0, 0, 0, 0);
-
    /* Save configuration. */
+
+   log_printf ("VIDEO: Saving configuration.");
 
    set_config_id  ("video", "driver",             video_driver);
    set_config_int ("video", "screen_width",       screen_width);
@@ -560,6 +594,8 @@ void video_exit (void)
    set_config_int ("video", "enable_page_buffer", video_enable_page_buffer);
    set_config_int ("video", "enable_vsync",       video_enable_vsync);
    set_config_int ("video", "edge_clipping",      video_edge_clipping);
+
+   log_printf ("VIDEO: Exiting video_exit().");
 }
 
 
@@ -1646,6 +1682,10 @@ BOOL video_is_opengl_mode (void)
 
 #ifdef USE_ALLEGROGL
 
+      if (!allegro_gl_installed)
+      log_printf ("AllegroGL Isn't installed!");
+
+   log_printf("Driver ID: %c%c%c%c\n", gfx_driver->id>>24, (gfx_driver->id>>16)&255, (gfx_driver->id>>8)&255, gfx_driver->id&255);
    return (((gfx_driver->id == GFX_OPENGL) ||
             (gfx_driver->id == GFX_OPENGL_FULLSCREEN) || 
             (gfx_driver->id == GFX_OPENGL_WINDOWED)));

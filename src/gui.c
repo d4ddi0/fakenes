@@ -286,7 +286,6 @@ static INLINE void update_menus (void)
 
 #ifdef USE_ALLEGROGL
 
-   TOGGLE_MENU_ITEM(video_driver_menu_opengl,      (gfx_driver->id == GFX_OPENGL));
    TOGGLE_MENU_ITEM(video_driver_menu_opengl_full, (gfx_driver->id == GFX_OPENGL_FULLSCREEN));
    TOGGLE_MENU_ITEM(video_driver_menu_opengl_win,  (gfx_driver->id == GFX_OPENGL_WINDOWED));
 
@@ -508,42 +507,45 @@ void gui_exit (void)
 
 int show_gui (BOOL first_run)
 {
-   int result;
-   static BOOL warned_about_opengl = FALSE;
-
-   /* Open GUI. */
-
-   result = gui_open ();
-
-   if (result != 0)
-   {
-      WARN("Failed to open GUI");
-      return ((8 + result));
-   }
-
-   if (first_run)
-   {
-      /* Show console. */
-      main_menu_view_console ();
-   }
-
-   if (video_is_opengl_mode () && !warned_about_opengl)
-   {
-      /* Warn about buggy OpenGL support in the GUI. */
-
-      gui_alert ("OpenGL Warning", "The GUI's OpenGL support is still a "
-         "bit buggy and incomplete.", "Proceed with caution.", NULL, "&OK",
-            NULL, 'o', 0);
-
-      warned_about_opengl = TRUE;
-   }
-
    want_exit = FALSE;
 
    do
    {
+      int result;
+      static BOOL warned_about_opengl = FALSE;
+
       /* Clear restart flag. */
       gui_needs_restart = FALSE;
+
+      /* Open GUI. */
+   
+      result = gui_open ();
+   
+      if (result != 0)
+      {
+         WARN("Failed to open GUI");
+         return ((8 + result));
+      }
+   
+      if (first_run)
+      {
+         /* Show console. */
+         main_menu_view_console ();
+
+         /* Clear flag. */
+         first_run = FALSE;
+      }
+
+      if (video_is_opengl_mode () && !warned_about_opengl)
+      {
+         /* Warn about buggy OpenGL support in the GUI. */
+   
+         gui_alert ("OpenGL Warning", "The GUI's OpenGL support is still "
+            "a bit buggy and incomplete.", "Proceed with caution.", NULL,
+               "&OK", NULL, 'o', 0);
+   
+         warned_about_opengl = TRUE;
+      }
 
       /* Update menu states. */
       update_menus ();
@@ -551,13 +553,10 @@ int show_gui (BOOL first_run)
       /* Run main dialog. */
       run_dialog (main_dialog, -1);
 
-      if (gui_needs_restart)
-         cycle_video ();
+      /* Close GUI. */
+      gui_close (want_exit);
 
    } while (gui_needs_restart);
-
-   /* Close GUI. */
-   gui_close (want_exit);
 
    return (want_exit);
 }
