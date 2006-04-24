@@ -117,6 +117,8 @@ static INLINE int video_create_color (int r, int g, int b)
       default:
          WARN_GENERIC();
    }
+
+   return (0);
 }
 
 #ifdef __cplusplus
