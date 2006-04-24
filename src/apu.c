@@ -84,7 +84,7 @@ static const int duty_lut[] = {
 
 /* --- Queue routines. --- */
 
-#define APU_QEMPTY()    (apu.q_head == apu.q_tail)
+#define APU_QEMPTY()    (apu.q_head    == apu.q_tail)
 #define APU_EX_QEMPTY() (apu.ex_q_head == apu.ex_q_tail)
 
 // ExSound headers
@@ -120,7 +120,7 @@ static INLINE void apu_ex_enqueue (apudata_t *d)
    RT_ASSERT(d);
 
    apu.ex_queue[apu.ex_q_head] = *d;
-   apu.ex_q_head = ((apu.ex_q_head + 1) & APUQUEUE_MASK);
+   apu.ex_q_head = ((apu.ex_q_head + 1) & APUQUEUE_EX_MASK);
 
    if (APU_EX_QEMPTY())
       log_printf ("ex_apu: queue overflow\n");      
@@ -134,7 +134,7 @@ static INLINE apudata_t *apu_ex_dequeue (void)
       log_printf ("ex_apu: queue empty\n");
 
    loc = apu.ex_q_tail;
-   apu.ex_q_tail = ((apu.ex_q_tail + 1) & APUQUEUE_MASK);
+   apu.ex_q_tail = ((apu.ex_q_tail + 1) & APUQUEUE_EX_MASK);
 
    return (&apu.ex_queue[loc]);
 }
@@ -636,11 +636,6 @@ void apu_reset (void)
 
    /* Clear context. */
    memset (&apu, 0, sizeof (apu));
-
-   /* Clear queues. */
-             
-   memset (&apu.queue,    0, (APUQUEUE_SIZE * sizeof (apudata_t)));
-   memset (&apu.ex_queue, 0, (APUQUEUE_SIZE * sizeof (apudata_t)));
 
    /* set the stupid flag to tell difference between two squares */
 

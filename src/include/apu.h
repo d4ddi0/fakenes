@@ -194,8 +194,10 @@ typedef struct _APU_MMC5SOUND
 } APU_MMC5SOUND;
 
 /* APU queue structure */
-#define APUQUEUE_SIZE   4096
-#define APUQUEUE_MASK   (APUQUEUE_SIZE - 1)
+#define APUQUEUE_SIZE      8192
+#define APUQUEUE_MASK      (APUQUEUE_SIZE - 1)
+#define APUQUEUE_EX_SIZE   2048
+#define APUQUEUE_EX_MASK   (APUQUEUE_EX_SIZE - 1)
 
 /* apu ring buffer member */
 typedef struct apudata_s
@@ -233,7 +235,7 @@ typedef struct apu_s
    int q_head, q_tail;
 
    // for ExSound
-   apudata_t ex_queue[APUQUEUE_SIZE];
+   apudata_t ex_queue[APUQUEUE_EX_SIZE];
    int ex_q_head, ex_q_tail;
    const APU_EXSOUND *exsound;
 
