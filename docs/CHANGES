@@ -1,3 +1,70 @@
+0.5.8
+AUDIO: Fixed OpenAL once and for all.
+AUDIO: Fixed a bug where the APU and DSP sections of the configuration file were not loaded or saved until a ROM was loaded, causing various goofs in the GUI such as channels appearing to be disabled when they really weren't.
+AUDIO: Fixed a bug in the API that might cause some games with ExSound to crash with an arithmetic exception.
+AUDIO: Fixed a bug that would cause some games to not have sound output from the square wave channels until a rewind or state restore.
+AUDIO: Fixed the Delta-Sigma filter.
+AUDIO: Quadrupled the size of the main APU queue to help prevent overflows (harmless looping around that creates audio artifacts) in some games.
+CORE: Implemented a new timing system.
+CORE: Added the ability to set the emulation speed based upon a percentage value, and a cooresponding GUI interface for it.
+CORE: Changed the behavior of 'Soft Reset' and 'Hard Reset' to be more correct.
+CODE: Implemented a new build system.
+CODE: Restructured the main loop.
+CODE: Restructured the main GUI loop.
+CODE: Restructured the init/reset system.
+CODE: Reorganized Source Code tree.
+CODE: Fixed some warnings when building under GCC with -W.
+DOCS: Added FAQ, which was supposed to be added earlier but wasn't for some reason.
+DOCS: Updated docs.
+GUI: Fixed a bug where you could close the ROM while a replay was recording or playing.
+GUI: Fixed a bug where a dialog would disappear if moved off-screen.
+GUI: Fixed shortcut keys not working in some dialogs.
+GUI: Redid all menu shortcuts to fix several obvious conflicts.
+GUI: Added a new, custom, OpenGL-compatible file selector.
+GUI: Added a real-time game clock to the status display.
+GUI: Added a GUI interface to configure open and save paths.
+GUI: Added the ability to lock the open path so that it is not changed by the Main->Open dialog.
+GUI: Added the ability to disable or set frame skip amount from the GUI.
+GUI: Added the ability to disable/enable the speed cap from the GUI.
+GUI: Added the ability to specify a custom autosave interval from the GUI.
+GUI: Added the ability to specify a custom audio mixing frequency, audio buffer size, and audio volume level from the GUI.
+GUI: Added the ability to set custom resolutions and video buffer sizes from the GUI.
+GUI: Added the ability to configure parameters for some blitters.
+GUI: Added configuration dialogs for the 'nes_ntsc' and 'stretched' blitters to the GUI.
+GUI: Added the ability to step through the emulation one frame at a time.
+GUI: Rewrote the status display and moved it upward as to not conflict with messages.
+GUI: Added confirmation (of success) of save states created during gameplay.
+GUI: Removed superfluous newlines in GUI log messages.
+GUI: Added functionality to view the console and log (via Main->View Console and Main->View Log in the GUI, respectively).
+GUI: Switched from Help->Version dialog to Main->View Console dialog for first run 'welcome message'.
+GUI: Fixed a cosmetic bug where the 1024x proportionate resolution selections in the GUI were listed as 1152x instead, added 1280x960 standard resolution.
+GUI: Removed an excess menu splitter in the Video->Blitter menu.
+GUI: Removed the ability to disable the GUI.
+GUI: General GUI fixes and improvements.
+INPUT: Fixed a bug that prevented automapping of controls for players 2, 3, and 4 from working properly.
+INPUT: Added autofire and turbofire.
+INPUT: Added an option to merge players 3 & 4 with players 1 & 2, so that on 2-player only games a single player can have multiple input configurations.
+INPUT: Added detection of modifier keys (SHIFT, ALT, CTRL, etc.) to the automapper.
+INPUT: Only poll keyboard/mouse when necessary.
+INPUT: Changed default keyboard configuration.
+MISC: Expanded save state, replay, and cheat titles from 16 bytes maximum to 255 bytes maximum.
+MISC: PCX and WAV files are now stored in the save path, using the filename of the ROM along with '_XXX' appended, where 'XXX' is a number from 0-999.
+MISC: Improved logging facilities.
+MISC: Removed console window under Windows.
+MISC: Started logging all calls to WARN().
+VIDEO: Fixed a possible crash upon exit or when changing various video options.
+VIDEO: Lots of fixes for OpenGL.
+VIDEO: More fixes in order to play nice with the double-buffered GUI.
+VIDEO: Updated to nes_ntsc v0.2.0.
+VIDEO: Improved nes_ntsc blitter interface.
+VIDEO: Added more video color controls (hue, saturation, contrast, gamma) in addition to brightness, and a cooresponding GUI interface to configure all of them.
+VIDEO: Moved video_create_color() to video.h and made it inline and as fast as possible.
+VIDEO: Removed color LUT usage for 15- and 16-bit color modes in favor of fast inline truecolor pixel packing instead.
+VIDEO: Reduced color LUT depth from 18-bit down to 15-bit since it is only used for 256 color modes now.
+VIDEO: Re-merged HQ2X, HQ3X, and HQ4X in a way as to not cause pixel artifacts to form in HQ4X due to conflicts.
+VIDEO: Added 400x300 as a standard resolution in the GUI.
+VIDEO: Renamed 'hq' blitter interface to 'hqx', which seems to be the accepted standard.
+
 0.5.7
 AUDIO: Fixed all while() loops in the APU to never be truely infinite (thus preventing hard lock-ups), removed a previous hack that was added to get around such a thing.
 AUDIO: Implemented a new ExSound API.
