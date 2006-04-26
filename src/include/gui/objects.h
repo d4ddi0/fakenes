@@ -25,6 +25,27 @@ static INLINE void pop_font (void)
    font = old_font;
 }
 
+int sl_idle (int message, DIALOG *dialog, int key)
+{
+   /* A simple MSG_IDLE handler object that allows other objects to play
+      nice with the GUI during blocking hard loops. */
+
+   switch (message)
+   {
+      case MSG_IDLE:
+      {
+         gui_heartbeat ();
+
+         break;
+      }
+
+      default:
+         break;
+   }
+
+   return (D_O_K);
+}
+
 int sl_text (int message, DIALOG *dialog, int key)
 {
    /*
@@ -32,6 +53,10 @@ int sl_text (int message, DIALOG *dialog, int key)
 
       dp2 = Text to print.
       dp3 = Font.
+
+      If the 'key' field of the DIALOG* is set, the next object in the
+      dialog will be activated.  However, it is recommended that you tie the
+      keyboard shortcut directly to that object instead, if possible.
    */
 
    RT_ASSERT(dialog);
@@ -75,11 +100,81 @@ int sl_text (int message, DIALOG *dialog, int key)
          break;
       }
 
+      case MSG_KEY:
+      {
+         int index = 0;
+
+         while (&active_dialog[index] != dialog)
+            index++;
+
+         offer_focus (active_dialog, (index + 1), &index, TRUE);
+
+         break;
+      }
+
       default:
          break;
    }
 
    return (D_O_K);
+}
+
+int sl_ctext (int message, DIALOG *dialog, int key)
+{
+   /*
+      Centered text object.
+
+      Parameters - see sl_text().
+   */
+
+   RT_ASSERT(dialog);
+
+   switch (message)
+   {
+      case MSG_DRAW:
+      {
+         BITMAP *bmp;
+         int x, y;
+
+         /* Calculate coordinates. */
+         x = dialog->x; 
+         y = dialog->y;
+
+         x += ((dialog->w / 2) - (text_length (font, dialog->dp2) / 2));
+
+         /* Select font. */
+         push_font (dialog->dp3);
+
+         /* Get drawing surface. */
+         bmp = gui_get_screen ();
+
+         /* Draw text shadow. */
+         gui_textout_ex (bmp, dialog->dp2, (x + 1), (y + 1),
+            GUI_SHADOW_COLOR, -1, FALSE);
+
+         /* Draw text. */
+         if (dialog->flags & D_DISABLED)
+         {
+            gui_textout_ex (bmp, dialog->dp2, x, y, GUI_DISABLED_COLOR, -1,
+               FALSE);
+         }
+         else
+         {
+            gui_textout_ex (bmp, dialog->dp2, x, y, GUI_TEXT_COLOR, -1,
+               FALSE);
+         }
+
+         /* Unselect font. */
+         pop_font ();
+
+         return (D_O_K);
+      }
+
+      default:
+         break;
+   }
+
+   return (sl_text (message, dialog, key));
 }
 
 #define SL_FRAME_END    0xf0
@@ -237,7 +332,7 @@ int sl_frame (int message, DIALOG *dialog, int key)
                unscare_mouse ();
             }
 
-            gui_heartbeat ();
+            broadcast_dialog_message (MSG_IDLE, 0);
          }
 
          solid_mode ();
@@ -436,23 +531,51 @@ int sl_listbox (int message, DIALOG *dialog, int key)
    /*
       Listbox object with a callback.
 
-      dp3 = Callback function.
+      dp2 = Double-click callback function.
+      dp3 = Single-click callback function.
+
+      Keypresses are sent to dp2 if it is defined, otherwise to dp3.
+
+      Since dp2 is used, multiple selections are not supported.
+
+      Callback return codes (e.g D_CLOSE) are not supported.
    */
 
    int (*handler) (DIALOG *);
+   void *saved_dp2;
    int result;
 
    RT_ASSERT(dialog);
 
-   handler = dialog->dp3;
-
-   result = d_list_proc (message, dialog, key);
-
    switch (message)
    {
       case MSG_CLICK:
+      {
+         handler = dialog->dp3;
+
+         if (handler)
+            handler (dialog);
+
+         break;
+      }
+
+      case MSG_DCLICK:
+      {
+         handler = dialog->dp2;
+
+         if (handler)
+            handler (dialog);
+
+         break;
+      }     
+
       case MSG_KEY:
       {
+         if (dialog->dp2)
+            handler = dialog->dp2;
+         else
+            handler = dialog->dp3;
+
          if (handler)
             handler (dialog);
 
@@ -462,6 +585,13 @@ int sl_listbox (int message, DIALOG *dialog, int key)
       default:
          break;
    }
+
+   saved_dp2 = dialog->dp2;
+   dialog->dp2 = NULL;
+
+   result = d_list_proc (message, dialog, key);
+
+   dialog->dp2 = saved_dp2;
 
    return (result);
 }
@@ -550,6 +680,49 @@ int sl_editbox (int message, DIALOG *dialog, int key)
    }
 
    return (D_O_K);
+}
+
+int sl_editbox2 (int message, DIALOG *dialog, int key)
+{
+   /*
+      Edit box that invokes a callback when ENTER is pressed.
+
+      dp2 - Callback;
+   */
+
+   RT_ASSERT(dialog);
+
+   switch (message)
+   {
+      case MSG_CHAR:
+      {
+         switch ((key >> 8))
+         {
+            case KEY_ENTER:
+            case KEY_ENTER_PAD:
+            {
+               int (*handler) (DIALOG *);
+
+               handler = dialog->dp2;
+
+               if (handler)
+                  return (handler (dialog));
+
+               break;
+            }
+
+            default:
+               break;
+         }
+
+         break;
+      }
+
+      default:
+         break;
+   }
+
+   return (sl_editbox (message, dialog, key));
 }
 
 int sl_lobby_msgbox (int message, DIALOG *dialog, int key)

@@ -1,8 +1,8 @@
 /* Define helper macros. */
 #define DEFINE_DIALOG(name)            static DIALOG * name = NULL
 #define DEFINE_DIALOG_CALLBACK(func)   static int func (DIALOG *)
-#define DIALOG_ENDCAP                  { NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL }
-#define DIALOG_FRAME_ENDCAP            { NULL, 0, 0, 0, 0, 0, 0, 0, 0, SL_FRAME_END, 0, NULL, NULL, NULL }
+#define DIALOG_ENDCAP                  { sl_idle, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL }, { NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL }
+#define DIALOG_FRAME_ENDCAP            { sl_idle, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL }, { NULL, 0, 0, 0, 0, 0, 0, 0, 0, SL_FRAME_END, 0, NULL, NULL, NULL }
 #define IMPORT_MENU(menu)              (MENU *) & menu
   
 DEFINE_DIALOG(main_dialog);
@@ -103,6 +103,37 @@ enum
    AMOUNT_DIALOG_UNITS_LABEL,
    AMOUNT_DIALOG_OK_BUTTON,
    AMOUNT_DIALOG_CANCEL_BUTTON
+};
+
+static const DIALOG file_select_dialog_base[] =
+{
+   { sl_frame,    0,   0,   384, 265, 0, 0, 0,   0,      0, 0, NULL,      NULL,            NULL },
+   { sl_x_button, 365, 4,   16,  12,  0, 0, 0,   D_EXIT, 0, 0, "X",       NULL,            NULL },
+   { sl_ctext,    0,   28,  384, 0,   0, 0, 0,   0,      0, 0, NULL,      NULL,            NULL },
+   { sl_text,     60,  40,  0,   0,   0, 0, 'd', 0,      0, 0, NULL,      "&Directories:", NULL },
+   { sl_listbox,  9,   52,  148, 164, 0, 0, 0,   0,      0, 0, NULL,      NULL,            NULL },
+   { sl_text,     257, 40,  0,   0,   0, 0, 'f', 0,      0, 0, NULL,      "&Files:",       NULL },
+   { sl_listbox,  166, 52,  209, 164, 0, 0, 0,   0,      0, 0, NULL,      NULL,            NULL },
+   { sl_text,     9,   225, 0,   0,   0, 0, 0,   0,      0, 0, NULL,      "File&name:",    NULL },
+   { sl_editbox2, 63,  222, 312, 12,  0, 0, 'n', 0,      0, 0, NULL,      NULL,            NULL },
+   { sl_button,   125, 240, 64,  16,  0, 0, 'o', D_EXIT, 0, 0, "&OK",     NULL,            NULL },
+   { sl_button,   195, 240, 64,  16,  0, 0, 'c', D_EXIT, 0, 0, "&Cancel", NULL,            NULL },
+   DIALOG_FRAME_ENDCAP                                                               
+};
+
+enum
+{
+   FILE_SELECT_DIALOG_FRAME = 0,
+   FILE_SELECT_DIALOG_CLOSE_BUTTON,
+   FILE_SELECT_DIALOG_CAPTION_LABEL,
+   FILE_SELECT_DIALOG_DIRECTORIES_LABEL,
+   FILE_SELECT_DIALOG_DIRECTORY_LIST,
+   FILE_SELECT_DIALOG_FILES_LABEL,
+   FILE_SELECT_DIALOG_FILE_LIST,
+   FILE_SELECT_DIALOG_FILENAME_LABEL,
+   FILE_SELECT_DIALOG_FILENAME,
+   FILE_SELECT_DIALOG_OK_BUTTON,
+   FILE_SELECT_DIALOG_CANCEL_BUTTON
 };
 
 static const DIALOG main_dialog_base[] =
@@ -602,6 +633,7 @@ enum
 /* Undefine helper macros. */
 #undef DEFINE_DIALOG
 #undef DEFINE_DIALOG_CALLBACK
+#undef DIALOG_REFRESH
 #undef DIALOG_ENDCAP
 #undef DIALOG_FRAME_ENDCAP
 #undef IMPORT_MENU
@@ -736,9 +768,12 @@ static INLINE int run_dialog (DIALOG *dialog, int focus)
    DIALOG_PLAYER *player;
    int index;
 
-   /* Similar to Allegro's do_dialog(), but is built to be non-blocking with
-      minimal CPU usage and automatic screen refresh for when the GUI is not
-      being drawn directly to the screen. */
+   /* Similar to Allegro's do_dialog().
+
+      Althoughall custom dialogs handle the non-blocking setup of the GUI
+      themselves (through sl_idle() from 'objects.h'), menus require
+      init/update/shutdown_dialog() to be used in place of do_dialog().
+      */
 
    RT_ASSERT(dialog);
 

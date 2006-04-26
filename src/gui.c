@@ -56,9 +56,6 @@ static USTRING message_buffer;
 
 static PALETTE custom_palette;
 
-/* Time to rest in milliseconds (used by gui_heartbeat()). */
-#define REST_TIME 10
-
 static int save_state_index = 0; /* For save states. */
 static int replay_index = 0;     /* For replays. */
 
@@ -85,6 +82,7 @@ static BOOL lock_recent = FALSE;
 #include "gui/menus.h"
 #include "gui/dialogs.h"
 #include "gui/util.h"
+#include "gui/file.h"
 
 static INLINE void update_menus (void)
 {
@@ -512,7 +510,6 @@ int show_gui (BOOL first_run)
    do
    {
       int result;
-      static BOOL warned_about_opengl = FALSE;
 
       /* Clear restart flag. */
       gui_needs_restart = FALSE;
@@ -534,17 +531,6 @@ int show_gui (BOOL first_run)
 
          /* Clear flag. */
          first_run = FALSE;
-      }
-
-      if (video_is_opengl_mode () && !warned_about_opengl)
-      {
-         /* Warn about buggy OpenGL support in the GUI. */
-   
-         gui_alert ("OpenGL Warning", "The GUI's OpenGL support is still "
-            "a bit buggy and incomplete.", "Proceed with caution.", NULL,
-               "&OK", NULL, 'o', 0);
-   
-         warned_about_opengl = TRUE;
       }
 
       /* Update menu states. */
@@ -716,12 +702,17 @@ void gui_message (int color, const UCHAR *message, ...)
 
 void gui_heartbeat (void)
 {
-   /* Called by both run_dialog() and the custom, non-blocking menu objects
-      at a rate of (1000 / REST_TIME) milliseconds, or close enough. */
+   /* Called in varous places to process NetPlay (if active), refresh the
+      screen, and rest() to minimize CPU usage in the GUI. */
+
+   netplay_process ();
 
    refresh ();
 
-   rest (REST_TIME);
+   if (cpu_usage == CPU_USAGE_PASSIVE)
+      rest (1);
+   else if (cpu_usage == CPU_USAGE_NORMAL)
+      rest (0);
 }
 
 void gui_handle_keypress (int c, int scancode)
@@ -1075,11 +1066,7 @@ static int open_lobby (void)
    }
 
    while (update_dialog (player))
-   {
-      netplay_process ();
-
       gui_heartbeat ();
-   }
 
    object_id = shutdown_dialog (player);
 
@@ -1117,8 +1104,6 @@ static int main_menu_open (void)
 {
    USTRING path;
    BOOL locked;
-   BITMAP *bmp;
-   int w, h;
    int result;
    USTRING scratch;
 
@@ -1129,23 +1114,16 @@ static int main_menu_open (void)
 
    locked = get_config_int ("gui", "lock_paths", FALSE);
 
-   /* Get drawing surface. */
-   bmp = gui_get_screen ();
-
-   /* Calculate file selector dimensions. */
-   w = ROUND((bmp->w * 0.80f));
-   h = ROUND((bmp->h * 0.67f));
-
 #ifdef USE_ZLIB
-   result = file_select_ex ("Supported formats (*.NES, *.GZ, *.ZIP)", path,
-      "NES;nes;GZ;gz;ZIP;zip", sizeof (path), w, h);
+   result = gui_file_select ("Open", "Supported file types (*.NES, *.GZ, "
+      "*.ZIP)", path, sizeof (path), "*.nes;*.gz;*.zip");
 #else
-   result = file_select_ex ("Supported formats (*.NES)", path, "NES;nes",
-      sizeof (path), w, h);
+   result = gui_file_select ("Open", "Supported file types (*.NES)", path,
+      sizeof (path), "*.nes");
 #endif
 
    if (!locked)
-   {
+   {  
       /* Update path. */
       set_config_string ("gui", "open_path", replace_filename (scratch,
          path, "", sizeof (scratch)));
