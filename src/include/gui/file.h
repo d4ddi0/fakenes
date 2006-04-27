@@ -30,7 +30,20 @@ static struct
 
 } fs_info;
 
-static INLINE int fs_set_path (const UCHAR *dirname)
+static int fs_sorter (const void *a, const void *b)
+{
+   const FS_LIST_ENTRY *ax, *bx;
+
+   RT_ASSERT(a);
+   RT_ASSERT(b);
+
+   ax = (const FS_LIST_ENTRY *)a;
+   bx = (const FS_LIST_ENTRY *)b;
+
+   return (ustricmp (ax->text, bx->text));
+}
+
+static INLINE void fs_set_path (const UCHAR *dirname)
 {
    /* Helper function to set 'dirname' as the new path (it may either be
       a relative path, or an absolute path, including a drive letter on
@@ -320,6 +333,10 @@ static char *file_select_dialog_file_list_filler (int index, int
 
       if (fs_info.num_files > 0)
       {
+         /* Sort the list alphabetically. */
+         qsort (fs_info.files, fs_info.num_files, sizeof (FS_LIST_ENTRY),
+            fs_sorter);
+
          /* Enable double-click. */
          fs_info.objfiles->flags |= D_EXIT;
       }
@@ -418,6 +435,13 @@ static char *file_select_dialog_directory_list_filler (int index, int
       /* Get directory list. */
       for_each_file_ex (buffer, FA_DIREC, 0, fs_get_directory_callback,
          NULL);
+
+      if (fs_info.num_dirs > 0)
+      {
+         /* Sort the list alphabetically. */
+         qsort (fs_info.dirs, fs_info.num_dirs, sizeof (FS_LIST_ENTRY),
+            fs_sorter);
+      }
 
 #if (defined (ALLEGRO_DOS) || defined (ALLEGRO_WINDOWS))
 
