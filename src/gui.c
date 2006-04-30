@@ -106,6 +106,7 @@ static INLINE void update_menus (void)
       DISABLE_MENU_ITEM(machine_menu_hard_reset);
       DISABLE_SUBMENU(machine_save_state_menu);
       DISABLE_MENU_ITEM(machine_menu_cheat_manager);
+      DISABLE_SUBMENU(audio_record_menu);
       DISABLE_MENU_ITEM(video_layers_menu_flip_mirroring);
       DISABLE_MENU_ITEM(options_menu_reset_clock);
    }
@@ -959,6 +960,7 @@ static INLINE int load_file (const UCHAR *filename)
       ENABLE_MENU_ITEM(machine_menu_hard_reset);
       ENABLE_SUBMENU(machine_save_state_menu);
       ENABLE_MENU_ITEM(machine_menu_cheat_manager);
+      ENABLE_SUBMENU(audio_record_menu);
       ENABLE_MENU_ITEM(video_layers_menu_flip_mirroring);
       ENABLE_MENU_ITEM(options_menu_reset_clock);
 
