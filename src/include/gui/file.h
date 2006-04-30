@@ -167,6 +167,22 @@ static int fs_get_directory_callback (const char *filename, int attrib, void
 
    RT_ASSERT(filename);
 
+   if (param)
+   {
+      /* An alternate (or identical) filename has been passed in 'param',
+         meaning it didn't come from Allegro, so we leave it intact. */
+      filename = param;
+   }
+   else
+   {
+      /* Strip out preceeding garbage. */
+      filename = get_filename (filename);
+
+      /* Avoid superfluous directory entry. */
+      if (ustrncmp (filename, ".", ustrlen (filename)) == 0)
+         return (0);
+   }
+
    if (!fs_info.dirs)
    {
       /* Allocate first entry. */
@@ -184,18 +200,6 @@ static int fs_get_directory_callback (const char *filename, int attrib, void
    {
       WARN("Out of memory");
       return (-1);
-   }
-
-   if (param)
-   {
-      /* An alternate (or identical) filename has been passed in 'param',
-         meaning it didn't come from Allegro, so we leave it intact. */
-      filename = param;
-   }
-   else
-   {
-      /* Strip out preceeding garbage. */
-      filename = get_filename (filename);
    }
 
    /* Copy filename to buffer. */
@@ -267,7 +271,10 @@ static int file_select_dialog_file_list (DIALOG *dialog)
    ustrzncpy (fs_info.objfile->dp, fs_info.objfile->d1, buffer, ustrsize
       (buffer));
 
-   /* Redraw filename textbox with the updated path. */
+   /* Move cursor to the end of the string. */
+   fs_info.objfile->d2 = ustrlen (buffer);
+
+   /* Redraw filename textbox with the updated path and cursor positon. */
 
    scare_mouse ();
    object_message (fs_info.objfile, MSG_DRAW, 0);
