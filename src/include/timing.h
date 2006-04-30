@@ -11,6 +11,7 @@
 #include "audio.h"
 #include "apu.h"
 #include "common.h"
+#include "core.h"
 #include "gui.h"
 #include "rom.h"
 #include "types.h"
@@ -153,6 +154,31 @@ static INLINE void timing_update_machine_type (void)
    }
 
    timing_update_speed ();
+}
+
+static REAL timing_get_frequency (void)
+{
+   REAL scalar;
+
+   /* Gets the frequency of the CPU core, in Hz.
+
+      This is (or should be, as closely as possible) concurrent with the
+      values returned by cpu_get_cycles().
+
+      This is used primarily by the APU. */
+
+   scalar = SCANLINE_CLOCKS;
+
+   if (machine_type == MACHINE_TYPE_NTSC)
+      scalar *= TOTAL_LINES_NTSC;
+   else
+      scalar *= TOTAL_LINES_PAL;
+
+   scalar *= timing_get_speed ();
+
+   scalar /= CYCLE_LENGTH;
+
+   return (scalar);
 }
 
 #ifdef __cplusplus

@@ -228,7 +228,7 @@ static void vrc6_write (UINT16 address, UINT8 value)
    } 
 
    /* Write ExSound. */
-   apu_ex_write (address, value);
+   apu_write (address, value);
 }
 
 static void vrc6_reset (void)

@@ -183,6 +183,13 @@ void dsp_write (const DSP_SAMPLE *samples)
 
    sample = dsp_write_sample;
 
+   /* Prevent overflows. */
+   if (sample >= dsp_buffer_samples)
+   {
+      log_printf ("DSP: Warning: Buffer overflow.");
+      return;
+   }
+
    for (channel = 0; channel < dsp_buffer_channels; channel++)
       DSP_BUFFER_SAMPLE(sample, channel) = samples[channel];
 

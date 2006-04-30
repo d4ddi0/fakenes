@@ -32,6 +32,9 @@
 #include "timing.h"
 #include "types.h"
 
+/* TODO: Clean up any leftover artifacts from the old queue system. */
+/* TODO: Implement frame counter. */
+
 /* Stereo mode. */
 ENUM apu_stereo_mode = APU_STEREO_MODE_2;
 
@@ -39,11 +42,9 @@ ENUM apu_stereo_mode = APU_STEREO_MODE_2;
 static apu_t apu;
 
 /* Internal function prototypes (defined at bottom). */
-static void set_params (REAL, REAL);
-static void build_luts (int);
-static void regwrite (UINT16, UINT8);
-static void write_cur (UINT16, UINT8);
-static void sync_apu_register (void);
+static void set_freq (REAL);
+static INLINE void build_luts (int);
+static INLINE void process (void);
 
 /* Macro to convert generated samples to normalized samples. */
 #define APU_TO_OUTPUT(value)     (value / 32767.0f)
@@ -82,62 +83,9 @@ static const int duty_lut[] = {
    2, 4, 8, 12
 };
 
-/* --- Queue routines. --- */
-
-#define APU_QEMPTY()    (apu.q_head    == apu.q_tail)
-#define APU_EX_QEMPTY() (apu.ex_q_head == apu.ex_q_tail)
-
 // ExSound headers
 #include "apu/mmc5.h"
 #include "apu/vrc6.h"
-
-static INLINE void apu_enqueue (apudata_t *d)
-{
-   RT_ASSERT(d);
-
-   apu.queue[apu.q_head] = *d;
-   apu.q_head = ((apu.q_head + 1) & APUQUEUE_MASK);
-
-   if (APU_QEMPTY())
-      log_printf ("apu: queue overflow\n");      
-}
-
-static INLINE apudata_t *apu_dequeue (void)
-{
-   int loc;
-
-   if (APU_QEMPTY())
-      log_printf ("apu: queue empty\n");
-
-   loc = apu.q_tail;
-   apu.q_tail = ((apu.q_tail + 1) & APUQUEUE_MASK);
-
-   return (&apu.queue[loc]);
-}
-
-static INLINE void apu_ex_enqueue (apudata_t *d)
-{
-   RT_ASSERT(d);
-
-   apu.ex_queue[apu.ex_q_head] = *d;
-   apu.ex_q_head = ((apu.ex_q_head + 1) & APUQUEUE_EX_MASK);
-
-   if (APU_EX_QEMPTY())
-      log_printf ("ex_apu: queue overflow\n");      
-}
-
-static INLINE apudata_t *apu_ex_dequeue (void)
-{
-   int loc;
-
-   if (APU_EX_QEMPTY())
-      log_printf ("ex_apu: queue empty\n");
-
-   loc = apu.ex_q_tail;
-   apu.ex_q_tail = ((apu.ex_q_tail + 1) & APUQUEUE_EX_MASK);
-
-   return (&apu.ex_queue[loc]);
-}
 
 /* --- Sound generators. --- */
 
@@ -297,19 +245,6 @@ static INLINE REAL apu_triangle (apu_chan_t *chan)
 
       if ((chan->vbl_length > 0) && !chan->holdnote)
          chan->vbl_length -= apu.cnt_rate;
-   }
-   else if (!chan->holdnote && chan->write_latency)
-   {
-      chan->write_latency--;
-
-      /* Using EPSILON for zero range comparison is much more accurate than
-         casting it to an integer and then comparing it directly to zero. */
-      if ((chan->write_latency >= (0 - EPSILON)) ||
-          (chan->write_latency <= (0 + EPSILON)))
-      {
-         chan->write_latency = 0;
-         chan->counter_started = TRUE;
-      }
    }
 
    if ((chan->linear_length <= 0) || (chan->freq < 4))
@@ -501,8 +436,8 @@ static INLINE REAL apu_dmc (apu_chan_t *chan)
          if (chan->looping)
          {
             /* Reload. */
-            chan->address = chan->cached_addr;
-            chan->dma_length = chan->cached_dmalength;
+            chan->address = chan->last_address;
+            chan->dma_length = chan->last_dmalength;
             chan->irq_occurred = FALSE;
          }
          else
@@ -582,6 +517,9 @@ void apu_load_config (void)
    DSP_ENABLE_CHANNEL_EX(APU_CHANNEL_EXTRA_1,  get_config_int ("apu", "enable_extra_1",  TRUE));
    DSP_ENABLE_CHANNEL_EX(APU_CHANNEL_EXTRA_2,  get_config_int ("apu", "enable_extra_2",  TRUE));
    DSP_ENABLE_CHANNEL_EX(APU_CHANNEL_EXTRA_3,  get_config_int ("apu", "enable_extra_3",  TRUE));
+
+   /* Disable ExSound. */
+   apu_set_exsound (APU_EXSOUND_NONE);
 }
 
 void apu_save_config (void)
@@ -608,6 +546,9 @@ int apu_init (void)
    /* Reset APU. */
    apu_reset ();
 
+   /* Reset frame counter. */
+   apu.frame_counter = 0;
+
    /* Return success. */
    return (0);
 }
@@ -623,19 +564,21 @@ void apu_reset (void)
       */
 
    const APU_EXSOUND *exsound;
-   REAL sample_rate, refresh_rate;
+   int frame_counter;
    UINT16 address;
 
    /* Save ExSound interface. */
    exsound = apu.exsound;
 
-   /* Save parameters. */
-
-   sample_rate = apu.sample_rate;
-   refresh_rate = apu.refresh_rate;
+   /* Save frame counter, since it is not cleared by a soft reset (a hard
+      reset always implies a call to apu_init(), which clears it). */
+   frame_counter = apu.frame_counter;
 
    /* Clear context. */
    memset (&apu, 0, sizeof (apu));
+
+   /* Set sample rate. */
+   set_freq (audio_sample_rate);
 
    /* set the stupid flag to tell difference between two squares */
 
@@ -645,12 +588,12 @@ void apu_reset (void)
    /* Restore ExSound interface. */
    apu.exsound = exsound;
 
-   /* Restore parameters. */
-   set_params (sample_rate, refresh_rate);
-
-   /* Clear registers. */
-   for (address = 0x4000; address <= 0x4015; address++)
+   /* Clear all registers. */
+   for (address = APU_REGA; address <= APU_REGZ; address++)
       apu_write (address, 0);
+
+   /* Restore frame counter. */
+   apu.frame_counter = frame_counter;
 
    // for ExSound
    APU_LogTableInitialize ();
@@ -668,7 +611,7 @@ void apu_update (void)
       might cause problems in a currently running game. */
 
    /* Set parameters. */
-   set_params (audio_sample_rate, timing_get_speed ());
+   set_freq (audio_sample_rate);
 
    /* Deinitialize DSP. */
    dsp_exit ();
@@ -755,167 +698,35 @@ void apu_update (void)
    }
 }
 
-void apu_process (void)
+void apu_start_frame (void)
 {
-   REAL elapsed_cycles;
-   int samples;
+   /* Start DSP buffer fill. */
+   dsp_start ();
 
-   /* Grab the elapsed cycles counter locally for floating-point precision
-      cycle stepping during queue processing. */
-   elapsed_cycles = apu.elapsed_cycles;
+   apu.mixer.can_process = TRUE;
+}
 
-   /* TODO: Fix this, it probably won't work with audio disabled. */
-   samples = audio_buffer_frame_size_samples;
+void apu_end_frame (void)
+{
+   void *buffer;
 
-   if (audio_enable_output)
-   {
-      void *buffer;
+   /* Flush all pending data. */
+   process ();
 
-      /* Start DSP buffer fill. */
-      dsp_start ();
+   apu.mixer.can_process = FALSE;
 
-      while (samples--)
-      {
-         int max_timestamp;
-         apudata_t *data;
-         int channel;
-         DSP_SAMPLE dsp_samples[APU_CHANNELS];
+   /* End DSP buffer fill. */
+   dsp_end ();
 
-         /* Truncate to integer. */
-         max_timestamp = elapsed_cycles;
+   buffer = audio_get_buffer ();
+   if (!buffer)
+      WARN_BREAK_GENERIC();
 
-         while (!APU_QEMPTY() &&
-                (apu.queue[apu.q_tail].timestamp <= max_timestamp))
-         {
-            data = apu_dequeue ();
-            regwrite (data->address, data->value);
-         }
-   
-         while (!APU_EX_QEMPTY() &&
-                (apu.ex_queue[apu.ex_q_tail].timestamp <= max_timestamp))
-         {
-            data = apu_ex_dequeue ();
+   /* Process DSP buffer into audio buffer. */
+   dsp_render (buffer, (apu_stereo_mode ? 2 : 1), audio_sample_size,
+      audio_unsigned_samples);
 
-            if (apu.exsound && apu.exsound->write)
-               apu.exsound->write (data->address, data->value);
-         }
-   
-         elapsed_cycles += apu.cycle_rate;
-   
-         /* Clear samples. */
-         memset (dsp_samples, 0, sizeof (dsp_samples));
-   
-         for (channel = 0; channel < APU_CHANNELS; channel++)
-         {
-            REAL sample = 0;
-
-            switch (channel)
-            {
-               case APU_CHANNEL_SQUARE_1:
-               {
-                  sample = apu_square (&apu.apus.square[0]);
-   
-                  break;
-               }
-   
-               case APU_CHANNEL_SQUARE_2:
-               {
-                  sample = apu_square (&apu.apus.square[1]);
-   
-                  break;
-               }
-   
-               case APU_CHANNEL_TRIANGLE:
-               {
-                  sample = apu_triangle (&apu.apus.triangle);
-   
-                  break;
-               }
-   
-               case APU_CHANNEL_NOISE:
-               {
-                  sample = apu_noise (&apu.apus.noise);
-   
-                  break;
-               }
-   
-               case APU_CHANNEL_DMC:
-               {
-                  sample = apu_dmc (&apu.apus.dmc);
-   
-                  break; 
-               } 
-
-               case APU_CHANNEL_EXTRA_1:
-               case APU_CHANNEL_EXTRA_2:
-               case APU_CHANNEL_EXTRA_3:
-               {
-                  if (apu.exsound && apu.exsound->process)
-                     sample = apu.exsound->process (channel);
-
-                  break;
-               }
-
-               default:
-                  WARN_GENERIC();
-            }
-
-            dsp_samples[channel] = sample;
-         }
-   
-         /* Send samples to buffer. */
-         dsp_write (dsp_samples);
-      }
-
-      /* End DSP buffer fill. */
-      dsp_end ();
-
-      buffer = audio_get_buffer ();
-      if (!buffer)
-         WARN_BREAK_GENERIC();
-
-      /* Process DSP buffer into audio buffer. */
-      dsp_render (buffer, (apu_stereo_mode ? 2 : 1), audio_sample_size,
-         audio_unsigned_samples);
-
-      audio_free_buffer ();
-   }
-   else  /* audio_enable_output */
-   {
-      while (samples--)
-      {
-         int max_timestamp;
-         apudata_t *data;
-
-         /* Truncate to integer. */
-         max_timestamp = elapsed_cycles;
-
-         while (!APU_QEMPTY() &&
-                (apu.queue[apu.q_tail].timestamp <= max_timestamp))
-         {
-            data = apu_dequeue ();
-            regwrite (data->address, data->value);
-         }
-   
-         while (!APU_EX_QEMPTY() &&
-                (apu.ex_queue[apu.ex_q_tail].timestamp <= max_timestamp))
-         {
-            data = apu_ex_dequeue ();
-
-            if (apu.exsound && apu.exsound->write)
-               apu.exsound->write (data->address, data->value);
-         }
-   
-         elapsed_cycles += apu.cycle_rate;
-      }
-
-   }  /* !audio_enable_output */
-
-   /* Re-sync cycle counter. */
-   apu.elapsed_cycles = cpu_get_cycles (FALSE);
-
-   /* TODO: Figure out what the hell this does. :b */
-   sync_apu_register ();
+   audio_free_buffer ();
 }
 
 void apu_set_exsound (ENUM exsound)
@@ -954,48 +765,60 @@ void apu_set_exsound (ENUM exsound)
       apu.exsound->reset ();
 }
 
-/* Read from $4000-$4017 */
 UINT8 apu_read (UINT16 address)
 {
-   UINT8 value;
+   UINT8 value = 0;
 
    switch (address)
    {
-      case APU_SMASK:
+      case APU_RWF0: /* $4015 */
       {
-         value = 0;
+         /* Status register. */
+
+         /*
+         $4015   if-d nt21   DMC IRQ, frame IRQ, length counter statuses
+         */
+
+         const apu_chan_t *chan;
 
          /* Return 1 in 0-5 bit pos if a channel is playing */
 
-         if (apu.apus.square[0].enabled_cur &&
-             (apu.apus.square[0].vbl_length_cur > 0))
-         {
+         /* Square 0. */
+
+         chan = &apu.apus.square[0];
+
+         if (chan->enabled && (chan->vbl_length > 0))
             value |= 0x01;
-         }
 
-         if (apu.apus.square[1].enabled_cur &&
-             (apu.apus.square[1].vbl_length_cur > 0))
-         {
+         /* Square 1. */
+
+         chan = &apu.apus.square[1];
+
+         if (chan->enabled && (chan->vbl_length > 0))
             value |= 0x02;
-         }
 
-         if (apu.apus.triangle.enabled_cur &&
-             (apu.apus.triangle.vbl_length_cur > 0))
-         {
+         /* Triangle. */
+
+         chan = &apu.apus.triangle;
+
+         if (chan->enabled && (chan->vbl_length > 0))
             value |= 0x04;
-         }
 
-         if (apu.apus.noise.enabled_cur &&
-             (apu.apus.noise.vbl_length_cur > 0))
-         {
+         /* Noise. */
+
+         chan = &apu.apus.noise;
+
+         if (chan->enabled && (chan->vbl_length > 0))
             value |= 0x08;
-         }
 
-         /* bodge for timestamp queue */
-         if (apu.apus.dmc.enabled_cur)
+         /* DMC. */
+
+         chan = &apu.apus.dmc;
+
+         if (chan->enabled)
             value |= 0x10;
 
-         if (apu.apus.dmc.irq_occurred_cur)
+         if (chan->irq_occurred)
             value |= 0x80;
 
          break;
@@ -1013,53 +836,422 @@ UINT8 apu_read (UINT16 address)
 }
 
 void apu_write (UINT16 address, UINT8 value)
-{
-   apudata_t d;
+{  
+   int index;
+   apu_chan_t *chan;
 
-   /* TODO: Clean this up as is seen fit.  Looks pretty OK to me, but I
-      don't know how others would feel about the case grouping. */
+   if ((address >= APU_WRA0) && (address <= APU_WRG0))
+   {
+      /* For state saving. */
+      apu.regs[(address - APU_WRA0)] = value;
+   }
 
    switch (address)
    {
-      case 0x4015:
+      case APU_WRA0: /* $4000 */
+      case APU_WRB0: /* $4004 */
       {
-         /* bodge for timestamp queue */
-         apu.apus.dmc.enabled = TRUE_OR_FALSE(value & 0x10);
+         /* Square Wave channels, register set 1. */
 
-         /* No break. */
-      }
+         /*
+         $4000/4 ddle nnnn   duty, loop env/disable length, env disable, vol/env
+         period
+         */
 
-      case 0x4000: case 0x4001: case 0x4002: case 0x4003:
-      case 0x4004: case 0x4005: case 0x4006: case 0x4007:
-      case 0x4008: case 0x4009: case 0x400A: case 0x400B:
-      case 0x400C: case 0x400D: case 0x400E: case 0x400F:
-      case 0x4010: case 0x4011: case 0x4012: case 0x4013:
-      case 0x4017:
-      {
-         d.timestamp = cpu_get_cycles (FALSE);
-         d.address = address;
-         d.value = value;
+         /* Determine which channel to use.
+            $4000 - Square wave 1(0)
+            $4004 - Square wave 2(1) */
+         index = ((address & 4) ? 1 : 0);
 
-         apu_enqueue (&d);
+         chan = &apu.apus.square[index];
+
+         chan->regs[0] = value;
+
+         chan->volume = (value & 0x0f);
+         chan->env_delay = decay_lut[(value & 0x0f)];
+         chan->holdnote = TRUE_OR_FALSE(value & 0x20);
+         chan->fixed_envelope = TRUE_OR_FALSE(value & 0x10);
+         chan->duty_flip = duty_lut[(value >> 6)];
 
          break;
       }
 
+      case APU_WRA1: /* $4001 */
+      case APU_WRB1: /* $4005 */
+      {
+         /* Square Wave channels, register set 2. */
+
+         /*
+         $4001/5 eppp nsss   enable sweep, period, negative, shift
+         */
+
+         index = ((address & 4) ? 1 : 0);
+
+         chan = &apu.apus.square[index];
+
+         chan->regs[1] = value;
+
+         chan->sweep_on = TRUE_OR_FALSE(value & 0x80);
+         chan->sweep_shifts = (value & 7);
+         chan->sweep_delay = decay_lut[((value >> 4) & 7)];
+         chan->sweep_inc = TRUE_OR_FALSE(value & 0x08);
+         chan->freq_limit = freq_limit[(value & 7)];
+
+         break;
+      }
+
+      case APU_WRA2: /* $4002 */
+      case APU_WRB2: /* $4006 */
+      {
+         /* Square Wave channels, register set 3. */
+
+         /*
+         $4002/6 pppp pppp   period low
+         */
+
+         index = ((address & 4) ? 1 : 0);
+
+         chan = &apu.apus.square[index];
+
+         chan->regs[2] = value;
+
+         chan->freq = ((chan->freq & ~0xff) | value);
+
+         break;
+      }
+
+      case APU_WRA3: /* $4003 */
+      case APU_WRB3: /* $4007 */
+      {
+         /* Square Wave channels, register set 4. */
+
+         /*
+         $4003/7 llll lppp   length index, period high
+         */
+
+         index = ((address & 4) ? 1 : 0);
+
+         chan = &apu.apus.square[index];
+
+         chan->regs[3] = value;
+   
+         chan->vbl_length = vbl_lut[(value >> 3)];
+         chan->env_vol = 0;
+         chan->freq = (((value & 7) << 8) | (chan->freq & 0xff));
+         chan->adder = 0;
+
+         if (apu.enable_reg & (1 << index))
+            chan->enabled = TRUE;
+
+         break;
+      }
+
+      case APU_WRC0: /* $4008 */
+      {
+         /* Triangle wave channel, register 1. */
+
+         /*
+         $4008   clll llll   control, linear counter load
+         */
+
+         chan = &apu.apus.triangle;
+
+         chan->regs[0] = value;
+
+         chan->holdnote = TRUE_OR_FALSE(value & 0x80);
+   
+         if ((!chan->counter_started) && (chan->vbl_length > 0))
+            chan->linear_length = trilength_lut[(value & 0x7f)];
+
+         break;
+      }
+
+      case APU_WRC2: /* $400A */
+      {
+         /* Triangle wave channel, register 2. */
+
+         /*
+         $400A   pppp pppp   period low
+         */
+
+         chan = &apu.apus.triangle;
+
+         chan->regs[1] = value;
+
+         chan->freq = ((((chan->regs[2] & 7) << 8) + value) + 1);
+
+         break;
+      }
+
+      case APU_WRC3: /* $400B */
+      {
+         /* Triangle wave channel, register 3. */
+
+         /*
+         $400A   pppp pppp   period low
+         */
+
+         chan = &apu.apus.triangle;
+
+         chan->regs[2] = value;
+     
+         chan->freq = ((((value & 7) << 8) + chan->regs[1]) + 1);
+         chan->vbl_length = vbl_lut[(value >> 3)];
+         chan->counter_started = FALSE;
+         chan->linear_length = trilength_lut[(chan->regs[0] & 0x7f)];
+
+         if (apu.enable_reg & 0x04)
+            chan->enabled = TRUE;
+
+         break;
+      }
+      
+      case APU_WRD0: /* $400C */
+      {
+         /* White noise channel, register 1. */
+
+         /*
+         $400C   --le nnnn   loop env/disable length, env disable, vol/env period
+         */
+
+         chan = &apu.apus.noise;
+
+         chan->regs[0] = value;
+
+         chan->env_delay = decay_lut[(value & 0x0f)];
+         chan->holdnote = TRUE_OR_FALSE(value & 0x20);
+         chan->fixed_envelope = TRUE_OR_FALSE(value & 0x10);
+         chan->volume = (value & 0x0f);
+
+         break;
+      }
+
+      case APU_WRD2: /* $400E */
+      {
+         /* White noise channel, register 2. */
+
+         /*
+         $400E   s--- pppp   short mode, period index
+         */
+
+         chan = &apu.apus.noise;
+
+         chan->regs[1] = value;
+         chan->freq = noise_freq[(value & 0x0f)];
+         chan->xor_tap = ((value & 0x80) ? 0x40 : 0x02);
+
+         break;
+      }
+
+      case APU_WRD3: /* $400F */
+      {
+         /* White noise channel, register 3. */
+
+         /*
+         $400F   llll l---   length index
+         */
+
+         chan = &apu.apus.noise;
+
+         chan->regs[2] = value;
+   
+         chan->vbl_length = vbl_lut[(value >> 3)];
+         chan->env_vol = 0;  /* reset envelope */
+
+         if (apu.enable_reg & 0x08)
+            chan->enabled = TRUE;
+
+         break;
+      }
+
+      case APU_WRE0: /* $4010 */
+      {
+         /* Delta modulation channel, register 1. */
+
+         /*
+         $4010   il-- ffff   IRQ enable, loop, frequency index
+         */
+
+         chan = &apu.apus.dmc;
+
+         chan->regs[0] = value;
+   
+         chan->freq = dmc_clocks[(value & 0x0f)];
+         chan->looping = TRUE_OR_FALSE(value & 0x40);
+   
+         if (value & 0x80)
+         {
+            chan->irq_gen = TRUE;
+         }
+         else
+         {
+            chan->irq_gen = FALSE;
+            chan->irq_occurred = FALSE;
+         }
+
+         break;
+      }
+
+      case APU_WRE1: /* $4011 */
+      {
+         /* Delta modulation channel, register 2. */
+         
+         /*
+         $4011   -ddd dddd   DAC
+         */
+
+         chan = &apu.apus.dmc;
+
+         /* add the _delta_ between written value and current output level
+            of the volume reg */
+         value &= 0x7f; /* bit 7 ignored */
+
+         chan->regs[1] = value;
+
+         break;
+      }
+
+      case APU_WRE2: /* $4012 */
+      {
+         /* Delta modulation channel, register 3. */
+         
+         /*
+         $4012   aaaa aaaa   sample address
+         */
+
+         chan = &apu.apus.dmc;
+
+         chan->regs[2] = value;
+
+         chan->last_address = (0xc000 + (UINT16)(value << 6));
+
+         break;
+      }
+
+      case APU_WRE3: /* $4013 */
+      {
+         /* Delta modulation channel, register 4. */
+         
+         /*
+         $4013   llll llll   sample length
+         */
+
+         chan = &apu.apus.dmc;
+
+         chan->regs[3] = value;
+
+         chan->last_dmalength = (((value << 4) + 1) << 3);
+
+         break;
+      }
+
+      case APU_RWF0: /* $4015 */
+      {
+         /* Common register set 1. */
+
+         apu.enable_reg = value;
+
+         /* Squares. */
+
+         for (index = 0; index < 2; index++)
+         {
+            chan = &apu.apus.square[index];
+
+            if ((value & (1 << index)) == 0)
+            {
+               /* Channel is disabled. */
+
+               chan->enabled = FALSE;
+               chan->vbl_length = 0;
+            }
+         }
+
+         /* Triangle. */
+
+         chan = &apu.apus.triangle;
+
+         if (!(value & 0x04))
+         {
+            /* Channel is disabled. */
+
+            chan->enabled = FALSE;
+            chan->vbl_length = 0;
+            chan->linear_length = 0;
+            chan->counter_started = FALSE;
+         }
+
+         /* Noise. */
+
+         chan = &apu.apus.noise;
+
+         if (!(value & 0x08))
+         {
+            /* Channel is disabled. */
+
+            chan->enabled = FALSE;
+            chan->vbl_length = 0;
+         }
+
+         /* DMC. */
+
+         chan = &apu.apus.dmc;
+
+         if (value & 0x10)
+         {
+            /* Channel is enabled - check for a reload. */
+
+            if (chan->dma_length == 0)
+            {
+               /* Reload. */
+
+               chan->address = chan->last_address;
+               chan->dma_length = chan->last_dmalength;
+               chan->irq_occurred = FALSE;
+            }
+         }
+         else
+         {
+            /* Channel is disabled. */
+
+            chan->enabled = FALSE;
+            chan->dma_length = 0;
+            chan->irq_occurred = FALSE;
+         }
+
+         break;
+      }
+
+      case APU_WRG0: /* $4017 */
+      {
+         /* Common register set 2. */
+
+         /*
+         $4017   fd-- ----   5-frame cycle, disable frame interrupt
+         */
+
+         apu.cnt_rate = ((value & 0x80) ? 4 : 5);
+
+         /* TODO:
+
+         On a write to $4017, the divider and sequencer are reset, then the sequencer is
+         configured.
+         */
+
+         /* Reset frame counter. */
+         apu.frame_counter = 0;
+
+         break;
+      }
+   
       default:
          break;
    }
-}
 
-void apu_ex_write (UINT16 address, UINT8 value)
-{
-   apudata_t data;
+   if (apu.exsound && apu.exsound->write)
+      apu.exsound->write (address, value);
 
-   data.timestamp = cpu_get_cycles (FALSE);
-   data.address   = address;
-   data.value     = value;
-
-   /* Queue it up. */
-   apu_ex_enqueue (&data);
+   if (apu.mixer.can_process)
+      process ();
 }
 
 void apu_save_state (PACKFILE *file, int version)
@@ -1070,7 +1262,7 @@ void apu_save_state (PACKFILE *file, int version)
 
    /* Save registers. */
 
-   for (index = 0; index < 0x16; index++)
+   for (index = 0; index < 0x17; index++)
       pack_putc (apu.regs[index], file);
 
    if (apu.exsound)
@@ -1126,8 +1318,18 @@ void apu_load_state (PACKFILE *file, int version)
    {
       /* Load registers. */
 
-      for (index = 0; index < 0x16; index++)
-         apu_write ((APU_WRA0 + index), pack_getc (file));
+      if (version <= 0x103)
+      {
+         /* $4017 was not saved in versions prior to 1.04. */
+
+         for (index = 0; index < 0x16; index++)
+            apu_write ((APU_REGA + index), pack_getc (file));
+      }
+      else
+      {
+         for (index = 0; index < APU_REGS; index++)
+            apu_write ((APU_REGA + index), pack_getc (file));
+      }
 
       if (version >= 0x102)
       {
@@ -1147,31 +1349,29 @@ void apu_load_state (PACKFILE *file, int version)
 
 /* --- Internal functions. --- */
 
-static void set_params (REAL sample_rate, REAL refresh_rate)
+static void set_freq (REAL sample_rate)
 {
-   int samples;
+   /* We directly sync the APU with the CPU.  This may not be accurate, but
+      it gives the best quality sound. */
+   apu.mixer.base_frequency = timing_get_frequency ();
 
-   /* Set parameters. */
-   apu.sample_rate = sample_rate;
-   apu.refresh_rate = refresh_rate;
+   /* Set cycle rate accordingly, to account for any drift. */
+   apu.cycle_rate = (((machine_type == MACHINE_TYPE_NTSC) ?
+      APU_BASEFREQ_NTSC : APU_BASEFREQ_PAL) / apu.mixer.base_frequency);
 
-   samples = (int)(sample_rate / refresh_rate);
-
-   apu.cycle_rate = (((machine_type == MACHINE_TYPE_NTSC) ? APU_BASEFREQ_NTSC
-      : APU_BASEFREQ_PAL) / sample_rate);
+   /* Number of samples to be held in the APU mixer accumulators before
+      being divided and sent to the DSP. */
+   apu.mixer.max_samples = (apu.mixer.base_frequency / sample_rate);
 
    /* build various lookup tables for apu */
-   build_luts (samples);
+   build_luts (apu.mixer.base_frequency);
 }
 
-static void build_luts (int num_samples)
+static INLINE void build_luts (int num_samples)
 {
    int i;
 
-   /* TODO: Oh god, clean this up.  However, pay special attention to
-      the math, and remember to add in parenthesis in the order that the
-      compiler would normally perform precedance, so that Humans can read
-      it too, not just GCC. */
+   /* TODO: Clean this up. */
 
    // decay_lut[], vbl_lut[], trilength_lut[] modified (x5) for $4017:bit7 by T.Yano
    /* lut used for enveloping and frequency sweeps */
@@ -1187,454 +1387,125 @@ static void build_luts (int num_samples)
       trilength_lut[i] = num_samples * i * 5;
 }
 
-static void regwrite (UINT16 address, UINT8 value)
-{  
-   int chan;
-   int reg;
+static INLINE void process (void)
+{
+   int cycles, elapsed_cycles;
+   int index;
 
-   /* TODO: This needs a major clean-up.  Some stuff here (such as ? TRUE :
-            FALSE statements) just aren't neccessary.  Also, I noticed that
-            alot of times calculations are repeated more than once for no
-            good reason.  The result should be buffered instead.  I would
-            also like to be able to wrap alot of this to 87 columns or so
-            like the rest of the code. */
+   cycles = cpu_get_cycles (FALSE);
+   elapsed_cycles = (cycles - apu.mixer.clock_counter);
 
-   if ((address < APU_WRA0) || (address > APU_SMASK))
+   if (elapsed_cycles == 0)
+   {
+      /* Nothing to do. */
       return;
+   }
 
-   /* For state saving. */
-   apu.regs[(address - APU_WRA0)] = value;
+   apu.mixer.clock_counter = cycles;
 
-   switch (address)
+   for (index = 0; index < elapsed_cycles; index++)
    {
-      case APU_WRA0: /* squares */
-      case APU_WRB0:
-      {
-         chan = ((address & 4) ? 1 : 0);
+      int channel;
 
-         apu.apus.square[chan].regs[0] = value;
+      for (channel = 0; channel < APU_CHANNELS; channel++)
+      {
+         REAL sample = 0;
    
-         apu.apus.square[chan].volume = (value & 0x0f);
-         apu.apus.square[chan].env_delay = decay_lut[(value & 0x0f)];
-         apu.apus.square[chan].holdnote = TRUE_OR_FALSE(value & 0x20);
-         apu.apus.square[chan].fixed_envelope = TRUE_OR_FALSE(value & 0x10);
-         apu.apus.square[chan].duty_flip = duty_lut[(value >> 6)];
-
-         break;
-      }
-
-      case APU_WRA1:
-      case APU_WRB1:
-      {
-         chan = ((address & 4) ? 1 : 0);
-
-         apu.apus.square[chan].regs[1] = value;
-         apu.apus.square[chan].sweep_on = TRUE_OR_FALSE(value & 0x80);
-         apu.apus.square[chan].sweep_shifts = (value & 7);
-         apu.apus.square[chan].sweep_delay = decay_lut[((value >> 4) & 7)];
-         apu.apus.square[chan].sweep_inc = TRUE_OR_FALSE(value & 0x08);
-         apu.apus.square[chan].freq_limit = freq_limit[(value & 7)];
-
-         break;
-      }
-
-      case APU_WRA2:
-      case APU_WRB2:
-      {
-         chan = ((address & 4) ? 1 : 0);
-
-         apu.apus.square[chan].regs[2] = value;
-         apu.apus.square[chan].freq = ((apu.apus.square[chan].freq & ~0xff) | value);
-
-         break;
-      }
-
-      case APU_WRA3:
-      case APU_WRB3:
-      {
-         chan = ((address & 4) ? 1 : 0);
-
-         apu.apus.square[chan].regs[3] = value;
-   
-         apu.apus.square[chan].vbl_length = vbl_lut[(value >> 3)];
-         apu.apus.square[chan].env_vol = 0;
-         apu.apus.square[chan].freq = (((value & 7) << 8) | (apu.apus.square[chan].freq & 0xff));
-         apu.apus.square[chan].adder = 0;
-
-         if (apu.enable_reg & (1 << chan))
-            apu.apus.square[chan].enabled = TRUE;
-
-         break;
-      }
-
-      case APU_WRC0: /* triangle */
-      {
-         apu.apus.triangle.regs[0] = value;
-         apu.apus.triangle.holdnote = TRUE_OR_FALSE(value & 0x80);
-   
-         if ((!apu.apus.triangle.counter_started) &&
-             (apu.apus.triangle.vbl_length > 0))
+         switch (channel)
          {
-            apu.apus.triangle.linear_length =
-               trilength_lut[(value & 0x7f)];
-         }
-
-         break;
-      }
-
-      case APU_WRC2:
-      {
-         apu.apus.triangle.regs[1] = value;
-         apu.apus.triangle.freq = ((((apu.apus.triangle.regs[2] & 7) << 8) + value) + 1);
-
-         break;
-      }
-
-      case APU_WRC3:
-      {
-         apu.apus.triangle.regs[2] = value;
-     
-         /* this is somewhat of a hack.  there appears to be some latency on 
-         ** the Real Thing between when trireg0 is written to and when the 
-         ** linear length counter actually begins its countdown.  we want to 
-         ** prevent the case where the program writes to the freq regs first, 
-         ** then to reg 0, and the counter accidentally starts running because 
-         ** of the sound queue's timestamp processing.
-         **
-         ** set latency to a couple hundred cycles -- should be plenty of time 
-         ** for the 6502 code to do a couple of table dereferences and load up 
-         ** the other triregs
-         */
-   
-         /* 06/13/00 MPC -- seems to work OK */
-         apu.apus.triangle.write_latency = (228.0f / apu.cycle_rate);
-   
-         apu.apus.triangle.freq = ((((value & 7) << 8) + apu.apus.triangle.regs[1]) + 1);
-         apu.apus.triangle.vbl_length = vbl_lut[(value >> 3)];
-         apu.apus.triangle.counter_started = FALSE;
-         apu.apus.triangle.linear_length = trilength_lut[(apu.apus.triangle.regs[0] & 0x7f)];
-
-         if (apu.enable_reg & 0x04)
-            apu.apus.triangle.enabled = TRUE;
-
-         break;
-      }
-      
-      case APU_WRD0: /* noise */
-      {
-         apu.apus.noise.regs[0] = value;
-         apu.apus.noise.env_delay = decay_lut[(value & 0x0f)];
-         apu.apus.noise.holdnote = TRUE_OR_FALSE(value & 0x20);
-         apu.apus.noise.fixed_envelope = TRUE_OR_FALSE(value & 0x10);
-         apu.apus.noise.volume = (value & 0x0f);
-
-         break;
-      }
-
-      case APU_WRD2:
-      {
-         apu.apus.noise.regs[1] = value;
-         apu.apus.noise.freq = noise_freq[(value & 0x0f)];
-         apu.apus.noise.xor_tap = ((value & 0x80) ? 0x40 : 0x02);
-
-         break;
-      }
-
-      case APU_WRD3:
-      {
-         apu.apus.noise.regs[2] = value;
-   
-         apu.apus.noise.vbl_length = vbl_lut[(value >> 3)];
-         apu.apus.noise.env_vol = 0;  /* reset envelope */
-
-         if (apu.enable_reg & 0x08)
-            apu.apus.noise.enabled = TRUE;
-
-         break;
-      }
-
-      case APU_WRE0: /* DMC */
-      {
-         apu.apus.dmc.regs[0] = value;
-   
-         apu.apus.dmc.freq = dmc_clocks[(value & 0x0f)];
-         apu.apus.dmc.looping = TRUE_OR_FALSE(value & 0x40);
-   
-         if (value & 0x80)
-         {
-            apu.apus.dmc.irq_gen = TRUE;
-         }
-         else
-         {
-            apu.apus.dmc.irq_gen = FALSE;
-            apu.apus.dmc.irq_occurred = FALSE;
-         }
-
-         break;
-      }
-
-      case APU_WRE1: /* 7-bit DAC */
-      {
-         /* add the _delta_ between written value and
-         ** current output level of the volume reg
-         */
-         value &= 0x7f; /* bit 7 ignored */
-         apu.apus.dmc.regs[1] = value;
-
-         break;
-      }
-
-      case APU_WRE2:
-      {
-         apu.apus.dmc.regs[2] = value;
-         apu.apus.dmc.cached_addr = (0xc000 + (UINT16)(value << 6));
-
-         break;
-      }
-
-      case APU_WRE3:
-      {
-         apu.apus.dmc.regs[3] = value;
-         apu.apus.dmc.cached_dmalength = (((value << 4) + 1) << 3);
-
-         break;
-      }
-
-      case APU_SMASK:
-      {
-         /* bodge for timestamp queue */
-         apu.apus.dmc.enabled = TRUE_OR_FALSE(value & 0x10);
-   
-         apu.enable_reg = value;
-   
-         for (chan = 0; chan < 2; chan++)
-         {
-            if ((value & (1 << chan)) == 0)
+            case APU_CHANNEL_SQUARE_1:
             {
-               apu.apus.square[chan].enabled = FALSE;
-               apu.apus.square[chan].vbl_length = 0;
+               sample = apu_square (&apu.apus.square[0]);
+   
+               break;
             }
-         }
    
-         if ((value & 0x04) == 0)
-         {
-            apu.apus.triangle.enabled = FALSE;
-            apu.apus.triangle.vbl_length = 0;
-            apu.apus.triangle.linear_length = 0;
-            apu.apus.triangle.counter_started = FALSE;
-            apu.apus.triangle.write_latency = 0;
-         }
-   
-         if ((value & 0x08) == 0)
-         {
-            apu.apus.noise.enabled = FALSE;
-            apu.apus.noise.vbl_length = 0;
-         }
-   
-         if (value & 0x10)
-         {
-            if (apu.apus.dmc.dma_length == 0)
+            case APU_CHANNEL_SQUARE_2:
             {
-               /* Reload. */
-               apu.apus.dmc.address = apu.apus.dmc.cached_addr;
-               apu.apus.dmc.dma_length = apu.apus.dmc.cached_dmalength;
-               apu.apus.dmc.irq_occurred = FALSE;
+               sample = apu_square (&apu.apus.square[1]);
+   
+               break;
             }
-         }
-         else
-         {
-            apu.apus.dmc.dma_length = 0;
-            apu.apus.dmc.irq_occurred = FALSE;
-         }
-
-         break;
-      }
-
-      case 0x4009:   /* unused, but they get hit in some mem-clear loops */
-      case 0x400D:
-         break;
    
-      case 0x4017:
-      {
-         if (value & 0x80)
-            apu.cnt_rate = 4;
-         else
-            apu.cnt_rate = 5;
-
-         break;
-      }
-   
-      default:
-         break;
-   }
-}
-
-static void write_cur (UINT16 address, UINT8 value)
-{
-   /* for sync read $4015 */
-   int chan;
-
-   /* TODO: Clean this horrible mess up.  It was far worse before I got to
-      it, but I am still not satisfied with the code quality. */
-
-   switch (address)
-   {
-      case APU_WRA0:
-      case APU_WRB0:
-      {
-         chan = ((address & 4) ? 1 : 0);
-
-         apu.apus.square[chan].holdnote_cur = TRUE_OR_FALSE(value & 0x20);
-
-         break;
-      }
-
-      case APU_WRA3:
-      case APU_WRB3:
-      {
-         chan = ((address & 4) ? 1 : 0);
-
-         apu.apus.square[chan].vbl_length_cur = (vbl_length[(value >> 3)] * 5);
-
-         if (apu.enable_reg_cur & (1 << chan))
-            apu.apus.square[chan].enabled_cur = TRUE;
-
-         break;
-      }
-
-      case APU_WRC0:
-      {
-         apu.apus.triangle.holdnote_cur = TRUE_OR_FALSE(value & 0x80);
-
-         break;
-      }
-
-      case APU_WRC3:
-      {
-         apu.apus.triangle.vbl_length_cur = (vbl_length[(value >> 3)] * 5);
-
-         if (apu.enable_reg_cur & 0x04)
-            apu.apus.triangle.enabled_cur = TRUE;
-
-         apu.apus.triangle.counter_started_cur = TRUE;
-
-         break;
-      }
-
-      case APU_WRD0:
-      {
-         apu.apus.noise.holdnote_cur = TRUE_OR_FALSE(value & 0x20);
-
-         break;
-      }
-
-      case APU_WRD3:
-      {
-         apu.apus.noise.vbl_length_cur = (vbl_length[(value >> 3)] * 5);
-
-         if (apu.enable_reg_cur & 0x08)
-            apu.apus.noise.enabled_cur = TRUE;
-
-         break;
-      }
-
-      case APU_WRE0:
-      {
-         apu.apus.dmc.freq_cur = dmc_clocks[(value & 0x0f)];
-         apu.apus.dmc.phaseacc_cur = 0;
-         apu.apus.dmc.looping_cur = TRUE_OR_FALSE(value & 0x40);
-
-         if (value & 0x80)
-         {
-            apu.apus.dmc.irq_gen_cur = TRUE;
-         }
-         else
-         {
-            apu.apus.dmc.irq_gen_cur = FALSE;
-            apu.apus.dmc.irq_occurred_cur = FALSE;
-         }
-
-         break;
-      }
-
-      case APU_WRE3:
-      {
-         apu.apus.dmc.cached_dmalength_cur = ((value << 4) + 1);
-
-         break;
-      }
-
-      case APU_SMASK:
-      {
-         apu.enable_reg_cur = value;
-
-         for (chan = 0; chan < 2; chan++)
-         {
-            if ((value & (1 << chan)) == 0)
+            case APU_CHANNEL_TRIANGLE:
             {
-               apu.apus.square[chan].enabled_cur = FALSE;
-               apu.apus.square[chan].vbl_length_cur = 0;
+               sample = apu_triangle (&apu.apus.triangle);
+   
+               break;
             }
+   
+            case APU_CHANNEL_NOISE:
+            {
+               sample = apu_noise (&apu.apus.noise);
+   
+               break;
+            }
+   
+            case APU_CHANNEL_DMC:
+            {
+               sample = apu_dmc (&apu.apus.dmc);
+   
+               break; 
+            } 
+   
+            case APU_CHANNEL_EXTRA_1:
+            case APU_CHANNEL_EXTRA_2:
+            case APU_CHANNEL_EXTRA_3:
+            {
+               if (apu.exsound && apu.exsound->process)
+                  sample = apu.exsound->process (channel);
+   
+               break;
+            }
+   
+            default:
+               WARN_GENERIC();
          }
+   
+         apu.mixer.accumulators[channel] += sample;
 
-         if ((value & 0x04) == 0)
-         {
-            apu.apus.triangle.enabled_cur = FALSE;
-            apu.apus.triangle.vbl_length_cur = 0;
-            apu.apus.triangle.counter_started_cur = FALSE;
-         }
-
-         if ((value & 0x08) == 0)
-         {
-            apu.apus.noise.enabled_cur = FALSE;
-            apu.apus.noise.vbl_length_cur = 0;
-         }
-
-         if (value & 0x10)
-         {
-            if (apu.apus.dmc.dma_length_cur == 0)
-               apu.apus.dmc.dma_length_cur = apu.apus.dmc.cached_dmalength_cur;
-
-            apu.apus.dmc.enabled_cur = TRUE;
-         }
-         else
-         {
-            apu.apus.dmc.dma_length_cur = 0;
-            apu.apus.dmc.enabled_cur = FALSE;
-            apu.apus.dmc.irq_occurred_cur = FALSE;
-         }
-
-         break;
+         /* Cache it so that we can split it up later if need be. */
+         apu.mixer.sample_cache[channel] = sample;
       }
-   }
-}
-
-static void sync_apu_register (void)
-{
-   if ((!apu.apus.square[0].holdnote_cur) &&
-       (apu.apus.square[0].vbl_length_cur > 0))
-   {
-      apu.apus.square[0].vbl_length_cur -= apu.cnt_rate;
-   }
-
-   if ((!apu.apus.square[1].holdnote_cur) &&
-       (apu.apus.square[1].vbl_length_cur > 0))
-   {
-      apu.apus.square[1].vbl_length_cur -= apu.cnt_rate;
-   }
-
-   if (apu.apus.triangle.counter_started_cur)
-   {
-      if ((apu.apus.triangle.vbl_length_cur > 0) &&
-          (!apu.apus.triangle.holdnote_cur))
+   
+      apu.mixer.accumulated_samples++;
+   
+      if (apu.mixer.accumulated_samples >= apu.mixer.max_samples)
       {
-         apu.apus.triangle.vbl_length_cur -= apu.cnt_rate;
-      }
-   }
+         REAL residual;
+         REAL divider;
 
-   if ((!apu.apus.noise.holdnote_cur) &&
-       (apu.apus.noise.vbl_length_cur > 0))
-   {
-      apu.apus.noise.vbl_length_cur -= apu.cnt_rate;
+         /* Determine how much of the last sample we want to keep for the
+            next loop. */
+         residual = (apu.mixer.accumulated_samples - floor
+            (apu.mixer.max_samples));
+
+         /* Calculate the divider for the APU:DSP frequency ratio. */
+         divider = (apu.mixer.accumulated_samples - residual);
+
+         for (channel = 0; channel < APU_CHANNELS; channel++)
+         {
+            REAL *sample = &apu.mixer.accumulators[channel];
+
+            /* Remove residual sample portion. */
+            *sample -= (apu.mixer.sample_cache[channel] * residual);
+
+            /* Divide. */
+            *sample /= divider;
+         }
+
+         /* Send to DSP. */
+         dsp_write (apu.mixer.accumulators);
+
+         for (channel = 0; channel < APU_CHANNELS; channel++)
+         {
+            /* Reload accumulators with residual sample protion. */
+            apu.mixer.accumulators[channel] =
+               (apu.mixer.sample_cache[channel] * residual);
+         }
+
+         /* Adjust counter. */
+         apu.mixer.accumulated_samples -= apu.mixer.max_samples;
+      }
    }
 }

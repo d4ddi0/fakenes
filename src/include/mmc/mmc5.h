@@ -585,7 +585,7 @@ static void mmc5_write (UINT16 address, UINT8 value)
 
     if (address < 0x5100)
     {
-        apu_ex_write (address, value);
+        apu_write (address, value);
         return;
     }
 

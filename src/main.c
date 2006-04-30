@@ -464,6 +464,8 @@ int main (int argc, char *argv[])
                WARN_GENERIC ();
          }
 
+         apu_start_frame ();
+
          if (redraw_flag)
          {
             /* Perform a full render. */
@@ -544,10 +546,6 @@ int main (int argc, char *argv[])
             }
 
             video_blit (screen);
-
-            apu_process ();
-
-            audio_update ();
          }
          else
          {
@@ -629,11 +627,11 @@ int main (int argc, char *argv[])
                if (mmc_scanline_end)
                   cpu_interrupt (mmc_scanline_end (ppu_scanline));
             }
-
-            apu_process ();
-
-            audio_update ();
          }
+
+         apu_end_frame ();
+
+         audio_update ();
 
          if ((frames_to_execute != -1) &&
              (frames_to_execute > 0))

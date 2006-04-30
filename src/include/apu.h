@@ -27,29 +27,46 @@ extern "C" {
 #endif
 
 /* Ports. */
-#define APU_WRA0        0x4000
-#define APU_WRA1        0x4001
-#define APU_WRA2        0x4002
-#define APU_WRA3        0x4003
-#define APU_WRB0        0x4004
-#define APU_WRB1        0x4005
-#define APU_WRB2        0x4006
-#define APU_WRB3        0x4007
-#define APU_WRC0        0x4008
-#define APU_WRC2        0x400a
-#define APU_WRC3        0x400b
-#define APU_WRD0        0x400c
-#define APU_WRD2        0x400e
-#define APU_WRD3        0x400f
-#define APU_WRE0        0x4010
-#define APU_WRE1        0x4011
-#define APU_WRE2        0x4012
-#define APU_WRE3        0x4013
+#define APU_WRA0  0x4000
+#define APU_WRA1  0x4001
+#define APU_WRA2  0x4002
+#define APU_WRA3  0x4003
+#define APU_WRB0  0x4004
+#define APU_WRB1  0x4005
+#define APU_WRB2  0x4006
+#define APU_WRB3  0x4007
+#define APU_WRC0  0x4008
+#define APU_WRC2  0x400a
+#define APU_WRC3  0x400b
+#define APU_WRD0  0x400c
+#define APU_WRD2  0x400e
+#define APU_WRD3  0x400f
+#define APU_WRE0  0x4010
+#define APU_WRE1  0x4011
+#define APU_WRE2  0x4012
+#define APU_WRE3  0x4013
+#define APU_RWF0  0x4015
+#define APU_WRG0  0x4017
 
-#define APU_SMASK       0x4015
+#define APU_REGA  APU_WRA0
+#define APU_REGZ  APU_WRG0
+#define APU_REGS  (APU_REGZ - APU_REGA)
 
 #define APU_BASEFREQ_NTSC  (1.89e9 / 88 / 12)
 #define APU_BASEFREQ_PAL   (26601712.5 / 15)
+
+enum
+{
+   APU_CHANNEL_SQUARE_1 = 0,
+   APU_CHANNEL_SQUARE_2,
+   APU_CHANNEL_TRIANGLE,
+   APU_CHANNEL_NOISE,
+   APU_CHANNEL_DMC,
+   APU_CHANNEL_EXTRA_1,
+   APU_CHANNEL_EXTRA_2,
+   APU_CHANNEL_EXTRA_3,
+   APU_CHANNELS
+};
 
 /* --- 2A03 support. --- */
 
@@ -89,37 +106,23 @@ typedef struct apu_chan_s
    int freq_limit;   /* this may not be necessary in the future */
    BOOL sweep_complement;  /* difference between square wave channels. */
 
-   /* Triangle? */
+   /* Triangle. */
    BOOL counter_started;
-   REAL write_latency;   /* quasi-hack */
 
    /* Noise. */
    int xor_tap;
 
    /* DMC. */
    UINT16 address;
-   UINT16 cached_addr;
    int dma_length;
-   int cached_dmalength;
    UINT8 cur_byte;
-
-   /* for sync read $4105 */
-   BOOL enabled_cur;
-   BOOL holdnote_cur;
-   BOOL counter_started_cur;
-   int vbl_length_cur;
-   int freq_cur;
-   REAL phaseacc_cur;
-
-   /* DMC? */
    BOOL looping;
    BOOL irq_gen;
    BOOL irq_occurred;
-   int dma_length_cur;
-   int cached_dmalength_cur;
-   BOOL looping_cur;
-   BOOL irq_gen_cur;
-   BOOL irq_occurred_cur;
+
+   /* DMC reloading. */
+   UINT16 last_address;
+   int last_dmalength;
 
 } apu_chan_t;
 
@@ -193,21 +196,6 @@ typedef struct _APU_MMC5SOUND
 
 } APU_MMC5SOUND;
 
-/* APU queue structure */
-#define APUQUEUE_SIZE      8192
-#define APUQUEUE_MASK      (APUQUEUE_SIZE - 1)
-#define APUQUEUE_EX_SIZE   2048
-#define APUQUEUE_EX_MASK   (APUQUEUE_EX_SIZE - 1)
-
-/* apu ring buffer member */
-typedef struct apudata_s
-{
-   int timestamp;
-   UINT16 address;
-   UINT8 value;
-
-} apudata_t;
-
 /* ExSound interface. */
 typedef struct _APU_EXSOUND
 {
@@ -226,27 +214,30 @@ typedef struct apu_s
    APU_MMC5SOUND mmc5s;
    APU_VRC6SOUND vrc6s;
 
-   UINT8 regs[0x16];
+   UINT8 regs[APU_REGS];
 
    FLAGS enable_reg;
-   FLAGS enable_reg_cur;
 
-   apudata_t queue[APUQUEUE_SIZE];
-   int q_head, q_tail;
-
-   // for ExSound
-   apudata_t ex_queue[APUQUEUE_EX_SIZE];
-   int ex_q_head, ex_q_tail;
+   /* For ExSound. */
    const APU_EXSOUND *exsound;
 
-   int elapsed_cycles;
    REAL cycle_rate;
-
-   REAL sample_rate;
-   REAL refresh_rate;
 
    // for $4017:bit7 by T.Yano
    int cnt_rate;
+   int frame_counter;
+
+   struct
+   {
+      BOOL can_process;
+      REAL base_frequency;
+      int clock_counter;
+      REAL accumulators[APU_CHANNELS];
+      REAL sample_cache[APU_CHANNELS];
+      REAL accumulated_samples;
+      REAL max_samples;
+
+   } mixer;
 
 } apu_t;
 
@@ -257,11 +248,11 @@ int apu_init (void);
 void apu_exit (void);
 void apu_reset (void);
 void apu_update (void);
-void apu_process (void);
+void apu_start_frame (void);
+void apu_end_frame (void);
 void apu_set_exsound (ENUM);
 UINT8 apu_read (UINT16);
 void apu_write (UINT16, UINT8);
-void apu_ex_write (UINT16, UINT8);
 void apu_save_state (PACKFILE *, int);
 void apu_load_state (PACKFILE *, int);
 
@@ -273,19 +264,6 @@ enum
    APU_STEREO_MODE_2,
    APU_STEREO_MODE_3,
    APU_STEREO_MODE_4,
-};
-
-enum
-{
-   APU_CHANNEL_SQUARE_1 = 0,
-   APU_CHANNEL_SQUARE_2,
-   APU_CHANNEL_TRIANGLE,
-   APU_CHANNEL_NOISE,
-   APU_CHANNEL_DMC,
-   APU_CHANNEL_EXTRA_1,
-   APU_CHANNEL_EXTRA_2,
-   APU_CHANNEL_EXTRA_3,
-   APU_CHANNELS
 };
 
 enum
