@@ -514,7 +514,7 @@ static const DIALOG help_about_dialog_base[] =
    { sl_frame,    0,   0,   227, 159, 0, 0, 0, 0,      0, 0, NULL, "About",              NULL },
    { sl_x_button, 207, 4,   16,  12,  0, 0, 0, D_EXIT, 0, 0, "X",  NULL,                 NULL },
    { sl_text,     9,   28,  0 ,  0,   0, 0, 0, 0,      0, 0, NULL, "Developers:",        NULL },
-   { sl_text,     18,  37,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "Randy McDowell",     NULL },
+   { sl_text,     18,  37,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "RandiLyn McDowell",  NULL },
    { sl_text,     18,  46,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "Charles Bilyue'",    NULL },
    { sl_text,     18,  55,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "Jonathan Gevaryahu", NULL },
    { sl_text,     18,  64,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "Chris Robinson",     NULL },

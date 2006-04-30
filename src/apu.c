@@ -14,7 +14,7 @@
    Any permitted reproduction of these routines, in whole or in part,
    must bear this legend.
 
-   Heavily modified for FakeNES by Siloh.
+   Heavily modified for FakeNES by randilyn.
    Portions (c) 2001-2006 FakeNES Team. */
 
 #include <allegro.h>

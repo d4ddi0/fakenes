@@ -134,7 +134,7 @@ int main (int argc, char *argv[])
          "9/11 attacks.\n\n");
    }
 
-   console_printf ("FakeNES version " VERSION_STRING ", by Siloh and TRAC.\n");
+   console_printf ("FakeNES version " VERSION_STRING ", by randilyn and TRAC.\n");
    console_printf ("Using Allegro version " ALLEGRO_VERSION_STR " (" ALLEGRO_PLATFORM_STR ").\n");
    console_printf ("\n");
    console_printf ("Assistance provided by amit, Astxist, ipher, KCat,\n");
