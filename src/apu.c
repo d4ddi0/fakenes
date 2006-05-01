@@ -39,12 +39,16 @@
 /* Stereo mode. */
 ENUM apu_stereo_mode = APU_STEREO_MODE_2;
 
+/* Quality. */
+ENUM apu_mixer = APU_MIXER_FAST;
+
 /* Static APU context. */
 static apu_t apu;
 
 /* Internal function prototypes (defined at bottom). */
 static void set_freq (REAL);
 static INLINE void build_luts (int);
+static INLINE REAL get_sample (ENUM);
 static INLINE void process (void);
 
 /* Macro to convert generated samples to normalized samples. */
@@ -1355,20 +1359,48 @@ void apu_load_state (PACKFILE *file, int version)
 
 static void set_freq (REAL sample_rate)
 {
-   /* We directly sync the APU with the CPU.  This may not be accurate, but
-      it gives the best quality sound. */
+   REAL freq = 0;
+
+   /* We directly sync the APU with the CPU.  This may not be the most
+      accurate method, but it gives the best quality sound. */
    apu.mixer.base_frequency = timing_get_frequency ();
 
-   /* Set cycle rate accordingly, to account for any drift. */
+   switch (apu_mixer)
+   {
+      case APU_MIXER_FAST:
+      {
+         /* Use the output sample rate for mixing. */
+         freq = sample_rate;
+
+         break;
+      }
+
+      case APU_MIXER_QUALITY:
+      {
+         /* Use the APU's actual frequency for mixing. */
+         freq = apu.mixer.base_frequency;
+
+         break;
+      }
+
+      default:
+         WARN_GENERIC();
+   }
+
+   /* (Re)build various lookup tables to match the mixing frequency. */
+   build_luts (freq);
+
+   /* Set cycle rate accordingly to account for any differences between the
+      ideal mixing frequency and the actual mixing frequency. */
    apu.cycle_rate = (((machine_type == MACHINE_TYPE_NTSC) ?
-      APU_BASEFREQ_NTSC : APU_BASEFREQ_PAL) / apu.mixer.base_frequency);
+      APU_BASEFREQ_NTSC : APU_BASEFREQ_PAL) / freq);
 
    /* Number of samples to be held in the APU mixer accumulators before
-      being divided and sent to the DSP. */
-   apu.mixer.max_samples = (apu.mixer.base_frequency / sample_rate);
+      being divided and sent to the DSP.
 
-   /* build various lookup tables for apu */
-   build_luts (apu.mixer.base_frequency);
+      With the fast mixer, this is simply how often a sample is written
+      relative to the APU mixer's cycle counter. */
+   apu.mixer.max_samples = (apu.mixer.base_frequency / sample_rate);
 }
 
 static INLINE void build_luts (int num_samples)
@@ -1391,6 +1423,66 @@ static INLINE void build_luts (int num_samples)
       trilength_lut[i] = num_samples * i * 5;
 }
 
+static INLINE REAL get_sample (ENUM channel)
+{
+   /* Helper function to fetch a sample from 'channel'. */
+
+   REAL sample = 0;
+
+   switch (channel)
+   {
+      case APU_CHANNEL_SQUARE_1:
+      {
+         sample = apu_square (&apu.apus.square[0]);
+
+         break;
+      }
+
+      case APU_CHANNEL_SQUARE_2:
+      {
+         sample = apu_square (&apu.apus.square[1]);
+
+         break;
+      }
+
+      case APU_CHANNEL_TRIANGLE:
+      {
+         sample = apu_triangle (&apu.apus.triangle);
+
+         break;
+      }
+
+      case APU_CHANNEL_NOISE:
+      {
+         sample = apu_noise (&apu.apus.noise);
+
+         break;
+      }
+
+      case APU_CHANNEL_DMC:
+      {
+         sample = apu_dmc (&apu.apus.dmc);
+
+         break; 
+      } 
+
+      case APU_CHANNEL_EXTRA_1:
+      case APU_CHANNEL_EXTRA_2:
+      case APU_CHANNEL_EXTRA_3:
+      {
+         if (apu.exsound && apu.exsound->process)
+            sample = apu.exsound->process (channel);
+
+         break;
+      }
+
+      default:
+         WARN_GENERIC();
+   }
+
+   return (sample);
+}
+
 static INLINE void process (void)
 {
    cpu_time_t cycles, elapsed_cycles;
@@ -1407,109 +1499,103 @@ static INLINE void process (void)
 
    apu.mixer.clock_counter = cycles;
 
-   for (count = 0; count < elapsed_cycles; count++)
+   switch (apu_mixer)
    {
-      int channel;
-
-      for (channel = 0; channel < APU_CHANNELS; channel++)
+      case APU_MIXER_FAST:
       {
-         REAL sample = 0;
-   
-         switch (channel)
+         for (count = 0; count < elapsed_cycles; count++)
          {
-            case APU_CHANNEL_SQUARE_1:
-            {
-               sample = apu_square (&apu.apus.square[0]);
-   
-               break;
-            }
-   
-            case APU_CHANNEL_SQUARE_2:
-            {
-               sample = apu_square (&apu.apus.square[1]);
-   
-               break;
-            }
-   
-            case APU_CHANNEL_TRIANGLE:
-            {
-               sample = apu_triangle (&apu.apus.triangle);
-   
-               break;
-            }
-   
-            case APU_CHANNEL_NOISE:
-            {
-               sample = apu_noise (&apu.apus.noise);
-   
-               break;
-            }
-   
-            case APU_CHANNEL_DMC:
-            {
-               sample = apu_dmc (&apu.apus.dmc);
-   
-               break; 
-            } 
-   
-            case APU_CHANNEL_EXTRA_1:
-            case APU_CHANNEL_EXTRA_2:
-            case APU_CHANNEL_EXTRA_3:
-            {
-               if (apu.exsound && apu.exsound->process)
-                  sample = apu.exsound->process (channel);
-   
-               break;
-            }
-   
-            default:
-               WARN_GENERIC();
-         }
-   
-         apu.mixer.accumulators[channel] += sample;
+            /* Faster version of the mixer.
 
-         /* Cache it so that we can split it up later if need be. */
-         apu.mixer.sample_cache[channel] = sample;
+               Does not accumulate multipel samples, use the sample cache,
+               or perform any division, but rather just outputs samples. */
+   
+            /* Simulate accumulation. */
+            apu.mixer.accumulated_samples++;
+            
+            if (apu.mixer.accumulated_samples >= apu.mixer.max_samples)
+            {
+               int channel;
+
+               /* Gather samples. */
+   
+               for (channel = 0; channel < APU_CHANNELS; channel++)
+                  apu.mixer.accumulators[channel] = get_sample (channel);
+         
+               /* Send to DSP. */
+               dsp_write (apu.mixer.accumulators);
+   
+               /* Adjust counter. */
+               apu.mixer.accumulated_samples -= apu.mixer.max_samples;
+            }
+         }
+
+         break;
       }
-   
-      apu.mixer.accumulated_samples++;
-   
-      if (apu.mixer.accumulated_samples >= apu.mixer.max_samples)
+
+      case APU_MIXER_QUALITY:
       {
-         REAL residual;
-         REAL divider;
-
-         /* Determine how much of the last sample we want to keep for the
-            next loop. */
-         residual = (apu.mixer.accumulated_samples - floor
-            (apu.mixer.max_samples));
-
-         /* Calculate the divider for the APU:DSP frequency ratio. */
-         divider = (apu.mixer.accumulated_samples - residual);
-
-         for (channel = 0; channel < APU_CHANNELS; channel++)
+         for (count = 0; count < elapsed_cycles; count++)
          {
-            REAL *sample = &apu.mixer.accumulators[channel];
-
-            /* Remove residual sample portion. */
-            *sample -= (apu.mixer.sample_cache[channel] * residual);
-
-            /* Divide. */
-            *sample /= divider;
+            int channel;
+      
+            for (channel = 0; channel < APU_CHANNELS; channel++)
+            {
+               REAL sample;
+      
+               sample = get_sample (channel);
+      
+               apu.mixer.accumulators[channel] += sample;
+      
+               /* Cache it so that we can split it up later if need be. */
+               apu.mixer.sample_cache[channel] = sample;
+            }
+         
+            apu.mixer.accumulated_samples++;
+         
+            if (apu.mixer.accumulated_samples >= apu.mixer.max_samples)
+            {
+               REAL residual;
+               REAL divider;
+      
+               /* Determine how much of the last sample we want to keep for
+                  the next loop. */
+               residual = (apu.mixer.accumulated_samples - floor
+                  (apu.mixer.max_samples));
+      
+               /* Calculate the divider for the APU:DSP frequency ratio. */
+               divider = (apu.mixer.accumulated_samples - residual);
+      
+               for (channel = 0; channel < APU_CHANNELS; channel++)
+               {
+                  REAL *sample = &apu.mixer.accumulators[channel];
+      
+                  /* Remove residual sample portion. */
+                  *sample -= (apu.mixer.sample_cache[channel] * residual);
+      
+                  /* Divide. */
+                  *sample /= divider;
+               }
+      
+               /* Send to DSP. */
+               dsp_write (apu.mixer.accumulators);
+      
+               for (channel = 0; channel < APU_CHANNELS; channel++)
+               {
+                  /* Reload accumulators with residual sample protion. */
+                  apu.mixer.accumulators[channel] =
+                     (apu.mixer.sample_cache[channel] * residual);
+               }
+      
+               /* Adjust counter. */
+               apu.mixer.accumulated_samples -= apu.mixer.max_samples;
+            }
          }
 
-         /* Send to DSP. */
-         dsp_write (apu.mixer.accumulators);
-
-         for (channel = 0; channel < APU_CHANNELS; channel++)
-         {
-            /* Reload accumulators with residual sample protion. */
-            apu.mixer.accumulators[channel] =
-               (apu.mixer.sample_cache[channel] * residual);
-         }
-
-         /* Adjust counter. */
-         apu.mixer.accumulated_samples -= apu.mixer.max_samples;
+         break;
       }
+
+      default:
+         WARN_GENERIC();
    }
 }
