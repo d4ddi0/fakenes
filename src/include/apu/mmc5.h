@@ -173,7 +173,7 @@ static INLINE void apu_mmc5s_reset_square (apu_mmc5s_chan_t *chan)
 {
    RT_ASSERT(chan);
 
-   chan->freq = apu.mixer.base_frequency;
+   chan->freq = apu.mixer.mixing_frequency;
    chan->cps = APU_DivFix(APU_NES_BASECYCLES, 12 * chan->freq, 19);
 }
 

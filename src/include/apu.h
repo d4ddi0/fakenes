@@ -232,6 +232,7 @@ typedef struct apu_s
    {
       BOOL can_process;
       REAL base_frequency;
+      REAL mixing_frequency;
       cpu_time_t clock_counter;
       REAL accumulators[APU_CHANNELS];
       REAL sample_cache[APU_CHANNELS];

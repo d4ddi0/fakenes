@@ -94,14 +94,14 @@ static INLINE void apu_vrc6s_reset_square (apu_vrc6s_chan_t *chan)
 {
    RT_ASSERT(chan);
 
-   chan->cps = APU_DivFix(APU_NES_BASECYCLES, 12 * apu.mixer.base_frequency, 18);
+   chan->cps = APU_DivFix(APU_NES_BASECYCLES, 12 * apu.mixer.mixing_frequency, 18);
 }
 
 static INLINE void apu_vrc6s_reset_saw (apu_vrc6s_chan_t *chan)
 {
    RT_ASSERT(chan);
 
-   chan->cps = APU_DivFix(APU_NES_BASECYCLES, 24 * apu.mixer.base_frequency, 18);
+   chan->cps = APU_DivFix(APU_NES_BASECYCLES, 24 * apu.mixer.mixing_frequency, 18);
 }
 
 /* --- Public functions. --- */

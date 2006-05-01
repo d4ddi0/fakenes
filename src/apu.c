@@ -37,7 +37,7 @@
 /* TODO: Implement frame counter. */
 
 /* Quality. */
-ENUM apu_quality = APU_QUALITY_ACCURATE;
+ENUM apu_quality = APU_QUALITY_FAST;
 
 /* Stereo mode. */
 ENUM apu_stereo_mode = APU_STEREO_MODE_2;
@@ -1364,8 +1364,6 @@ void apu_load_state (PACKFILE *file, int version)
 
 static void set_freq (REAL sample_rate)
 {
-   REAL freq = 0;
-
    /* We directly sync the APU with the CPU.  This may not be the most
       accurate method, but it gives the best quality sound. */
    apu.mixer.base_frequency = timing_get_frequency ();
@@ -1375,7 +1373,7 @@ static void set_freq (REAL sample_rate)
       case APU_QUALITY_FAST:
       {
          /* Use the output sample rate for mixing. */
-         freq = sample_rate;
+         apu.mixer.mixing_frequency = sample_rate;
 
          break;
       }
@@ -1384,7 +1382,7 @@ static void set_freq (REAL sample_rate)
       case APU_QUALITY_INTERPOLATED:
       {
          /* Use the APU's actual frequency for mixing. */
-         freq = apu.mixer.base_frequency;
+         apu.mixer.mixing_frequency = apu.mixer.base_frequency;
 
          break;
       }
@@ -1394,18 +1392,18 @@ static void set_freq (REAL sample_rate)
    }
 
    /* (Re)build various lookup tables to match the mixing frequency. */
-   build_luts (freq);
+   build_luts (apu.mixer.mixing_frequency);
 
    /* Set cycle rate accordingly to account for any differences between the
       ideal mixing frequency and the actual mixing frequency. */
    apu.cycle_rate = (((machine_type == MACHINE_TYPE_NTSC) ?
-      APU_BASEFREQ_NTSC : APU_BASEFREQ_PAL) / freq);
+      APU_BASEFREQ_NTSC : APU_BASEFREQ_PAL) / apu.mixer.mixing_frequency);
 
    /* Number of samples to be held in the APU mixer accumulators before
       being divided and sent to the DSP.
 
       With the fast mixer, this is simply how often a sample is written
-      relative to the APU mixer's cycle counter. */
+      relative to the APU mixer's clock. */
    apu.mixer.max_samples = (apu.mixer.base_frequency / sample_rate);
 }
 
