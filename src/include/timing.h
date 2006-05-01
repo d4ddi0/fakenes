@@ -74,14 +74,34 @@ enum
 #define LAST_DISPLAYED_LINE   239
 #define FIRST_VBLANK_LINE     240
 
+static INLINE REAL timing_get_speed_ratio (void)
+{
+   REAL ratio;
+
+   /* This gets the speed ratio relative to the normal clock rate, as
+      affected by any speed modifiers.
+
+      < 1.0 = slower
+        1.0 = normal
+      > 1.0 = faster
+      */
+
+   ratio = 1.0f;
+
+   ratio *= timing_speed_multiplier;
+
+   if (timing_half_speed)
+      ratio /= 2.0f;
+
+   return (ratio);
+}
+
 static INLINE int timing_get_speed (void)
 {
    REAL speed;
 
-   speed = (machine_type == MACHINE_TYPE_NTSC ? 60.0f : 50.0f);
-   speed *= timing_speed_multiplier;
-   if (timing_half_speed)
-      speed /= 2.0f;
+   speed = ((machine_type == MACHINE_TYPE_NTSC ? 60.0f : 50.0f) *
+      timing_get_speed_ratio ());
 
    return (ROUND(speed));
 }

@@ -1370,6 +1370,8 @@ void apu_load_state (PACKFILE *file, int version)
 
 static void set_freq (REAL sample_rate)
 {
+   REAL freq;
+
    /* We directly sync the APU with the CPU.  This may not be the most
       accurate method, but it gives the best quality sound. */
    apu.mixer.base_frequency = timing_get_frequency ();
@@ -1401,9 +1403,15 @@ static void set_freq (REAL sample_rate)
    build_luts (apu.mixer.mixing_frequency);
 
    /* Set cycle rate accordingly to account for any differences between the
-      ideal mixing frequency and the actual mixing frequency. */
-   apu.cycle_rate = (((machine_type == MACHINE_TYPE_NTSC) ?
-      APU_BASEFREQ_NTSC : APU_BASEFREQ_PAL) / apu.mixer.mixing_frequency);
+      ideal mixing frequency and the actual mixing frequency.
+
+      We have to remember to take speed modifiers into account, since the
+      base frequencies (as defined in apu.h) are constants. */
+
+   freq = (((machine_type == MACHINE_TYPE_NTSC) ? APU_BASEFREQ_NTSC :
+      APU_BASEFREQ_PAL) * timing_get_speed_ratio ());
+
+   apu.cycle_rate = (freq / apu.mixer.mixing_frequency);
 
    /* Number of samples to be held in the APU mixer accumulators before
       being divided and sent to the DSP.
