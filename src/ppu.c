@@ -109,7 +109,7 @@ static int want_vblank_nmi = FALSE;
 static int vblank_occurred = FALSE;
 
 static UINT8 hit_first_sprite = 0;
-static int first_sprite_this_line = 0;
+static cpu_time_t first_sprite_this_line = 0;
 
 static int background_tileset = 0;
 static int sprite_tileset = 0;
@@ -747,10 +747,8 @@ UINT8 ppu_read (UINT16 address)
 
             if (!hit_first_sprite && first_sprite_this_line)
             {
-                if (cpu_get_cycles_line() > ((first_sprite_this_line - 1) / 3))
-                {
+                if (cpu_get_cycles_line () >= first_sprite_this_line)
                     hit_first_sprite = PPU_SPRITE_0_COLLISION_BIT;
-                }
             }
 
             data |= hit_first_sprite;

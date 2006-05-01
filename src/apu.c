@@ -25,6 +25,7 @@
 #include "apu.h"
 #include "audio.h"
 #include "common.h"
+#include "core.h"
 #include "cpu.h"
 #include "debug.h"
 #include "dsp.h"
@@ -1392,8 +1393,8 @@ static INLINE void build_luts (int num_samples)
 
 static INLINE void process (void)
 {
-   int cycles, elapsed_cycles;
-   int index;
+   cpu_time_t cycles, elapsed_cycles;
+   cpu_time_t count;
 
    cycles = cpu_get_cycles (FALSE);
    elapsed_cycles = (cycles - apu.mixer.clock_counter);
@@ -1406,7 +1407,7 @@ static INLINE void process (void)
 
    apu.mixer.clock_counter = cycles;
 
-   for (index = 0; index < elapsed_cycles; index++)
+   for (count = 0; count < elapsed_cycles; count++)
    {
       int channel;
 

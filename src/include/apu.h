@@ -21,6 +21,7 @@
 #define APU_H_INCLUDED
 #include <allegro.h>
 #include "common.h"
+#include "core.h"
 #include "types.h"
 #ifdef __cplusplus
 extern "C" {
@@ -231,7 +232,7 @@ typedef struct apu_s
    {
       BOOL can_process;
       REAL base_frequency;
-      int clock_counter;
+      cpu_time_t clock_counter;
       REAL accumulators[APU_CHANNELS];
       REAL sample_cache[APU_CHANNELS];
       REAL accumulated_samples;

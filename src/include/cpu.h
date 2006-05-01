@@ -101,8 +101,8 @@ void cpu_write_direct_safeguard (UINT16, UINT8);
 
 void cpu_start_new_scanline (void);
 
-int cpu_get_cycles_line (void);
-int cpu_get_cycles (BOOL);
+cpu_time_t cpu_get_cycles_line (void);
+cpu_time_t cpu_get_cycles (BOOL);
 
 void cpu_save_state (PACKFILE *, int);
 void cpu_load_state (PACKFILE *, int);

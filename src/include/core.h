@@ -70,6 +70,9 @@ extern "C" {
    { UINT16 word; struct { UINT8 low, high } bytes; }
 */
 
+typedef UINT32 cpu_time_t;    /* Absolute. */
+typedef INT32  cpu_rtime_t;   /* Relative. */
+
 typedef struct
 {
   /* CPU registers and program counter   */
@@ -77,11 +80,11 @@ typedef struct
   UINT8 A,X,Y,S;
   UINT8 N,V,D,I,Z,C;   /* CPU status flags - Z flag set when Z == 0 */
 
-  int ICount;         /*  FN2A03_Run will deduct cycles from */
+  cpu_time_t ICount;  /*  FN2A03_Run will deduct cycles from */
                       /* here, executing while it is above   */
                       /* zero.                               */
-  int Cycles;         /* Elapsed cycles since last cleared   */
-  int IBackup;        /* Private, don't touch                */
+  cpu_time_t Cycles;  /* Elapsed cycles since last cleared   */
+  cpu_time_t IBackup; /* Private, don't touch                */
   UINT32 IRequest;    /* Logic state of the IRQ line, each    */
                       /*  bit reserved for a different source */
   UINT16 Trap;        /* Set Trap to address to trace from   */

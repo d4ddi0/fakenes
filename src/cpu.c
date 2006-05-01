@@ -316,21 +316,26 @@ void cpu_clear_interrupt (int type)
    }
 }
 
-static int scanline_start_cycle;
+static cpu_time_t scanline_start_cycle = 0;
 
 void cpu_start_new_scanline (void)
 {
    scanline_start_cycle = cpu_context.ICount;
 }
 
-int cpu_get_cycles_line (void)
+cpu_time_t cpu_get_cycles_line (void)
 {
-   return (((cpu_context.Cycles - scanline_start_cycle) / CYCLE_LENGTH));
+   /* Note that, since this function is only used by the PPU, no PPU to CPU
+      cycle reduction is performed. */
+
+   return ((cpu_context.Cycles - scanline_start_cycle));
 }
 
-int cpu_get_cycles (BOOL reset)
+cpu_time_t cpu_get_cycles (BOOL reset)
 {
-   int cycles = cpu_context.Cycles;
+   cpu_time_t cycles;
+
+   cycles = (cpu_context.Cycles / CYCLE_LENGTH);
 
    if (reset)
    {
@@ -338,7 +343,7 @@ int cpu_get_cycles (BOOL reset)
       cpu_context.Cycles = 0;
    }
 
-   return ((cycles / CYCLE_LENGTH));
+   return (cycles);
 }
 
 void cpu_save_state (PACKFILE *file, int version)
