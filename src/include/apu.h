@@ -257,8 +257,15 @@ void apu_write (UINT16, UINT8);
 void apu_save_state (PACKFILE *, int);
 void apu_load_state (PACKFILE *, int);
 
+ENUM apu_quality;
 ENUM apu_stereo_mode;
-ENUM apu_mixer;
+
+enum
+{
+   APU_QUALITY_FAST = 0,
+   APU_QUALITY_ACCURATE,
+   APU_QUALITY_INTERPOLATED
+};
 
 enum
 {
@@ -266,12 +273,6 @@ enum
    APU_STEREO_MODE_2,
    APU_STEREO_MODE_3,
    APU_STEREO_MODE_4,
-};
-
-enum
-{
-   APU_MIXER_FAST = 0,
-   APU_MIXER_QUALITY
 };
 
 enum

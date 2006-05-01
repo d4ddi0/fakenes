@@ -36,11 +36,11 @@
 /* TODO: Clean up any leftover artifacts from the old queue system. */
 /* TODO: Implement frame counter. */
 
+/* Quality. */
+ENUM apu_quality = APU_QUALITY_ACCURATE;
+
 /* Stereo mode. */
 ENUM apu_stereo_mode = APU_STEREO_MODE_2;
-
-/* Quality. */
-ENUM apu_mixer = APU_MIXER_FAST;
 
 /* Static APU context. */
 static apu_t apu;
@@ -512,6 +512,7 @@ void apu_load_config (void)
 
    /* Load configuration. */
 
+   apu_quality     = get_config_int ("apu", "quality",     apu_quality);
    apu_stereo_mode = get_config_int ("apu", "stereo_mode", apu_stereo_mode);
 
    DSP_ENABLE_CHANNEL_EX(APU_CHANNEL_SQUARE_1, get_config_int ("apu", "enable_square_1", TRUE));
@@ -531,6 +532,7 @@ void apu_save_config (void)
 {
    /* Save configuration. */
 
+   set_config_int ("apu", "quality",     apu_quality);
    set_config_int ("apu", "stereo_mode", apu_stereo_mode);
 
    set_config_int ("apu", "enable_square_1", dsp_get_channel_enabled (APU_CHANNEL_SQUARE_1));
@@ -1368,9 +1370,9 @@ static void set_freq (REAL sample_rate)
       accurate method, but it gives the best quality sound. */
    apu.mixer.base_frequency = timing_get_frequency ();
 
-   switch (apu_mixer)
+   switch (apu_quality)
    {
-      case APU_MIXER_FAST:
+      case APU_QUALITY_FAST:
       {
          /* Use the output sample rate for mixing. */
          freq = sample_rate;
@@ -1378,7 +1380,8 @@ static void set_freq (REAL sample_rate)
          break;
       }
 
-      case APU_MIXER_QUALITY:
+      case APU_QUALITY_ACCURATE:
+      case APU_QUALITY_INTERPOLATED:
       {
          /* Use the APU's actual frequency for mixing. */
          freq = apu.mixer.base_frequency;
@@ -1502,17 +1505,18 @@ static INLINE void process (void)
 
    apu.mixer.clock_counter = cycles;
 
-   switch (apu_mixer)
+   switch (apu_quality)
    {
-      case APU_MIXER_FAST:
+      case APU_QUALITY_FAST:
       {
+         /* Even faster version of the mixer. */
+
+         /* Accumulate samples:       No
+            Cycle-by-cycle emulation: No
+            */
+
          for (count = 0; count < elapsed_cycles; count++)
          {
-            /* Faster version of the mixer.
-
-               Does not accumulate multipel samples, use the sample cache,
-               or perform any division, but rather just outputs samples. */
-   
             /* Simulate accumulation. */
             apu.mixer.accumulated_samples++;
             
@@ -1524,7 +1528,7 @@ static INLINE void process (void)
    
                for (channel = 0; channel < APU_CHANNELS; channel++)
                   apu.mixer.accumulators[channel] = get_sample (channel);
-         
+                     
                /* Send to DSP. */
                dsp_write (apu.mixer.accumulators);
    
@@ -1536,8 +1540,50 @@ static INLINE void process (void)
          break;
       }
 
-      case APU_MIXER_QUALITY:
+      case APU_QUALITY_ACCURATE:
       {
+         /* Accumulate samples:       No
+            Cycle-by-cycle emulation: Yes
+            */
+
+         for (count = 0; count < elapsed_cycles; count++)
+         {
+            int channel;
+
+            /* Simulate accumulation. */
+            apu.mixer.accumulated_samples++;
+         
+            if (apu.mixer.accumulated_samples >= apu.mixer.max_samples)
+            {
+               /* Gather samples. */
+
+               for (channel = 0; channel < APU_CHANNELS; channel++)
+                  apu.mixer.accumulators[channel] = get_sample (channel);
+
+               /* Send to DSP. */
+               dsp_write (apu.mixer.accumulators);
+                     
+               /* Adjust counter. */
+               apu.mixer.accumulated_samples -= apu.mixer.max_samples;
+            }
+            else
+            {
+               /* Gather and discard samples (for emulation only). */
+
+               for (channel = 0; channel < APU_CHANNELS; channel++)
+                  get_sample (channel);
+            }
+         }
+
+         break;
+      }
+
+      case APU_QUALITY_INTERPOLATED:
+      {
+         /* Accumulate samples:       Yes
+            Cycle-by-cycle emulation: Yes
+            */
+
          for (count = 0; count < elapsed_cycles; count++)
          {
             int channel;

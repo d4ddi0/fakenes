@@ -188,6 +188,10 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(audio_subsystem_menu_allegro,(audio_subsystem == AUDIO_SUBSYSTEM_ALLEGRO));
    TOGGLE_MENU_ITEM(audio_subsystem_menu_openal, (audio_subsystem == AUDIO_SUBSYSTEM_OPENAL));
 
+   TOGGLE_MENU_ITEM(audio_emulation_menu_fast,         (apu_quality == APU_QUALITY_FAST));
+   TOGGLE_MENU_ITEM(audio_emulation_menu_accurate,     (apu_quality == APU_QUALITY_ACCURATE));
+   TOGGLE_MENU_ITEM(audio_emulation_menu_interpolated, (apu_quality == APU_QUALITY_INTERPOLATED));
+
    TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_8000_hz,  (audio_sample_rate == 8000));
    TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_11025_hz, (audio_sample_rate == 11025));
    TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_16000_hz, (audio_sample_rate == 16000));
@@ -2010,6 +2014,42 @@ static int audio_subsystem_menu_openal (void)
    cycle_audio ();
 
    message_local ("Audio subsystem set to OpenAL.");
+
+   return (D_O_K);
+}
+
+static int audio_emulation_menu_fast (void)
+{
+   apu_quality = APU_QUALITY_FAST;
+   update_menus ();
+
+   apu_update ();
+
+   message_local ("APU emulation quality set to fast.");
+
+   return (D_O_K);
+}
+
+static int audio_emulation_menu_accurate (void)
+{
+   apu_quality = APU_QUALITY_ACCURATE;
+   update_menus ();
+
+   apu_update ();
+
+   message_local ("APU emulation quality set to accurate.");
+
+   return (D_O_K);
+}
+
+static int audio_emulation_menu_interpolated (void)
+{
+   apu_quality = APU_QUALITY_INTERPOLATED;
+   update_menus ();
+
+   apu_update ();
+
+   message_local ("APU emulation quality set to interpolated.");
 
    return (D_O_K);
 }

@@ -19,6 +19,7 @@ DEFINE_MENU(machine_speed_up_down_menu);
 DEFINE_MENU(machine_frame_skip_menu);
 DEFINE_MENU(machine_menu);
 DEFINE_MENU(audio_subsystem_menu);
+DEFINE_MENU(audio_emulation_menu);
 DEFINE_MENU(audio_mixing_channels_menu);
 DEFINE_MENU(audio_mixing_frequency_menu);
 DEFINE_MENU(audio_mixing_quality_menu);
@@ -338,6 +339,18 @@ static const MENU audio_subsystem_menu_base[] =
    MENU_ENDCAP
 };                                             
 
+DEFINE_MENU_CALLBACK(audio_emulation_menu_fast);
+DEFINE_MENU_CALLBACK(audio_emulation_menu_accurate);
+DEFINE_MENU_CALLBACK(audio_emulation_menu_interpolated);
+
+static const MENU audio_emulation_menu_base[] =
+{
+   { "&Fast",         audio_emulation_menu_fast,         NULL, 0, NULL },
+   { "&Accurate",     audio_emulation_menu_accurate,     NULL, 0, NULL },
+   { "&Interpolated", audio_emulation_menu_interpolated, NULL, 0, NULL },
+   MENU_ENDCAP
+};                                             
+
 DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_mono);
 DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_stereo_mix);
 DEFINE_MENU_CALLBACK(audio_mixing_channels_menu_virtual_stereo_mode_1);
@@ -516,11 +529,12 @@ static const MENU audio_menu_base[] =
    { "&Enabled",   audio_menu_enabled, NULL,                              0, NULL },
    MENU_SPLITTER,
    { "&Subsystem", NULL,               IMPORT_MENU(audio_subsystem_menu), 0, NULL },
-   { "&Mixing",    NULL,               IMPORT_MENU(audio_mixing_menu),    0, NULL },
+   { "E&mulation", NULL,               IMPORT_MENU(audio_emulation_menu), 0, NULL },
+   { "M&ixing",    NULL,               IMPORT_MENU(audio_mixing_menu),    0, NULL },
    { "&Buffer",    NULL,               IMPORT_MENU(audio_buffer_menu),    0, NULL },
    MENU_SPLITTER,
    { "E&ffects",   NULL,               IMPORT_MENU(audio_effects_menu),   0, NULL },
-   { "F&ilters",   NULL,               IMPORT_MENU(audio_filters_menu),   0, NULL },
+   { "Fi&lters",   NULL,               IMPORT_MENU(audio_filters_menu),   0, NULL },
    MENU_SPLITTER,
    { "&Channels",  NULL,               IMPORT_MENU(audio_channels_menu),  0, NULL },
    { "&Volume",    NULL,               IMPORT_MENU(audio_volume_menu),    0, NULL },
@@ -1226,6 +1240,7 @@ static INLINE void load_menus (void)
    MENU_FROM_BASE(machine_frame_skip_menu);
    MENU_FROM_BASE(machine_menu);
    MENU_FROM_BASE(audio_subsystem_menu);
+   MENU_FROM_BASE(audio_emulation_menu);
    MENU_FROM_BASE(audio_mixing_channels_menu);
    MENU_FROM_BASE(audio_mixing_frequency_menu);
    MENU_FROM_BASE(audio_mixing_quality_menu);
