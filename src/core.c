@@ -108,7 +108,7 @@ void FN2A03_Reset(FN2A03 *R)
   R->S=0xFF;
   R->PC.bytes.low=Read(0xFFFC);
   R->PC.bytes.high=Read(0xFFFD);   
-  R->ICount=R->Cycles;
+  R->ICount=R->Cycles=0;
   R->IRequest=FN2A03_INT_IRQ_NONE;
   R->AfterCLI=0;
   R->Jammed=0;
