@@ -769,6 +769,9 @@ UINT8 apu_read (UINT16 address)
 {
    UINT8 value = 0;
 
+   if (apu.mixer.can_process)
+      process ();
+
    switch (address)
    {
       case APU_RWF0: /* $4015 */
