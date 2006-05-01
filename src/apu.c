@@ -715,8 +715,6 @@ void apu_start_frame (void)
 
 void apu_end_frame (void)
 {
-   void *buffer;
-
    /* Flush all pending data. */
    process ();
 
@@ -725,15 +723,20 @@ void apu_end_frame (void)
    /* End DSP buffer fill. */
    dsp_end ();
 
-   buffer = audio_get_buffer ();
-   if (!buffer)
-      WARN_BREAK_GENERIC();
+   if (audio_enable_output)
+   {
+      void *buffer;
 
-   /* Process DSP buffer into audio buffer. */
-   dsp_render (buffer, (apu_stereo_mode ? 2 : 1), audio_sample_size,
-      audio_unsigned_samples);
-
-   audio_free_buffer ();
+      buffer = audio_get_buffer ();
+      if (!buffer)
+         WARN_BREAK_GENERIC();
+   
+      /* Process DSP buffer into audio buffer. */
+      dsp_render (buffer, (apu_stereo_mode ? 2 : 1), audio_sample_size,
+         audio_unsigned_samples);
+   
+      audio_free_buffer ();
+   }
 }
 
 void apu_set_exsound (ENUM exsound)
@@ -1526,10 +1529,10 @@ static INLINE void process (void)
    
                for (channel = 0; channel < APU_CHANNELS; channel++)
                   apu.mixer.accumulators[channel] = get_sample (channel);
-                     
+
                /* Send to DSP. */
                dsp_write (apu.mixer.accumulators);
-   
+
                /* Adjust counter. */
                apu.mixer.accumulated_samples -= apu.mixer.max_samples;
             }
@@ -1560,7 +1563,7 @@ static INLINE void process (void)
 
                /* Send to DSP. */
                dsp_write (apu.mixer.accumulators);
-                     
+
                /* Adjust counter. */
                apu.mixer.accumulated_samples -= apu.mixer.max_samples;
             }
@@ -1623,10 +1626,10 @@ static INLINE void process (void)
                   /* Divide. */
                   *sample /= divider;
                }
-      
+
                /* Send to DSP. */
                dsp_write (apu.mixer.accumulators);
-      
+
                for (channel = 0; channel < APU_CHANNELS; channel++)
                {
                   /* Reload accumulators with residual sample protion. */
