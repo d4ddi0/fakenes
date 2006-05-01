@@ -231,12 +231,17 @@ done
 
 EXE_NAME = 'fakenes'
 
-ifopt debug EXE_NAME += 'd'
+ifopt debug   EXE_NAME += 'd'
+ifopt profile EXE_NAME += 'p'
 
 do ifplat win32
    EXE_NAME += 'w'
 
    ifnopt clean LDFLAGS += ' -mwindows'
+done
+
+do ifnopt clean
+  ifopt profile LDFLAGS += ' -pg'
 done
 
 # --
