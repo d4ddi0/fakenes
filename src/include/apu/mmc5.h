@@ -169,7 +169,7 @@ static INLINE REAL apu_mmc5s_da (apu_mmc5s_chan_t *chan)
    return (APU_TO_OUTPUT(output));
 }
 
-static INLINE void apu_mmc5s_reset_square (apu_mmc5s_chan_t *chan)
+static INLINE void apu_mmc5s_update_square (apu_mmc5s_chan_t *chan)
 {
    RT_ASSERT(chan);
 
@@ -183,18 +183,18 @@ static void apu_mmc5s_write (UINT16, UINT8);
 
 static void apu_mmc5s_reset (void)
 {
-   apu_mmc5s_reset_square (&apu.mmc5s.square[0]);
-   apu_mmc5s_reset_square (&apu.mmc5s.square[1]);
+   UINT16 address;
 
-   /* TODO: Find out what the point of all this is. */
-   apu_mmc5s_write (0x5000, 0);
-   apu_mmc5s_write (0x5002, 0);
-   apu_mmc5s_write (0x5003, 0);
-   apu_mmc5s_write (0x5004, 0);
-   apu_mmc5s_write (0x5006, 0);
-   apu_mmc5s_write (0x5007, 0);
-   apu_mmc5s_write (0x5010, 0);
-   apu_mmc5s_write (0x5011, 0);
+   /* Clear registers. */
+
+   for (address = 0x5000; address < 0x5015; address++)
+      apu_mmc5s_write (address, 0);
+}
+
+static void apu_mmc5s_update (void)
+{
+   apu_mmc5s_update_square (&apu.mmc5s.square[0]);
+   apu_mmc5s_update_square (&apu.mmc5s.square[1]);
 }
 
 static REAL apu_mmc5s_process (ENUM channel)
@@ -252,6 +252,8 @@ static void apu_mmc5s_write (UINT16 address, UINT8 value)
                apu.mmc5s.square[1].length = 0;
 				}
 				break;
+         default:
+            break;
 		}
 	}
 }
@@ -350,6 +352,7 @@ static const APU_EXSOUND apu_mmc5s =
 {
    "MMC5S\0\0\0",
    apu_mmc5s_reset,
+   apu_mmc5s_update,
    apu_mmc5s_process,
    apu_mmc5s_write,
    apu_mmc5s_save_state, apu_mmc5s_load_state

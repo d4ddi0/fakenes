@@ -524,6 +524,9 @@ void apu_load_config (void)
    DSP_ENABLE_CHANNEL_EX(APU_CHANNEL_EXTRA_2,  get_config_int ("apu", "enable_extra_2",  TRUE));
    DSP_ENABLE_CHANNEL_EX(APU_CHANNEL_EXTRA_3,  get_config_int ("apu", "enable_extra_3",  TRUE));
 
+   // for ExSound
+   APU_LogTableInitialize ();
+
    /* Disable ExSound. */
    apu_set_exsound (APU_EXSOUND_NONE);
 }
@@ -547,15 +550,12 @@ void apu_save_config (void)
 
 int apu_init (void)
 {
-   /* Initialize everything else. */
-   apu_update ();
-
    /* Reset APU. */
    apu_reset ();
 
    /* Reset frame counter. */
    apu.frame_counter = 0;
-
+           
    /* Return success. */
    return (0);
 }
@@ -584,9 +584,6 @@ void apu_reset (void)
    /* Clear context. */
    memset (&apu, 0, sizeof (apu));
 
-   /* Set sample rate. */
-   set_freq (audio_sample_rate);
-
    /* set the stupid flag to tell difference between two squares */
 
    apu.apus.square[0].sweep_complement = TRUE;
@@ -595,13 +592,11 @@ void apu_reset (void)
    /* Restore ExSound interface. */
    apu.exsound = exsound;
 
-   // for ExSound
-   APU_LogTableInitialize ();
-
    if (apu.exsound && apu.exsound->reset)
       apu.exsound->reset ();
 
    /* Clear all registers. */
+
    for (address = APU_REGA; address <= APU_REGZ; address++)
       apu_write (address, 0);
 
@@ -610,6 +605,9 @@ void apu_reset (void)
 
    /* Restore frame counter. */
    apu.frame_counter = frame_counter;
+
+   /* Initialize everything else. */
+   apu_update ();
 }
 
 void apu_update (void)
@@ -617,8 +615,13 @@ void apu_update (void)
    /* Updates the APU to external changes without resetting it, since that
       might cause problems in a currently running game. */
 
-   /* Set parameters. */
+   /* Set sample rate. */
    set_freq (audio_sample_rate);
+
+   /* Sync ExSound to changes. */
+
+   if (apu.exsound && apu.exsound->update)
+      apu.exsound->update ();
 
    /* Deinitialize DSP. */
    dsp_exit ();

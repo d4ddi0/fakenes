@@ -202,6 +202,7 @@ typedef struct _APU_EXSOUND
 {
    const UINT8 *id;
    void (*reset) (void);                  /* reset */
+   void (*update) (void);                 /* update */
    REAL (*process) (ENUM);                /* process channel */
    void (*write) (UINT16, UINT8);         /* write to a port */
    void (*save_state) (PACKFILE *, int);  /* save state */

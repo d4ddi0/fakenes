@@ -90,14 +90,14 @@ static INLINE REAL apu_vrc6s_saw (apu_vrc6s_chan_t *chan)
    return (APU_TO_OUTPUT_24(output2));
 }
 
-static INLINE void apu_vrc6s_reset_square (apu_vrc6s_chan_t *chan)
+static INLINE void apu_vrc6s_update_square (apu_vrc6s_chan_t *chan)
 {
    RT_ASSERT(chan);
 
    chan->cps = APU_DivFix(APU_NES_BASECYCLES, 12 * apu.mixer.mixing_frequency, 18);
 }
 
-static INLINE void apu_vrc6s_reset_saw (apu_vrc6s_chan_t *chan)
+static INLINE void apu_vrc6s_update_saw (apu_vrc6s_chan_t *chan)
 {
    RT_ASSERT(chan);
 
@@ -106,11 +106,29 @@ static INLINE void apu_vrc6s_reset_saw (apu_vrc6s_chan_t *chan)
 
 /* --- Public functions. --- */
 
+static void apu_vrc6s_write (UINT16, UINT8);
+
 static void apu_vrc6s_reset (void)
 {
-   apu_vrc6s_reset_square (&apu.vrc6s.square[0]);
-   apu_vrc6s_reset_square (&apu.vrc6s.square[1]);
-   apu_vrc6s_reset_saw (&apu.vrc6s.saw);
+   UINT16 address;
+
+   /* Clear registers. */
+
+   for (address = 0x9000; address < 0x9002; address++)
+      apu_vrc6s_write (address, 0);
+
+   for (address = 0xa000; address < 0xa002; address++)
+      apu_vrc6s_write (address, 0);
+
+   for (address = 0xb000; address < 0xb002; address++)
+      apu_vrc6s_write (address, 0);
+}
+
+static void apu_vrc6s_update (void)
+{
+   apu_vrc6s_update_square (&apu.vrc6s.square[0]);
+   apu_vrc6s_update_square (&apu.vrc6s.square[1]);
+   apu_vrc6s_update_saw    (&apu.vrc6s.saw);
 }
 
 static REAL apu_vrc6s_process (ENUM channel)
@@ -260,6 +278,7 @@ static const APU_EXSOUND apu_vrc6s =
 {
    "VRC6S\0\0\0",
    apu_vrc6s_reset,
+   apu_vrc6s_update,
    apu_vrc6s_process,
    apu_vrc6s_write,
    apu_vrc6s_save_state, apu_vrc6s_load_state
