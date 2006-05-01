@@ -605,7 +605,7 @@ static INLINE int gui_file_select (const UCHAR *title, const UCHAR *caption,
    ustrzncpy (filename_buffer, sizeof (filename_buffer), fs_info.path,
       ustrsize (fs_info.path));
 
-   fs_info.objfile->d1  = sizeof (filename_buffer);
+   fs_info.objfile->d1  = ((sizeof (filename_buffer) / 4) - 1);
    fs_info.objfile->dp  = filename_buffer;
    fs_info.objfile->dp2 = file_select_dialog_filename;
 

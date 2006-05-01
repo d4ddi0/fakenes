@@ -326,11 +326,11 @@ static INLINE BOOL get_resolution_input (const UCHAR *title, int *width, int
    /* Set up objects. */
 
    uszprintf (widthstr, sizeof (widthstr), "%d", *width);
-   objwidth->d1 = sizeof (widthstr);
+   objwidth->d1 = ((sizeof (widthstr) / 4) - 1);
    objwidth->dp = widthstr;
 
    uszprintf (heightstr, sizeof (heightstr), "%d", *height);
-   objheight->d1 = sizeof (heightstr);
+   objheight->d1 = ((sizeof (heightstr) / 4) - 1);
    objheight->dp = heightstr;
 
    /* Show dialog. */
@@ -376,7 +376,7 @@ static INLINE BOOL get_float_input (const UCHAR *title, REAL *value, const
    /* Set up objects. */
 
    uszprintf (valuestr, sizeof (valuestr), "%g", *value);
-   objvalue->d1 = sizeof (valuestr);
+   objvalue->d1 = ((sizeof (valuestr) / 4) - 1);
    objvalue->dp = valuestr;
 
    objunits->dp2 = (char *)units;
