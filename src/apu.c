@@ -593,21 +593,21 @@ void apu_reset (void)
    /* Restore ExSound interface. */
    apu.exsound = exsound;
 
-   /* Clear all registers. */
-   for (address = APU_REGA; address <= APU_REGZ; address++)
-      apu_write (address, 0);
-
-   /* Restore frame counter. */
-   apu.frame_counter = frame_counter;
-
    // for ExSound
    APU_LogTableInitialize ();
 
    if (apu.exsound && apu.exsound->reset)
       apu.exsound->reset ();
 
+   /* Clear all registers. */
+   for (address = APU_REGA; address <= APU_REGZ; address++)
+      apu_write (address, 0);
+
    // for $4017:bit7 by T.Yano
    apu.cnt_rate = 5;
+
+   /* Restore frame counter. */
+   apu.frame_counter = frame_counter;
 }
 
 void apu_update (void)
@@ -1353,6 +1353,9 @@ void apu_load_state (PACKFILE *file, int version)
             apu.exsound->load_state (file, version);
       }
    }
+
+   /* Synchronize the APU mixer's clock with the CPU's cycle counter. */
+   apu.mixer.clock_counter = cpu_get_cycles (FALSE);
 }
 
 /* --- Internal functions. --- */
