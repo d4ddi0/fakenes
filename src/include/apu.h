@@ -78,6 +78,7 @@ typedef struct apu_chan_s
    BOOL enabled;
 
    REAL output;
+   REAL last_sample;
 
    REAL phaseacc;
    int freq;
@@ -115,15 +116,19 @@ typedef struct apu_chan_s
 
    /* DMC. */
    UINT16 address;
-   int dma_length;
+   UINT16 dma_length;
    UINT8 cur_byte;
+   int sample_bits;
+   int counter;
+   UINT8 shift_reg;
+   BOOL silence;
    BOOL looping;
    BOOL irq_gen;
    BOOL irq_occurred;
 
    /* DMC reloading. */
-   UINT16 last_address;
-   int last_dmalength;
+   UINT16 cached_address;
+   UINT16 cached_dmalength;
 
 } apu_chan_t;
 

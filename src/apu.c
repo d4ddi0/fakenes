@@ -33,7 +33,6 @@
 #include "timing.h"
 #include "types.h"
 
-/* TODO: Clean up any leftover artifacts from the old queue system. */
 /* TODO: Implement frame counter. */
 
 /* Quality. */
@@ -78,9 +77,14 @@ static const int noise_freq[] = {
 };
 
 /* DMC transfer freqs */
-static const int dmc_clocks[] = {
-   428, 380, 340, 320, 286, 254, 226, 214, 190, 160, 142, 128, 106, 85, 72,
-    54
+static const int dmc_clocks_ntsc[] = {
+   428, 380, 340, 320, 286, 254, 226, 214, 190, 160, 142, 128, 106, 84, 72,
+   54
+};
+
+static const int dmc_clocks_pal[] = {
+   397, 353, 315, 297, 265, 235, 209, 198, 176, 148, 131, 118, 98, 78, 66,
+   50
 };
 
 /* ratios of pos/neg pulse for square waves */
@@ -133,21 +137,14 @@ static INLINE REAL apu_envelope (apu_chan_t *chan)
 
 static INLINE REAL apu_square (apu_chan_t *chan)
 {
-   REAL output;
-   REAL sample_weight;
-   REAL total;
+   REAL total, sample_weight, output;
 
    RT_ASSERT(chan);
 
-   if (!chan->enabled ||
-       (chan->vbl_length <= 0))
-   {
-      /* Channel is disabled or vbl length counter is negative or zero -
-         return last known output level. */
+   if (!chan->enabled || (chan->vbl_length <= 0))
       return (chan->output);
-   }
 
-   /* vbl length counter */
+   /* length counter */
    if (!chan->holdnote)
       chan->vbl_length -= apu.cnt_rate;
 
@@ -202,10 +199,11 @@ static INLINE REAL apu_square (apu_chan_t *chan)
 
    while (chan->phaseacc < 0)
    {
-      chan->phaseacc += (chan->freq + 1);
+      chan->phaseacc += MAX(chan->freq, 1);
+
       chan->adder = ((chan->adder + 1) & 0x0f);
 
-      sample_weight = (chan->freq + 1);
+      sample_weight = chan->freq;
 
       if (chan->phaseacc > 0)
          sample_weight -= chan->phaseacc;
@@ -231,18 +229,14 @@ static INLINE REAL apu_square (apu_chan_t *chan)
 
 static INLINE REAL apu_triangle (apu_chan_t *chan)
 {
-   static REAL val;
-   REAL sample_weight, total, prev_val;
-   REAL output;
-
+   static REAL val = 0, prev_val = 0;
+   REAL total, sample_weight, output;
+                                    
    RT_ASSERT(chan);
 
-   if (!chan->enabled ||
-       (chan->vbl_length <= 0))
-   {
+   if (!chan->enabled || (chan->vbl_length <= 0))
       return (chan->output);
-   }
-
+                        
    if (chan->counter_started)
    {
       if (chan->linear_length > 0)
@@ -321,24 +315,19 @@ static INLINE REAL apu_triangle (apu_chan_t *chan)
 
 static INLINE REAL apu_noise (apu_chan_t *chan)
 {
-   REAL output;
-
-   static int noise_bit;
-   REAL total;
-   REAL sample_weight;
+   static int noise_bit = 0;
+   REAL total, sample_weight, output;
 
    RT_ASSERT(chan);
 
-   if (!chan->enabled ||
-       (chan->vbl_length <= 0))
-   {
+   if (!chan->enabled || (chan->vbl_length <= 0))
       return (chan->output);
-   }
 
    /* vbl length counter */
    if (!chan->holdnote)
       chan->vbl_length -= apu.cnt_rate;
 
+   /* Envelope unit. */
    output = apu_envelope (chan);
 
    sample_weight = chan->phaseacc;
@@ -390,109 +379,201 @@ static INLINE REAL apu_noise (apu_chan_t *chan)
    reg2: 8 bits of 64-byte aligned address offset : $C000 + (value * 64)
    reg3: length, (value * 16) + 1 */
 
-static INLINE REAL apu_dmc (apu_chan_t *chan)
+static INLINE void apu_dmc_reload (apu_chan_t *chan)
 {
-   REAL total;
-   REAL sample_weight;
-   int delta_bit;
-   REAL output;
+   RT_ASSERT(chan);
+
+   chan->address = chan->cached_address;
+   chan->dma_length = chan->cached_dmalength;
+}
+
+static INLINE REAL apu_do_dmc (apu_chan_t *chan)
+{
+   REAL sample = 0;
 
    RT_ASSERT(chan);
 
-   /* TODO: Alot of this could use a clean-up. */
+   if (!chan->enabled)
+      return (chan->last_sample);
 
-   /* only process when channel is alive */
-   if (chan->dma_length == 0)
+   /* DMA reader. */
+
+   /*
+   When the sample buffer is in an empty state and the bytes counter is
+   non-zero...
+   */
+
+   if ((chan->dma_length > 0) && (chan->sample_bits == 0))
    {
-      chan->output = APU_TO_OUTPUT((chan->regs[1] << 8));
-      return (chan->output);
-   }
+      /* Fill sample buffer. */
 
-   sample_weight = chan->phaseacc;
+      /* DMCDMABuf=X6502_DMR(0x8000+DMCAddress); */
+      chan->cur_byte = cpu_read ((0x8000 + chan->address));
 
-   if (sample_weight > apu.cycle_rate)
-      sample_weight = apu.cycle_rate;
+      /*
+      When the DMA reader accesses a byte of memory, the CPU is suspended
+      for 4 clock cycles.
+      */
+      cpu_consume_cycles (4);
 
-   total = ((chan->regs[1] << 8) * sample_weight);
+      /* DMCAddress=(DMCAddress+1)&0x7fff; */
+      chan->address = ((chan->address + 1) & 0x7fff);
 
-   chan->phaseacc -= apu.cycle_rate;  /* # of cycles per sample */
-   
-   while (chan->phaseacc < 0)
-   {
-      /* MAX() kludge here to fix a possible lock-up in some games. */
-      chan->phaseacc += MAX(chan->freq, 1);
-      
-      if ((chan->dma_length & 7) == 0)
-      {
-         chan->cur_byte = cpu_read (chan->address);
-         
-         /* steal a cycle from CPU */
-         cpu_consume_cycles (1);
-
-         if (chan->address == 0xffff)
-            chan->address = 0x8000;
-         else
-            chan->address++;
-      }
+      chan->sample_bits = 8;
 
       if (--chan->dma_length == 0)
       {
          /* if loop bit set, we're cool to retrigger sample */
          if (chan->looping)
          {
-            /* Reload. */
-            chan->address = chan->last_address;
-            chan->dma_length = chan->last_dmalength;
-            chan->irq_occurred = FALSE;
+            /*
+            The bytes counter is decremented;
+            if it becomes zero and the loop flag is set, the sample is restarted
+            */
+
+            apu_dmc_reload (chan);
          }
          else
          {
             /* check to see if we should generate an irq */
             if (chan->irq_gen)
             {
+               /*
+               if the bytes counter becomes zero and the interrupt enabled
+               flag is set, the interrupt flag is set.
+               */
+
                chan->irq_occurred = TRUE;
-               cpu_interrupt (CPU_INTERRUPT_IRQ);
+               cpu_interrupt (CPU_INTERRUPT_IRQ_DMC);
             }
 
-            /* bodge for timestamp queue */
-            sample_weight = (chan->freq - chan->phaseacc);
+            /* The DMC seems to become disabled after the length counter
+               reaches 0, regardless of whether or not new values are
+               written to the length counter afterwards.  The channel must
+               be restarted via a write to $4015 with bit 4 set.
 
-            total += ((chan->regs[1] << 8) * sample_weight);
+               Fixes Crystalis, quite possibly other games.
 
-            while (chan->phaseacc < 0)
-            {
-               /* MAX() kludge here to fix a possible lock-up in some
-                  games. */
-               chan->phaseacc += MAX(chan->freq, 1);
-            }
+               - randi
+               */
 
             chan->enabled = FALSE;
-
-            break;
          }
       }
+   }
 
-      delta_bit = ((chan->dma_length & 7) ^ 7);
+   /* Output unit. */
 
-      if (chan->cur_byte & (1 << delta_bit))
+   if (chan->counter == 0)
+   {
+      /* Start a new cycle. */
+
+      /* Reload counter. */
+      chan->counter = 8;
+
+      if (chan->sample_bits > 0)
+      {
+         /* Sample buffer contains data. */
+
+         /* Clear silence flag. */
+         chan->silence = FALSE;
+
+         /* Empty sample buffer into the shift register. */
+
+         chan->shift_reg = chan->cur_byte;
+
+         chan->cur_byte = 0;
+         chan->sample_bits = 0;
+      }        
+      else
+      {
+         /* Set silence flag. */
+         chan->silence = TRUE;
+      }
+   }
+                       
+   if (!chan->silence)
+   {
+      BOOL bit0;
+
+      /*
+      If the silence flag is clear, bit 0 of the shift register is applied to
+      the DAC counter: If bit 0 is clear and the counter is greater than 1, the
+      counter is decremented by 2, otherwise if bit 0 is set and the counter is less
+      than 126, the counter is incremented by 2.
+      */
+
+      bit0 = TRUE_OR_FALSE(chan->shift_reg & 1);
+
+      if (!bit0 && (chan->regs[1] > 1))
       {
          /* positive delta */
-         if (chan->regs[1] < 0x7d)
-            chan->regs[1] += 2;
+         chan->regs[1] -= 2;
       }
-      else            
+      else if (bit0 && (chan->regs[1] < 126))
       {
          /* negative delta */
-         if (chan->regs[1] > 1)
-            chan->regs[1] -= 2;
+         chan->regs[1] += 2;
       }
 
-      sample_weight = chan->freq;
+      sample = (chan->regs[1] << 8);
+   }
 
-      if (chan->phaseacc > 0)
-         sample_weight -= chan->phaseacc;
+   /* Clock shift register. */
+   chan->shift_reg >>= 1;
 
-      total += ((chan->regs[1] << 8) * sample_weight);
+   /* Decrement counter. */
+   chan->counter--;
+
+   return (sample);
+}
+
+static INLINE REAL apu_dmc (apu_chan_t *chan)
+{
+   REAL total, sample_weight, output;
+
+   RT_ASSERT(chan);
+
+   if (!chan->enabled)
+      return (chan->output);
+
+   if (chan->silence)
+   {
+      /* Channel is silenced. */
+      total = 0;
+   }
+   else
+   {
+      sample_weight = chan->phaseacc;
+   
+      if (sample_weight > apu.cycle_rate)
+         sample_weight = apu.cycle_rate;
+   
+      total = ((chan->regs[1] << 8) * sample_weight);
+   }
+
+   chan->phaseacc -= apu.cycle_rate;  /* # of cycles per sample */
+   
+   while (chan->phaseacc < 0)
+   {
+      REAL sample;
+
+      /* MAX() kludge here to fix a possible lock-up in some games. */
+      chan->phaseacc += MAX(chan->freq, 1);
+
+      sample = apu_do_dmc (chan);
+
+      if (sample)
+      {
+         sample_weight = chan->freq;
+   
+         if (chan->phaseacc > 0)
+            sample_weight -= chan->phaseacc;
+   
+         total += (sample * sample_weight);
+
+         chan->last_sample = sample;
+      }
    }
 
    output = (total / apu.cycle_rate);
@@ -831,7 +912,7 @@ UINT8 apu_read (UINT16 address)
 
          chan = &apu.apus.dmc;
 
-         if (chan->enabled)
+         if (chan->enabled && (chan->dma_length > 0))
             value |= 0x10;
 
          if (chan->irq_occurred)
@@ -1091,18 +1172,20 @@ void apu_write (UINT16 address, UINT8 value)
          chan = &apu.apus.dmc;
 
          chan->regs[0] = value;
-   
-         chan->freq = dmc_clocks[(value & 0x0f)];
-         chan->looping = TRUE_OR_FALSE(value & 0x40);
-   
-         if (value & 0x80)
-         {
-            chan->irq_gen = TRUE;
-         }
+
+         if (machine_type == MACHINE_TYPE_NTSC)
+            chan->freq = dmc_clocks_ntsc[(value & 0x0f)];
          else
+            chan->freq = dmc_clocks_pal[(value & 0x0f)];
+
+         chan->looping = TRUE_OR_FALSE(value & 0x40);
+         chan->irq_gen = TRUE_OR_FALSE(value & 0x80);
+   
+         if (!chan->irq_gen)
          {
             chan->irq_gen = FALSE;
             chan->irq_occurred = FALSE;
+            cpu_clear_interrupt (CPU_INTERRUPT_IRQ_DMC);
          }
 
          break;
@@ -1139,7 +1222,11 @@ void apu_write (UINT16 address, UINT8 value)
 
          chan->regs[2] = value;
 
-         chan->last_address = (0xc000 + (UINT16)(value << 6));
+         /* DMCAddress=0x4000+(DMCAddressLatch<<6); */
+         chan->cached_address = (0x4000 + (value << 6));
+
+         if (chan->dma_length == 0)
+            apu_dmc_reload (chan);
 
          break;
       }
@@ -1156,7 +1243,11 @@ void apu_write (UINT16 address, UINT8 value)
 
          chan->regs[3] = value;
 
-         chan->last_dmalength = (((value << 4) + 1) << 3);
+         /* DMCSize=(DMCSizeLatch<<4)+1; */
+         chan->cached_dmalength = ((value << 4) + 1);
+
+         if (chan->dma_length == 0)
+            apu_dmc_reload (chan);
 
          break;
       }
@@ -1212,27 +1303,37 @@ void apu_write (UINT16 address, UINT8 value)
 
          chan = &apu.apus.dmc;
 
-         if (value & 0x10)
+         /*
+         ---d xxxx
+
+         If d is set and the DMC's DMA reader has no more sample bytes to fetch, the DMC
+         sample is restarted. If d is clear then the DMA reader's sample bytes remaining
+         is set to 0.
+         */
+
+         chan->enabled = TRUE_OR_FALSE(value & 0x10);
+
+         if (chan->enabled)
          {
             /* Channel is enabled - check for a reload. */
 
             if (chan->dma_length == 0)
-            {
-               /* Reload. */
-
-               chan->address = chan->last_address;
-               chan->dma_length = chan->last_dmalength;
-               chan->irq_occurred = FALSE;
-            }
+               apu_dmc_reload (chan);
          }
          else
          {
             /* Channel is disabled. */
 
-            chan->enabled = FALSE;
             chan->dma_length = 0;
-            chan->irq_occurred = FALSE;
          }
+
+         /*
+         When $4015 is written to, the channels' length counter enable flags are set,
+         the DMC is possibly started or stopped, and the DMC's IRQ occurred flag is
+         cleared.
+         */
+         chan->irq_occurred = FALSE;
+         cpu_clear_interrupt (CPU_INTERRUPT_IRQ_DMC);
 
          break;
       }
@@ -1517,6 +1618,9 @@ static INLINE void process (void)
 
    apu.mixer.clock_counter = cycles;
 
+   /* Avoid re-entry. */
+   apu.mixer.can_process = FALSE;
+
    switch (apu_quality)
    {
       case APU_QUALITY_FAST:
@@ -1659,4 +1763,6 @@ static INLINE void process (void)
       default:
          WARN_GENERIC();
    }
+
+   apu.mixer.can_process = TRUE;
 }
