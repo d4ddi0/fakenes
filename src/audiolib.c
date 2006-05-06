@@ -167,6 +167,9 @@ static int audiolib_allegro_init (void)
 static void audiolib_allegro_deinit (void)
 {
    stop_audio_stream (audiolib_allegro_stream);
+
+   /* Remove Allegro sound driver so that it doesn't conflict. */
+   remove_sound ();
 }
 
 static int audiolib_allegro_play (void)
@@ -412,11 +415,25 @@ static ALSTREAM *audiolib_openal_stream = NULL;
 
 static int audiolib_openal_init (void)
 {
+   static BOOL initialized = FALSE;
+
    /* Interpolation is not supported. */
    audio_interpolation = FALSE;
 
-   alutInit (&saved_argc, saved_argv);
-   AL_CHECK();
+   if (!initialized)
+   {
+      /* Hack for freealut not liking being initialized/deinitialized more
+         than once on Linux and possibly other Unices. */
+
+      alutInit (&saved_argc, saved_argv);
+      AL_CHECK();
+
+      /* Install exit handler. */
+      atexit (alutExit);
+
+      /* Make sure we don't get initialized again. */
+      initialized = TRUE;
+   }
 
    /* Autodetect settings. */
 
@@ -438,7 +455,9 @@ static void audiolib_openal_deinit (void)
 {
    stop_al_stream (audiolib_openal_stream);
 
-   alutExit ();
+   /* Due to a bug in freealut, we don't call it's exit routine until we're
+      actually exiting the program (via atexit()). */
+   /* alutExit (); */
 }
 
 static int audiolib_openal_play (void)
