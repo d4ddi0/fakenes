@@ -7,7 +7,7 @@ require 'macsupport'
 
 @systemFrameworks += %w(Cocoa)
 @frameworks += %w(Allegro)
-@cflags += '-g -Os -DALLEGRO_NO_ASM'
+@cflags += '-g -Os -DALLEGRO_NO_ASM -DPOSIX -DC99_TYPES -Wno-pointer-sign'
 @includes += '-I../../src/include -I.'
 
 ####################

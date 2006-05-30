@@ -22,7 +22,7 @@ extern "C" {
 typedef unsigned char fakenes_uint8_t;
 typedef signed char   fakenes_int8_t;
 
-#ifdef __APPLE__
+#ifdef C99_TYPES
    typedef uint16_t       fakenes_uint16_t;
    typedef int16_t        fakenes_int16_t;
 #elif SIZEOF_SHORT == 2
@@ -35,7 +35,7 @@ typedef signed char   fakenes_int8_t;
 #  error No 16-bit type could be found.
 #endif
 
-#ifdef __APPLE__
+#ifdef C99_TYPES
    typedef uint32_t       fakenes_uint32_t;
    typedef int32_t        fakenes_int32_t;
 #elif SIZEOF_INT == 4
