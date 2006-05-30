@@ -1,0 +1,44 @@
+#################
+# Configuration #
+#################
+
+NAME = 'FakeNES'
+require 'macsupport'
+
+@systemFrameworks += %w(Cocoa)
+@frameworks += %w(Allegro)
+@cflags += '-g -Os -DALLEGRO_NO_ASM'
+@includes += '-I../../src/include -I.'
+
+####################
+# Bundle structure #
+####################
+
+installTask(:setup, CONTENTSDIR, 'Info.plist')
+installTask(:setup, RESOURCEDIR, 'FakeNES.icns')
+task(:bundle => :setup)
+
+installFrameworks(:frameworks)
+task(:bundle => :frameworks)
+
+##############
+# App binary #
+##############
+
+sources = Dir::glob('../../src/*.c') + %w(datafile.c main.m)
+
+buildBinary(:binary, BINDIR, 'fakenes', sources)
+buildBinary(:binary, '.', 'dat2c', %w(../dat2c.c main.m))
+
+file('datafile.c' => ['../../support/fakenes.dat', './dat2c']) do |t|
+	sh('./dat2c -o datafile.c -h datafile.h -p datafile ../../support/fakenes.dat')
+end
+@cleanfiles += %w(datafile.c datafile.h)
+
+task(:bundle => :binary)
+
+################
+# Main targets #
+################
+
+task(:default => :bundle)
