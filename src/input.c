@@ -872,7 +872,7 @@ void input_process (void)
       {
          static int frames = 0;
 
-         if (++frames == (input_autosave_interval * timing_get_speed ()))
+         if (++frames == ROUND(input_autosave_interval * timing_get_speed ()))
          {
             /* Simulate keypress. */
             gui_handle_keypress (0, KEY_F3);
@@ -1104,7 +1104,7 @@ void input_process (void)
 
    if (--turbo_frames <= 0)
    {
-      int speed;
+      REAL speed;
 
       /* Invert phase. */
 
@@ -1154,7 +1154,7 @@ void input_handle_keypress (int c, int scancode)
          if (!(input_mode & INPUT_MODE_REPLAY_PLAY))
             input_mode |= INPUT_MODE_PLAY;
 
-         wait_frames = (timing_get_speed () / 2);
+         wait_frames = ROUND(timing_get_speed () / 2.0f);
 
          return;
       }

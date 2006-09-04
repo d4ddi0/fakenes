@@ -112,7 +112,8 @@ void resume_timing (void)
 
    /* Install timers. */
    install_int_ex (fps_timer, BPS_TO_TIMER(1));
-   install_int_ex (throttle_timer, BPS_TO_TIMER(timing_get_speed ()));
+   install_int_ex (throttle_timer, MSEC_TO_TIMER(ROUND(1000.0 /
+      timing_get_speed ())));
 }
 
 int main (int argc, char *argv[])
@@ -333,7 +334,7 @@ int main (int argc, char *argv[])
             if (fast_forward)
             {
                if (frame_skip == -1)
-                  frame_count = timing_get_speed ();
+                  frame_count = ROUND(timing_get_speed ());
                else
                   frame_count = frame_skip;
 

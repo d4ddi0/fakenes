@@ -19,6 +19,9 @@
 extern "C" {
 #endif
 
+#define MACHINE_RATE_NTSC (1789772.727272727 / 29780.5) // 60.098814 Hz
+#define MACHINE_RATE_PAL  (1662607.0 / 33247.5)         // 50.006978 Hz
+
 ENUM machine_region;
 ENUM machine_type;
 
@@ -96,14 +99,10 @@ static INLINE REAL timing_get_speed_ratio (void)
    return (ratio);
 }
 
-static INLINE int timing_get_speed (void)
+static INLINE REAL timing_get_speed (void)
 {
-   REAL speed;
-
-   speed = ((machine_type == MACHINE_TYPE_NTSC ? 60.0f : 50.0f) *
-      timing_get_speed_ratio ());
-
-   return (ROUND(speed));
+   return (((machine_type == MACHINE_TYPE_NTSC ? MACHINE_RATE_NTSC :
+      MACHINE_RATE_PAL) * timing_get_speed_ratio ()));
 }
 
 static INLINE void timing_update_speed (void)
@@ -196,7 +195,7 @@ static REAL timing_get_frequency (void)
 
    scalar *= timing_get_speed ();
 
-   scalar /= CYCLE_LENGTH;
+   scalar /= (REAL)CYCLE_LENGTH;
 
    return (scalar);
 }

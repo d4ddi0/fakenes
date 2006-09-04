@@ -99,7 +99,7 @@ int audio_init (void)
 
    /* Individual frames. */
 
-   audio_buffer_frame_size_samples = (audio_sample_rate /
+   audio_buffer_frame_size_samples = (int)(audio_sample_rate /
       timing_get_speed ());
    audio_buffer_frame_size_bytes = ((audio_buffer_frame_size_samples *
       AUDIO_CHANNELS) * (audio_sample_size / 8));

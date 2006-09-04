@@ -694,8 +694,8 @@ static INLINE void display_status (BITMAP *bitmap, FONT *font, int color)
    shadow_textout (bitmap, font, "Core:",  0, y, color);
    y += line;
 
-   shadow_textprintf (bitmap, font, indent, y, color, "%02d/%02d Hz",
-      timing_hertz, timing_get_speed ());
+   shadow_textprintf (bitmap, font, indent, y, color, "%02d/%g Hz",
+      timing_hertz, (double)timing_get_speed ());
    y += line;
 
    shadow_textprintf (bitmap, font, indent, y, color, "PC: $%04X",
