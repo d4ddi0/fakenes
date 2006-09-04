@@ -809,7 +809,7 @@ DEFINE_MENU_CALLBACK(video_blitter_menu_interpolated_3x);
 DEFINE_MENU_CALLBACK(video_blitter_menu_hq3x);
 DEFINE_MENU_CALLBACK(video_blitter_menu_hq4x);
 DEFINE_MENU_CALLBACK(video_blitter_menu_stretched);
-DEFINE_MENU_CALLBACK(video_blitter_menu_nes_ntsc);
+DEFINE_MENU_CALLBACK(video_blitter_menu_ntsc);
 DEFINE_MENU_CALLBACK(video_blitter_menu_configure);
 
 static const MENU video_blitter_menu_base[] =
@@ -830,7 +830,7 @@ static const MENU video_blitter_menu_base[] =
    { "  11: &HQ4X",            video_blitter_menu_hq4x,            NULL, 0, NULL },
    { "Dynamic",                NULL,                               NULL, 0, NULL },
    { "  12: &Stretched",       video_blitter_menu_stretched,       NULL, 0, NULL },
-   { "  13: &nes_ntsc",        video_blitter_menu_nes_ntsc,        NULL, 0, NULL },
+   { "  13: &NTSC",            video_blitter_menu_ntsc,            NULL, 0, NULL },
    MENU_SPLITTER,
    { "&Configure...",          video_blitter_menu_configure,       NULL, 0, NULL },
    MENU_ENDCAP
