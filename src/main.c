@@ -40,7 +40,7 @@ ENUM machine_region = MACHINE_REGION_AUTOMATIC;
 ENUM machine_type = MACHINE_TYPE_NTSC;
 
 /* CPU usage (passive/normal/aggressive). */
-ENUM cpu_usage = CPU_USAGE_NORMAL;
+ENUM cpu_usage = CPU_USAGE_PASSIVE;
 
 /* Whether or not speeed will be capped at timing_get_speed(). */
 BOOL speed_cap = TRUE;
