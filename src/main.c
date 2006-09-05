@@ -381,29 +381,32 @@ int main (int argc, char *argv[])
          }
 
 
-          if (input_mode & INPUT_MODE_PLAY)
-          {
+         if (rewind_is_enabled ())
+         {
             /* Game rewinding. */
 
-            if (key[KEY_BACKSLASH])
+            if (input_mode & INPUT_MODE_PLAY)
             {
-               if (!rewind_load_snapshot ())
+               if (key[KEY_BACKSLASH])
                {
-                  /* Skip remainder of this frame. */
-                  /* TODO: Do user interface input processing before this
-                     by splitting it away from the emulation input
-                     processing, somehow. */
-
-                  audio_update ();
-
-                  continue;
+                  if (!rewind_load_snapshot ())
+                  {
+                     /* Skip remainder of this frame. */
+                     /* TODO: Do user interface input processing before this
+                        by splitting it away from the emulation input
+                        processing, somehow. */
+   
+                     audio_update ();
+   
+                     continue;
+                  }
                }
-            }
-            else
-            {
-               rewind_save_snapshot ();
-            }
-         }        
+               else
+               {
+                  rewind_save_snapshot ();
+               }
+            }        
+         }
 
          /* Process input. */
          while (keypressed ())

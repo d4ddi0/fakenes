@@ -384,6 +384,11 @@ BOOL rewind_load_snapshot (void)
    return (TRUE);
 }
 
+BOOL rewind_is_enabled (void)
+{
+   return (enabled);
+}
+
 /* --- Internal functions. --- */
 
 static BOOL pack (void *buffer, long *size)

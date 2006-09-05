@@ -19,6 +19,7 @@ void rewind_exit (void);
 void rewind_clear (void);
 BOOL rewind_save_snapshot (void);
 BOOL rewind_load_snapshot (void);
+BOOL rewind_is_enabled (void);
 
 #ifdef __cplusplus
 }
