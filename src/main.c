@@ -102,6 +102,9 @@ void suspend_timing (void)
 
 void resume_timing (void)
 {
+   int timer_ticks_1_hz;
+   int timer_ticks;
+
    /* Reset variables. */
    actual_fps_count = 0;
    virtual_fps_count = 0;
@@ -109,10 +112,15 @@ void resume_timing (void)
    frame_interrupt = FALSE;
    throttle_counter = 0;
 
+   /* Determine how many timer ticks to a second. */
+   timer_ticks_1_hz = SECS_TO_TIMER(1);
+
+   /* Determine how often our throttle timer will execute, in timer ticks. */
+   timer_ticks = ROUND((REAL)timer_ticks_1_hz / timing_get_speed ());
+
    /* Install timers. */
-   install_int_ex (fps_timer, BPS_TO_TIMER(1));
-   install_int_ex (throttle_timer, MSEC_TO_TIMER(ROUND(1000.0 /
-      timing_get_speed ())));
+   install_int_ex (fps_timer,      timer_ticks_1_hz);
+   install_int_ex (throttle_timer, timer_ticks);
 }
 
 int main (int argc, char *argv[])
