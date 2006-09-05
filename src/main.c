@@ -6,7 +6,6 @@
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
  
-#define ALLEGRO_USE_CONSOLE
 #include <allegro.h>
 #include <stdio.h>
 #include "apu.h"
