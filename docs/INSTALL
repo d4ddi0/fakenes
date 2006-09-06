@@ -18,7 +18,7 @@ With make:
 Without make:
    Run './cbuild.c' from a Unix shell or compile and run CBuild yourself.
 
-If CBuild fails, drop me a line at stainless@users.sourceforge.net.
+If CBuild fails, drop me a line at randilyn@users.sourceforge.net.
 
 
 Optional packages
