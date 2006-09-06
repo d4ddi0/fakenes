@@ -51,8 +51,8 @@ static INLINE REAL get_sample (ENUM);
 static INLINE void process (void);
 
 /* Macro to convert generated samples to normalized samples. */
-#define APU_TO_OUTPUT(value)     (value / 32767.0f)
-#define APU_TO_OUTPUT_24(value)  (value / 8388607.0f)
+#define APU_TO_OUTPUT(value)     (value / 32767.0)
+#define APU_TO_OUTPUT_24(value)  (value / 8388607.0)
                                              
 /* --- Lookup tables. --- */
 
@@ -297,8 +297,8 @@ static INLINE REAL apu_triangle (apu_chan_t *chan)
 
    total /= sample_weight;
 
-   output = (total * 256.0f);
-   output = ((output * 21.0f) / 16.0f);
+   output = (total * 256.0);
+   output = ((output * 21.0) / 16.0);
 
    chan->output = APU_TO_OUTPUT(output);
 
@@ -363,7 +363,7 @@ static INLINE REAL apu_noise (apu_chan_t *chan)
    }
 
    output = ((output * total) / apu.cycle_rate);
-   output = ((output * 13.0f) / 16.0f);
+   output = ((output * 13.0) / 16.0);
 
    chan->output = APU_TO_OUTPUT(output);
 
@@ -577,7 +577,7 @@ static INLINE REAL apu_dmc (apu_chan_t *chan)
    }
 
    output = (total / apu.cycle_rate);
-   output = ((output * 13.0f) / 16.0f);
+   output = ((output * 13.0) / 16.0);
 
    chan->output = APU_TO_OUTPUT(output);
 
@@ -719,14 +719,14 @@ void apu_update (void)
       {
          /* FakeNES classic. */
 
-         dsp_set_channel_params (APU_CHANNEL_SQUARE_1, 1.0f, -1.0f);
-         dsp_set_channel_params (APU_CHANNEL_SQUARE_2, 1.0f, +1.0f);
-         dsp_set_channel_params (APU_CHANNEL_TRIANGLE, 1.0f, -1.0f);
-         dsp_set_channel_params (APU_CHANNEL_NOISE,    1.0f, +1.0f);
-         dsp_set_channel_params (APU_CHANNEL_DMC,      1.0f, 0);
-         dsp_set_channel_params (APU_CHANNEL_EXTRA_1,  1.0f, -1.0f);
-         dsp_set_channel_params (APU_CHANNEL_EXTRA_2,  1.0f, +1.0f);
-         dsp_set_channel_params (APU_CHANNEL_EXTRA_3,  1.0f, 0);
+         dsp_set_channel_params (APU_CHANNEL_SQUARE_1, 1.0, -1.0);
+         dsp_set_channel_params (APU_CHANNEL_SQUARE_2, 1.0, +1.0);
+         dsp_set_channel_params (APU_CHANNEL_TRIANGLE, 1.0, -1.0);
+         dsp_set_channel_params (APU_CHANNEL_NOISE,    1.0, +1.0);
+         dsp_set_channel_params (APU_CHANNEL_DMC,      1.0, +0.0);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_1,  1.0, -1.0);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_2,  1.0, +1.0);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_3,  1.0, +0.0);
 
          break;
       }
@@ -736,14 +736,14 @@ void apu_update (void)
          /* FakeNES enhanced. (may/2002) */
          /* Centers the triangle and noise. */
 
-         dsp_set_channel_params (APU_CHANNEL_SQUARE_1, 1.0f, -1.0f);
-         dsp_set_channel_params (APU_CHANNEL_SQUARE_2, 1.0f, +1.0f);
-         dsp_set_channel_params (APU_CHANNEL_TRIANGLE, 1.0f, 0);
-         dsp_set_channel_params (APU_CHANNEL_NOISE,    1.0f, 0);
-         dsp_set_channel_params (APU_CHANNEL_DMC,      1.0f, 0);
-         dsp_set_channel_params (APU_CHANNEL_EXTRA_1,  1.0f, -0.5f);
-         dsp_set_channel_params (APU_CHANNEL_EXTRA_2,  1.0f, +0.5f);
-         dsp_set_channel_params (APU_CHANNEL_EXTRA_3,  1.0f, 0);
+         dsp_set_channel_params (APU_CHANNEL_SQUARE_1, 1.0, -1.0);
+         dsp_set_channel_params (APU_CHANNEL_SQUARE_2, 1.0, +1.0);
+         dsp_set_channel_params (APU_CHANNEL_TRIANGLE, 1.0, +0.0);
+         dsp_set_channel_params (APU_CHANNEL_NOISE,    1.0, +0.0);
+         dsp_set_channel_params (APU_CHANNEL_DMC,      1.0, +0.0);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_1,  1.0, -0.5);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_2,  1.0, +0.5);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_3,  1.0, +0.0);
 
          break;
       }
@@ -752,16 +752,16 @@ void apu_update (void)
       {
          /* Real NES. */
 
-         dsp_set_channel_params (APU_CHANNEL_SQUARE_1, 1.0f, -1.0f);
-         dsp_set_channel_params (APU_CHANNEL_SQUARE_2, 1.0f, -1.0f);
-         dsp_set_channel_params (APU_CHANNEL_TRIANGLE, 1.0f, +1.0f);
-         dsp_set_channel_params (APU_CHANNEL_NOISE,    1.0f, +1.0f);
-         dsp_set_channel_params (APU_CHANNEL_DMC,      1.0f, +1.0f);
+         dsp_set_channel_params (APU_CHANNEL_SQUARE_1, 1.0, -1.0);
+         dsp_set_channel_params (APU_CHANNEL_SQUARE_2, 1.0, -1.0);
+         dsp_set_channel_params (APU_CHANNEL_TRIANGLE, 1.0, +1.0);
+         dsp_set_channel_params (APU_CHANNEL_NOISE,    1.0, +1.0);
+         dsp_set_channel_params (APU_CHANNEL_DMC,      1.0, +1.0);
 
          /* What should the behavior here be? */
-         dsp_set_channel_params (APU_CHANNEL_EXTRA_1,  1.0f, 0);
-         dsp_set_channel_params (APU_CHANNEL_EXTRA_2,  1.0f, 0);
-         dsp_set_channel_params (APU_CHANNEL_EXTRA_3,  1.0f, 0);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_1,  1.0, +0.0);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_2,  1.0, +0.0);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_3,  1.0, +0.0);
 
          break;
       }
@@ -772,14 +772,14 @@ void apu_update (void)
          /* Mono       (apu_stereo_mode == FALSE)
             Stereo Mix (apu_stereo_mode == APU_STEREO_MODE_4) */
                                                                    
-         dsp_set_channel_params (APU_CHANNEL_SQUARE_1, 1.0f, 0);
-         dsp_set_channel_params (APU_CHANNEL_SQUARE_2, 1.0f, 0);
-         dsp_set_channel_params (APU_CHANNEL_TRIANGLE, 1.0f, 0);
-         dsp_set_channel_params (APU_CHANNEL_NOISE,    1.0f, 0);
-         dsp_set_channel_params (APU_CHANNEL_DMC,      1.0f, 0);
-         dsp_set_channel_params (APU_CHANNEL_EXTRA_1,  1.0f, 0);
-         dsp_set_channel_params (APU_CHANNEL_EXTRA_2,  1.0f, 0);
-         dsp_set_channel_params (APU_CHANNEL_EXTRA_3,  1.0f, 0);
+         dsp_set_channel_params (APU_CHANNEL_SQUARE_1, 1.0, +0.0);
+         dsp_set_channel_params (APU_CHANNEL_SQUARE_2, 1.0, +0.0);
+         dsp_set_channel_params (APU_CHANNEL_TRIANGLE, 1.0, +0.0);
+         dsp_set_channel_params (APU_CHANNEL_NOISE,    1.0, +0.0);
+         dsp_set_channel_params (APU_CHANNEL_DMC,      1.0, +0.0);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_1,  1.0, +0.0);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_2,  1.0, +0.0);
+         dsp_set_channel_params (APU_CHANNEL_EXTRA_3,  1.0, +0.0);
 
          break;
       }

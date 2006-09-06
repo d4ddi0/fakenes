@@ -18,7 +18,7 @@
 #include "types.h"
 
 /* Master volume. */
-REAL dsp_master_volume = 1.0f;
+REAL dsp_master_volume = 1.0;
 
 /* The DSP buffer. */
 static DSP_SAMPLE *dsp_buffer = NULL;
@@ -37,8 +37,8 @@ static int dsp_write_sample = 0;
 #define DSP_OUTPUT_CHANNELS_MIN  1
 #define DSP_OUTPUT_CHANNELS_MAX  2
 
-#define DSP_SAMPLE_VALUE_MIN  -1.0f
-#define DSP_SAMPLE_VALUE_MAX  +1.0f
+#define DSP_SAMPLE_VALUE_MIN  -1.0
+#define DSP_SAMPLE_VALUE_MAX  +1.0
 
 /* Sample access macros. */
 #define DSP_BUFFER_SAMPLE(sample, channel)   \
@@ -119,7 +119,7 @@ int dsp_open (int samples, int channels)
       dsp_write() can be called to store samples in the buffer.  It takes an
       array of DSP_SAMPLE data, with the array size being equal to the
       number of channels in the buffer.  The total dynamic range of the
-      samples should not exceed -1.0f or +1.0f.
+      samples should not exceed -1.0 or +1.0.
    */
 
    /* Clamp values to sane minimums and maximums. */
@@ -360,7 +360,7 @@ static INLINE void dsp_effector_low_pass_filter (DSP_MULTIMIXER *multimixer,
          /* Simple. */
 
          DSP_MIXER += DSP_MIXER_LAST;
-         DSP_MIXER /= 2.0f;
+         DSP_MIXER /= 2.0;
 
          break;
       }
@@ -369,9 +369,9 @@ static INLINE void dsp_effector_low_pass_filter (DSP_MULTIMIXER *multimixer,
       {
          /* Weighted. */
 
-         DSP_MIXER *= 3.0f;
+         DSP_MIXER *= 3.0;
          DSP_MIXER += DSP_MIXER_LAST;
-         DSP_MIXER /= 4.0f;
+         DSP_MIXER /= 4.0;
 
          DSP_MIXER_NEXT = DSP_MIXER;
 
@@ -383,7 +383,7 @@ static INLINE void dsp_effector_low_pass_filter (DSP_MULTIMIXER *multimixer,
          /* Dynamic. */
 
          DSP_MIXER += DSP_MIXER_LAST;
-         DSP_MIXER /= 2.0f;
+         DSP_MIXER /= 2.0;
 
          DSP_MIXER_NEXT = DSP_MIXER;
 
@@ -401,7 +401,7 @@ static INLINE void dsp_effector_high_pass_filter (DSP_MULTIMIXER
    RT_ASSERT(multimixer);
 
    DSP_MIXER -= DSP_MIXER_LAST;
-   DSP_MIXER *= 4.0f;
+   DSP_MIXER *= 4.0;
 }
 
 static INLINE void dsp_effector_delta_sigma_filter (DSP_MULTIMIXER
@@ -413,14 +413,14 @@ static INLINE void dsp_effector_delta_sigma_filter (DSP_MULTIMIXER
 
    old = DSP_MIXER;
 
-   DSP_MIXER *= 3.0f;
+   DSP_MIXER *= 3.0;
    DSP_MIXER += DSP_MIXER_LAST;
-   DSP_MIXER /= 4.0f;
+   DSP_MIXER /= 4.0;
 
    DSP_MIXER_NEXT = DSP_MIXER;
 
    DSP_MIXER += (DSP_MIXER - old);
-   DSP_MIXER -= ((rand () / (REAL)RAND_MAX) * (DSP_MIXER * 0.01f));
+   DSP_MIXER -= ((rand () / (REAL)RAND_MAX) * (DSP_MIXER * 0.01));
 
 }
 
@@ -435,8 +435,8 @@ static INLINE void dsp_effector_blend_stereo (DSP_MULTIMIXER *multimixer)
 
    old_left = DSP_MIXER_LEFT;
 
-   DSP_MIXER_LEFT  += (DSP_MIXER_RIGHT / 2.0f);
-   DSP_MIXER_RIGHT += (old_left / 2.0f);
+   DSP_MIXER_LEFT  += (DSP_MIXER_RIGHT / 2.0);
+   DSP_MIXER_RIGHT += (old_left / 2.0);
 }
 
 static INLINE void dsp_effector_swap_channels (DSP_MULTIMIXER *multimixer)
@@ -467,7 +467,7 @@ static INLINE void dsp_effector_wide_stereo (DSP_MULTIMIXER *multimixer,
       case 1:
       {
          DSP_MIXER_LEFT += DSP_MIXER_RIGHT;
-         DSP_MIXER_LEFT /= 2.0f;
+         DSP_MIXER_LEFT /= 2.0;
 
          if (DSP_MIXER_LEFT < 0)
             DSP_MIXER_RIGHT = fabs (DSP_MIXER_LEFT);
@@ -496,7 +496,7 @@ static INLINE void dsp_effector_wide_stereo (DSP_MULTIMIXER *multimixer,
 
          old_left = DSP_MIXER_LEFT;
 
-         scrap1 = ((DSP_MIXER_LEFT + DSP_MIXER_RIGHT) / 2.0f);
+         scrap1 = ((DSP_MIXER_LEFT + DSP_MIXER_RIGHT) / 2.0);
          scrap2 = (DSP_MIXER_RIGHT - scrap1);
 
          DSP_MIXER_LEFT -= scrap2;
@@ -517,7 +517,7 @@ static INLINE void dsp_effector_wide_stereo (DSP_MULTIMIXER *multimixer,
 #define DSP_OUTPUT_MASK       (0xffffffff >> DSP_OUTPUT_SHIFTS)
 
 #define DSP_MIXER_TO_OUTPUT() \
-   DSP_OUTPUT = ROUND((DSP_MIXER * 2147483647.0f))
+   DSP_OUTPUT = ROUND((DSP_MIXER * 2147483647.0))
 
 #define DSP_BUFFER_OUTPUT()                              \
    {                                                     \
@@ -633,7 +633,7 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
 
          /* It seems we need this line to avoid distortion, even for mono
             mixing.  Odd. */
-         input /= 2.0f;
+         input /= 2.0;
 
          switch (multimixer->channels)
          {
@@ -657,21 +657,21 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
                   /* Left panning. */
 
                   left_vol  = fabs (params->pan);
-                  right_vol = (1.0f - left_vol);
+                  right_vol = (1.0 - left_vol);
                }
                else if (params->pan > (0 + EPSILON))
                {
                   /* Right panning. */
 
                   right_vol = params->pan;
-                  left_vol  = (1.0f - right_vol);
+                  left_vol  = (1.0 - right_vol);
                }
                else
                {
                   /* Center panning. */
 
-                  left_vol  = 0.5f;
-                  right_vol = 0.5f;
+                  left_vol  = 0.5;
+                  right_vol = 0.5;
                }
 
                DSP_MIXER_LEFT  += (input * left_vol);

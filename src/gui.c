@@ -163,9 +163,9 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(machine_region_menu_ntsc,      (machine_region == MACHINE_REGION_NTSC));
    TOGGLE_MENU_ITEM(machine_region_menu_pal,       (machine_region == MACHINE_REGION_PAL));
 
-   TOGGLE_MENU_ITEM(machine_speed_up_down_menu_50_percent,  COMPARE_TWO_REALS(timing_speed_multiplier, 0.5f));
-   TOGGLE_MENU_ITEM(machine_speed_up_down_menu_100_percent, COMPARE_TWO_REALS(timing_speed_multiplier, 1.0f));
-   TOGGLE_MENU_ITEM(machine_speed_up_down_menu_200_percent, COMPARE_TWO_REALS(timing_speed_multiplier, 2.0f));
+   TOGGLE_MENU_ITEM(machine_speed_up_down_menu_50_percent,  COMPARE_TWO_REALS(timing_speed_multiplier, 0.5));
+   TOGGLE_MENU_ITEM(machine_speed_up_down_menu_100_percent, COMPARE_TWO_REALS(timing_speed_multiplier, 1.0));
+   TOGGLE_MENU_ITEM(machine_speed_up_down_menu_200_percent, COMPARE_TWO_REALS(timing_speed_multiplier, 2.0));
 
    TOGGLE_MENU_ITEM(machine_menu_speed_cap, speed_cap);
 
@@ -389,7 +389,7 @@ static INLINE void update_menus (void)
 
    /* TODO: Find a better way to do this. */
    uszprintf (audio_volume_text, sizeof (audio_volume_text), "Current "
-      "level: %d%%", (int)ROUND((dsp_master_volume * 100.0f)));
+      "level: %d%%", (int)ROUND((dsp_master_volume * 100.0)));
    audio_volume_menu[0].text = audio_volume_text;
 }
 
@@ -1815,7 +1815,7 @@ static int machine_region_menu_pal (void)
 
 static int machine_speed_up_down_menu_50_percent (void)
 {
-   timing_speed_multiplier = 0.5f;
+   timing_speed_multiplier = 0.5;
    timing_update_speed ();
 
    update_menus ();
@@ -1827,7 +1827,7 @@ static int machine_speed_up_down_menu_50_percent (void)
 
 static int machine_speed_up_down_menu_100_percent (void)
 {
-   timing_speed_multiplier = 1.0f;
+   timing_speed_multiplier = 1.0;
    timing_update_speed ();
 
    update_menus ();
@@ -1839,7 +1839,7 @@ static int machine_speed_up_down_menu_100_percent (void)
 
 static int machine_speed_up_down_menu_200_percent (void)
 {
-   timing_speed_multiplier = 2.0f;
+   timing_speed_multiplier = 2.0;
    timing_update_speed ();
 
    update_menus ();
@@ -1853,11 +1853,11 @@ static int machine_speed_up_down_menu_custom (void)
 {
    REAL value;
 
-   value = (timing_speed_multiplier * 100.0f);
+   value = (timing_speed_multiplier * 100.0);
 
    if (get_float_input ("Custom", &value, "percent"))
    {
-      timing_speed_multiplier = (value / 100.0f);
+      timing_speed_multiplier = (value / 100.0);
       timing_update_speed ();
 
       update_menus ();
@@ -2447,9 +2447,9 @@ static int audio_channels_menu_extended_3 (void)
 
 static int audio_volume_menu_increase (void)
 {
-   dsp_master_volume += 0.25f;
-   if (dsp_master_volume > 4.0f)
-      dsp_master_volume = 4.0f;
+   dsp_master_volume += 0.25;
+   if (dsp_master_volume > 4.0)
+      dsp_master_volume = 4.0;
 
    update_menus ();
 
@@ -2460,7 +2460,7 @@ static int audio_volume_menu_increase (void)
 
 static int audio_volume_menu_decrease (void)
 {
-   dsp_master_volume -= 0.25f;
+   dsp_master_volume -= 0.25;
    if (dsp_master_volume < 0)
       dsp_master_volume = 0;
 
@@ -2475,11 +2475,11 @@ static int audio_volume_menu_custom (void)
 {
    int percent;
 
-   percent = ROUND(dsp_master_volume * 100.0f);
+   percent = ROUND(dsp_master_volume * 100.0);
 
    if (get_integer_input ("Custom", &percent, "percent"))
    {
-      dsp_master_volume = (percent / 100.0f);
+      dsp_master_volume = (percent / 100.0);
       update_menus ();
    
       message_local ("Audio master volume level set to %d%%.", percent);
@@ -2490,7 +2490,7 @@ static int audio_volume_menu_custom (void)
 
 static int audio_volume_menu_reset (void)
 {
-   dsp_master_volume = 1.0f;
+   dsp_master_volume = 1.0;
    update_menus ();
 
    message_local ("Audio master volume level reset.");
@@ -3257,9 +3257,9 @@ static int video_palette_menu_custom (void)
 
    for (index = 1; index <= 64; index++)
    {
-      custom_palette[index].r = ROUND((pack_getc (file) / 4.0f));
-      custom_palette[index].g = ROUND((pack_getc (file) / 4.0f));
-      custom_palette[index].b = ROUND((pack_getc (file) / 4.0f));
+      custom_palette[index].r = ROUND((pack_getc (file) / 4.0));
+      custom_palette[index].g = ROUND((pack_getc (file) / 4.0));
+      custom_palette[index].b = ROUND((pack_getc (file) / 4.0));
    }
 
    pack_fclose (file);
@@ -3370,7 +3370,7 @@ static int options_input_menu_configure (void)
    allow_conflicts = get_config_int   ("input", "allow_conflicts", FALSE);
    toggled_auto    = get_config_int   ("input", "toggled_auto",    FALSE);
    merge_players   = get_config_int   ("input", "merge_players",   FALSE);
-   turbo_rate      = get_config_float ("input", "turbo_rate",      0.5f);
+   turbo_rate      = get_config_float ("input", "turbo_rate",      0.5);
 
    /* Get dialog. */
 
@@ -3394,7 +3394,7 @@ static int options_input_menu_configure (void)
    if (merge_players)
       objmerge->flags |= D_SELECTED;
 
-   objturbo->d2 = ROUND((turbo_rate * 100.0f));
+   objturbo->d2 = ROUND((turbo_rate * 100.0));
 
    /* Show dialog. */   
 
@@ -3407,7 +3407,7 @@ static int options_input_menu_configure (void)
       toggled_auto    = TRUE_OR_FALSE(objauto->flags  & D_SELECTED);
       merge_players   = TRUE_OR_FALSE(objmerge->flags & D_SELECTED);
 
-      turbo_rate = (objturbo->d2 / 100.0f);
+      turbo_rate = (objturbo->d2 / 100.0);
 
       /* Save existing configuration so we don't lose it. */
       input_save_config ();

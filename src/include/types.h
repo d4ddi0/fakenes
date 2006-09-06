@@ -50,7 +50,7 @@ typedef signed char   fakenes_int8_t;
 
 typedef int             fakenes_enum_t;   /* Enumeration index. */
 typedef unsigned        fakenes_flags_t;  /* Flags. */
-typedef float           fakenes_real_t;   /* Real number. */
+typedef double          fakenes_real_t;   /* Real number. */
 typedef char            fakenes_char_t;   /* ASCII character. */
 typedef signed char     fakenes_bool_t;   /* Boolean value. */
 typedef char            fakenes_uchar_t;  /* Unicode character. */

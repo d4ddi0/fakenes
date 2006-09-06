@@ -42,7 +42,7 @@ static BOOL enabled = TRUE;
    Minimum: Value of EPSILON
    Maximum: 1.0
    */
-static REAL frame_rate = 0.5f;
+static REAL frame_rate = 0.5;
 
 /* How long the rewinder can backtrack, in seconds.  This is combined with
    'frame_rate' to form the final value of 'max_queue_size'.
@@ -410,7 +410,7 @@ static BOOL pack (void *buffer, long *size)
    }
 
    /* We add 16 bytes of slack just in case. */
-   packsize = (((*size * 1.01f) + 12) + 16);
+   packsize = (((*size * 1.01) + 12) + 16);
 
    packbuf = malloc (packsize);
    if (!packbuf)

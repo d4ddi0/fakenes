@@ -30,7 +30,10 @@ extern "C" {
 #define M_PI      3.14159265358979323846
 #endif
 
-#define EPSILON   (1.0f / 256.0f)
+/* <+KittyCat> $ grep EPSILON include/3dobject.h
+   <+KittyCat> #define EPSILON (1.0f/1024.0f)
+   */
+#define EPSILON   (1.0 / 1024.0)
 
 /* Macro to compare 2 REALs. */
 #define COMPARE_TWO_REALS(a, b)  \

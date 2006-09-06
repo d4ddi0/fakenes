@@ -130,7 +130,7 @@ static int wait_frames = 0;
 static BOOL allow_conflicts = FALSE;
 static BOOL toggled_auto    = FALSE;
 static BOOL merge_players   = FALSE;
-static REAL turbo_rate      = 0.5f;
+static REAL turbo_rate      = 0.5;
 
 /* Cached values of player button states used for toggled autofire. */
 static BOOL auto_cache[INPUT_PLAYERS][INPUT_BUTTONS];

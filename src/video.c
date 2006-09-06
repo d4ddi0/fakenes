@@ -642,8 +642,8 @@ static INLINE void display_status (BITMAP *bitmap, FONT *font, int color)
    RT_ASSERT(font);
 
    indent = text_length (font, "XXX");
-   line   = ROUND((text_height (font) * 1.67f));
-   spacer = ROUND((line * 1.33f));
+   line   = ROUND((text_height (font) * 1.67));
+   spacer = ROUND((line * 1.33));
 
    /* Convert seconds-elapsed to hours, minutes, and seconds. */
 
@@ -1099,20 +1099,20 @@ void video_set_palette (RGB *palette)
       REAL nr, ng, nb;
 
       /* Convert color control variables to a normalized format. */
-      hue        = (video_hue        / 100.0f);
-      saturation = (video_saturation / 100.0f);
-      brightness = (video_brightness / 100.0f);
-      contrast   = (video_contrast   / 100.0f);
-      gamma      = (video_gamma      / 100.0f);
+      hue        = (video_hue        / 100.0);
+      saturation = (video_saturation / 100.0);
+      brightness = (video_brightness / 100.0);
+      contrast   = (video_contrast   / 100.0);
+      gamma      = (video_gamma      / 100.0);
 
       /* Collapse hue, brightness, and gamma. */
-      hue        /= 2.0f;
-      brightness /= 2.0f;
+      hue        /= 2.0;
+      brightness /= 2.0;
 
       /* Convert from 0-63 range to 0-255 range. */
-      r = ROUND(((rgb->r / 63.0f) * 255.0f));
-      g = ROUND(((rgb->g / 63.0f) * 255.0f));
-      b = ROUND(((rgb->b / 63.0f) * 255.0f));
+      r = ROUND(((rgb->r / 63.0) * 255.0));
+      g = ROUND(((rgb->g / 63.0) * 255.0));
+      b = ROUND(((rgb->b / 63.0) * 255.0));
 
       /* Convert to HSL. */
       rgb_to_hsl (r, g, b, &h, &s, &l);
@@ -1131,16 +1131,16 @@ void video_set_palette (RGB *palette)
       }
 
       /* Clip values. */
-      h = fixf (h, 0, 1.0f);
-      s = fixf (s, 0, 1.0f);
+      h = fixf (h, 0, 1.0);
+      s = fixf (s, 0, 1.0);
 
       /* Convert back to RGB. */
       hsl_to_rgb (h, s, l, &r, &g, &b);
 
       /* Convert to normalized floating point. */
-      nr = (r / 255.0f);
-      ng = (g / 255.0f);
-      nb = (b / 255.0f);
+      nr = (r / 255.0);
+      ng = (g / 255.0);
+      nb = (b / 255.0);
 
       /* Apply contrast control. */
       if (contrast)
@@ -1153,7 +1153,7 @@ void video_set_palette (RGB *palette)
          {
             REAL delta;
 
-            delta = fabs (0.5f - fabs (contrast));
+            delta = fabs (0.5 - fabs (contrast));
 
             nr += delta;
             ng += delta;
@@ -1164,9 +1164,9 @@ void video_set_palette (RGB *palette)
       /* Apply gamma control. */
       if (gamma)
       {
-         nr = pow (nr, (1.0f - gamma));
-         ng = pow (ng, (1.0f - gamma));
-         nb = pow (nb, (1.0f - gamma));
+         nr = pow (nr, (1.0 - gamma));
+         ng = pow (ng, (1.0 - gamma));
+         nb = pow (nb, (1.0 - gamma));
       }
 
       /* Apply brightness control. */
@@ -1178,14 +1178,14 @@ void video_set_palette (RGB *palette)
       }
 
       /* Clip values. */
-      nr = fixf (nr, 0, 1.0f);
-      ng = fixf (ng, 0, 1.0f);
-      nb = fixf (nb, 0, 1.0f);
+      nr = fixf (nr, 0, 1.0);
+      ng = fixf (ng, 0, 1.0);
+      nb = fixf (nb, 0, 1.0);
 
       /* Convert back to 0-63 range. */
-      rgb->r = ROUND((nr * 63.0f));
-      rgb->g = ROUND((ng * 63.0f));
-      rgb->b = ROUND((nb * 63.0f));
+      rgb->r = ROUND((nr * 63.0));
+      rgb->g = ROUND((ng * 63.0));
+      rgb->b = ROUND((nb * 63.0));
    }
 
    if (gui_is_active)
@@ -1201,9 +1201,9 @@ void video_set_palette (RGB *palette)
     
          video_create_gui_gradient (&color, NULL, NULL);
     
-         rgb->r = ROUND((color.r * 63.0f));
-         rgb->g = ROUND((color.g * 63.0f));
-         rgb->b = ROUND((color.b * 63.0f));
+         rgb->r = ROUND((color.r * 63.0));
+         rgb->g = ROUND((color.g * 63.0));
+         rgb->b = ROUND((color.b * 63.0));
       }
     
       for (index = GUI_COLORS_PALETTE_START; index < GUI_COLORS_PALETTE_END;
@@ -1214,9 +1214,9 @@ void video_set_palette (RGB *palette)
     
          color = (index - GUI_COLORS_PALETTE_START);
     
-         rgb->r = ROUND((gui_theme[color].r * 63.0f));
-         rgb->g = ROUND((gui_theme[color].g * 63.0f));
-         rgb->b = ROUND((gui_theme[color].b * 63.0f));
+         rgb->r = ROUND((gui_theme[color].r * 63.0));
+         rgb->g = ROUND((gui_theme[color].g * 63.0));
+         rgb->b = ROUND((gui_theme[color].b * 63.0));
       }
     
       for (index = GUI_IMAGE_PALETTE_START; index < GUI_IMAGE_PALETTE_END;
@@ -1245,9 +1245,9 @@ void video_set_palette (RGB *palette)
             {
                int rm, gm, bm;
    
-               rm = ROUND(((r / 31.0f) * 255.0f));
-               gm = ROUND(((g / 31.0f) * 255.0f));
-               bm = ROUND(((b / 31.0f) * 255.0f));
+               rm = ROUND(((r / 31.0) * 255.0));
+               gm = ROUND(((g / 31.0) * 255.0));
+               bm = ROUND(((b / 31.0) * 255.0));
    
                video_color_map[r][g][b] = makecol (rm, gm, bm);
             }
