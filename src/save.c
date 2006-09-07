@@ -126,7 +126,7 @@ static INLINE BOOL fnss_save (PACKFILE *file, const UCHAR *title)
       maximum of 255 bytes (no NULL character is needed). */
 
    USTRING_CLEAR_SIZE(save_title, sizeof (save_title));
-   ustrncat (save_title, title, sizeof (save_title));
+   ustrncat (save_title, title, (sizeof (save_title) - 1));
 
    size = ustrsize (save_title);
    pack_putc (size, file);
@@ -758,7 +758,7 @@ BOOL load_patches (void)
 
       /* Read title. */
       ustrncat (patch->title, get_config_string (section, "title", "?"),
-         NEW_SAVE_TITLE_SIZE_Z);
+         MIN(NEW_SAVE_TITLE_SIZE_Z, (USTRING_SIZE - 1)));
 
       /* Load data. */
       patch->address     = get_config_hex (section, "address",     0xffff);

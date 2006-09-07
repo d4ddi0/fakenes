@@ -3743,7 +3743,7 @@ static int machine_cheat_manager_dialog_add (DIALOG *dialog)
    }
 
    /* Copy title. */
-   ustrncat (patch->title, title, sizeof (title));
+   ustrncat (patch->title, title, (USTRING_SIZE - 1));
 
    /* Enable patch. */
    patch->enabled = TRUE;
@@ -3878,7 +3878,7 @@ static char *machine_cheat_manager_dialog_list_filler (int index, int *list_size
             "Active" : " Idle "));
 
       /* Copy title. */
-      ustrncat (text, patch->title, USTRING_SIZE);
+      ustrncat (text, patch->title, (USTRING_SIZE - 1));
       
       return (text);
    }

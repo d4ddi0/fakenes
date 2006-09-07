@@ -63,11 +63,13 @@ void log_printf (const UCHAR *message, ...)
    if (!log_file)
       return;
 
+   USTRING_CLEAR(buffer);
+
    va_start (format, message);
-   uvszprintf (buffer, sizeof (buffer), message, format);
+   uvszprintf (buffer, (sizeof (buffer) - 1), message, format);
    va_end (format);
 
-   ustrncat (buffer, "\n", sizeof (buffer));
+   ustrncat (buffer, "\n", (sizeof (buffer) - 1));
    fputs (buffer, log_file);
 
    fflush (log_file);

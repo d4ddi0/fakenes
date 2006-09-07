@@ -1986,8 +1986,8 @@ static void draw_messages (void)
            to be displayed entirely. */
 
         USTRING_CLEAR(buffer);
-        ustrncat (buffer, input_chat_text, sizeof (buffer));
-        ustrncat (buffer, "_", sizeof (buffer));
+        ustrncat (buffer, input_chat_text, (sizeof (buffer) - 1));
+        ustrncat (buffer, "_", (sizeof (buffer) - 1));
 
         shadow_textout (screen_buffer, font, buffer, x, y, VIDEO_COLOR_WHITE);
     }
