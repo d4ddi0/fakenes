@@ -54,9 +54,13 @@ static INLINE void process (void);
                                              
 /* --- Lookup tables. --- */
 
-static int decay_lut[16];
-static int vbl_lut[32];
-static int trilength_lut[128];
+#define DECAY_LUT_SIZE     16
+#define VBL_LUT_SIZE       32
+#define TRILENGTH_LUT_SIZE 128
+
+static int decay_lut[DECAY_LUT_SIZE];
+static int vbl_lut[VBL_LUT_SIZE];
+static int trilength_lut[TRILENGTH_LUT_SIZE];
 
 /* vblank length table used for squares, triangle, noise */
 static const int vbl_length[] = {
@@ -1543,16 +1547,16 @@ static INLINE void build_luts (int num_samples)
 
    // decay_lut[], vbl_lut[], trilength_lut[] modified (x5) for $4017:bit7 by T.Yano
    /* lut used for enveloping and frequency sweeps */
-   for (i = 0; i < 16; i++)
-      decay_lut[i] = num_samples * (i + 1) * 5;
+   for (i = 0; i < DECAY_LUT_SIZE; i++)
+      decay_lut[i] = ROUND(((REAL)num_samples * (i + 1)) * 5.0);
 
    /* used for note length, based on vblanks and size of audio buffer */
-   for (i = 0; i < 32; i++)
-      vbl_lut[i] = vbl_length[i] * num_samples * 5;
+   for (i = 0; i < VBL_LUT_SIZE; i++)
+      vbl_lut[i] = ROUND(((REAL)num_samples * vbl_length[i]) * 5.0);
 
    /* triangle wave channel's linear length table */
-   for (i = 0; i < 128; i++)
-      trilength_lut[i] = num_samples * i * 5;
+   for (i = 0; i < TRILENGTH_LUT_SIZE; i++)
+      trilength_lut[i] = ROUND(((REAL)num_samples * i) * 5.0);
 }
 
 static INLINE REAL get_sample (ENUM channel)
