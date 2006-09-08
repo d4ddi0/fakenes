@@ -85,11 +85,16 @@ UINT8 cpu_read_4000_47ff_handler (UINT16 address)
 void cpu_write_4000_47ff_handler (UINT16 address, UINT8 value)
 {
    if (address == 0x4014)
+   {
       ppu_write (address, value);
-   else if (address <= 0x4015)
+   }
+   else if (address <= 0x4017)
+   {
       apu_write (address, value);
-   else if ((address == 0x4016) || (address == 0x4017))
-      input_write (address, value);
+
+      if ((address == 0x4016) || (address == 0x4017))
+         input_write (address, value);
+   }
 }
 
 void cpu_memmap_init (void)
