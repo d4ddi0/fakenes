@@ -232,7 +232,9 @@ typedef struct apu_s
 
    // for $4017:bit7 by T.Yano
    int cnt_rate;
-   int frame_counter;
+   cpu_time_t frame_counter;
+   BOOL frame_irq_gen;
+   BOOL frame_irq_occurred;
 
    struct
    {

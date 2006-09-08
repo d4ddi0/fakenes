@@ -90,8 +90,8 @@ static const int duty_lut[] = {
    2, 4, 8, 12
 };
 
-/* Frame IRQ generation clocks. */
-static const cpu_time_t frame_irq_clocks_ntsc = 29830u;
+/* Frame IRQ start clocks for NTSC and PAL. */
+static const cpu_time_t frame_irq_start_ntsc = 29830u + 1;
 
 /*
 <kevtris> divide out by the difference in clock frequency
@@ -100,7 +100,7 @@ static const cpu_time_t frame_irq_clocks_ntsc = 29830u;
 
 Should be: ~36947.373246227290526216786397872 PAL clocks
 */
-static const cpu_time_t frame_irq_clocks_pal = 36947u;
+static const cpu_time_t frame_irq_start_pal = 36947u + 1;
 
 // ExSound headers
 #include "apu/mmc5.h"
@@ -596,7 +596,7 @@ static INLINE REAL apu_dmc (apu_chan_t *chan)
 
 static INLINE void apu_update_frame_counter (void)
 {
-   cpu_time_t clocks;
+   cpu_time_t start;
 
    /* This function simply updates the frame counter for frame IRQs.  It
       must be called exactly once per cycle.
@@ -606,22 +606,15 @@ static INLINE void apu_update_frame_counter (void)
 
    apu.frame_counter++;
 
-   clocks = ((machine_type == MACHINE_TYPE_NTSC) ? frame_irq_clocks_ntsc :
-      frame_irq_clocks_pal);
+   start = ((machine_type == MACHINE_TYPE_NTSC) ? frame_irq_start_ntsc :
+      frame_irq_start_pal);
 
-   if (apu.frame_counter >= clocks)
+   /* check to see if we should generate an irq */
+   if ((apu.frame_counter >= start) &&
+       (apu.frame_irq_gen && !apu.frame_irq_occurred))
    {
-      /* check to see if we should generate an irq */
-      if (apu.frame_irq_gen && !apu.frame_irq_occurred)
-      {
-         /*
-         At any time if the interrupt flag is set and the IRQ disable is clear, the
-         CPU's IRQ line is asserted.
-         */
-   
-         apu.frame_irq_occurred = TRUE;
-         cpu_interrupt (CPU_INTERRUPT_IRQ_FRAME);
-      }
+      apu.frame_irq_occurred = TRUE;
+      cpu_interrupt (CPU_INTERRUPT_IRQ_FRAME);
    }
 }                  
 
@@ -721,9 +714,6 @@ void apu_reset (void)
 
    for (address = APU_REGA; address <= APU_REGZ; address++)
       apu_write (address, 0);
-
-   // for $4017:bit7 by T.Yano
-   apu.cnt_rate = 5;
 
    /* Restore frame counter. */
    apu.frame_counter = frame_counter;
@@ -960,8 +950,18 @@ UINT8 apu_read (UINT16 address)
             value |= 0x80;
 
          /* Frame IRQ. */
+
          if (apu.frame_irq_occurred)
             value |= 0x40;
+
+         /* kev says reads from $4015 reset the frame counter, so... */
+
+         /* Reset frame counter. */
+         apu.frame_counter = 0;
+
+         /* Clear frame IRQ. */
+         apu.frame_irq_occurred = FALSE;
+         cpu_clear_interrupt (CPU_INTERRUPT_IRQ_FRAME);
 
          break;
       }
@@ -1396,26 +1396,17 @@ void apu_write (UINT16 address, UINT8 value)
 
          apu.cnt_rate = ((value & 0x80) ? 4 : 5);
 
-         if (apu.cnt_rate == 4)
-         {
-            /* $4017:6  disable frame interrupt */
-            apu.frame_irq_gen = !TRUE_OR_FALSE(value & 0x40);
-         }
-         else
-         {
-            /*
-            <_Q> setting $4017.6 or $4017.7 will turn off frame IRQs
-            <_Q> setting $4017.7 puts it into the 5-step sequence
-            <_Q> which does not generate interrupts
-            */
-            apu.frame_irq_gen = FALSE;
-         }
-
          /*
-         On a write to $4017, the divider and sequencer are reset, then the sequencer is
-         configured.
+         <_Q> setting $4017.6 or $4017.7 will turn off frame IRQs
+         <_Q> setting $4017.7 puts it into the 5-step sequence
+         <_Q> which does not generate interrupts
          */
-  
+
+         if (value & 0xc0)
+            apu.frame_irq_gen = FALSE;
+         else
+            apu.frame_irq_gen = TRUE;
+
          /* Reset frame counter. */
          apu.frame_counter = 0;
 
@@ -1444,6 +1435,9 @@ void apu_save_state (PACKFILE *file, int version)
 
    for (index = 0; index < 0x17; index++)
       pack_putc (apu.regs[index], file);
+
+   /* Save frame counter. */
+   pack_iputl (apu.frame_counter, file);
 
    if (apu.exsound)
    {
@@ -1509,6 +1503,12 @@ void apu_load_state (PACKFILE *file, int version)
       {
          for (index = 0; index < APU_REGS; index++)
             apu_write ((APU_REGA + index), pack_getc (file));
+      }
+
+      if (version >= 0x105)
+      {
+         /* Version 1.05 added saving of the frame counter. */
+         apu.frame_counter = pack_igetl (file);
       }
 
       if (version >= 0x102)
