@@ -33,8 +33,6 @@
 #include "timing.h"
 #include "types.h"
 
-/* TODO: Implement frame counter. */
-
 /* Quality. */
 ENUM apu_quality = APU_QUALITY_FAST;
 
@@ -91,6 +89,18 @@ static const int dmc_clocks_pal[] = {
 static const int duty_lut[] = {
    2, 4, 8, 12
 };
+
+/* Frame IRQ generation clocks. */
+static const cpu_time_t frame_irq_clocks_ntsc = 29830u;
+
+/*
+<kevtris> divide out by the difference in clock frequency
+<kevtris> i.e. PALfreq/NTSCfreq* NTSCcounterValue
+<kevtris> and that will be it +/- 1 or 2 counts
+
+Should be: ~36947.373246227290526216786397872 PAL clocks
+*/
+static const cpu_time_t frame_irq_clocks_pal = 36947u;
 
 // ExSound headers
 #include "apu/mmc5.h"
@@ -436,7 +446,7 @@ static INLINE REAL apu_do_dmc (apu_chan_t *chan)
          else
          {
             /* check to see if we should generate an irq */
-            if (chan->irq_gen)
+            if (chan->irq_gen && !chan->irq_occurred)
             {
                /*
                if the bytes counter becomes zero and the interrupt enabled
@@ -584,6 +594,37 @@ static INLINE REAL apu_dmc (apu_chan_t *chan)
    return (chan->output);
 }
 
+static INLINE void apu_update_frame_counter (void)
+{
+   cpu_time_t clocks;
+
+   /* This function simply updates the frame counter for frame IRQs.  It
+      must be called exactly once per cycle.
+
+      Note that the frame counter isn't used for frame sequencing - for
+      that, we use 'apu.cnt_rate' along with phase accumulators. */
+
+   apu.frame_counter++;
+
+   clocks = ((machine_type == MACHINE_TYPE_NTSC) ? frame_irq_clocks_ntsc :
+      frame_irq_clocks_pal);
+
+   if (apu.frame_counter >= clocks)
+   {
+      /* check to see if we should generate an irq */
+      if (apu.frame_irq_gen && !apu.frame_irq_occurred)
+      {
+         /*
+         At any time if the interrupt flag is set and the IRQ disable is clear, the
+         CPU's IRQ line is asserted.
+         */
+   
+         apu.frame_irq_occurred = TRUE;
+         cpu_interrupt (CPU_INTERRUPT_IRQ_FRAME);
+      }
+   }
+}                  
+
 void apu_load_config (void)
 {
    /* Like other components, the APU is both an interface and an emulation.
@@ -636,7 +677,7 @@ int apu_init (void)
 
    /* Reset frame counter. */
    apu.frame_counter = 0;
-           
+
    /* Return success. */
    return (0);
 }
@@ -652,7 +693,7 @@ void apu_reset (void)
       */
 
    const APU_EXSOUND *exsound;
-   int frame_counter;
+   cpu_time_t frame_counter;
    UINT16 address;
 
    /* Save ExSound interface. */
@@ -918,6 +959,10 @@ UINT8 apu_read (UINT16 address)
          if (chan->irq_occurred)
             value |= 0x80;
 
+         /* Frame IRQ. */
+         if (apu.frame_irq_occurred)
+            value |= 0x40;
+
          break;
       }
 
@@ -942,6 +987,9 @@ void apu_write (UINT16 address, UINT8 value)
       /* For state saving. */
       apu.regs[(address - APU_WRA0)] = value;
    }
+
+   if (apu.mixer.can_process)
+      process ();
 
    switch (address)
    {
@@ -1348,14 +1396,32 @@ void apu_write (UINT16 address, UINT8 value)
 
          apu.cnt_rate = ((value & 0x80) ? 4 : 5);
 
-         /* TODO:
+         if (apu.cnt_rate == 4)
+         {
+            /* $4017:6  disable frame interrupt */
+            apu.frame_irq_gen = !TRUE_OR_FALSE(value & 0x40);
+         }
+         else
+         {
+            /*
+            <_Q> setting $4017.6 or $4017.7 will turn off frame IRQs
+            <_Q> setting $4017.7 puts it into the 5-step sequence
+            <_Q> which does not generate interrupts
+            */
+            apu.frame_irq_gen = FALSE;
+         }
 
+         /*
          On a write to $4017, the divider and sequencer are reset, then the sequencer is
          configured.
          */
-
+  
          /* Reset frame counter. */
          apu.frame_counter = 0;
+
+         /* Clear frame IRQ. */
+         apu.frame_irq_occurred = FALSE;
+         cpu_clear_interrupt (CPU_INTERRUPT_IRQ_FRAME);
 
          break;
       }
@@ -1366,9 +1432,6 @@ void apu_write (UINT16 address, UINT8 value)
 
    if (apu.exsound && apu.exsound->write)
       apu.exsound->write (address, value);
-
-   if (apu.mixer.can_process)
-      process ();
 }
 
 void apu_save_state (PACKFILE *file, int version)
@@ -1633,6 +1696,9 @@ static INLINE void process (void)
 
          for (count = 0; count < elapsed_cycles; count++)
          {
+            /* Update frame counter. */
+            apu_update_frame_counter ();
+
             /* Simulate accumulation. */
             apu.mixer.accumulated_samples++;
             
@@ -1665,6 +1731,9 @@ static INLINE void process (void)
          for (count = 0; count < elapsed_cycles; count++)
          {
             int channel;
+
+            /* Update frame counter. */
+            apu_update_frame_counter ();
 
             /* Simulate accumulation. */
             apu.mixer.accumulated_samples++;
@@ -1703,6 +1772,9 @@ static INLINE void process (void)
          for (count = 0; count < elapsed_cycles; count++)
          {
             int channel;
+
+            /* Update frame counter. */
+            apu_update_frame_counter ();
       
             for (channel = 0; channel < APU_CHANNELS; channel++)
             {
