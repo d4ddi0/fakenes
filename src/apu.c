@@ -982,12 +982,6 @@ void apu_write (UINT16 address, UINT8 value)
    int index;
    apu_chan_t *chan;
 
-   if ((address >= APU_WRA0) && (address <= APU_WRG0))
-   {
-      /* For state saving. */
-      apu.regs[(address - APU_WRA0)] = value;
-   }
-
    if (apu.mixer.can_process)
       process ();
 
@@ -1421,6 +1415,12 @@ void apu_write (UINT16 address, UINT8 value)
          break;
    }
 
+   if ((address >= APU_WRA0) && (address <= APU_WRG0))
+   {
+      /* For state saving. */
+      apu.regs[(address - APU_WRA0)] = value;
+   }
+
    if (apu.exsound && apu.exsound->write)
       apu.exsound->write (address, value);
 }
@@ -1433,7 +1433,7 @@ void apu_save_state (PACKFILE *file, int version)
 
    /* Save registers. */
 
-   for (index = 0; index < 0x17; index++)
+   for (index = 0; index < APU_REGS; index++)
       pack_putc (apu.regs[index], file);
 
    /* Save frame counter. */
@@ -1457,74 +1457,24 @@ void apu_save_state (PACKFILE *file, int version)
 void apu_load_state (PACKFILE *file, int version)
 {              
    int index;
+   UINT8 signature[8];
 
    RT_ASSERT(file);
 
-   if (version == 0x100)
-   {
-      /* Old version 1.00 format. */
+   /* Load registers. */
 
-      /* Squares. */
-      for (index = 0; index < 2; index++)
-      {
-         int subindex;
-   
-         for (subindex = 0; subindex < 4; subindex++)
-            apu.apus.square[index].regs[subindex] = pack_getc (file);
-      }
-   
-      /* Triangle. */
-      for (index = 0; index < 3; index++)
-         apu.apus.triangle.regs[index] = pack_getc (file);
-   
-      /* Noise. */
-      for (index = 0; index < 3; index++)
-         apu.apus.noise.regs[index] = pack_getc (file);
-   
-      /* DMC. */
-      for (index = 0; index < 4; index++)
-         apu.apus.dmc.regs[index] = pack_getc (file);
+   for (index = 0; index < APU_REGS; index++)
+      apu_write ((APU_REGA + index), pack_getc (file));
 
-      /* Skip unused ExSound byte. */
-      pack_getc (file);
-   }
-   else
-   {
-      /* Load registers. */
+   /* Load frame counter. */
+   apu.frame_counter = pack_igetl (file);
 
-      if (version <= 0x103)
-      {
-         /* $4017 was not saved in versions prior to 1.04. */
+   /* Load ExSound ID. */
+   /* Will be set to NONE if no ExSound hardware is present. */
+   pack_fread (signature, 8, file);
 
-         for (index = 0; index < 0x16; index++)
-            apu_write ((APU_REGA + index), pack_getc (file));
-      }
-      else
-      {
-         for (index = 0; index < APU_REGS; index++)
-            apu_write ((APU_REGA + index), pack_getc (file));
-      }
-
-      if (version >= 0x105)
-      {
-         /* Version 1.05 added saving of the frame counter. */
-         apu.frame_counter = pack_igetl (file);
-      }
-
-      if (version >= 0x102)
-      {
-         /* ExSound support was added to save states in version 1.02. */
-
-         UINT8 signature[8];
-
-         /* Load ExSound ID. */
-         /* Will be set to NONE if no ExSound hardware is present. */
-         pack_fread (signature, 8, file);
-
-         if (apu.exsound && apu.exsound->load_state)
-            apu.exsound->load_state (file, version);
-      }
-   }
+   if (apu.exsound && apu.exsound->load_state)
+      apu.exsound->load_state (file, version);
 
    /* Synchronize the APU mixer's clock with the CPU's cycle counter. */
    apu.mixer.clock_counter = cpu_get_cycles (FALSE);

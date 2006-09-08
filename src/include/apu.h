@@ -51,7 +51,7 @@ extern "C" {
 
 #define APU_REGA  APU_WRA0
 #define APU_REGZ  APU_WRG0
-#define APU_REGS  (APU_REGZ - APU_REGA)
+#define APU_REGS  ((APU_REGZ - APU_REGA) + 1)
 
 #define APU_BASEFREQ_NTSC  (1.89e9 / 88 / 12)
 #define APU_BASEFREQ_PAL   (26601712.5 / 15)

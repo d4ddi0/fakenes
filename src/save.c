@@ -27,7 +27,7 @@
 #define UNUSED_SLOT_TEXT   "Empty"
 
 /* FNSS version supported/created. */
-#define FNSS_VERSION 0x105
+#define FNSS_VERSION 0x200
 
 static INLINE BOOL fnss_save_chunk (PACKFILE *file, int version, const char
    *id, void (*save_state) (PACKFILE *, int))
@@ -185,9 +185,16 @@ static INLINE BOOL fnss_load (PACKFILE *file)
    version = pack_igetw (file);
 
    /* Verify version number. */
+
+   if (version < 0x200)
+   {
+      /* Only save states of version 2.xx are supported. */
+      return (FALSE);
+   }
+
    if (version > FNSS_VERSION)
    {
-      /* Verification failed. */
+      /* Save state file is of a future version. */
       return (FALSE);
    }
 

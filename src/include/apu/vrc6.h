@@ -233,12 +233,6 @@ static void apu_vrc6s_load_state (PACKFILE *file, int version)
    int index;
    apu_vrc6s_chan_t *chan;
 
-   if (version < 0x102)
-   {
-      /* ExSound only supported in version 1.02 or higher. */
-      return;
-   }
-
    /* Square waves. */
 
    for (index = 0; index < 2; index++)
