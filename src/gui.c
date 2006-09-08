@@ -2445,6 +2445,42 @@ static int audio_channels_menu_extended_3 (void)
    return (D_O_K);
 }
 
+static int audio_channels_menu_enable_all (void)
+{
+   dsp_enable_channel (APU_CHANNEL_SQUARE_1);
+   dsp_enable_channel (APU_CHANNEL_SQUARE_2);
+   dsp_enable_channel (APU_CHANNEL_TRIANGLE);
+   dsp_enable_channel (APU_CHANNEL_NOISE);
+   dsp_enable_channel (APU_CHANNEL_DMC);
+   dsp_enable_channel (APU_CHANNEL_EXTRA_1);
+   dsp_enable_channel (APU_CHANNEL_EXTRA_2);
+   dsp_enable_channel (APU_CHANNEL_EXTRA_3);
+
+   update_menus ();
+
+   message_local ("All audio channels enabled.");
+
+   return (D_O_K);
+}
+
+static int audio_channels_menu_disable_all (void)
+{
+   dsp_disable_channel (APU_CHANNEL_SQUARE_1);
+   dsp_disable_channel (APU_CHANNEL_SQUARE_2);
+   dsp_disable_channel (APU_CHANNEL_TRIANGLE);
+   dsp_disable_channel (APU_CHANNEL_NOISE);
+   dsp_disable_channel (APU_CHANNEL_DMC);
+   dsp_disable_channel (APU_CHANNEL_EXTRA_1);
+   dsp_disable_channel (APU_CHANNEL_EXTRA_2);
+   dsp_disable_channel (APU_CHANNEL_EXTRA_3);
+
+   update_menus ();
+
+   message_local ("All audio channels disabled.");
+
+   return (D_O_K);
+}
+
 static int audio_volume_menu_increase (void)
 {
    dsp_master_volume += 0.25;

@@ -481,6 +481,8 @@ DEFINE_MENU_CALLBACK(audio_channels_menu_digital);
 DEFINE_MENU_CALLBACK(audio_channels_menu_extended_1);
 DEFINE_MENU_CALLBACK(audio_channels_menu_extended_2);
 DEFINE_MENU_CALLBACK(audio_channels_menu_extended_3);
+DEFINE_MENU_CALLBACK(audio_channels_menu_enable_all);
+DEFINE_MENU_CALLBACK(audio_channels_menu_disable_all);
 
 static const MENU audio_channels_menu_base[] =
 {
@@ -492,6 +494,9 @@ static const MENU audio_channels_menu_base[] =
    { "&Extended 1",    audio_channels_menu_extended_1,    NULL, 0, NULL },
    { "Extended &2",    audio_channels_menu_extended_2,    NULL, 0, NULL },
    { "Extended &3",    audio_channels_menu_extended_3,    NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "En&able All",    audio_channels_menu_enable_all,    NULL, 0, NULL },
+   { "D&isable All",   audio_channels_menu_disable_all,   NULL, 0, NULL },
    MENU_ENDCAP
 };
 

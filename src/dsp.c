@@ -252,6 +252,20 @@ BOOL dsp_get_channel_enabled (int channel)
    return (dsp_channel_params[channel].enabled);
 }
 
+void dsp_enable_channel (int channel)
+{
+   DEBUG_PRINTF("dsp_enable_channel(channel=%d)\n", channel);
+
+   dsp_set_channel_enabled (channel, DSP_SET_ENABLED_MODE_SET, TRUE);
+}
+
+void dsp_disable_channel (int channel)
+{
+   DEBUG_PRINTF("dsp_disable_channel(channel=%d)\n", channel);
+
+   dsp_set_channel_enabled (channel, DSP_SET_ENABLED_MODE_SET, FALSE);
+}
+
 void dsp_set_channel_params (int channel, REAL volume, REAL pan)
 {
    DSP_CHANNEL_PARAMS *params;
