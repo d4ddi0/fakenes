@@ -1115,8 +1115,13 @@ static int main_menu_open (void)
 
    /* Retrive path from configuration file. */
    USTRING_CLEAR(path);
+#ifdef POSIX
+   ustrncat (path, get_config_string ("gui", "open_path", "~/"), (sizeof
+      (path) - 1));
+#else
    ustrncat (path, get_config_string ("gui", "open_path", "/"), (sizeof
       (path) - 1));
+#endif
 
    locked = get_config_int ("gui", "lock_paths", FALSE);
 
