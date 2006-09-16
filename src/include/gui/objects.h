@@ -283,6 +283,8 @@ int sl_frame (int message, DIALOG *dialog, int key)
 
       case MSG_CLICK:
       {
+         int x1, y1, x2, y2;
+         int tbx1, tby1, tbx2, tby2;
          BOOL box_was_drawn = FALSE;
          int ox, oy; /* old */
          BITMAP *bmp;
@@ -293,56 +295,76 @@ int sl_frame (int message, DIALOG *dialog, int key)
             return (D_O_K);
          }
 
-         mx = ox = mouse_x;
-         my = oy = mouse_y;
+         /* Calculate box coordinates. */
+         x1 = dialog->x;
+         y1 = dialog->y;
+         x2 = ((x1 + dialog->w) - 1);
+         y2 = ((y1 + dialog->h) - 1);
 
-         bmp = gui_get_screen ();
+         /* Calculate titlebar area. */
+         tbx1 = (x1 + 1);
+         tby1 = (y1 + 1);
+         tbx2 = (x2 - 1);
+         tby2 = ((y1 + (text_height (font) + 10)) - 1);
 
-         while (mouse_b & 1)
+         if (((mouse_x >= tbx1) && (mouse_x <= tbx2)) &&
+             ((mouse_y >= tby1) && (mouse_y <= tby2)))
          {
-            int cx, cy; /* current */
+            /* This is a drag operation. */
 
-            cx = mouse_x;
-            cy = mouse_y;
-
-            xor_mode (TRUE);
-      
-            if ((mx != cx) || (my != cy))
+            mx = ox = mouse_x;
+            my = oy = mouse_y;
+   
+            bmp = gui_get_screen ();
+   
+            while (mouse_b & 1)
             {
-               scare_mouse ();
-
-               if (box_was_drawn)
+               int cx, cy; /* current */
+   
+               cx = mouse_x;
+               cy = mouse_y;
+   
+               xor_mode (TRUE);
+         
+               if ((mx != cx) || (my != cy))
                {
+                  scare_mouse ();
+   
+                  if (box_was_drawn)
+                  {
+                     /* TODO: This needs cleaned up. */
+                     rect (bmp, (dialog->x + mx - ox), (dialog->y + my - oy),
+                        (dialog->x + mx - ox + dialog->w - 1), (dialog->y + my
+                           - oy + dialog->h - 1), GUI_BORDER_COLOR);
+                  }
+   
+                  mx = cx;
+                  my = cy;
+   
                   /* TODO: This needs cleaned up. */
                   rect (bmp, (dialog->x + mx - ox), (dialog->y + my - oy),
-                     (dialog->x + mx - ox + dialog->w - 1), (dialog->y + my
-                        - oy + dialog->h - 1), GUI_BORDER_COLOR);
+                     (dialog->x + mx - ox + dialog->w - 1), (dialog->y + my -
+                        oy + dialog->h - 1), GUI_BORDER_COLOR);
+   
+                  box_was_drawn = TRUE;
+   
+                  unscare_mouse ();
                }
-
-               mx = cx;
-               my = cy;
-
-               /* TODO: This needs cleaned up. */
-               rect (bmp, (dialog->x + mx - ox), (dialog->y + my - oy),
-                  (dialog->x + mx - ox + dialog->w - 1), (dialog->y + my -
-                     oy + dialog->h - 1), GUI_BORDER_COLOR);
-
-               box_was_drawn = TRUE;
-
-               unscare_mouse ();
+   
+               broadcast_dialog_message (MSG_IDLE, 0);
             }
-
-            broadcast_dialog_message (MSG_IDLE, 0);
+   
+            solid_mode ();
+   
+            dialog_x = dialog->x + mx - ox;
+            dialog_y = dialog->y + my - oy;
+      
+            restart_dialog = TRUE;
+      
+            return (D_CLOSE);
          }
 
-         solid_mode ();
-
-         dialog_x = dialog->x + mx - ox;
-         dialog_y = dialog->y + my - oy;
-   
-         restart_dialog = TRUE;
-   
-         return (D_CLOSE);
+         break;
       }
 
       default:
