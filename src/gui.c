@@ -188,9 +188,8 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(audio_subsystem_menu_allegro,(audio_subsystem == AUDIO_SUBSYSTEM_ALLEGRO));
    TOGGLE_MENU_ITEM(audio_subsystem_menu_openal, (audio_subsystem == AUDIO_SUBSYSTEM_OPENAL));
 
-   TOGGLE_MENU_ITEM(audio_emulation_menu_fast,         (apu_quality == APU_QUALITY_FAST));
-   TOGGLE_MENU_ITEM(audio_emulation_menu_accurate,     (apu_quality == APU_QUALITY_ACCURATE));
-   TOGGLE_MENU_ITEM(audio_emulation_menu_interpolated, (apu_quality == APU_QUALITY_INTERPOLATED));
+   TOGGLE_MENU_ITEM(audio_emulation_menu_fast,     (apu_quality == APU_QUALITY_FAST));
+   TOGGLE_MENU_ITEM(audio_emulation_menu_accurate, (apu_quality == APU_QUALITY_ACCURATE));
 
    TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_8000_hz,  (audio_sample_rate == 8000));
    TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_11025_hz, (audio_sample_rate == 11025));
@@ -241,6 +240,8 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(audio_channels_menu_extended_1,    dsp_get_channel_enabled (APU_CHANNEL_EXTRA_1));
    TOGGLE_MENU_ITEM(audio_channels_menu_extended_2,    dsp_get_channel_enabled (APU_CHANNEL_EXTRA_2));
    TOGGLE_MENU_ITEM(audio_channels_menu_extended_3,    dsp_get_channel_enabled (APU_CHANNEL_EXTRA_3));
+
+   TOGGLE_MENU_ITEM(audio_volume_menu_auto_gain_reduction, dsp_get_effector_enabled (DSP_EFFECTOR_COMPRESS));
 
 #ifdef ALLEGRO_DOS
 
@@ -2047,18 +2048,6 @@ static int audio_emulation_menu_accurate (void)
    return (D_O_K);
 }
 
-static int audio_emulation_menu_interpolated (void)
-{
-   apu_quality = APU_QUALITY_INTERPOLATED;
-   update_menus ();
-
-   apu_update ();
-
-   message_local ("APU emulation quality set to interpolated.");
-
-   return (D_O_K);
-}
-
 #define MIXING_FREQUENCY_MENU_HANDLER(freq)  \
    static int audio_mixing_frequency_menu_##freq##_hz (void) \
    {  \
@@ -2538,6 +2527,18 @@ static int audio_volume_menu_reset (void)
 
    return (D_O_K);
 }
+
+static int audio_volume_menu_auto_gain_reduction (void)
+{
+   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_COMPRESS);
+   update_menus ();
+
+   message_local ("Audio automatic gain reduction %s.", get_enabled_text
+      (dsp_get_effector_enabled (DSP_EFFECTOR_COMPRESS)));
+
+   return (D_O_K);
+}
+
 
 static int audio_record_menu_start (void)
 {

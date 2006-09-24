@@ -56,7 +56,8 @@ enum
    DSP_EFFECTOR_WIDE_STEREO_TYPE_2     = (1 << 6),
    DSP_EFFECTOR_WIDE_STEREO_TYPE_3     = (1 << 7),
    DSP_EFFECTOR_SWAP_CHANNELS          = (1 << 8),
-   DSP_EFFECTOR_DITHER                 = (1 << 9)
+   DSP_EFFECTOR_DITHER                 = (1 << 9),
+   DSP_EFFECTOR_COMPRESS               = (1 << 10)
 };
 
 /* Helper macros. */

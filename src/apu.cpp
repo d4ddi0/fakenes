@@ -1492,7 +1492,6 @@ static void set_freq (REAL sample_rate)
       }
 
       case APU_QUALITY_ACCURATE:
-      case APU_QUALITY_INTERPOLATED:
       {
          /* Use the APU's actual frequency for mixing. */
          apu.mixer.mixing_frequency = apu.mixer.base_frequency;
@@ -1630,11 +1629,7 @@ static INLINE void process (void)
    {
       case APU_QUALITY_FAST:
       {
-         /* Even faster version of the mixer. */
-
-         /* Accumulate samples:       No
-            Cycle-by-cycle emulation: No
-            */
+         /* Faster, possibly inaccurate version of the mixer. */
 
          for (count = 0; count < elapsed_cycles; count++)
          {
@@ -1671,56 +1666,6 @@ static INLINE void process (void)
 
       case APU_QUALITY_ACCURATE:
       {
-         /* Accumulate samples:       No
-            Cycle-by-cycle emulation: Yes
-            */
-
-         for (count = 0; count < elapsed_cycles; count++)
-         {
-            int channel;
-
-            /* Update frame counter. */
-            apu_update_frame_counter ();
-
-            /* Simulate accumulation. */
-            apu.mixer.accumulated_samples++;
-         
-            if (apu.mixer.accumulated_samples >= apu.mixer.max_samples)
-            {
-               /* Gather samples. */
-
-               for (channel = 0; channel < APU_CHANNELS; channel++)
-               {
-                  REAL sample;
-
-                  /* Fetch sample. */
-                  sample = get_sample (channel);
-
-                  /* Store it in the list. */
-                  samples.push_back (sample);
-              }
-
-               /* Adjust counter. */
-               apu.mixer.accumulated_samples -= apu.mixer.max_samples;
-            }
-            else
-            {
-               /* Gather and discard samples (for emulation only). */
-
-               for (channel = 0; channel < APU_CHANNELS; channel++)
-                  get_sample (channel);
-            }
-         }
-
-         break;
-      }
-
-      case APU_QUALITY_INTERPOLATED:
-      {
-         /* Accumulate samples:       Yes
-            Cycle-by-cycle emulation: Yes
-            */
-
          for (count = 0; count < elapsed_cycles; count++)
          {
             int channel;

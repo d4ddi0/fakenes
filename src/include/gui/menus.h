@@ -341,13 +341,11 @@ static const MENU audio_subsystem_menu_base[] =
 
 DEFINE_MENU_CALLBACK(audio_emulation_menu_fast);
 DEFINE_MENU_CALLBACK(audio_emulation_menu_accurate);
-DEFINE_MENU_CALLBACK(audio_emulation_menu_interpolated);
 
 static const MENU audio_emulation_menu_base[] =
 {
-   { "&Fast",         audio_emulation_menu_fast,         NULL, 0, NULL },
-   { "&Accurate",     audio_emulation_menu_accurate,     NULL, 0, NULL },
-   { "&Interpolated", audio_emulation_menu_interpolated, NULL, 0, NULL },
+   { "&Fast",     audio_emulation_menu_fast,     NULL, 0, NULL },
+   { "&Accurate", audio_emulation_menu_accurate, NULL, 0, NULL },
    MENU_ENDCAP
 };                                             
 
@@ -504,16 +502,19 @@ DEFINE_MENU_CALLBACK(audio_volume_menu_increase);
 DEFINE_MENU_CALLBACK(audio_volume_menu_decrease);
 DEFINE_MENU_CALLBACK(audio_volume_menu_custom);
 DEFINE_MENU_CALLBACK(audio_volume_menu_reset);
+DEFINE_MENU_CALLBACK(audio_volume_menu_auto_gain_reduction);
 
 static const MENU audio_volume_menu_base[] =
 {
    /* Kludge to make MENU_FROM_BASE() load the menu. */
-   { "insert text here", NULL,                       NULL, 0, NULL },
-   { "  &Increase (+)",  audio_volume_menu_increase, NULL, 0, NULL },
-   { "  &Decrease (-)",  audio_volume_menu_decrease, NULL, 0, NULL },
+   { "insert text here",     NULL,                                  NULL, 0, NULL },
+   { "  &Increase (+)",      audio_volume_menu_increase,            NULL, 0, NULL },
+   { "  &Decrease (-)",      audio_volume_menu_decrease,            NULL, 0, NULL },
    MENU_SPLITTER,
-   { "  &Custom...",     audio_volume_menu_custom,   NULL, 0, NULL },
-   { "  &Reset",         audio_volume_menu_reset,    NULL, 0, NULL },
+   { "  &Custom...",         audio_volume_menu_custom,              NULL, 0, NULL },
+   { "  &Reset",             audio_volume_menu_reset,               NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&Auto Gain Reduction", audio_volume_menu_auto_gain_reduction, NULL, 0, NULL },
    MENU_ENDCAP
 };
 

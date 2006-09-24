@@ -19,7 +19,7 @@
 #include "types.h"
 
 /* Master volume. */
-REAL dsp_master_volume = 1.0;
+REAL dsp_master_volume = 1.666667;
 
 /* The DSP buffer. */
 static DSP_SAMPLE *dsp_buffer = NULL;
@@ -57,7 +57,8 @@ typedef struct _DSP_CHANNEL_PARAMS
 static DSP_CHANNEL_PARAMS dsp_channel_params[DSP_MAX_CHANNELS];
 
 /* Effectors. */
-static LIST dsp_effector_list = DSP_EFFECTOR_DITHER;
+static LIST dsp_effector_list =
+   (DSP_EFFECTOR_DITHER | DSP_EFFECTOR_COMPRESS);
 
 /* WAV writer (see bottom). */
 static void dsp_wav_write (void);
@@ -773,28 +774,37 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
          /* Master volume control. */
          DSP_MIXER *= dsp_master_volume;
 
-         /* Makeshift compressor */
-         /*    4:1 max compression ratio */
-         /*    .001 seconds attack time */
-         /* Note: May be somewhat broken with the WAV writer code if the
-                  sample rate used does not match 'audio_sample_rate'. */
-         if ((DSP_MIXER < DSP_SAMPLE_VALUE_MIN) ||
-             (DSP_MIXER > DSP_SAMPLE_VALUE_MAX))
+         if (dsp_get_effector_enabled (DSP_EFFECTOR_COMPRESS))
          {
-            /* Ramp up. */
-            DSP_MIXER_GAIN += (1.0 / ((REAL)audio_sample_rate * 0.001));
-            if (DSP_MIXER_GAIN > 1.0)
-               DSP_MIXER_GAIN = 1.0;
+            /* Makeshift compressor */
+            /*    4:1 max compression ratio */
+            /*    .001 seconds attack time */
+            /* Note: May be somewhat broken with the WAV writer code if the
+                     sample rate used does not match 'audio_sample_rate'. */
+            if ((DSP_MIXER < DSP_SAMPLE_VALUE_MIN) ||
+                (DSP_MIXER > DSP_SAMPLE_VALUE_MAX))
+            {
+               if (DSP_MIXER_GAIN < 1.0)
+               {
+                  /* Ramp up. */
+                  DSP_MIXER_GAIN += (1.0 / ((REAL)audio_sample_rate * 0.001));
+                  if (DSP_MIXER_GAIN > 1.0)
+                     DSP_MIXER_GAIN = 1.0;
+               }
 
-            /* Force reduce gain. */
-            DSP_MIXER /= ((DSP_MIXER * 4.0) * DSP_MIXER_GAIN);
-         }                                            
-         else
-         {
-            /* Ramp down. */
-            DSP_MIXER_GAIN -= (1.0 / ((REAL)audio_sample_rate * 0.001));
-            if (DSP_MIXER_GAIN < 0.0)
-               DSP_MIXER_GAIN = 0.0;
+               /* Force gain reduction. */
+               DSP_MIXER /= ((DSP_MIXER * 4.0) * DSP_MIXER_GAIN);
+            }                                            
+            else
+            {
+               if (DSP_MIXER_GAIN > 0.0)
+               {
+                  /* Ramp down. */
+                  DSP_MIXER_GAIN -= (1.0 / ((REAL)audio_sample_rate * 0.001));
+                  if (DSP_MIXER_GAIN < 0.0)
+                     DSP_MIXER_GAIN = 0.0;
+               }
+            }
          }
 
          /* Clipping. */
