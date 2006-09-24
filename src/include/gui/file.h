@@ -20,13 +20,15 @@ static struct
 
    USTRING path;
 
-   DIALOG *objfiles, *objdirs, *objfile, *objok;
+   DIALOG *objshow, *objfiles, *objdirs, *objfile, *objok;
 
    FS_LIST_ENTRY *files;
    int num_files;
 
    FS_LIST_ENTRY *dirs;
    int num_dirs;
+
+   BOOL show_hidden;
 
 } fs_info;
 
@@ -119,6 +121,13 @@ static int fs_get_file_callback (const char *filename, int attrib, void
 
    RT_ASSERT(filename);
 
+   /* Manually strip out Unix-style hidden files. */
+   if ((ugetc (filename) == '.') &&
+       !fs_info.show_hidden)
+   {
+      return (0);
+   }
+
    if (!fs_info.files)
    {
       /* Allocate first entry. */
@@ -178,9 +187,19 @@ static int fs_get_directory_callback (const char *filename, int attrib, void
       /* Strip out preceeding garbage. */
       filename = get_filename (filename);
 
-      /* Avoid superfluous directory entry. */
-      if (ustrncmp (filename, ".", ustrlen (filename)) == 0)
+      /* Avoid superfluous directory entries. */
+      if ((ustrncmp (filename, ".", ustrlen (filename)) == 0) ||
+          (ustrncmp (filename, "..", ustrlen (filename)) == 0))
+      {
          return (0);
+      }
+
+      /* Manually strip out Unix-style hidden directories. */
+      if ((ugetc (filename) == '.') &&
+          !fs_info.show_hidden)
+      {                      
+         return (0);
+      }
    }
 
    if (!fs_info.dirs)
@@ -224,6 +243,39 @@ static int fs_get_directory_callback (const char *filename, int attrib, void
    fs_info.num_dirs++;
 
    return (0);           
+}
+
+static int file_select_dialog_show_hidden_files_checkbox (DIALOG *dialog)
+{
+   RT_ASSERT(dialog);
+
+   fs_info.show_hidden = TRUE_OR_FALSE(dialog->flags & D_SELECTED);
+
+   /* Refresh file and directory lists. */
+
+   if (fs_info.files)
+   {
+      free (fs_info.files);
+      fs_info.files = NULL;
+   }
+
+   if (fs_info.dirs)
+   {
+      free (fs_info.dirs);
+      fs_info.dirs = NULL;
+   }
+
+   fs_info.num_files = -1;
+   fs_info.num_dirs  = -1;
+
+   scare_mouse ();
+
+   object_message (fs_info.objfiles, MSG_DRAW, 0);
+   object_message (fs_info.objdirs,  MSG_DRAW, 0);
+
+   unscare_mouse ();
+
+   return (D_O_K);
 }
 
 static int file_select_dialog_file_list (DIALOG *dialog)
@@ -331,7 +383,18 @@ static char *file_select_dialog_file_list_filler (int index, int
          ustrzncat (buffer2, sizeof (buffer2), mask, ustrsize (mask));
    
          /* Build file list. */
-         for_each_file_ex (buffer2, 0, FA_DIREC, fs_get_file_callback, NULL);
+         if (fs_info.show_hidden)
+         {
+            /* Including hidden files. */
+            for_each_file_ex (buffer2, 0, FA_DIREC, fs_get_file_callback,
+               NULL);
+         }
+         else
+         {
+            /* Excluding hidden files. */
+            for_each_file_ex (buffer2, 0, (FA_DIREC | FA_HIDDEN |
+               FA_SYSTEM), fs_get_file_callback, NULL);
+         }
 
          /* Get next extension mask. */
          mask = ustrtok (NULL, ";");
@@ -414,6 +477,7 @@ static char *file_select_dialog_directory_list_filler (int index, int
       USTRING buffer;
       UINT32 drive_list;
       int index;
+      BOOL is_root = FALSE;
 
       /* Copy path to buffer. */
       ustrzncpy (buffer, sizeof (buffer), fs_info.path, ustrsize
@@ -425,6 +489,18 @@ static char *file_select_dialog_directory_list_filler (int index, int
 
       /* Append path separator. */
       put_backslash (buffer);
+
+      /* TODO: Make sure the following code works properly on all supported
+         operating systems (including Mac OS X). */
+#if defined(ALLEGRO_WINDOWS) || defined(ALLEGRO_DOS)
+      /* Root example: C:\ */
+      if (ustrlen (buffer) < 4)
+         is_root = TRUE;
+#else
+      /* Root example: / */
+      if (ustrlen (buffer) < 2)
+         is_root = TRUE;
+#endif
 
       /* Append wildcards. */
       ustrncat (buffer, "*", (sizeof (buffer) - 1));
@@ -439,9 +515,27 @@ static char *file_select_dialog_directory_list_filler (int index, int
       /* Clear directory counter. */
       fs_info.num_dirs = 0;
 
+      /* Manually add the otherwise hidden ".." entry for easier navigation
+         (applicable to non-root paths only). */
+      if (!is_root)
+      {
+         /* Note: This uses the same callback hack as the drive code. */
+         fs_get_directory_callback ("..", FA_DIREC, "..");
+      }
+
       /* Get directory list. */
-      for_each_file_ex (buffer, FA_DIREC, 0, fs_get_directory_callback,
-         NULL);
+      if (fs_info.show_hidden)
+      {
+         /* Including hidden directories. */
+         for_each_file_ex (buffer, FA_DIREC, 0, fs_get_directory_callback,
+            NULL);
+      }
+      else
+      {
+         /* Excluding hidden directories. */
+         for_each_file_ex (buffer, FA_DIREC, (FA_HIDDEN | FA_SYSTEM),
+            fs_get_directory_callback, NULL);
+      }
 
       if (fs_info.num_dirs > 0)
       {
@@ -577,6 +671,10 @@ static INLINE int gui_file_select (const UCHAR *title, const UCHAR *caption,
    fs_info.num_files = -1;
    fs_info.num_dirs  = -1;
 
+   /* Load configuration. */
+   fs_info.show_hidden = TRUE_OR_FALSE(get_config_int ("gui", "show_hidden",
+      FALSE));
+
    /* Create dialog. */
 
    dialog = create_dialog (file_select_dialog_base, title);
@@ -587,6 +685,7 @@ static INLINE int gui_file_select (const UCHAR *title, const UCHAR *caption,
 
    objcaption = &dialog[FILE_SELECT_DIALOG_CAPTION_LABEL];
 
+   fs_info.objshow  = &dialog[FILE_SELECT_DIALOG_SHOW_HIDDEN_FILES_CHECKBOX];
    fs_info.objfiles = &dialog[FILE_SELECT_DIALOG_FILE_LIST];
    fs_info.objdirs  = &dialog[FILE_SELECT_DIALOG_DIRECTORY_LIST];
    fs_info.objfile  = &dialog[FILE_SELECT_DIALOG_FILENAME];
@@ -595,6 +694,11 @@ static INLINE int gui_file_select (const UCHAR *title, const UCHAR *caption,
    /* Set up objects. */
 
    objcaption->dp2 = (char *)caption;
+
+   fs_info.objshow->dp2 = file_select_dialog_show_hidden_files_checkbox;
+  
+   if (fs_info.show_hidden)
+      fs_info.objshow->flags |= D_SELECTED;
 
    fs_info.objfiles->dp  = file_select_dialog_file_list_filler;
    fs_info.objfiles->dp3 = file_select_dialog_file_list;
@@ -612,6 +716,9 @@ static INLINE int gui_file_select (const UCHAR *title, const UCHAR *caption,
    /* Show dialog. */
 
    result = show_dialog (dialog, -1);
+
+   /* Save configuration. */
+   set_config_int ("gui", "show_hidden", fs_info.show_hidden);
 
    /* Destroy file and directory lists. */
 

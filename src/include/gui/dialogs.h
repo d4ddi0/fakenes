@@ -107,17 +107,18 @@ enum
 
 static const DIALOG file_select_dialog_base[] =
 {
-   { sl_frame,    0,   0,   384, 265, 0, 0, 0,   0,      0, 0, NULL,      NULL,            NULL },
-   { sl_x_button, 365, 4,   16,  12,  0, 0, 0,   D_EXIT, 0, 0, "X",       NULL,            NULL },
-   { sl_ctext,    0,   28,  384, 0,   0, 0, 0,   0,      0, 0, NULL,      NULL,            NULL },
-   { sl_text,     60,  40,  0,   0,   0, 0, 'd', 0,      0, 0, NULL,      "&Directories:", NULL },
-   { sl_listbox,  9,   52,  148, 164, 0, 0, 0,   0,      0, 0, NULL,      NULL,            NULL },
-   { sl_text,     257, 40,  0,   0,   0, 0, 'f', 0,      0, 0, NULL,      "&Files:",       NULL },
-   { sl_listbox,  166, 52,  209, 164, 0, 0, 0,   0,      0, 0, NULL,      NULL,            NULL },
-   { sl_text,     9,   225, 0,   0,   0, 0, 0,   0,      0, 0, NULL,      "File&name:",    NULL },
-   { sl_editbox2, 63,  222, 312, 12,  0, 0, 'n', 0,      0, 0, NULL,      NULL,            NULL },
-   { sl_button,   125, 240, 64,  16,  0, 0, 'o', D_EXIT, 0, 0, "&OK",     NULL,            NULL },
-   { sl_button,   195, 240, 64,  16,  0, 0, 'c', D_EXIT, 0, 0, "&Cancel", NULL,            NULL },
+   { sl_frame,    0,   0,   384, 265, 0, 0, 0,   0,      0, 0, NULL,                 NULL,            NULL },
+   { sl_x_button, 365, 4,   16,  12,  0, 0, 0,   D_EXIT, 0, 0, "X",                  NULL,            NULL },
+   { sl_ctext,    0,   28,  384, 0,   0, 0, 0,   0,      0, 0, NULL,                 NULL,            NULL },
+   { sl_text,     60,  40,  0,   0,   0, 0, 'd', 0,      0, 0, NULL,                 "&Directories:", NULL },
+   { sl_listbox,  9,   52,  148, 148, 0, 0, 0,   0,      0, 0, NULL,                 NULL,            NULL },
+   { sl_checkbox, 18,  204, 100, 8,   0, 0, 'h', 0,      0, 0, "Show &Hidden Files", NULL,            NULL },
+   { sl_text,     257, 40,  0,   0,   0, 0, 'f', 0,      0, 0, NULL,                 "&Files:",       NULL },
+   { sl_listbox,  166, 52,  209, 160, 0, 0, 0,   0,      0, 0, NULL,                 NULL,            NULL },
+   { sl_text,     9,   225, 0,   0,   0, 0, 0,   0,      0, 0, NULL,                 "File&name:",    NULL },
+   { sl_editbox2, 63,  222, 312, 12,  0, 0, 'n', 0,      0, 0, NULL,                 NULL,            NULL },
+   { sl_button,   125, 240, 64,  16,  0, 0, 'o', D_EXIT, 0, 0, "&OK",                NULL,            NULL },
+   { sl_button,   195, 240, 64,  16,  0, 0, 'c', D_EXIT, 0, 0, "&Cancel",            NULL,            NULL },
    DIALOG_FRAME_ENDCAP                                                               
 };
 
@@ -128,6 +129,7 @@ enum
    FILE_SELECT_DIALOG_CAPTION_LABEL,
    FILE_SELECT_DIALOG_DIRECTORIES_LABEL,
    FILE_SELECT_DIALOG_DIRECTORY_LIST,
+   FILE_SELECT_DIALOG_SHOW_HIDDEN_FILES_CHECKBOX,
    FILE_SELECT_DIALOG_FILES_LABEL,
    FILE_SELECT_DIALOG_FILE_LIST,
    FILE_SELECT_DIALOG_FILENAME_LABEL,
