@@ -20,8 +20,8 @@ typedef struct _ROM ROM;
    to avoid a mutual-inclusion conflict. */
 #include "mmc.h"
 
-ROM global_rom;
-BOOL rom_is_loaded;
+extern ROM global_rom;
+extern BOOL rom_is_loaded;
     
 struct _ROM
 {
@@ -58,9 +58,9 @@ typedef struct _INES_HEADER
 
 } INES_HEADER;
 
-int load_rom (const UCHAR*, ROM *);
-int load_rom_from_zip (const UCHAR*, ROM *);
-void free_rom (const ROM *);
+extern int load_rom (const UCHAR*, ROM *);
+extern int load_rom_from_zip (const UCHAR*, ROM *);
+extern void free_rom (const ROM *);
 
 #define ROM_TRAINER_SIZE      512
 
@@ -92,5 +92,5 @@ void free_rom (const ROM *);
 
 #ifdef __cplusplus
 }
-#endif
+#endif   /* __cplusplus */
 #endif   /* !ROM_H_INCLUDED */

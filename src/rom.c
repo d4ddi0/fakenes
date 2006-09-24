@@ -20,6 +20,9 @@
 #include "unzip.h"
 #endif
 
+/* Global ROM container. */
+ROM global_rom;
+
 BOOL rom_is_loaded = FALSE;
 
 #ifdef USE_ZLIB

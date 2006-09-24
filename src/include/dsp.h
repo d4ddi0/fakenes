@@ -19,25 +19,25 @@ extern "C" {
 
 typedef REAL DSP_SAMPLE;
 
-REAL dsp_master_volume;
+extern REAL dsp_master_volume;
 
-int dsp_init (void);
-void dsp_exit (void);
-int dsp_open (int, int);
-void dsp_close (void);
-void dsp_start (void);
-void dsp_write (const DSP_SAMPLE *);
-void dsp_end (void);
-void dsp_set_channel_enabled (int, ENUM, BOOL);
-BOOL dsp_get_channel_enabled (int);
-void dsp_enable_channel (int);
-void dsp_disable_channel (int);
-void dsp_set_channel_params (int, REAL, REAL);
-void dsp_set_effector_enabled (FLAGS, ENUM, BOOL);
-BOOL dsp_get_effector_enabled (FLAGS);
-void dsp_render (void *, int, int, BOOL);
-int dsp_open_wav (const UCHAR *, int, int, int);
-void dsp_close_wav (void);
+extern int dsp_init (void);
+extern void dsp_exit (void);
+extern int dsp_open (unsigned, int);
+extern void dsp_close (void);
+extern void dsp_start (void);
+extern void dsp_write (const DSP_SAMPLE *, unsigned);
+extern void dsp_end (void);
+extern void dsp_set_channel_enabled (int, ENUM, BOOL);
+extern BOOL dsp_get_channel_enabled (int);
+extern void dsp_enable_channel (int);
+extern void dsp_disable_channel (int);
+extern void dsp_set_channel_params (int, REAL, REAL);
+extern void dsp_set_effector_enabled (FLAGS, ENUM, BOOL);
+extern BOOL dsp_get_effector_enabled (FLAGS);
+extern void dsp_render (void *, int, int, BOOL);
+extern int dsp_open_wav (const UCHAR *, int, int, int);
+extern void dsp_close_wav (void);
 
 enum
 {
@@ -73,5 +73,5 @@ enum
 
 #ifdef __cplusplus
 }
-#endif
+#endif   /* __cplusplus */
 #endif   /* !DSP_H_INCLUDED */

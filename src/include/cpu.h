@@ -40,15 +40,15 @@ extern "C" {
 #define CPU_RAM_SIZE    65536
 #define CPU_SRAM_SIZE   8192
 
-UINT8 cpu_ram[CPU_RAM_SIZE];
-UINT8 cpu_sram[CPU_SRAM_SIZE];
+extern UINT8 cpu_ram[CPU_RAM_SIZE];
+extern UINT8 cpu_sram[CPU_SRAM_SIZE];
 
-FN2A03 cpu_context;
+extern FN2A03 cpu_context;
 
-INT8 cpu_patch_table [CPU_RAM_SIZE];
+extern INT8 cpu_patch_table[CPU_RAM_SIZE];
 
 /* Number of used entries in cpu_patch_info. */
-int cpu_patch_count;
+extern int cpu_patch_count;
 
 /* Format of cpu_patch_info. */
 /* Designed primarily for use with Game Genie. */
@@ -67,49 +67,49 @@ typedef struct _CPU_PATCH
 /* Try to keep it fast - 15 patches limit. */
 #define CPU_MAX_PATCHES 15
 
-CPU_PATCH cpu_patch_info[CPU_MAX_PATCHES];
+extern CPU_PATCH cpu_patch_info[CPU_MAX_PATCHES];
 
-int cpu_init (void);
-void cpu_memmap_init (void);
-void cpu_exit (void);
-void cpu_reset (void);
+extern int cpu_init (void);
+extern void cpu_memmap_init (void);
+extern void cpu_exit (void);
+extern void cpu_reset (void);
 
-void cpu_interrupt (int);
-void cpu_clear_interrupt (int);
+extern void cpu_interrupt (int);
+extern void cpu_clear_interrupt (int);
 
-UINT16 *cpu_active_pc;
+extern UINT16 *cpu_active_pc;
 
-void cpu_free_prg_rom (const ROM *);
-UINT8 *cpu_get_prg_rom_pages (ROM *);
+extern void cpu_free_prg_rom (const ROM *);
+extern UINT8 *cpu_get_prg_rom_pages (ROM *);
 
-void cpu_enable_sram (void);
-void cpu_disable_sram (void);
+extern void cpu_enable_sram (void);
+extern void cpu_disable_sram (void);
 
-UINT8 dummy_read[(8 << 10)];
-UINT8 dummy_write[(8 << 10)];
+#define CPU_MAX_BLOCKS  (64 / 2)
 
-#define MAX_BLOCKS   (64 / 2)
+extern UINT8 dummy_read[(8 << 10)];
+extern UINT8 dummy_write[(8 << 10)];
 
-UINT8 *cpu_block_2k_read_address[MAX_BLOCKS];
-UINT8 *cpu_block_2k_write_address[MAX_BLOCKS];
+extern UINT8 *cpu_block_2k_read_address[CPU_MAX_BLOCKS];
+extern UINT8 *cpu_block_2k_write_address[CPU_MAX_BLOCKS];
 
-UINT8 (*cpu_block_2k_read_handler[MAX_BLOCKS]) (UINT16);
-void  (*cpu_block_2k_write_handler[MAX_BLOCKS]) (UINT16, UINT8);
+extern UINT8 (*cpu_block_2k_read_handler[CPU_MAX_BLOCKS]) (UINT16);
+extern void  (*cpu_block_2k_write_handler[CPU_MAX_BLOCKS]) (UINT16, UINT8);
 
-UINT8 cpu_read_direct_safeguard (UINT16);
-void cpu_write_direct_safeguard (UINT16, UINT8);
+extern UINT8 cpu_read_direct_safeguard (UINT16);
+extern void cpu_write_direct_safeguard (UINT16, UINT8);
 
-void cpu_start_new_scanline (void);
+extern void cpu_start_new_scanline (void);
 
-cpu_time_t cpu_get_cycles_line (void);
-cpu_time_t cpu_get_cycles (BOOL);
+extern cpu_time_t cpu_get_cycles_line (void);
+extern cpu_time_t cpu_get_cycles (BOOL);
 
-void cpu_save_state (PACKFILE *, int);
-void cpu_load_state (PACKFILE *, int);
+extern void cpu_save_state (PACKFILE *, int);
+extern void cpu_load_state (PACKFILE *, int);
 
 #include "cpu_in.h"
 
 #ifdef __cplusplus
 }
-#endif
-#endif    /* !CPU_H_INCLUDED */
+#endif   /* __cplusplus */
+#endif   /* !CPU_H_INCLUDED */

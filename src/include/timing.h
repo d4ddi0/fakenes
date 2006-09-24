@@ -22,30 +22,30 @@ extern "C" {
 #define MACHINE_RATE_NTSC (1789772.727272727 / 29780.5) // 60.098814 Hz
 #define MACHINE_RATE_PAL  (1662607.0 / 33247.5)         // 50.006978 Hz
 
-ENUM machine_region;
-ENUM machine_type;
+extern ENUM machine_region;
+extern ENUM machine_type;
 
-ENUM cpu_usage;
+extern ENUM cpu_usage;
 
-BOOL speed_cap;
-int frame_skip;
-int timing_fps;
-int timing_hertz;
-int timing_audio_fps;
+extern BOOL speed_cap;
+extern int frame_skip;
+extern int timing_fps;
+extern int timing_hertz;
+extern int timing_audio_fps;
 
-REAL timing_speed_multiplier;
-BOOL timing_half_speed;
+extern REAL timing_speed_multiplier;
+extern BOOL timing_half_speed;
 
-unsigned timing_clock;
+extern unsigned timing_clock;
 
-int frames_to_execute;
+extern int frames_to_execute;
 
-int machine_init (void);
-void machine_exit (void);
-void machine_reset (void);
+extern int machine_init (void);
+extern void machine_exit (void);
+extern void machine_reset (void);
 
-void suspend_timing (void);
-void resume_timing (void);
+extern void suspend_timing (void);
+extern void resume_timing (void);
 
 enum
 {
@@ -202,5 +202,5 @@ static REAL timing_get_frequency (void)
 
 #ifdef __cplusplus
 }
-#endif
+#endif   /* __cplusplus */
 #endif   /* !TIMING_H_INCLUDED */

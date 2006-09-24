@@ -22,8 +22,29 @@
 #include "save.h"
 #include "types.h"
 
+/* FN2A03 context. */
+FN2A03 cpu_context;
+
+/* Memory map. */
 UINT8 cpu_ram[CPU_RAM_SIZE];
 UINT8 cpu_sram[CPU_SRAM_SIZE];
+
+UINT8 dummy_read[(8 << 10)];
+UINT8 dummy_write[(8 << 10)];
+UINT8 *cpu_block_2k_read_address[CPU_MAX_BLOCKS];
+UINT8 *cpu_block_2k_write_address[CPU_MAX_BLOCKS];
+UINT8 (*cpu_block_2k_read_handler[CPU_MAX_BLOCKS]) (UINT16 address);
+void (*cpu_block_2k_write_handler[CPU_MAX_BLOCKS]) (UINT16 address, UINT8 value);
+UINT8 cpu_read_direct_safeguard (UINT16 address);
+void cpu_write_direct_safeguard (UINT16 address, UINT8 value);
+
+/* Memory patch support. */
+INT8 cpu_patch_table[CPU_RAM_SIZE];
+int cpu_patch_count = 0;
+CPU_PATCH cpu_patch_info[CPU_MAX_PATCHES];
+
+/* Program Counter. */
+UINT16 *cpu_active_pc = NULL;
 
 int cpu_init (void)
 {

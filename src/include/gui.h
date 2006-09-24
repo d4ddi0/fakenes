@@ -38,22 +38,21 @@ typedef struct _GUI_COLOR
 
 typedef GUI_COLOR GUI_THEME[GUI_TOTAL_COLORS];
 
-BOOL gui_is_active;
-GUI_THEME gui_theme;
-RGB *gui_image_palette;
+extern BOOL gui_is_active;
+extern GUI_THEME gui_theme;
+extern RGB *gui_image_palette;
 
-int gui_init (void);
-void gui_exit (void);
-int show_gui (BOOL);
-int gui_alert (const UCHAR *, const UCHAR *, const UCHAR *, const UCHAR *,
-   const UCHAR *, const UCHAR *, int, int);
-void gui_message (int, const UCHAR *, ...);
-void gui_heartbeat (void);
-void gui_handle_keypress (int, int);
-void gui_stop_replay (void);
-void gui_set_theme (const GUI_THEME *);
+extern int gui_init (void);
+extern void gui_exit (void);
+extern int show_gui (BOOL);
+extern int gui_alert (const UCHAR *, const UCHAR *, const UCHAR *, const UCHAR *, const UCHAR *, const UCHAR *, int, int);
+extern void gui_message (int, const UCHAR *, ...);
+extern void gui_heartbeat (void);
+extern void gui_handle_keypress (int, int);
+extern void gui_stop_replay (void);
+extern void gui_set_theme (const GUI_THEME *);
 
 #ifdef __cplusplus
 }
-#endif
+#endif   /* __cplusplus */
 #endif   /* !GUI_H_INCLUDED */

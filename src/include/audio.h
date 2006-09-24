@@ -15,27 +15,27 @@
 extern "C" {
 #endif
 
-BOOL audio_enable_output;
-ENUM audio_subsystem;
-int audio_sample_rate;
-int audio_sample_size;
-BOOL audio_unsigned_samples;
-BOOL audio_interpolation;
-int audio_buffer_length;
+extern BOOL audio_enable_output;
+extern ENUM audio_subsystem;
+extern int audio_sample_rate;
+extern int audio_sample_size;
+extern BOOL audio_unsigned_samples;
+extern BOOL audio_interpolation;
+extern int audio_buffer_length;
 
-int audio_buffer_frame_size_samples;
-unsigned audio_buffer_frame_size_bytes;
-int audio_buffer_size_samples;
-unsigned audio_buffer_size_bytes;
-volatile int audio_fps;
+extern int audio_buffer_frame_size_samples;
+extern unsigned audio_buffer_frame_size_bytes;
+extern int audio_buffer_size_samples;
+extern unsigned audio_buffer_size_bytes;
+extern volatile int audio_fps;
 
-int audio_init (void);
-void audio_exit (void);
-void audio_update (void);
-void audio_suspend (void);
-void audio_resume (void);
-void *audio_get_buffer (void);
-void audio_free_buffer (void);
+extern int audio_init (void);
+extern void audio_exit (void);
+extern void audio_update (void);
+extern void audio_suspend (void);
+extern void audio_resume (void);
+extern void *audio_get_buffer (void);
+extern void audio_free_buffer (void);
 
 /* Helper macros. */
 #define AUDIO_STEREO    apu_stereo_mode
@@ -51,5 +51,5 @@ enum
 
 #ifdef __cplusplus
 }
-#endif
-#endif  /* !AUDIO_H_INCLUDED */
+#endif   /* __cplusplus */
+#endif   /* !AUDIO_H_INCLUDED */

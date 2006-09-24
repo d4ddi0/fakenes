@@ -252,7 +252,7 @@ src_paths "${DEP_DIR}" "${SRC_DIR}" "${SUPPORT_DIR}"
 SRCFILES += "datafile.c "
 
 # Source files.
-SRCFILES += 'apu.c '
+SRCFILES += 'apu.cpp '
 SRCFILES += 'audio.c '
 SRCFILES += 'audiolib.c '
 SRCFILES += 'core.c '
@@ -280,6 +280,12 @@ SRCFILES += 'video.c '
 ifopt clean goto clean
 
 # --
+
+# C++ support.
+CXXFLAGS = "${CFLAGS}"
+
+# We have to include this or we get undefined references to new & delete.
+LDFLAGS += ' -lstdc++'
 
 compile ${SRCFILES}
 

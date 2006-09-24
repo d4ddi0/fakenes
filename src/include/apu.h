@@ -252,22 +252,22 @@ typedef struct apu_s
 } apu_t;
 
 /* Function prototypes */
-void apu_load_config (void);
-void apu_save_config (void);
-int apu_init (void);
-void apu_exit (void);
-void apu_reset (void);
-void apu_update (void);
-void apu_start_frame (void);
-void apu_end_frame (void);
-void apu_set_exsound (ENUM);
-UINT8 apu_read (UINT16);
-void apu_write (UINT16, UINT8);
-void apu_save_state (PACKFILE *, int);
-void apu_load_state (PACKFILE *, int);
+extern void apu_load_config (void);
+extern void apu_save_config (void);
+extern int apu_init (void);
+extern void apu_exit (void);
+extern void apu_reset (void);
+extern void apu_update (void);
+extern void apu_start_frame (void);
+extern void apu_end_frame (void);
+extern void apu_set_exsound (ENUM);
+extern UINT8 apu_read (UINT16);
+extern void apu_write (UINT16, UINT8);
+extern void apu_save_state (PACKFILE *, int);
+extern void apu_load_state (PACKFILE *, int);
 
-ENUM apu_quality;
-ENUM apu_stereo_mode;
+extern ENUM apu_quality;
+extern ENUM apu_stereo_mode;
 
 enum
 {
@@ -293,5 +293,5 @@ enum
 
 #ifdef __cplusplus
 }
-#endif
-#endif /* APU_H_INCLUDED */
+#endif   /* __cplusplus */
+#endif   /* !APU_H_INCLUDED */

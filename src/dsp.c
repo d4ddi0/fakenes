@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "audio.h"
 #include "common.h"
 #include "debug.h"
 #include "dsp.h"
@@ -24,11 +25,12 @@ REAL dsp_master_volume = 1.0;
 static DSP_SAMPLE *dsp_buffer = NULL;
 
 /* Parameters passed to dsp_init(). */
-static int dsp_buffer_samples  = 0;
+static unsigned dsp_buffer_samples  = 0;
 static int dsp_buffer_channels = 0;
 
-/* Current write position (for dsp_write()). */
-static int dsp_write_sample = 0;
+/* Current write positions (for dsp_write()). */
+static unsigned dsp_write_sample = 0;
+static int dsp_write_channel = 0;
 
 /* Sane minimums and maximums. */
 #define DSP_INPUT_CHANNELS_MIN   1
@@ -96,11 +98,11 @@ void dsp_exit (void)
 
 /* --- Buffer manipulation. --- */
 
-int dsp_open (int samples, int channels)
+int dsp_open (unsigned samples, int channels)
 {
    int size;
 
-   DEBUG_PRINTF("dsp_open(samples=%d, channels=%d)\n", samples, channels);
+   DEBUG_PRINTF("dsp_open(samples=%u, channels=%d)\n", samples, channels);
                  
    /* This function initializes the DSP.  Since the DSP is used for creating
       sample buffers suitable for playback on the sound system, this
@@ -169,31 +171,41 @@ void dsp_start (void)
 {
    DEBUG_PRINTF("dsp_start()\n");
 
-   /* Clear write pointer. */
-   dsp_write_sample = 0;
+   /* Clear write pointers. */
+   dsp_write_sample  = 0;
+   dsp_write_channel = 0;
 }
 
-void dsp_write (const DSP_SAMPLE *samples)
+void dsp_write (const DSP_SAMPLE *samples, unsigned count)
 {
-   int sample, channel;
+   unsigned index;
 
    RT_ASSERT(samples);
 
-   // DEBUG_PRINTF("dsp_write(samples=0x%x)\n", samples);
+   // DEBUG_PRINTF("dsp_write(samples=0x%x,count=%u)\n", samples, count);
 
-   sample = dsp_write_sample;
+   for (index = 0; index < count; index++)
+   {                               
+      /* Prevent overflows. */
+      if (dsp_write_sample >= dsp_buffer_samples)
+      {
+         log_printf ("DSP: Warning: Buffer overflow.");
+         return;
+      }
 
-   /* Prevent overflows. */
-   if (sample >= dsp_buffer_samples)
-   {
-      log_printf ("DSP: Warning: Buffer overflow.");
-      return;
+      DSP_BUFFER_SAMPLE(dsp_write_sample, dsp_write_channel) =
+         samples[index];
+
+      dsp_write_channel++;
+      if (dsp_write_channel >= dsp_buffer_channels)
+      {
+         /* Loop around to first channel. */
+         dsp_write_channel = 0;
+
+         /* Advance to next sampling position. */
+         dsp_write_sample++;
+      }
    }
-
-   for (channel = 0; channel < dsp_buffer_channels; channel++)
-      DSP_BUFFER_SAMPLE(sample, channel) = samples[channel];
-
-   dsp_write_sample++;
 }
 
 void dsp_end (void)
@@ -329,6 +341,7 @@ typedef struct _DSP_CHANNEL_MIXER
 {
    DSP_SAMPLE acc;         /* Accumulator. */
    DSP_SAMPLE prev, next;  /* Only used by filters. */
+   REAL gain;              /* Compressor gain control. */
    INT32 out;              /* Output. */
 
 } DSP_CHANNEL_MIXER;
@@ -351,6 +364,7 @@ typedef struct _DSP_MULTIMIXER
 #define DSP_MIXER       multimixer->mixers[channel].acc
 #define DSP_MIXER_LAST  multimixer->mixers[channel].prev
 #define DSP_MIXER_NEXT  multimixer->mixers[channel].next
+#define DSP_MIXER_GAIN  multimixer->mixers[channel].gain
 #define DSP_OUTPUT      multimixer->mixers[channel].out
 
 /* Macros for mono mixing ONLY. */
@@ -591,7 +605,8 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
 
    DSP_MULTIMIXER core_multimixer;
    DSP_MULTIMIXER *multimixer;
-   int sample, channel;
+   unsigned sample;
+   int channel;
 
    RT_ASSERT(buffer);
 
@@ -758,14 +773,29 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
          /* Master volume control. */
          DSP_MIXER *= dsp_master_volume;
 
-#if 0
+         /* Makeshift compressor */
+         /*    4:1 max compression ratio */
+         /*    .001 seconds attack time */
+         /* Note: May be somewhat broken with the WAV writer code if the
+                  sample rate used does not match 'audio_sample_rate'. */
          if ((DSP_MIXER < DSP_SAMPLE_VALUE_MIN) ||
              (DSP_MIXER > DSP_SAMPLE_VALUE_MAX))
          {
-            /* Reduce gain. */
-            DSP_MIXER /= pow (fabs (DSP_MIXER), 2);
+            /* Ramp up. */
+            DSP_MIXER_GAIN += (1.0 / ((REAL)audio_sample_rate * 0.001));
+            if (DSP_MIXER_GAIN > 1.0)
+               DSP_MIXER_GAIN = 1.0;
+
+            /* Force reduce gain. */
+            DSP_MIXER /= ((DSP_MIXER * 4.0) * DSP_MIXER_GAIN);
          }                                            
-#endif
+         else
+         {
+            /* Ramp down. */
+            DSP_MIXER_GAIN -= (1.0 / ((REAL)audio_sample_rate * 0.001));
+            if (DSP_MIXER_GAIN < 0.0)
+               DSP_MIXER_GAIN = 0.0;
+         }
 
          /* Clipping. */
                   

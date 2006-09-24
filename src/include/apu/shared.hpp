@@ -1,6 +1,6 @@
 #ifndef APU_SHARED_H_INCLUDED
 #define APU_SHARED_H_INCLUDED
-#include <math.h>
+#include <cmath>
 
 #define APU_NES_BASECYCLES 21477270
 
@@ -11,12 +11,12 @@
 static UINT32 apu_lineartbl[(1 << APU_LIN_BITS) + 1];
 static UINT32 apu_logtbl[1 << APU_LOG_BITS];
 
-UINT32 APU_LinearToLog(INT32 l)
+static UINT32 APU_LinearToLog(INT32 l)
 {
    return (l < 0) ? (apu_lineartbl[-l] + 1) : apu_lineartbl[l];
 }
 
-INT32 APU_LogToLinear(UINT32 l, UINT32 sft)
+static INT32 APU_LogToLinear(UINT32 l, UINT32 sft)
 {
     INT32 ret;
     UINT32 ofs;
@@ -27,7 +27,7 @@ INT32 APU_LogToLinear(UINT32 l, UINT32 sft)
 	return (l & 1) ? -ret : ret;
 }
 
-void APU_LogTableInitialize(void)
+static void APU_LogTableInitialize(void)
 {
     static INT32 initialized = 0;
     INT32 i;

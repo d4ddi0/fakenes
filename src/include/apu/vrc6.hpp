@@ -1,4 +1,4 @@
-#include "apu/shared.h"
+#include "apu/shared.hpp"
 
 /*
 ** Konami VRC6 ExSound by TAKEDA, toshiya
@@ -6,41 +6,39 @@
 ** original: s_vrc6.c in nezp0922
 */
 
-/* Heavily modified for FakeNES by Siloh. */
+/* Heavily modified for FakeNES by randilyn. */
 
 /* --- Private functions. --- */
 
-static INLINE REAL apu_vrc6s_square (apu_vrc6s_chan_t *chan)
+static INLINE REAL apu_vrc6s_square (apu_vrc6s_chan_t &chan)
 {
    UINT32 output;
    INT32 output2;
 
-   RT_ASSERT(chan);
-
-   if (chan->update)
+   if (chan.update)
 	{
-      if (chan->update & (2 | 4))
+      if (chan.update & (2 | 4))
 		{
-         chan->spd = (((chan->regs[2] & 0x0F) << 8) + chan->regs[1] + 1) << 18;
+         chan.spd = (((chan.regs[2] & 0x0F) << 8) + chan.regs[1] + 1) << 18;
 		}
-      chan->update = 0;
+      chan.update = 0;
 	}
 
-   if (!chan->spd) return 0;
+   if (!chan.spd) return 0;
 
-   chan->cycles -= chan->cps;
-   while (chan->cycles < 0)
+   chan.cycles -= chan.cps;
+   while (chan.cycles < 0)
 	{
       /* MAX() kludge here to fix a possible lock-up in some games. */
-      chan->cycles += MAX(chan->spd, 1);
-      chan->adr++;
+      chan.cycles += MAX(chan.spd, 1);
+      chan.adr++;
 	}
-   chan->adr &= 0xF;
+   chan.adr &= 0xF;
 
-   if (!(chan->regs[2] & 0x80)) return 0;
+   if (!(chan.regs[2] & 0x80)) return 0;
 
-   output = APU_LinearToLog(chan->regs[0] & 0x0F);
-   if (!(chan->regs[0] & 0x80) && (chan->adr < ((chan->regs[0] >> 4) + 1)))
+   output = APU_LinearToLog(chan.regs[0] & 0x0F);
+   if (!(chan.regs[0] & 0x80) && (chan.adr < ((chan.regs[0] >> 4) + 1)))
 	{
 		return 0;	/* and array gate */
 	}
@@ -50,58 +48,52 @@ static INLINE REAL apu_vrc6s_square (apu_vrc6s_chan_t *chan)
    return (APU_TO_OUTPUT_24(output2));
 }
 
-static INLINE REAL apu_vrc6s_saw (apu_vrc6s_chan_t *chan)
+static INLINE REAL apu_vrc6s_saw (apu_vrc6s_chan_t &chan)
 {
    UINT32 output;
    INT32 output2;
 
-   RT_ASSERT(chan);
-
-   if (chan->update)
+   if (chan.update)
 	{
-      if (chan->update & (2 | 4))
+      if (chan.update & (2 | 4))
 		{
-         chan->spd = (((chan->regs[2] & 0x0F) << 8) + chan->regs[1] + 1) << 18;
+         chan.spd = (((chan.regs[2] & 0x0F) << 8) + chan.regs[1] + 1) << 18;
 		}
-      chan->update = 0;
+      chan.update = 0;
 	}
 
-   if (!chan->spd) return 0;
+   if (!chan.spd) return 0;
 
-   chan->cycles -= chan->cps;
-   while (chan->cycles < 0)
+   chan.cycles -= chan.cps;
+   while (chan.cycles < 0)
 	{
       /* MAX() kludge here to fix a possible lock-up in some games. */
-      chan->cycles += MAX(chan->spd, 1);
-      chan->output += (chan->regs[0] & 0x3F);
-      if (7 == ++chan->adr)
+      chan.cycles += MAX(chan.spd, 1);
+      chan.output += (chan.regs[0] & 0x3F);
+      if (7 == ++chan.adr)
 		{
-         chan->adr = 0;
-         chan->output = 0;
+         chan.adr = 0;
+         chan.output = 0;
 		}
 	}
 
-   if (!(chan->regs[2] & 0x80)) return 0;
+   if (!(chan.regs[2] & 0x80)) return 0;
 
-   output = APU_LinearToLog((chan->output >> 3) & 0x1F);
+   output = APU_LinearToLog((chan.output >> 3) & 0x1F);
 
    output2 = APU_LogToLinear(output, APU_LOG_LIN_BITS - APU_LIN_BITS - 16 - 1);
 
    return (APU_TO_OUTPUT_24(output2));
 }
 
-static INLINE void apu_vrc6s_update_square (apu_vrc6s_chan_t *chan)
+static INLINE void apu_vrc6s_update_square (apu_vrc6s_chan_t &chan)
 {
-   RT_ASSERT(chan);
-
-   chan->cps = APU_DivFix(APU_NES_BASECYCLES, 12 * apu.mixer.mixing_frequency, 18);
+   chan.cps = APU_DivFix(APU_NES_BASECYCLES, (UINT32)ROUND(12 * apu.mixer.mixing_frequency), 18);
 }
 
-static INLINE void apu_vrc6s_update_saw (apu_vrc6s_chan_t *chan)
+static INLINE void apu_vrc6s_update_saw (apu_vrc6s_chan_t &chan)
 {
-   RT_ASSERT(chan);
-
-   chan->cps = APU_DivFix(APU_NES_BASECYCLES, 24 * apu.mixer.mixing_frequency, 18);
+   chan.cps = APU_DivFix(APU_NES_BASECYCLES, (UINT32)ROUND(24 * apu.mixer.mixing_frequency), 18);
 }
 
 /* --- Public functions. --- */
@@ -126,9 +118,9 @@ static void apu_vrc6s_reset (void)
 
 static void apu_vrc6s_update (void)
 {
-   apu_vrc6s_update_square (&apu.vrc6s.square[0]);
-   apu_vrc6s_update_square (&apu.vrc6s.square[1]);
-   apu_vrc6s_update_saw    (&apu.vrc6s.saw);
+   apu_vrc6s_update_square (apu.vrc6s.square[0]);
+   apu_vrc6s_update_square (apu.vrc6s.square[1]);
+   apu_vrc6s_update_saw    (apu.vrc6s.saw);
 }
 
 static REAL apu_vrc6s_process (ENUM channel)
@@ -136,13 +128,13 @@ static REAL apu_vrc6s_process (ENUM channel)
    switch (channel)
    {
       case APU_CHANNEL_EXTRA_1:
-         return (apu_vrc6s_square (&apu.vrc6s.square[0]));
+         return (apu_vrc6s_square (apu.vrc6s.square[0]));
 
       case APU_CHANNEL_EXTRA_2:
-         return (apu_vrc6s_square (&apu.vrc6s.square[1]));
+         return (apu_vrc6s_square (apu.vrc6s.square[1]));
 
       case APU_CHANNEL_EXTRA_3:
-         return (apu_vrc6s_saw (&apu.vrc6s.saw));
+         return (apu_vrc6s_saw (apu.vrc6s.saw));
        
       default:
          return (0);
@@ -270,7 +262,7 @@ static void apu_vrc6s_load_state (PACKFILE *file, int version)
 
 static const APU_EXSOUND apu_vrc6s =
 {
-   "VRC6S\0\0\0",
+   (const UINT8 *)"VRC6S\0\0\0",
    apu_vrc6s_reset,
    apu_vrc6s_update,
    apu_vrc6s_process,

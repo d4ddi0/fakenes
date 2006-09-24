@@ -18,10 +18,11 @@
    Portions (c) 2001-2006 FakeNES Team. */
 
 #include <allegro.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <vector>
 #include "apu.h"
 #include "audio.h"
 #include "common.h"
@@ -44,7 +45,7 @@ static apu_t apu;
 
 /* Internal function prototypes (defined at bottom). */
 static void set_freq (REAL);
-static INLINE void build_luts (int);
+static INLINE void build_luts (REAL);
 static INLINE REAL get_sample (ENUM);
 static INLINE void process (void);
 
@@ -107,35 +108,33 @@ Should be: ~36947.373246227290526216786397872 PAL clocks
 static const cpu_time_t frame_irq_start_pal = 36947u + 1;
 
 // ExSound headers
-#include "apu/mmc5.h"
-#include "apu/vrc6.h"
+#include "apu/mmc5.hpp"
+#include "apu/vrc6.hpp"
 
 /* --- Sound generators. --- */
 
-static INLINE REAL apu_envelope (apu_chan_t *chan)
+static INLINE REAL apu_envelope (apu_chan_t &chan)
 {
    REAL output;
 
-   RT_ASSERT(chan);
-
    /* envelope decay at a rate of (env_delay + 1) / 240 secs */
-   chan->env_phase -= (4 * apu.cnt_rate); /* 240/60 */
+   chan.env_phase -= (4 * apu.cnt_rate); /* 240/60 */
 
-   while (chan->env_phase < 0)
+   while (chan.env_phase < 0)
    {
       /* MAX() kludge here to fix a possible lock-up in some games. */
-      chan->env_phase += MAX(chan->env_delay, 1);
+      chan.env_phase += MAX(chan.env_delay, 1);
 
-      if (chan->holdnote)
-         chan->env_vol = ((chan->env_vol + 1) & 0x0f);
-      else if (chan->env_vol < 0x0f)
-         chan->env_vol++;
+      if (chan.holdnote)
+         chan.env_vol = ((chan.env_vol + 1) & 0x0f);
+      else if (chan.env_vol < 0x0f)
+         chan.env_vol++;
    }
 
-   if (chan->fixed_envelope)
-      output = (chan->volume << 8); /* fixed volume */
+   if (chan.fixed_envelope)
+      output = (chan.volume << 8); /* fixed volume */
    else
-      output = ((chan->env_vol ^ 0x0f) << 8);
+      output = ((chan.env_vol ^ 0x0f) << 8);
 
    return (output);
 }
@@ -149,50 +148,48 @@ static INLINE REAL apu_envelope (apu_chan_t *chan)
    reg2: 8 bits of freq
    reg3: 0-2=high freq, 7-4=vbl length counter */
 
-static INLINE REAL apu_square (apu_chan_t *chan)
+static INLINE REAL apu_square (apu_chan_t &chan)
 {
    REAL total, sample_weight, output;
 
-   RT_ASSERT(chan);
-
-   if (!chan->enabled || (chan->vbl_length <= 0))
-      return (chan->output);
+   if (!chan.enabled || (chan.vbl_length <= 0))
+      return (chan.output);
 
    /* length counter */
-   if (!chan->holdnote)
-      chan->vbl_length -= apu.cnt_rate;
+   if (!chan.holdnote)
+      chan.vbl_length -= apu.cnt_rate;
 
    /* TODO: using a table of max frequencies is not technically
    ** clean, but it is fast and (or should be) accurate 
    */
-   if ((chan->freq < 8) ||
-       (!chan->sweep_inc && (chan->freq > chan->freq_limit)))
+   if ((chan.freq < 8) ||
+       (!chan.sweep_inc && (chan.freq > chan.freq_limit)))
    {
-      return (chan->output);
+      return (chan.output);
    }
 
    /* frequency sweeping at a rate of (sweep_delay + 1) / 120 secs */
-   if (chan->sweep_on && chan->sweep_shifts)
+   if (chan.sweep_on && chan.sweep_shifts)
    {
-      chan->sweep_phase -= (2 * apu.cnt_rate);  /* 120/60 */
+      chan.sweep_phase -= (2 * apu.cnt_rate);  /* 120/60 */
 
-      while (chan->sweep_phase < 0)
+      while (chan.sweep_phase < 0)
       {
          /* MAX() kludge here to fix a possible lock-up in some games. */
-         chan->sweep_phase += MAX(chan->sweep_delay, 1);
+         chan.sweep_phase += MAX(chan.sweep_delay, 1);
 
-         if (chan->sweep_inc)
+         if (chan.sweep_inc)
          {
             /* ramp up */
-            if (chan->sweep_complement)
-               chan->freq += ~(chan->freq >> chan->sweep_shifts);
+            if (chan.sweep_complement)
+               chan.freq += ~(chan.freq >> chan.sweep_shifts);
             else
-               chan->freq -= (chan->freq >> chan->sweep_shifts);
+               chan.freq -= (chan.freq >> chan.sweep_shifts);
          }
          else  
          {
             /* ramp down */
-            chan->freq += (chan->freq >> chan->sweep_shifts);
+            chan.freq += (chan.freq >> chan.sweep_shifts);
          }
       }
    }
@@ -200,37 +197,37 @@ static INLINE REAL apu_square (apu_chan_t *chan)
    /* Envelope unit. */
    output = apu_envelope (chan);
 
-   sample_weight = chan->phaseacc;
+   sample_weight = chan.phaseacc;
 
    if (sample_weight > apu.cycle_rate)
       sample_weight = apu.cycle_rate;
 
    /* Positive/negative pulse. */
-   total = ((chan->adder < chan->duty_flip) ? sample_weight :
+   total = ((chan.adder < chan.duty_flip) ? sample_weight :
       -sample_weight);
 
-   chan->phaseacc -= apu.cycle_rate;  /* # of cycles per sample */
+   chan.phaseacc -= apu.cycle_rate;  /* # of cycles per sample */
 
-   while (chan->phaseacc < 0)
+   while (chan.phaseacc < 0)
    {
-      chan->phaseacc += MAX(chan->freq, 1);
+      chan.phaseacc += MAX(chan.freq, 1);
 
-      chan->adder = ((chan->adder + 1) & 0x0f);
+      chan.adder = ((chan.adder + 1) & 0x0f);
 
-      sample_weight = chan->freq;
+      sample_weight = chan.freq;
 
-      if (chan->phaseacc > 0)
-         sample_weight -= chan->phaseacc;
+      if (chan.phaseacc > 0)
+         sample_weight -= chan.phaseacc;
 
-      total += ((chan->adder < chan->duty_flip) ? sample_weight :
+      total += ((chan.adder < chan.duty_flip) ? sample_weight :
          -sample_weight);
    }
 
    output = ((output * total) / apu.cycle_rate);
 
-   chan->output = APU_TO_OUTPUT(output);
+   chan.output = APU_TO_OUTPUT(output);
 
-   return (chan->output);
+   return (chan.output);
 }
 
 /* TRIANGLE WAVE CHANNEL
@@ -241,29 +238,27 @@ static INLINE REAL apu_square (apu_chan_t *chan)
    reg2: low 8 bits of frequency
    reg3: 7-3=length counter, 2-0=high 3 bits of frequency */
 
-static INLINE REAL apu_triangle (apu_chan_t *chan)
+static INLINE REAL apu_triangle (apu_chan_t &chan)
 {
    static REAL val = 0, prev_val = 0;
    REAL total, sample_weight, output;
                                     
-   RT_ASSERT(chan);
-
-   if (!chan->enabled || (chan->vbl_length <= 0))
-      return (chan->output);
+   if (!chan.enabled || (chan.vbl_length <= 0))
+      return (chan.output);
                         
-   if (chan->counter_started)
+   if (chan.counter_started)
    {
-      if (chan->linear_length > 0)
-         chan->linear_length -= (4 * apu.cnt_rate);   /* 240/60 */
+      if (chan.linear_length > 0)
+         chan.linear_length -= (4 * apu.cnt_rate);   /* 240/60 */
 
-      if ((chan->vbl_length > 0) && !chan->holdnote)
-         chan->vbl_length -= apu.cnt_rate;
+      if ((chan.vbl_length > 0) && !chan.holdnote)
+         chan.vbl_length -= apu.cnt_rate;
    }
 
-   if ((chan->linear_length <= 0) || (chan->freq < 4))
+   if ((chan.linear_length <= 0) || (chan.freq < 4))
    {
       /* inaudible */
-      return (chan->output);
+      return (chan.output);
    }
 
    /* TODO: All of the following could use a major clean-up. */
@@ -272,10 +267,10 @@ static INLINE REAL apu_triangle (apu_chan_t *chan)
    sample_weight = 0;
    prev_val = val;
 
-   if (chan->adder)
-      val -= (apu.cycle_rate / chan->freq);
+   if (chan.adder)
+      val -= (apu.cycle_rate / chan.freq);
    else
-      val += (apu.cycle_rate / chan->freq);
+      val += (apu.cycle_rate / chan.freq);
 
    while ((val < -8) || (val >= 8))
    {
@@ -285,7 +280,7 @@ static INLINE REAL apu_triangle (apu_chan_t *chan)
          sample_weight += (prev_val - -8);
          prev_val = -8;
          val = (-16 - val);
-         chan->adder = 0;
+         chan.adder = 0;
       }
 
       if (val >= 8)
@@ -294,11 +289,11 @@ static INLINE REAL apu_triangle (apu_chan_t *chan)
          sample_weight += (8 - prev_val);
          prev_val = 8;
          val = (16 - val);
-         chan->adder = 1;
+         chan.adder = 1;
       }
    }
 
-   if (chan->adder)
+   if (chan.adder)
    {
       total += ((prev_val + val) * (prev_val - val));
       sample_weight += (prev_val - val);
@@ -314,9 +309,9 @@ static INLINE REAL apu_triangle (apu_chan_t *chan)
    output = (total * 256.0);
    output = ((output * 21.0) / 16.0);
 
-   chan->output = APU_TO_OUTPUT(output);
+   chan.output = APU_TO_OUTPUT(output);
 
-   return (chan->output);
+   return (chan.output);
 }
 
 /* WHITE NOISE CHANNEL
@@ -327,51 +322,49 @@ static INLINE REAL apu_triangle (apu_chan_t *chan)
    reg2: 7=small(93 byte) sample,3-0=freq lookup
    reg3: 7-4=vbl length counter */
 
-static INLINE REAL apu_noise (apu_chan_t *chan)
+static INLINE REAL apu_noise (apu_chan_t &chan)
 {
    static int noise_bit = 0;
    REAL total, sample_weight, output;
 
-   RT_ASSERT(chan);
-
-   if (!chan->enabled || (chan->vbl_length <= 0))
-      return (chan->output);
+   if (!chan.enabled || (chan.vbl_length <= 0))
+      return (chan.output);
 
    /* vbl length counter */
-   if (!chan->holdnote)
-      chan->vbl_length -= apu.cnt_rate;
+   if (!chan.holdnote)
+      chan.vbl_length -= apu.cnt_rate;
 
    /* Envelope unit. */
    output = apu_envelope (chan);
 
-   sample_weight = chan->phaseacc;
+   sample_weight = chan.phaseacc;
 
    if (sample_weight > apu.cycle_rate)
       sample_weight = apu.cycle_rate;
 
    total = (noise_bit ? sample_weight : -sample_weight);
 
-   chan->phaseacc -= apu.cycle_rate;  /* # of cycles per sample */
+   chan.phaseacc -= apu.cycle_rate;  /* # of cycles per sample */
 
-   while (chan->phaseacc < 0)
+   while (chan.phaseacc < 0)
    {
       static int sreg = 0x4000;
       int bit0, tap, bit14;
 
       /* MAX() kludge here to fix a possible lock-up in some games. */
-      chan->phaseacc += MAX(chan->freq, 1);
+      chan.phaseacc += MAX(chan.freq, 1);
 
       bit0 = (sreg & 1);
-      tap = ((sreg & chan->xor_tap) ? 1 : 0);
+      tap = ((sreg & chan.xor_tap) ? 1 : 0);
       bit14 = (bit0 ^ tap);
       sreg >>= 1;
       sreg |= (bit14 << 14);
       noise_bit = (bit0 ^ 1);
 
-      sample_weight = chan->freq;
+      sample_weight = chan.freq;
 
-      if (chan->phaseacc > 0)
-         sample_weight -= chan->phaseacc;
+      if (chan.phaseacc > 0)
+         sample_weight -= chan.phaseacc;
 
       total += (noise_bit ? sample_weight : -sample_weight);
    }
@@ -379,9 +372,9 @@ static INLINE REAL apu_noise (apu_chan_t *chan)
    output = ((output * total) / apu.cycle_rate);
    output = ((output * 13.0) / 16.0);
 
-   chan->output = APU_TO_OUTPUT(output);
+   chan.output = APU_TO_OUTPUT(output);
 
-   return (chan->output);
+   return (chan.output);
 }
 
 /* DELTA MODULATION CHANNEL
@@ -393,22 +386,18 @@ static INLINE REAL apu_noise (apu_chan_t *chan)
    reg2: 8 bits of 64-byte aligned address offset : $C000 + (value * 64)
    reg3: length, (value * 16) + 1 */
 
-static INLINE void apu_dmc_reload (apu_chan_t *chan)
+static INLINE void apu_dmc_reload (apu_chan_t &chan)
 {
-   RT_ASSERT(chan);
-
-   chan->address = chan->cached_address;
-   chan->dma_length = chan->cached_dmalength;
+   chan.address = chan.cached_address;
+   chan.dma_length = chan.cached_dmalength;
 }
 
-static INLINE REAL apu_do_dmc (apu_chan_t *chan)
+static INLINE REAL apu_do_dmc (apu_chan_t &chan)
 {
    REAL sample = 0;
 
-   RT_ASSERT(chan);
-
-   if (!chan->enabled)
-      return (chan->last_sample);
+   if (!chan.enabled)
+      return (chan.last_sample);
 
    /* DMA reader. */
 
@@ -417,12 +406,12 @@ static INLINE REAL apu_do_dmc (apu_chan_t *chan)
    non-zero...
    */
 
-   if ((chan->dma_length > 0) && (chan->sample_bits == 0))
+   if ((chan.dma_length > 0) && (chan.sample_bits == 0))
    {
       /* Fill sample buffer. */
 
       /* DMCDMABuf=X6502_DMR(0x8000+DMCAddress); */
-      chan->cur_byte = cpu_read ((0x8000 + chan->address));
+      chan.cur_byte = cpu_read ((0x8000 + chan.address));
 
       /*
       When the DMA reader accesses a byte of memory, the CPU is suspended
@@ -431,14 +420,14 @@ static INLINE REAL apu_do_dmc (apu_chan_t *chan)
       cpu_consume_cycles (4);
 
       /* DMCAddress=(DMCAddress+1)&0x7fff; */
-      chan->address = ((chan->address + 1) & 0x7fff);
+      chan.address = ((chan.address + 1) & 0x7fff);
 
-      chan->sample_bits = 8;
+      chan.sample_bits = 8;
 
-      if (--chan->dma_length == 0)
+      if (--chan.dma_length == 0)
       {
          /* if loop bit set, we're cool to retrigger sample */
-         if (chan->looping)
+         if (chan.looping)
          {
             /*
             The bytes counter is decremented;
@@ -450,14 +439,14 @@ static INLINE REAL apu_do_dmc (apu_chan_t *chan)
          else
          {
             /* check to see if we should generate an irq */
-            if (chan->irq_gen && !chan->irq_occurred)
+            if (chan.irq_gen && !chan.irq_occurred)
             {
                /*
                if the bytes counter becomes zero and the interrupt enabled
                flag is set, the interrupt flag is set.
                */
 
-               chan->irq_occurred = TRUE;
+               chan.irq_occurred = TRUE;
                cpu_interrupt (CPU_INTERRUPT_IRQ_DMC);
             }
 
@@ -471,42 +460,42 @@ static INLINE REAL apu_do_dmc (apu_chan_t *chan)
                - randi
                */
 
-            chan->enabled = FALSE;
+            chan.enabled = FALSE;
          }
       }
    }
 
    /* Output unit. */
 
-   if (chan->counter == 0)
+   if (chan.counter == 0)
    {
       /* Start a new cycle. */
 
       /* Reload counter. */
-      chan->counter = 8;
+      chan.counter = 8;
 
-      if (chan->sample_bits > 0)
+      if (chan.sample_bits > 0)
       {
          /* Sample buffer contains data. */
 
          /* Clear silence flag. */
-         chan->silence = FALSE;
+         chan.silence = FALSE;
 
          /* Empty sample buffer into the shift register. */
 
-         chan->shift_reg = chan->cur_byte;
+         chan.shift_reg = chan.cur_byte;
 
-         chan->cur_byte = 0;
-         chan->sample_bits = 0;
+         chan.cur_byte = 0;
+         chan.sample_bits = 0;
       }        
       else
       {
          /* Set silence flag. */
-         chan->silence = TRUE;
+         chan.silence = TRUE;
       }
    }
                        
-   if (!chan->silence)
+   if (!chan.silence)
    {
       BOOL bit0;
 
@@ -517,85 +506,83 @@ static INLINE REAL apu_do_dmc (apu_chan_t *chan)
       than 126, the counter is incremented by 2.
       */
 
-      bit0 = TRUE_OR_FALSE(chan->shift_reg & 1);
+      bit0 = TRUE_OR_FALSE(chan.shift_reg & 1);
 
-      if (!bit0 && (chan->regs[1] > 1))
+      if (!bit0 && (chan.regs[1] > 1))
       {
          /* positive delta */
-         chan->regs[1] -= 2;
+         chan.regs[1] -= 2;
       }
-      else if (bit0 && (chan->regs[1] < 126))
+      else if (bit0 && (chan.regs[1] < 126))
       {
          /* negative delta */
-         chan->regs[1] += 2;
+         chan.regs[1] += 2;
       }
 
-      sample = (chan->regs[1] << 8);
+      sample = (chan.regs[1] << 8);
    }
 
    /* Clock shift register. */
-   chan->shift_reg >>= 1;
+   chan.shift_reg >>= 1;
 
    /* Decrement counter. */
-   chan->counter--;
+   chan.counter--;
 
    return (sample);
 }
 
-static INLINE REAL apu_dmc (apu_chan_t *chan)
+static INLINE REAL apu_dmc (apu_chan_t &chan)
 {
    REAL total, sample_weight, output;
 
-   RT_ASSERT(chan);
+   if (!chan.enabled)
+      return (chan.output);
 
-   if (!chan->enabled)
-      return (chan->output);
-
-   if (chan->silence)
+   if (chan.silence)
    {
       /* Channel is silenced. */
       total = 0;
    }
    else
    {
-      sample_weight = chan->phaseacc;
+      sample_weight = chan.phaseacc;
    
       if (sample_weight > apu.cycle_rate)
          sample_weight = apu.cycle_rate;
    
-      total = ((chan->regs[1] << 8) * sample_weight);
+      total = ((chan.regs[1] << 8) * sample_weight);
    }
 
-   chan->phaseacc -= apu.cycle_rate;  /* # of cycles per sample */
+   chan.phaseacc -= apu.cycle_rate;  /* # of cycles per sample */
    
-   while (chan->phaseacc < 0)
+   while (chan.phaseacc < 0)
    {
       REAL sample;
 
       /* MAX() kludge here to fix a possible lock-up in some games. */
-      chan->phaseacc += MAX(chan->freq, 1);
+      chan.phaseacc += MAX(chan.freq, 1);
 
       sample = apu_do_dmc (chan);
 
       if (sample)
       {
-         sample_weight = chan->freq;
+         sample_weight = chan.freq;
    
-         if (chan->phaseacc > 0)
-            sample_weight -= chan->phaseacc;
+         if (chan.phaseacc > 0)
+            sample_weight -= chan.phaseacc;
    
          total += (sample * sample_weight);
 
-         chan->last_sample = sample;
+         chan.last_sample = sample;
       }
    }
 
    output = (total / apu.cycle_rate);
    output = ((output * 13.0) / 16.0);
 
-   chan->output = APU_TO_OUTPUT(output);
+   chan.output = APU_TO_OUTPUT(output);
 
-   return (chan->output);
+   return (chan.output);
 }
 
 static INLINE void apu_update_frame_counter (void)
@@ -1272,7 +1259,7 @@ void apu_write (UINT16 address, UINT8 value)
          chan->cached_address = (0x4000 + (value << 6));
 
          if (chan->dma_length == 0)
-            apu_dmc_reload (chan);
+            apu_dmc_reload (*chan);
 
          break;
       }
@@ -1293,7 +1280,7 @@ void apu_write (UINT16 address, UINT8 value)
          chan->cached_dmalength = ((value << 4) + 1);
 
          if (chan->dma_length == 0)
-            apu_dmc_reload (chan);
+            apu_dmc_reload (*chan);
 
          break;
       }
@@ -1364,7 +1351,7 @@ void apu_write (UINT16 address, UINT8 value)
             /* Channel is enabled - check for a reload. */
 
             if (chan->dma_length == 0)
-               apu_dmc_reload (chan);
+               apu_dmc_reload (*chan);
          }
          else
          {
@@ -1539,7 +1526,7 @@ static void set_freq (REAL sample_rate)
    apu.mixer.max_samples = (apu.mixer.base_frequency / sample_rate);
 }
 
-static INLINE void build_luts (int num_samples)
+static INLINE void build_luts (REAL num_samples)
 {
    int i;
 
@@ -1548,15 +1535,15 @@ static INLINE void build_luts (int num_samples)
    // decay_lut[], vbl_lut[], trilength_lut[] modified (x5) for $4017:bit7 by T.Yano
    /* lut used for enveloping and frequency sweeps */
    for (i = 0; i < DECAY_LUT_SIZE; i++)
-      decay_lut[i] = ROUND(((REAL)num_samples * (i + 1)) * 5.0);
+      decay_lut[i] = (int)ROUND((num_samples * (i + 1)) * 5.0);
 
    /* used for note length, based on vblanks and size of audio buffer */
    for (i = 0; i < VBL_LUT_SIZE; i++)
-      vbl_lut[i] = ROUND(((REAL)num_samples * vbl_length[i]) * 5.0);
+      vbl_lut[i] = (int)ROUND((num_samples * vbl_length[i]) * 5.0);
 
    /* triangle wave channel's linear length table */
    for (i = 0; i < TRILENGTH_LUT_SIZE; i++)
-      trilength_lut[i] = ROUND(((REAL)num_samples * i) * 5.0);
+      trilength_lut[i] = (int)ROUND((num_samples * i) * 5.0);
 }
 
 static INLINE REAL get_sample (ENUM channel)
@@ -1569,35 +1556,35 @@ static INLINE REAL get_sample (ENUM channel)
    {
       case APU_CHANNEL_SQUARE_1:
       {
-         sample = apu_square (&apu.apus.square[0]);
+         sample = apu_square (apu.apus.square[0]);
 
          break;
       }
 
       case APU_CHANNEL_SQUARE_2:
       {
-         sample = apu_square (&apu.apus.square[1]);
+         sample = apu_square (apu.apus.square[1]);
 
          break;
       }
 
       case APU_CHANNEL_TRIANGLE:
       {
-         sample = apu_triangle (&apu.apus.triangle);
+         sample = apu_triangle (apu.apus.triangle);
 
          break;
       }
 
       case APU_CHANNEL_NOISE:
       {
-         sample = apu_noise (&apu.apus.noise);
+         sample = apu_noise (apu.apus.noise);
 
          break;
       }
 
       case APU_CHANNEL_DMC:
       {
-         sample = apu_dmc (&apu.apus.dmc);
+         sample = apu_dmc (apu.apus.dmc);
 
          break; 
       } 
@@ -1621,6 +1608,7 @@ static INLINE REAL get_sample (ENUM channel)
 
 static INLINE void process (void)
 {
+   static std::vector<DSP_SAMPLE> samples;
    cpu_time_t cycles, elapsed_cycles;
    cpu_time_t count;
 
@@ -1663,10 +1651,15 @@ static INLINE void process (void)
                /* Gather samples. */
    
                for (channel = 0; channel < APU_CHANNELS; channel++)
-                  apu.mixer.accumulators[channel] = get_sample (channel);
+               {
+                  REAL sample;
 
-               /* Send to DSP. */
-               dsp_write (apu.mixer.accumulators);
+                  /* Fetch sample. */
+                  sample = get_sample (channel);
+
+                  /* Store it in the list. */
+                  samples.push_back (sample);
+              }
 
                /* Adjust counter. */
                apu.mixer.accumulated_samples -= apu.mixer.max_samples;
@@ -1697,10 +1690,15 @@ static INLINE void process (void)
                /* Gather samples. */
 
                for (channel = 0; channel < APU_CHANNELS; channel++)
-                  apu.mixer.accumulators[channel] = get_sample (channel);
+               {
+                  REAL sample;
 
-               /* Send to DSP. */
-               dsp_write (apu.mixer.accumulators);
+                  /* Fetch sample. */
+                  sample = get_sample (channel);
+
+                  /* Store it in the list. */
+                  samples.push_back (sample);
+              }
 
                /* Adjust counter. */
                apu.mixer.accumulated_samples -= apu.mixer.max_samples;
@@ -1751,8 +1749,7 @@ static INLINE void process (void)
       
                /* Determine how much of the last sample we want to keep for
                   the next loop. */
-               residual = (apu.mixer.accumulated_samples - floor
-                  (apu.mixer.max_samples));
+               residual = (apu.mixer.accumulated_samples - floor (apu.mixer.max_samples));
       
                /* Calculate the divider for the APU:DSP frequency ratio. */
                divider = (apu.mixer.accumulated_samples - residual);
@@ -1766,16 +1763,15 @@ static INLINE void process (void)
       
                   /* Divide. */
                   *sample /= divider;
-               }
 
-               /* Send to DSP. */
-               dsp_write (apu.mixer.accumulators);
+                  /* Store it in the list. */
+                  samples.push_back (*sample);
+               }
 
                for (channel = 0; channel < APU_CHANNELS; channel++)
                {
                   /* Reload accumulators with residual sample protion. */
-                  apu.mixer.accumulators[channel] =
-                     (apu.mixer.sample_cache[channel] * residual);
+                  apu.mixer.accumulators[channel] = (apu.mixer.sample_cache[channel] * residual);
                }
       
                /* Adjust counter. */
@@ -1790,5 +1786,15 @@ static INLINE void process (void)
          WARN_GENERIC();
    }
 
+   if (samples.size () > 0)
+   {
+      /* Send all stored samples to the DSP for processing. */
+      dsp_write (&samples[0], samples.size ());
+
+      /* Clear sample list. */
+      samples.clear ();
+   }
+
+   /* Done processing - allow this function to be called again. */
    apu.mixer.can_process = TRUE;
 }
