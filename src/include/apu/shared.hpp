@@ -2,8 +2,6 @@
 #define APU_SHARED_H_INCLUDED
 #include <cmath>
 
-#define APU_NES_BASECYCLES 21477270
-
 #define APU_LOG_BITS       12
 #define APU_LIN_BITS       6
 #define APU_LOG_LIN_BITS   30

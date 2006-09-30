@@ -20,7 +20,6 @@ extern ENUM audio_subsystem;
 extern int audio_sample_rate;
 extern int audio_sample_size;
 extern BOOL audio_unsigned_samples;
-extern BOOL audio_interpolation;
 extern int audio_buffer_length;
 
 extern int audio_buffer_frame_size_samples;
@@ -38,7 +37,7 @@ extern void *audio_get_buffer (void);
 extern void audio_free_buffer (void);
 
 /* Helper macros. */
-#define AUDIO_STEREO    apu_stereo_mode
+#define AUDIO_STEREO    apu_options.stereo
 #define AUDIO_CHANNELS  (AUDIO_STEREO ? 2 : 1)
 
 /* Subsystems. */

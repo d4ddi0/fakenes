@@ -86,16 +86,13 @@ static BOOL lock_recent = FALSE;
 
 static INLINE void update_menus (void)
 {
-   static USTRING audio_volume_text;
+   static USTRING audio_menu_volume_text;
 
 #ifndef USE_OPENAL
-   DISABLE_MENU_ITEM(audio_subsystem_menu_openal);
+   DISABLE_MENU_ITEM(audio_output_menu_subsystem_openal);
 #endif
 
-   SET_MENU_ITEM_ENABLED(audio_mixing_quality_menu_interpolation,
-      (audio_subsystem != AUDIO_SUBSYSTEM_OPENAL));
-
-   if (!rom_is_loaded)
+   if (!rom_is_loaded)                
    {
       DISABLE_MENU_ITEM(main_menu_resume);
       DISABLE_MENU_ITEM(main_menu_close);
@@ -109,26 +106,6 @@ static INLINE void update_menus (void)
       DISABLE_SUBMENU(audio_record_menu);
       DISABLE_MENU_ITEM(video_layers_menu_flip_mirroring);
       DISABLE_MENU_ITEM(options_menu_reset_clock);
-   }
-
-   if (!apu_stereo_mode)
-   {
-      DSP_DISABLE_EFFECTOR(DSP_EFFECTOR_SWAP_CHANNELS);
-      DSP_DISABLE_EFFECTOR(DSP_EFFECTOR_WIDE_STEREO_TYPE_1);
-      DSP_DISABLE_EFFECTOR(DSP_EFFECTOR_WIDE_STEREO_TYPE_2);
-      DSP_DISABLE_EFFECTOR(DSP_EFFECTOR_WIDE_STEREO_TYPE_3);
-
-      DISABLE_MENU_ITEM(audio_mixing_channels_menu_swap_channels);
-      DISABLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_1);
-      DISABLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_2);
-      DISABLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_3);
-   }
-   else
-   {
-      ENABLE_MENU_ITEM(audio_mixing_channels_menu_swap_channels);
-      ENABLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_1);
-      ENABLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_2);
-      ENABLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_3);
    }
 
    /* Page buffer and VSync are not supported in OpenGL mode. */
@@ -182,66 +159,41 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(machine_frame_skip_menu_9_frames,  (frame_skip == 9));
    TOGGLE_MENU_ITEM(machine_frame_skip_menu_10_frames, (frame_skip == 10));
 
-   TOGGLE_MENU_ITEM(audio_menu_enabled, audio_enable_output);
+   TOGGLE_MENU_ITEM(audio_menu_enable_apu,    apu_options.enabled);
+   TOGGLE_MENU_ITEM(audio_menu_enable_output, audio_enable_output);
 
-   TOGGLE_MENU_ITEM(audio_subsystem_menu_none,   (audio_subsystem == AUDIO_SUBSYSTEM_NONE));
-   TOGGLE_MENU_ITEM(audio_subsystem_menu_allegro,(audio_subsystem == AUDIO_SUBSYSTEM_ALLEGRO));
-   TOGGLE_MENU_ITEM(audio_subsystem_menu_openal, (audio_subsystem == AUDIO_SUBSYSTEM_OPENAL));
+   TOGGLE_MENU_ITEM(audio_menu_emulation_fast,     (apu_options.emulation == APU_EMULATION_FAST));
+   TOGGLE_MENU_ITEM(audio_menu_emulation_accurate, (apu_options.emulation == APU_EMULATION_ACCURATE));
+   TOGGLE_MENU_ITEM(audio_menu_emulation_ultra,    (apu_options.emulation == APU_EMULATION_ULTRA));
 
-   TOGGLE_MENU_ITEM(audio_emulation_menu_fast,     (apu_quality == APU_QUALITY_FAST));
-   TOGGLE_MENU_ITEM(audio_emulation_menu_accurate, (apu_quality == APU_QUALITY_ACCURATE));
+   TOGGLE_MENU_ITEM(audio_channels_menu_square_1, apu_options.enable_square_1);
+   TOGGLE_MENU_ITEM(audio_channels_menu_square_2, apu_options.enable_square_2);
+   TOGGLE_MENU_ITEM(audio_channels_menu_triangle, apu_options.enable_triangle);
+   TOGGLE_MENU_ITEM(audio_channels_menu_noise,    apu_options.enable_noise);
+   TOGGLE_MENU_ITEM(audio_channels_menu_dmc,      apu_options.enable_dmc);
+   TOGGLE_MENU_ITEM(audio_channels_menu_extra_1,  apu_options.enable_extra_1);
+   TOGGLE_MENU_ITEM(audio_channels_menu_extra_2,  apu_options.enable_extra_2);
+   TOGGLE_MENU_ITEM(audio_channels_menu_extra_3,  apu_options.enable_extra_3);
 
-   TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_8000_hz,  (audio_sample_rate == 8000));
-   TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_11025_hz, (audio_sample_rate == 11025));
-   TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_16000_hz, (audio_sample_rate == 16000));
-   TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_22050_hz, (audio_sample_rate == 22050));
-   TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_32000_hz, (audio_sample_rate == 32000));
-   TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_44100_hz, (audio_sample_rate == 44100));
-   TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_48000_hz, (audio_sample_rate == 48000));
-   TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_80200_hz, (audio_sample_rate == 80200));
-   TOGGLE_MENU_ITEM(audio_mixing_frequency_menu_96000_hz, (audio_sample_rate == 96000));
+   TOGGLE_MENU_ITEM(audio_output_menu_subsystem_allegro, (audio_subsystem == AUDIO_SUBSYSTEM_ALLEGRO));
+   TOGGLE_MENU_ITEM(audio_output_menu_subsystem_openal,  (audio_subsystem == AUDIO_SUBSYSTEM_OPENAL));
 
-   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_mono,                  !apu_stereo_mode);
-   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_stereo_mix,            (apu_stereo_mode == APU_STEREO_MODE_4));
-   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_virtual_stereo_mode_1, (apu_stereo_mode == APU_STEREO_MODE_1));
-   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_virtual_stereo_mode_2, (apu_stereo_mode == APU_STEREO_MODE_2));
-   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_stereo,                (apu_stereo_mode == APU_STEREO_MODE_3));
-   TOGGLE_MENU_ITEM(audio_mixing_channels_menu_swap_channels,         dsp_get_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS));
+   TOGGLE_MENU_ITEM(audio_output_menu_sampling_rate_22050_hz, (audio_sample_rate == 22050));
+   TOGGLE_MENU_ITEM(audio_output_menu_sampling_rate_44100_hz, (audio_sample_rate == 44100));
+   TOGGLE_MENU_ITEM(audio_output_menu_sampling_rate_48000_hz, (audio_sample_rate == 48000));
 
-   TOGGLE_MENU_ITEM(audio_mixing_quality_menu_low_8_bit,     (audio_sample_size == 8));
-   TOGGLE_MENU_ITEM(audio_mixing_quality_menu_high_16_bit,   (audio_sample_size == 16));
-   TOGGLE_MENU_ITEM(audio_mixing_quality_menu_interpolation, audio_interpolation);
-   TOGGLE_MENU_ITEM(audio_mixing_quality_menu_dithering,     dsp_get_effector_enabled (DSP_EFFECTOR_DITHER));
+   TOGGLE_MENU_ITEM(audio_output_menu_mixing_mono,            !apu_options.stereo);
+   TOGGLE_MENU_ITEM(audio_output_menu_mixing_stereo,          (apu_options.stereo && !dsp_get_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS)));
+   TOGGLE_MENU_ITEM(audio_output_menu_mixing_stereo_reversed, (apu_options.stereo && dsp_get_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS)));
 
-   TOGGLE_MENU_ITEM(audio_buffer_menu_1_frame,  (audio_buffer_length == 1));
-   TOGGLE_MENU_ITEM(audio_buffer_menu_2_frames, (audio_buffer_length == 2));
-   TOGGLE_MENU_ITEM(audio_buffer_menu_3_frames, (audio_buffer_length == 3));
-   TOGGLE_MENU_ITEM(audio_buffer_menu_4_frames, (audio_buffer_length == 4));
-   TOGGLE_MENU_ITEM(audio_buffer_menu_5_frames, (audio_buffer_length == 5));
-   TOGGLE_MENU_ITEM(audio_buffer_menu_6_frames, (audio_buffer_length == 6));
-   TOGGLE_MENU_ITEM(audio_buffer_menu_7_frames, (audio_buffer_length == 7));
-   TOGGLE_MENU_ITEM(audio_buffer_menu_8_frames, (audio_buffer_length == 8));
-
-   TOGGLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_1, dsp_get_effector_enabled (DSP_EFFECTOR_WIDE_STEREO_TYPE_1));
-   TOGGLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_2, dsp_get_effector_enabled (DSP_EFFECTOR_WIDE_STEREO_TYPE_2));
-   TOGGLE_MENU_ITEM(audio_effects_menu_wide_stereo_type_3, dsp_get_effector_enabled (DSP_EFFECTOR_WIDE_STEREO_TYPE_3));
-
-   TOGGLE_MENU_ITEM(audio_filters_menu_low_pass_type_1,    dsp_get_effector_enabled (DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_1));
-   TOGGLE_MENU_ITEM(audio_filters_menu_low_pass_type_2,    dsp_get_effector_enabled (DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_2));
-   TOGGLE_MENU_ITEM(audio_filters_menu_low_pass_type_3,    dsp_get_effector_enabled (DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_3));
-   TOGGLE_MENU_ITEM(audio_filters_menu_high_pass,          dsp_get_effector_enabled (DSP_EFFECTOR_HIGH_PASS_FILTER));
-   TOGGLE_MENU_ITEM(audio_filters_menu_delta_sigma_filter, dsp_get_effector_enabled (DSP_EFFECTOR_DELTA_SIGMA_FILTER));
-
-   TOGGLE_MENU_ITEM(audio_channels_menu_square_wave_a, dsp_get_channel_enabled (APU_CHANNEL_SQUARE_1));
-   TOGGLE_MENU_ITEM(audio_channels_menu_square_wave_b, dsp_get_channel_enabled (APU_CHANNEL_SQUARE_2));
-   TOGGLE_MENU_ITEM(audio_channels_menu_triangle_wave, dsp_get_channel_enabled (APU_CHANNEL_TRIANGLE));
-   TOGGLE_MENU_ITEM(audio_channels_menu_white_noise,   dsp_get_channel_enabled (APU_CHANNEL_NOISE));
-   TOGGLE_MENU_ITEM(audio_channels_menu_digital,       dsp_get_channel_enabled (APU_CHANNEL_DMC));
-   TOGGLE_MENU_ITEM(audio_channels_menu_extended_1,    dsp_get_channel_enabled (APU_CHANNEL_EXTRA_1));
-   TOGGLE_MENU_ITEM(audio_channels_menu_extended_2,    dsp_get_channel_enabled (APU_CHANNEL_EXTRA_2));
-   TOGGLE_MENU_ITEM(audio_channels_menu_extended_3,    dsp_get_channel_enabled (APU_CHANNEL_EXTRA_3));
-
-   TOGGLE_MENU_ITEM(audio_volume_menu_auto_gain_reduction, dsp_get_effector_enabled (DSP_EFFECTOR_COMPRESS));
+   TOGGLE_MENU_ITEM(audio_output_buffer_menu_1_frame,  (audio_buffer_length == 1));
+   TOGGLE_MENU_ITEM(audio_output_buffer_menu_2_frames, (audio_buffer_length == 2));
+   TOGGLE_MENU_ITEM(audio_output_buffer_menu_3_frames, (audio_buffer_length == 3));
+   TOGGLE_MENU_ITEM(audio_output_buffer_menu_4_frames, (audio_buffer_length == 4));
+   TOGGLE_MENU_ITEM(audio_output_buffer_menu_5_frames, (audio_buffer_length == 5));
+   TOGGLE_MENU_ITEM(audio_output_buffer_menu_6_frames, (audio_buffer_length == 6));
+   TOGGLE_MENU_ITEM(audio_output_buffer_menu_7_frames, (audio_buffer_length == 7));
+   TOGGLE_MENU_ITEM(audio_output_buffer_menu_8_frames, (audio_buffer_length == 8));
 
 #ifdef ALLEGRO_DOS
 
@@ -389,9 +341,9 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(options_gui_theme_menu_hugs_and_kisses, (last_theme == &hugs_and_kisses_theme));
 
    /* TODO: Find a better way to do this. */
-   uszprintf (audio_volume_text, sizeof (audio_volume_text), "Current "
-      "level: %d%%", (int)ROUND((dsp_master_volume * 100.0)));
-   audio_volume_menu[0].text = audio_volume_text;
+   uszprintf (audio_menu_volume_text, sizeof (audio_menu_volume_text),
+      "Current volume: %d%%", (int)ROUND((dsp_master_volume * 100.0)));
+   audio_menu[AUDIO_MENU_VOLUME_TEXT].text = audio_menu_volume_text;
 }
 
 int gui_init (void)
@@ -853,16 +805,14 @@ void gui_handle_keypress (int c, int scancode)
       case KEY_MINUS:
       case KEY_MINUS_PAD:
       {
-         audio_volume_menu_decrease ();
-
+         audio_menu_volume_decrease ();
          break;
       }
 
       case KEY_EQUALS:
       case KEY_PLUS_PAD:
       {
-         audio_volume_menu_increase ();
-
+         audio_menu_volume_increase ();
          break;
       }
 
@@ -1975,32 +1925,131 @@ static int machine_menu_cheat_manager (void)
    return (D_O_K);
 }
 
-static int audio_menu_enabled (void)
+static int audio_menu_enable_apu (void)
+{
+   apu_options.enabled = !apu_options.enabled;
+   update_menus ();
+
+   apu_update ();
+
+   message_local ("APU emulation %s.",
+      get_enabled_text (apu_options.enabled));
+
+   return (D_O_K);
+}
+
+static int audio_menu_enable_output (void)
 {
    audio_enable_output = !audio_enable_output;
    update_menus ();
 
    cycle_audio ();
 
-   message_local ("Audio rendering and output %s.", get_enabled_text
-      (audio_enable_output));
+   message_local ("Audio output %s.",
+      get_enabled_text (audio_enable_output));
 
    return (D_O_K);
 }
 
-static int audio_subsystem_menu_none (void)
+static int audio_menu_emulation_fast (void)
 {
-   audio_subsystem = AUDIO_SUBSYSTEM_NONE;
+   apu_options.emulation = APU_EMULATION_FAST;
    update_menus ();
 
-   cycle_audio ();
+   apu_update ();
 
-   message_local ("Audio subsystem set to NONE.");
+   message_local ("APU emulation quality set to fast.");
 
    return (D_O_K);
 }
 
-static int audio_subsystem_menu_allegro (void)
+static int audio_menu_emulation_accurate (void)
+{
+   apu_options.emulation = APU_EMULATION_ACCURATE;
+   update_menus ();
+
+   apu_update ();
+
+   message_local ("APU emulation quality set to accurate.");
+
+   return (D_O_K);
+}
+
+static int audio_menu_emulation_ultra (void)
+{
+   apu_options.emulation = APU_EMULATION_ULTRA;
+   update_menus ();
+
+   apu_update ();
+
+   message_local ("APU emulation quality set to ultra.");
+
+   return (D_O_K);
+}
+
+#define AUDIO_CHANNELS_MENU_HANDLER(id, name)  \
+   static int audio_channels_menu_##id (void) \
+   { \
+      BOOL *enabled = &apu_options.enable_##id ; \
+      *enabled = !*enabled; \
+      update_menus (); \
+      apu_update (); \
+      message_local ("APU " name " %s.", get_enabled_text (*enabled)); \
+      return (D_O_K); \
+   }
+
+AUDIO_CHANNELS_MENU_HANDLER(square_1, "first square wave channel")
+AUDIO_CHANNELS_MENU_HANDLER(square_2, "second square wave channel")
+AUDIO_CHANNELS_MENU_HANDLER(triangle, "triangle wave channel")
+AUDIO_CHANNELS_MENU_HANDLER(noise,    "noise channel")
+AUDIO_CHANNELS_MENU_HANDLER(dmc,      "delta modulation channel")
+AUDIO_CHANNELS_MENU_HANDLER(extra_1,  "first expansion channel")
+AUDIO_CHANNELS_MENU_HANDLER(extra_2,  "second expansion channel")
+AUDIO_CHANNELS_MENU_HANDLER(extra_3,  "third expansion channel")
+
+#undef AUDIO_CHANNELS_MENU_HANDLER
+
+static int audio_channels_menu_enable_all (void)
+{               
+   apu_options.enable_square_1 = TRUE;
+   apu_options.enable_square_2 = TRUE;
+   apu_options.enable_triangle = TRUE;
+   apu_options.enable_noise    = TRUE;
+   apu_options.enable_dmc      = TRUE;
+   apu_options.enable_extra_1  = TRUE;
+   apu_options.enable_extra_2  = TRUE;
+   apu_options.enable_extra_3  = TRUE;
+
+   update_menus ();
+
+   apu_update ();
+
+   message_local ("All APU channels enabled.");
+
+   return (D_O_K);
+}
+
+static int audio_channels_menu_disable_all (void)
+{
+   apu_options.enable_square_1 = FALSE;
+   apu_options.enable_square_2 = FALSE;
+   apu_options.enable_triangle = FALSE;
+   apu_options.enable_noise    = FALSE;
+   apu_options.enable_dmc      = FALSE;
+   apu_options.enable_extra_1  = FALSE;
+   apu_options.enable_extra_2  = FALSE;
+   apu_options.enable_extra_3  = FALSE;
+
+   update_menus ();
+
+   apu_update ();
+
+   message_local ("All APU channels disabled.");
+
+   return (D_O_K);
+}
+
+static int audio_output_menu_subsystem_allegro (void)
 {
    audio_subsystem = AUDIO_SUBSYSTEM_ALLEGRO;
    update_menus ();
@@ -2012,7 +2061,7 @@ static int audio_subsystem_menu_allegro (void)
    return (D_O_K);
 }
 
-static int audio_subsystem_menu_openal (void)
+static int audio_output_menu_subsystem_openal (void)
 {
    audio_subsystem = AUDIO_SUBSYSTEM_OPENAL;
    update_menus ();
@@ -2024,213 +2073,108 @@ static int audio_subsystem_menu_openal (void)
    return (D_O_K);
 }
 
-static int audio_emulation_menu_fast (void)
-{
-   apu_quality = APU_QUALITY_FAST;
-   update_menus ();
-
-   apu_update ();
-
-   message_local ("APU emulation quality set to fast.");
-
-   return (D_O_K);
-}
-
-static int audio_emulation_menu_accurate (void)
-{
-   apu_quality = APU_QUALITY_ACCURATE;
-   update_menus ();
-
-   apu_update ();
-
-   message_local ("APU emulation quality set to accurate.");
-
-   return (D_O_K);
-}
-
-#define MIXING_FREQUENCY_MENU_HANDLER(freq)  \
-   static int audio_mixing_frequency_menu_##freq##_hz (void) \
+#define AUDIO_OUTPUT_MENU_SAMPLING_RATE_HANDLER(rate)  \
+   static int audio_output_menu_sampling_rate_##rate##_hz (void) \
    {  \
-      audio_sample_rate = freq;  \
+      audio_sample_rate = rate;  \
       update_menus ();  \
       cycle_audio ();   \
-      message_local ("Audio mixing frequency set to %d Hz.", freq);  \
+      message_local ("Audio sampling rate set to %d Hz.", rate);  \
       return (D_O_K);   \
    }
 
-MIXING_FREQUENCY_MENU_HANDLER(8000)
-MIXING_FREQUENCY_MENU_HANDLER(11025)
-MIXING_FREQUENCY_MENU_HANDLER(16000)
-MIXING_FREQUENCY_MENU_HANDLER(22050)
-MIXING_FREQUENCY_MENU_HANDLER(32000)
-MIXING_FREQUENCY_MENU_HANDLER(44100)
-MIXING_FREQUENCY_MENU_HANDLER(48000)
-MIXING_FREQUENCY_MENU_HANDLER(80200)
-MIXING_FREQUENCY_MENU_HANDLER(96000)
+AUDIO_OUTPUT_MENU_SAMPLING_RATE_HANDLER(22050)
+AUDIO_OUTPUT_MENU_SAMPLING_RATE_HANDLER(44100)
+AUDIO_OUTPUT_MENU_SAMPLING_RATE_HANDLER(48000)
 
-#undef MIXING_FREQUENCY_MENU_HANDLER
+#undef AUDIO_OUTPUT_MENU_SAMPLING_RATE_HANDLER
 
-static int audio_mixing_frequency_menu_custom (void)
+static int audio_output_menu_sampling_rate_custom (void)
 {
-   int freq;
+   int rate;
 
-   freq = audio_sample_rate;
+   rate = audio_sample_rate;
 
-   if (get_integer_input ("Custom", &freq, "Hz"))
+   if (get_integer_input ("Custom", &rate, "Hz"))
    {
-      audio_sample_rate = freq;
+      audio_sample_rate = rate;
       update_menus ();
 
       cycle_audio ();
 
-      message_local ("Audio mixing frequency set to %d Hz.", freq);
+      message_local ("Audio sampling rate set to %d Hz.", rate);
    }
 
    return (D_O_K);
 }
 
-static int audio_mixing_channels_menu_mono (void)
+static int audio_output_menu_mixing_mono (void)
 {
-   apu_stereo_mode = FALSE;
+   apu_options.stereo = FALSE;
    update_menus ();
 
    cycle_audio ();
 
-   gui_message (GUI_TEXT_COLOR, "Audio channels set to mono.");
+   gui_message (GUI_TEXT_COLOR, "Audio output set to mono.");
 
    return (D_O_K);
 }
 
-static int audio_mixing_channels_menu_stereo_mix (void)
+static int audio_output_menu_mixing_stereo (void)
 {
-   apu_stereo_mode = APU_STEREO_MODE_4;
+   apu_options.stereo = TRUE;
+
+   dsp_set_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS,
+      DSP_SET_ENABLED_MODE_SET, FALSE);
+
    update_menus ();
     
    cycle_audio ();
    
-   message_local ("Audio channels set to mono with stereo mixing.");
+   message_local ("Audio output set to stereo.");
 
    return (D_O_K);
 }
 
-static int audio_mixing_channels_menu_virtual_stereo_mode_1 (void)
+static int audio_output_menu_mixing_stereo_reversed (void)
 {
-   apu_stereo_mode = APU_STEREO_MODE_1;
+   apu_options.stereo = TRUE;
+
+   dsp_set_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS,
+      DSP_SET_ENABLED_MODE_SET, TRUE);
+
    update_menus ();
     
    cycle_audio ();
-
-   message_local ("Audio channels set to virtual stereo (mode 1).");
-
-   return (D_O_K);
-}
-
-static int audio_mixing_channels_menu_virtual_stereo_mode_2 (void)
-{
-   apu_stereo_mode = APU_STEREO_MODE_2;
-   update_menus ();
-
-   cycle_audio ();
-
-   message_local ("Audio channels set to virtual stereo (mode 2).");
+   
+   message_local ("Audio output set to reverse stereo.");
 
    return (D_O_K);
 }
 
-static int audio_mixing_channels_menu_stereo (void)
-{
-   apu_stereo_mode = APU_STEREO_MODE_3;
-   update_menus ();
-
-   cycle_audio ();
-
-   message_local ("Audio channels set to stereo.");
-
-   return (D_O_K);
-}
-
-static int audio_mixing_channels_menu_swap_channels (void)
-{
-   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_SWAP_CHANNELS);
-   update_menus ();
-
-   message_local ("Audio stereo channel swapping %s.", get_enabled_text
-      (dsp_get_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS)));
-
-   return (D_O_K);
-}
-
-static int audio_mixing_quality_menu_low_8_bit (void)
-{
-   audio_sample_size = 8;
-   update_menus ();
-
-   cycle_audio ();
-
-   message_local ("Audio mixing quality set to low (8-bit).");
-
-   return (D_O_K);
-}
-
-static int audio_mixing_quality_menu_high_16_bit (void)
-{
-   audio_sample_size = 16;
-   update_menus ();
-
-   cycle_audio ();
-
-   message_local ("Audio mixing quality set to high (16-bit).");
-
-   return (D_O_K);
-}
-
-static int audio_mixing_quality_menu_interpolation (void)
-{
-   audio_interpolation = !audio_interpolation;
-   update_menus ();
-
-   cycle_audio ();
-
-   message_local ("Audio interpolation %s.", get_enabled_text
-      (audio_interpolation));
-
-   return (D_O_K);
-}
-
-static int audio_mixing_quality_menu_dithering (void)
-{
-   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_DITHER);
-   update_menus ();
-
-   message_local ("Audio dithering %s.", get_enabled_text
-      (dsp_get_effector_enabled (DSP_EFFECTOR_DITHER)));
-
-   return (D_O_K);
-}
-
-#define BUFFER_MENU_HANDLER(length, units)   \
-   static int audio_buffer_menu_##length##_##units (void)   \
+#define AUDIO_OUTPUT_BUFFER_MENU_HANDLER(size, units)   \
+   static int audio_output_buffer_menu_##size##_##units (void)   \
    {  \
-      audio_buffer_length = length; \
+      audio_buffer_length = size; \
       update_menus ();  \
       cycle_audio ();   \
-      message_local ("Audio buffer length set to %d %s.", length, \
+      message_local ("Audio buffer size set to %d %s.", size,  \
          "##units##");  \
       return (D_O_K);   \
    }
                         
-BUFFER_MENU_HANDLER(1, frame)
-BUFFER_MENU_HANDLER(2, frames)
-BUFFER_MENU_HANDLER(3, frames)
-BUFFER_MENU_HANDLER(4, frames)
-BUFFER_MENU_HANDLER(5, frames)
-BUFFER_MENU_HANDLER(6, frames)
-BUFFER_MENU_HANDLER(7, frames)
-BUFFER_MENU_HANDLER(8, frames)
+AUDIO_OUTPUT_BUFFER_MENU_HANDLER(1, frame)
+AUDIO_OUTPUT_BUFFER_MENU_HANDLER(2, frames)
+AUDIO_OUTPUT_BUFFER_MENU_HANDLER(3, frames)
+AUDIO_OUTPUT_BUFFER_MENU_HANDLER(4, frames)
+AUDIO_OUTPUT_BUFFER_MENU_HANDLER(5, frames)
+AUDIO_OUTPUT_BUFFER_MENU_HANDLER(6, frames)
+AUDIO_OUTPUT_BUFFER_MENU_HANDLER(7, frames)
+AUDIO_OUTPUT_BUFFER_MENU_HANDLER(8, frames)
 
-#undef BUFFER_MENU_HANDLER
+#undef AUDIO_OUTPUT_BUFFER_MENU_HANDLER
 
-static int audio_buffer_menu_custom (void) 
+static int audio_output_buffer_menu_custom (void) 
 {
    int frames;
 
@@ -2243,239 +2187,13 @@ static int audio_buffer_menu_custom (void)
 
       cycle_audio ();
 
-      message_local ("Audio buffer length set to %d frames.", frames);
+      message_local ("Audio buffer size set to %d frames.", frames);
    }
 
    return (D_O_K);
 }
 
-static int audio_effects_menu_wide_stereo_type_1 (void)
-{
-   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_WIDE_STEREO_TYPE_1);
-   update_menus ();
-
-   message_local ("Audio wide stereo effect %s.",
-      (dsp_get_effector_enabled (DSP_EFFECTOR_WIDE_STEREO_TYPE_1) ?
-         "enabled (type 1)" : "disabled"));
-
-   return (D_O_K);
-}
-
-static int audio_effects_menu_wide_stereo_type_2 (void)
-{
-   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_WIDE_STEREO_TYPE_2);
-   update_menus ();
-
-   message_local ("Audio wide stereo effect %s.",
-      (dsp_get_effector_enabled (DSP_EFFECTOR_WIDE_STEREO_TYPE_2) ?
-         "enabled (type 2)" : "disabled"));
-
-   return (D_O_K);
-}
-
-static int audio_effects_menu_wide_stereo_type_3 (void)
-{
-   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_WIDE_STEREO_TYPE_3);
-   update_menus ();
-
-   message_local ("Audio wide stereo effect %s.",
-      (dsp_get_effector_enabled (DSP_EFFECTOR_WIDE_STEREO_TYPE_3) ?
-         "enabled (type 3)" : "disabled"));
-
-   return (D_O_K);
-}
-
-static int audio_filters_menu_low_pass_type_1 (void)
-{
-   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_1);
-   update_menus ();
-
-   message_local ("Low pass audio filter %s.", get_enabled_text_ex
-      (dsp_get_effector_enabled (DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_1),
-         "enabled (type 1)"));
-
-   return (D_O_K);
-}
-
-static int audio_filters_menu_low_pass_type_2 (void)
-{
-   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_2);
-   update_menus ();
-
-   message_local ("Low pass audio filter %s.", get_enabled_text_ex
-      (dsp_get_effector_enabled (DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_2),
-         "enabled (type 2)"));
-
-   return (D_O_K);
-}
-
-static int audio_filters_menu_low_pass_type_3 (void)
-{
-   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_3);
-   update_menus ();
-
-   message_local ("Low pass audio filter %s.", get_enabled_text_ex
-      (dsp_get_effector_enabled (DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_3),
-         "enabled (type 3)"));
-
-   return (D_O_K);
-}
-
-static int audio_filters_menu_high_pass (void)
-{
-   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_HIGH_PASS_FILTER);
-   update_menus ();
-
-   message_local ("High pass audio filter %s.", get_enabled_text
-      (dsp_get_effector_enabled (DSP_EFFECTOR_HIGH_PASS_FILTER)));
-
-   return (D_O_K);
-}
-
-static int audio_filters_menu_delta_sigma_filter (void)
-{
-   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_DELTA_SIGMA_FILTER);
-   update_menus ();
-
-   message_local ("Delta-Sigma audio filter %s.", get_enabled_text
-      (dsp_get_effector_enabled (DSP_EFFECTOR_DELTA_SIGMA_FILTER)));
-
-   return (D_O_K);
-}
-
-static int audio_channels_menu_square_wave_a (void)
-{
-   dsp_set_channel_enabled (APU_CHANNEL_SQUARE_1,
-      DSP_SET_ENABLED_MODE_INVERT, 0);
-   update_menus ();
-
-   message_local ("Audio square wave channel A %s.", get_enabled_text
-      (dsp_get_channel_enabled (APU_CHANNEL_SQUARE_1)));
-
-   return (D_O_K);
-}
-
-static int audio_channels_menu_square_wave_b (void)
-{
-   dsp_set_channel_enabled (APU_CHANNEL_SQUARE_2,
-      DSP_SET_ENABLED_MODE_INVERT, 0);
-   update_menus ();
-
-   message_local ("Audio square wave channel B %s.", get_enabled_text
-      (dsp_get_channel_enabled (APU_CHANNEL_SQUARE_2)));
-
-   return (D_O_K);
-}
-
-static int audio_channels_menu_triangle_wave (void)
-{
-   dsp_set_channel_enabled (APU_CHANNEL_TRIANGLE,
-      DSP_SET_ENABLED_MODE_INVERT, 0);
-   update_menus ();
-
-   message_local ("Audio triangle wave channel %s.", get_enabled_text
-      (dsp_get_channel_enabled (APU_CHANNEL_TRIANGLE)));
-
-   return (D_O_K);
-}
-
-static int audio_channels_menu_white_noise (void)
-{
-   dsp_set_channel_enabled (APU_CHANNEL_NOISE, DSP_SET_ENABLED_MODE_INVERT,
-      0);
-   update_menus ();
-
-   message_local ("Audio white noise channel %s.", get_enabled_text
-      (dsp_get_channel_enabled (APU_CHANNEL_NOISE)));
-
-   return (D_O_K);
-}
-
-static int audio_channels_menu_digital (void)
-{
-   dsp_set_channel_enabled (APU_CHANNEL_DMC, DSP_SET_ENABLED_MODE_INVERT,
-      0);
-   update_menus ();
-
-   message_local ("Audio digital channel %s.", get_enabled_text
-      (dsp_get_channel_enabled (APU_CHANNEL_DMC)));
-
-   return (D_O_K);
-}
-
-static int audio_channels_menu_extended_1 (void)
-{
-   dsp_set_channel_enabled (APU_CHANNEL_EXTRA_1,
-      DSP_SET_ENABLED_MODE_INVERT, 0);
-   update_menus ();
-
-   message_local ("Audio extended channel #1 %s.", get_enabled_text
-      (dsp_get_channel_enabled (APU_CHANNEL_EXTRA_1)));
-
-   return (D_O_K);
-}
-
-static int audio_channels_menu_extended_2 (void)
-{
-   dsp_set_channel_enabled (APU_CHANNEL_EXTRA_2,
-      DSP_SET_ENABLED_MODE_INVERT, 0);
-   update_menus ();
-
-   message_local ("Audio extended channel #2 %s.", get_enabled_text
-      (dsp_get_channel_enabled (APU_CHANNEL_EXTRA_2)));
-
-   return (D_O_K);
-}
-
-static int audio_channels_menu_extended_3 (void)
-{
-   dsp_set_channel_enabled (APU_CHANNEL_EXTRA_3,
-      DSP_SET_ENABLED_MODE_INVERT, 0);
-   update_menus ();
-
-   message_local ("Audio extended channel #3 %s.", get_enabled_text
-      (dsp_get_channel_enabled (APU_CHANNEL_EXTRA_3)));
-
-   return (D_O_K);
-}
-
-static int audio_channels_menu_enable_all (void)
-{
-   dsp_enable_channel (APU_CHANNEL_SQUARE_1);
-   dsp_enable_channel (APU_CHANNEL_SQUARE_2);
-   dsp_enable_channel (APU_CHANNEL_TRIANGLE);
-   dsp_enable_channel (APU_CHANNEL_NOISE);
-   dsp_enable_channel (APU_CHANNEL_DMC);
-   dsp_enable_channel (APU_CHANNEL_EXTRA_1);
-   dsp_enable_channel (APU_CHANNEL_EXTRA_2);
-   dsp_enable_channel (APU_CHANNEL_EXTRA_3);
-
-   update_menus ();
-
-   message_local ("All audio channels enabled.");
-
-   return (D_O_K);
-}
-
-static int audio_channels_menu_disable_all (void)
-{
-   dsp_disable_channel (APU_CHANNEL_SQUARE_1);
-   dsp_disable_channel (APU_CHANNEL_SQUARE_2);
-   dsp_disable_channel (APU_CHANNEL_TRIANGLE);
-   dsp_disable_channel (APU_CHANNEL_NOISE);
-   dsp_disable_channel (APU_CHANNEL_DMC);
-   dsp_disable_channel (APU_CHANNEL_EXTRA_1);
-   dsp_disable_channel (APU_CHANNEL_EXTRA_2);
-   dsp_disable_channel (APU_CHANNEL_EXTRA_3);
-
-   update_menus ();
-
-   message_local ("All audio channels disabled.");
-
-   return (D_O_K);
-}
-
-static int audio_volume_menu_increase (void)
+static int audio_menu_volume_increase (void)
 {
    dsp_master_volume += 0.25;
    if (dsp_master_volume > 4.0)
@@ -2483,12 +2201,13 @@ static int audio_volume_menu_increase (void)
 
    update_menus ();
 
-   message_local ("Audio master volume level increased.");
+   message_local ("Audio master volume level increased to %d%%.",
+      (int)ROUND(dsp_master_volume * 100.0));
 
    return (D_O_K);
 }
 
-static int audio_volume_menu_decrease (void)
+static int audio_menu_volume_decrease (void)
 {
    dsp_master_volume -= 0.25;
    if (dsp_master_volume < 0)
@@ -2496,12 +2215,13 @@ static int audio_volume_menu_decrease (void)
 
    update_menus ();
 
-   message_local ("Audio master volume level decreased.");
+   message_local ("Audio master volume level decreased to %d%%.",
+      (int)ROUND(dsp_master_volume * 100.0));
 
    return (D_O_K);
 }
 
-static int audio_volume_menu_custom (void)
+static int audio_menu_volume_custom (void)
 {
    int percent;
 
@@ -2518,27 +2238,16 @@ static int audio_volume_menu_custom (void)
    return (D_O_K);
 }
 
-static int audio_volume_menu_reset (void)
+static int audio_menu_volume_reset (void)
 {
    dsp_master_volume = 1.0;
    update_menus ();
 
-   message_local ("Audio master volume level reset.");
+   message_local ("Audio master volume level reset to %d%%.",
+      (int)ROUND(dsp_master_volume * 100.0));
 
    return (D_O_K);
 }
-
-static int audio_volume_menu_auto_gain_reduction (void)
-{
-   DSP_TOGGLE_EFFECTOR(DSP_EFFECTOR_COMPRESS);
-   update_menus ();
-
-   message_local ("Audio automatic gain reduction %s.", get_enabled_text
-      (dsp_get_effector_enabled (DSP_EFFECTOR_COMPRESS)));
-
-   return (D_O_K);
-}
-
 
 static int audio_record_menu_start (void)
 {
@@ -2557,14 +2266,14 @@ static int audio_record_menu_start (void)
       if (exists (filename))
          continue;
 
-      if (dsp_open_wav (filename, audio_sample_rate, (apu_stereo_mode ? 2 :
-         1), audio_sample_size) == 0)
+      if (dsp_open_wav (filename, audio_sample_rate,
+            (apu_options.stereo ? 2 : 1), audio_sample_size) == 0)
       {
          DISABLE_MENU_ITEM(audio_record_menu_start);
          ENABLE_MENU_ITEM(audio_record_menu_stop);
       }
    
-      message_local ("Audio recording session started to %s.", filename);
+      message_local ("Audio WAV recording started to %s.", filename);
 
       return (D_O_K);
    }
@@ -2582,7 +2291,7 @@ static int audio_record_menu_stop (void)
    ENABLE_MENU_ITEM(audio_record_menu_start);
    DISABLE_MENU_ITEM(audio_record_menu_stop);
 
-   message_local ("Audio recording session stopped.");
+   message_local ("Audio WAV recording stopped.");
 
    return (D_O_K);
 }

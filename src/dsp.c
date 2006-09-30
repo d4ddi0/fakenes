@@ -19,7 +19,7 @@
 #include "types.h"
 
 /* Master volume. */
-REAL dsp_master_volume = 1.666667;
+REAL dsp_master_volume = 1.0;
 
 /* The DSP buffer. */
 static DSP_SAMPLE *dsp_buffer = NULL;
@@ -57,8 +57,7 @@ typedef struct _DSP_CHANNEL_PARAMS
 static DSP_CHANNEL_PARAMS dsp_channel_params[DSP_MAX_CHANNELS];
 
 /* Effectors. */
-static LIST dsp_effector_list =
-   (DSP_EFFECTOR_DITHER | DSP_EFFECTOR_COMPRESS);
+static LIST dsp_effector_list = 0;
 
 /* WAV writer (see bottom). */
 static void dsp_wav_write (void);
@@ -377,82 +376,6 @@ typedef struct _DSP_MULTIMIXER
 
 /* Effectors. */
 
-static INLINE void dsp_effector_low_pass_filter (DSP_MULTIMIXER *multimixer,
-   int channel, int type)
-{
-   RT_ASSERT(multimixer);
-
-   switch (type)
-   {
-      case 1:
-      {
-         /* Simple. */
-
-         DSP_MIXER += DSP_MIXER_LAST;
-         DSP_MIXER /= 2.0;
-
-         break;
-      }
-
-      case 2:
-      {
-         /* Weighted. */
-
-         DSP_MIXER *= 3.0;
-         DSP_MIXER += DSP_MIXER_LAST;
-         DSP_MIXER /= 4.0;
-
-         DSP_MIXER_NEXT = DSP_MIXER;
-
-         break;
-      }
-
-      case 3:
-      {
-         /* Dynamic. */
-
-         DSP_MIXER += DSP_MIXER_LAST;
-         DSP_MIXER /= 2.0;
-
-         DSP_MIXER_NEXT = DSP_MIXER;
-
-         break;
-      }
-
-      default:
-         WARN_GENERIC();
-   }
-}
-
-static INLINE void dsp_effector_high_pass_filter (DSP_MULTIMIXER
-   *multimixer, int channel)
-{
-   RT_ASSERT(multimixer);
-
-   DSP_MIXER -= DSP_MIXER_LAST;
-   DSP_MIXER *= 4.0;
-}
-
-static INLINE void dsp_effector_delta_sigma_filter (DSP_MULTIMIXER
-   *multimixer, int channel)
-{
-   DSP_SAMPLE old;
-
-   RT_ASSERT(multimixer);
-
-   old = DSP_MIXER;
-
-   DSP_MIXER *= 3.0;
-   DSP_MIXER += DSP_MIXER_LAST;
-   DSP_MIXER /= 4.0;
-
-   DSP_MIXER_NEXT = DSP_MIXER;
-
-   DSP_MIXER += (DSP_MIXER - old);
-   DSP_MIXER -= ((rand () / (REAL)RAND_MAX) * (DSP_MIXER * 0.01));
-
-}
-
 static INLINE void dsp_effector_blend_stereo (DSP_MULTIMIXER *multimixer)
 {
    DSP_SAMPLE old_left;
@@ -481,62 +404,6 @@ static INLINE void dsp_effector_swap_channels (DSP_MULTIMIXER *multimixer)
 
    DSP_MIXER_LEFT  = DSP_MIXER_RIGHT;
    DSP_MIXER_RIGHT = old_left;
-}
-
-static INLINE void dsp_effector_wide_stereo (DSP_MULTIMIXER *multimixer,
-   int type)
-{
-   RT_ASSERT(multimixer);
-
-   if (multimixer->channels != 2)
-      return;
-
-   switch (type)
-   {
-      case 1:
-      {
-         DSP_MIXER_LEFT += DSP_MIXER_RIGHT;
-         DSP_MIXER_LEFT /= 2.0;
-
-         if (DSP_MIXER_LEFT < 0)
-            DSP_MIXER_RIGHT = fabs (DSP_MIXER_LEFT);
-         else
-            DSP_MIXER_RIGHT = (0 - DSP_MIXER_LEFT);
-
-         break;
-      }
-
-      case 2:
-      {
-         if (DSP_MIXER_RIGHT < 0)
-            DSP_MIXER_RIGHT = fabs (DSP_MIXER_RIGHT);
-         else
-            DSP_MIXER_RIGHT = (0 - DSP_MIXER_RIGHT);
-
-         break;
-      }
-
-      case 3:
-      {
-         DSP_SAMPLE old_left;
-         DSP_SAMPLE scrap1, scrap2;
-
-         /* thanks to kode54 */
-
-         old_left = DSP_MIXER_LEFT;
-
-         scrap1 = ((DSP_MIXER_LEFT + DSP_MIXER_RIGHT) / 2.0);
-         scrap2 = (DSP_MIXER_RIGHT - scrap1);
-
-         DSP_MIXER_LEFT -= scrap2;
-         DSP_MIXER_RIGHT -= (old_left - scrap1);
-
-         break;
-      }
-
-      default:
-         WARN_GENERIC();
-   }
 }
 
 /* Renderer. */
@@ -661,10 +528,6 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
 
          input = (DSP_BUFFER_SAMPLE(sample, channel) * params->volume);
 
-         /* It seems we need this line to avoid distortion, even for mono
-            mixing.  Odd. */
-         input /= 2.0;
-
          switch (multimixer->channels)
          {
             case 1:
@@ -717,36 +580,6 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
 
       /* Perform any effector processing. */
 
-      for (channel = 0; channel < multimixer->channels; channel++)
-      {
-         DSP_MIXER_NEXT = DSP_MIXER;
-
-         /* Low-pass filters. */
-
-         if (dsp_get_effector_enabled (DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_1))
-            dsp_effector_low_pass_filter (multimixer, channel, 1);
-
-         if (dsp_get_effector_enabled (DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_2))
-            dsp_effector_low_pass_filter (multimixer, channel, 2);
-
-         if (dsp_get_effector_enabled (DSP_EFFECTOR_LOW_PASS_FILTER_TYPE_3))
-            dsp_effector_low_pass_filter (multimixer, channel, 3);
-
-         if (dsp_get_effector_enabled (DSP_EFFECTOR_HIGH_PASS_FILTER))
-         {
-            /* High-pass filter. */
-            dsp_effector_high_pass_filter (multimixer, channel);
-         }
-
-         if (dsp_get_effector_enabled (DSP_EFFECTOR_DELTA_SIGMA_FILTER))
-         {
-            /* Delta-Sigma filter. */
-            dsp_effector_delta_sigma_filter (multimixer, channel);
-         }
-
-         DSP_MIXER_LAST = DSP_MIXER_NEXT;
-      }       
-
       /* Stereo blending (always enabled =). */
       dsp_effector_blend_stereo (multimixer);
 
@@ -756,56 +589,12 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
          dsp_effector_swap_channels (multimixer);
       }
 
-      /* Wide stereo. */
-
-      if (dsp_get_effector_enabled (DSP_EFFECTOR_WIDE_STEREO_TYPE_1))
-         dsp_effector_wide_stereo (multimixer, 1);
-
-      if (dsp_get_effector_enabled (DSP_EFFECTOR_WIDE_STEREO_TYPE_2))
-         dsp_effector_wide_stereo (multimixer, 2);
-
-      if (dsp_get_effector_enabled (DSP_EFFECTOR_WIDE_STEREO_TYPE_3))
-         dsp_effector_wide_stereo (multimixer, 3);
-
       /* Post-process and output. */
 
       for (channel = 0; channel < multimixer->channels; channel++)
       {
          /* Master volume control. */
          DSP_MIXER *= dsp_master_volume;
-
-         if (dsp_get_effector_enabled (DSP_EFFECTOR_COMPRESS))
-         {
-            /* Makeshift compressor */
-            /*    4:1 max compression ratio */
-            /*    .001 seconds attack time */
-            /* Note: May be somewhat broken with the WAV writer code if the
-                     sample rate used does not match 'audio_sample_rate'. */
-            if ((DSP_MIXER < DSP_SAMPLE_VALUE_MIN) ||
-                (DSP_MIXER > DSP_SAMPLE_VALUE_MAX))
-            {
-               if (DSP_MIXER_GAIN < 1.0)
-               {
-                  /* Ramp up. */
-                  DSP_MIXER_GAIN += (1.0 / ((REAL)audio_sample_rate * 0.001));
-                  if (DSP_MIXER_GAIN > 1.0)
-                     DSP_MIXER_GAIN = 1.0;
-               }
-
-               /* Force gain reduction. */
-               DSP_MIXER /= ((DSP_MIXER * 4.0) * DSP_MIXER_GAIN);
-            }                                            
-            else
-            {
-               if (DSP_MIXER_GAIN > 0.0)
-               {
-                  /* Ramp down. */
-                  DSP_MIXER_GAIN -= (1.0 / ((REAL)audio_sample_rate * 0.001));
-                  if (DSP_MIXER_GAIN < 0.0)
-                     DSP_MIXER_GAIN = 0.0;
-               }
-            }
-         }
 
          /* Clipping. */
                   
@@ -814,28 +603,6 @@ void dsp_render (void *buffer, int channels, int bits_per_sample, BOOL
 
          /* Convert to output. */
          DSP_MIXER_TO_OUTPUT();
-
-         if (dsp_get_effector_enabled (DSP_EFFECTOR_DITHER))
-         {
-            INT32 out, error;
-
-            out = (DSP_OUTPUT >> DSP_OUTPUT_SHIFTS);
-            out &= DSP_OUTPUT_MASK;
-            out <<= DSP_OUTPUT_SHIFTS;
-
-            error = (DSP_OUTPUT - out);
-
-            if (error)
-            {
-               INT32 salt;
-
-               salt = (signed)rand32 ();
-               salt %= error;
-               salt >>= 1;
-
-               DSP_OUTPUT += salt;
-            }
-         }
 
          if (unsigned_samples)
          {

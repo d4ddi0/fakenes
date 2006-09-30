@@ -28,7 +28,7 @@ static const UINT32 apu_mmc5s_spd_limit[8] =
 };
 #undef V
 
-static INLINE REAL apu_mmc5s_square (apu_mmc5s_chan_t &chan)
+static INLINE void apu_mmc5s_square (apu_mmc5s_chan_t &chan)
 {
    UINT32 output;
    INT32 output2;
@@ -58,7 +58,11 @@ static INLINE REAL apu_mmc5s_square (apu_mmc5s_chan_t &chan)
       chan.update = 0;
 	}
 
-   if (chan.key == 0) return 0;
+   if (chan.key == 0)
+   {
+      chan.linear_output = 0;
+      return;
+   }
 
    chan.envphase -= chan.cps >> (13 - 7);
    if (chan.regs[0] & 0x20)
@@ -114,10 +118,19 @@ static INLINE REAL apu_mmc5s_square (apu_mmc5s_chan_t &chan)
 		}
 	}
 
-   if (chan.spd < (4 << 19)) return 0;
+   if (chan.spd < (4 << 19))
+   {
+      chan.linear_output = 0;
+      return;
+   }
+
    if (!(chan.regs[1] & 8))
 	{
-      if (chan.spd > apu_mmc5s_spd_limit[chan.regs[1] & 7]) return 0;
+      if (chan.spd > apu_mmc5s_spd_limit[chan.regs[1] & 7])
+      {
+         chan.linear_output = 0;
+         return;
+      }
 	}
 
    chan.cycles -= chan.cps;
@@ -149,26 +162,24 @@ static INLINE REAL apu_mmc5s_square (apu_mmc5s_chan_t &chan)
 
    output2 = APU_LogToLinear(output, APU_LOG_LIN_BITS - APU_LIN_BITS - 16);
 
-   return (APU_TO_OUTPUT_24(output2));
+   chan.linear_output = APU_TO_OUTPUT_24(output2);
 }
 
-static INLINE REAL apu_mmc5s_da (apu_mmc5s_chan_t &chan)
+static INLINE void apu_mmc5s_da (apu_mmc5s_chan_t &chan)
 {
-   INT32 output;
-
    if (!chan.key)
-      return (0);
+   {
+      chan.linear_output = 0;
+      return;
+   }
 
-   output = chan.output;
-   output <= 8;   /* upshift to 16-bit. */
-      
-   return (APU_TO_OUTPUT(output));
+   chan.linear_output = ((chan.output & 0xff) / 255.0);
 }
 
 static INLINE void apu_mmc5s_update_square (apu_mmc5s_chan_t &chan)
 {
-   chan.freq = (UINT32)ROUND(apu.mixer.mixing_frequency);
-   chan.cps = APU_DivFix(APU_NES_BASECYCLES, 12 * chan.freq, 19);
+   chan.freq = (UINT32)ROUND(apu.mixer.frequency);
+   chan.cps = APU_DivFix((UINT32)ROUND(apu.base_frequency), 12 * chan.freq, 19);
 }
 
 /* --- Public functions. --- */
@@ -180,7 +191,6 @@ static void apu_mmc5s_reset (void)
    UINT16 address;
 
    /* Clear registers. */
-
    for (address = 0x5000; address < 0x5015; address++)
       apu_mmc5s_write (address, 0);
 }
@@ -191,22 +201,42 @@ static void apu_mmc5s_update (void)
    apu_mmc5s_update_square (apu.mmc5s.square[1]);
 }
 
-static REAL apu_mmc5s_process (ENUM channel)
+static void apu_mmc5s_process (ENUM channel)
 {
    switch (channel)
    {
       case APU_CHANNEL_EXTRA_1:
-         return (apu_mmc5s_square (apu.mmc5s.square[0]));
+      {
+         apu_mmc5s_square (apu.mmc5s.square[0]);
+         break;
+      }
 
       case APU_CHANNEL_EXTRA_2:
-         return (apu_mmc5s_square (apu.mmc5s.square[1]));
+      {
+         apu_mmc5s_square (apu.mmc5s.square[1]);
+         break;
+      }
 
       case APU_CHANNEL_EXTRA_3:
-         return (apu_mmc5s_da (apu.mmc5s.da));
+      {
+         apu_mmc5s_da (apu.mmc5s.da);
+         break;
+      }
 
       default:
-         return (0);
+         WARN_GENERIC();
    }
+}
+
+static REAL apu_mmc5s_mix (void)
+{
+   REAL total = 0.0;
+
+   total += apu.mmc5s.square[0].linear_output;
+   total += apu.mmc5s.square[1].linear_output;
+   total += apu.mmc5s.da.linear_output;
+
+   return (total);
 }
 
 static void apu_mmc5s_write (UINT16 address, UINT8 value)
@@ -342,6 +372,8 @@ static const APU_EXSOUND apu_mmc5s =
    apu_mmc5s_reset,
    apu_mmc5s_update,
    apu_mmc5s_process,
+   apu_mmc5s_mix,
    apu_mmc5s_write,
-   apu_mmc5s_save_state, apu_mmc5s_load_state
+   apu_mmc5s_save_state,
+   apu_mmc5s_load_state
 };

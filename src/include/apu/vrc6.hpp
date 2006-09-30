@@ -10,7 +10,7 @@
 
 /* --- Private functions. --- */
 
-static INLINE REAL apu_vrc6s_square (apu_vrc6s_chan_t &chan)
+static INLINE void apu_vrc6s_square (apu_vrc6s_chan_t &chan)
 {
    UINT32 output;
    INT32 output2;
@@ -24,7 +24,11 @@ static INLINE REAL apu_vrc6s_square (apu_vrc6s_chan_t &chan)
       chan.update = 0;
 	}
 
-   if (!chan.spd) return 0;
+   if (!chan.spd)
+   {
+      chan.linear_output = 0;
+      return;
+   }
 
    chan.cycles -= chan.cps;
    while (chan.cycles < 0)
@@ -35,20 +39,26 @@ static INLINE REAL apu_vrc6s_square (apu_vrc6s_chan_t &chan)
 	}
    chan.adr &= 0xF;
 
-   if (!(chan.regs[2] & 0x80)) return 0;
+   if (!(chan.regs[2] & 0x80))
+   {
+      chan.linear_output = 0;
+      return;
+   }
 
    output = APU_LinearToLog(chan.regs[0] & 0x0F);
    if (!(chan.regs[0] & 0x80) && (chan.adr < ((chan.regs[0] >> 4) + 1)))
 	{
-		return 0;	/* and array gate */
+      /* and array gate */
+      chan.linear_output = 0;
+      return;
 	}
 
    output2 = APU_LogToLinear(output, APU_LOG_LIN_BITS - APU_LIN_BITS - 16 - 1);
 
-   return (APU_TO_OUTPUT_24(output2));
+   chan.linear_output = APU_TO_OUTPUT_24(output2);
 }
 
-static INLINE REAL apu_vrc6s_saw (apu_vrc6s_chan_t &chan)
+static INLINE void apu_vrc6s_saw (apu_vrc6s_chan_t &chan)
 {
    UINT32 output;
    INT32 output2;
@@ -62,7 +72,11 @@ static INLINE REAL apu_vrc6s_saw (apu_vrc6s_chan_t &chan)
       chan.update = 0;
 	}
 
-   if (!chan.spd) return 0;
+   if (!chan.spd)
+   {
+      chan.linear_output = 0;
+      return;
+   }
 
    chan.cycles -= chan.cps;
    while (chan.cycles < 0)
@@ -77,23 +91,27 @@ static INLINE REAL apu_vrc6s_saw (apu_vrc6s_chan_t &chan)
 		}
 	}
 
-   if (!(chan.regs[2] & 0x80)) return 0;
+   if (!(chan.regs[2] & 0x80))
+   {
+      chan.linear_output = 0;
+      return;
+   }
 
    output = APU_LinearToLog((chan.output >> 3) & 0x1F);
 
    output2 = APU_LogToLinear(output, APU_LOG_LIN_BITS - APU_LIN_BITS - 16 - 1);
 
-   return (APU_TO_OUTPUT_24(output2));
+   chan.linear_output = APU_TO_OUTPUT_24(output2);
 }
 
 static INLINE void apu_vrc6s_update_square (apu_vrc6s_chan_t &chan)
 {
-   chan.cps = APU_DivFix(APU_NES_BASECYCLES, (UINT32)ROUND(12 * apu.mixer.mixing_frequency), 18);
+   chan.cps = APU_DivFix((UINT32)ROUND(apu.base_frequency), (UINT32)ROUND(12 * apu.mixer.frequency), 18);
 }
 
 static INLINE void apu_vrc6s_update_saw (apu_vrc6s_chan_t &chan)
 {
-   chan.cps = APU_DivFix(APU_NES_BASECYCLES, (UINT32)ROUND(24 * apu.mixer.mixing_frequency), 18);
+   chan.cps = APU_DivFix((UINT32)ROUND(apu.base_frequency), (UINT32)ROUND(24 * apu.mixer.frequency), 18);
 }
 
 /* --- Public functions. --- */
@@ -105,7 +123,6 @@ static void apu_vrc6s_reset (void)
    UINT16 address;
 
    /* Clear registers. */
-
    for (address = 0x9000; address < 0x9002; address++)
       apu_vrc6s_write (address, 0);
 
@@ -123,22 +140,42 @@ static void apu_vrc6s_update (void)
    apu_vrc6s_update_saw    (apu.vrc6s.saw);
 }
 
-static REAL apu_vrc6s_process (ENUM channel)
+static void apu_vrc6s_process (ENUM channel)
 {
    switch (channel)
    {
       case APU_CHANNEL_EXTRA_1:
-         return (apu_vrc6s_square (apu.vrc6s.square[0]));
+      {
+         apu_vrc6s_square (apu.vrc6s.square[0]);
+         break;
+      }
 
       case APU_CHANNEL_EXTRA_2:
-         return (apu_vrc6s_square (apu.vrc6s.square[1]));
+      {
+         apu_vrc6s_square (apu.vrc6s.square[1]);
+         break;
+      }
 
       case APU_CHANNEL_EXTRA_3:
-         return (apu_vrc6s_saw (apu.vrc6s.saw));
-       
+      {
+         apu_vrc6s_saw (apu.vrc6s.saw);
+         break;
+      }
+
       default:
-         return (0);
+         WARN_GENERIC();
    }
+}
+
+static REAL apu_vrc6s_mix (void)
+{
+   REAL total = 0.0;
+
+   total += apu.vrc6s.square[0].linear_output;
+   total += apu.vrc6s.square[1].linear_output;
+   total += apu.vrc6s.saw.linear_output;
+
+   return (total);
 }
 
 static void apu_vrc6s_write (UINT16 address, UINT8 value)
@@ -266,6 +303,8 @@ static const APU_EXSOUND apu_vrc6s =
    apu_vrc6s_reset,
    apu_vrc6s_update,
    apu_vrc6s_process,
+   apu_vrc6s_mix,
    apu_vrc6s_write,
-   apu_vrc6s_save_state, apu_vrc6s_load_state
+   apu_vrc6s_save_state,
+   apu_vrc6s_load_state
 };

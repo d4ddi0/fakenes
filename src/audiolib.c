@@ -131,10 +131,8 @@ static AUDIOSTREAM *audiolib_allegro_stream = NULL;
 
 static int audiolib_allegro_init (void)
 {
-   if (audio_interpolation)
-      set_mixer_quality (2);
-   else
-      set_mixer_quality (1);
+   /* Force interpolation. */
+   set_mixer_quality (2);
 
    set_volume_per_voice (0);
         
@@ -416,9 +414,6 @@ static ALSTREAM *audiolib_openal_stream = NULL;
 static int audiolib_openal_init (void)
 {
    static BOOL initialized = FALSE;
-
-   /* Interpolation is not supported. */
-   audio_interpolation = FALSE;
 
    if (!initialized)
    {

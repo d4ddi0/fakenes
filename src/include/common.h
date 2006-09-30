@@ -19,12 +19,12 @@ extern "C" {
 #undef FALSE
 #define FALSE  0
 
-#define TRUE_OR_FALSE(x)   (x ? TRUE : FALSE)
+#define TRUE_OR_FALSE(x)   ((x) ? TRUE : FALSE)
 
 #undef NULL
 #define NULL   0
 
-#define ROUND(x)  (x + 0.5)
+#define ROUND(x)  ((x) + 0.5)
 
 #ifndef M_PI
 #define M_PI      3.14159265358979323846
@@ -37,7 +37,7 @@ extern "C" {
 
 /* Macro to compare 2 REALs. */
 #define COMPARE_TWO_REALS(a, b)  \
-   TRUE_OR_FALSE((a >= (b - EPSILON)) && (a <= (b + EPSILON)))
+   TRUE_OR_FALSE(((a) >= ((b) - EPSILON)) && ((a) <= ((b) + EPSILON)))
 
 /* TODO: Remove all references to NIL and correct compiler warnings. */
 #define NIL    0
@@ -61,23 +61,6 @@ static INLINE REAL fixf (REAL value, REAL base, REAL limit)
       value = base;
    if (value > limit)
       value = limit;
-
-   return (value);
-}
-
-#define RAND32_MAX   0xffffffff
-
-static INLINE unsigned rand32 (void)
-{
-   unsigned value;
-
-   /* Kludge for rand() only returning at most 32767 (0x7fff) on some
-      systems (such as Windows). */
-
-   value = ((rand () & 0x7fff) << 17);
-   value |= ((rand () & 0x7fff) << 2);
-   value |= (rand () & 0x4);
-   value &= RAND32_MAX;
 
    return (value);
 }

@@ -23,7 +23,6 @@ ENUM audio_subsystem        = AUDIO_SUBSYSTEM_ALLEGRO;
 int  audio_sample_rate      = -1;   /* Autodetect. */
 int  audio_sample_size      = -1;   /* Autodetect. */
 BOOL audio_unsigned_samples = TRUE;
-BOOL audio_interpolation    = TRUE;
 int  audio_buffer_length    = 4;
 
 /* Cachied copies of sensetive parameters to prevent memory leaks if any of
@@ -79,7 +78,6 @@ int audio_init (void)
    audio_subsystem     = get_config_int ("audio", "subsystem",     audio_subsystem);
    audio_sample_rate   = get_config_int ("audio", "sample_rate",   audio_sample_rate);
    audio_sample_size   = get_config_int ("audio", "sample_size",   audio_sample_size);
-   audio_interpolation = get_config_int ("audio", "interpolation", audio_interpolation);
    audio_buffer_length = get_config_int ("audio", "buffer_length", audio_buffer_length);
 
    /* Cache sensetive parameters. */
@@ -142,7 +140,6 @@ void audio_exit (void)
    set_config_int ("audio", "subsystem",     audio_subsystem);
    set_config_int ("audio", "sample_rate",   audio_sample_rate);
    set_config_int ("audio", "sample_size",   audio_sample_size);
-   set_config_int ("audio", "interpolation", audio_interpolation);
    set_config_int ("audio", "buffer_length", audio_buffer_length);
 }
 
