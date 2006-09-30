@@ -76,7 +76,7 @@ typedef struct apu_chan_s
    BOOL silence;                 /* save for squares, noise, and dmc */
 
    /* Timer. */
-   UINT16 timer;                 /* save */
+   INT16 timer;                  /* save */
    UINT16 period;                /* save for squares */
 
    /* Length counter (all except dmc). */
