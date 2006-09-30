@@ -162,7 +162,7 @@ static INLINE void apu_mmc5s_square (apu_mmc5s_chan_t &chan)
 
    output2 = APU_LogToLinear(output, APU_LOG_LIN_BITS - APU_LIN_BITS - 16);
 
-   chan.linear_output = APU_TO_OUTPUT_24(output2);
+   chan.linear_output = output2;
 }
 
 static INLINE void apu_mmc5s_da (apu_mmc5s_chan_t &chan)
@@ -173,13 +173,13 @@ static INLINE void apu_mmc5s_da (apu_mmc5s_chan_t &chan)
       return;
    }
 
-   chan.linear_output = ((chan.output & 0xff) / 255.0);
+   chan.linear_output = ((chan.output & 0xff) << 8);    // upshift to 16 bit
 }
 
 static INLINE void apu_mmc5s_update_square (apu_mmc5s_chan_t &chan)
 {
    chan.freq = (UINT32)ROUND(apu.mixer.frequency);
-   chan.cps = APU_DivFix((UINT32)ROUND(apu.base_frequency), 12 * chan.freq, 19);
+   chan.cps = APU_DivFix((UINT32)ROUND(12 * apu.base_frequency), 12 * chan.freq, 19);
 }
 
 /* --- Public functions. --- */
@@ -230,11 +230,14 @@ static void apu_mmc5s_process (ENUM channel)
 
 static REAL apu_mmc5s_mix (void)
 {
-   REAL total = 0.0;
+   INT32 total = 0;
 
    total += apu.mmc5s.square[0].linear_output;
    total += apu.mmc5s.square[1].linear_output;
    total += apu.mmc5s.da.linear_output;
+
+   // seems to work ok
+   const REAL total_n = (total / 12415139.84);
 
    return (total);
 }

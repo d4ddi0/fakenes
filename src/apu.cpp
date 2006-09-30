@@ -1719,14 +1719,14 @@ static INLINE void mix_outputs (void)
    {
       case 1:  /* Mono. */
       {
-         apu.mixer.inputs[0] = ((square_out + tnd_out) / 2.0);
+         apu.mixer.inputs[0] = ((left + right) / 2.0);
          break;
       }
 
       case 2:  /* Stereo. */
       {
-         apu.mixer.inputs[0] = (square_out / 2.0);
-         apu.mixer.inputs[1] = (tnd_out / 2.0);
+         apu.mixer.inputs[0] = (left / 2.0);
+         apu.mixer.inputs[1] = (right / 2.0);
 
          break;
       }

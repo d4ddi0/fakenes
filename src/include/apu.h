@@ -32,10 +32,6 @@ extern "C" {
 #define APU_BASEFREQ_NTSC  (1.89e9 / 88.0 / 12.0)
 #define APU_BASEFREQ_PAL   (26601712.5 / 16.0)
 
-/* Macros to convert generated samples to normalized samples. */
-#define APU_TO_OUTPUT(value)     ((value) / 65535.0)
-#define APU_TO_OUTPUT_24(value)  ((value) / 16777215.0)
-
 /* Maximum number of channels to send to the DSP (mono = 1, stereo = 2). */
 #define APU_MIXER_MAX_CHANNELS   2
 
@@ -142,7 +138,7 @@ typedef struct apu_vrc6s_chan_s
    UINT32 output;
 
    /* For mixing. */
-   REAL linear_output;
+   INT32 linear_output;
 
 } apu_vrc6s_chan_t;
 
@@ -181,7 +177,7 @@ typedef struct _apu_mmc5s_chan_s
    INT32 output;
 
    /* For mixing. */
-   REAL linear_output;
+   INT32 linear_output;
 
 } apu_mmc5s_chan_t;
 

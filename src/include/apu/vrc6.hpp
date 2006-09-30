@@ -55,7 +55,7 @@ static INLINE void apu_vrc6s_square (apu_vrc6s_chan_t &chan)
 
    output2 = APU_LogToLinear(output, APU_LOG_LIN_BITS - APU_LIN_BITS - 16 - 1);
 
-   chan.linear_output = APU_TO_OUTPUT_24(output2);
+   chan.linear_output = output2;
 }
 
 static INLINE void apu_vrc6s_saw (apu_vrc6s_chan_t &chan)
@@ -101,17 +101,17 @@ static INLINE void apu_vrc6s_saw (apu_vrc6s_chan_t &chan)
 
    output2 = APU_LogToLinear(output, APU_LOG_LIN_BITS - APU_LIN_BITS - 16 - 1);
 
-   chan.linear_output = APU_TO_OUTPUT_24(output2);
+   chan.linear_output = output2;
 }
 
 static INLINE void apu_vrc6s_update_square (apu_vrc6s_chan_t &chan)
 {
-   chan.cps = APU_DivFix((UINT32)ROUND(apu.base_frequency), (UINT32)ROUND(12 * apu.mixer.frequency), 18);
+   chan.cps = APU_DivFix((UINT32)ROUND(12 * apu.base_frequency), (UINT32)ROUND(12 * apu.mixer.frequency), 18);
 }
 
 static INLINE void apu_vrc6s_update_saw (apu_vrc6s_chan_t &chan)
 {
-   chan.cps = APU_DivFix((UINT32)ROUND(apu.base_frequency), (UINT32)ROUND(24 * apu.mixer.frequency), 18);
+   chan.cps = APU_DivFix((UINT32)ROUND(12 * apu.base_frequency), (UINT32)ROUND(24 * apu.mixer.frequency), 18);
 }
 
 /* --- Public functions. --- */
@@ -169,13 +169,16 @@ static void apu_vrc6s_process (ENUM channel)
 
 static REAL apu_vrc6s_mix (void)
 {
-   REAL total = 0.0;
+   INT32 total = 0;
 
    total += apu.vrc6s.square[0].linear_output;
    total += apu.vrc6s.square[1].linear_output;
    total += apu.vrc6s.saw.linear_output;
 
-   return (total);
+   // seems to work ok
+   const REAL total_n = (total / 12415139.84);
+
+   return (total_n);
 }
 
 static void apu_vrc6s_write (UINT16 address, UINT8 value)
