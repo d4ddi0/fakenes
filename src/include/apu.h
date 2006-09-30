@@ -32,9 +32,6 @@ extern "C" {
 #define APU_BASEFREQ_NTSC  (1.89e9 / 88.0 / 12.0)
 #define APU_BASEFREQ_PAL   (26601712.5 / 16.0)
 
-#define APU_SEQUENCE_RATE_NTSC   (1.89e9 / 88.0 / 89490.0)
-#define APU_SEQUENCE_RATE_PAL    (26601712.5 / 110842.17182281546956386915096747)
-
 /* Macros to convert generated samples to normalized samples. */
 #define APU_TO_OUTPUT(value)     ((value) / 65535.0)
 #define APU_TO_OUTPUT_24(value)  ((value) / 16777215.0)
@@ -220,7 +217,6 @@ typedef struct apu_s
 
    /* Frequencies. */
    REAL base_frequency;
-   REAL sequence_rate;
 
    /* Delta value for timers. */
    int timer_delta;
@@ -249,7 +245,7 @@ typedef struct apu_s
    UINT8 regs[APU_REGS];         /* save */
 
    /* Frame sequencer & frame IRQs. */
-   REAL sequence_counter;        /* save */
+   INT16 sequence_counter;       /* save */
    UINT8 sequence_step;          /* save */
    UINT8 sequence_steps;         /* do not save */
    BOOL frame_irq_gen;           /* do not save */

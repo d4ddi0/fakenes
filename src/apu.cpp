@@ -81,9 +81,14 @@ static const int length_lut[32] = {
    0x10, 0x12, 0x14, 0x16, 0x18, 0x1A, 0x1C, 0x1E
 };
 
-static const int noise_period_lut[16] = {
+static const int noise_period_lut_ntsc[16] = {
    0x004, 0x008, 0x010, 0x020, 0x040, 0x060, 0x080, 0x0A0, 0x0CA, 0x0FE,
    0x17C, 0x1FC, 0x2FA, 0x3F8, 0x7F2, 0xFE4
+};
+
+static const int noise_period_lut_pal[16] = {
+   0x004, 0x007, 0x00E, 0x01E, 0x03C, 0x058, 0x076, 0x094, 0x0BC, 0x0EC,
+   0x162, 0x1D8, 0x2C4, 0x3B0, 0x762, 0xEC2
 };
 
 static const int dmc_period_lut_ntsc[16] = {
@@ -92,8 +97,23 @@ static const int dmc_period_lut_ntsc[16] = {
 };
 
 static const int dmc_period_lut_pal[16] = {
-   0x18D, 0x161, 0x13B, 0x129, 0x109, 0x0EB, 0x0D1, 0x0C6, 0x0B0, 0x094,
-   0x083, 0x076, 0x062, 0x04E, 0x042, 0x032
+   0x18E, 0x162, 0x13C, 0x12A, 0x114, 0x0EC, 0x0D2, 0x0C6, 0x0B0, 0x094,
+   0x084, 0x076, 0x062, 0x04E, 0x042, 0x032
+};
+
+/* Periods for the frame sequencer, 0=4step, 1=5step.  The periods are
+   represented as delays from the current step to the next step.
+
+   In 4-step mode, the first period is loaded immediately.  For 5-step mode,
+   the first period is loaded after the sequencer has been clocked once. */
+static const int frame_sequencer_period_lut_ntsc[2][5] = {
+   { 0x1D23, 0x1D20, 0x1D22, 0x1D22, 0x1D22 },
+   { 0x1D22, 0x1D20, 0x1D22, 0x1D22, 0x1D1C }
+};
+
+static const int frame_sequencer_period_lut_pal[2][5] = {
+   { 0x207B, 0x207A, 0x2078, 0x207A, 0x207A },
+   { 0x207A, 0x207A, 0x2078, 0x207A, 0x207A }
 };
 
 /* Pulse sequences for each step 0-7 of each duty cycle 0-3 on the square
@@ -725,64 +745,69 @@ static INLINE void apu_update_channels (FLAGS update_flags)
    }
 }
 
-static INLINE void apu_load_sequence_counter (void)
+static INLINE void apu_reload_sequence_counter (void)
 {
-   apu.sequence_counter += apu.sequence_rate;
+   const int mode = ((apu.sequence_steps == 5) ? 1 : 0);
+
+   if (machine_type == MACHINE_TYPE_NTSC)
+      apu.sequence_counter += frame_sequencer_period_lut_ntsc[mode][(apu.sequence_step - 1)];
+   else
+      apu.sequence_counter += frame_sequencer_period_lut_pal[mode][(apu.sequence_step - 1)];
 }
 
 static INLINE void apu_update_frame_sequencer (void)
 {
-   if (apu.sequence_counter > 0.0)
-      apu.sequence_counter -= apu.timer_delta;
-
-   if (apu.sequence_counter <= 0.0)
+   if (apu.sequence_counter > 0)
    {
-      switch (apu.sequence_step)
-      {
-         case 1:
-         case 3:
-         {
-            if (apu.sequence_steps == 5)
-               apu_update_channels (UPDATE_192HZ | UPDATE_96HZ);
-            else
-               apu_update_channels (UPDATE_240HZ);
-
-            break;
-         }
-
-         case 2:
-         case 4:
-         {
-            if (apu.sequence_steps == 5)
-               apu_update_channels (UPDATE_192HZ);
-            else
-               apu_update_channels (UPDATE_240HZ | UPDATE_120HZ);
-
-            break;
-         }
-
-         case 5:
-            break;
-
-         default:
-            WARN_GENERIC();
-      }
-
-      /* check to see if we should generate an irq */
-      if ((apu.sequence_step == 4) &&
-          (apu.frame_irq_gen && !apu.frame_irq_occurred))
-      {
-         apu.frame_irq_occurred = TRUE;
-         cpu_interrupt (CPU_INTERRUPT_IRQ_FRAME);
-      }
-
-      apu.sequence_step++;
-      if (apu.sequence_step > apu.sequence_steps)
-         apu.sequence_step = 1;
-
-      /* Reload sequence counter. */
-      apu_load_sequence_counter ();
+      apu.sequence_counter -= apu.timer_delta;
+      if (apu.sequence_counter > 0)
+         return;
    }
+
+   apu_reload_sequence_counter ();
+
+   switch (apu.sequence_step)
+   {
+      case 1:
+      case 3:
+      {
+         if (apu.sequence_steps == 5)
+            apu_update_channels (UPDATE_192HZ | UPDATE_96HZ);
+         else
+            apu_update_channels (UPDATE_240HZ);
+
+         break;
+      }
+
+      case 2:
+      case 4:
+      {
+         if (apu.sequence_steps == 5)
+            apu_update_channels (UPDATE_192HZ);
+         else
+            apu_update_channels (UPDATE_240HZ | UPDATE_120HZ);
+
+         break;
+      }
+
+      case 5:
+         break;
+
+      default:
+         WARN_GENERIC();
+   }
+
+   /* check to see if we should generate an irq */
+   if ((apu.sequence_step == 4) &&
+       (apu.frame_irq_gen && !apu.frame_irq_occurred))
+   {
+      apu.frame_irq_occurred = TRUE;
+      cpu_interrupt (CPU_INTERRUPT_IRQ_FRAME);
+   }
+
+   apu.sequence_step++;
+   if (apu.sequence_step > apu.sequence_steps)
+      apu.sequence_step = 1;
 }
 
 static INLINE void apu_reset_frame_sequencer (void)
@@ -800,25 +825,9 @@ static INLINE void apu_reset_frame_sequencer (void)
    5-step sequence is selected and the sequencer is immediately clocked once.
    */
    if (apu.sequence_steps == 5)
-      apu_update_frame_sequencer ();
+      apu.sequence_counter = 1;  // update on next CPU cycle
    else
-      apu_load_sequence_counter ();
-}
-
-static INLINE void apu_save_frame_sequencer (PACKFILE *file, int version)
-{
-   RT_ASSERT(file);
-
-   pack_iputl (ftofix (apu.sequence_counter), file);
-   pack_putc (apu.sequence_step, file);
-}
-
-static INLINE void apu_load_frame_sequencer (PACKFILE *file, int version)
-{
-   RT_ASSERT(file);
-
-   apu.sequence_counter = fixtof (pack_igetl (file));
-   apu.sequence_step = pack_getc (file);
+      apu_reload_sequence_counter ();
 }
 
 void apu_load_config (void)
@@ -899,8 +908,8 @@ void apu_reset (void)
       */
 
    const APU_EXSOUND *exsound;
-   REAL sequence_counter;
-   int sequence_step, sequence_steps;
+   INT16 sequence_counter;
+   UINT8 sequence_step, sequence_steps;
    UINT16 address;
 
    /* Save ExSound interface. */
@@ -1343,7 +1352,10 @@ void apu_write (UINT16 address, UINT8 value)
 
          chan = &apu.apus.noise;
 
-         chan->period = noise_period_lut[(value & 0x0f)];
+         if (machine_type == MACHINE_TYPE_NTSC)
+            chan->period = noise_period_lut_ntsc[(value & 0x0f)];
+         else
+            chan->period = noise_period_lut_pal[(value & 0x0f)];
 
          /*
          Bit 15 of the shift register is replaced with the exclusive-OR of
@@ -1579,7 +1591,8 @@ void apu_save_state (PACKFILE *file, int version)
       pack_putc (apu.regs[index], file);
 
    /* Save frame sequencer state. */
-   apu_save_frame_sequencer (file, version);
+   pack_iputw (apu.sequence_counter, file);
+   pack_putc (apu.sequence_step, file);
 
    /* Save channel states. */
    apu_save_square   (apu.apus.square[0], file, version);
@@ -1613,7 +1626,8 @@ void apu_load_state (PACKFILE *file, int version)
       apu_write ((0x4000 + index), pack_getc (file));
 
    /* Load frame sequencer state. */
-   apu_load_frame_sequencer (file, version);
+   apu.sequence_counter = pack_igetw (file);
+   apu.sequence_step = pack_getc (file);
 
    /* Load channel states. */
    apu_load_square   (apu.apus.square[0], file, version);
@@ -1648,9 +1662,6 @@ static void set_sample_rate (REAL sample_rate)
       it shouldn't be enough to actually matter. */
    apu.base_frequency = ((machine_type == MACHINE_TYPE_NTSC) ? APU_BASEFREQ_NTSC : APU_BASEFREQ_PAL);
 
-   /* Frame sequencer sequence rate (should be ~240 Hz). */
-   apu.sequence_rate = (apu.base_frequency / ((machine_type == MACHINE_TYPE_NTSC) ? APU_SEQUENCE_RATE_NTSC : APU_SEQUENCE_RATE_PAL));
-
    /* Rate at which APU emulates sound hardware. */
    switch (apu_options.emulation)
    {
@@ -1678,11 +1689,11 @@ static void set_sample_rate (REAL sample_rate)
 
 static INLINE void mix_outputs (void)
 {
-   static apu_chan_t *square1  = &apu.apus.square[0];
-   static apu_chan_t *square2  = &apu.apus.square[1];
-   static apu_chan_t *triangle = &apu.apus.triangle;
-   static apu_chan_t *noise    = &apu.apus.noise;
-   static apu_chan_t *dmc      = &apu.apus.dmc;
+   static const apu_chan_t *square1  = &apu.apus.square[0];
+   static const apu_chan_t *square2  = &apu.apus.square[1];
+   static const apu_chan_t *triangle = &apu.apus.triangle;
+   static const apu_chan_t *noise    = &apu.apus.noise;
+   static const apu_chan_t *dmc      = &apu.apus.dmc;
 
    const REAL square_out = square_table [square1->output + square2->output];
    const REAL tnd_out = tnd_table [3 * triangle->output + 2 * noise->output + dmc->output];
