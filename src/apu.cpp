@@ -116,6 +116,8 @@ static const int triangle_lut[32] = {
 static REAL square_table[31];
 static REAL tnd_table[203];
 
+#define MAX_TND   (163.67 / (24329.0 / (3 * 15 + 2 * 15 + 127) + 100))
+
 /* Update flags for sound generators. */
 enum        
 {
@@ -1682,9 +1684,13 @@ static INLINE void mix_outputs (void)
    static apu_chan_t *noise    = &apu.apus.noise;
    static apu_chan_t *dmc      = &apu.apus.dmc;
 
-   REAL square_out = square_table [square1->output + square2->output];
-   REAL tnd_out = tnd_table [3 * triangle->output + 2 * noise->output + dmc->output];
+   const REAL square_out = square_table [square1->output + square2->output];
+   const REAL tnd_out = tnd_table [3 * triangle->output + 2 * noise->output + dmc->output];
 
+   /* Normalise output without damaging the relative volume levels. */
+   REAL left = (square_out * (1.0 / MAX_TND));
+   REAL right = (tnd_out * (1.0 / MAX_TND));
+              
    if (apu.exsound && apu.exsound->mix)
    {
       /* This is largely just a hack, but oh well... */
@@ -1694,8 +1700,8 @@ static INLINE void mix_outputs (void)
       /* Center ExtraSound channels (is this correct?). */
       extra /= 2.0;
 
-      square_out = ((square_out + extra) / 2.0);
-      tnd_out = ((tnd_out + extra) / 2.0);
+      left = ((left + extra) / 1.5);
+      right = ((right + extra) / 1.5);
    }
 
    switch (apu.mixer.channels)
@@ -1708,8 +1714,9 @@ static INLINE void mix_outputs (void)
 
       case 2:  /* Stereo. */
       {
-         apu.mixer.inputs[0] = square_out;
-         apu.mixer.inputs[1] = tnd_out;
+         apu.mixer.inputs[0] = (square_out / 2.0);
+         apu.mixer.inputs[1] = (tnd_out / 2.0);
+
          break;
       }
 
