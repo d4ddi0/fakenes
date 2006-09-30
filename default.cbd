@@ -5,23 +5,23 @@ ifopt --verbose     verbose 1
 do ifopt --help
    echo "
 CBuild options:
-    --help           Display this help message
-    --vebose         Enable more verbose command printing
+    --help              Display this help message
+    --vebose            Enable more verbose command printing
 
 Target options:
-    clean            Clean a previously compiled build
-    debug            Compile a debug build
-    profile          Compile a profiling build
+    clean               Clean a previously compiled build
+    debug               Compile a debug build
+    profile             Compile a profiling build
 
 Package options:
-    -alleggl         Do not use AllegroGL even if found
-    -hawknl          Do not use HawkNL even if found
-    -openal          Do not use OpenAL even if found
-    -zlib            Do not use zlib even if found
+    --skip-allegrogl    Do not use AllegroGL even if found
+    --skip-hawknl       Do not use HawkNL even if found
+    --skip-openal       Do not use OpenAL even if found
+    --skip-zlib         Do not use zlib even if found
 
 Other options:
-    --tag=TAG        Set version tag to TAG (e.g WIP)
-    --debug-level=X  Set debug information level to X
+    --tag=TAG           Set version tag to TAG (e.g WIP)
+    --debug-level=X     Set debug information level to X
 "
 
    exit 0
@@ -105,10 +105,10 @@ ifopt --tag CFLAGS += " -DVERSION_TAG=\\\"$('getoptval' --tag)\\\""
 STDOUT_LOG="${BUILD_DIR}/stdout.log"
 STDERR_LOG="${BUILD_DIR}/stderr.log"
 
-ifnopt -alleggl invoke "${BUILD_DIR}/alleggl.cbd"
-ifnopt -hawknl  invoke "${BUILD_DIR}/hawknl.cbd"
-ifnopt -openal  invoke "${BUILD_DIR}/openal.cbd"
-ifnopt -zlib    invoke "${BUILD_DIR}/zlib.cbd"
+ifnopt --skip-allegrogl invoke "${BUILD_DIR}/alleggl.cbd"
+ifnopt --skip-hawknl    invoke "${BUILD_DIR}/hawknl.cbd"
+ifnopt --skip-openal    invoke "${BUILD_DIR}/openal.cbd"
+ifnopt --skip-zlib      invoke "${BUILD_DIR}/zlib.cbd"
 
 invoke "${BUILD_DIR}/alleg.cbd"
 
