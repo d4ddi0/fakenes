@@ -3,15 +3,30 @@ require 'rake/loaders/makefile'
 @cc = 'cc'
 @linker = 'cc'
 @makedepend = '/usr/X11R6/bin/makedepend'
-@frameworkPaths = %w(~/Library/Frameworks /Library/Frameworks)
-@cflags = '-arch ppc -arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk '
+@frameworkPaths = %w(~/Library/Frameworks /Library/Frameworks /System/Library/Frameworks)
+
+@commonflags = ''
+@cflags = ''
+@cxxflags = ''
+@objcflags = ''
+
 @includes = ''
 @defines = ''
-@ldflags = '-arch ppc -arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk '
+@ldflags = ''
 @libs = ''
 @systemFrameworks = []
 @frameworks = []
 @cleanfiles = []
+
+begin
+	unless NOT_UNIVERSAL
+		@commonflags += ' -arch ppc -arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk '
+		@ldflags += ' -arch ppc -arch i386 -isysroot /Developer/SDKs/MacOSX10.4u.sdk '
+	end
+rescue NameError
+	NOT_UNIVERSAL = false
+	retry
+end
 
 ###########
 # Cleanup #
@@ -61,20 +76,50 @@ def bundleDir(dir)
 	end
 end
 
-directory(BUNDLEDIR = "#{NAME}.app")
-directory(CONTENTSDIR = "#{BUNDLEDIR}/Contents")
-directory(BINDIR = "#{CONTENTSDIR}/MacOS")
-directory(RESOURCEDIR = "#{CONTENTSDIR}/Resources")
-directory(FRAMEWORKDIR = "#{CONTENTSDIR}/Frameworks")
+def setCurrentVersion(taskName)
+	task(taskName => "#{VERSIONSDIR}/#{FRAMEWORKVERSION}") do |t|
+		for file in Dir::glob("#{t.prerequisites[0]}/*") do
+			filename = File::basename(file)
+			ln_s("Contents/Versions/#{FRAMEWORKVERSION}/#{filename}", "#{BUNDLEDIR}/#{filename}", :force => true)
+		end
+	end
+end
+
+begin
+	if FRAMEWORK
+		directory(BUNDLEDIR = "#{NAME}.framework")
+		directory(CONTENTSDIR = "#{BUNDLEDIR}/Contents")
+		directory(VERSIONSDIR = "#{CONTENTSDIR}/Versions")
+		directory(VERSIONDIR = "#{VERSIONSDIR}/#{FRAMEWORKVERSION}")
+		directory(RESOURCEDIR = "#{VERSIONDIR}/Resources")
+		directory(HEADERDIR = "#{VERSIONDIR}/Headers")
+
+		@ldflags += " -dynamiclib -install_name @executable_path/../Frameworks/#{VERSIONDIR}/#{NAME}"
+	else
+		directory(BUNDLEDIR = "#{NAME}.app")
+		directory(CONTENTSDIR = "#{BUNDLEDIR}/Contents")
+		directory(RESOURCEDIR = "#{CONTENTSDIR}/Resources")
+		directory(BINDIR = "#{CONTENTSDIR}/MacOS")
+		directory(FRAMEWORKDIR = "#{CONTENTSDIR}/Frameworks")
+	end
+rescue NameError => e
+	if e.name == :FRAMEWORK
+		FRAMEWORK = false
+		retry
+	else
+		raise e
+	end
+end
 
 bundleDir(BUNDLEDIR)
+task(:bundle => BUNDLEDIR)
 
 ##############
 # Frameworks #
 ##############
 
 def installFrameworks(task)
-	for name in @frameworks
+	for name in [@frameworks, @systemFrameworks].flatten
 		framework = nil
 		for path in @frameworkPaths
 			try = "#{File::expand_path(path)}/#{name}.framework"
@@ -84,14 +129,18 @@ def installFrameworks(task)
 			end
 		end
 
+		if not framework
+			puts "Framework #{name} missing!"
+			exit(1)
+		end
+
 		@libs += " -framework #{name} "
 		@includes += " -I#{framework}/Headers "
 
-		installTaskRecursive(task, FRAMEWORKDIR, framework)
-	end
-
-	for name in @systemFrameworks
-		@libs += " -framework #{name} "
+		if @frameworks.include?(name)
+			installTaskRecursive(task, FRAMEWORKDIR, framework)
+			bundleDir("#{FRAMEWORKDIR}/#{name}.framework")
+		end
 	end
 
 	for dir in @frameworkPaths
@@ -104,20 +153,51 @@ end
 # Compilation #
 ###############
 
+def cTask(object, source)
+	file(object => source) do |task|
+		sh("#{@cc} #{@commonflags} #{@cflags} #{@includes} #{@defines} -o \"#{task.name}\" -c #{task.prerequisites[0]}")
+	end
+end
+
+def objcTask(object, source)
+	file(object => source) do |task|
+		sh("#{@cc} #{@commonflags} #{@objcflags} #{@includes} #{@defines} -o \"#{task.name}\" -c #{task.prerequisites[0]}")
+	end
+end
+
+def objcxxTask(object, source)
+	file(object => source) do |task|
+		sh("#{@cc} #{@commonflags} #{@cxxflags} #{@objcflags} #{@includes} #{@defines} -o \"#{task.name}\" -c #{task.prerequisites[0]}")
+	end
+end
+
+def cxxTask(object, source)
+	file(object => source) do |task|
+		sh("#{@cc} #{@commonflags} #{@cxxflags} #{@includes} #{@defines} -o \"#{task.name}\" -c #{task.prerequisites[0]}")
+	end
+end
+
 def buildBinary(task, path, file, sources)
 	objects = []
 	target = "#{path}/#{file}"
 	for source in sources
 		object = "#{File::dirname(source)}/#{File::basename(source, '.*')}.o"
-		file(object => source) do |task|
-			sh("#{@cc} #{@cflags} #{@includes} #{@defines} -o \"#{task.name}\" -c #{task.prerequisites[0]}")
+		if ['.m'].include?(File::extname(source))
+			objcTask(object, source)
+		elsif ['.M', '.mm'].include?(File::extname(source))
+			objcxxTask(object, source)
+		elsif ['.cxx', '.cc', '.cpp', '.C'].include?(File::extname(source))
+			cxxTask(object, source)
+		else
+			cTask(object, source)
 		end
 		objects.push(object)
 		@cleanfiles.push(object)
 
 		depfile = "#{File::dirname(source)}/.#{File::basename(source, '.*')}.dep.mf"
 		file(depfile => source) do |task|
-			sh("#{@makedepend} -f- -- #{@includes} #{@defines} -- #{task.prerequisites} > #{task.name} 2> /dev/null")
+			prefix = File::join(File::dirname(task.name), '')
+			sh("#{@makedepend} -p#{prefix} -f- -- #{@includes} #{@defines} -- #{task.prerequisites} > #{task.name} 2> /dev/null")
 		end
 		import depfile
 		@cleanfiles.push(depfile)

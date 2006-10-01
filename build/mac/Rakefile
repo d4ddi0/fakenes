@@ -7,7 +7,9 @@ require 'macsupport'
 
 @systemFrameworks += %w(Cocoa)
 @frameworks += %w(Allegro)
-@cflags += '-g -Os -DALLEGRO_NO_ASM -DPOSIX -DC99_TYPES -Wno-pointer-sign'
+@linker = 'c++'
+@commonflags += '-g -Os -DALLEGRO_NO_ASM -DPOSIX -DC99_TYPES'
+@cflags += '-Wno-pointer-sign'
 @includes += '-I../../src/include -I.'
 
 ####################
@@ -25,7 +27,7 @@ task(:bundle => :frameworks)
 # App binary #
 ##############
 
-sources = Dir::glob('../../src/*.c') + %w(datafile.c main.m)
+sources = Dir::glob('../../src/*.c') + Dir::glob('../../src/*.cpp') + %w(datafile.c main.m)
 
 buildBinary(:binary, BINDIR, 'fakenes', sources)
 buildBinary(:binary, '.', 'dat2c', %w(../dat2c.c main.m))
