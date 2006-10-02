@@ -282,6 +282,7 @@ void Interface::write (uint16 address, uint8 value)
    switch (address)
    {
       case 0x5000:
+      case 0x5001:
       case 0x5002:
       case 0x5003:
       {
@@ -290,6 +291,7 @@ void Interface::write (uint16 address, uint8 value)
       }
 
       case 0x5004:
+      case 0x5005:
       case 0x5006:
       case 0x5007:
       {
