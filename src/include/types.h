@@ -116,6 +116,17 @@ typedef fakenes_string_t  STRING;
 typedef fakenes_ustring_t USTRING;
 typedef fakenes_pair_t    PAIR;
 
+#ifdef __cplusplus
+/* Lowercase C++ style aliases. */
+typedef fakenes_uint8_t  uint8;
+typedef fakenes_int8_t   int8;
+typedef fakenes_uint16_t uint16;
+typedef fakenes_int16_t  int16;
+typedef fakenes_uint32_t uint32;
+typedef fakenes_int32_t  int32;
+typedef fakenes_real_t   real;
+#endif
+
 /* List access macros. */
 #define LIST_ADD(list, flags)       (list |= flags)
 #define LIST_REMOVE(list, flags)    (list &= ~flags)

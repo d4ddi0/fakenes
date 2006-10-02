@@ -16,59 +16,30 @@
 extern "C" {
 #endif
 
-
 typedef struct _MMC
 {
-    int number;
-
-
-    const UINT8 * name;
-
-
-    int (* init) (void);
-
-    void (* reset) (void);
-
-
-    const UINT8 * id;
-
-
-    void (* save_state) (PACKFILE *, int);
-
-    void (* load_state) (PACKFILE *, int);
+   int number;
+   const UINT8 *name;
+   int (*init) (void);
+   void (*reset) (void);
+   const UINT8 *id;
+   void (*save_state) (PACKFILE *, int);
+   void (*load_state) (PACKFILE *, int);
 
 } MMC;
 
-
-
-int mmc_init (void);
-
-
-void mmc_reset (void);
-
-
-void mmc_request (ROM *);
-
-
-int (* mmc_hblank_start) (int);
-
-int (* mmc_scanline_end) (int);
-
-
-void (* mmc_check_latches) (UINT16);
-
-
-int mmc_get_name_table_count (void);
-
-int mmc_uses_pattern_vram (void);
-
-
-void mmc_save_state (PACKFILE *, int);
-
-void mmc_load_state (PACKFILE *, int);
-
+extern int mmc_init (void);
+extern void mmc_reset (void);
+extern void mmc_request (ROM *);
+extern int (*mmc_hblank_start) (int);
+extern int (*mmc_scanline_end) (int);
+extern void (*mmc_check_latches) (UINT16);
+extern int mmc_get_name_table_count (void);
+extern int mmc_uses_pattern_vram (void);
+extern void mmc_save_state (PACKFILE *, int);
+extern void mmc_load_state (PACKFILE *, int);
 
 #ifdef __cplusplus
 }
-#endif
+#endif   /* __cplusplus */
 #endif   /* !MMC_H_INCLUDED */

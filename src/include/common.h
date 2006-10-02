@@ -9,6 +9,7 @@
 #ifndef COMMON_H_INCLUDED
 #define COMMON_H_INCLUDED
 #include <allegro.h>
+#include "debug.h"
 #include "types.h"
 #ifdef __cplusplus
 extern "C" {
@@ -24,11 +25,20 @@ extern "C" {
 #undef NULL
 #define NULL   0
 
+#ifdef __cplusplus
+/* Cleaner lowercase versions for use in 'pure' C++ code. */
+#define true   TRUE
+#define false  FALSE
+#define null   NULL
+#endif
+
 #define ROUND(x)  ((x) + 0.5)
 
 #ifndef M_PI
 #define M_PI      3.14159265358979323846
 #endif
+
+#define linear(x) static INLINE
 
 /* <+KittyCat> $ grep EPSILON include/3dobject.h
    <+KittyCat> #define EPSILON (1.0f/1024.0f)
@@ -42,8 +52,8 @@ extern "C" {
 /* TODO: Remove all references to NIL and correct compiler warnings. */
 #define NIL    0
 
-int saved_argc;
-char **saved_argv;   /* Saved from main(), needed for ALUT. */
+extern int saved_argc;
+extern char **saved_argv;   /* Saved from main(), needed for ALUT. */
 
 static INLINE int fix (int value, int base, int limit)
 {
@@ -69,5 +79,5 @@ static INLINE REAL fixf (REAL value, REAL base, REAL limit)
       
 #ifdef __cplusplus
 }
-#endif
+#endif   /* __cplusplus */
 #endif   /* !COMMON_H_INCLUDED */

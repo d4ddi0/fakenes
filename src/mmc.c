@@ -20,6 +20,9 @@
 #include "timing.h"
 #include "types.h"
 
+int (*mmc_hblank_start) (int);
+int (*mmc_scanline_end) (int);
+void (*mmc_check_latches) (UINT16);
 
 static int mmc_name_table_count;
 static int mmc_pattern_vram_in_use;

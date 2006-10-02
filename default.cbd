@@ -62,17 +62,16 @@ OBJ_DIR = "${BUILD_DIR}/${PLAT}"
 ifopt debug   OBJ_DIR += '-debug'
 ifopt profile OBJ_DIR += '-profile'
 
-# Dependancy directory.
-DEP_DIR = "${BUILD_DIR}/${PLAT}"
+# Dependancy directory (keep this the same as OBJ_DIR).
+DEP_DIR = "${OBJ_DIR}"
 
-ifopt debug   DEP_DIR += '-debug'
-ifopt profile DEP_DIR += '-profile'
+# Source Code subdirectories.
+SRC_SOUNDDIR = sound
 
 # Create missing directories.
-
 do ifnopt clean
    ifnexist "${OBJ_DIR}" mkdir "${OBJ_DIR}"
-   ifnexist "${DEP_DIR}" mkdir "${DEP_DIR}"
+   ifnexist "${OBJ_DIR}/${SRC_SOUNDDIR}" mkdir "${OBJ_DIR}/${SRC_SOUNDDIR}"
 done
 
 # File list stubs (we will append to these later).
@@ -273,8 +272,11 @@ SRCFILES += 'ppu.c '
 SRCFILES += 'rewind.c '
 SRCFILES += 'rom.c '
 SRCFILES += 'save.c '
+SRCFILES += "${SRC_SOUNDDIR}/mmc5.cpp "
+SRCFILES += "${SRC_SOUNDDIR}/sound.cpp "
+SRCFILES += "${SRC_SOUNDDIR}/vrc6.cpp "
 SRCFILES += 'video.c '
-
+                              
 # --
 
 ifopt clean goto clean
@@ -302,8 +304,8 @@ exit 0
 
 rm     ${CLEANFILES}
 rmobj  ${SRCFILES}
+rm     "${OBJ_DIR}/${SRC_SOUNDDIR}"
 rm     "${OBJ_DIR}"
-rm     "${DEP_DIR}"
 rmexec "${EXE_NAME}"
 
 # Done cleaning.

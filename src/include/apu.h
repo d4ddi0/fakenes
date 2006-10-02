@@ -35,8 +35,6 @@ extern "C" {
 /* Maximum number of channels to send to the DSP (mono = 1, stereo = 2). */
 #define APU_MIXER_MAX_CHANNELS   2
 
-/* --- 2A03 support. --- */
-
 typedef struct apu_envelope_s
 {
    UINT8 timer;               /* save */
@@ -112,110 +110,18 @@ typedef struct apu_chan_s
 
 } apu_chan_t;
 
-typedef struct apu_apusound_s
+typedef struct apu_s
 {
    apu_chan_t square[2];
    apu_chan_t triangle;
    apu_chan_t noise;
    apu_chan_t dmc;
 
-} APU_APUSOUND;
-
-/* --- VRC6 Sound support. --- */
-
-typedef struct apu_vrc6s_chan_s
-{
-   UINT32 cps;
-   INT32 cycles;
-
-   UINT32 spd;
-
-   UINT8 regs[3];
-   UINT8 update;
-   UINT8 adr;
-
-   /* For saw wave. */
-   UINT32 output;
-
-   /* For mixing. */
-   INT32 linear_output;
-
-} apu_vrc6s_chan_t;
-
-typedef struct _APU_VRC6SOUND
-{
-   apu_vrc6s_chan_t square[2];
-   apu_vrc6s_chan_t saw;
-
-} APU_VRC6SOUND;
-
-/* --- MMC5 Sound support. --- */
-
-typedef struct _apu_mmc5s_chan_s
-{                       
-   UINT32 cps;
-   INT32 cycles;
-   INT32 sweepphase;
-   INT32 envphase;
-
-   UINT32 spd;
-   UINT32 envspd;
-   UINT32 sweepspd;
-
-   UINT32 length;
-   UINT32 freq;
-   UINT32 release;
-
-   UINT8 regs[4];
-   UINT8 update;
-   UINT8 key;
-   UINT8 adr;
-   UINT8 envadr;
-   UINT8 duty;
-
-   /* For digital audio. */
-   INT32 output;
-
-   /* For mixing. */
-   INT32 linear_output;
-
-} apu_mmc5s_chan_t;
-
-typedef struct _APU_MMC5SOUND
-{
-   apu_mmc5s_chan_t square[2];
-   apu_mmc5s_chan_t da;
-
-} APU_MMC5SOUND;
-
-/* ExSound interface. */
-typedef struct _APU_EXSOUND
-{
-   const UINT8 *id;
-   void (*reset) (void);                  /* reset */
-   void (*update) (void);                 /* update */
-   void (*process) (ENUM);                /* process channel */
-   REAL (*mix) (void);                    /* mix channels */
-   void (*write) (UINT16, UINT8);         /* write to a port */
-   void (*save_state) (PACKFILE *, int);  /* save state */
-   void (*load_state) (PACKFILE *, int);  /* load state */
-
-} APU_EXSOUND;
-
-typedef struct apu_s
-{
-   APU_APUSOUND  apus;
-   APU_MMC5SOUND mmc5s;
-   APU_VRC6SOUND vrc6s;
-
-   /* For ExSound. */
-   const APU_EXSOUND *exsound;
-
    /* Frequencies. */
    REAL base_frequency;
 
    /* Delta value for timers. */
-   int timer_delta;
+   cpu_time_t timer_delta;
 
    /* Mixer. */
    struct
@@ -225,7 +131,6 @@ typedef struct apu_s
       REAL sample_rate;
       int channels;
 
-      REAL frequency;
       cpu_time_t clock_counter;
       cpu_time_t delta_cycles;
 

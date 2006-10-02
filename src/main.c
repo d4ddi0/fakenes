@@ -29,6 +29,10 @@
 #include "version.h"
 #include "video.h"
 
+/* These are needed for ALUT. */
+int saved_argc;
+char **saved_argv;
+
 /* Whether or not this is the first run of the emulator. */
 static BOOL first_run = TRUE;
 
