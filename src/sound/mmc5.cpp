@@ -13,8 +13,6 @@
 namespace Sound {
 namespace MMC5 {
 
-// TODO: Support envelope generator(?)
-
 static const uint8 length_lut[32] = {
    0x0A, 0x14, 0x28, 0x50, 0xA0, 0x3C, 0x0E, 0x1A, 0x0C, 0x18, 0x30, 0x60,
    0xC0, 0x48, 0x10, 0x20, 0xFE, 0x02, 0x04, 0x06, 0x08, 0x0A, 0x0C, 0x0E,
@@ -40,6 +38,14 @@ void Square::reset (void)
    duty = 0;
    clamped = false;
 
+   envelope.timer = 0;
+   envelope.period = 0;
+   envelope.fixed = false;
+   envelope.fixed_volume = 0;
+   envelope.reset = false;
+
+   envelope.counter = 0;
+
    step = 0;
    output = 0;
 }
@@ -54,10 +60,14 @@ void Square::write (uint16 address, uint8 value)
          regs[0] = value;
 
          volume = (value & 0x0f);
-         duty = (value >> 6);
          halt = (value & 0x20);
+         duty = (value >> 6);
 
-         break;
+         envelope.period = ((value & 0x0f) + 1);
+         envelope.fixed = (value & 0x10);
+         envelope.fixed_volume = (value & 0x0f);
+
+         break;        
       }
 
       case 0x5001:
@@ -88,6 +98,9 @@ void Square::write (uint16 address, uint8 value)
 
          if (!clamped)
             length = length_lut[(value >> 3)];
+
+         // Reset envelope generator.
+         envelope.reset = true;
 
          // Reset sequencer(?)
          step = 0;
@@ -130,8 +143,13 @@ void Square::save (PACKFILE *file, int version)
 
    pack_iputw (timer, file);
    pack_putc (length, file);
+   pack_putc (volume, file);
    pack_putc (step, file);
    pack_putc (output, file);
+
+   pack_putc (envelope.timer, file);
+   pack_putc ((envelope.reset ? 1 : 0), file);
+   pack_putc (envelope.counter, file);
 }
 
 void Square::load (PACKFILE *file, int version)
@@ -143,8 +161,51 @@ void Square::load (PACKFILE *file, int version)
 
    timer = pack_igetw (file);
    length = pack_getc (file);
+   volume = pack_getc (file);
    step = pack_getc (file);
    output = pack_getc (file);
+
+   envelope.timer = pack_getc (file);
+   envelope.reset = pack_getc (file);
+   envelope.counter = pack_getc (file);
+}
+
+void Square::update_120hz (void)
+{
+   if ((length > 0) && !halt)
+      length--;
+}
+
+void Square::update_240hz (void)
+{
+   if (envelope.reset)
+   {
+      envelope.timer = 0;
+      envelope.counter = 0xF;
+
+      envelope.reset = false;
+
+      return;
+   }
+
+   if (envelope.timer > 0)
+   {
+      envelope.timer--;
+      if (envelope.timer > 0)
+         return;
+   }
+
+   envelope.timer += envelope.period;
+                      
+   if (envelope.counter > 0)
+      envelope.counter--;
+   else if (halt)
+      envelope.counter = 0xF;
+
+   if (envelope.fixed)
+      volume = envelope.fixed_volume;
+   else
+      volume = envelope.counter;
 }
 
 void PCM::reset (void)
@@ -186,6 +247,9 @@ void Interface::reset (void)
    square1.reset ();
    square2.reset ();
    pcm.reset ();
+
+   timer = 0;
+   flip = false;
 
    output = 0;
 }
@@ -259,6 +323,26 @@ void Interface::write (uint16 address, uint8 value)
 
 void Interface::process (cpu_time_t cycles)
 {
+   if (timer > 0)
+      timer -= cycles;
+   if (timer <= 0)
+   {
+      timer += 89490;
+
+      square1.update_240hz ();
+      square2.update_240hz ();
+
+      if (flip)
+      {
+         square1.update_120hz ();
+         square2.update_120hz ();
+
+         flip = false;
+      }
+      else
+         flip = true;
+   }
+
    if (apu_options.enable_extra_1)
       square1.process (cycles);
    if (apu_options.enable_extra_2)
@@ -269,18 +353,24 @@ void Interface::save (PACKFILE *file, int version)
 {
    RT_ASSERT(file);
 
-   square1.load (file, version);
-   square2.load (file, version);
-   pcm.load (file, version);
+   pack_iputl (timer, file);
+   pack_putc ((flip ? 1 : 0), file);
+
+   square1.save (file, version);
+   square2.save (file, version);
+   pcm.save (file, version);
 }
 
 void Interface::load (PACKFILE *file, int version)
 {
    RT_ASSERT(file);
 
-   square1.save (file, version);
-   square2.save (file, version);
-   pcm.save (file, version);
+   timer = pack_igetl (file);
+   flip = pack_getc (file);
+
+   square1.load (file, version);
+   square2.load (file, version);
+   pcm.load (file, version);
 }
 
 void Interface::mix (void)

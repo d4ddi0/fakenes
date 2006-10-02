@@ -26,6 +26,9 @@ protected:
    void save (PACKFILE *file, int version);
    void load (PACKFILE *file, int version);
 
+   void update_120hz (void);
+   void update_240hz (void);
+
    uint8 output;     // save
 
 private:
@@ -35,11 +38,22 @@ private:
    uint16 period;    // do not save
    uint8 length;     // save
    bool halt;        // do not save
-   uint8 volume;     // do not save
+   uint8 volume;     // save
    uint8 duty;       // do not save
    bool clamped;     // do not save
-
+                        
    uint8 step;       // save
+
+   struct {
+      uint8 timer;         // save
+      uint8 period;        // do not save
+      bool fixed;          // do not save
+      uint8 fixed_volume;  // do not save
+      bool reset;          // save
+
+      uint8 counter;       // save
+
+   } envelope;
 };
 
 class PCM : public Channel {
@@ -68,6 +82,9 @@ private:
    Square square1;
    Square square2;
    PCM pcm;
+
+   int32 timer;      // save
+   bool flip;        // save
 };
 
 }  /* namespace MMC5 */
