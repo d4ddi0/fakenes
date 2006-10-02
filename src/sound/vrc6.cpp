@@ -85,7 +85,7 @@ void Square::process (cpu_time_t cycles)
          return;
    }
 
-   timer += period;
+   timer += (period + 1);
 
    if (enabled &&
        (force || (step <= duty)))
@@ -184,7 +184,7 @@ void Saw::process (cpu_time_t cycles)
          return;
    }
 
-   timer += (period << 1);
+   timer += ((period + 1) << 1);
 
    if (step == 6)
    {
@@ -196,10 +196,15 @@ void Saw::process (cpu_time_t cycles)
    else
       step++;
 
+   if (!enabled)
+   {
+      output = 0;
+      return;
+   }
+
    volume += rate;
 
-   if (enabled)
-      output = (volume >> 3);
+   output = (volume >> 3);
 }            
 
 void Saw::save (PACKFILE *file, int version)
@@ -301,17 +306,17 @@ void Interface::load (PACKFILE *file, int version)
 
 void Interface::mix (void)
 {
-   output = 0.0;
+   unsigned total = 0;
 
    if (apu_options.enable_extra_1)
-      output += (square1.output / 15.0);
+      total += square1.output;
    if (apu_options.enable_extra_2)
-      output += (square2.output / 15.0);
+      total += square2.output;
 
    if (apu_options.enable_extra_3)
-      output += (saw.output / 31.0);
+      total += saw.output;
 
-   output /= 3.0;
+   output = (total / 63.0);   // result is 6 bits
 }
 
 }  /* namespace VRC6 */
