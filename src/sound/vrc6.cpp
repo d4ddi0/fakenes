@@ -306,7 +306,7 @@ void Interface::load (PACKFILE *file, int version)
 
 void Interface::mix (void)
 {
-   unsigned total = 0;
+   uint8 total = 0;
 
    if (apu_options.enable_extra_1)
       total += square1.output;
