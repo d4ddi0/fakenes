@@ -41,19 +41,19 @@
 
 /* Global options. */
 apu_options_t apu_options = {
-   TRUE,                   /* Enable processing. */
+   true,                   /* Enable processing. */
    APU_EMULATION_ACCURATE, /* Emulation accuracy/performance tradeoff. */
-   FALSE,                  /* Stereo output mode. */
+   false,                  /* Stereo output mode. */
 
                            /* Enable channels: */
-   TRUE,                   /*    Square 1 */
-   TRUE,                   /*    Square 2 */
-   TRUE,                   /*    Triangle */
-   TRUE,                   /*    Noise */
-   TRUE,                   /*    DMC */
-   TRUE,                   /*    Extra 1 */
-   TRUE,                   /*    Extra 2 */
-   TRUE,                   /*    Extra 3 */
+   true,                   /*    Square 1 */
+   true,                   /*    Square 2 */
+   true,                   /*    Triangle */
+   true,                   /*    Noise */
+   true,                   /*    DMC */
+   true,                   /*    Extra 1 */
+   true,                   /*    Extra 2 */
+   true,                   /*    Extra 3 */
 };
 
 /* Static APU context. */
@@ -65,8 +65,9 @@ static Sound::MMC5::Interface MMC5;
 static Sound::VRC6::Interface VRC6;
 
 /* Internal function prototypes (defined at bottom). */
-static void set_sample_rate (REAL);
-static INLINE void process (BOOL);
+static void set_sample_rate (real sample_rate);
+static void mix_outputs (void);
+static void process (bool finish);
 
 /* Channel indices. */
 enum
@@ -142,8 +143,8 @@ static const uint8 triangle_lut[32] = {
 };
 
 /* Mixer tables. */
-static REAL square_table[31];
-static REAL tnd_table[203];
+static real square_table[31];
+static real tnd_table[203];
 
 #define MAX_TND   (163.67 / (24329.0 / (3 * 15 + 2 * 15 + 127) + 100))
 
@@ -167,7 +168,7 @@ enum
 
 /* --- Sound generators. --- */
 
-static INLINE void apu_envelope (apu_chan_t &chan, apu_envelope_t &env)
+static void apu_envelope (apu_chan_t &chan, apu_envelope_t &env)
 {
    /*
    When clocked by the frame sequencer, one of two actions occurs: if there was a
@@ -177,7 +178,7 @@ static INLINE void apu_envelope (apu_chan_t &chan, apu_envelope_t &env)
 
    if (env.dirty)
    {
-      env.dirty = FALSE;
+      env.dirty = false;
 
       /* Reset counter. */
       env.counter = 0xF;
@@ -220,7 +221,7 @@ static INLINE void apu_envelope (apu_chan_t &chan, apu_envelope_t &env)
       chan.volume = env.counter;
 }
 
-static INLINE void apu_save_envelope (apu_chan_t &chan, apu_envelope_t &env, PACKFILE *file, int version)
+static void apu_save_envelope (apu_chan_t &chan, apu_envelope_t &env, PACKFILE *file, int version)
 {
    RT_ASSERT(file);
 
@@ -229,7 +230,7 @@ static INLINE void apu_save_envelope (apu_chan_t &chan, apu_envelope_t &env, PAC
    pack_putc ((env.dirty ? 1 : 0), file);
 }
 
-static INLINE void apu_load_envelope (apu_chan_t &chan, apu_envelope_t &env, PACKFILE *file, int version)
+static void apu_load_envelope (apu_chan_t &chan, apu_envelope_t &env, PACKFILE *file, int version)
 {
    RT_ASSERT(file);
 
@@ -238,7 +239,7 @@ static INLINE void apu_load_envelope (apu_chan_t &chan, apu_envelope_t &env, PAC
    env.dirty = TRUE_OR_FALSE(pack_getc (file));
 }
 
-static INLINE void apu_sweep (apu_chan_t &chan, apu_sweep_t &sweep)
+static linear void apu_sweep (apu_chan_t &chan, apu_sweep_t &sweep)
 {
    if (sweep.timer > 0)
    {
@@ -249,7 +250,7 @@ static INLINE void apu_sweep (apu_chan_t &chan, apu_sweep_t &sweep)
 
    if (sweep.dirty)
    {
-      sweep.dirty = FALSE;
+      sweep.dirty = false;
 
       /* Reset timer. */
       sweep.timer = 0;
@@ -260,13 +261,13 @@ static INLINE void apu_sweep (apu_chan_t &chan, apu_sweep_t &sweep)
    if (chan.silence)
    {
       /* Clear stale silence flag. */
-      chan.silence = FALSE;
+      chan.silence = false;
    }
 
    if (chan.period < 8)
    {
       /* Inaudible. */
-      chan.silence = TRUE;
+      chan.silence = true;
       return;
    }
 
@@ -281,18 +282,18 @@ static INLINE void apu_sweep (apu_chan_t &chan, apu_sweep_t &sweep)
    delta += chan.period;
 
    if ((delta > 0x7FF) && !sweep.invert)
-      chan.silence = TRUE;
+      chan.silence = true;
    else if (sweep.enabled && (sweep.shifts > 0))
       chan.period = delta;
 }
 
-static INLINE void apu_update_length_counter (apu_chan_t &chan)
+static void apu_update_length_counter (apu_chan_t &chan)
 {
    if ((chan.length > 0) && !chan.looping)
       chan.length--;
 }
 
-static INLINE void apu_update_linear_counter (apu_chan_t &chan)
+static linear void apu_update_linear_counter (apu_chan_t &chan)
 {
    /*
    When clocked by the frame sequencer, the following actions occur in order:
@@ -309,10 +310,10 @@ static INLINE void apu_update_linear_counter (apu_chan_t &chan)
       chan.linear_length--;
 
    if (chan.halt_counter && !chan.looping)
-      chan.halt_counter = FALSE;          
+      chan.halt_counter = false;          
 }
 
-static INLINE void apu_update_square (apu_chan_t &chan, FLAGS update_flags)
+static linear void apu_update_square (apu_chan_t &chan, FLAGS update_flags)
 {
    if (update_flags & UPDATE_ENVELOPE)
       apu_envelope (chan, chan.envelope);
@@ -349,7 +350,7 @@ static INLINE void apu_update_square (apu_chan_t &chan, FLAGS update_flags)
    }
 }
 
-static INLINE void apu_save_square (apu_chan_t &chan, PACKFILE *file, int version)
+static linear void apu_save_square (apu_chan_t &chan, PACKFILE *file, int version)
 {
    RT_ASSERT(file);
 
@@ -369,7 +370,7 @@ static INLINE void apu_save_square (apu_chan_t &chan, PACKFILE *file, int versio
    pack_putc ((chan.sweep.dirty ? 1 : 0), file);
 }
 
-static INLINE void apu_load_square (apu_chan_t &chan, PACKFILE *file, int version)
+static linear void apu_load_square (apu_chan_t &chan, PACKFILE *file, int version)
 {
    RT_ASSERT(file);
 
@@ -387,7 +388,7 @@ static INLINE void apu_load_square (apu_chan_t &chan, PACKFILE *file, int versio
    chan.sweep.dirty = TRUE_OR_FALSE(pack_getc (file));
 }
 
-static INLINE void apu_update_triangle (apu_chan_t &chan, FLAGS update_flags)
+static linear void apu_update_triangle (apu_chan_t &chan, FLAGS update_flags)
 {
    if (update_flags & UPDATE_LENGTH)
       apu_update_length_counter (chan);
@@ -433,7 +434,7 @@ static INLINE void apu_update_triangle (apu_chan_t &chan, FLAGS update_flags)
    }
 }
 
-static INLINE void apu_save_triangle (apu_chan_t &chan, PACKFILE *file, int version)
+static linear void apu_save_triangle (apu_chan_t &chan, PACKFILE *file, int version)
 {
    RT_ASSERT(file);
 
@@ -445,7 +446,7 @@ static INLINE void apu_save_triangle (apu_chan_t &chan, PACKFILE *file, int vers
    pack_putc (chan.output, file);
 }
 
-static INLINE void apu_load_triangle (apu_chan_t &chan, PACKFILE *file, int version)
+static linear void apu_load_triangle (apu_chan_t &chan, PACKFILE *file, int version)
 {
    RT_ASSERT(file);
 
@@ -457,7 +458,7 @@ static INLINE void apu_load_triangle (apu_chan_t &chan, PACKFILE *file, int vers
    chan.output = pack_getc (file);
 }
 
-static INLINE void apu_update_noise (apu_chan_t &chan, FLAGS update_flags)
+static linear void apu_update_noise (apu_chan_t &chan, FLAGS update_flags)
 {
    if (update_flags & UPDATE_ENVELOPE)
       apu_envelope (chan, chan.envelope);
@@ -493,7 +494,7 @@ static INLINE void apu_update_noise (apu_chan_t &chan, FLAGS update_flags)
    }
 }                  
 
-static INLINE void apu_save_noise (apu_chan_t &chan, PACKFILE *file, int version)
+static linear void apu_save_noise (apu_chan_t &chan, PACKFILE *file, int version)
 {
    RT_ASSERT(file);
 
@@ -508,7 +509,7 @@ static INLINE void apu_save_noise (apu_chan_t &chan, PACKFILE *file, int version
    apu_save_envelope (chan, chan.envelope, file, version);
 }
 
-static INLINE void apu_load_noise (apu_chan_t &chan, PACKFILE *file, int version)
+static linear void apu_load_noise (apu_chan_t &chan, PACKFILE *file, int version)
 {
    RT_ASSERT(file);
 
@@ -522,13 +523,13 @@ static INLINE void apu_load_noise (apu_chan_t &chan, PACKFILE *file, int version
    apu_load_envelope (chan, chan.envelope, file, version);
 }
 
-static INLINE void apu_reload_dmc (apu_chan_t &chan)
+static void apu_reload_dmc (apu_chan_t &chan)
 {               
    chan.address = chan.cached_address;
    chan.dma_length = chan.cached_dmalength;
 }
 
-static INLINE void apu_update_dmc (apu_chan_t &chan)
+static linear void apu_update_dmc (apu_chan_t &chan)
 {
    /* Timer. */
 
@@ -600,7 +601,7 @@ static INLINE void apu_update_dmc (apu_chan_t &chan)
                flag is set, the interrupt flag is set.
                */
 
-               chan.irq_occurred = TRUE;
+               chan.irq_occurred = true;
                cpu_interrupt (CPU_INTERRUPT_IRQ_DMC);
             }
 
@@ -614,7 +615,7 @@ static INLINE void apu_update_dmc (apu_chan_t &chan)
                - randi
                */
 
-            chan.enabled = FALSE;
+            chan.enabled = false;
          }
       }
    }
@@ -633,7 +634,7 @@ static INLINE void apu_update_dmc (apu_chan_t &chan)
          /* Sample buffer contains data. */
 
          /* Clear silence flag. */
-         chan.silence = FALSE;
+         chan.silence = false;
 
          /* Empty sample buffer into the shift register. */
 
@@ -645,7 +646,7 @@ static INLINE void apu_update_dmc (apu_chan_t &chan)
       else
       {
          /* Set silence flag. */
-         chan.silence = TRUE;
+         chan.silence = true;
 
          /* Clear output. */
          chan.output = 0;
@@ -661,7 +662,7 @@ static INLINE void apu_update_dmc (apu_chan_t &chan)
       than 126, the counter is incremented by 2.
       */
 
-      const BOOL bit0 = TRUE_OR_FALSE(chan.shift_reg & 1);
+      const bool bit0 = TRUE_OR_FALSE(chan.shift_reg & 1);
 
       if (!bit0 && (chan.volume > 1))
       {
@@ -684,7 +685,7 @@ static INLINE void apu_update_dmc (apu_chan_t &chan)
    chan.counter--;
 }
 
-static INLINE void apu_save_dmc (apu_chan_t &chan, PACKFILE *file, int version)
+static linear void apu_save_dmc (apu_chan_t &chan, PACKFILE *file, int version)
 {
    RT_ASSERT(file);
 
@@ -702,7 +703,7 @@ static INLINE void apu_save_dmc (apu_chan_t &chan, PACKFILE *file, int version)
    pack_putc ((chan.irq_occurred ? 1 : 0), file);
 }
 
-static INLINE void apu_load_dmc (apu_chan_t &chan, PACKFILE *file, int version)
+static linear void apu_load_dmc (apu_chan_t &chan, PACKFILE *file, int version)
 {
    RT_ASSERT(file);
 
@@ -720,7 +721,7 @@ static INLINE void apu_load_dmc (apu_chan_t &chan, PACKFILE *file, int version)
    chan.irq_occurred = TRUE_OR_FALSE(pack_getc (file));
 }
 
-static INLINE void apu_update_channels (FLAGS update_flags)
+static void apu_update_channels (FLAGS update_flags)
 {
    if (apu_options.enable_square_1)
       apu_update_square (apu.square[0], update_flags);
@@ -738,7 +739,7 @@ static INLINE void apu_update_channels (FLAGS update_flags)
       apu_update_dmc (apu.dmc);
 }
 
-static INLINE void apu_reload_sequence_counter (void)
+static void apu_reload_sequence_counter (void)
 {
    const int mode = ((apu.sequence_steps == 5) ? 1 : 0);
 
@@ -748,7 +749,7 @@ static INLINE void apu_reload_sequence_counter (void)
       apu.sequence_counter += frame_sequencer_period_lut_pal[mode][(apu.sequence_step - 1)];
 }
 
-static INLINE void apu_update_frame_sequencer (void)
+static void apu_update_frame_sequencer (void)
 {
    if (apu.sequence_counter > 0)
    {
@@ -794,7 +795,7 @@ static INLINE void apu_update_frame_sequencer (void)
    if ((apu.sequence_step == 4) &&
        (apu.frame_irq_gen && !apu.frame_irq_occurred))
    {
-      apu.frame_irq_occurred = TRUE;
+      apu.frame_irq_occurred = true;
       cpu_interrupt (CPU_INTERRUPT_IRQ_FRAME);
    }
 
@@ -803,14 +804,14 @@ static INLINE void apu_update_frame_sequencer (void)
       apu.sequence_step = 1;
 }
 
-static INLINE void apu_reset_frame_sequencer (void)
+static void apu_reset_frame_sequencer (void)
 {
    /* Reset sequencer. */
    apu.sequence_counter = 0;
    apu.sequence_step = 1;
 
    /* Clear frame IRQ. */
-   apu.frame_irq_occurred = FALSE;
+   apu.frame_irq_occurred = false;
    cpu_clear_interrupt (CPU_INTERRUPT_IRQ_FRAME);
 
    /*
@@ -831,18 +832,18 @@ void apu_load_config (void)
       configuration, uses these two functions instead. */
 
    /* Load configuration. */
-   apu_options.enabled   = get_config_int ("apu", "enabled",   apu_options.enabled);
+   apu_options.enabled = TRUE_OR_FALSE(get_config_int ("apu", "enabled", apu_options.enabled));
    apu_options.emulation = get_config_int ("apu", "emulation", apu_options.emulation);
-   apu_options.stereo    = get_config_int ("apu", "stereo",    apu_options.stereo);
+   apu_options.stereo = TRUE_OR_FALSE(get_config_int ("apu", "stereo", apu_options.stereo));
 
-   apu_options.enable_square_1 = get_config_int ("apu", "enable_square_1", apu_options.enable_square_1);
-   apu_options.enable_square_2 = get_config_int ("apu", "enable_square_2", apu_options.enable_square_2);
-   apu_options.enable_triangle = get_config_int ("apu", "enable_triangle", apu_options.enable_triangle);
-   apu_options.enable_noise    = get_config_int ("apu", "enable_noise",    apu_options.enable_noise);
-   apu_options.enable_dmc      = get_config_int ("apu", "enable_dmc",      apu_options.enable_dmc);
-   apu_options.enable_extra_1  = get_config_int ("apu", "enable_extra_1",  apu_options.enable_extra_1);
-   apu_options.enable_extra_2  = get_config_int ("apu", "enable_extra_2",  apu_options.enable_extra_2);
-   apu_options.enable_extra_3  = get_config_int ("apu", "enable_extra_3",  apu_options.enable_extra_3);
+   apu_options.enable_square_1 = TRUE_OR_FALSE(get_config_int ("apu", "enable_square_1", apu_options.enable_square_1));
+   apu_options.enable_square_2 = TRUE_OR_FALSE(get_config_int ("apu", "enable_square_2", apu_options.enable_square_2));
+   apu_options.enable_triangle = TRUE_OR_FALSE(get_config_int ("apu", "enable_triangle", apu_options.enable_triangle));
+   apu_options.enable_noise    = TRUE_OR_FALSE(get_config_int ("apu", "enable_noise",    apu_options.enable_noise));
+   apu_options.enable_dmc      = TRUE_OR_FALSE(get_config_int ("apu", "enable_dmc",      apu_options.enable_dmc));
+   apu_options.enable_extra_1  = TRUE_OR_FALSE(get_config_int ("apu", "enable_extra_1",  apu_options.enable_extra_1));
+   apu_options.enable_extra_2  = TRUE_OR_FALSE(get_config_int ("apu", "enable_extra_2",  apu_options.enable_extra_2));
+   apu_options.enable_extra_3  = TRUE_OR_FALSE(get_config_int ("apu", "enable_extra_3",  apu_options.enable_extra_3));
 
    /* Build mixer tables. */
    for (int n = 0; n < 31; n++)
@@ -858,18 +859,18 @@ void apu_load_config (void)
 void apu_save_config (void)
 {
    /* Save configuration. */
-   set_config_int ("apu", "enabled",   apu_options.enabled);
+   set_config_int ("apu", "enabled", (apu_options.enabled ? 1 : 0));
    set_config_int ("apu", "emulation", apu_options.emulation);
-   set_config_int ("apu", "stereo",    apu_options.stereo);
+   set_config_int ("apu", "stereo", (apu_options.stereo ? 1 : 0));
 
-   set_config_int ("apu", "enable_square_1", apu_options.enable_square_1);
-   set_config_int ("apu", "enable_square_2", apu_options.enable_square_2);
-   set_config_int ("apu", "enable_triangle", apu_options.enable_triangle);
-   set_config_int ("apu", "enable_noise",    apu_options.enable_noise);
-   set_config_int ("apu", "enable_dmc",      apu_options.enable_dmc);
-   set_config_int ("apu", "enable_extra_1",  apu_options.enable_extra_1);
-   set_config_int ("apu", "enable_extra_2",  apu_options.enable_extra_2);
-   set_config_int ("apu", "enable_extra_3",  apu_options.enable_extra_3);
+   set_config_int ("apu", "enable_square_1", (apu_options.enable_square_1) ? 1 : 0);
+   set_config_int ("apu", "enable_square_2", (apu_options.enable_square_2) ? 1 : 0);
+   set_config_int ("apu", "enable_triangle", (apu_options.enable_triangle) ? 1 : 0);
+   set_config_int ("apu", "enable_noise",    (apu_options.enable_noise)    ? 1 : 0);
+   set_config_int ("apu", "enable_dmc",      (apu_options.enable_dmc)      ? 1 : 0);
+   set_config_int ("apu", "enable_extra_1",  (apu_options.enable_extra_1)  ? 1 : 0);
+   set_config_int ("apu", "enable_extra_2",  (apu_options.enable_extra_2)  ? 1 : 0);
+   set_config_int ("apu", "enable_extra_3",  (apu_options.enable_extra_3)  ? 1 : 0);
 }
 
 int apu_init (void)
@@ -911,8 +912,8 @@ void apu_reset (void)
    memset (&apu, 0, sizeof (apu));
 
    /* set the stupid flag to tell difference between two squares */
-   apu.square[0].sweep.increment = FALSE;
-   apu.square[1].sweep.increment = TRUE;
+   apu.square[0].sweep.increment = false;
+   apu.square[1].sweep.increment = true;
 
    /*
    On power-up, the shift register is loaded with the value 1.
@@ -961,16 +962,16 @@ void apu_update (void)
       dsp_set_channel_params (0, 1.0, -1.0);
       dsp_set_channel_params (1, 1.0, 1.0);
 
-      dsp_set_channel_enabled (0, DSP_SET_ENABLED_MODE_SET, TRUE);
-      dsp_set_channel_enabled (1, DSP_SET_ENABLED_MODE_SET, TRUE);
+      dsp_set_channel_enabled (0, DSP_SET_ENABLED_MODE_SET, true);
+      dsp_set_channel_enabled (1, DSP_SET_ENABLED_MODE_SET, true);
    }
    else
    {
       /* Mono output. */
       dsp_set_channel_params (0, 1.0, 0.0);
 
-      dsp_set_channel_enabled (0, DSP_SET_ENABLED_MODE_SET, TRUE);
-      dsp_set_channel_enabled (1, DSP_SET_ENABLED_MODE_SET, FALSE);
+      dsp_set_channel_enabled (0, DSP_SET_ENABLED_MODE_SET, true);
+      dsp_set_channel_enabled (1, DSP_SET_ENABLED_MODE_SET, false);
    }
 }
 
@@ -980,16 +981,16 @@ void apu_start_frame (void)
    dsp_start ();
 
    /* Enable processing. */
-   apu.mixer.can_process = TRUE;
+   apu.mixer.can_process = true;
 }
 
 void apu_end_frame (void)
 {
    /* Flush all pending data. */
-   process (TRUE);
+   process (true);
 
    /* Disable processing. */
-   apu.mixer.can_process = FALSE;
+   apu.mixer.can_process = false;
 
    /* End DSP buffer fill. */
    dsp_end ();
@@ -1047,7 +1048,7 @@ UINT8 apu_read (UINT16 address)
 
    /* Sync state. */
    if (apu.mixer.can_process)
-      process (FALSE);
+      process (false);
 
    switch (address)
    {
@@ -1130,7 +1131,7 @@ void apu_write (UINT16 address, UINT8 value)
 
    /* Sync state. */
    if (apu.mixer.can_process)
-      process (FALSE);
+      process (false);
 
    switch (address)
    {
@@ -1187,7 +1188,7 @@ void apu_write (UINT16 address, UINT8 value)
          chan->sweep.invert = TRUE_OR_FALSE(value & 0x08);
 
          /* Reset the sweep unit. */
-         chan->sweep.dirty = TRUE;
+         chan->sweep.dirty = true;
 
          break;
       }
@@ -1229,7 +1230,7 @@ void apu_write (UINT16 address, UINT8 value)
             chan->length = length_lut[(value >> 3)];
 
          /* Reset the envelope generator. */
-         chan->envelope.dirty = TRUE;
+         chan->envelope.dirty = true;
 
          /*
          When the fourth register is written to, the sequencer is restarted.
@@ -1294,7 +1295,7 @@ void apu_write (UINT16 address, UINT8 value)
          /*
          When register $400B is written to, the halt flag is set.
          */
-         chan->halt_counter = TRUE;
+         chan->halt_counter = true;
 
          break;
       }
@@ -1358,7 +1359,7 @@ void apu_write (UINT16 address, UINT8 value)
             chan->length = length_lut[(value >> 3)];
 
          /* Reset the envelope generator. */
-         chan->envelope.dirty = TRUE;
+         chan->envelope.dirty = true;
 
          break;
       }
@@ -1384,7 +1385,7 @@ void apu_write (UINT16 address, UINT8 value)
          if (!chan->irq_gen)
          {
             /* Clear interrupt. */
-            chan->irq_occurred = FALSE;
+            chan->irq_occurred = false;
             cpu_clear_interrupt (CPU_INTERRUPT_IRQ_DMC);
          }
 
@@ -1514,7 +1515,7 @@ void apu_write (UINT16 address, UINT8 value)
          the DMC is possibly started or stopped, and the DMC's IRQ occurred flag is
          cleared.
          */
-         chan->irq_occurred = FALSE;
+         chan->irq_occurred = false;
          cpu_clear_interrupt (CPU_INTERRUPT_IRQ_DMC);
 
          break;
@@ -1537,9 +1538,9 @@ void apu_write (UINT16 address, UINT8 value)
          */
 
          if (value & 0xc0)
-            apu.frame_irq_gen = FALSE;
+            apu.frame_irq_gen = false;
          else
-            apu.frame_irq_gen = TRUE;
+            apu.frame_irq_gen = true;
 
          /* Reset frame sequencer. */
          apu_reset_frame_sequencer ();
@@ -1607,12 +1608,12 @@ void apu_load_state (PACKFILE *file, int version)
       exsound->load (file, version);
 
    /* Synchronize the APU mixer's clock with the CPU's cycle counter. */
-   apu.mixer.clock_counter = cpu_get_cycles (FALSE);
+   apu.mixer.clock_counter = cpu_get_cycles (false);
 }
 
 /* --- Internal functions. --- */
 
-static void set_sample_rate (REAL sample_rate)
+static void set_sample_rate (real sample_rate)
 {
    apu.mixer.sample_rate = sample_rate;
 
@@ -1627,7 +1628,7 @@ static void set_sample_rate (REAL sample_rate)
    apu.mixer.max_samples = ((apu.base_frequency * timing_get_speed_ratio ()) / sample_rate);
 }
 
-static INLINE void mix_outputs (void)
+static void mix_outputs (void)
 {
    static const apu_chan_t *square1  = &apu.square[0];
    static const apu_chan_t *square2  = &apu.square[1];
@@ -1635,12 +1636,12 @@ static INLINE void mix_outputs (void)
    static const apu_chan_t *noise    = &apu.noise;
    static const apu_chan_t *dmc      = &apu.dmc;
 
-   const REAL square_out = square_table [square1->output + square2->output];
-   const REAL tnd_out = tnd_table [3 * triangle->output + 2 * noise->output + dmc->output];
+   const real square_out = square_table [square1->output + square2->output];
+   const real tnd_out = tnd_table [3 * triangle->output + 2 * noise->output + dmc->output];
 
    /* Normalise output without damaging the relative volume levels. */
-   REAL left = (square_out * (1.0 / MAX_TND));
-   REAL right = (tnd_out * (1.0 / MAX_TND));
+   real left = (square_out * (1.0 / MAX_TND));
+   real right = (tnd_out * (1.0 / MAX_TND));
               
    if (exsound)
    {
@@ -1648,7 +1649,7 @@ static INLINE void mix_outputs (void)
 
       exsound->mix ();
 
-      REAL extra = exsound->output;
+      real extra = exsound->output;
 
       /* Center ExtraSound channels (is this correct?). */
       extra /= 2.0;
@@ -1678,7 +1679,7 @@ static INLINE void mix_outputs (void)
    }
 }
 
-static INLINE void process (BOOL finish)
+static void process (bool finish)
 {
    static std::vector<DSP_SAMPLE> samples;
 
@@ -1686,7 +1687,7 @@ static INLINE void process (BOOL finish)
       return;
 
    /* Grab a fresh timestamp. */
-   const cpu_time_t cycles = cpu_get_cycles (FALSE);
+   const cpu_time_t cycles = cpu_get_cycles (false);
 
    /* Calculate the delta period. */
    const cpu_time_t elapsed_cycles = (cycles - apu.mixer.clock_counter);
@@ -1700,7 +1701,7 @@ static INLINE void process (BOOL finish)
    apu.mixer.clock_counter = cycles;
 
    /* Avoid re-entry. */
-   apu.mixer.can_process = FALSE;
+   apu.mixer.can_process = false;
 
    /* Reserve a minimum amount of sample space (for performance reasons). */
    samples.reserve ((((unsigned)ceil (apu.mixer.sample_rate)) * apu.mixer.channels));
@@ -1812,7 +1813,7 @@ static INLINE void process (BOOL finish)
             for (int channel = 0; channel < apu.mixer.channels; channel++)
             {
                /* Fetch sample. */
-               REAL sample = apu.mixer.inputs[channel];
+               real sample = apu.mixer.inputs[channel];
 
                /* Accumulate sample. */
                apu.mixer.accumulators[channel] += sample;
@@ -1826,14 +1827,14 @@ static INLINE void process (BOOL finish)
             if (apu.mixer.accumulated_samples >= apu.mixer.max_samples)
             {
                /* Determine how much of the last sample we want to keep for the next loop. */
-               const REAL residual = (apu.mixer.accumulated_samples - floor (apu.mixer.max_samples));
+               const real residual = (apu.mixer.accumulated_samples - floor (apu.mixer.max_samples));
       
                /* Calculate the divider for the APU:DSP frequency ratio. */
-               const REAL divider = (apu.mixer.accumulated_samples - residual);
+               const real divider = (apu.mixer.accumulated_samples - residual);
       
                for (int channel = 0; channel < apu.mixer.channels; channel++)
                {
-                  REAL *sample = &apu.mixer.accumulators[channel];
+                  real *sample = &apu.mixer.accumulators[channel];
       
                   /* Remove residual sample portion. */
                   *sample -= (apu.mixer.sample_cache[channel] * residual);
@@ -1873,5 +1874,5 @@ static INLINE void process (BOOL finish)
    }
 
    /* Done processing - allow this function to be called again. */
-   apu.mixer.can_process = TRUE;
+   apu.mixer.can_process = true;
 }

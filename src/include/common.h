@@ -30,6 +30,9 @@ extern "C" {
 #define true   TRUE
 #define false  FALSE
 #define null   NULL
+
+#define inline    INLINE
+#define linear    INLINE   // for functions that are called only once
 #endif
 
 #define ROUND(x)  ((x) + 0.5)
@@ -37,8 +40,6 @@ extern "C" {
 #ifndef M_PI
 #define M_PI      3.14159265358979323846
 #endif
-
-#define linear(x) static INLINE
 
 /* <+KittyCat> $ grep EPSILON include/3dobject.h
    <+KittyCat> #define EPSILON (1.0f/1024.0f)
