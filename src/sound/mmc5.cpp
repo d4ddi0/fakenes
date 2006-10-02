@@ -51,6 +51,8 @@ void Square::write (uint16 address, uint8 value)
       case 0x5000:
       case 0x5004:
       {
+         regs[0] = value;
+
          volume = (value & 0x0f);
          duty = (value >> 6);
          halt = (value & 0x20);
@@ -58,9 +60,18 @@ void Square::write (uint16 address, uint8 value)
          break;
       }
 
+      case 0x5001:
+      case 0x5005:
+      {
+         regs[1] = value;  // unused placeholder
+         break;
+      }
+
       case 0x5002:
       case 0x5006:
       {
+         regs[2] = value;
+
          period &= ~0xff;
          period |= value;
 
@@ -70,6 +81,8 @@ void Square::write (uint16 address, uint8 value)
       case 0x5003:
       case 0x5007:
       {
+         regs[3] = value;
+
          period &= ~0x700;
          period |= ((value & 0x07) << 8);
 
@@ -108,6 +121,32 @@ void Square::process (cpu_time_t cycles)
       step = 0;
 }
 
+void Square::save (PACKFILE *file, int version)
+{
+   RT_ASSERT(file);
+
+   for (int index = 0; index < 4; index++)
+      pack_putc (regs[index], file);
+
+   pack_iputw (timer, file);
+   pack_putc (length, file);
+   pack_putc (step, file);
+   pack_putc (output, file);
+}
+
+void Square::load (PACKFILE *file, int version)
+{
+   RT_ASSERT(file);
+
+   for (int index = 0; index < 4; index++)
+      write ((0x5000 + index), pack_getc (file));  // should work for both
+
+   timer = pack_igetw (file);
+   length = pack_getc (file);
+   step = pack_getc (file);
+   output = pack_getc (file);
+}
+
 void PCM::reset (void)
 {
    output = 0;
@@ -126,6 +165,20 @@ void PCM::write (uint16 address, uint8 value)
       default:
          break;
    }
+}
+
+void PCM::save (PACKFILE *file, int version)
+{
+   RT_ASSERT(file);
+
+   pack_putc (output, file);
+}
+
+void PCM::load (PACKFILE *file, int version)
+{
+   RT_ASSERT(file);
+
+   output = pack_getc (file);
 }
 
 void Interface::reset (void)
@@ -210,6 +263,24 @@ void Interface::process (cpu_time_t cycles)
       square1.process (cycles);
    if (apu_options.enable_extra_2)
       square2.process (cycles);
+}
+
+void Interface::save (PACKFILE *file, int version)
+{
+   RT_ASSERT(file);
+
+   square1.load (file, version);
+   square2.load (file, version);
+   pcm.load (file, version);
+}
+
+void Interface::load (PACKFILE *file, int version)
+{
+   RT_ASSERT(file);
+
+   square1.save (file, version);
+   square2.save (file, version);
+   pcm.save (file, version);
 }
 
 void Interface::mix (void)

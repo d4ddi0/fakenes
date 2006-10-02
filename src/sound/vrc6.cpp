@@ -33,6 +33,8 @@ void Square::write (uint16 address, uint8 value)
       case 0x9000:
       case 0xA000:
       {
+         regs[0] = value;
+
          volume = (value & 0x0f);
          duty = ((value >> 4) & 0x07);
          force = (value & 0x80);
@@ -46,6 +48,8 @@ void Square::write (uint16 address, uint8 value)
       case 0x9001:
       case 0xA001:
       {
+         regs[1] = value;
+
          period &= ~0xff;
          period |= value;
 
@@ -55,6 +59,8 @@ void Square::write (uint16 address, uint8 value)
       case 0x9002:
       case 0xA002:
       {
+         regs[2] = value;
+
          enabled = (value & 0x80);
          if (!enabled)
             output = 0;
@@ -92,6 +98,30 @@ void Square::process (cpu_time_t cycles)
       step = 0;
 }
 
+void Square::save (PACKFILE *file, int version)
+{
+   RT_ASSERT(file);
+
+   for (int index = 0; index < 3; index++)
+      pack_putc (regs[index], file);
+
+   pack_iputw (timer, file);
+   pack_putc (step, file);
+   pack_putc (output, file);
+}
+
+void Square::load (PACKFILE *file, int version)
+{
+   RT_ASSERT(file);
+
+   for (int index = 0; index < 3; index++)
+      write ((0x9000 + index), pack_getc (file));  // should work for both
+
+   timer = pack_igetw (file);
+   step = pack_getc (file);
+   output = pack_getc (file);
+}
+
 void Saw::reset (void)
 {
    enabled = false;
@@ -110,12 +140,16 @@ void Saw::write (uint16 address, uint8 value)
    {
       case 0xB000:
       {
+         regs[0] = value;
+
          rate = (value & 0x3f);
          break;
       }
 
       case 0xB001:
       {
+         regs[1] = value;
+
          period &= ~0xff;
          period |= value;
 
@@ -124,6 +158,8 @@ void Saw::write (uint16 address, uint8 value)
 
       case 0xB002:
       {
+         regs[2] = value;
+
          enabled = (value & 0x80);
          if (!enabled)
             output = 0;
@@ -165,6 +201,32 @@ void Saw::process (cpu_time_t cycles)
    if (enabled)
       output = (volume >> 3);
 }            
+
+void Saw::save (PACKFILE *file, int version)
+{
+   RT_ASSERT(file);
+
+   for (int index = 0; index < 3; index++)
+      pack_putc (regs[index], file);
+
+   pack_iputw (timer, file);
+   pack_putc (step, file);
+   pack_putc (volume, file);
+   pack_putc (output, file);
+}
+
+void Saw::load (PACKFILE *file, int version)
+{
+   RT_ASSERT(file);
+
+   for (int index = 0; index < 3; index++)
+      write ((0xB000 + index), pack_getc (file));
+
+   timer = pack_igetw (file);
+   step = pack_getc (file);
+   volume = pack_getc (file);
+   output = pack_getc (file);
+}
 
 void Interface::reset (void)
 {
@@ -217,6 +279,24 @@ void Interface::process (cpu_time_t cycles)
 
    if (apu_options.enable_extra_3)
       saw.process (cycles);
+}
+
+void Interface::save (PACKFILE *file, int version)
+{
+   RT_ASSERT(file);
+
+   square1.save (file, version);
+   square2.save (file, version);
+   saw.save (file, version);
+}
+
+void Interface::load (PACKFILE *file, int version)
+{
+   RT_ASSERT(file);
+
+   square1.load (file, version);
+   square2.load (file, version);
+   saw.load (file, version);
 }
 
 void Interface::mix (void)
