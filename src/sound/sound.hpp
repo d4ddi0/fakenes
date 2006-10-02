@@ -6,7 +6,6 @@
 
 #ifndef _SOUND__SOUND_HPP
 #define _SOUND__SOUND_HPP
-#include <allegro.h>
 #include "../include/common.h"
 #include "../include/apu.h"
 #include "../include/cpu.h"
