@@ -27,7 +27,7 @@ task(:bundle => :frameworks)
 # App binary #
 ##############
 
-sources = Dir::glob('../../src/*.c') + Dir::glob('../../src/*.cpp') + %w(datafile.c main.m)
+sources = Dir::glob('../../src/**/*.c') + Dir::glob('../../src/**/*.cpp') + %w(datafile.c main.m)
 
 buildBinary(:binary, BINDIR, 'fakenes', sources)
 buildBinary(:binary, '.', 'dat2c', %w(../dat2c.c main.m))
