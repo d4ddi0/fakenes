@@ -336,13 +336,17 @@ void Interface::process (cpu_time_t cycles)
       else
          timer += 7457;
 
-      square1.update_240hz ();
-      square2.update_240hz ();
+      if (apu_options.enable_extra_1)
+         square1.update_240hz ();
+      if (apu_options.enable_extra_2)
+         square2.update_240hz ();
 
       if (flip)
       {
-         square1.update_120hz ();
-         square2.update_120hz ();
+         if (apu_options.enable_extra_1)
+            square1.update_120hz ();
+         if (apu_options.enable_extra_2)
+            square2.update_120hz ();
 
          flip = false;
       }
