@@ -232,10 +232,10 @@ void FN2A03_Interrupt(FN2A03 *R,UINT8 Type)
         P = Pack_Flags() & ~B_FLAG;
         Push(P);
         /* R->D = 0; */
+        R->I=1;
         if (Type == FN2A03_INT_NMI) vector = 0xFFFA;
         else
         {
-            R->I=1;
             vector = 0xFFFE;
             R->IRequest &= ~(1 << (FN2A03_INT_IRQ_SINGLE_SHOT -
                 FN2A03_INT_IRQ_BASE));
