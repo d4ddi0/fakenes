@@ -1,7 +1,7 @@
 setstdout "${STDOUT_LOG}"
 setstderr "${STDERR_LOG}"
              
-@!call "${CC}" -E "${BUILD_DIR}/alleggl.c"
+@!call "${CC}" -E "${BUILD_DIR}/alleggl.c ${CPPFLAGS}"
 
 do ifnret 0
    setstdout ''

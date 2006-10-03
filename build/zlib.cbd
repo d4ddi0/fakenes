@@ -1,7 +1,7 @@
 setstdout "${STDOUT_LOG}"
 setstderr "${STDERR_LOG}"
 
-@!call "${CC}" -E "${BUILD_DIR}/zlib.c"
+@!call "${CC}" -E "${BUILD_DIR}/zlib.c ${CPPFLAGS}"
 
 do ifnret 0
    setstdout ''
