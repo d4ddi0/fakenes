@@ -330,8 +330,11 @@ void Interface::process (cpu_time_t cycles)
    if (timer <= 0)
    {
       // This should actually be 7457.5 - but close enough.
-      // Effective rate: ~239.98Hz
-      timer += 7458;
+      // Effective rate: ~240Hz (239.996...)
+      if (flip)
+         timer += 7458;
+      else
+         timer += 7457;
 
       square1.update_240hz ();
       square2.update_240hz ();
