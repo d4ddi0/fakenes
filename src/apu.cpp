@@ -899,14 +899,13 @@ void apu_reset (void)
       */
 
    INT16 sequence_counter;
-   UINT8 sequence_step, sequence_steps;
+   UINT8 sequence_step;
    UINT16 address;
 
    /* Save frame sequencer state, since it is not cleared by a soft reset (a
       hard reset always implies a call to apu_init(), which clears it). */
    sequence_counter = apu.sequence_counter;
    sequence_step = apu.sequence_step;
-   sequence_steps = apu.sequence_steps;
 
    /* Clear context. */
    memset (&apu, 0, sizeof (apu));
@@ -927,7 +926,6 @@ void apu_reset (void)
    /* Restore frame sequencer state. */
    apu.sequence_counter = sequence_counter;
    apu.sequence_step = sequence_step;
-   apu.sequence_steps = sequence_steps;
 
    /* Reset ExSound. */
    if (exsound)
@@ -1608,7 +1606,7 @@ void apu_load_state (PACKFILE *file, int version)
       exsound->load (file, version);
 
    /* Synchronize the APU mixer's clock with the CPU's cycle counter. */
-   apu.mixer.clock_counter = cpu_get_cycles (false);
+   apu.mixer.clock_counter = cpu_get_cycles ();
 }
 
 /* --- Internal functions. --- */
@@ -1687,10 +1685,10 @@ static void process (bool finish)
       return;
 
    /* Grab a fresh timestamp. */
-   const cpu_time_t cycles = cpu_get_cycles (false);
+   const cpu_time_t cycles = cpu_get_cycles ();
 
    /* Calculate the delta period. */
-   const cpu_time_t elapsed_cycles = (cycles - apu.mixer.clock_counter);
+   const cpu_time_t elapsed_cycles = ((cycles - apu.mixer.clock_counter) / CYCLE_LENGTH);
    if (elapsed_cycles == 0)
    {
       /* Nothing to do. */

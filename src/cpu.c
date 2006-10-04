@@ -351,25 +351,12 @@ void cpu_start_new_scanline (void)
 
 cpu_time_t cpu_get_cycles_line (void)
 {
-   /* Note that, since this function is only used by the PPU, no PPU to CPU
-      cycle reduction is performed. */
-
    return ((cpu_context.Cycles - scanline_start_cycle));
 }
 
-cpu_time_t cpu_get_cycles (BOOL reset)
+cpu_time_t cpu_get_cycles (void)
 {
-   cpu_time_t cycles;
-
-   cycles = (cpu_context.Cycles / CYCLE_LENGTH);
-
-   if (reset)
-   {
-      cpu_context.ICount -= cpu_context.Cycles;
-      cpu_context.Cycles = 0;
-   }
-
-   return (cycles);
+   return (cpu_context.Cycles);
 }
 
 void cpu_save_state (PACKFILE *file, int version)

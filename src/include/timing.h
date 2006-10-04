@@ -89,12 +89,12 @@ static INLINE REAL timing_get_speed_ratio (void)
       > 1.0 = faster
       */
 
-   ratio = 1.0f;
+   ratio = 1.0;
 
    ratio *= timing_speed_multiplier;
 
    if (timing_half_speed)
-      ratio /= 2.0f;
+      ratio /= 2.0;
 
    return (ratio);
 }
@@ -194,8 +194,6 @@ static REAL timing_get_frequency (void)
       scalar *= TOTAL_LINES_PAL;
 
    scalar *= timing_get_speed ();
-
-   scalar /= (REAL)CYCLE_LENGTH;
 
    return (scalar);
 }
