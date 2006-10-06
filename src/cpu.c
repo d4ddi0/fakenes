@@ -379,6 +379,8 @@ cpu_time_t cpu_get_cycles (void)
 
 void cpu_save_state (PACKFILE *file, int version)
 {
+   int index;
+
    RT_ASSERT(file);
 
    /* Save CPU registers. */
@@ -400,6 +402,11 @@ void cpu_save_state (PACKFILE *file, int version)
    /* Save IRQ state. */
    pack_iputl (cpu_context.IRequest, file);
 
+   for (index = 0; index < FN2A03_INT_IRQ_SOURCES; index++)
+      pack_iputl (cpu_context.IRQTable[index], file);
+
+   pack_iputl (cpu_context.IRequestQ, file);
+
    /* Save execution state. */
    pack_putc (cpu_context.Jammed, file);
 
@@ -413,6 +420,7 @@ void cpu_save_state (PACKFILE *file, int version)
 void cpu_load_state (PACKFILE *file, int version)
 {
    UINT8 P;
+   int index;
 
    RT_ASSERT(file);
 
@@ -435,6 +443,11 @@ void cpu_load_state (PACKFILE *file, int version)
 
    /* Restore IRQ state. */
    cpu_context.IRequest = pack_igetl (file);
+
+   for (index = 0; index < FN2A03_INT_IRQ_SOURCES; index++)
+      cpu_context.IRQTable[index] = pack_igetl (file);
+
+   cpu_context.IRequestQ = pack_igetl (file);
 
    /* Restore execution state. */
    cpu_context.Jammed = pack_getc (file);
