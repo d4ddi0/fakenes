@@ -34,6 +34,7 @@ extern void mmc_request (ROM *);
 extern int (*mmc_hblank_start) (int);
 extern int (*mmc_scanline_start) (int);
 extern int (*mmc_scanline_end) (int);
+extern void (*mmc_predict_irq) (cpu_time_t cycles);
 extern void (*mmc_check_latches) (UINT16);
 extern int mmc_get_name_table_count (void);
 extern int mmc_uses_pattern_vram (void);

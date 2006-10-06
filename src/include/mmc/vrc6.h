@@ -47,22 +47,25 @@ static BOOL vrc6_swap_address_pins = FALSE;
 static UINT8 vrc6_prg_bank[2];
 static UINT8 vrc6_chr_bank[8];
 
+#define VRC6_CYCLE_LENGTH     CYCLE_LENGTH
+#define VRC6_SCANLINE_LENGTH  SCANLINE_LENGTH
+
 static UINT16 vrc6_irq_counter = 0;
 static UINT8  vrc6_irq_latch   = 0x00;
 static UINT8  vrc6_irq_load    = 0x00;
 static UINT8  vrc6_irq_reg     = 0x00;
 static BOOL   vrc6_enable_irqs = FALSE;
 
-static int vrc6_predict_irq (int line)
+static void vrc6_predict_irq (cpu_time_t cycles)
 {
    cpu_time_t count, offset;
 
    if (!vrc6_enable_irqs)
-      return (CPU_INTERRUPT_NONE);
+      return;
 
-   count = ((vrc6_irq_reg & 0x04) ? CYCLE_LENGTH : SCANLINE_LENGTH);
+   count = ((vrc6_irq_reg & 0x04) ? VRC6_CYCLE_LENGTH : VRC6_SCANLINE_LENGTH);
 
-   for (offset = 0; offset < SCANLINE_CLOCKS; offset++)
+   for (offset = 0; offset < cycles; offset++)
    {
       vrc6_irq_counter++;
       if (vrc6_irq_counter == count)
@@ -78,9 +81,6 @@ static int vrc6_predict_irq (int line)
             vrc6_irq_load++;
       }
    }
-
-   /* Not used, since we do our own interrupt processing. */
-   return (CPU_INTERRUPT_NONE);
 }
 
 static void vrc6_update_prg_bank (int bank)
@@ -283,7 +283,7 @@ static int vrc6_base_init (void)
    cpu_set_write_handler_32k (0x8000, vrc6_write);
 
    /* Install IRQ predicter. */
-   mmc_scanline_start = vrc6_predict_irq;
+   mmc_predict_irq = vrc6_predict_irq;
 
    /* Select ExSound chip. */
    apu_set_exsound (APU_EXSOUND_VRC6);

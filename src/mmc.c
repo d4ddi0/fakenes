@@ -23,6 +23,7 @@
 int (*mmc_hblank_start) (int);
 int (*mmc_scanline_start) (int);
 int (*mmc_scanline_end) (int);
+void (*mmc_predict_irq) (cpu_time_t cycles);
 void (*mmc_check_latches) (UINT16);
 
 static int mmc_name_table_count;
@@ -220,7 +221,12 @@ int mmc_init (void)
 
     mmc_hblank_start = NIL;
 
+    mmc_scanline_start = NIL;
+
     mmc_scanline_end = NIL;
+
+
+    mmc_predict_irq = NIL;
 
 
     mmc_check_latches = NIL;

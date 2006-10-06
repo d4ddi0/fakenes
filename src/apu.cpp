@@ -796,7 +796,8 @@ static void apu_update_frame_sequencer (void)
        (apu.frame_irq_gen && !apu.frame_irq_occurred))
    {
       apu.frame_irq_occurred = true;
-      cpu_interrupt (CPU_INTERRUPT_IRQ_FRAME);
+      // This part is now handled by apu_predict_frame_irq() instead
+      // cpu_interrupt (CPU_INTERRUPT_IRQ_FRAME);
    }
 
    apu.sequence_step++;
@@ -822,6 +823,49 @@ static void apu_reset_frame_sequencer (void)
       apu.sequence_counter = 1;  // update on next CPU cycle
    else
       apu_reload_sequence_counter ();
+}
+
+static linear void apu_predict_frame_irq (cpu_time_t cycles)
+{
+   /* This function predicts when the APU's frame IRQ will occur and queues
+      it in the CPU core to trigger as close to that moment as possible.
+
+      We must be very careful to back up any variables we modify in this
+      function, since we don't want to affect the APU's actual state - only
+      get a rough(more accurate than not) idea of when the IRQ will occur. */
+
+   const INT16 saved_sequence_counter = apu.sequence_counter;
+   const UINT8 saved_sequence_step = apu.sequence_step;
+
+   /* Since all CPU core cycle counts are specified in PPU cycles, we need
+      to convert those counts to a format that the APU can use... */
+   cycles /= CYCLE_LENGTH;
+
+   /* Now we simply simulate emulating the frame sequencer cycle-by-cycle
+      (up to a minimum and maximum of 'cycles') keeping track of what
+      virtual cycle we are on for calls to cpu_queue_interrupt(). */
+   for (cpu_time_t offset = 0; offset < cycles; offset++)
+   {
+      if (apu.sequence_counter > 0)
+      {
+         apu.sequence_counter--;
+         if (apu.sequence_counter > 0)
+            continue;
+      }
+   
+      apu_reload_sequence_counter ();
+  
+      /* check to see if we should generate an irq */
+      if ((apu.sequence_step == 4) && apu.frame_irq_gen)
+         cpu_queue_interrupt (CPU_INTERRUPT_IRQ_FRAME, (cpu_get_cycles () + (offset * CYCLE_LENGTH)));
+   
+      apu.sequence_step++;
+      if (apu.sequence_step > apu.sequence_steps)
+         apu.sequence_step = 1;
+   }
+
+   apu.sequence_counter = saved_sequence_counter;
+   apu.sequence_step = saved_sequence_step;
 }
 
 void apu_load_config (void)
@@ -1556,10 +1600,12 @@ void apu_write (UINT16 address, UINT8 value)
       exsound->write (address, value);
 }
 
-void apu_scanline_start (void)
+void apu_predict_irqs (cpu_time_t cycles)
 {
    /* Sync state. */
    process (false);
+
+   apu_predict_frame_irq (cycles);
 }
 
 void apu_save_state (PACKFILE *file, int version)
