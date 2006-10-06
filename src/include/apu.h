@@ -166,6 +166,7 @@ extern void apu_end_frame (void);
 extern void apu_set_exsound (ENUM);
 extern UINT8 apu_read (UINT16);
 extern void apu_write (UINT16, UINT8);
+extern void apu_scanline_start (void);
 extern void apu_save_state (PACKFILE *, int);
 extern void apu_load_state (PACKFILE *, int);
 

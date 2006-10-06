@@ -32,6 +32,7 @@ extern int mmc_init (void);
 extern void mmc_reset (void);
 extern void mmc_request (ROM *);
 extern int (*mmc_hblank_start) (int);
+extern int (*mmc_scanline_start) (int);
 extern int (*mmc_scanline_end) (int);
 extern void (*mmc_check_latches) (UINT16);
 extern int mmc_get_name_table_count (void);

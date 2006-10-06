@@ -77,6 +77,8 @@ enum
 #define LAST_DISPLAYED_LINE   239
 #define FIRST_VBLANK_LINE     240
 
+#define SCANLINE_LENGTH       SCANLINE_CLOCKS
+
 static INLINE REAL timing_get_speed_ratio (void)
 {
    REAL ratio;

@@ -1045,8 +1045,7 @@ UINT8 apu_read (UINT16 address)
    UINT8 value = 0;
 
    /* Sync state. */
-   if (apu.mixer.can_process)
-      process (false);
+   process (false);
 
    switch (address)
    {
@@ -1128,8 +1127,7 @@ void apu_write (UINT16 address, UINT8 value)
    apu_chan_t *chan;
 
    /* Sync state. */
-   if (apu.mixer.can_process)
-      process (false);
+   process (false);
 
    switch (address)
    {
@@ -1558,6 +1556,12 @@ void apu_write (UINT16 address, UINT8 value)
       exsound->write (address, value);
 }
 
+void apu_scanline_start (void)
+{
+   /* Sync state. */
+   process (false);
+}
+
 void apu_save_state (PACKFILE *file, int version)
 {
    RT_ASSERT(file);
@@ -1606,7 +1610,7 @@ void apu_load_state (PACKFILE *file, int version)
       exsound->load (file, version);
 
    /* Synchronize the APU mixer's clock with the CPU's cycle counter. */
-   apu.mixer.clock_counter = cpu_get_cycles ();
+   apu.mixer.clock_counter = (cpu_get_cycles () / CYCLE_LENGTH);
 }
 
 /* --- Internal functions. --- */
@@ -1681,14 +1685,15 @@ static void process (bool finish)
 {
    static std::vector<DSP_SAMPLE> samples;
 
-   if (!apu_options.enabled)
+   if ((!apu_options.enabled) ||
+       (!apu.mixer.can_process))
       return;
 
    /* Grab a fresh timestamp. */
-   const cpu_time_t cycles = cpu_get_cycles ();
+   const cpu_time_t cycles = (cpu_get_cycles () / CYCLE_LENGTH);
 
    /* Calculate the delta period. */
-   const cpu_time_t elapsed_cycles = ((cycles - apu.mixer.clock_counter) / CYCLE_LENGTH);
+   const cpu_time_t elapsed_cycles = (cycles - apu.mixer.clock_counter);
    if (elapsed_cycles == 0)
    {
       /* Nothing to do. */

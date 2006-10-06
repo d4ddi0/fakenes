@@ -21,6 +21,7 @@
 #include "types.h"
 
 int (*mmc_hblank_start) (int);
+int (*mmc_scanline_start) (int);
 int (*mmc_scanline_end) (int);
 void (*mmc_check_latches) (UINT16);
 

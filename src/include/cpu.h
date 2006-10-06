@@ -74,8 +74,9 @@ extern void cpu_memmap_init (void);
 extern void cpu_exit (void);
 extern void cpu_reset (void);
 
-extern void cpu_interrupt (int);
-extern void cpu_clear_interrupt (int);
+extern void cpu_interrupt (int type);
+extern void cpu_clear_interrupt (int type);
+extern void cpu_queue_interrupt (int type, cpu_time_t time);
 
 extern UINT16 *cpu_active_pc;
 

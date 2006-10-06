@@ -498,6 +498,11 @@ int main (int argc, char *argv[])
             {
                cpu_start_new_scanline ();
 
+               if (mmc_scanline_start)
+                  cpu_interrupt (mmc_scanline_start (ppu_scanline));
+
+               apu_scanline_start ();
+
                if ((ppu_scanline >= FIRST_DISPLAYED_LINE) &&
                    (ppu_scanline <= LAST_DISPLAYED_LINE))
                {
@@ -575,6 +580,11 @@ int main (int argc, char *argv[])
                ppu_scanline++)
             {
                cpu_start_new_scanline ();
+
+               if (mmc_scanline_start)
+                  cpu_interrupt (mmc_scanline_start (ppu_scanline));
+
+               apu_scanline_start ();
 
                if ((ppu_scanline >= FIRST_DISPLAYED_LINE) &&
                    (ppu_scanline <= LAST_DISPLAYED_LINE))

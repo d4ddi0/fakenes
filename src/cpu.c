@@ -342,6 +342,24 @@ void cpu_clear_interrupt (int type)
    }
 }
 
+void cpu_queue_interrupt (int type, cpu_time_t time)
+{
+   switch (type)
+   {
+      case CPU_INTERRUPT_IRQ_SINGLE_SHOT:
+      case CPU_INTERRUPT_NMI:
+         break;
+
+      default:
+      {
+         FN2A03_Queue_Interrupt (&cpu_context, FN2A03_INT_IRQ_SOURCE((type -
+            CPU_INTERRUPT_IRQ_SOURCE(0))), time);
+
+         break;
+      }
+   }
+}
+
 static cpu_time_t scanline_start_cycle = 0;
 
 void cpu_start_new_scanline (void)

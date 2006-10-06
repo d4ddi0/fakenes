@@ -35,6 +35,8 @@ extern "C" {
 #define FN2A03_INT_IRQ_SOURCE(x)    (FN2A03_INT_IRQ_BASE + 1 + (x))
 #define FN2A03_INT_IRQ_SOURCE_MAX   (31 - 1)
 
+#define FN2A03_INT_IRQ_SOURCES      (FN2A03_INT_IRQ_SOURCE_MAX + 1)
+
                                /* 2A03 status flags:         */
 #define C_FLAG    (1 << 0)     /* 1: Carry occured           */
 #define Z_FLAG    (1 << 1)     /* 1: Result is zero          */
@@ -87,6 +89,8 @@ typedef struct
   cpu_time_t IBackup; /* Private, don't touch                */
   UINT32 IRequest;    /* Logic state of the IRQ line, each    */
                       /*  bit reserved for a different source */
+  cpu_time_t IRQTable[FN2A03_INT_IRQ_SOURCES];
+  UINT32 IRequestQ;   /* Queued interrupt request sources    */
   UINT16 Trap;        /* Set Trap to address to trace from   */
   UINT8 AfterCLI;     /* Private, don't touch                */
   UINT8 TrapBadOps;   /* Set to 1 to warn of illegal opcodes */
@@ -126,6 +130,10 @@ UINT16 FN2A03_Exec(FN2A03 *R);
  FN2A03_Interrupt().
 */
 void FN2A03_Clear_Interrupt(FN2A03 *R,UINT8 Type);
+
+/* FN2A03_Queue_Interrupt()
+   Schedules an automatic IRQ-only interrupt to take place at 'Time'. */
+void FN2A03_Queue_Interrupt(FN2A03 *R,UINT8 Type,cpu_time_t Time);
 
 /*
  FN2A03_Interrupt()

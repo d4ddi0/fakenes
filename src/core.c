@@ -109,7 +109,7 @@ void FN2A03_Reset(FN2A03 *R)
   R->PC.bytes.low=Read(0xFFFC);
   R->PC.bytes.high=Read(0xFFFD);   
   R->ICount=R->Cycles=0;
-  R->IRequest=FN2A03_INT_IRQ_NONE;
+  R->IRequest=R->IRequestQ=FN2A03_INT_IRQ_NONE;
   R->AfterCLI=0;
   R->Jammed=0;
 }
@@ -194,10 +194,24 @@ void FN2A03_Clear_Interrupt(FN2A03 *R,UINT8 Type)
     if (Type >= FN2A03_INT_IRQ_SOURCE(0) &&
         Type <= FN2A03_INT_IRQ_SOURCE(FN2A03_INT_IRQ_SOURCE_MAX))
     {
-        R->IRequest &= ~(1 << (Type - FN2A03_INT_IRQ_BASE));
+        const UINT32 Mask = (1 << (Type - FN2A03_INT_IRQ_BASE));
+        R->IRequest &= ~Mask;
+        R->IRequestQ &= ~Mask;
     }
 }
 
+/* FN2A03_Queue_Interrupt()
+   Schedules an automatic IRQ-only interrupt to take place at 'Time'. */
+void FN2A03_Queue_Interrupt(FN2A03 *R,UINT8 Type,cpu_time_t Time)
+{            
+    if (Type >= FN2A03_INT_IRQ_SOURCE(0) &&
+        Type <= FN2A03_INT_IRQ_SOURCE(FN2A03_INT_IRQ_SOURCE_MAX))
+    {
+        const int Index = (Type - FN2A03_INT_IRQ_BASE);
+        R->IRQTable[Index] = Time;
+        R->IRequestQ |= (1 << Index);
+    }
+}
 
 /*
  FN2A03_Interrupt()
@@ -305,6 +319,32 @@ void FN2A03_Run(FN2A03 *R)
         PAIR address, result;
         UINT8 zero_page_address, data;
 #include "core/codes.h"
+      }
+
+      /* Check for queued interrupt requests. */
+      if (R->IRequestQ)
+      {
+         int Index;
+
+         for (Index = 0; Index < FN2A03_INT_IRQ_SOURCES; Index++)
+         {
+            const UINT32 Mask = (1 << Index);
+
+            if ((R->IRequestQ & Mask) &&
+                (R->IRQTable[Index] <= R->Cycles))
+            {
+               //log_printf ("CPU: Interrupt unqueued at %u cycles (optimal was %u cycles).\n", R->Cycles, R->IRQTable[Index]);
+               R->IRequestQ &= ~Mask;
+               R->IRequest |= Mask;
+            }
+         }
+
+         if (R->IRequest && (!(R->I)) && !R->AfterCLI)
+         {             
+            R->PC.word = PC.word;
+            FN2A03_Interrupt (R, FN2A03_INT_NONE);
+            PC.word = R->PC.word;
+         }
       }
     }
 

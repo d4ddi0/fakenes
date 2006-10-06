@@ -1,5 +1,6 @@
 /* Mapper #24 and #26 (Konami VRC6 and VRC6V). */
 /* These mappers are fully supported. */
+/* IRQ prediction is supported. */
 
 #include "mmc/shared.h"
 
@@ -46,48 +47,41 @@ static BOOL vrc6_swap_address_pins = FALSE;
 static UINT8 vrc6_prg_bank[2];
 static UINT8 vrc6_chr_bank[8];
 
-#define VRC6_SCANLINE_CYCLES  341
+static UINT16 vrc6_irq_counter = 0;
+static UINT8  vrc6_irq_latch   = 0x00;
+static UINT8  vrc6_irq_load    = 0x00;
+static UINT8  vrc6_irq_reg     = 0x00;
+static BOOL   vrc6_enable_irqs = FALSE;
 
-static INT32 vrc6_irq_counter  = 0;
-static UINT8 vrc6_irq_latch    = 0x00;
-static UINT8 vrc6_irq_load     = 0x00;
-static UINT8 vrc6_irq_reg      = 0x00;
-static BOOL  vrc6_enable_irqs  = FALSE;
-static BOOL  vrc6_irq_occurred = FALSE;
-
-static int vrc6_irq_tick (int line)
+static int vrc6_predict_irq (int line)
 {
-   int count;
+   cpu_time_t count, offset;
 
    if (!vrc6_enable_irqs)
       return (CPU_INTERRUPT_NONE);
 
-   /* vrc6_irq_counter += cycles; */
-   vrc6_irq_counter += SCANLINE_CLOCKS;
+   count = ((vrc6_irq_reg & 0x04) ? CYCLE_LENGTH : SCANLINE_LENGTH);
 
-   count = ((vrc6_irq_reg & 0x04) ? 1 : VRC6_SCANLINE_CYCLES);
-
-   while (vrc6_irq_counter >= count)
+   for (offset = 0; offset < SCANLINE_CLOCKS; offset++)
    {
-      vrc6_irq_counter -= count;
-
-      if (vrc6_irq_load == 0xFF)
+      vrc6_irq_counter++;
+      if (vrc6_irq_counter == count)
       {
-         vrc6_irq_load = vrc6_irq_latch;
-      
-         if (!vrc6_irq_occurred)
+         vrc6_irq_counter = 0;
+   
+         if (vrc6_irq_load == 0xFF)
          {
-            vrc6_irq_occurred = TRUE;
-            cpu_interrupt (CPU_INTERRUPT_IRQ_MMC);
+            vrc6_irq_load = vrc6_irq_latch;
+            cpu_queue_interrupt (CPU_INTERRUPT_IRQ_MMC, (cpu_get_cycles () + offset));
          }
+         else
+            vrc6_irq_load++;
       }
-      else
-         vrc6_irq_load++;
    }
 
    /* Not used, since we do our own interrupt processing. */
    return (CPU_INTERRUPT_NONE);
-}     
+}
 
 static void vrc6_update_prg_bank (int bank)
 {
@@ -228,7 +222,6 @@ static void vrc6_write (UINT16 address, UINT8 value)
                }
 
                /* Reset IRQ status. */
-               vrc6_irq_occurred = FALSE;
                cpu_clear_interrupt (CPU_INTERRUPT_IRQ_MMC);
 
                break;
@@ -240,7 +233,6 @@ static void vrc6_write (UINT16 address, UINT8 value)
                vrc6_enable_irqs = TRUE_OR_FALSE(vrc6_irq_reg & 0x01);
 
                /* Reset IRQ status. */
-               vrc6_irq_occurred = FALSE;
                cpu_clear_interrupt (CPU_INTERRUPT_IRQ_MMC);
 
                break;
@@ -276,12 +268,11 @@ static void vrc6_reset (void)
    vrc6_update_prg_bank (1);
 
    /* Reset IRQ variables. */
-   vrc6_irq_counter  = 0;
-   vrc6_irq_load     = 0x00;
-   vrc6_irq_latch    = 0x00;
-   vrc6_irq_reg      = 0x00;
-   vrc6_enable_irqs  = FALSE;
-   vrc6_irq_occurred = FALSE;
+   vrc6_irq_counter = 0;
+   vrc6_irq_load    = 0x00;
+   vrc6_irq_latch   = 0x00;
+   vrc6_irq_reg     = 0x00;
+   vrc6_enable_irqs = FALSE;
 }
 
 static int vrc6_base_init (void)
@@ -291,9 +282,8 @@ static int vrc6_base_init (void)
    /* Install write handler. */
    cpu_set_write_handler_32k (0x8000, vrc6_write);
 
-   /* Install IRQ tick handler. */
-   mmc_scanline_end = vrc6_irq_tick;
-   /* cpu_low_level_hook = vrc6_low_level_hook; */
+   /* Install IRQ predicter. */
+   mmc_scanline_start = vrc6_predict_irq;
 
    /* Select ExSound chip. */
    apu_set_exsound (APU_EXSOUND_VRC6);
@@ -330,12 +320,11 @@ static void vrc6_save_state (PACKFILE *file, int version)
    pack_fwrite (vrc6_chr_bank, 8, file);
 
    /* Save IRQ status. */
-   pack_iputl (vrc6_irq_counter,            file);
-   pack_putc  (vrc6_irq_load,               file);
-   pack_putc  (vrc6_irq_latch,              file);
-   pack_putc  (vrc6_irq_reg,                file);        
-   pack_putc  ((vrc6_enable_irqs  ? 1 : 0), file);
-   pack_putc  ((vrc6_irq_occurred ? 1 : 0), file);
+   pack_iputw (vrc6_irq_counter,           file);
+   pack_putc  (vrc6_irq_load,              file);
+   pack_putc  (vrc6_irq_latch,             file);
+   pack_putc  (vrc6_irq_reg,               file);        
+   pack_putc  ((vrc6_enable_irqs ? 1 : 0), file);
 }
 
 static void vrc6_load_state (PACKFILE *file, int version)
@@ -355,10 +344,9 @@ static void vrc6_load_state (PACKFILE *file, int version)
       vrc6_update_chr_bank (index);
 
    /* Restore IRQ status. */
-   vrc6_irq_counter  = pack_igetl (file);
-   vrc6_irq_load     = pack_getc  (file);
-   vrc6_irq_latch    = pack_getc  (file);
-   vrc6_irq_reg      = pack_getc  (file);
-   vrc6_enable_irqs  = TRUE_OR_FALSE(pack_getc (file));
-   vrc6_irq_occurred = TRUE_OR_FALSE(pack_getc (file));
+   vrc6_irq_counter = pack_igetw (file);
+   vrc6_irq_load    = pack_getc  (file);
+   vrc6_irq_latch   = pack_getc  (file);
+   vrc6_irq_reg     = pack_getc  (file);
+   vrc6_enable_irqs = TRUE_OR_FALSE(pack_getc (file));
 }
