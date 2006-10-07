@@ -1687,37 +1687,37 @@ static void mix_outputs (void)
    const real square_out = square_table [square1->output + square2->output];
    const real tnd_out = tnd_table [3 * triangle->output + 2 * noise->output + dmc->output];
 
-   /* Normalise output without damaging the relative volume levels. */
-   real left = (square_out * (1.0 / MAX_TND));
-   real right = (tnd_out * (1.0 / MAX_TND));
-              
    if (exsound)
-   {
-      /* This is largely just a hack, but oh well... */
-
       exsound->mix ();
-
-      real extra = exsound->output;
-
-      /* Center ExtraSound channels (is this correct?). */
-      extra /= 2.0;
-
-      left = ((left + extra) / 1.5);
-      right = ((right + extra) / 1.5);
-   }
 
    switch (apu.mixer.channels)
    {
       case 1:  /* Mono. */
       {
-         apu.mixer.inputs[0] = ((left + right) / 2.0);
+         real total = (square_out + tnd_out);   // 0...1
+
+         if (exsound)
+            total = ((total + exsound->output) / 2.0);
+
+         apu.mixer.inputs[0] = total;
+
          break;
       }
 
       case 2:  /* Stereo. */
       {
-         apu.mixer.inputs[0] = (left / 2.0);
-         apu.mixer.inputs[1] = (right / 2.0);
+         /* Normalise output without damaging the relative volume levels. */
+         real left = (square_out * (1.0 / MAX_TND));
+         real right = (tnd_out * (1.0 / MAX_TND));
+
+         if (exsound)
+         {
+            left = ((left + exsound->output) / 2.0);
+            right = ((right + exsound->output) / 2.0);
+         }
+
+         apu.mixer.inputs[0] = left;
+         apu.mixer.inputs[1] = right;
 
          break;
       }

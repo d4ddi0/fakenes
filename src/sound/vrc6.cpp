@@ -316,7 +316,7 @@ void Interface::mix (void)
    if (apu_options.enable_extra_3)
       total += saw.output;
 
-   output = (total / 63.0);   // result is 6 bits
+   output = (total / 61.0);
 }
 
 }  /* namespace VRC6 */
