@@ -1703,8 +1703,10 @@ static void mix_outputs (void)
 
          if (exsound)
          {
-            left = ((left + exsound->output) / 2.0);
-            right = ((right + exsound->output) / 2.0);
+            const real center = (exsound->output / 2.0);
+
+            left = ((left + center) / 1.5);
+            right = ((right + center) / 1.5);
          }
 
          apu.mixer.inputs[0] = left;
