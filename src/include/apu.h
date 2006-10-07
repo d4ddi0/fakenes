@@ -133,14 +133,18 @@ typedef struct apu_s
    } mixer;
 
    /* State. */
-   UINT8 regs[APU_REGS];         /* save */
-                          
+   UINT8 regs[APU_REGS];            /* save */
+
    /* Frame sequencer & frame IRQs. */
-   INT16 sequence_counter;       /* save */
-   UINT8 sequence_step;          /* save */
-   UINT8 sequence_steps;         /* do not save */
-   BOOL frame_irq_gen;           /* do not save */
-   BOOL frame_irq_occurred;      /* save */
+   INT16 sequence_counter;          /* save */
+   UINT8 sequence_step;             /* save */
+   UINT8 sequence_steps;            /* do not save */
+   BOOL frame_irq_gen;              /* do not save */
+   BOOL frame_irq_occurred;         /* save */
+
+   /* IRQ prediction. */
+   cpu_time_t prediction_timestamp; /* save */
+   cpu_time_t prediction_cycles;    /* save */
 
 } apu_t;
 

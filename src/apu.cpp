@@ -870,6 +870,28 @@ static linear void apu_predict_frame_irq (cpu_time_t cycles)
    apu.sequence_step = saved_sequence_step;
 }
 
+static void apu_repredict_frame_irq (void)
+{
+   /* Normally, the IRQ predictor is only called once per scanline.
+
+      This function repredicts the frame IRQ when a mid-scanline change
+      occurs (such as the frame sequencer being reset).
+
+      This is probably not needed (since a frame IRQ cannot occur so
+      suddenly after a reset?) but we emulate it anyway "just in case". */
+
+   const cpu_time_t cycles = cpu_get_cycles ();
+
+   cpu_time_t cycles_remaining = (cycles - apu.prediction_timestamp);
+   if (cycles_remaining <= 0)
+      return;
+
+   if (cycles_remaining > apu.prediction_cycles)
+      cycles_remaining = apu.prediction_cycles;
+
+   apu_predict_frame_irq (cycles_remaining);
+}
+
 void apu_load_config (void)
 {
    /* Like other components, the APU is both an interface and an emulation.
@@ -1157,7 +1179,8 @@ UINT8 apu_read (UINT16 address)
          /* kev says reads from $4015 reset the frame counter, so... */
          /* Reset frame sequencer. */
          apu_reset_frame_sequencer ();
-
+         apu_repredict_frame_irq ();
+                                    
          break;
       }
 
@@ -1590,6 +1613,7 @@ void apu_write (UINT16 address, UINT8 value)
 
          /* Reset frame sequencer. */
          apu_reset_frame_sequencer ();
+         apu_repredict_frame_irq ();
 
          break;
       }
@@ -1608,6 +1632,10 @@ void apu_write (UINT16 address, UINT8 value)
 
 void apu_predict_irqs (cpu_time_t cycles)
 {
+   /* Save parameters for re-prediction if a mid-scanline change occurs. */
+   apu.prediction_timestamp = cpu_get_cycles ();
+   apu.prediction_cycles = cycles;
+
    /* Sync state. */
    process (false);
 
@@ -1625,6 +1653,10 @@ void apu_save_state (PACKFILE *file, int version)
    /* Save frame sequencer state. */
    pack_iputw (apu.sequence_counter, file);
    pack_putc (apu.sequence_step, file);
+
+   /* Save IRQ prediction state. */
+   pack_iputl (apu.prediction_timestamp, file);
+   pack_iputl (apu.prediction_cycles, file);
 
    /* Save channel states. */
    apu_save_square   (apu.square[0], file, version);
@@ -1649,6 +1681,10 @@ void apu_load_state (PACKFILE *file, int version)
    /* Load frame sequencer state. */
    apu.sequence_counter = pack_igetw (file);
    apu.sequence_step = pack_getc (file);
+
+   /* Load IRQ prediction state. */
+   apu.prediction_timestamp = pack_igetl (file);
+   apu.prediction_cycles = pack_igetl (file);
 
    /* Load channel states. */
    apu_load_square   (apu.square[0], file, version);
