@@ -1047,6 +1047,8 @@ void apu_update (void)
 
 void apu_start_frame (void)
 {
+   log_printf ("---- frame ----\n");
+
    /* Start DSP buffer fill. */
    dsp_start ();
 
@@ -1896,11 +1898,17 @@ static void process (bool finish)
                /* Fetch sample. */
                real sample = apu.mixer.inputs[channel];
 
-               /* Accumulate sample. */
+               /* Filter sample. */
+               sample = ((sample + apu.mixer.filter[channel]) / 2.0);
+
+               /* Accumulate filtered sample. */
                apu.mixer.accumulators[channel] += sample;
-      
+
                /* Cache it so that we can split it up later if need be. */
                apu.mixer.sample_cache[channel] = sample;
+
+               /* Update filter sample. */
+               apu.mixer.filter[channel] = sample;
             }
          
             apu.mixer.accumulated_samples++;

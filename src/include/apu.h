@@ -127,6 +127,7 @@ typedef struct apu_s
       REAL inputs[APU_MIXER_MAX_CHANNELS];
       REAL accumulators[APU_MIXER_MAX_CHANNELS];
       REAL sample_cache[APU_MIXER_MAX_CHANNELS];
+      REAL filter[APU_MIXER_MAX_CHANNELS];
       REAL accumulated_samples;
       REAL max_samples;
 
