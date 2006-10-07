@@ -1891,7 +1891,7 @@ static void process (bool finish)
       
                for (int channel = 0; channel < apu.mixer.channels; channel++)
                {
-                  /* Reload accumulators with residual sample protion. */
+                  /* Reload accumulators with residual sample portion. */
                   apu.mixer.accumulators[channel] = (apu.mixer.sample_cache[channel] * residual);
                }
       
@@ -1909,8 +1909,6 @@ static void process (bool finish)
 
    if (finish && (samples.size () > 0))
    {
-      log_printf ("samples: %u, buffer: %u\n", samples.size (), buffer_size);
-
       /* Send all stored samples to the DSP for processing. */
       dsp_write (&samples[0], samples.size ());
 
