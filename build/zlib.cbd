@@ -18,7 +18,7 @@ setstderr ''
 
 # --
 
-SRCFILES += 'unzip.c '
+SRCFILES += '${SRC_ETCDIR}/unzip.c '
 
 # --
 

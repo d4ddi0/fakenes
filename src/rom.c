@@ -16,8 +16,8 @@
 #include "rom.h"
 #include "types.h"
 #ifdef USE_ZLIB
-#include "zlib.h"
-#include "unzip.h"
+#include <zlib.h>
+#include "etc/unzip.h"
 #endif
 
 /* Global ROM container. */

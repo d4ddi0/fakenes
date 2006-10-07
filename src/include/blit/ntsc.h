@@ -1,5 +1,5 @@
 #include "blit/shared.h"
-#include "snes_ntsc.h"
+#include "etc/snes_ntsc.h"
 
 /* Variables. */
 

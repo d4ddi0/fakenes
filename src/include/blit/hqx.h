@@ -1,10 +1,5 @@
 #include "blit/shared.h"
-
-/* Imports. */
-
-extern void hq2x (unsigned char *, unsigned char *, int, int, int);
-extern void hq3x (unsigned char *, unsigned char *, int, int, int);
-extern void hq4x (unsigned char *, unsigned char *, int, int, int);
+#include "etc/hqx.h"
 
 /* Blitter framework. */
 
