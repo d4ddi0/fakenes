@@ -47,40 +47,98 @@ static BOOL vrc6_swap_address_pins = FALSE;
 static UINT8 vrc6_prg_bank[2];
 static UINT8 vrc6_chr_bank[8];
 
-#define VRC6_CYCLE_LENGTH     CYCLE_LENGTH
-#define VRC6_SCANLINE_LENGTH  SCANLINE_LENGTH
+/* IRQ stuff. */
+#define VRC6_IRQ_CYCLE_LENGTH    CYCLE_LENGTH
+#define VRC6_IRQ_SCANLINE_LENGTH SCANLINE_LENGTH
 
-static UINT16 vrc6_irq_counter = 0;
+#define VRC6_IRQ_FREQUENCY \
+   ((vrc6_irq_reg & 0x04) ? VRC6_IRQ_CYCLE_LENGTH : VRC6_IRQ_SCANLINE_LENGTH)
+
+static UINT16 vrc6_irq_timer   = 0;
+static UINT8  vrc6_irq_counter = 0x00;
 static UINT8  vrc6_irq_latch   = 0x00;
-static UINT8  vrc6_irq_load    = 0x00;
 static UINT8  vrc6_irq_reg     = 0x00;
 static BOOL   vrc6_enable_irqs = FALSE;
 
+/* IRQ prediction. */
+static cpu_time_t vrc6_prediction_timestamp = 0;
+static cpu_time_t vrc6_prediction_cycles = 0;
+
+static int vrc6_irq_tick (int line)
+{
+   if (!vrc6_enable_irqs)
+      return (CPU_INTERRUPT_NONE);
+
+   vrc6_irq_timer += SCANLINE_CLOCKS;
+   if (vrc6_irq_timer >= VRC6_IRQ_FREQUENCY)
+   {
+      vrc6_irq_timer -= VRC6_IRQ_FREQUENCY;
+
+      if (vrc6_irq_counter == 0xFF)
+      {
+         vrc6_irq_counter = vrc6_irq_latch;
+         /* This part is now handled by the IRQ predictor. */
+         /* return (CPU_INTERRUPT_IRQ_MMC); */
+      }
+      else
+         vrc6_irq_counter++;
+   }
+
+   return (CPU_INTERRUPT_NONE);
+}
+
 static void vrc6_predict_irq (cpu_time_t cycles)
 {
-   cpu_time_t count, offset;
+   UINT16 saved_irq_timer;
+   UINT8 saved_irq_counter;
+
+   cpu_time_t offset;
+
+   vrc6_prediction_timestamp = cpu_get_cycles ();
+   vrc6_prediction_cycles = cycles;
 
    if (!vrc6_enable_irqs)
       return;
 
-   count = ((vrc6_irq_reg & 0x04) ? VRC6_CYCLE_LENGTH : VRC6_SCANLINE_LENGTH);
+   /* Save vars since we're just simulating. */
+   saved_irq_timer = vrc6_irq_timer;
+   saved_irq_counter = vrc6_irq_counter;
 
+   /* Just go through the motions... */
    for (offset = 0; offset < cycles; offset++)
    {
-      vrc6_irq_counter++;
-      if (vrc6_irq_counter == count)
+      vrc6_irq_timer++;
+      if (vrc6_irq_timer == VRC6_IRQ_FREQUENCY)
       {
-         vrc6_irq_counter = 0;
+         vrc6_irq_timer = 0;
    
-         if (vrc6_irq_load == 0xFF)
+         if (vrc6_irq_counter == 0xFF)
          {
-            vrc6_irq_load = vrc6_irq_latch;
-            cpu_queue_interrupt (CPU_INTERRUPT_IRQ_MMC, (cpu_get_cycles () + offset));
+            vrc6_irq_counter = vrc6_irq_latch;
+            cpu_queue_interrupt (CPU_INTERRUPT_IRQ_MMC, (vrc6_prediction_timestamp + offset));
          }
          else
-            vrc6_irq_load++;
+            vrc6_irq_counter++;
       }
    }
+
+   /* Restore saved vars. */
+   vrc6_irq_timer = saved_irq_timer;
+   vrc6_irq_counter = saved_irq_counter;
+}
+
+static void vrc6_repredict_irq (void)
+{
+   const cpu_time_t cycles = cpu_get_cycles ();
+
+   cpu_time_t cycles_remaining = (cycles - vrc6_prediction_timestamp);
+   if (cycles_remaining <= 0)
+      return;
+
+   if (cycles_remaining > vrc6_prediction_cycles)
+      cycles_remaining = vrc6_prediction_cycles;
+
+   vrc6_predict_irq (cycles_remaining);
 }
 
 static void vrc6_update_prg_bank (int bank)
@@ -200,6 +258,9 @@ static void vrc6_write (UINT16 address, UINT8 value)
                /* Set the IRQ counter load value. */
                vrc6_irq_latch = value;
 
+               /* Update prediction. */
+               vrc6_repredict_irq ();
+
                break;
             }
 
@@ -214,15 +275,18 @@ static void vrc6_write (UINT16 address, UINT8 value)
                /* If enabled... */
                if (vrc6_enable_irqs)
                {
-                  /* Load the value from the $F000 latch. */
-                  vrc6_irq_load = vrc6_irq_latch;
+                  /* Load the counter with the value from the $F000 latch. */
+                  vrc6_irq_counter = vrc6_irq_latch;
 
-                  /* Reset the counter. */
-                  vrc6_irq_counter = 0;
+                  /* Reset the timer. */
+                  vrc6_irq_timer = 0;
                }
 
                /* Reset IRQ status. */
                cpu_clear_interrupt (CPU_INTERRUPT_IRQ_MMC);
+
+               /* Update prediction. */
+               vrc6_repredict_irq ();
 
                break;
             }
@@ -234,6 +298,9 @@ static void vrc6_write (UINT16 address, UINT8 value)
 
                /* Reset IRQ status. */
                cpu_clear_interrupt (CPU_INTERRUPT_IRQ_MMC);
+
+               /* Update prediction. */
+               vrc6_repredict_irq ();
 
                break;
             }         
@@ -268,11 +335,14 @@ static void vrc6_reset (void)
    vrc6_update_prg_bank (1);
 
    /* Reset IRQ variables. */
-   vrc6_irq_counter = 0;
-   vrc6_irq_load    = 0x00;
+   vrc6_irq_timer   = 0;
+   vrc6_irq_counter = 0x00;
    vrc6_irq_latch   = 0x00;
    vrc6_irq_reg     = 0x00;
    vrc6_enable_irqs = FALSE;
+
+   vrc6_prediction_timestamp = 0;
+   vrc6_prediction_cycles = 0;
 }
 
 static int vrc6_base_init (void)
@@ -281,6 +351,9 @@ static int vrc6_base_init (void)
 
    /* Install write handler. */
    cpu_set_write_handler_32k (0x8000, vrc6_write);
+
+   /* Install IRQ tick handler. */
+   mmc_scanline_end = vrc6_irq_tick;
 
    /* Install IRQ predicter. */
    mmc_predict_irq = vrc6_predict_irq;
@@ -320,11 +393,14 @@ static void vrc6_save_state (PACKFILE *file, int version)
    pack_fwrite (vrc6_chr_bank, 8, file);
 
    /* Save IRQ status. */
-   pack_iputw (vrc6_irq_counter,           file);
-   pack_putc  (vrc6_irq_load,              file);
+   pack_iputw (vrc6_irq_timer,             file);
+   pack_putc  (vrc6_irq_counter,           file);
    pack_putc  (vrc6_irq_latch,             file);
    pack_putc  (vrc6_irq_reg,               file);        
    pack_putc  ((vrc6_enable_irqs ? 1 : 0), file);
+
+   pack_iputl (vrc6_prediction_timestamp, file);
+   pack_iputl (vrc6_prediction_cycles,    file);
 }
 
 static void vrc6_load_state (PACKFILE *file, int version)
@@ -344,9 +420,12 @@ static void vrc6_load_state (PACKFILE *file, int version)
       vrc6_update_chr_bank (index);
 
    /* Restore IRQ status. */
-   vrc6_irq_counter = pack_igetw (file);
-   vrc6_irq_load    = pack_getc  (file);
+   vrc6_irq_timer   = pack_igetw (file);
+   vrc6_irq_counter = pack_getc  (file);
    vrc6_irq_latch   = pack_getc  (file);
    vrc6_irq_reg     = pack_getc  (file);
    vrc6_enable_irqs = TRUE_OR_FALSE(pack_getc (file));
+
+   vrc6_prediction_timestamp = pack_igetl (file);
+   vrc6_prediction_cycles    = pack_igetl (file);
 }
