@@ -833,6 +833,9 @@ static linear void apu_predict_frame_irq (cpu_time_t cycles)
       function, since we don't want to affect the APU's actual state - only
       get a rough(more accurate than not) idea of when the IRQ will occur. */
 
+   if (!apu.frame_irq_gen)
+      return;
+
    const INT16 saved_sequence_counter = apu.sequence_counter;
    const UINT8 saved_sequence_step = apu.sequence_step;
 
@@ -855,9 +858,9 @@ static linear void apu_predict_frame_irq (cpu_time_t cycles)
       apu_reload_sequence_counter ();
   
       /* check to see if we should generate an irq */
-      if ((apu.sequence_step == 4) && apu.frame_irq_gen)
+      if (apu.sequence_step == 4)
          cpu_queue_interrupt (CPU_INTERRUPT_IRQ_FRAME, (cpu_get_cycles () + (offset * CYCLE_LENGTH)));
-   
+
       apu.sequence_step++;
       if (apu.sequence_step > apu.sequence_steps)
          apu.sequence_step = 1;
