@@ -29,9 +29,6 @@ extern "C" {
 
 #define APU_REGS   24
 
-#define APU_BASEFREQ_NTSC  (1.89e9 / 88.0 / 12.0)
-#define APU_BASEFREQ_PAL   (26601712.5 / 16.0)
-
 /* Maximum number of channels to send to the DSP (mono = 1, stereo = 2). */
 #define APU_MIXER_MAX_CHANNELS   2
 
@@ -117,9 +114,6 @@ typedef struct apu_s
    apu_chan_t noise;
    apu_chan_t dmc;
 
-   /* Frequencies. */
-   REAL base_frequency;
-
    /* Delta value for timers. */
    cpu_time_t timer_delta;
 
@@ -127,13 +121,9 @@ typedef struct apu_s
    struct
    {            
       BOOL can_process;
-
-      REAL sample_rate;
       int channels;
-
       cpu_time_t clock_counter;
       cpu_time_t delta_cycles;
-
       REAL inputs[APU_MIXER_MAX_CHANNELS];
       REAL accumulators[APU_MIXER_MAX_CHANNELS];
       REAL sample_cache[APU_MIXER_MAX_CHANNELS];
@@ -144,7 +134,7 @@ typedef struct apu_s
 
    /* State. */
    UINT8 regs[APU_REGS];         /* save */
-
+                          
    /* Frame sequencer & frame IRQs. */
    INT16 sequence_counter;       /* save */
    UINT8 sequence_step;          /* save */
@@ -208,3 +198,4 @@ enum
 }
 #endif   /* __cplusplus */
 #endif   /* !APU_H_INCLUDED */
+                          

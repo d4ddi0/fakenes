@@ -28,6 +28,7 @@ extern void dsp_close (void);
 extern void dsp_start (void);
 extern void dsp_write (const DSP_SAMPLE *, unsigned);
 extern void dsp_end (void);
+extern unsigned dsp_get_buffer_size (void);
 extern void dsp_set_channel_enabled (int, ENUM, BOOL);
 extern BOOL dsp_get_channel_enabled (int);
 extern void dsp_enable_channel (int);

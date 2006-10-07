@@ -216,6 +216,11 @@ void dsp_end (void)
    dsp_wav_write ();
 }
 
+unsigned dsp_get_buffer_size (void)
+{
+   return ((dsp_buffer_samples * dsp_buffer_channels));
+}
+
 /* --- Channel param manipulation. --- */
 
 void dsp_set_channel_enabled (int channel, ENUM mode, BOOL enabled)

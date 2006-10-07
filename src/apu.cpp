@@ -65,7 +65,6 @@ static Sound::MMC5::Interface MMC5;
 static Sound::VRC6::Interface VRC6;
 
 /* Internal function prototypes (defined at bottom). */
-static void set_sample_rate (real sample_rate);
 static void mix_outputs (void);
 static void process (bool finish);
 
@@ -984,8 +983,12 @@ void apu_update (void)
    /* Updates the APU to external changes without resetting it, since that
       might cause problems in a currently running game. */
 
-   /* Set sample rate. */
-   set_sample_rate (audio_sample_rate);
+   /* Number of samples to be held in the APU mixer accumulators before
+      being divided and sent to the DSP.
+
+      This should be directly synchronized with the code execution rate to
+      avoid overflowing the sample buffer. */
+   apu.mixer.max_samples = ((timing_get_frequency () / CYCLE_LENGTH) / audio_sample_rate);
 
    /* Deinitialize DSP. */
    dsp_exit ();
@@ -1661,21 +1664,6 @@ void apu_load_state (PACKFILE *file, int version)
 
 /* --- Internal functions. --- */
 
-static void set_sample_rate (real sample_rate)
-{
-   apu.mixer.sample_rate = sample_rate;
-
-   /* Exact APU frequency.
-
-      This might drift a little from the actual code execution rate, but
-      it shouldn't be enough to actually matter. */
-   apu.base_frequency = ((machine_type == MACHINE_TYPE_NTSC) ? APU_BASEFREQ_NTSC : APU_BASEFREQ_PAL);
-
-   /* Number of samples to be held in the APU mixer accumulators before
-      being divided and sent to the DSP. */
-   apu.mixer.max_samples = ((apu.base_frequency * timing_get_speed_ratio ()) / sample_rate);
-}
-
 static void mix_outputs (void)
 {
    static const apu_chan_t *square1  = &apu.square[0];
@@ -1752,8 +1740,11 @@ static void process (bool finish)
    /* Avoid re-entry. */
    apu.mixer.can_process = false;
 
+   /* Determine the size of our output buffer. */
+   const unsigned buffer_size = dsp_get_buffer_size ();
+
    /* Reserve a minimum amount of sample space (for performance reasons). */
-   samples.reserve ((((unsigned)ceil (apu.mixer.sample_rate)) * apu.mixer.channels));
+   samples.reserve (buffer_size);
 
    switch (apu_options.emulation)
    {
@@ -1833,7 +1824,7 @@ static void process (bool finish)
 
                /* Adjust counter. */
                apu.mixer.accumulated_samples -= apu.mixer.max_samples;
-            }
+            }                      
          }
 
          break;
@@ -1915,6 +1906,8 @@ static void process (bool finish)
 
    if (finish && (samples.size () > 0))
    {
+      log_printf ("samples: %u, buffer: %u\n", samples.size (), buffer_size);
+
       /* Send all stored samples to the DSP for processing. */
       dsp_write (&samples[0], samples.size ());
 
