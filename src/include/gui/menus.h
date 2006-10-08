@@ -386,7 +386,7 @@ static const MENU audio_output_menu_base[] =
    { "  &Allegro",           audio_output_menu_subsystem_allegro,      NULL,                                  0, NULL },
    { "  &OpenAL",            audio_output_menu_subsystem_openal,       NULL,                                  0, NULL },
    MENU_SPLITTER,          
-   { "Sampling Rate",        audio_output_menu_sampling_rate_22050_hz, NULL,                                  0, NULL },
+   { "Sampling Rate",        NULL,                                     NULL,                                  0, NULL },
    { "  &1: 22050 Hz",       audio_output_menu_sampling_rate_22050_hz, NULL,                                  0, NULL },
    { "  &2: 44100 Hz",       audio_output_menu_sampling_rate_44100_hz, NULL,                                  0, NULL },
    { "  &3: 48000 Hz",       audio_output_menu_sampling_rate_48000_hz, NULL,                                  0, NULL },
