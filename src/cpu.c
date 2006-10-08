@@ -377,6 +377,18 @@ cpu_time_t cpu_get_cycles (void)
    return (cpu_context.Cycles);
 }
 
+cpu_time_t cpu_get_elapsed_cycles (cpu_time_t *timestamp)
+{
+   cpu_time_t elapsed_cycles;
+
+   //RT_ASSERT(timestamp);
+
+   elapsed_cycles = (cpu_context.Cycles - *timestamp);
+   *timestamp = cpu_context.Cycles;
+
+   return (elapsed_cycles);
+}
+
 void cpu_save_state (PACKFILE *file, int version)
 {
    int index;

@@ -122,7 +122,6 @@ typedef struct apu_s
    {            
       BOOL can_process;
       int channels;
-      cpu_time_t clock_counter;
       cpu_time_t delta_cycles;
       REAL inputs[APU_MIXER_MAX_CHANNELS];
       REAL accumulators[APU_MIXER_MAX_CHANNELS];
@@ -135,6 +134,9 @@ typedef struct apu_s
 
    /* State. */
    UINT8 regs[APU_REGS];            /* save */
+
+   /* Timestamp of the last call to process(). */
+   cpu_time_t clock_counter;
 
    /* Frame sequencer & frame IRQs. */
    INT16 sequence_counter;          /* save */

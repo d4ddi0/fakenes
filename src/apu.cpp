@@ -859,7 +859,7 @@ static linear void apu_predict_frame_irq (cpu_time_t cycles)
   
       /* check to see if we should generate an irq */
       if (apu.sequence_step == 4)
-         cpu_queue_interrupt (CPU_INTERRUPT_IRQ_FRAME, (cpu_get_cycles () + (offset * CYCLE_LENGTH)));
+         cpu_queue_interrupt (CPU_INTERRUPT_IRQ_FRAME, (apu.prediction_timestamp + (offset * CYCLE_LENGTH)));
 
       apu.sequence_step++;
       if (apu.sequence_step > apu.sequence_steps)
@@ -1652,6 +1652,9 @@ void apu_save_state (PACKFILE *file, int version)
    for (int index = 0; index < APU_REGS; index++)
       pack_putc (apu.regs[index], file);
 
+   /* Save processing timestamp. */
+   pack_iputl (apu.clock_counter, file);
+
    /* Save frame sequencer state. */
    pack_iputw (apu.sequence_counter, file);
    pack_putc (apu.sequence_step, file);
@@ -1680,6 +1683,9 @@ void apu_load_state (PACKFILE *file, int version)
    for (int index = 0; index < APU_REGS; index++)
       apu_write ((0x4000 + index), pack_getc (file));
 
+   /* Load processing timestamp. */
+   apu.clock_counter = pack_igetl (file);
+
    /* Load frame sequencer state. */
    apu.sequence_counter = pack_igetw (file);
    apu.sequence_step = pack_getc (file);
@@ -1698,9 +1704,6 @@ void apu_load_state (PACKFILE *file, int version)
    /* Load ExSound state. */
    if (exsound)
       exsound->load (file, version);
-
-   /* Synchronize the APU mixer's clock with the CPU's cycle counter. */
-   apu.mixer.clock_counter = (cpu_get_cycles () / CYCLE_LENGTH);
 }
 
 /* --- Internal functions. --- */
@@ -1766,19 +1769,13 @@ static void process (bool finish)
        (!apu.mixer.can_process))
       return;
 
-   /* Grab a fresh timestamp. */
-   const cpu_time_t cycles = (cpu_get_cycles () / CYCLE_LENGTH);
-
    /* Calculate the delta period. */
-   const cpu_time_t elapsed_cycles = (cycles - apu.mixer.clock_counter);
+   const cpu_time_t elapsed_cycles = (cpu_get_elapsed_cycles (&apu.clock_counter) / CYCLE_LENGTH);
    if (elapsed_cycles == 0)
    {
       /* Nothing to do. */
       return;
    }
-
-   /* Update current timestamp. */
-   apu.mixer.clock_counter = cycles;
 
    /* Avoid re-entry. */
    apu.mixer.can_process = false;
