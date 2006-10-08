@@ -477,7 +477,7 @@ static linear void apu_update_noise (apu_chan_t &chan, FLAGS update_flags)
       chan.timer += chan.period;
 
       UINT16 bit0 = (chan.shift16 & 0x01);
-      const int tap = ((chan.shift16 & chan.xor_tap) ? 1 : 0);
+      const unsigned tap = ((chan.shift16 & chan.xor_tap) ? 1 : 0);
       const UINT16 bit15 = (bit0 ^ tap);
 
       chan.shift16 |= (bit15 << 15);
