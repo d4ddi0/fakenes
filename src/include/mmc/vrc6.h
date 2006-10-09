@@ -77,15 +77,18 @@ static void vrc6_update_irq_counter (cpu_time_t cycles, BOOL allow_irq)
    if (!vrc6_enable_irqs)
       return;
 
+   /* Speed hack.  Shouldn't hurt accuracy. =) */
+   cycles /= CYCLE_LENGTH;
+
    /* Cache it for efficiency. */
    count = VRC6_IRQ_FREQUENCY;
 
    for (offset = 0; offset < cycles; offset++)
    {
-      vrc6_irq_timer++;
-      if (vrc6_irq_timer == count)
+      vrc6_irq_timer += CYCLE_LENGTH;
+      if (vrc6_irq_timer >= count)
       {
-         vrc6_irq_timer = 0;
+         vrc6_irq_timer -= count;
    
          if (vrc6_irq_counter == 0xFF)
          {
