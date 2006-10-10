@@ -42,6 +42,105 @@ BOOL rom_is_loaded = FALSE;
    faster, but don't get too carried away). */
 #define BUFFER_SIZE  65536
 
+#define SWAP24(v) \
+   (((v) << 24) | \
+   (((v) & 0xFF00) << 8) | \
+   (((v) & 0xFF0000) >> 8) | \
+   ((v) >> 24))
+
+int load_ips (const UCHAR *filename, PACKFILE *buffer_file)
+{
+   PACKFILE *file;
+   UINT8 signature[5];
+
+   RT_ASSERT(filename);
+   RT_ASSERT(buffer_file);
+
+   /* Open IPS file. */
+   file = pack_fopen (filename, "r");
+   if (!file)
+   {
+      log_printf ("ROM: IPS loader: Couldn't open file (%s).", filename);
+      return (1);
+   }
+
+   /* Verify signature. */
+   pack_fread (signature, sizeof(signature), file);
+
+   if (strncmp (signature, "PATCH", 5) != 0)
+   {
+      /* Verification failed. */
+      log_printf ("ROM: IPS loader: Vertification failed.");
+      pack_fclose (file);
+      return (2);
+   }
+
+   for (;;)
+   {
+      UINT8 marker[3];
+      UINT32 offset;
+      UINT16 length;
+
+      /* Load next marker. */
+      pack_fread (marker, sizeof(marker), file);
+
+      /* Check for end of file marker. */
+      if (strncmp (marker, "EOF", 3) == 0)
+         break;          
+
+      /* Generate packed offset. */
+      offset = ((marker[0] << 16) | (marker[1] << 8) | marker[2]);
+
+#ifndef LSB_FIRST
+      /* TODO: Test if this is actually needed/works. */
+      offset = SWAP24(offset);                      
+#endif
+
+      /* Seek to offset in output. */
+      pack_fseek (buffer_file, offset);
+
+      /* Load block length. */
+      length = pack_mgetw (file);
+
+      /* 0 = RLE encoded. */
+      if (length == 0)
+      {
+         UINT16 rle_length;
+         UINT8 rle_char;
+         int rle_count;
+
+         /* Run length - 0 to 0xFFFF. */
+         rle_length = pack_mgetw (file);
+
+         /* Fill value. */
+         rle_char = pack_getc (file);
+
+         /* Overwrite existing data sequentially. */
+         for (rle_count = 0; rle_count < rle_length; rle_count++)
+            pack_putc (rle_char, buffer_file);
+      }
+      else
+      {
+         /* Block copy. */
+
+         UINT8 buffer[0xFFFF];
+         unsigned bytes;
+
+         bytes = pack_fread (buffer, length, file);
+         if (bytes < length)
+            log_printf ("ROM: IPS loader: Warning: Length underrun.");
+
+         pack_fwrite (buffer, bytes, buffer_file);
+      }
+   }
+
+   /* Close IPS file. */
+   pack_fclose (file);
+
+   /* Return success. */
+   return (0);
+}
+
 int load_ines_rom (PACKFILE *file, ROM *rom)
 {
    /* Generic loader function for loading the iNES ROM format from an
@@ -154,6 +253,7 @@ int load_rom (const UCHAR *filename, ROM *rom)
    LR_FILE file;
    PACKFILE *buffer_file;
    long bytes;
+   USTRING ips;
    int error;
 
    RT_ASSERT(filename);
@@ -199,6 +299,25 @@ int load_rom (const UCHAR *filename, ROM *rom)
    /* Seek back to the beginning. */
    pack_fseek (buffer_file, 0);
 
+   /* See if we have a matching IPS file. */
+   USTRING_CLEAR(ips);
+   replace_extension (ips, filename, "ips", (sizeof(ips) - 1));
+
+   if (exists (ips))
+   {
+      /* Load it and patch our data. */
+      error = load_ips (ips, buffer_file);
+      if (error != 0)
+      {
+         log_printf ("ROM: IPS load failed (consult above messages if any).");
+         pack_fclose (buffer_file);
+         return ((8 + error));
+      }
+
+      /* Seek back to the beginning. */
+      pack_fseek (buffer_file, 0);
+   }
+
    /* Load the ROM. */
    error = load_ines_rom (buffer_file, rom);
    if (error != 0)
@@ -224,6 +343,7 @@ int load_rom_from_zip (const UCHAR *filename, ROM *rom)
    unzFile file;
    PACKFILE *buffer_file;
    long bytes;
+   USTRING ips;
    int error;
    unz_file_info unused;
 
@@ -266,8 +386,41 @@ int load_rom_from_zip (const UCHAR *filename, ROM *rom)
       pack_fwrite (&buffer, bytes, buffer_file);
    }
 
+   /* Fill in filename. */
+   unzGetCurrentFileInfo (file, &unused, rom->filename, sizeof(rom->filename), NULL, NULL, NULL, NULL);
+
+   /* Close the file. */
+   unzCloseCurrentFile (file);
+   unzClose (file);
+
    /* Seek back to the beginning. */
    pack_fseek (buffer_file, 0);
+
+   /* See if we have a matching IPS file. */
+   USTRING_CLEAR(ips);
+   replace_extension (ips, filename, "ips", (sizeof(ips) - 1));
+
+   if (!exists (ips))
+   {
+      /* Try a variation of the ZIP'ed filename instead. */
+      USTRING_CLEAR(ips);
+      replace_extension (ips, rom->filename, "ips", (sizeof(ips) - 1));
+   }
+
+   if (exists (ips))
+   {
+      /* Load it and patch our data. */
+      error = load_ips (ips, buffer_file);
+      if (error != 0)
+      {
+         log_printf ("ROM: IPS load failed (consult above messages if any).");
+         pack_fclose (buffer_file);
+         return ((8 + error));
+      }
+
+      /* Seek back to the beginning. */
+      pack_fseek (buffer_file, 0);
+   }
 
    /* Load the ROM. */
    error = load_ines_rom (buffer_file, rom);
@@ -275,20 +428,11 @@ int load_rom_from_zip (const UCHAR *filename, ROM *rom)
    {
       log_printf ("ROM: ZIP loader: iNES load failed (consult above messages if any).");
       pack_fclose (buffer_file);
-      unzCloseCurrentFile (file);
-      unzClose (file);
       return ((8 + error));
    }
 
    /* Close the buffer file. */
    pack_fclose (buffer_file);
-
-   /* Fill in filename. */
-   unzGetCurrentFileInfo (file, &unused, rom->filename, sizeof(rom->filename), NULL, NULL, NULL, NULL);
-
-   /* Close the file. */
-   unzCloseCurrentFile (file);
-   unzClose (file);
 
    /* Return success. */
    return (0);
