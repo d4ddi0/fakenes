@@ -89,18 +89,18 @@ int load_ips (const UCHAR *filename, PACKFILE *buffer_file)
          break;          
 
       /* Generate packed offset. */
+      /* IPS is big-endian, so this works on all systems */
       offset = ((marker[0] << 16) | (marker[1] << 8) | marker[2]);
-
-#ifndef LSB_FIRST
-      /* TODO: Test if this is actually needed/works. */
-      offset = SWAP24(offset);                      
-#endif
 
       /* Seek to offset in output. */
       pack_fseek (buffer_file, offset);
 
+#ifndef LSB_FIRST
       /* Load block length. */
       length = pack_mgetw (file);
+#else
+      length = pack_igetw (file);
+#endif
 
       /* 0 = RLE encoded. */
       if (length == 0)
@@ -109,9 +109,13 @@ int load_ips (const UCHAR *filename, PACKFILE *buffer_file)
          UINT8 rle_char;
          int rle_count;
 
+#ifndef LSB_FIRST
+         /* Yes, apparently mgetw and igetw are misnamed */
          /* Run length - 0 to 0xFFFF. */
          rle_length = pack_mgetw (file);
-
+#else
+         rle_length = pack_igetw (file);
+#endif
          /* Fill value. */
          rle_char = pack_getc (file);
 
