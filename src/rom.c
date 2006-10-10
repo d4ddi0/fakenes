@@ -14,6 +14,7 @@
 #include "cpu.h"
 #include "ppu.h"
 #include "rom.h"
+#include "shared/bufferfile.h"
 #include "types.h"
 #ifdef USE_ZLIB
 #include <zlib.h>
@@ -37,32 +38,31 @@ BOOL rom_is_loaded = FALSE;
 #  define LR_READ(file, buffer, size) (pack_fread (buffer, size, file))
 #endif   /* !USE_ZLIB */
 
-int load_rom (const UCHAR *filename, ROM *rom)
+/* Size of the transfer buffer when loading ROM files into memory (larger is
+   faster, but don't get too carried away). */
+#define BUFFER_SIZE  65536
+
+int load_ines_rom (PACKFILE *file, ROM *rom)
 {
+   /* Generic loader function for loading the iNES ROM format from an
+      already open PACKFILE. */
+
    INES_HEADER header;
-   LR_FILE file;
-   UINT8 test;
+
+   RT_ASSERT(file);
+   RT_ASSERT(rom);
 
    /* Initialize the ROM context. */
-   memset (rom, NULL, sizeof (ROM));
-
-   /* Check if ROM is inside a ZIP file. */
-   if (ustrnicmp (get_extension (filename), "zip", USTRING_SIZE) == 0)
-      return (load_rom_from_zip (filename, rom));
-
-   /* Open the file. */
-   file = LR_OPEN (filename, "r");
-   if (!file)
-      return (1);
+   memset (rom, NULL, sizeof(ROM));
 
    /* Read the header. */
-   LR_READ(file, &header, sizeof (INES_HEADER));
+   pack_fread (&header, sizeof(INES_HEADER), file);
 
    /* Verify the signature. */
    if (strncmp ((char *)header.signature, "NES\x1a", 4))
    {
       /* Verification failed. */
-      LR_CLOSE(file);
+      log_printf ("ROM: iNES loader: Vertification failed.");
       return (1);
    }
 
@@ -70,7 +70,8 @@ int load_rom (const UCHAR *filename, ROM *rom)
    if (header.prg_rom_pages == 0)
    {
       /* No code to run. ;) */
-      LR_CLOSE(file);
+      WARN_GENERIC();
+      log_printf ("ROM: iNES loader: PRG ROM is missing.");
       return (2);
    }
 
@@ -91,8 +92,7 @@ int load_rom (const UCHAR *filename, ROM *rom)
    rom->control_byte_2 = header.control_byte_2;
 
    /* Derive mapper number. */
-   rom->mapper_number = ((rom->control_byte_2 & 0xf0) |
-      ((rom->control_byte_1 & 0xf0) >> 4));
+   rom->mapper_number = ((rom->control_byte_2 & 0xf0) | ((rom->control_byte_1 & 0xf0) >> 4));
 
    /* Set mapper. */
    mmc_request (rom);
@@ -103,168 +103,199 @@ int load_rom (const UCHAR *filename, ROM *rom)
       rom->trainer = malloc (ROM_TRAINER_SIZE);
       if (!rom->trainer)
       {
-         LR_CLOSE(file);
+         WARN_GENERIC();
+         log_printf ("ROM: iNES loader: Failed to allocate memory for the trainer.");
          return (3);
       }
 
-      LR_READ(file, rom->trainer, ROM_TRAINER_SIZE);
+      pack_fread (rom->trainer, ROM_TRAINER_SIZE, file);
    }
 
    /* Load PRG-ROM. */
    if (!cpu_get_prg_rom_pages (rom))
    {
+      WARN_GENERIC();
+      log_printf ("ROM: iNES loader: Failed to allocate memory for PRG ROM.");
       free_rom (rom);
-      LR_CLOSE(file);
       return (4);
    }
 
-   LR_READ(file, rom->prg_rom, (rom->prg_rom_pages * 0x4000));
+   pack_fread (rom->prg_rom, (rom->prg_rom_pages * 0x4000), file);
 
    /* Load CHR-ROM. */
    if (rom->chr_rom_pages > 0)
    {
       if (!ppu_get_chr_rom_pages (rom))
       {
+         WARN_GENERIC();
+         log_printf ("ROM: iNES loader: Failed to allocate memory for CHR ROM.");
          free_rom (rom);
-         LR_CLOSE(file);
          return (5);
       }
 
-      LR_READ(file, rom->chr_rom, (rom->chr_rom_pages * 0x2000));
+      pack_fread (rom->chr_rom, (rom->chr_rom_pages * 0x2000), file);
    }
-
-   /* Close the file. */
-   LR_CLOSE (file);
-
-   /* Fill in filename. */
-   append_filename (rom->filename, "", filename, sizeof (rom->filename));
 
    /* Copy SRAM flag. */
    rom->sram_flag = (rom->control_byte_1 & ROM_CTRL_BATTERY);
 
    /* Set mirroring. */
    if ((rom->control_byte_1 & ROM_CTRL_FOUR_SCREEN))
-   {
-        ppu_set_mirroring (MIRRORING_FOUR_SCREEN);
-   }
+      ppu_set_mirroring (MIRRORING_FOUR_SCREEN);
    else
+      ppu_set_mirroring (((rom->control_byte_1 & ROM_CTRL_MIRRORING) ? MIRRORING_VERTICAL : MIRRORING_HORIZONTAL));
+
+   /* Return success. */
+   return (0);
+}
+
+int load_rom (const UCHAR *filename, ROM *rom)
+{
+   LR_FILE file;
+   PACKFILE *buffer_file;
+   long bytes;
+   int error;
+
+   RT_ASSERT(filename);
+   RT_ASSERT(rom);
+
+   /* Check if ROM is inside a ZIP file. */
+   if (ustrnicmp (get_extension (filename), "zip", USTRING_SIZE) == 0)
+      return (load_rom_from_zip (filename, rom));
+
+   /* Open the file. */
+   file = LR_OPEN(filename, "r");
+   if (!file)
    {
-      ppu_set_mirroring (((rom->control_byte_1 & ROM_CTRL_MIRRORING) ?
-         MIRRORING_VERTICAL : MIRRORING_HORIZONTAL));
+      log_printf ("ROM: Couldn't open file (%s).", filename);
+      return (1);
    }
 
+   /* Open the buffer file. */
+   buffer_file = BufferFile_open ();
+   if (!buffer_file)
+   {
+      WARN_GENERIC();
+      log_printf ("ROM: Couldn't open buffer file (out of memory?).");
+      LR_CLOSE(file);
+      return (2);
+   }
+
+   /* Transfer the file contents to the buffer file. */
+   for (;;)
+   {
+      UINT8 buffer[BUFFER_SIZE];
+
+      bytes = LR_READ(file, &buffer, sizeof(buffer));
+      if (bytes <= 0)
+         break;
+
+      pack_fwrite (&buffer, bytes, buffer_file);
+   }
+
+   /* Close the file. */
+   LR_CLOSE(file);
+
+   /* Seek back to the beginning. */
+   pack_fseek (buffer_file, 0);
+
+   /* Load the ROM. */
+   error = load_ines_rom (buffer_file, rom);
+   if (error != 0)
+   {
+      log_printf ("ROM: iNES load failed (consult above messages if any).");
+      pack_fclose (buffer_file);
+      return ((8 + error));
+   }
+
+   /* Close the buffer file. */
+   pack_fclose (buffer_file);
+
+   /* Fill in filename. */
+   append_filename (rom->filename, empty_string, filename, sizeof(rom->filename));
+
+   /* Return success. */
    return (0);
 }
 
 int load_rom_from_zip (const UCHAR *filename, ROM *rom)
 {
-    INES_HEADER header;
-
 #ifdef USE_ZLIB
    unzFile file;
+   PACKFILE *buffer_file;
+   long bytes;
+   int error;
    unz_file_info unused;
-   UINT8 test;
+
+   RT_ASSERT(filename);
+   RT_ASSERT(rom);
 
    /* Open the ZIP file. */
    file = unzOpen (filename);
    if (!file)
+   {
+      log_printf ("ROM: ZIP loader: Couldn't open file (%s).", filename);
       return (1);
+   }
 
    /* Open the first file in the ZIP file. */
+   /* TODO: Error checking(?) */
    unzGoToFirstFile (file);
    unzOpenCurrentFile (file);
 
-   unzReadCurrentFile (file, &header, sizeof (INES_HEADER));
-
-   if (strncmp ((char *)header.signature, "NES\x1a", 4))
+   /* Open the buffer file. */
+   buffer_file = BufferFile_open ();
+   if (!buffer_file)
    {
+      WARN_GENERIC();
+      log_printf ("ROM: ZIP loader: Couldn't open buffer file (out of memory?).");
       unzCloseCurrentFile (file);
       unzClose (file);
       return (2);
    }
 
-   if (header.prg_rom_pages == 0)
+   /* Transfer the file contents to the buffer file. */
+   for (;;)
    {
+      UINT8 buffer[BUFFER_SIZE];
+
+      bytes = unzReadCurrentFile (file, &buffer, sizeof(buffer));
+      if (bytes <= 0)
+         break;
+
+      pack_fwrite (&buffer, bytes, buffer_file);
+   }
+
+   /* Seek back to the beginning. */
+   pack_fseek (buffer_file, 0);
+
+   /* Load the ROM. */
+   error = load_ines_rom (buffer_file, rom);
+   if (error != 0)
+   {
+      log_printf ("ROM: ZIP loader: iNES load failed (consult above messages if any).");
+      pack_fclose (buffer_file);
       unzCloseCurrentFile (file);
       unzClose (file);
-      return (3);
+      return ((8 + error));
    }
 
-   if ((header.control_byte_2 == 'D') &&
-       (!(strncmp ((char *)header.reserved, "iskDude!", 8))))
-   {
-      header.control_byte_2 = 0;
-   }
+   /* Close the buffer file. */
+   pack_fclose (buffer_file);
 
-   rom->prg_rom_pages  = header.prg_rom_pages;
-   rom->chr_rom_pages  = header.chr_rom_pages;
-   rom->control_byte_1 = header.control_byte_1;
-   rom->control_byte_2 = header.control_byte_2;
-
-   rom->mapper_number = ((rom->control_byte_2 & 0xf0) |
-      ((rom->control_byte_1 & 0xf0) >> 4));
-   mmc_request (rom);
-
-   if ((rom->control_byte_1 & ROM_CTRL_TRAINER))
-   {
-      rom->trainer = malloc (ROM_TRAINER_SIZE);
-      if (!rom->trainer)
-      {
-         unzCloseCurrentFile (file);
-         unzClose (file);
-         return (4);
-      }
-
-      unzReadCurrentFile (file, rom->trainer, ROM_TRAINER_SIZE);
-   }
-
-   if (!cpu_get_prg_rom_pages (rom))
-   {
-      free_rom (rom);
-      unzCloseCurrentFile (file);
-      unzClose (file);
-      return (5);
-   }
-
-   unzReadCurrentFile (file, rom->prg_rom, (rom->prg_rom_pages * 0x4000));
-
-   if (rom->chr_rom_pages > 0)
-   {
-      if (!ppu_get_chr_rom_pages (rom))
-      {
-         free_rom (rom);
-         unzCloseCurrentFile (file);
-         unzClose (file);
-         return (6);
-      }
-
-      unzReadCurrentFile (file, rom->chr_rom, (rom->chr_rom_pages *
-         0x2000));
-   }
-
-   unzGetCurrentFileInfo (file, &unused, rom->filename, sizeof
-      (rom->filename), NULL, NULL, NULL, NULL);
+   /* Fill in filename. */
+   unzGetCurrentFileInfo (file, &unused, rom->filename, sizeof(rom->filename), NULL, NULL, NULL, NULL);
 
    /* Close the file. */
    unzCloseCurrentFile (file);
    unzClose (file);
 
-   rom->sram_flag = (rom->control_byte_1 & ROM_CTRL_BATTERY);
-
-   if ((rom->control_byte_1 & ROM_CTRL_FOUR_SCREEN))
-   {
-      ppu_set_mirroring (MIRRORING_FOUR_SCREEN);
-   }
-   else
-   {
-      ppu_set_mirroring (((rom->control_byte_1 & ROM_CTRL_MIRRORING) ?
-         MIRRORING_VERTICAL : MIRRORING_HORIZONTAL));
-   }
-
+   /* Return success. */
    return (0);
 
 #else /* USE_ZLIB */
 
+   /* Not supported. */
    return (7);
 
 #endif
@@ -272,6 +303,8 @@ int load_rom_from_zip (const UCHAR *filename, ROM *rom)
 
 void free_rom (const ROM *rom)
 {
+   RT_ASSERT(rom);
+
    if (rom->trainer)
       free (rom->trainer);
 

@@ -67,13 +67,15 @@ DEP_DIR = "${OBJ_DIR}"
 
 # Source Code subdirectories.
 SRC_ETCDIR = etc
+SRC_SHAREDDIR = shared
 SRC_SOUNDDIR = sound
 
 # Create missing directories.
 do ifnopt clean
    ifnexist "${OBJ_DIR}" mkdir "${OBJ_DIR}"
-   ifnexist "${OBJ_DIR}/${SRC_ETCDIR}"   mkdir "${OBJ_DIR}/${SRC_ETCDIR}"
-   ifnexist "${OBJ_DIR}/${SRC_SOUNDDIR}" mkdir "${OBJ_DIR}/${SRC_SOUNDDIR}"
+   ifnexist "${OBJ_DIR}/${SRC_ETCDIR}"    mkdir "${OBJ_DIR}/${SRC_ETCDIR}"
+   ifnexist "${OBJ_DIR}/${SRC_SHAREDDIR}" mkdir "${OBJ_DIR}/${SRC_SHAREDDIR}"
+   ifnexist "${OBJ_DIR}/${SRC_SOUNDDIR}"  mkdir "${OBJ_DIR}/${SRC_SOUNDDIR}"
 done
 
 # File list stubs (we will append to these later).
@@ -261,8 +263,8 @@ SRCFILES += 'core.c '
 SRCFILES += 'cpu.c '
 SRCFILES += 'crc.c '
 SRCFILES += 'dsp.c '
-SRCFILES += '${SRC_ETCDIR}/hqx.c '
-SRCFILES += '${SRC_ETCDIR}/snes_ntsc.c '
+SRCFILES += "${SRC_ETCDIR}/hqx.c "
+SRCFILES += "${SRC_ETCDIR}/snes_ntsc.c "
 SRCFILES += 'gui.c '
 SRCFILES += 'input.c '
 SRCFILES += 'log.c '
@@ -275,6 +277,7 @@ SRCFILES += 'ppu.c '
 SRCFILES += 'rewind.c '
 SRCFILES += 'rom.c '
 SRCFILES += 'save.c '
+SRCFILES += "${SRC_SHAREDDIR}/bufferfile.cpp "
 SRCFILES += "${SRC_SOUNDDIR}/mmc5.cpp "
 SRCFILES += "${SRC_SOUNDDIR}/sound.cpp "
 SRCFILES += "${SRC_SOUNDDIR}/vrc6.cpp "
@@ -308,6 +311,7 @@ exit 0
 rm     ${CLEANFILES}
 rmobj  ${SRCFILES}
 rm     "${OBJ_DIR}/${SRC_ETCDIR}"
+rm     "${OBJ_DIR}/${SRC_SHAREDDIR}"
 rm     "${OBJ_DIR}/${SRC_SOUNDDIR}"
 rm     "${OBJ_DIR}"
 rmexec "${EXE_NAME}"

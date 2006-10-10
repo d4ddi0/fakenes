@@ -13,17 +13,21 @@
 #include "debug.h"
 #include "rewind.h"
 #include "save.h"
+#include "shared/bufferfile.h"
 #include "timing.h"
 #include "types.h"
 #ifdef USE_ZLIB
 #include <zlib.h>
 #endif
 
-/* Maximum buffer file data size.  Buffer files are only used as temporary
-   storage while saving/loading snapshots, therefor their size does not
-   determine the amount of memory actually allocated for each frame in the
-   queue.  The total size of a raw save state must not exceed this value. */
-#define MAX_BUFFER_FILE_DATA_SIZE   131072
+/* This value must be large enough to accomodate *all* save data in it's
+   unpacked state after being pulled from the rewinder queue.
+
+   Note that save data for some mappers (such as MMC5) can get quite large.
+
+   Recommended 32 kB minimum
+   */
+#define MAX_UNPACK_SIZE 32768
 
 /* Whether or not real-time game rewinding is enabled.  Disabling this sweet
    feature can give a significant speed boost and reduced memory usage.
@@ -189,20 +193,11 @@ void rewind_clear (void)
    wait_frames = 0;
 }
 
-typedef struct _BUFFER_FILE
-{
-   UINT8 data[MAX_BUFFER_FILE_DATA_SIZE];
-   long pos, max;
-
-} BUFFER_FILE;
-
-static const PACKFILE_VTABLE *get_packfile_vtable (void);
-
 BOOL rewind_save_snapshot (void)
 {
    QUEUE_FRAME *frame;
    PACKFILE *file;
-   BUFFER_FILE buffer;
+   UINT8 *buffer;
    long size;
    REAL speed;
 
@@ -220,7 +215,10 @@ BOOL rewind_save_snapshot (void)
          to make room for the new one. */
       frame = dequeue ();
       if (!frame)
+      {
+         WARN_GENERIC();
          return (FALSE);
+      }
 
       if (frame->data)
       {
@@ -236,37 +234,41 @@ BOOL rewind_save_snapshot (void)
       /* Allocate a new frame. */
       frame = malloc (sizeof (QUEUE_FRAME));
       if (!frame)
+      {
+         WARN_GENERIC();
          return (FALSE);
+      }
 
       /* Clear frame. */
       /* memset (frame, 0, sizeof (QUEUE_FRAME)); */
    }
 
-   /* Clear buffer. */
-   buffer.pos = 0;
-   buffer.max = sizeof (buffer.data);
-
    /* Open buffer file. */
-   file = pack_fopen_vtable (get_packfile_vtable (), &buffer);
+   file = BufferFile_open ();
    if (!file)
    {
+      WARN_GENERIC();
       free (frame);
       return (FALSE);
    }
 
    /* Save snapshot. */
-   /* TODO: Check for failure here. */
-   save_state_raw (file);
+   if (!save_state_raw (file))
+   {
+      WARN_GENERIC();
+      pack_fclose (file);
+      free (frame);
+      return (FALSE);
+   }
 
-   /* Close buffer file. */
-   pack_fclose (file);
-
-   /* Get data size. */
-   size = buffer.pos;
+   /* Get buffer. */
+   BufferFile_get_buffer (file, &buffer, &size);
 
    /* Compress data. */
-   if (!pack (buffer.data, &size))
+   if (!pack (buffer, &size))
    {
+      WARN_GENERIC();
+      pack_fclose (file);
       free (frame);
       return (FALSE);
    }
@@ -275,20 +277,26 @@ BOOL rewind_save_snapshot (void)
    frame->data = malloc (size);
    if (!frame->data)
    {
+      WARN_GENERIC();
+      pack_fclose (file);
       free (frame);
       return (FALSE);
    }
 
    /* Copy data to frame data buffer. */
-   memcpy (frame->data, buffer.data, size);
+   memcpy (frame->data, buffer, size);
 
    /* Set data size. */
    frame->data_size = size;
+
+   /* Close buffer file. */
+   pack_fclose (file);
 
    /* Enqueue frame. */
    if (!enqueue (frame))
    {
       /* Enqueue failed. */
+      WARN_GENERIC();
       free (frame->data);
       free (frame);
       return (FALSE);
@@ -308,7 +316,7 @@ BOOL rewind_load_snapshot (void)
 {
    QUEUE_FRAME *frame;
    PACKFILE *file;
-   BUFFER_FILE buffer;
+   UINT8 *buffer;
    long size;
    REAL speed;
 
@@ -323,47 +331,84 @@ BOOL rewind_load_snapshot (void)
    if (queue.size <= 0)
    {
       /* Queue is empty. */
+      WARN_GENERIC();
       return (FALSE);
    }
 
    /* Fetch most recent frame. */
    frame = unenqueue ();
    if (!frame)
+   {
+      WARN_GENERIC();
       return (FALSE);
+   }
 
    if (!frame->data)
    {
       /* This shouldn't have been allowed to slip through. */
+      WARN_GENERIC();
       free (frame);
       return (FALSE);
    }
 
-   /* Clear buffer. */
-   buffer.pos = 0;
-   buffer.max = sizeof (buffer.data);
+   /* Allocate buffer. */
+   buffer = malloc (MAX_UNPACK_SIZE);
+   if (!buffer)
+   {
+      WARN_GENERIC();
+      free (frame);
+      return (FALSE);
+   }
 
-   size = buffer.max;
+   size = MAX_UNPACK_SIZE;
 
    /* Uncompress data. */
-   if (!unpack (buffer.data, &size, frame->data, frame->data_size))
+   if (!unpack (buffer, &size, frame->data, frame->data_size))
    {
+      WARN_GENERIC();
+      free (buffer);
       free (frame->data);
       free (frame);
       return (FALSE);
    }
 
    /* Open buffer file. */
-   file = pack_fopen_vtable (get_packfile_vtable (), &buffer);
+   file = BufferFile_open ();
    if (!file)
    {
+      WARN_GENERIC();
+      free (buffer);
       free (frame->data);
       free (frame);
       return (FALSE);
    }
 
+   /* Copy buffer contents to buffer file. */
+   if (pack_fwrite (buffer, size, file) < size)
+   {
+      WARN_GENERIC();
+      pack_fclose (file);
+      free (buffer);
+      free (frame->data);
+      free (frame);
+      return (FALSE);
+   }
+
+   /* Destroy buffer. */
+   free (buffer);
+
+   /* Seek back to the beginning. */
+   pack_fseek (file, 0);
+
    /* Load snapshot. */
-   /* TODO: Check for failure here. */
-   load_state_raw (file);
+   if (!load_state_raw (file))
+   {
+      WARN_GENERIC();
+      pack_fclose (file);
+      free (frame->data);
+      free (frame);
+      return (FALSE);
+   }
 
    /* Close buffer file. */
    pack_fclose (file);
@@ -419,6 +464,7 @@ static BOOL pack (void *buffer, long *size)
    if (compress2 (packbuf, &packsize, buffer, *size, compression_level) !=
       Z_OK)
    {
+      WARN_GENERIC();
       free (packbuf);
       return (FALSE);
    }
@@ -461,7 +507,10 @@ static BOOL unpack (void *outbuf, long *max, void *buffer, long size)
    }
 
    if (uncompress (outbuf, max, buffer, size) != Z_OK)
+   {
+      WARN_GENERIC();
       return (FALSE);
+   }
 
 #else /* USE_ZLIB */
 
@@ -480,7 +529,10 @@ static BOOL enqueue (QUEUE_FRAME *frame)
    QUEUE_FRAME *last;
 
    if (queue.size >= max_queue_size)
+   {
+      WARN_GENERIC();
       return (FALSE);
+   }
 
    /* Get last frame in queue. */
    last = queue.last;
@@ -520,6 +572,7 @@ static QUEUE_FRAME *unenqueue (void)
    if (queue.size <= 0)
    {
       /* Queue is empty. */
+      WARN_GENERIC();
       return (NULL);
    }
 
@@ -556,6 +609,7 @@ static QUEUE_FRAME *dequeue (void)
    if (queue.size <= 0)
    {
       /* Queue is empty. */
+      WARN_GENERIC();
       return (NULL);
    }
 
@@ -577,145 +631,4 @@ static QUEUE_FRAME *dequeue (void)
    queue.size--;
 
    return (frame);
-}
-
-static int buffered_fclose (void *userdata)
-{
-   /* It seems that we have to provide this function to keep Allegro from
-      crashing on calls to pack_fclose(). ;) */
-
-   RT_ASSERT(userdata);
-
-   /* Do nothing. */
-
-   return (0);
-}
-
-static int buffered_getc (void *userdata)
-{
-   BUFFER_FILE *buffer;
-
-   RT_ASSERT(userdata);
-
-   buffer = userdata;
-
-   if (buffer->pos >= buffer->max)
-      return (0);
-
-   return (buffer->data[buffer->pos++]);
-}                  
-
-int buffered_ungetc (int c, void *userdata)
-{
-   RT_ASSERT(userdata);
-
-   /* Not supported. */
-   return (EOF);
-}
-
-static long buffered_fread (void *p, long n, void *userdata)
-{
-   BUFFER_FILE *buffer;
-   long max;
-
-   RT_ASSERT(p);
-   RT_ASSERT(userdata);
-
-   buffer = userdata;
-
-   if (buffer->pos >= buffer->max)
-      return (0);
-
-   max = (buffer->max - buffer->pos);
-   if (n > max)
-      n = max;
-
-   memcpy (p, (buffer->data + buffer->pos), n);
-   buffer->pos += n;
-
-   return (n);
-}
-
-static int buffered_putc (int c, void *userdata)
-{
-   BUFFER_FILE *buffer;
-
-   RT_ASSERT(userdata);
-
-   buffer = userdata;
-
-   if (buffer->pos >= buffer->max)
-      return (0);
-
-   buffer->data[buffer->pos++] = c;
-
-   return (c);
-}
-                                                               
-static long buffered_fwrite (const void *p, long n, void *userdata)
-{
-   BUFFER_FILE *buffer;
-   long max;
-
-   RT_ASSERT(p);
-   RT_ASSERT(userdata);
-
-   buffer = userdata;
-
-   if (buffer->pos >= buffer->max)
-      return (0);
-
-   max = (buffer->max - buffer->pos);
-   if (n > max)
-      n = max;
-
-   memcpy ((buffer->data + buffer->pos), p, n);
-   buffer->pos += n;
-
-   return (n);
-}
-
-int buffered_fseek (void *userdata, int offset)
-{
-   RT_ASSERT(userdata);
-
-   /* Not supported. */
-   return (-1);
-}
-
-int buffered_feof (void *userdata)
-{
-   RT_ASSERT(userdata);
-
-   /* Not supported. */
-   return (0);
-}
-
-int buffered_ferror (void *userdata)
-{
-   RT_ASSERT(userdata);
-
-   /* Not supported. */
-   return (0);
-}
-
-static PACKFILE_VTABLE packfile_vtable;
-
-static const PACKFILE_VTABLE *get_packfile_vtable (void)
-{
-   PACKFILE_VTABLE *vtable = &packfile_vtable;
-
-   memset (vtable, 0, sizeof (PACKFILE_VTABLE));
-
-   vtable->pf_fclose = buffered_fclose;
-   vtable->pf_getc   = buffered_getc;
-   vtable->pf_ungetc = buffered_ungetc;
-   vtable->pf_fread  = buffered_fread;
-   vtable->pf_putc   = buffered_putc;
-   vtable->pf_fwrite = buffered_fwrite;
-   vtable->pf_fseek  = buffered_fseek;
-   vtable->pf_feof   = buffered_feof;
-   vtable->pf_ferror = buffered_ferror;
-
-   return (vtable);
 }
