@@ -299,7 +299,7 @@ int load_rom (const UCHAR *filename, ROM *rom)
    USTRING_CLEAR(ips);
    replace_extension (ips, filename, "ips", (sizeof(ips) - 1));
 
-   if (exists (ips))
+   if (file_size (ips))
    {
       /* Load it and patch our data. */
       error = load_ips (ips, buffer_file);
