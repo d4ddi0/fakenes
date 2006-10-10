@@ -93,6 +93,128 @@ static void blit_interpolated_2x (BITMAP *src, BITMAP *dest, int x_base, int
    }
 }
 
+static void blit_interpolated_2x_hq (BITMAP *src, BITMAP *dest, int x_base,
+   int y_base)
+{
+   unsigned *out;
+   int w, h, wm, hm;
+   int x, y;
+
+   RT_ASSERT(src);
+   RT_ASSERT(dest);
+
+   if (!blitter_size_check (dest, 512, 480))
+      return;
+
+   /* Check buffers. */
+   if (!blit_buffer_out)
+      WARN_BREAK_GENERIC();
+
+   /* Set buffers. */
+   out = (unsigned *)blit_buffer_out;
+
+   /* Calculate sizes. */
+   w = src->w;
+   h = src->h;
+   wm = (src->w * 2);
+   hm = (src->h * 2);
+
+   for (y = 0; y < h; y++)
+   {
+      int yo = ((y * 2) * wm);
+      unsigned prev = 0;
+
+      for (x = 0; x < w; x++)
+      {
+         int o = (yo + (x * 2));
+         UINT8 c;
+         UINT8 r, g, b;
+         unsigned next, mixed;
+
+         c = FAST_GETPIXEL8(src, x, y);
+
+         r = (getr8 (c) >> 3);
+         g = (getg8 (c) >> 2);
+         b = (getb8 (c) >> 3);
+
+         next = ((r << 11) | (g << 5) | b);
+
+         mixed = mix16 (prev, next);
+         prev = next;
+
+         out[(o + 0)] = mixed;
+         out[(o + 1)] = next;
+      }
+   }
+
+   for (x = 0; x < wm; x++)
+   {
+      for (y = 1; y < (hm - 1); y += 2)
+      {
+         unsigned prev, next;
+
+         prev = out[(((y - 1) * wm) + x)];
+         next = out[(((y + 1) * wm) + x)];
+
+         out[((y * wm) + x)] = mix16 (prev, next);
+      }
+   }
+
+   /* Export out buffer to destination bitmap. */
+   for (y = 0; y < hm; y++)
+   {
+      int yo = (y_base + y);
+      int x;               
+
+      for (x = 0; x < wm; x++)
+      {
+         int xo = (x_base + x);
+         unsigned c;
+         UINT8 r, g, b;
+         int d;
+
+         c = out[((y * wm) + x)];
+
+         r = (((c >> 11) & 0x1f) << 3);
+         g = (((c >> 5) & 0x3f) << 2);
+         b = ((c & 0x1f) << 3);
+
+         d = video_create_color (r, g, b);
+
+         switch (color_depth)
+         {
+            case 8:
+            {
+               FAST_PUTPIXEL8(dest, xo, yo, d);
+               break;
+            }
+
+            case 15:
+            case 16:
+            {
+               FAST_PUTPIXEL16(dest, xo, yo, d);
+               break;
+            }
+
+            case 24:
+            {
+               FAST_PUTPIXEL24(dest, xo, yo, d);
+               break;
+            }
+
+            case 32:
+            {
+               FAST_PUTPIXEL32(dest, xo, yo, d);
+               break;
+            }
+
+            default:
+               WARN_GENERIC();
+         }
+      }
+   }
+}
+             
 static void blit_interpolated_3x (BITMAP *src, BITMAP *dest, int x_base, int
    y_base)
 {
@@ -248,6 +370,37 @@ static void init_interpolated_2x (BITMAP *src, BITMAP *dest)
    blit_y_offset = ((dest->h / 2) - ((src->h * 2) / 2));
 }
 
+static void init_interpolated_2x_hq (BITMAP *src, BITMAP *dest)
+{
+   int wm, hm;
+
+   RT_ASSERT(src);
+   RT_ASSERT(dest);
+
+   /* Calculate sizes. */
+   wm = (src->w * 2);
+   hm = (src->h * 2);
+
+   /* Allocate input buffer. */
+   blit_buffer_out = malloc (((wm * hm) * sizeof(unsigned)));
+   if (!blit_buffer_out)
+      WARN_BREAK_GENERIC();
+
+   blit_x_offset = ((dest->w / 2) - ((src->w * 2) / 2));
+   blit_y_offset = ((dest->h / 2) - ((src->h * 2) / 2));
+}
+
+static void deinit_interpolated_2x_hq (void)
+{
+   /* Destroy buffers. */
+
+   if (blit_buffer_out)
+   {
+      free (blit_buffer_out);
+      blit_buffer_out = NULL;
+   }
+}
+
 static void init_interpolated_3x (BITMAP *src, BITMAP *dest)
 {
    RT_ASSERT(src);
@@ -263,6 +416,12 @@ static const BLITTER blitter_interpolated_2x =
 {
    init_interpolated_2x, NULL,
    blit_interpolated_2x
+};
+
+static const BLITTER blitter_interpolated_2x_hq =
+{
+   init_interpolated_2x_hq, deinit_interpolated_2x_hq,
+   blit_interpolated_2x_hq
 };
 
 static const BLITTER blitter_interpolated_3x =

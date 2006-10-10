@@ -85,6 +85,17 @@ static INLINE int mix (int color_a, int color_b)
    return (video_create_color (r, g, b));
 }
 
+#define RED_CMASK_16       0xF800
+#define GREEN_CMASK_16     0x07E0
+#define BLUE_CMASK_16      0X001F
+
+static INLINE unsigned mix16 (unsigned c1, unsigned c2)
+{
+   return ((((((c1 & RED_CMASK_16) + (c2 & RED_CMASK_16)) >> 1) & RED_CMASK_16) |
+            ((((c1 & GREEN_CMASK_16) + (c2 & GREEN_CMASK_16)) >> 1) & GREEN_CMASK_16) |
+            ((((c1 & BLUE_CMASK_16) + (c2 & BLUE_CMASK_16)) >> 1) & BLUE_CMASK_16)));
+}
+
 static INLINE int unmix (int color_a, int color_b)
 {
    /* A variant of an unsharp mask, without the blur part. */
