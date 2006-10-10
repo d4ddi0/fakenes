@@ -8,7 +8,7 @@ require 'macsupport'
 @systemFrameworks += %w(Cocoa)
 @frameworks += %w(Allegro)
 @linker = 'c++'
-@commonflags += '-g -Os -DALLEGRO_NO_ASM -DPOSIX -DC99_TYPES'
+@commonflags += '-g -Os -DALLEGRO_NO_ASM -DPOSIX -DC99_TYPES -include config.h'
 @cflags += '-Wno-pointer-sign'
 @includes += '-I../../src/include -I../../src -I.'
 
