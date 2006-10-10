@@ -10,7 +10,7 @@ require 'macsupport'
 @linker = 'c++'
 @commonflags += '-g -Os -DALLEGRO_NO_ASM -DPOSIX -DC99_TYPES'
 @cflags += '-Wno-pointer-sign'
-@includes += '-I../../src/include -I.'
+@includes += '-I../../src/include -I../../src -I.'
 
 ####################
 # Bundle structure #
