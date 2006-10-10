@@ -42,12 +42,6 @@ BOOL rom_is_loaded = FALSE;
    faster, but don't get too carried away). */
 #define BUFFER_SIZE  65536
 
-#define SWAP24(v) \
-   (((v) << 24) | \
-   (((v) & 0xFF00) << 8) | \
-   (((v) & 0xFF0000) >> 8) | \
-   ((v) >> 24))
-
 int load_ips (const UCHAR *filename, PACKFILE *buffer_file)
 {
    PACKFILE *file;
