@@ -95,12 +95,8 @@ int load_ips (const UCHAR *filename, PACKFILE *buffer_file)
       /* Seek to offset in output. */
       pack_fseek (buffer_file, offset);
 
-#ifndef LSB_FIRST
       /* Load block length. */
       length = pack_mgetw (file);
-#else
-      length = pack_igetw (file);
-#endif
 
       /* 0 = RLE encoded. */
       if (length == 0)
@@ -109,13 +105,9 @@ int load_ips (const UCHAR *filename, PACKFILE *buffer_file)
          UINT8 rle_char;
          int rle_count;
 
-#ifndef LSB_FIRST
-         /* Yes, apparently mgetw and igetw are misnamed */
          /* Run length - 0 to 0xFFFF. */
          rle_length = pack_mgetw (file);
-#else
-         rle_length = pack_igetw (file);
-#endif
+
          /* Fill value. */
          rle_char = pack_getc (file);
 
