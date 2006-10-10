@@ -1047,8 +1047,6 @@ void apu_update (void)
 
 void apu_start_frame (void)
 {
-   log_printf ("---- frame ----\n");
-
    /* Start DSP buffer fill. */
    dsp_start ();
 

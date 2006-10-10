@@ -189,7 +189,7 @@ void dsp_write (const DSP_SAMPLE *samples, unsigned count)
       /* Prevent overflows. */
       if (dsp_write_sample >= dsp_buffer_samples)
       {
-         log_printf ("DSP: Warning: Buffer overflow.");
+         DEBUG_PRINTF("DSP: Warning: Buffer overflow.");
          return;
       }
 
