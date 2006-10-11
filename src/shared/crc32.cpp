@@ -6,8 +6,8 @@
 
    crc32.cpp: CRC32 calculation routines by TRAC. */
 
-#include "common.h"
-#include "shared/crc32.h"
+#include "../include/common.h"
+#include "crc32.h"
 
 static bool initialized = false;
 

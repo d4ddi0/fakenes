@@ -8,8 +8,8 @@
 
 #include <allegro.h>        
 #include <vector>
-#include "common.h"
-#include "shared/bufferfile.h"
+#include "../include/common.h"
+#include "bufferfile.h"
 
 class BufferFile {
 public:

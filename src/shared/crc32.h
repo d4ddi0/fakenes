@@ -8,7 +8,7 @@
 
 #ifndef CRC32_H_INCLUDED
 #define CRC32_H_INCLUDED
-#include "common.h"
+#include "../include/common.h"
 #ifdef __cplusplus
 extern "C" {
 #endif

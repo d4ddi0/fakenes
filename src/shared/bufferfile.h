@@ -9,7 +9,7 @@
 #ifndef BUFFERFILE_H_INCLUDED
 #define BUFFERFILE_H_INCLUDED
 #include <allegro.h>
-#include "common.h"
+#include "../include/common.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
