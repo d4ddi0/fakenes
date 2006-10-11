@@ -12,10 +12,10 @@
 #include <string.h>
 #include "common.h"
 #include "cpu.h"
-#include "crc.h"
 #include "mmc.h"
 #include "ppu.h"
 #include "rom.h"
+#include "shared/crc32.h"
 #include "timing.h"
 #include "types.h"
 #include "video.h"
@@ -330,7 +330,7 @@ int ppu_init (void)
     /* compute CRC32 for CHR ROM */
     if (global_rom.chr_rom_pages > 0)
     {
-       global_rom.chr_rom_crc32 = build_crc32 (global_rom.chr_rom,
+       global_rom.chr_rom_crc32 = make_crc32 (global_rom.chr_rom,
            (global_rom.chr_rom_pages * 0x2000));
     }
 
