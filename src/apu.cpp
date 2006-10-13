@@ -85,9 +85,9 @@ enum
 /* --- Lookup tables. --- */
 
 static const uint8 length_lut[32] = {
-   0x0A, 0x14, 0x28, 0x50, 0xA0, 0x3C, 0x0E, 0x1A, 0x0C, 0x18, 0x30, 0x60,
-   0xC0, 0x48, 0x10, 0x20, 0xFE, 0x02, 0x04, 0x06, 0x08, 0x0A, 0x0C, 0x0E,
-   0x10, 0x12, 0x14, 0x16, 0x18, 0x1A, 0x1C, 0x1E
+   0x0A, 0xFE, 0x14, 0x02, 0x28, 0x04, 0x50, 0x06, 0xA0, 0x08, 0x3C, 0x0A,
+   0x0E, 0x0C, 0x1A, 0x0E, 0x0C, 0x10, 0x18, 0x12, 0x30, 0x14, 0x60, 0x16,
+   0xC0, 0x18, 0x48, 0x1A, 0x10, 0x1C, 0x20, 0x1E
 };
 
 static const uint16 noise_period_lut_ntsc[16] = {
@@ -573,8 +573,8 @@ static linear void apu_update_dmc (apu_chan_t &chan)
       */
       cpu_consume_cycles (4);
 
-      /* DMCAddress=(DMCAddress+1)&0x7fff; */
-      chan.address = ((chan.address + 1) & 0x7fff);
+      /* DMCAddress=(DMCAddress+1)&0x7FFF; */
+      chan.address = ((chan.address + 1) & 0x7FFF);
 
       chan.sample_bits = 8;
 
@@ -674,7 +674,7 @@ static linear void apu_update_dmc (apu_chan_t &chan)
          chan.volume += 2;
       }
 
-      chan.output = (chan.volume & 0x7f);
+      chan.output = (chan.volume & 0x7F);
    }
    
    /* Clock shift register. */
@@ -1134,35 +1134,30 @@ UINT8 apu_read (UINT16 address)
          /* Return 1 in 0-5 bit pos if a channel is playing */
 
          /* Square 0. */
-
          chan = &apu.square[0];
 
          if (chan->length > 0)
             value |= 0x01;
 
          /* Square 1. */
-
          chan = &apu.square[1];
 
          if (chan->length > 0)
             value |= 0x02;
 
          /* Triangle. */
-
          chan = &apu.triangle;
 
          if (chan->length > 0)
             value |= 0x04;
 
          /* Noise. */
-
          chan = &apu.noise;
 
          if (chan->length > 0)
             value |= 0x08;
 
          /* DMC. */
-
          chan = &apu.dmc;
 
          if (chan->enabled & (chan->dma_length > 0))
@@ -1172,7 +1167,6 @@ UINT8 apu_read (UINT16 address)
             value |= 0x80;
 
          /* Frame IRQ. */  
-
          if (apu.frame_irq_occurred)
             value |= 0x40;
 
@@ -1221,16 +1215,16 @@ void apu_write (UINT16 address, UINT8 value)
 
          chan = &apu.square[index];
 
-         chan->volume = (value & 0x0f);
+         chan->volume = (value & 0x0F);
          chan->looping = TRUE_OR_FALSE(value & 0x20);
          chan->duty_cycle = (value >> 6);
 
          /*
          The divider's period is set to n + 1.
          */
-         chan->envelope.period = ((value & 0x0f) + 1);
+         chan->envelope.period = ((value & 0x0F) + 1);
          chan->envelope.fixed = TRUE_OR_FALSE(value & 0x10);
-         chan->envelope.fixed_volume = (value & 0x0f);
+         chan->envelope.fixed_volume = (value & 0x0F);
 
          break;
       }
@@ -1275,7 +1269,7 @@ void apu_write (UINT16 address, UINT8 value)
 
          chan = &apu.square[index];
 
-         chan->period = ((chan->period & ~0xff) | value);
+         chan->period = ((chan->period & ~0xFF) | value);
 
          break;
       }
@@ -1293,7 +1287,7 @@ void apu_write (UINT16 address, UINT8 value)
 
          chan = &apu.square[index];
 
-         chan->period = (((value & 7) << 8) | (chan->period & 0xff));
+         chan->period = (((value & 7) << 8) | (chan->period & 0xFF));
 
          if (!chan->length_disable)
             chan->length = length_lut[(value >> 3)];
@@ -1323,7 +1317,7 @@ void apu_write (UINT16 address, UINT8 value)
 
          /* TODO: Are writes to this register really supposed to be
             affecting the linear counter immediately...? */
-         chan->linear_length = (value & 0x7f);
+         chan->linear_length = (value & 0x7F);
          chan->looping = TRUE_OR_FALSE(value & 0x80);
 
          chan->cached_linear_length = chan->linear_length;
@@ -1341,7 +1335,7 @@ void apu_write (UINT16 address, UINT8 value)
 
          chan = &apu.triangle;
 
-         chan->period = ((chan->period & ~0xff) | value);
+         chan->period = ((chan->period & ~0xFF) | value);
 
          break;
       }
@@ -1356,7 +1350,7 @@ void apu_write (UINT16 address, UINT8 value)
 
          chan = &apu.triangle;
 
-         chan->period = (((value & 7) << 8) | (chan->period & 0xff));
+         chan->period = (((value & 7) << 8) | (chan->period & 0xFF));
 
          if (!chan->length_disable)
             chan->length = length_lut[(value >> 3)];
@@ -1379,12 +1373,12 @@ void apu_write (UINT16 address, UINT8 value)
 
          chan = &apu.noise;
 
-         chan->volume = (value & 0x0f);
+         chan->volume = (value & 0x0F);
          chan->looping = TRUE_OR_FALSE(value & 0x20);
 
-         chan->envelope.period = ((value & 0x0f) + 1);
+         chan->envelope.period = ((value & 0x0F) + 1);
          chan->envelope.fixed = TRUE_OR_FALSE(value & 0x10);
-         chan->envelope.fixed_volume = (value & 0x0f);
+         chan->envelope.fixed_volume = (value & 0x0F);
 
          break;
       }
@@ -1400,9 +1394,9 @@ void apu_write (UINT16 address, UINT8 value)
          chan = &apu.noise;
 
          if (machine_type == MACHINE_TYPE_NTSC)
-            chan->period = noise_period_lut_ntsc[(value & 0x0f)];
+            chan->period = noise_period_lut_ntsc[(value & 0x0F)];
          else
-            chan->period = noise_period_lut_pal[(value & 0x0f)];
+            chan->period = noise_period_lut_pal[(value & 0x0F)];
 
          /*
          Bit 15 of the shift register is replaced with the exclusive-OR of
@@ -1444,9 +1438,9 @@ void apu_write (UINT16 address, UINT8 value)
          chan = &apu.dmc;
 
          if (machine_type == MACHINE_TYPE_NTSC)
-            chan->period = dmc_period_lut_ntsc[(value & 0x0f)];
+            chan->period = dmc_period_lut_ntsc[(value & 0x0F)];
          else
-            chan->period = dmc_period_lut_pal[(value & 0x0f)];
+            chan->period = dmc_period_lut_pal[(value & 0x0F)];
 
          chan->looping = TRUE_OR_FALSE(value & 0x40);
          chan->irq_gen = TRUE_OR_FALSE(value & 0x80);
@@ -1472,7 +1466,7 @@ void apu_write (UINT16 address, UINT8 value)
          chan = &apu.dmc;
 
          /* Mask off MSB. */
-         value &= 0x7f;
+         value &= 0x7F;
 
          /* Overwrite current DAC value. */
          chan->volume = value;
@@ -1606,7 +1600,7 @@ void apu_write (UINT16 address, UINT8 value)
          <_Q> which does not generate interrupts
          */
 
-         if (value & 0xc0)
+         if (value & 0xC0)
             apu.frame_irq_gen = false;
          else
             apu.frame_irq_gen = true;
