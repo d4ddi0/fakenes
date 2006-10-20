@@ -40,11 +40,11 @@ enum
 
 enum
 {
-   NETPLAY_PACKET_NULL = 0,
-   NETPLAY_PACKET_START,
-   NETPLAY_PACKET_STOP,
-   NETPLAY_PACKET_CHAT,
-   NETPLAY_PACKET_PAD_DATA
+   NETPLAY_PACKET_NULL = 0,   /* Keep alive. */
+   NETPLAY_PACKET_START,      /* Start emulation. */
+   NETPLAY_PACKET_STOP,       /* Stop(pause) emulation. */
+   NETPLAY_PACKET_CHAT,       /* Chat message(UTF8). */
+   NETPLAY_PACKET_PAD_DATA    /* Multiple frames of controller data. */
 };
 
 #ifdef __cplusplus

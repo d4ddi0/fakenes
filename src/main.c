@@ -312,6 +312,10 @@ int main (int argc, char *argv[])
          }
 
 
+         /* NetPlay. */
+         netplay_process ();
+
+
          /* Fast forward. */
 
          if ((key [KEY_TILDE]) && (!(input_mode & INPUT_MODE_CHAT)))

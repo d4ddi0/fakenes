@@ -73,11 +73,27 @@ void netplay_process (void)
    if (netplay_mode == NETPLAY_MODE_INACTIVE)
       return;
 
+   /* Sync state. */
+   net_process ();
+
    switch (netplay_mode)
    {
       case NETPLAY_MODE_SERVER_OPEN:
       {
+         /* Listen for incoming connections. */
          net_listen ();
+
+         break;
+      }
+
+      case NETPLAY_MODE_SERVER_CLOSED:
+      case NETPLAY_MODE_CLIENT:
+      {
+         UINT8 unused;
+
+         /* Send empty packets so that the connection stays alive. */
+         net_send_packet (NETPLAY_PACKET_NULL, &unused, 0);
+
          break;
       }
 
@@ -85,6 +101,7 @@ void netplay_process (void)
          break;
    }
 
+   /* Sync state. */
    net_process ();
 }
 
