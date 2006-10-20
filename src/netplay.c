@@ -10,6 +10,7 @@
 #include "common.h"
 #include "net.h"
 #include "netplay.h"
+#include "shared/bufferfile.h"
 #include "types.h"
 
 ENUM netplay_mode = NETPLAY_MODE_INACTIVE;
@@ -38,7 +39,7 @@ BOOL netplay_open_server (int port)
    return (TRUE);
 }
 
-BOOL netplay_open_client (const char *host, int port)
+BOOL netplay_open_client (const CHAR *host, int port)
 {
    if (netplay_mode != NETPLAY_MODE_INACTIVE)
       return (FALSE);
@@ -77,7 +78,6 @@ void netplay_process (void)
       case NETPLAY_MODE_SERVER_OPEN:
       {
          net_listen ();
-
          break;
       }
 
@@ -95,6 +95,8 @@ void netplay_set_nickname (const UCHAR *nickname)
 
    NET_CLIENT *client = &net_clients[NET_LOCAL_CLIENT];
 
+   RT_ASSERT(nickname);
+
    USTRING_CLEAR(client->nickname);
    ustrncat (client->nickname, nickname, (USTRING_SIZE - 1));
 }
@@ -107,10 +109,29 @@ void netplay_send_message (const UCHAR *message)
 
    NET_CLIENT *client = &net_clients[NET_LOCAL_CLIENT];
    USTRING text;
+   PACKFILE *file;
+   UINT8 *buffer;
+   long size;
+
+   RT_ASSERT(message);
 
    /* Prefix message with nickname. */
    USTRING_CLEAR(text);
-   uszprintf (text, sizeof (text), "<%s> %s", client->nickname, message);
+   uszprintf (text, (sizeof (text) - 1), "<%s> %s", client->nickname, message);
 
-   /* TODO: Send message over network. */
+   /* Build packet. */
+   file = BufferFile_open ();
+   if (!file)
+   {
+      WARN_GENERIC();
+      return;
+   }
+
+   pack_fwrite (text, ustrsize (text), file);
+
+   /* Send packet. */
+   BufferFile_get_buffer (file, &buffer, &size);
+   net_send_packet (NETPLAY_PACKET_CHAT, buffer, size);
+
+   pack_fclose (file);
 }

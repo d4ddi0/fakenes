@@ -159,12 +159,6 @@ void net_close (void)
          /* Close socket. */
          nlClose (data->socket);
       }
-                             
-      /* Clear buffers. */
-      data->read_buffer.size  = 0;
-      data->read_buffer.pos   = 0;
-      data->write_buffer.size = 0;
-      data->write_buffer.pos  = 0;
 
       /* Clear queues. */
       net_clear_queue (&data->read_queue);
@@ -342,6 +336,7 @@ void net_process (void)
       /* Recieve buffer. */
       UINT8 buffer[NET_MAX_PACKET_SIZE_RECIEVE];
       unsigned size;
+      BOOL active = FALSE;
 
       client = &net_clients[index];
 
@@ -356,6 +351,8 @@ void net_process (void)
       if (size > 0)
       {
          unsigned pos;
+
+         active = TRUE;
 
          for (pos = 0; pos < size; pos++)
          {
@@ -391,6 +388,8 @@ void net_process (void)
          size = nlWrite (data->socket, (data->write_buffer.data + data->write_buffer.pos), data->write_buffer.size);
          if (size > 0)
          {
+            active = TRUE;
+
             data->write_buffer.size -= size;
             data->write_buffer.pos += size;
          }
@@ -402,6 +401,11 @@ void net_process (void)
          /* Reload buffer with a packet from the queue. */
          net_dequeue (&data->write_queue, &data->write_buffer);
       }
+
+      if (active)
+         client->timeout = 0;
+      else
+         client->timeout++;
    }
 }
 

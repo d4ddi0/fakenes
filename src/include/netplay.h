@@ -14,14 +14,17 @@
 extern "C" {
 #endif
 
-#define NETPLAY_DEFAULT_PORT  0x2a03
+enum
+{
+   NETPLAY_DEFAULT_PORT = 0x2A03
+};
 
 ENUM netplay_mode;
 
 int netplay_init (void);
 void netplay_exit (void);
 BOOL netplay_open_server (int);
-BOOL netplay_open_client (const char *, int);
+BOOL netplay_open_client (const CHAR *, int);
 void netplay_close (void);
 void netplay_process (void);
 void netplay_set_nickname (const UCHAR *);
@@ -37,15 +40,14 @@ enum
 
 enum
 {
-   NETPLAY_PACKET_HANDSHAKE_REQ,
-   NETPLAY_PACKET_HANDSHAKE_ACK,
+   NETPLAY_PACKET_NULL = 0,
    NETPLAY_PACKET_START,
+   NETPLAY_PACKET_STOP,
    NETPLAY_PACKET_CHAT,
-   NETPLAY_PACKET_PAD_DATA,
-   NETPLAY_PACKET_NOP
+   NETPLAY_PACKET_PAD_DATA
 };
 
 #ifdef __cplusplus
 }
-#endif
+#endif   /* __cplusplus */
 #endif   /* !NETPLAY_H_INCLUDED */
