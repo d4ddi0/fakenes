@@ -12,8 +12,11 @@
 #include "netplay.h"
 #include "shared/bufferfile.h"
 #include "types.h"
+#include "video.h"
 
 ENUM netplay_mode = NETPLAY_MODE_INACTIVE;
+
+static void parse_packet (PACKFILE *file);
 
 int netplay_init (void)
 {
@@ -70,6 +73,8 @@ void netplay_close (void)
 
 void netplay_process (void)
 {
+   int index;
+
    if (netplay_mode == NETPLAY_MODE_INACTIVE)
       return;
 
@@ -101,8 +106,40 @@ void netplay_process (void)
          break;
    }
 
-   /* Sync state. */
-   net_process ();
+   /* Check for incoming packets. */
+   for (index = 0; index < NET_MAX_CLIENTS; index++)
+   {
+      /* Recieve buffer. */
+      UINT8 buffer[NET_MAX_PACKET_SIZE_RECIEVE];
+      unsigned size;
+
+      /* Grab next packet. */
+      size = net_get_packet (index, buffer, sizeof(buffer));
+      while (size > 0)
+      {
+         PACKFILE *file;
+
+         /* Open buffer file. */
+         file = BufferFile_open ();
+         if (!file)
+         {
+            WARN_GENERIC();
+            continue;
+         }
+
+         /* Copy packet to buffer file. */
+         pack_fwrite (buffer, size, file);
+
+         /* Parse it. */
+         parse_packet (file);
+
+         /* Close buffer file */
+         pack_fclose (file);
+
+         /* Grab next packet. */
+         size = net_get_packet (index, buffer, sizeof(buffer));
+      }
+   }
 }
 
 void netplay_set_nickname (const UCHAR *nickname)
@@ -151,4 +188,55 @@ void netplay_send_message (const UCHAR *message)
    net_send_packet (NETPLAY_PACKET_CHAT, buffer, size);
 
    pack_fclose (file);
+}
+
+/* ---- Private functions ---- */
+
+static void parse_packet (PACKFILE *file)
+{
+   NET_PACKET_HEADER header;
+
+   RT_ASSERT(file);
+
+   /* Read each field individually for portability... */
+   header.tag = pack_getc (file);
+   header.size = pack_mgetw (file);
+
+   switch (header.tag)
+   {
+      case NETPLAY_PACKET_NULL:
+      {
+         log_printf ("NET: Recieved keep alive packet.");
+         break;
+      }
+
+      case NETPLAY_PACKET_CHAT:
+      {
+         unsigned length;
+         USTRING text;
+
+         /* Determine how many bytes to read. */
+         length = (header.size - sizeof(header));
+         if (length == 0)
+         {
+            WARN("Recieved empty chat packet");
+            return;
+         }
+
+         /* Load UTF8 string. */
+         USTRING_CLEAR(text);
+         pack_fread (text, MIN( length, (USTRING_SIZE - 1) ), file);
+
+         /* Display it. */
+         video_message (text);
+
+         break;
+      }
+
+      default:
+      {
+         WARN_GENERIC();
+         break;
+      }
+   }
 }
