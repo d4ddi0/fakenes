@@ -74,6 +74,7 @@ void netplay_close (void)
 
 void netplay_process (void)
 {
+   static int wait_frames = 0;
    int index;
 
    if (netplay_mode == NETPLAY_MODE_INACTIVE)
@@ -92,28 +93,23 @@ void netplay_process (void)
          break;
       }
 
-      case NETPLAY_MODE_SERVER_CLOSED:
-      case NETPLAY_MODE_CLIENT:
-      {
-         static int wait_frames = 0;
-         UINT8 unused;
-
-         if (wait_frames > 0)
-            wait_frames--;
-         if (wait_frames > 0)
-            break;
-
-         /* Send empty packets so that the connection stays alive. */
-         net_send_packet (NETPLAY_PACKET_NULL, &unused, 0);
-
-         /* 5 times per second should be plenty... maybe TOO much. */
-         wait_frames = ROUND(timing_get_speed () / 5.0);
-
-         break;
-      }
-
       default:
          break;
+   }
+
+   /* Send empty packets so that the connection stays alive. */
+   if (wait_frames > 0)
+      wait_frames--;
+
+   if (wait_frames == 0)
+   {
+      UINT8 unused;
+
+      net_send_packet (NETPLAY_PACKET_NULL, &unused, 0);
+   
+      /* 5 times per second should be plenty... maybe TOO much. */
+      /* I guess this probably won't work so well in the GUI... oh well. */
+      wait_frames = ROUND(timing_get_speed () / 5.0);
    }
 
    /* Check for incoming packets. */
