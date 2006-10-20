@@ -15,13 +15,17 @@
 extern "C" {
 #endif
 
-#define NET_MAX_CLIENTS 8
+enum
+{
+   NET_MAX_CLIENTS = 4
+};
 
 typedef struct _NET_CLIENT
 {
-   BOOL active;      /* Whether slot is occupied or not.         */
-   USTRING nickname; /* Nickname, in Unicode.                    */
-   int timeout;      /* Time elapsed since last incoming packet. */
+   BOOL active;      /* Whether slot is occupied or not. */
+   USTRING nickname; /* Nickname, UTF8.  */
+   unsigned timeout; /* Time elapsed since last data transfer (in
+                        net_process() ticks). */
 
 } NET_CLIENT;
 
@@ -31,15 +35,16 @@ ENUM net_mode;
 
 int net_init (void);
 void net_exit (void);
-int net_open (int);
+int net_open (int port);
 void net_close (void);
 int net_listen (void);
-int net_connect (const char *, int);
+int net_connect (const CHAR *host, int port);
 void net_process (void);
-PACKFILE *net_open_packet (ENUM);
+unsigned net_get_packet (ENUM client_id, void *buffer, unsigned size);
+unsigned net_send_packet (UINT8 tag, void *buffer, unsigned size);
 
 enum
-{
+{            
    NET_MODE_INACTIVE,
    NET_MODE_SERVER,
    NET_MODE_CLIENT
@@ -47,14 +52,30 @@ enum
 
 enum
 {
-   NET_PIPE_READ,
-   NET_PIPE_WRITE
+   NET_LOCAL_CLIENT        = 0,
+   NET_FIRST_REMOTE_CLIENT = ( NET_LOCAL_CLIENT + 1 )
 };
 
-#define NET_LOCAL_CLIENT         0
-#define NET_FIRST_REMOTE_CLIENT  (NET_LOCAL_CLIENT + 1)
+typedef struct _NET_PACKET_HEADER
+{
+   UINT16 size;
+   UINT8 tag;
+
+} NET_PACKET_HEADER;
+
+enum
+{
+   NET_MAX_PACKET_SIZE_SEND    = 2048,
+   NET_MAX_PACKET_SIZE_RECIEVE = ( NET_MAX_PACKET_SIZE_SEND + sizeof(NET_PACKET_HEADER) ),
+   NET_MAX_PACKET_SIZE_ANY     = NET_MAX_PACKET_SIZE_RECIEVE
+};
+
+enum
+{
+   NET_PACKET_HEADER_SIZE = sizeof(NET_PACKET_HEADER)
+};
 
 #ifdef __cplusplus
 }
-#endif
+#endif   /* __cplusplus */
 #endif   /* !NET_H_INCLUDED */
