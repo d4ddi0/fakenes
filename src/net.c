@@ -92,9 +92,6 @@ int net_init (void)
    nlSelectNetwork (NL_IP);
    nlHint (NL_REUSE_ADDRESS, NL_TRUE);
 
-   /* We send and recieve data in little-endian format. */
-   nlEnable (NL_LITTLE_ENDIAN_DATA);
-
    log_printf ("NET: Network initialized.\n");
 
    return (0);
@@ -369,6 +366,9 @@ void net_process (void)
             {
                /* Extract header. */
                memcpy (&data->read_buffer.header, data->read_buffer.data, sizeof(data->read_buffer.header));
+
+               /* Byte swap size field as needed. */
+               data->read_buffer.header.size = nlSwaps (data->read_buffer.header.size);
             }
             else if ((data->read_buffer.size > sizeof(NET_PACKET_HEADER)) &&
                      (data->read_buffer.size == data->read_buffer.header.size))
@@ -463,6 +463,9 @@ unsigned net_send_packet (UINT8 tag, void *buffer, unsigned size)
 
    /* Determine how large the packet will be. */
    packet.size = ( length + NET_PACKET_HEADER_SIZE );
+
+   /* Byte swap size field as needed. */
+   packet.size = nlSwaps (packet.size);
 
    /* Build the packet header. */
    packet.header.size = packet.size;
