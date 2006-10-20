@@ -11,6 +11,7 @@
 #include "net.h"
 #include "netplay.h"
 #include "shared/bufferfile.h"
+#include "timing.h"
 #include "types.h"
 #include "video.h"
 
@@ -94,10 +95,19 @@ void netplay_process (void)
       case NETPLAY_MODE_SERVER_CLOSED:
       case NETPLAY_MODE_CLIENT:
       {
+         static int wait_frames = 0;
          UINT8 unused;
+
+         if (wait_frames > 0)
+            wait_frames--;
+         if (wait_frames > 0)
+            break;
 
          /* Send empty packets so that the connection stays alive. */
          net_send_packet (NETPLAY_PACKET_NULL, &unused, 0);
+
+         /* 5 times per second should be plenty... maybe TOO much. */
+         wait_frames = ROUND(timing_get_speed () / 5.0);
 
          break;
       }
