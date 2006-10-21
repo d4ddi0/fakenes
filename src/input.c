@@ -14,6 +14,7 @@
 #include "debug.h"
 #include "gui.h"
 #include "input.h"
+#include "netplay.h"
 #include "ppu.h"
 #include "rom.h"
 #include "save.h"
@@ -1142,8 +1143,17 @@ void input_handle_keypress (int c, int scancode)
       {
          if (ustrlen (input_chat_text) > 0)
          {
-            video_message (input_chat_text);
-            video_message_duration = 5000;
+            if (netplay_mode == NETPLAY_MODE_INACTIVE)
+            {
+               /* Just show message locally. */
+               video_message (input_chat_text);
+               video_message_duration = 5000;
+            }
+            else
+            {
+               /* Send message over network. */
+               netplay_send_message (input_chat_text);
+            }
 
             /* Clear buffer. */
             USTRING_CLEAR(input_chat_text);

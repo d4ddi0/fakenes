@@ -235,6 +235,7 @@ static void parse_packet (PACKFILE *file)
 
          /* Display it. */
          video_message (text);
+         video_message_duration = 5000;
 
          break;
       }
