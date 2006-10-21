@@ -3240,8 +3240,7 @@ static int netplay_menu_start_as_server (void)
    sprintf (port_str, "%d", port);
 
    USTRING_CLEAR(nick);
-   ustrncat (nick, get_config_string ("netplay", "nick", ""), (sizeof (nick)
-      - 1));
+   ustrncat (nick, get_config_string ("netplay", "nick", "Player"), (sizeof(nick) - 1));
 
    /* Get dialog. */
    dialog = netplay_dialog;
