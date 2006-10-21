@@ -938,7 +938,7 @@ static int open_lobby (void)
          D_O_K   - The NetPlay session has been closed, by pressing either
                    the [ x] close button or the Cancel button.
          D_CLOSE - The Netplay session is still open, all neccessary data
-                   has been distributed and subsequently laoded, and control
+                   has been distributed and subsequently loaded, and control
                    should be transfered to the main loop. */
 
    BITMAP *bmp;                       
@@ -1013,7 +1013,7 @@ static int open_lobby (void)
    USTRING_CLEAR(chat);
    USTRING_CLEAR(list);
    USTRING_CLEAR(message);
-
+        
    /* Run dialog. */
 
    player = init_dialog (dialog, -1);
@@ -1024,7 +1024,12 @@ static int open_lobby (void)
    }
 
    while (update_dialog (player))
+   {
       gui_heartbeat ();
+
+      netplay_enumerate_clients (list, sizeof(list));
+      netplay_enumerate_chat (chat, sizeof(chat));
+   }
 
    object_id = shutdown_dialog (player);
 

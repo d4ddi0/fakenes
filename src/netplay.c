@@ -108,9 +108,11 @@ void netplay_process (void)
 
    if (wait_frames == 0)
    {
-      UINT8 unused;
+      UINT8 type;
 
-      net_send_packet (NETPLAY_PACKET_NULL, &unused, 0);
+      type = NETPLAY_PACKET_NULL;
+
+      net_send_packet (&type, sizeof(type));
    
       /* 5 times per second should be plenty... maybe TOO much. */
       /* I guess this probably won't work so well in the GUI... oh well. */
@@ -175,6 +177,7 @@ void netplay_send_message (const UCHAR *message)
    NET_CLIENT *client = &net_clients[NET_LOCAL_CLIENT];
    USTRING text;
    PACKFILE *file;
+   UINT16 length;
    UINT8 *buffer;
    long size;
 
@@ -192,28 +195,65 @@ void netplay_send_message (const UCHAR *message)
       return;
    }
 
-   pack_fwrite (text, ustrsize (text), file);
+   pack_putc (NETPLAY_PACKET_CHAT, file);
+
+   length = MIN( 65535, ustrsize (text) );
+                                    
+   pack_iputw (length, file);
+   pack_fwrite (text, length, file);
 
    /* Send packet. */
    BufferFile_get_buffer (file, &buffer, &size);
-   net_send_packet (NETPLAY_PACKET_CHAT, buffer, size);
+   net_send_packet (buffer, size);
 
    pack_fclose (file);
+}
+
+void netplay_enumerate_clients (UCHAR *buffer, unsigned size)
+{
+   /* This function stores a list of all clients' nicknames in 'buffer',
+      suitable for display in a text box. */
+
+   int index;
+
+   RT_ASSERT(buffer);
+
+   USTRING_CLEAR_SIZE(buffer, size);
+
+   for (index = 0; index < NET_MAX_CLIENTS; index++)
+   {
+      NET_CLIENT *client = &net_clients[index];
+
+      if (!client->active)
+         continue;
+
+      ustrncat (buffer, "\n", (size - 1));
+      ustrncat (buffer, client->nickname, (size - 1));
+   }
+}
+
+void netplay_enumerate_chat (UCHAR *buffer, unsigned size)
+{
+   RT_ASSERT(buffer);
+
+   USTRING_CLEAR_SIZE(buffer, size);
 }
 
 /* ---- Private functions ---- */
 
 static void parse_packet (PACKFILE *file)
 {
-   NET_PACKET_HEADER header;
+   UINT8 type;
 
    RT_ASSERT(file);
 
-   /* Read each field individually for portability... */
-   header.size = pack_mgetw (file);
-   header.tag = pack_getc (file);
+   /* Skip header. */
+   pack_fseek (file, NET_PACKET_HEADER_SIZE);
 
-   switch (header.tag)
+   /* Fetch packet type. */
+   type = pack_getc (file);
+
+   switch (type)
    {
       case NETPLAY_PACKET_NULL:
          break;
@@ -224,7 +264,7 @@ static void parse_packet (PACKFILE *file)
          USTRING text;
 
          /* Determine how many bytes to read. */
-         length = (header.size - sizeof(header));
+         length = pack_igetw (file);
          if (length == 0)
          {
             WARN("Recieved empty chat packet");

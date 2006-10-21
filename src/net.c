@@ -74,9 +74,11 @@ static NET_CLIENT_DATA net_client_data[NET_MAX_CLIENTS];
 /* Function prototypes. */
 
 static void net_print_error (void);
-static void net_enqueue (NET_PACKET_QUEUE *, const NET_PACKET_BUFFER *);
-static void net_dequeue (NET_PACKET_QUEUE *, NET_PACKET_BUFFER *);
-static void net_clear_queue (NET_PACKET_QUEUE *);
+static void net_enqueue (NET_PACKET_QUEUE *queue, const NET_PACKET_BUFFER *packet);
+static void net_dequeue (NET_PACKET_QUEUE *queue, NET_PACKET_BUFFER *packet);
+static void net_clear_queue (NET_PACKET_QUEUE *queue);
+static void net_write_packet_header (NET_PACKET_BUFFER *packet, const NET_PACKET_HEADER *header);
+static void net_read_packet_header (const NET_PACKET_BUFFER *packet, NET_PACKET_HEADER *header);
 
 /* --- Public functions. --- */
 
@@ -359,15 +361,12 @@ void net_process (void)
             data->read_buffer.data[data->read_buffer.pos++] = buffer[pos];
             data->read_buffer.size++;
    
-            if (data->read_buffer.size == sizeof(NET_PACKET_HEADER))
+            if (data->read_buffer.size == NET_PACKET_HEADER_SIZE)
             {
                /* Extract header. */
-               memcpy (&data->read_buffer.header, data->read_buffer.data, sizeof(data->read_buffer.header));
-
-               /* Byte swap size field as needed. */
-               data->read_buffer.header.size = nlSwaps (data->read_buffer.header.size);
+               net_read_packet_header (&data->read_buffer, &data->read_buffer.header);
             }
-            else if ((data->read_buffer.size > sizeof(NET_PACKET_HEADER)) &&
+            else if ((data->read_buffer.size > NET_PACKET_HEADER_SIZE) &&
                      (data->read_buffer.size == data->read_buffer.header.size))
             {
                /* Queue packet. */
@@ -446,7 +445,7 @@ unsigned net_get_packet (ENUM client_id, void *buffer, unsigned size)
    return (length);
 }
                                           
-unsigned net_send_packet (UINT8 tag, void *buffer, unsigned size)
+unsigned net_send_packet (void *buffer, unsigned size)
 {
    unsigned length;
    NET_PACKET_BUFFER packet;
@@ -459,24 +458,20 @@ unsigned net_send_packet (UINT8 tag, void *buffer, unsigned size)
    /* Determine how much data to transfer. */
    length = MIN(NET_MAX_PACKET_SIZE_SEND, size);
 
+   /* Determine how large the packet will be. */
+   packet.size = ( length + NET_PACKET_HEADER_SIZE );
+
+   /* Build the packet header. */
+   packet.header.size = packet.size;
+
+   /* Embed the header in the data. */
+   net_write_packet_header (&packet, &packet.header);
+
    /* Transfer data from the buffer to the packet buffer. */
    memcpy ( ( packet.data + NET_PACKET_HEADER_SIZE ), buffer, length);
 
    /* Clear read/write pointer. */
    packet.pos = 0;
-
-   /* Determine how large the packet will be. */
-   packet.size = ( length + NET_PACKET_HEADER_SIZE );
-
-   /* Byte swap size field as needed. */
-   packet.size = nlSwaps (packet.size);
-
-   /* Build the packet header. */
-   packet.header.size = packet.size;
-   packet.header.tag = tag;
-
-   /* Embed the header in the data. */
-   memcpy (packet.data, &packet.header, sizeof(packet.header));
 
    /* Distribute the packet to all remote clients. */
    for (index = NET_FIRST_REMOTE_CLIENT; index < NET_MAX_CLIENTS; index++)
@@ -611,6 +606,45 @@ static void net_clear_queue (NET_PACKET_QUEUE *queue)
    memset (queue, 0, sizeof(NET_PACKET_QUEUE));
 }
 
+static void net_read_packet_header (const NET_PACKET_BUFFER *packet, NET_PACKET_HEADER *header)
+{
+   /* This function reads the header from the packet data contained in
+      'packet' in a portable manner and stores it in 'header'. */
+
+   RT_ASSERT(packet);
+   RT_ASSERT(header);
+
+   /* Clear header. */
+   memset (header, 0, sizeof(NET_PACKET_HEADER));
+
+   /* Read size field. */
+   header->size = ( (packet->data[0] << 8) | packet->data[1] );
+
+   /* Byte swap the size field as needed. */
+   header->size = nlSwaps (header->size);
+}
+
+static void net_write_packet_header (NET_PACKET_BUFFER *packet, const NET_PACKET_HEADER *header)
+{
+   /* This function writes the header in 'header' to the packet data
+      contained in 'packet' in a portable manner.
+
+      The packet data must already have room reserved at the beginning for
+      addition of the header. */
+
+   RT_ASSERT(packet);
+   RT_ASSERT(header);
+
+   UINT16 size;
+
+   /* Byte swap the size field as needed. */
+   size = nlSwaps (header->size);
+
+   /* Write size field. */
+   packet->data[0] = (size >> 8);
+   packet->data[1] = (size & 0xFF);
+}
+
 #else /* USE_HAWKNL */
 
 int net_init (void)
@@ -665,3 +699,4 @@ unsigned net_send_packet (void *buffer, unsigned size)
 }
 
 #endif   /* !USE_HAWKNL */
+
