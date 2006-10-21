@@ -82,6 +82,7 @@ static void net_dequeue (NET_PACKET_QUEUE *queue, NET_PACKET_BUFFER *packet);
 static void net_clear_queue (NET_PACKET_QUEUE *queue);
 static void net_write_packet_header (NET_PACKET_BUFFER *packet, const NET_PACKET_HEADER *header);
 static void net_read_packet_header (const NET_PACKET_BUFFER *packet, NET_PACKET_HEADER *header);
+static void net_process_client (ENUM client_id);
 
 /* --- Public functions. --- */
 
@@ -216,7 +217,7 @@ int net_listen (void)
 
       log_printf ("NET: Server initialized.\n");
 
-      /* Set up client #0. */
+      /* Set up local client. */
 
       client = &net_clients[NET_LOCAL_CLIENT];
       data   = &net_client_data[NET_LOCAL_CLIENT];
@@ -228,7 +229,7 @@ int net_listen (void)
       /* Activate client. */
       client->active = TRUE;
 
-      log_printf ("NET: Client #0 initialized.\n");
+      log_printf ("NET: Local client initialized.\n");
    }
 
    /* Accept any pending connections. */
@@ -259,7 +260,7 @@ int net_listen (void)
          /* Activate client. */
          client->active = TRUE;
 
-         log_printf ("NET: Client #%d initialized.\n", index);
+         log_printf ("NET: Remote client #%d initialized.\n", index);
 
          return (index);
       }
@@ -307,7 +308,7 @@ int net_connect (const CHAR *host, int port)
    /* Switch to client mode. */
    net_mode = NET_MODE_CLIENT;
 
-   /* Set up client #0. */
+   /* Set up local client. */
 
    client = &net_clients[NET_LOCAL_CLIENT];
    data   = &net_client_data[NET_LOCAL_CLIENT];
@@ -319,7 +320,7 @@ int net_connect (const CHAR *host, int port)
    /* Activate client. */
    client->active = TRUE;
 
-   log_printf ("NET: Client #0 initialized.\n");
+   log_printf ("NET: Local client initialized.\n");
 
    return (TRUE);
 }
@@ -329,85 +330,32 @@ void net_process (void)
    /* This function handles all of the magic of sending and recieving
       packets. */
 
-   NET_CLIENT *client;
-   NET_CLIENT_DATA *data;
-   int index;
-
-   if (net_mode == NET_MODE_INACTIVE)
-      return;
-
-   for (index = NET_FIRST_REMOTE_CLIENT; index < NET_MAX_CLIENTS; index++)
+   switch (net_mode)
    {
-      /* Recieve buffer. */
-      UINT8 buffer[NET_MAX_PACKET_SIZE_RECIEVE];
-      unsigned size;
-      BOOL active = FALSE;
+      case NET_MODE_INACTIVE:
+         break;
 
-      client = &net_clients[index];
-
-      if (!client->active)
-         continue;
-
-      data = &net_client_data[index];
-
-      /* Gather incoming packets. */
-
-      size = nlRead (data->socket, &buffer, sizeof(buffer));
-      if (size > 0)
+      case NET_MODE_SERVER:
       {
-         unsigned pos;
+         int index;
 
-         active = TRUE;
+         for (index = NET_FIRST_REMOTE_CLIENT; index < NET_MAX_CLIENTS; index++)
+            net_process_client (index);
 
-         for (pos = 0; pos < size; pos++)
-         {
-            data->read_buffer.data[data->read_buffer.pos++] = buffer[pos];
-            data->read_buffer.size++;
-   
-            if (data->read_buffer.size == NET_PACKET_HEADER_SIZE)
-            {
-               /* Extract header. */
-               net_read_packet_header (&data->read_buffer, &data->read_buffer.header);
-            }
-            else if ((data->read_buffer.size > NET_PACKET_HEADER_SIZE) &&
-                     (data->read_buffer.size == data->read_buffer.header.size))
-            {
-               /* Queue packet. */
-               net_enqueue (&data->read_queue, &data->read_buffer);
-
-               /* Clear buffer. */
-               data->read_buffer.size = 0;
-               data->read_buffer.pos = 0;
-            }
-         }
+         break;
       }
 
-      /* Distribute outgoing packets. */
-
-      if (data->write_buffer.size > 0)
+      case NET_MODE_CLIENT:
       {
-         /* Transfer as much data as possible in one shot. */
-         size = nlWrite (data->socket, (data->write_buffer.data + data->write_buffer.pos), data->write_buffer.size);
-         if (size > 0)
-         {
-            active = TRUE;
-
-            data->write_buffer.size -= size;
-            data->write_buffer.pos += size;
-         }
+         net_process_client (NET_LOCAL_CLIENT);
+         break;
       }
 
-      if ((data->write_buffer.size == 0) &&
-          (data->write_queue.size > 0))
+      default:
       {
-         /* Reload buffer with a packet from the queue. */
-         net_dequeue (&data->write_queue, &data->write_buffer);
+         WARN_GENERIC();
+         break;
       }
-
-      if (active)
-         client->timeout = 0;
-      else
-         client->timeout++;
    }
 }
 
@@ -422,7 +370,10 @@ unsigned net_get_packet (ENUM client_id, void *buffer, unsigned size)
 
    /* Make sure we were given a valid client ID. */
    if ( (client_id < 0) || (client_id >= NET_MAX_CLIENTS) )
+   {
+      WARN_GENERIC();
       return (0);
+   }
 
    client = &net_clients[client_id];
 
@@ -515,24 +466,54 @@ unsigned net_send_packet (FLAGS flags, void *buffer, unsigned size)
    /* Clear read/write pointer. */
    packet.pos = 0;
 
-   /* Distribute the packet to all remote clients. */
-   for (index = NET_FIRST_REMOTE_CLIENT; index < NET_MAX_CLIENTS; index++)
+   switch (net_mode)
    {
-      client = &net_clients[index];
+      case NET_MODE_INACTIVE:
+      {
+         WARN_GENERIC();
+         break;
+      }
 
-      if (!client->active)
-         continue;
+      case NET_MODE_SERVER:
+      {
+         /* Distribute the packet to all remote clients. */
+         for (index = NET_FIRST_REMOTE_CLIENT; index < NET_MAX_CLIENTS; index++)
+         {
+            client = &net_clients[index];
+      
+            if (!client->active)
+               continue;
+      
+            data = &net_client_data[index];
+      
+            /* Send packet to write queue. */
+            net_enqueue (&data->write_queue, &packet);
+         }
+      
+         data = &net_client_data[NET_LOCAL_CLIENT];
+      
+         /* Simulate sending to oneself. */
+         net_enqueue (&data->read_queue, &packet);
 
-      data = &net_client_data[index];
+         break;
+      }
 
-      /* Send packet to write queue. */
-      net_enqueue (&data->write_queue, &packet);
+      case NET_MODE_CLIENT:
+      {
+         data = &net_client_data[NET_LOCAL_CLIENT];
+
+         /* Send packet to write queue. */
+         net_enqueue (&data->write_queue, &packet);
+
+         break;
+      }
+
+      default:
+      {
+         WARN_GENERIC();
+         break;
+      }
    }
-
-   data = &net_client_data[NET_LOCAL_CLIENT];
-
-   /* Simulate sending to oneself. */
-   net_enqueue (&data->read_queue, &packet);
 
    /* Return the amount distributed. */
    return (length);
@@ -675,6 +656,89 @@ static void net_write_packet_header (NET_PACKET_BUFFER *packet, const NET_PACKET
    packet->data[1] = (header->size & 0x00FF);
 
    packet->data[2] = (header->flags & 0xFF);
+}
+
+static void net_process_client (ENUM client_id)
+{
+   NET_CLIENT *client;
+   NET_CLIENT_DATA *data;
+   /* Recieve buffer. */
+   UINT8 buffer[NET_MAX_PACKET_SIZE_RECIEVE];
+   unsigned size;
+   BOOL active = FALSE;
+
+   /* Make sure we were given a valid client ID. */
+   if ( (client_id < 0) || (client_id >= NET_MAX_CLIENTS) )
+   {
+      WARN_GENERIC();
+      return;
+   }
+
+   client = &net_clients[client_id];
+
+   if (!client->active)
+      return;
+
+   data = &net_client_data[client_id];
+
+   /* Gather incoming packets. */
+
+   size = nlRead (data->socket, &buffer, sizeof(buffer));
+   if (size > 0)
+   {
+      unsigned pos;
+
+      active = TRUE;
+
+      for (pos = 0; pos < size; pos++)
+      {
+         data->read_buffer.data[data->read_buffer.pos++] = buffer[pos];
+         data->read_buffer.size++;
+
+         if (data->read_buffer.size == NET_PACKET_HEADER_SIZE)
+         {
+            /* Extract header. */
+            net_read_packet_header (&data->read_buffer, &data->read_buffer.header);
+         }
+         else if ((data->read_buffer.size > NET_PACKET_HEADER_SIZE) &&
+                  (data->read_buffer.size == data->read_buffer.header.size))
+         {
+            /* Queue packet. */
+            net_enqueue (&data->read_queue, &data->read_buffer);
+
+            /* Clear buffer. */
+            data->read_buffer.size = 0;
+            data->read_buffer.pos = 0;
+         }
+      }
+   }
+
+   /* Distribute outgoing packets. */
+
+   if (data->write_buffer.size > 0)
+   {
+      /* Transfer as much data as possible in one shot. */
+      size = nlWrite (data->socket, (data->write_buffer.data + data->write_buffer.pos), data->write_buffer.size);
+      if (size > 0)
+      {
+         active = TRUE;
+
+         data->write_buffer.size -= size;
+         data->write_buffer.pos += size;
+      }
+   }
+
+   if ((data->write_buffer.size == 0) &&
+       (data->write_queue.size > 0))
+   {
+      /* Reload buffer with a packet from the queue. */
+      net_dequeue (&data->write_queue, &data->write_buffer);
+   }
+
+   if (active)
+      client->timeout = 0;
+   else
+      client->timeout++;
 }
 
 #else /* USE_HAWKNL */
