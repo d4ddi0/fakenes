@@ -614,14 +614,7 @@ static void net_read_packet_header (const NET_PACKET_BUFFER *packet, NET_PACKET_
    RT_ASSERT(packet);
    RT_ASSERT(header);
 
-   /* Clear header. */
-   memset (header, 0, sizeof(NET_PACKET_HEADER));
-
-   /* Read size field. */
    header->size = ( (packet->data[0] << 8) | packet->data[1] );
-
-   /* Byte swap the size field as needed. */
-   header->size = nlSwaps (header->size);
 }
 
 static void net_write_packet_header (NET_PACKET_BUFFER *packet, const NET_PACKET_HEADER *header)
@@ -635,14 +628,8 @@ static void net_write_packet_header (NET_PACKET_BUFFER *packet, const NET_PACKET
    RT_ASSERT(packet);
    RT_ASSERT(header);
 
-   UINT16 size;
-
-   /* Byte swap the size field as needed. */
-   size = nlSwaps (header->size);
-
-   /* Write size field. */
-   packet->data[0] = (size >> 8);
-   packet->data[1] = (size & 0xFF);
+   packet->data[0] = (header->size >> 8);
+   packet->data[1] = (header->size & 0xFF);
 }
 
 #else /* USE_HAWKNL */
@@ -699,4 +686,3 @@ unsigned net_send_packet (void *buffer, unsigned size)
 }
 
 #endif   /* !USE_HAWKNL */
-
