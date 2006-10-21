@@ -446,22 +446,24 @@ enum
    NETPLAY_DIALOG_CANCEL_BUTTON
 };
 
+static int lobby_dialog_load (void);
+
 static const DIALOG lobby_dialog_base[] =
 {
-   { sl_frame,          0,   0,   320, 240, 0, 0, 0,   D_DISABLED, 0, 0, NULL,         "Lobby",   NULL },
-   { sl_x_button,       300, 4,   16,  12,  0, 0, 0,   D_EXIT,     0, 0, "X",          NULL,      NULL },
-   { sl_viewer,         10,  27,  207, 168, 0, 0, 0,   0,          0, 0, NULL,         NULL,      NULL },
-   { sl_viewer,         223, 27,  89,  89,  0, 0, 0,   0,          0, 0, NULL,         NULL,      NULL },
-   { sl_text,           227, 124, 0,   0,   0, 0, 0,   0,          0, 0, NULL,         "Inputs:", NULL },
-   { sl_checkbox,       235, 133, 60,  8,   0, 0, '1', 0,          0, 0, "Player &1 ", NULL,      NULL },
-   { sl_checkbox,       235, 142, 60,  8,   0, 0, '2', 0,          0, 0, "Player &2 ", NULL,      NULL },
-   { sl_checkbox,       235, 151, 60,  8,   0, 0, '3', 0,          0, 0, "Player &3 ", NULL,      NULL },
-   { sl_checkbox,       235, 160, 60,  8,   0, 0, '4', 0,          0, 0, "Player &4 ", NULL,      NULL },
-   { d_shadow_box_proc, 10,  200, 302, 14,  0, 0, 0,   0,          0, 0, NULL,         NULL,      NULL },
-   { sl_lobby_msgbox,   12,  204, 298, 12,  0, 0, 0,   0,          0, 0, NULL,         NULL,      NULL },
-   { sl_button,         131, 219, 64,  16,  0, 0, 'l', 0,          0, 0, "&Load...",   NULL,      NULL },
-   { sl_button,         203, 219, 52,  16,  0, 0, 'o', D_EXIT,     0, 0, "&OK",        NULL,      NULL },
-   { sl_button,         259, 219, 52,  16,  0, 0, 'c', D_EXIT,     0, 0, "&Cancel",    NULL,      NULL },
+   { sl_frame,          0,   0,   320, 240, 0, 0, 0,   D_DISABLED, 0, 0, NULL,         "Lobby",           NULL },
+   { sl_x_button,       300, 4,   16,  12,  0, 0, 0,   D_EXIT,     0, 0, "X",          NULL,              NULL },
+   { sl_viewer,         10,  27,  207, 168, 0, 0, 0,   0,          0, 0, NULL,         NULL,              NULL },
+   { sl_viewer,         223, 27,  89,  89,  0, 0, 0,   0,          0, 0, NULL,         NULL,              NULL },
+   { sl_text,           227, 124, 0,   0,   0, 0, 0,   0,          0, 0, NULL,         "Inputs:",         NULL },
+   { sl_checkbox,       235, 133, 60,  8,   0, 0, '1', 0,          0, 0, "Player &1 ", NULL,              NULL },
+   { sl_checkbox,       235, 142, 60,  8,   0, 0, '2', 0,          0, 0, "Player &2 ", NULL,              NULL },
+   { sl_checkbox,       235, 151, 60,  8,   0, 0, '3', 0,          0, 0, "Player &3 ", NULL,              NULL },
+   { sl_checkbox,       235, 160, 60,  8,   0, 0, '4', 0,          0, 0, "Player &4 ", NULL,              NULL },
+   { d_shadow_box_proc, 10,  200, 302, 14,  0, 0, 0,   0,          0, 0, NULL,         NULL,              NULL },
+   { sl_lobby_msgbox,   12,  204, 298, 12,  0, 0, 0,   0,          0, 0, NULL,         NULL,              NULL },
+   { sl_button,         131, 219, 64,  16,  0, 0, 'l', 0,          0, 0, "&Load...",   lobby_dialog_load, NULL },
+   { sl_button,         203, 219, 52,  16,  0, 0, 'o', D_EXIT,     0, 0, "&OK",        NULL,              NULL },
+   { sl_button,         259, 219, 52,  16,  0, 0, 'c', D_EXIT,     0, 0, "&Cancel",    NULL,              NULL },
    DIALOG_FRAME_ENDCAP                                                               
 };
 
@@ -772,7 +774,7 @@ static INLINE int run_dialog (DIALOG *dialog, int focus)
 
    /* Similar to Allegro's do_dialog().
 
-      Althoughall custom dialogs handle the non-blocking setup of the GUI
+      Although all custom dialogs handle the non-blocking setup of the GUI
       themselves (through sl_idle() from 'objects.h'), menus require
       init/update/shutdown_dialog() to be used in place of do_dialog().
       */

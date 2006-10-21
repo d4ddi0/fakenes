@@ -919,7 +919,7 @@ static INLINE int load_file (const UCHAR *filename)
       ENABLE_SUBMENU(audio_record_menu);
       ENABLE_MENU_ITEM(video_layers_menu_flip_mirroring);
       ENABLE_MENU_ITEM(options_menu_reset_clock);
-
+      
       /* Update window title. */
       uszprintf (scratch, sizeof (scratch), "FakeNES - %s", get_filename
          (global_rom.filename));
@@ -1068,28 +1068,23 @@ static int main_menu_open (void)
    /* Retrive path from configuration file. */
    USTRING_CLEAR(path);
 #ifdef POSIX
-   ustrncat (path, get_config_string ("gui", "open_path", "~/"), (sizeof
-      (path) - 1));
+   ustrncat (path, get_config_string ("gui", "open_path", "~/"), (sizeof(path) - 1));
 #else
-   ustrncat (path, get_config_string ("gui", "open_path", "/"), (sizeof
-      (path) - 1));
+   ustrncat (path, get_config_string ("gui", "open_path", "/"), (sizeof(path) - 1));
 #endif
 
    locked = get_config_int ("gui", "lock_paths", FALSE);
 
 #ifdef USE_ZLIB
-   result = gui_file_select ("Open", "Supported file types (*.NES, *.GZ, "
-      "*.ZIP)", path, sizeof (path), "*.nes;*.gz;*.zip");
+   result = gui_file_select ("Open", "Supported file types (*.NES, *.GZ, *.ZIP)", path, sizeof(path), "*.nes;*.gz;*.zip");
 #else
-   result = gui_file_select ("Open", "Supported file types (*.NES)", path,
-      sizeof (path), "*.nes");
+   result = gui_file_select ("Open", "Supported file types (*.NES)", path, sizeof(path), "*.nes");
 #endif
 
    if (!locked)
    {  
       /* Update path. */
-      set_config_string ("gui", "open_path", replace_filename (scratch,
-         path, "", sizeof (scratch)));
+      set_config_string ("gui", "open_path", replace_filename (scratch, path, "", sizeof (scratch)));
    }
 
    if (result != 0)
@@ -1099,7 +1094,6 @@ static int main_menu_open (void)
       int result;
 
       result = load_file (path);
-
       if ((result == D_CLOSE) && !lock_recent)
       {
          /* Load succeeded; add file to recent items list. */
@@ -1108,10 +1102,7 @@ static int main_menu_open (void)
 
          /* Move all existing entries down by 1 slot. */
          for (index = (OPEN_RECENT_SLOTS - 2); index >= 0; index--)
-         {
-            ustrncpy (open_recent_filenames[(index + 1)],
-               open_recent_filenames[index], USTRING_SIZE);
-         }
+            ustrncpy (open_recent_filenames[(index + 1)], open_recent_filenames[index], USTRING_SIZE);
 
          /* Add new entry to the beginning of the list. */
          uszprintf (open_recent_filenames[0], USTRING_SIZE, "%s", path);
@@ -1127,8 +1118,7 @@ static int main_menu_open (void)
             if (filename[0])
             {
                /* Build menu text. */
-               uszprintf (text, USTRING_SIZE, "&%d: %s", index,
-                  get_filename (filename));
+               uszprintf (text, USTRING_SIZE, "&%d: %s", index, get_filename (filename));
 
                /* Enable menu. */
                menu->flags &= ~D_DISABLED;
@@ -1136,8 +1126,7 @@ static int main_menu_open (void)
             else
             {
                /* Build menu text. */
-               uszprintf (text, USTRING_SIZE, "&%d: %s", index,
-                  UNUSED_SLOT_TEXT);
+               uszprintf (text, USTRING_SIZE, "&%d: %s", index, UNUSED_SLOT_TEXT);
 
                /* Disable menu. */
                menu->flags |= D_DISABLED;
@@ -3877,6 +3866,25 @@ static int options_input_configure_dialog_calibrate (DIALOG *dialog)
 
          break;
       }
+   }
+
+   return (D_O_K);
+}
+
+static int lobby_dialog_load (void)
+{
+   /* Note: D_CLOSE means success, D_O_K means failure. */
+   if (main_menu_open () == D_CLOSE)
+   {
+      DIALOG *obj_ok;
+
+      obj_ok = &lobby_dialog[LOBBY_DIALOG_OK_BUTTON];
+
+      obj_ok->flags &= ~D_DISABLED;
+
+      scare_mouse ();
+      object_message (obj_ok, MSG_DRAW, 0);
+      unscare_mouse ();
    }
 
    return (D_O_K);
