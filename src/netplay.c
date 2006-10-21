@@ -8,6 +8,8 @@
 
 #include <allegro.h>
 #include "common.h"
+#include "data.h"
+#include "debug.h"
 #include "net.h"
 #include "netplay.h"
 #include "shared/bufferfile.h"
@@ -236,6 +238,10 @@ static void parse_packet (PACKFILE *file)
          /* Display it. */
          video_message (text);
          video_message_duration = 5000;
+
+         /* Play sound. */
+         /* TODO: Support OpenAL by piping this through an audiolib wrapper. */
+         play_sample (DATA_TO_SAMPLE(CHAT_RECIEVE_SOUND), 255, 128, 1000, FALSE);
 
          break;
       }

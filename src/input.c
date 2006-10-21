@@ -11,6 +11,7 @@
 #include <string.h>
 #include "audio.h"
 #include "common.h"
+#include "data.h"
 #include "debug.h"
 #include "gui.h"
 #include "input.h"
@@ -1121,6 +1122,30 @@ void input_process (void)
 
 void input_handle_keypress (int c, int scancode)
 {
+   switch (scancode)
+   {
+      case KEY_BACKSPACE:
+      {
+         if (!(input_mode & INPUT_MODE_CHAT))
+         {
+            /* Switch to chat mode. */
+            input_mode &= ~INPUT_MODE_PLAY;
+            input_mode |= INPUT_MODE_CHAT;
+
+            /* Play sound. */
+            play_sample (DATA_TO_SAMPLE(CHAT_WINDOW_SOUND), 255, 128, 1000, FALSE);
+
+            return;
+         }
+
+         break;
+      }
+
+      default:
+         break;
+   }
+
+   /* We need to be in chat mode to proceed further. */
    if (!(input_mode & INPUT_MODE_CHAT))
       return;
 
@@ -1148,6 +1173,9 @@ void input_handle_keypress (int c, int scancode)
                /* Just show message locally. */
                video_message (input_chat_text);
                video_message_duration = 5000;
+
+               /* Play sound. */
+               play_sample (DATA_TO_SAMPLE(CHAT_RECIEVE_SOUND), 255, 128, 1000, FALSE);
             }
             else
             {
@@ -1166,7 +1194,7 @@ void input_handle_keypress (int c, int scancode)
 
          wait_frames = ROUND(timing_get_speed () / 2.0f);
 
-         return;
+         return;                 
       }
 
       default:
@@ -1178,6 +1206,9 @@ void input_handle_keypress (int c, int scancode)
          {
             /* Add character to the end of the buffer. */
             uinsert (input_chat_text, ustrlen (input_chat_text), c);
+
+            /* Play sound. */
+            play_sample (DATA_TO_SAMPLE(CHAT_TYPE_SOUND), 255, 128, 1000, FALSE);
          }
 
          break;

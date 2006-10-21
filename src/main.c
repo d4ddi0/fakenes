@@ -434,17 +434,6 @@ int main (int argc, char *argv[])
                   break;
                }
 
-               case KEY_BACKSPACE:
-               {
-                  if (!(input_mode & INPUT_MODE_CHAT))
-                  {
-                     input_mode &= ~INPUT_MODE_PLAY;
-                     input_mode |= INPUT_MODE_CHAT;
-                  }
-       
-                  break;
-               }
-       
                default:
                   break;
             }
