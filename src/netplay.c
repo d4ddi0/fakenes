@@ -117,7 +117,7 @@ void netplay_process (void)
 
       type = NETPLAY_PACKET_NULL;
 
-      net_send_packet (&type, sizeof(type));
+      net_send_packet (NULL, &type, sizeof(type));
    
       /* 5 times per second should be plenty... maybe TOO much. */
       /* I guess this probably won't work so well in the GUI... oh well. */
@@ -209,7 +209,7 @@ void netplay_send_message (const UCHAR *message)
 
    /* Send packet. */
    BufferFile_get_buffer (file, &buffer, &size);
-   net_send_packet (buffer, size);
+   net_send_packet (NET_PACKET_FLAG_BROADCAST, buffer, size);
 
    pack_fclose (file);
 }
@@ -218,6 +218,9 @@ void netplay_enumerate_clients (UCHAR *buffer, unsigned size)
 {
    /* This function stores a list of all clients' nicknames in 'buffer',
       suitable for display in a text box. */
+
+   /* TODO: Fix this to work on the client side by asking the server for
+      an enumeration.  Right now, it only works for the server. */
 
    int index;
 

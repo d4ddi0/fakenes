@@ -415,7 +415,7 @@ unsigned net_get_packet (ENUM client_id, void *buffer, unsigned size)
 {
    NET_CLIENT *client;
    NET_CLIENT_DATA *data;
-   NET_PACKET_BUFFER packet_buffer;
+   NET_PACKET_BUFFER packet;
    unsigned length;
 
    RT_ASSERT(buffer);
@@ -436,19 +436,57 @@ unsigned net_get_packet (ENUM client_id, void *buffer, unsigned size)
       return (0);
 
    /* Fetch a packet from the queue. */
-   net_dequeue (&data->read_queue, &packet_buffer);
+   net_dequeue (&data->read_queue, &packet);
+
+   if (net_mode == NET_MODE_SERVER)
+   {
+      /* Extract header. */
+      net_read_packet_header (&packet, &packet.header);
+
+      /* Check if the packet should be redistributed to other remote clients. */
+      if (packet.header.flags & NET_PACKET_FLAG_BROADCAST)
+      {  
+         int index;
+
+         /* Clear broadcast flag. */
+         packet.header.flags &= ~NET_PACKET_FLAG_BROADCAST;
+
+         /* Rewrite header. */
+         net_write_packet_header (&packet, &packet.header);
+
+         /* Redistribute "clean" packet to other remote clients. */
+         for (index = NET_FIRST_REMOTE_CLIENT; index < NET_MAX_CLIENTS; index++)
+         {
+            if (index == client_id)
+            {
+               /* Don't send back to the source. */
+               continue;
+            }
+
+            client = &net_clients[index];
+      
+            if (!client->active)
+               continue;
+
+            data = &net_client_data[index];
+      
+            /* Send packet to write queue. */
+            net_enqueue (&data->write_queue, &packet);
+         }
+      }
+   }
 
    /* Determine how much data to transfer. */
    length = MIN(NET_MAX_PACKET_SIZE_RECIEVE, size);
 
    /* Transfer the data from the packet buffer to the buffer. */
-   memcpy (buffer, packet_buffer.data, length);
+   memcpy (buffer, packet.data, length);
 
    /* Return the amount of data transfered. */
    return (length);
 }
                                           
-unsigned net_send_packet (void *buffer, unsigned size)
+unsigned net_send_packet (FLAGS flags, void *buffer, unsigned size)
 {
    unsigned length;
    NET_PACKET_BUFFER packet;
@@ -466,6 +504,7 @@ unsigned net_send_packet (void *buffer, unsigned size)
 
    /* Build the packet header. */
    packet.header.size = packet.size;
+   packet.header.flags = flags;
 
    /* Embed the header in the data. */
    net_write_packet_header (&packet, &packet.header);
@@ -618,6 +657,7 @@ static void net_read_packet_header (const NET_PACKET_BUFFER *packet, NET_PACKET_
    RT_ASSERT(header);
 
    header->size = ( (packet->data[0] << 8) | packet->data[1] );
+   header->flags = packet->data[2];
 }
 
 static void net_write_packet_header (NET_PACKET_BUFFER *packet, const NET_PACKET_HEADER *header)
@@ -631,8 +671,10 @@ static void net_write_packet_header (NET_PACKET_BUFFER *packet, const NET_PACKET
    RT_ASSERT(packet);
    RT_ASSERT(header);
 
-   packet->data[0] = (header->size >> 8);
-   packet->data[1] = (header->size & 0xFF);
+   packet->data[0] = ((header->size & 0xFF00) >> 8);
+   packet->data[1] = (header->size & 0x00FF);
+
+   packet->data[2] = (header->flags & 0xFF);
 }
 
 #else /* USE_HAWKNL */
@@ -681,7 +723,7 @@ unsigned net_get_packet (ENUM client_id, void *buffer, unsigned size)
    return (0);
 }
 
-unsigned net_send_packet (void *buffer, unsigned size)
+unsigned net_send_packet (FLAGS flags, void *buffer, unsigned size)
 {
    RT_ASSERT(buffer);
 

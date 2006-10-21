@@ -41,7 +41,7 @@ int net_listen (void);
 int net_connect (const CHAR *host, int port);
 void net_process (void);
 unsigned net_get_packet (ENUM client_id, void *buffer, unsigned size);
-unsigned net_send_packet (void *buffer, unsigned size);
+unsigned net_send_packet (FLAGS flags, void *buffer, unsigned size);
 
 enum
 {            
@@ -59,12 +59,19 @@ enum
 typedef struct _NET_PACKET_HEADER
 {
    UINT16 size;
+   UINT8 flags;
 
 } NET_PACKET_HEADER;
 
 enum
 {
-   NET_PACKET_HEADER_SIZE = 2
+   NET_PACKET_FLAG_BROADCAST = (1 << 0)
+};
+
+enum
+{
+   /* (16+8)/8 */
+   NET_PACKET_HEADER_SIZE = 3
 };
 
 enum
