@@ -430,7 +430,7 @@ unsigned net_get_packet (ENUM client_id, void *buffer, unsigned size)
    data = &net_client_data[client_id];
 
    /* Make sure there is data in the queue. */
-   if (data->read_queue.size == 0)
+   if (data->read_queue.size <= 0)
       return (0);
 
    /* Fetch a packet from the queue. */
@@ -536,9 +536,24 @@ static void net_enqueue (NET_PACKET_QUEUE *queue, const NET_PACKET_BUFFER *packe
       return;
    }
 
+   /* Clear node. */
+   memset (node, 0, sizeof(NET_PACKET_QUEUE_NODE));
+
+   /* Fill in packet. */
    memcpy (&node->packet, packet, sizeof(NET_PACKET_BUFFER));
-   
-   queue->last->next = node;
+
+   if (!queue->first)
+   {
+      /* Create root node. */
+      queue->first = node;
+   }
+   else if (queue->last)
+   {
+      /* Link existing nodes together. */
+      node->prev = queue->last;
+      queue->last->next = node;
+   }
+
    queue->last = node;
 
    queue->size++;
@@ -558,7 +573,17 @@ static void net_dequeue (NET_PACKET_QUEUE *queue, NET_PACKET_BUFFER *packet)
 
    memcpy (packet, &node->packet, sizeof(NET_PACKET_BUFFER));
 
-   queue->first = node->next;
+   if (node->next)
+   {
+      /* Advance to next node in the link. */
+      queue->first = node->next;
+   }
+   else
+   {
+      /* Queue is empty. */
+      queue->first = NULL;
+      queue->last = NULL;
+   }
 
    free (node);
    
