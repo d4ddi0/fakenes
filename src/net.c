@@ -26,7 +26,10 @@ static NLsocket net_socket = NL_INVALID;
 
 /* Packets & packet buffers. */
 
-#define NET_MAX_PACKETS_PER_QUEUE   50
+enum
+{
+   NET_MAX_PACKETS_PER_QUEUE = 50
+};
 
 typedef struct _NET_PACKET_BUFFER
 {
