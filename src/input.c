@@ -495,12 +495,12 @@ void input_reset (void)
    }
 
    /* Clear variables. */
-   wait_frames     = 0;
-   last_write      = 0;
-   current_read_p1 = 0;
-   current_read_p2 = 0;
-   turbo_phase     = 0;
-   turbo_frames    = 0;
+   wait_frames      = 0;
+   last_write       = 0;
+   current_read_p1  = 0;
+   current_read_p2  = 0;
+   turbo_phase      = 0;
+   turbo_frames     = 0;
 }
 
 UINT8 input_read (UINT16 address)               
@@ -585,7 +585,7 @@ UINT8 input_read (UINT16 address)
 
             /* Increment read counter. */
             current_read_p2++;
-
+          
             /* Return ?? */
             return ((0x01 | zapper_mask));
          }
@@ -1168,7 +1168,12 @@ void input_handle_keypress (int c, int scancode)
       {
          if (ustrlen (input_chat_text) > 0)
          {
-            if (netplay_mode == NETPLAY_MODE_INACTIVE)
+            if (netplay_mode)
+            {
+               /* Send message over network. */
+               netplay_send_message (input_chat_text);
+            }
+            else
             {
                /* Just show message locally. */
                video_message (input_chat_text);
@@ -1176,11 +1181,6 @@ void input_handle_keypress (int c, int scancode)
 
                /* Play sound. */
                play_sample (DATA_TO_SAMPLE(CHAT_RECIEVE_SOUND), 255, 128, 1000, FALSE);
-            }
-            else
-            {
-               /* Send message over network. */
-               netplay_send_message (input_chat_text);
             }
 
             /* Clear buffer. */

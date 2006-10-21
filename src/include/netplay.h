@@ -16,7 +16,8 @@ extern "C" {
 
 enum
 {
-   NETPLAY_DEFAULT_PORT = 0x2A03
+   NETPLAY_DEFAULT_PORT = 0x2A03,
+   NETPLAY_LATENCY      = 12        /* In frames. */
 };
 
 ENUM netplay_mode;
@@ -34,7 +35,7 @@ void netplay_enumerate_chat (UCHAR *buffer, unsigned size);
 
 enum
 {
-   NETPLAY_MODE_INACTIVE,
+   NETPLAY_MODE_INACTIVE = 0,
    NETPLAY_MODE_SERVER_OPEN,
    NETPLAY_MODE_SERVER_CLOSED,
    NETPLAY_MODE_CLIENT

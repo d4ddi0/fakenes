@@ -435,8 +435,7 @@ void gui_exit (void)
    set_config_string ("gui", "save_path", save_path);
 
    STRING_CLEAR(host);
-   strncpy (host, get_config_string ("netplay", "host", ""), (sizeof (host)
-      - 1));
+   strncpy (host, get_config_string ("netplay", "host", ""), (sizeof(host) - 1));
    set_config_string ("netplay", "host", host);
 
    set_config_int ("gui", "theme",       gui_theme_id);
@@ -664,7 +663,8 @@ void gui_heartbeat (void)
    /* Called in varous places to process NetPlay (if active), refresh the
       screen, and rest() to minimize CPU usage in the GUI. */
 
-   netplay_process ();
+   if (netplay_mode)
+      netplay_process ();
 
    refresh ();
 
@@ -3318,8 +3318,7 @@ static int netplay_menu_start_as_client (void)
    /* Load configuration. */
 
    STRING_CLEAR(host);
-   strncat (host, get_config_string ("netplay", "host", ""), (sizeof (host)
-      - 1));
+   strncat (host, get_config_string ("netplay", "host", ""), (sizeof(host) - 1));
 
    port = get_config_int ("netplay", "port", NETPLAY_DEFAULT_PORT);
 
@@ -3327,8 +3326,7 @@ static int netplay_menu_start_as_client (void)
    sprintf (port_str, "%d", port);
 
    USTRING_CLEAR(nick);
-   ustrncat (nick, get_config_string ("netplay", "nick", ""), (sizeof (nick)
-      - 1));
+   ustrncat (nick, get_config_string ("netplay", "nick", "Player"), (sizeof(nick) - 1));
 
    /* Get dialog. */
    dialog = netplay_dialog;

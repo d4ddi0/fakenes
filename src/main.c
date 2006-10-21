@@ -313,7 +313,8 @@ int main (int argc, char *argv[])
 
 
          /* NetPlay. */
-         netplay_process ();
+         if (netplay_mode)
+            netplay_process ();
 
 
          /* Fast forward. */
