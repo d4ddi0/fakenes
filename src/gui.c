@@ -1025,10 +1025,15 @@ static int open_lobby (void)
 
    while (update_dialog (player))
    {
-      gui_heartbeat ();
-
-      netplay_enumerate_clients (list, sizeof(list));
       netplay_enumerate_chat (chat, sizeof(chat));
+      netplay_enumerate_clients (list, sizeof(list));
+
+      scare_mouse ();
+      object_message (obj_chat, MSG_DRAW, 0);
+      object_message (obj_list, MSG_DRAW, 0);
+      unscare_mouse ();
+
+      gui_heartbeat ();
    }
 
    object_id = shutdown_dialog (player);

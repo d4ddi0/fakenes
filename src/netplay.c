@@ -21,8 +21,13 @@ ENUM netplay_mode = NETPLAY_MODE_INACTIVE;
 
 static void parse_packet (PACKFILE *file);
 
+/* Hack for lobby chat - this needs to be replaced with something better. */
+static USTRING netplay_chat_buffer;
+
 int netplay_init (void)
 {
+   USTRING_CLEAR(netplay_chat_buffer);
+
    return (0);
 }
 
@@ -237,6 +242,7 @@ void netplay_enumerate_chat (UCHAR *buffer, unsigned size)
    RT_ASSERT(buffer);
 
    USTRING_CLEAR_SIZE(buffer, size);
+   ustrncat (buffer, netplay_chat_buffer, (size - 1));
 }
 
 /* ---- Private functions ---- */
@@ -282,6 +288,10 @@ static void parse_packet (PACKFILE *file)
          /* Play sound. */
          /* TODO: Support OpenAL by piping this through an audiolib wrapper. */
          play_sample (DATA_TO_SAMPLE(CHAT_RECIEVE_SOUND), 255, 128, 1000, FALSE);
+
+         /* Append it to the buffer. */
+         ustrncat (netplay_chat_buffer, "\n", (sizeof(netplay_chat_buffer) - 1));
+         ustrncat (netplay_chat_buffer, text, (sizeof(netplay_chat_buffer) - 1));
 
          break;
       }
