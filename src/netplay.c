@@ -42,6 +42,9 @@ BOOL netplay_open_server (int port)
 
    netplay_mode = NETPLAY_MODE_SERVER_OPEN;
 
+   /* Call it once just to set everything up. */
+   net_listen ();
+
    return (TRUE);
 }
 
@@ -207,16 +210,13 @@ static void parse_packet (PACKFILE *file)
    RT_ASSERT(file);
 
    /* Read each field individually for portability... */
-   header.tag = pack_getc (file);
    header.size = pack_mgetw (file);
+   header.tag = pack_getc (file);
 
    switch (header.tag)
    {
       case NETPLAY_PACKET_NULL:
-      {
-         log_printf ("NET: Recieved keep alive packet.");
          break;
-      }
 
       case NETPLAY_PACKET_CHAT:
       {
