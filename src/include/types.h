@@ -56,10 +56,13 @@ typedef signed char     fakenes_bool_t;   /* Boolean value. */
 typedef char            fakenes_uchar_t;  /* Unicode character. */
 typedef fakenes_flags_t fakenes_list_t;   /* List of flags. */
 
+/* Maximum length (in fakenes_uchar_t's) of a Unicode character. */
+#define MAX_UCHAR_LENGTH   4
+
 /* String data types. */
 #define STRING_SIZE_BASE   1024  /* Typical size. */
-#define STRING_SIZE        (STRING_SIZE_BASE * sizeof (fakenes_char_t))
-#define USTRING_SIZE       (STRING_SIZE_BASE * sizeof (fakenes_uchar_t))
+#define STRING_SIZE        (STRING_SIZE_BASE * sizeof(fakenes_char_t))
+#define USTRING_SIZE       (STRING_SIZE_BASE * sizeof(fakenes_uchar_t))
 
 typedef fakenes_char_t  fakenes_string_t[STRING_SIZE_BASE];
 typedef fakenes_uchar_t fakenes_ustring_t[STRING_SIZE_BASE];
