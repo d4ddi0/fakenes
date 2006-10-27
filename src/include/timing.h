@@ -111,18 +111,17 @@ static INLINE REAL timing_get_speed_ratio (void)
 
 static INLINE REAL timing_get_speed (void)
 {
-   REAL base_rate;
+   REAL scalar;
 
-   base_rate = (((machine_type == MACHINE_TYPE_NTSC ? MACHINE_RATE_NTSC :
-      MACHINE_RATE_PAL)));
+   scalar = ((machine_type == MACHINE_TYPE_NTSC) ? MACHINE_RATE_NTSC : MACHINE_RATE_PAL);
 
    switch (machine_timing)
    {
       case MACHINE_TIMING_SMOOTH:
-         return (floor (base_rate));   /* Approximated. */
+         scalar = floor (scalar);   /* Approximated. */
 
       case MACHINE_TIMING_ACCURATE:
-         break;                        /* Real(unmodified). */
+         break;                     /* Real(unmodified). */
 
       default:
       {
@@ -131,7 +130,10 @@ static INLINE REAL timing_get_speed (void)
       }
    }
 
-   return (base_rate);
+   /* Apply any speed modifiers. */
+   scalar *= timing_get_speed_ratio ();
+
+   return (scalar);
 }
 
 static INLINE void timing_update_speed (void)
