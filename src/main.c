@@ -157,9 +157,7 @@ int main (int argc, char *argv[])
    console_printf ("\n");
    console_printf ("Assistance provided by amit, Astxist, ipher, KCat,\n");
    console_printf ("Lord_Nightmare, Mexandrew, and others.  See the\n");
-   console_printf ("About box for a complete listing.\n");
-   console_printf ("\n");
-   console_printf ("Uses the Nofrendo NES APU core by Matthew Conte.\n");
+   console_printf ("About box for a more complete listing.\n");
    console_printf ("\n");
    console_printf ("Be sure to visit http://fakenes.sourceforge.net/.\n");
    console_printf ("Report bugs to fakenes-bugs@lists.sourceforge.net.\n");
