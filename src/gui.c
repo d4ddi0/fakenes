@@ -866,6 +866,7 @@ static INLINE void set_autosave (int interval)
       message_local ("Autosave interval set to %d seconds.", interval);
 }
 
+static INLINE void close_file (void);
 static int main_replay_menu_select (void);
 
 static INLINE int load_file (const UCHAR *filename)
@@ -892,7 +893,7 @@ static INLINE int load_file (const UCHAR *filename)
       if (rom_is_loaded)
       {
          /* Close currently open ROM and save data. */
-         main_menu_close ();
+         close_file ();
       }
 
       memcpy (&global_rom, &rom, sizeof (ROM));
@@ -930,6 +931,27 @@ static INLINE int load_file (const UCHAR *filename)
 
       return (D_CLOSE);
    }
+}
+
+static INLINE void close_file (void)
+{
+   /* Unloads the current ROM and returns the emulator to it's default
+      state. */
+
+   /* Save SRAM. */
+   save_sram ();      
+
+   /* Save patches. */
+   save_patches ();
+
+   /* Close machine. */
+   machine_exit ();
+
+   /* Unload ROM. */
+   free_rom (&global_rom);
+   rom_is_loaded = FALSE;
+
+   update_menus ();
 }
 
 static int open_lobby (void)
@@ -1078,6 +1100,15 @@ static int main_menu_open (void)
    int result;
    USTRING scratch;
 
+   if (rom_is_loaded)
+   {
+      if (gui_alert ("Confirmation", "A ROM is already loaded.", "If you continue, any unsaved progress will be lost.", "Are you sure?", "&OK", "&Cancel", 0, 0) == 2)
+      {
+         /* Cancelled. */
+         return (D_O_K);
+      }
+   }
+
    /* Retrive path from configuration file. */
    USTRING_CLEAR(path);
 #ifdef POSIX
@@ -1160,6 +1191,15 @@ static int main_menu_open (void)
 #define OPEN_RECENT_MENU_HANDLER(index) \
    static int main_open_recent_menu_##index (void)  \
    {  \
+      if (rom_is_loaded) \
+      { \
+         if (gui_alert ("Confirmation", "A ROM is already loaded.", "If you continue, any unsaved progress will be lost.", "Are you sure?", "&OK", "&Cancel", 0, 0) == 2) \
+         { \
+            /* Cancelled. */ \
+            return (D_O_K); \
+         } \
+      } \
+      \
       return (load_file (open_recent_filenames[index])); \
    }
 
@@ -1211,21 +1251,16 @@ static int main_open_recent_menu_clear (void)
 
 static int main_menu_close (void)
 {
-   /* Save SRAM. */
-   save_sram ();      
-
-   /* Save patches. */
-   save_patches ();
-
-   /* Close machine. */
-   machine_exit ();
+   if (gui_alert ("Confirmation", "If you continue, any unsaved progress will be lost.", "Are you sure you want to unload the ROM?", NULL, "&OK", "&Cancel", 0, 0) == 2)
+   {
+      /* Cancelled. */
+      return (D_O_K);
+   }
 
    /* Unload ROM. */
-   free_rom (&global_rom);
-   rom_is_loaded = FALSE;
+   close_file ();
 
-   update_menus ();
-
+   /* Clear the screen and restore background. */
    cycle_video ();
 
    return (D_REDRAW);
@@ -1543,7 +1578,7 @@ static int main_menu_exit (void)
    {
       /* Confirm exit. */
 
-      if (gui_alert ("Confirmation", "A ROM is currently loaded.", "Really exit?", NULL, "&OK", "&Cancel", 0, 0) == 2)
+      if (gui_alert ("Confirmation", "A ROM is currently loaded.", "If you continue, any unsaved progress will be lost.", "Really exit?", "&OK", "&Cancel", 0, 0) == 2)
       {
          /* Cancelled. */
          return (D_O_K);
