@@ -120,6 +120,9 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(main_replay_select_menu_3, (replay_index == 3));
    TOGGLE_MENU_ITEM(main_replay_select_menu_4, (replay_index == 4));
 
+   TOGGLE_MENU_ITEM(machine_menu_timing_smoothest,     (machine_timing == MACHINE_TIMING_SMOOTH));
+   TOGGLE_MENU_ITEM(machine_menu_timing_most_accurate, (machine_timing == MACHINE_TIMING_ACCURATE));
+
    TOGGLE_MENU_ITEM(machine_save_state_select_menu_0, (save_state_index == 0));
    TOGGLE_MENU_ITEM(machine_save_state_select_menu_1, (save_state_index == 1));
    TOGGLE_MENU_ITEM(machine_save_state_select_menu_2, (save_state_index == 2));
@@ -1902,6 +1905,28 @@ static int machine_menu_hard_reset (void)
    options_menu_reset_clock ();
 
    return (D_CLOSE);
+}
+
+static int machine_menu_timing_smoothest (void)
+{
+   machine_timing = MACHINE_TIMING_SMOOTH;
+   timing_update_speed ();
+   update_menus ();
+
+   message_local ("Machine timing mode set to smoothest.");
+
+   return (D_O_K);
+}
+
+static int machine_menu_timing_most_accurate (void)
+{
+   machine_timing = MACHINE_TIMING_ACCURATE;
+   timing_update_speed ();
+   update_menus ();
+
+   message_local ("Machine timing mode set to most accurate.");
+
+   return (D_O_K);
 }
 
 static int machine_menu_speed_cap (void)

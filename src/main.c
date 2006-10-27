@@ -42,6 +42,12 @@ ENUM machine_region = MACHINE_REGION_AUTOMATIC;
 /* Machine type (NTSC/PAL). */
 ENUM machine_type = MACHINE_TYPE_NTSC;
 
+/* Timing mode (smooth/accurate).
+
+   Smooth uses approximated timings that are much less likely to desync with
+   the host machine while under heavy CPU load. */
+ENUM machine_timing = MACHINE_TIMING_SMOOTH;
+
 /* CPU usage (passive/normal/aggressive). */
 ENUM cpu_usage = CPU_USAGE_PASSIVE;
 
@@ -180,6 +186,7 @@ int main (int argc, char *argv[])
 
    first_run               = get_config_int   ("gui",    "first_run",    first_run);
    machine_region          = get_config_int   ("timing", "region",       machine_region);
+   machine_timing          = get_config_int   ("timing", "mode",         machine_timing);
    cpu_usage               = get_config_int   ("timing", "cpu_usage",    cpu_usage);
    speed_cap               = get_config_int   ("timing", "speed_cap",    speed_cap);
    frame_skip              = get_config_int   ("timing", "frame_skip",   frame_skip);
@@ -682,6 +689,7 @@ int main (int argc, char *argv[])
 
    set_config_int   ("gui",    "first_run",    first_run);
    set_config_int   ("timing", "region",       machine_region);
+   set_config_int   ("timing", "mode",         machine_timing);
    set_config_int   ("timing", "frame_skip",   frame_skip);
    set_config_int   ("timing", "speed_cap",    speed_cap);
    set_config_int   ("timing", "cpu_usage",    cpu_usage);

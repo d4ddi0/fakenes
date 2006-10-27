@@ -8,6 +8,7 @@
 
 #ifndef TIMING_H_INCLUDED
 #define TIMING_H_INCLUDED
+#include <math.h>
 #include "audio.h"
 #include "apu.h"
 #include "common.h"
@@ -24,6 +25,7 @@ extern "C" {
 
 extern ENUM machine_region;
 extern ENUM machine_type;
+extern ENUM machine_timing;
 
 extern ENUM cpu_usage;
 
@@ -58,6 +60,12 @@ enum
 {
    MACHINE_TYPE_NTSC,
    MACHINE_TYPE_PAL
+};
+
+enum
+{
+   MACHINE_TIMING_SMOOTH,
+   MACHINE_TIMING_ACCURATE
 };
 
 enum
@@ -103,8 +111,27 @@ static INLINE REAL timing_get_speed_ratio (void)
 
 static INLINE REAL timing_get_speed (void)
 {
-   return (((machine_type == MACHINE_TYPE_NTSC ? MACHINE_RATE_NTSC :
-      MACHINE_RATE_PAL) * timing_get_speed_ratio ()));
+   REAL base_rate;
+
+   base_rate = (((machine_type == MACHINE_TYPE_NTSC ? MACHINE_RATE_NTSC :
+      MACHINE_RATE_PAL)));
+
+   switch (machine_timing)
+   {
+      case MACHINE_TIMING_SMOOTH:
+         return (floor (base_rate));   /* Approximated. */
+
+      case MACHINE_TIMING_ACCURATE:
+         break;                        /* Real(unmodified). */
+
+      default:
+      {
+         WARN_GENERIC();
+         break;
+      }
+   }
+
+   return (base_rate);
 }
 
 static INLINE void timing_update_speed (void)

@@ -288,23 +288,29 @@ static const MENU machine_frame_skip_menu_base[] =
 
 DEFINE_MENU_CALLBACK(machine_menu_soft_reset);
 DEFINE_MENU_CALLBACK(machine_menu_hard_reset);
+DEFINE_MENU_CALLBACK(machine_menu_timing_smoothest);
+DEFINE_MENU_CALLBACK(machine_menu_timing_most_accurate);
 DEFINE_MENU_CALLBACK(machine_menu_speed_cap);
 DEFINE_MENU_CALLBACK(machine_menu_cheat_manager);
 
 static const MENU machine_menu_base[] =
 {
-   { "&Soft Reset",       machine_menu_soft_reset,    NULL,                                    0, NULL },
-   { "&Hard Reset",       machine_menu_hard_reset,    NULL,                                    0, NULL },
+   { "&Soft Reset",       machine_menu_soft_reset,           NULL,                                    0, NULL },
+   { "&Hard Reset",       machine_menu_hard_reset,           NULL,                                    0, NULL },
+   MENU_SPLITTER,                                                                      
+   { "Timing",            NULL,                              NULL,                                    0, NULL },
+   { "  S&moothest",      machine_menu_timing_smoothest,     NULL,                                    0, NULL },
+   { "  Most &Accurate",  machine_menu_timing_most_accurate, NULL,                                    0, NULL },
    MENU_SPLITTER,
-   { "Save S&tate",       NULL,                       IMPORT_MENU(machine_save_state_menu),    0, NULL },
+   { "Sa&ve State",       NULL,                              IMPORT_MENU(machine_save_state_menu),    0, NULL },
    MENU_SPLITTER,
-   { "Speed &Up/Down",    NULL,                       IMPORT_MENU(machine_speed_up_down_menu), 0, NULL },
-   { "Speed &Cap",        machine_menu_speed_cap,     NULL,                                    0, NULL },
-   { "&Frame Skip",       NULL,                       IMPORT_MENU(machine_frame_skip_menu),    0, NULL },
+   { "Speed &Up/Down",    NULL,                              IMPORT_MENU(machine_speed_up_down_menu), 0, NULL },
+   { "Speed &Cap",        machine_menu_speed_cap,            NULL,                                    0, NULL },
+   { "&Frame Skip",       NULL,                              IMPORT_MENU(machine_frame_skip_menu),    0, NULL },
    MENU_SPLITTER,
-   { "&Region",           NULL,                       IMPORT_MENU(machine_region_menu),        0, NULL },
+   { "&Region",           NULL,                              IMPORT_MENU(machine_region_menu),        0, NULL },
    MENU_SPLITTER,
-   { "Cheat &Manager...", machine_menu_cheat_manager, NULL,                                    0, NULL },
+   { "Ch&eat Manager...", machine_menu_cheat_manager,        NULL,                                    0, NULL },
    MENU_ENDCAP
 };
 
