@@ -33,11 +33,11 @@ static BOOL enabled = TRUE;
    This should be a fractional value that represents a normalized percentage
    of the current emulation speed (e.g, 0.5 of 50 Hz would be 25 FPS).
 
-   Default: 0.5
+   Default: 0.25
    Minimum: Value of EPSILON
    Maximum: 1.0
    */
-static REAL frame_rate = 0.5;
+static REAL frame_rate = 0.25;
 
 /* How long the rewinder can backtrack, in seconds.  This is combined with
    'frame_rate' to form the final value of 'max_queue_size'.
@@ -50,11 +50,11 @@ static int seconds = 10;
 
 /* Compression level (when available).
 
-   Default: 1
+   Default: 0
    Minimum: 0 (disabled)
    Maximum: 9
    */
-static int compression_level = 1;
+static int compression_level = 0;
 
 /* Maximum number of enries in the queue, computed from 'seconds'. */
 static int max_queue_size = 0;
