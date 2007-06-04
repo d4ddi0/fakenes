@@ -326,7 +326,9 @@ BOOL rewind_load_snapshot (void)
    if (queue.size <= 0)
    {
       /* Queue is empty. */
-      WARN_GENERIC();
+      /* Warning disabled since it makes no sense to warn when the queue is empty?  It's like an icon on the dashboard
+         of a car constantly warning you that the passenger seat is unoccupied. :b */
+      /* WARN_GENERIC(); */
       return (FALSE);
    }
 
