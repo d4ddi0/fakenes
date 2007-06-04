@@ -91,10 +91,8 @@ static BOOL enqueue (QUEUE_FRAME *);
 static QUEUE_FRAME *unenqueue (void);
 static QUEUE_FRAME *dequeue (void);
 
-int rewind_init (void)
+void rewind_load_config (void)
 {
-   /* Load configuration. */
-
    enabled           = get_config_int   ("rewind", "enabled",    enabled);
    frame_rate        = get_config_float ("rewind", "frame_rate", frame_rate);
    seconds           = get_config_int   ("rewind", "seconds",    seconds);
@@ -122,7 +120,23 @@ int rewind_init (void)
       produces a queue about 20% larger than necessary for PAL.
       */
    max_queue_size = ROUND(((60.0f * frame_rate) * seconds));
+}
 
+void rewind_save_config (void)
+{
+   set_config_int   ("rewind", "enabled",    enabled);
+   set_config_float ("rewind", "frame_rate", frame_rate);
+   set_config_int   ("rewind", "seconds",    seconds);
+
+#ifdef USE_ZLIB
+
+   set_config_int ("rewind", "compress", compression_level);
+
+#endif
+}
+
+int rewind_init (void)
+{
    /* Clear everything. */
    rewind_clear ();
 
@@ -134,18 +148,6 @@ void rewind_exit (void)
 {
    /* Clear everything. */
    rewind_clear ();
-
-   /* Save configuration. */
-
-   set_config_int   ("rewind", "enabled",    enabled);
-   set_config_float ("rewind", "frame_rate", frame_rate);
-   set_config_int   ("rewind", "seconds",    seconds);
-
-#ifdef USE_ZLIB
-
-   set_config_int ("rewind", "compress", compression_level);
-
-#endif
 }
 
 void rewind_clear (void)

@@ -64,14 +64,21 @@ static void dsp_wav_write (void);
 
 /* --- Initialization and deinitialization. --- */
 
+void dsp_load_config (void)
+{
+   dsp_master_volume = get_config_float ("dsp", "master_volume", dsp_master_volume);
+   dsp_effector_list = get_config_int   ("dsp", "effector_list", dsp_effector_list);
+}
+
+void dsp_save_config (void)
+{
+   set_config_float ("dsp", "master_volume", dsp_master_volume);
+   set_config_int   ("dsp", "effector_list", dsp_effector_list);
+}
+
 int dsp_init (void)
 {
    DEBUG_PRINTF("dsp_init()\n");
-
-   /* Load configuration. */
-
-   dsp_master_volume = get_config_float ("dsp", "master_volume", dsp_master_volume);
-   dsp_effector_list = get_config_int   ("dsp", "effector_list", dsp_effector_list);
 
    /* Clear channel parameters. */
    memset (dsp_channel_params, 0, sizeof (dsp_channel_params));
@@ -89,11 +96,6 @@ void dsp_exit (void)
 
    dsp_close_wav ();
    dsp_close ();
-
-   /* Save configuration. */
-
-   set_config_float ("dsp", "master_volume", dsp_master_volume);
-   set_config_int   ("dsp", "effector_list", dsp_effector_list);
 }
 
 /* --- Buffer manipulation. --- */

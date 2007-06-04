@@ -42,6 +42,8 @@ extern BOOL gui_is_active;
 extern GUI_THEME gui_theme;
 extern RGB *gui_image_palette;
 
+extern void gui_load_config (void);
+extern void gui_save_config (void);
 extern int gui_init (void);
 extern void gui_exit (void);
 extern int show_gui (BOOL);

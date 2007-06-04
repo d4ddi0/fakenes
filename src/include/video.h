@@ -64,6 +64,8 @@ LIST video_edge_clipping;
 
 RGB *video_palette;
 
+void video_load_config (void);
+void video_save_config (void);
 int video_init (void);
 int video_reinit (void);
 int video_init_buffer (void);

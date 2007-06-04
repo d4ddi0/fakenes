@@ -133,23 +133,8 @@ static void switch_in_callback (void)
       audio_resume ();
 }
 
-int video_init (void)
+void video_load_config (void)
 {
-   int driver;
-   int width, height;
-   int result;
-   const CHAR *font_file;
-
-   log_printf ("VIDEO: Entering video_init().");
-
-   /* Install message timer. */
-
-   LOCK_VARIABLE (video_message_duration);
-   LOCK_FUNCTION (video_message_timer);
-   install_int_ex (video_message_timer, BPS_TO_TIMER(1));
-
-   /* Load configuration. */
-
    log_printf ("VIDEO: Loading configuration.");
 
    video_driver             = get_config_id  ("video", "driver",             video_driver);
@@ -170,6 +155,46 @@ int video_init (void)
    video_enable_page_buffer = get_config_int ("video", "enable_page_buffer", video_enable_page_buffer);
    video_enable_vsync       = get_config_int ("video", "enable_vsync",       video_enable_vsync);
    video_edge_clipping      = get_config_int ("video", "edge_clipping",      video_edge_clipping);
+}
+
+void video_save_config (void)
+{
+   log_printf ("VIDEO: Saving configuration.");
+
+   set_config_id  ("video", "driver",             video_driver);
+   set_config_int ("video", "screen_width",       screen_width);
+   set_config_int ("video", "screen_height",      screen_height);
+   set_config_int ("video", "color_depth",        color_depth);
+   set_config_int ("video", "force_fullscreen",   video_force_fullscreen);
+   set_config_int ("video", "buffer_width",       video_buffer_width);
+   set_config_int ("video", "buffer_height",      video_buffer_height);
+   set_config_int ("video", "blitter",            blitter_id);
+   set_config_int ("video", "filter_list",        filter_list);
+   set_config_int ("video", "hue",                video_hue);
+   set_config_int ("video", "saturation",         video_saturation);
+   set_config_int ("video", "brightness",         video_brightness);
+   set_config_int ("video", "contrast",           video_contrast);
+   set_config_int ("video", "gamma",              video_gamma);
+   set_config_int ("video", "display_status",     video_display_status);
+   set_config_int ("video", "enable_page_buffer", video_enable_page_buffer);
+   set_config_int ("video", "enable_vsync",       video_enable_vsync);
+   set_config_int ("video", "edge_clipping",      video_edge_clipping);
+}
+
+int video_init (void)
+{
+   int driver;
+   int width, height;
+   int result;
+   const CHAR *font_file;
+
+   log_printf ("VIDEO: Entering video_init().");
+
+   /* Install message timer. */
+
+   LOCK_VARIABLE (video_message_duration);
+   LOCK_FUNCTION (video_message_timer);
+   install_int_ex (video_message_timer, BPS_TO_TIMER(1));
 
    /* Determine which driver to use. */
 
@@ -571,29 +596,6 @@ void video_exit (void)
    }
 
 #endif   /* USE_ALLEGRO_GL */
-
-   /* Save configuration. */
-
-   log_printf ("VIDEO: Saving configuration.");
-
-   set_config_id  ("video", "driver",             video_driver);
-   set_config_int ("video", "screen_width",       screen_width);
-   set_config_int ("video", "screen_height",      screen_height);
-   set_config_int ("video", "color_depth",        color_depth);
-   set_config_int ("video", "force_fullscreen",   video_force_fullscreen);
-   set_config_int ("video", "buffer_width",       video_buffer_width);
-   set_config_int ("video", "buffer_height",      video_buffer_height);
-   set_config_int ("video", "blitter",            blitter_id);
-   set_config_int ("video", "filter_list",        filter_list);
-   set_config_int ("video", "hue",                video_hue);
-   set_config_int ("video", "saturation",         video_saturation);
-   set_config_int ("video", "brightness",         video_brightness);
-   set_config_int ("video", "contrast",           video_contrast);
-   set_config_int ("video", "gamma",              video_gamma);
-   set_config_int ("video", "display_status",     video_display_status);
-   set_config_int ("video", "enable_page_buffer", video_enable_page_buffer);
-   set_config_int ("video", "enable_vsync",       video_enable_vsync);
-   set_config_int ("video", "edge_clipping",      video_edge_clipping);
 
    log_printf ("VIDEO: Exiting video_exit().");
 }

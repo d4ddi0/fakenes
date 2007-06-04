@@ -66,19 +66,29 @@ static void audio_output (void *);
 /* Miscellaneous. */
 volatile int audio_fps = 0;
 
-int audio_init (void)
+void audio_load_config (void)
 {
-   int result;
-
-   DEBUG_PRINTF("audio_init()\n");
-
-   /* Load configuration. */
-
    audio_enable_output = get_config_int ("audio", "enable_output", audio_enable_output);
    audio_subsystem     = get_config_int ("audio", "subsystem",     audio_subsystem);
    audio_sample_rate   = get_config_int ("audio", "sample_rate",   audio_sample_rate);
    audio_sample_size   = get_config_int ("audio", "sample_size",   audio_sample_size);
    audio_buffer_length = get_config_int ("audio", "buffer_length", audio_buffer_length);
+}
+
+void audio_save_config (void)
+{
+   set_config_int ("audio", "enable_output", audio_enable_output);
+   set_config_int ("audio", "subsystem",     audio_subsystem);
+   set_config_int ("audio", "sample_rate",   audio_sample_rate);
+   set_config_int ("audio", "sample_size",   audio_sample_size);
+   set_config_int ("audio", "buffer_length", audio_buffer_length);
+}
+
+int audio_init (void)
+{
+   int result;
+
+   DEBUG_PRINTF("audio_init()\n");
 
    /* Cache sensetive parameters. */
    audio_cached_enable_output = audio_enable_output;
@@ -133,14 +143,6 @@ void audio_exit (void)
       /* Deinitialize audio library. */
       audiolib_exit ();
    }
-
-   /* Save configuration. */
-
-   set_config_int ("audio", "enable_output", audio_enable_output);
-   set_config_int ("audio", "subsystem",     audio_subsystem);
-   set_config_int ("audio", "sample_rate",   audio_sample_rate);
-   set_config_int ("audio", "sample_size",   audio_sample_size);
-   set_config_int ("audio", "buffer_length", audio_buffer_length);
 }
 
 void audio_update (void)

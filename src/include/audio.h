@@ -28,6 +28,8 @@ extern int audio_buffer_size_samples;
 extern unsigned audio_buffer_size_bytes;
 extern volatile int audio_fps;
 
+extern void audio_load_config (void);
+extern void audio_save_config (void);
 extern int audio_init (void);
 extern void audio_exit (void);
 extern void audio_update (void);

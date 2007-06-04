@@ -17,6 +17,7 @@
 #include "audio.h"
 #include "cheats.h"
 #include "common.h"
+#include "config.h"
 #include "cpu.h"
 #include "data.h"
 #include "debug.h"
@@ -350,6 +351,30 @@ static INLINE void update_menus (void)
    audio_menu[AUDIO_MENU_VOLUME_TEXT].text = audio_menu_volume_text;
 }
 
+void gui_load_config (void)
+{
+   gui_theme_id = get_config_int ("gui", "theme",       GUI_THEME_PANTA);
+   lock_recent  = get_config_int ("gui", "lock_recent", FALSE);
+}
+
+void gui_save_config (void)
+{
+   STRING save_path;
+   STRING host;
+
+   STRING_CLEAR(save_path);
+   strncpy (save_path, get_config_string ("gui", "save_path", "./"),
+      sizeof (save_path) - 1);
+   set_config_string ("gui", "save_path", save_path);
+
+   STRING_CLEAR(host);
+   strncpy (host, get_config_string ("netplay", "host", ""), (sizeof(host) - 1));
+   set_config_string ("netplay", "host", host);
+
+   set_config_int ("gui", "theme",       gui_theme_id);
+   set_config_int ("gui", "lock_recent", lock_recent);
+}
+
 int gui_init (void)
 {
    int index;
@@ -382,10 +407,6 @@ int gui_init (void)
 
    /* Select default palette. */
    CHECK_MENU_ITEM(video_palette_menu_modern_ntsc);
-
-   /* Load configuration */
-   gui_theme_id = get_config_int ("gui", "theme",       GUI_THEME_PANTA);
-   lock_recent  = get_config_int ("gui", "lock_recent", FALSE);
 
    /* Load up recent items. */
 
@@ -428,21 +449,6 @@ int gui_init (void)
 void gui_exit (void)
 {
    int index;
-   STRING save_path;
-   STRING host;
-
-   /* Save configuration. */
-   STRING_CLEAR(save_path);
-   strncpy (save_path, get_config_string ("gui", "save_path", "./"),
-      sizeof (save_path) - 1);
-   set_config_string ("gui", "save_path", save_path);
-
-   STRING_CLEAR(host);
-   strncpy (host, get_config_string ("netplay", "host", ""), (sizeof(host) - 1));
-   set_config_string ("netplay", "host", host);
-
-   set_config_int ("gui", "theme",       gui_theme_id);
-   set_config_int ("gui", "lock_recent", lock_recent);
 
    /* Save recent items. */
 
@@ -1568,6 +1574,14 @@ static int main_menu_view_log (void)
 
    /* Destroy dialog. */
    unload_dialog (dialog);
+
+   return (D_O_K);
+}
+
+static int main_menu_save_configuration (void)
+{
+   save_config ();
+   gui_alert ("Confirmation", "Configuration has been saved.", NULL, NULL, "&OK", NULL, 0, 0);
 
    return (D_O_K);
 }

@@ -138,25 +138,28 @@ DEFINE_MENU_CALLBACK(main_menu_save_snapshot);
 DEFINE_MENU_CALLBACK(main_menu_advance_frame);
 DEFINE_MENU_CALLBACK(main_menu_view_console);
 DEFINE_MENU_CALLBACK(main_menu_view_log);
+DEFINE_MENU_CALLBACK(main_menu_save_configuration);
 DEFINE_MENU_CALLBACK(main_menu_exit);
 
 static const MENU main_menu_base[] =
 {
-   { "&Resume        (ESC)", main_menu_resume,        NULL,                               0, NULL },
+   { "&Resume        (ESC)", main_menu_resume,             NULL,                               0, NULL },
    MENU_SPLITTER,                                                                       
-   { "&Open...",             main_menu_open,          NULL,                               0, NULL },
-   { "Open R&ecent",         NULL,                    IMPORT_MENU(main_open_recent_menu), 0, NULL },
-   { "&Close",               main_menu_close,         NULL,                               0, NULL },
+   { "&Open...",             main_menu_open,               NULL,                               0, NULL },
+   { "Open R&ecent",         NULL,                         IMPORT_MENU(main_open_recent_menu), 0, NULL },
+   { "&Close",               main_menu_close,              NULL,                               0, NULL },
    MENU_SPLITTER,            
-   { "Re&play",              NULL,                    IMPORT_MENU(main_replay_menu),      0, NULL },
+   { "Re&play",              NULL,                         IMPORT_MENU(main_replay_menu),      0, NULL },
    MENU_SPLITTER,            
-   { "&Save Snapshot (F1)",  main_menu_save_snapshot, NULL,                               0, NULL },
-   { "&Advance Frame",       main_menu_advance_frame, NULL,                                    0, NULL },
+   { "&Save Snapshot (F1)",  main_menu_save_snapshot,      NULL,                               0, NULL },
+   { "&Advance Frame",       main_menu_advance_frame,      NULL,                                    0, NULL },
    MENU_SPLITTER,
-   { "&View Console...",     main_menu_view_console,  NULL,                               0, NULL },
-   { "View &Log...",         main_menu_view_log,      NULL,                               0, NULL },
+   { "&View Console...",     main_menu_view_console,       NULL,                               0, NULL },
+   { "View &Log...",         main_menu_view_log,           NULL,                               0, NULL },
    MENU_SPLITTER,       
-   { "E&xit",                main_menu_exit,          NULL,                               0, NULL },
+   { "Save Co&nfiguration",  main_menu_save_configuration, NULL,                               0, NULL },
+   MENU_SPLITTER,       
+   { "E&xit",                main_menu_exit,               NULL,                               0, NULL },
    MENU_ENDCAP
 };
 

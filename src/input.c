@@ -446,9 +446,6 @@ int input_init (void)
       install_joystick (JOY_TYPE_AUTODETECT);
    }
 
-   /* Load configuration. */
-   input_load_config ();
-
    /* Clear chat text buffer. */
    USTRING_CLEAR(input_chat_text);
 
@@ -465,13 +462,9 @@ int input_init (void)
 void input_exit (void)
 {
    /* Remove drivers. */
-
    remove_keyboard ();
    remove_mouse ();
    remove_joystick ();
-
-   /* Save configuration. */
-   input_save_config ();
 }
 
 void input_reset (void)

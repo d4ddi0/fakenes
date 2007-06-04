@@ -14,6 +14,8 @@
 extern "C" {
 #endif
 
+void rewind_load_config (void);
+void rewind_save_config (void);
 int rewind_init (void);
 void rewind_exit (void);
 void rewind_clear (void);

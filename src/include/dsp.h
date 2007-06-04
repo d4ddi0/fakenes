@@ -21,6 +21,8 @@ typedef REAL DSP_SAMPLE;
 
 extern REAL dsp_master_volume;
 
+extern void dsp_load_config (void);
+extern void dsp_save_config (void);
 extern int dsp_init (void);
 extern void dsp_exit (void);
 extern int dsp_open (unsigned, int);

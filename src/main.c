@@ -11,6 +11,7 @@
 #include "apu.h"
 #include "audio.h"
 #include "common.h"
+#include "config.h"
 #include "cpu.h"
 #include "data.h"
 #include "debug.h"
@@ -18,6 +19,7 @@
 #include "gui.h"
 #include "input.h"
 #include "log.h"
+#include "main.h"
 #include "mmc.h"
 #include "net.h"
 #include "netplay.h"
@@ -181,18 +183,7 @@ int main (int argc, char *argv[])
 
 
    /* Load configuration. */
-
-   first_run               = get_config_int   ("gui",    "first_run",    first_run);
-   machine_region          = get_config_int   ("timing", "region",       machine_region);
-   machine_timing          = get_config_int   ("timing", "mode",         machine_timing);
-   cpu_usage               = get_config_int   ("timing", "cpu_usage",    cpu_usage);
-   speed_cap               = get_config_int   ("timing", "speed_cap",    speed_cap);
-   frame_skip              = get_config_int   ("timing", "frame_skip",   frame_skip);
-   timing_speed_multiplier = get_config_float ("timing", "speed_factor", timing_speed_multiplier);
-
-    /* Note: machine_type is set later by the ROM loading code, or more
-       specifically, machine_init(). */
-
+   load_config ();
 
    install_timer ();
 
@@ -246,9 +237,6 @@ int main (int argc, char *argv[])
       free_rom (&global_rom);
       return (1);
    }
-
-
-   apu_load_config ();
 
 
    fade_out (4);
@@ -684,14 +672,7 @@ int main (int argc, char *argv[])
 
 
    /* Save configuration. */
-
-   set_config_int   ("gui",    "first_run",    first_run);
-   set_config_int   ("timing", "region",       machine_region);
-   set_config_int   ("timing", "mode",         machine_timing);
-   set_config_int   ("timing", "frame_skip",   frame_skip);
-   set_config_int   ("timing", "speed_cap",    speed_cap);
-   set_config_int   ("timing", "cpu_usage",    cpu_usage);
-   set_config_float ("timing", "speed_factor", timing_speed_multiplier);
+   save_config ();
 
 
    if (rom_is_loaded)
@@ -705,9 +686,6 @@ int main (int argc, char *argv[])
    fade_out (4);
 
    video_exit ();
-
-
-   apu_save_config ();
 
 
    dsp_exit ();
@@ -740,6 +718,32 @@ int main (int argc, char *argv[])
 
 END_OF_MAIN()
 
+void main_load_config (void)
+{
+   first_run               = get_config_int   ("gui",    "first_run",    first_run);
+   machine_region          = get_config_int   ("timing", "region",       machine_region);
+   machine_timing          = get_config_int   ("timing", "mode",         machine_timing);
+   cpu_usage               = get_config_int   ("timing", "cpu_usage",    cpu_usage);
+   speed_cap               = get_config_int   ("timing", "speed_cap",    speed_cap);
+   frame_skip              = get_config_int   ("timing", "frame_skip",   frame_skip);
+   timing_speed_multiplier = get_config_float ("timing", "speed_factor", timing_speed_multiplier);
+
+    /* Note: machine_type is set later by the ROM loading code, or more
+       specifically, machine_init(). */
+}
+
+void main_save_config (void)
+{
+   set_config_int   ("gui",    "first_run",    first_run);
+   set_config_int   ("timing", "region",       machine_region);
+   set_config_int   ("timing", "mode",         machine_timing);
+   set_config_int   ("timing", "frame_skip",   frame_skip);
+   set_config_int   ("timing", "speed_cap",    speed_cap);
+   set_config_int   ("timing", "cpu_usage",    cpu_usage);
+   set_config_float ("timing", "speed_factor", timing_speed_multiplier);
+}
+
+/* TODO: Move all of this into a machine.c or something - try to keep it separate from main. */
 int machine_init (void)
 {
    if (!rom_is_loaded)
