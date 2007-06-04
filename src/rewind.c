@@ -20,15 +20,6 @@
 #include <zlib.h>
 #endif
 
-/* This value must be large enough to accomodate *all* save data in it's
-   unpacked state after being pulled from the rewinder queue.
-
-   Note that save data for some mappers (such as MMC5) can get quite large.
-
-   Recommended 32 kB minimum
-   */
-#define MAX_UNPACK_SIZE 32768
-
 /* Whether or not real-time game rewinding is enabled.  Disabling this sweet
    feature can give a significant speed boost and reduced memory usage.
 
@@ -77,6 +68,7 @@ typedef struct _QUEUE_FRAME
 {
    void *data;
    unsigned data_size;
+   unsigned data_size_unpacked;
    struct _QUEUE_FRAME *prev;
    struct _QUEUE_FRAME *next;
 
@@ -264,6 +256,9 @@ BOOL rewind_save_snapshot (void)
    /* Get buffer. */
    BufferFile_get_buffer (file, &buffer, &size);
 
+   /* Set uncompressed data size for unpacking later. */
+   frame->data_size_unpacked = size;
+
    /* Compress data. */
    if (!pack (buffer, &size))
    {
@@ -351,16 +346,17 @@ BOOL rewind_load_snapshot (void)
       return (FALSE);
    }
 
+   /* Determine size of buffer. */
+   size = frame->data_size_unpacked;
+
    /* Allocate buffer. */
-   buffer = malloc (MAX_UNPACK_SIZE);
+   buffer = malloc (size);
    if (!buffer)
    {
       WARN_GENERIC();
       free (frame);
       return (FALSE);
    }
-
-   size = MAX_UNPACK_SIZE;
 
    /* Uncompress data. */
    if (!unpack (buffer, &size, frame->data, frame->data_size))
