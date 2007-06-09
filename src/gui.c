@@ -2768,15 +2768,15 @@ static int video_blitter_menu_configure (void)
          objbleed->d2  = (get_config_int ("ntsc", "bleed",       0) + 100);
          objfring->d2  = (get_config_int ("ntsc", "fringing",    0) + 100);
 
-         merge_fields = get_config_int ("ntsc", "merge_fields", 1);
+         merge_fields = get_config_int ("ntsc", "merge_fields", 0); /* Default Off */
          if (merge_fields)
             objmerge->flags |= D_SELECTED;
          
-         doubling = fix (get_config_int ("ntsc", "doubling", 0), 0, 2);
+         doubling = fix (get_config_int ("ntsc", "doubling", 1), 0, 2); /* Default Brighten */
 
          objdbl[doubling]->flags |= D_SELECTED;
 
-         interpolated = get_config_int ("ntsc", "interpolated", 1);
+         interpolated = get_config_int ("ntsc", "interpolated", 1);  /* Default On */
          if (interpolated)
             objinterp->flags |= D_SELECTED;
 
