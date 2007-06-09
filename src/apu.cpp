@@ -1815,7 +1815,7 @@ static void process (bool finish)
 
                /* Fetch and buffer samples. */
                for (int channel = 0; channel < apu.mixer.channels; channel++)
-                  samples.push_back (apu.mixer.inputs[channel]);
+                  samples.push_back (DSP_PACK_SAMPLE(apu.mixer.inputs[channel]));
 
                /* Adjust counter. */
                apu.mixer.accumulated_samples -= apu.mixer.max_samples;
@@ -1852,7 +1852,7 @@ static void process (bool finish)
 
                /* Fetch and buffer samples. */
                for (int channel = 0; channel < apu.mixer.channels; channel++)
-                  samples.push_back (apu.mixer.inputs[channel]);
+                  samples.push_back (DSP_PACK_SAMPLE(apu.mixer.inputs[channel]));
 
                /* Adjust counter. */
                apu.mixer.accumulated_samples -= apu.mixer.max_samples;
@@ -1901,7 +1901,6 @@ static void process (bool finish)
             }
          
             apu.mixer.accumulated_samples++;
-         
             if (apu.mixer.accumulated_samples >= apu.mixer.max_samples)
             {
                /* Determine how much of the last sample we want to keep for the next loop. */
@@ -1921,7 +1920,7 @@ static void process (bool finish)
                   *sample /= divider;
       
                   /* Buffer sample. */
-                  samples.push_back (*sample);
+                  samples.push_back (DSP_PACK_SAMPLE(*sample));
                }
       
                for (int channel = 0; channel < apu.mixer.channels; channel++)

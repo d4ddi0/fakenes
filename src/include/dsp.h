@@ -17,7 +17,12 @@ extern "C" {
 
 #define DSP_MAX_CHANNELS   APU_MIXER_MAX_CHANNELS
 
-typedef REAL DSP_SAMPLE;
+/* Use short integers to minimize bandwidth of block memory transfers. */
+typedef INT16 DSP_SAMPLE;
+
+/* Not perfect - but close enough. */
+#define DSP_PACK_SAMPLE(sample)     ((DSP_SAMPLE)fix ((int)ROUND((sample) * 32768.0), -32768, +32767))
+#define DSP_UNPACK_SAMPLE(sample)   (((REAL)(sample)) / 32768.0)
 
 extern REAL dsp_master_volume;
 
