@@ -3162,18 +3162,6 @@ static int options_menu_paths (void)
    return (D_O_K);
 }
 
-
-static int options_input_menu_enable_zapper (void)
-{
-   input_enable_zapper = !input_enable_zapper;
-   update_menus ();
-
-   message_local ("Zapper emulation %s.", get_enabled_text
-      (input_enable_zapper));
-
-   return (D_O_K);
-}
-
 static int options_input_menu_configure (void)
 {
    BOOL allow_conflicts, toggled_auto, merge_players;
@@ -3238,6 +3226,17 @@ static int options_input_menu_configure (void)
       /* Reload configuration with our changes. */
       input_load_config ();
    }
+
+   return (D_O_K);
+}
+
+static int options_input_menu_enable_zapper (void)
+{
+   input_enable_zapper = !input_enable_zapper;
+   update_menus ();
+
+   message_local ("Zapper emulation %s.", get_enabled_text
+      (input_enable_zapper));
 
    return (D_O_K);
 }

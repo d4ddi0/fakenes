@@ -841,14 +841,14 @@ static const MENU video_menu_base[] =
    MENU_ENDCAP
 };
 
-DEFINE_MENU_CALLBACK(options_input_menu_enable_zapper);
 DEFINE_MENU_CALLBACK(options_input_menu_configure);
+DEFINE_MENU_CALLBACK(options_input_menu_enable_zapper);
 
 static const MENU options_input_menu_base[] =
 {
-   { "&Enable Zapper", options_input_menu_enable_zapper, NULL, 0, NULL },
-   MENU_SPLITTER,
    { "&Configure...",  options_input_menu_configure,     NULL, 0, NULL },
+   MENU_SPLITTER,
+   { "&Enable Zapper", options_input_menu_enable_zapper, NULL, 0, NULL },
    MENU_ENDCAP
 };
 
