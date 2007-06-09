@@ -99,7 +99,15 @@ int audio_init (void)
    /* Initialize audio library. */
    if ((result = audiolib_init ()) != 0)
    {
-      WARN_GENERIC();
+      WARN("I'm sorry, but I couldn't find a suitable audio driver. :<\n"
+           "\n"
+           "Possible causes for this problem:\n"
+           "  - There is no sound hardware present\n"
+           "  - The installed sound drivers are not working properly\n"
+           "  - The sound API (e.g Allegro or OpenAL) is not cooperating for whatever reason\n"
+           "  - The sound system is already in use by another application\n"
+           "\n"
+           "Usually, the sound system is just in use by another application.  Try again in a few minutes.");
       return ((8 + result));
    }
 

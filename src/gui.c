@@ -2015,12 +2015,11 @@ static int audio_menu_enable_apu (void)
 static int audio_menu_enable_output (void)
 {
    audio_enable_output = !audio_enable_output;
-   update_menus ();
 
    cycle_audio ();
+   update_menus ();
 
-   message_local ("Audio output %s.",
-      get_enabled_text (audio_enable_output));
+   message_local ("Audio output %s.", get_enabled_text (audio_enable_output));
 
    return (D_O_K);
 }
@@ -2126,21 +2125,21 @@ static int audio_channels_menu_disable_all (void)
 static int audio_output_menu_subsystem_allegro (void)
 {
    audio_subsystem = AUDIO_SUBSYSTEM_ALLEGRO;
+   
+   cycle_audio ();
    update_menus ();
 
-   cycle_audio ();
-
    message_local ("Audio subsystem set to Allegro.");
-
+   
    return (D_O_K);
 }
 
 static int audio_output_menu_subsystem_openal (void)
 {
    audio_subsystem = AUDIO_SUBSYSTEM_OPENAL;
-   update_menus ();
 
    cycle_audio ();
+   update_menus ();
 
    message_local ("Audio subsystem set to OpenAL.");
 
@@ -2151,8 +2150,8 @@ static int audio_output_menu_subsystem_openal (void)
    static int audio_output_menu_sampling_rate_##rate##_hz (void) \
    {  \
       audio_sample_rate = rate;  \
-      update_menus ();  \
       cycle_audio ();   \
+      update_menus ();  \
       message_local ("Audio sampling rate set to %d Hz.", rate);  \
       return (D_O_K);   \
    }
@@ -2172,9 +2171,9 @@ static int audio_output_menu_sampling_rate_custom (void)
    if (get_integer_input ("Custom", &rate, "Hz"))
    {
       audio_sample_rate = rate;
-      update_menus ();
 
       cycle_audio ();
+      update_menus ();
 
       message_local ("Audio sampling rate set to %d Hz.", rate);
    }
@@ -2185,9 +2184,9 @@ static int audio_output_menu_sampling_rate_custom (void)
 static int audio_output_menu_mixing_mono (void)
 {
    apu_options.stereo = FALSE;
-   update_menus ();
-
+   
    cycle_audio ();
+   update_menus ();
 
    gui_message (GUI_TEXT_COLOR, "Audio output set to mono.");
 
@@ -2197,14 +2196,11 @@ static int audio_output_menu_mixing_mono (void)
 static int audio_output_menu_mixing_stereo (void)
 {
    apu_options.stereo = TRUE;
+   dsp_set_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS, DSP_SET_ENABLED_MODE_SET, FALSE);
 
-   dsp_set_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS,
-      DSP_SET_ENABLED_MODE_SET, FALSE);
-
-   update_menus ();
-    
    cycle_audio ();
-   
+   update_menus ();
+
    message_local ("Audio output set to stereo.");
 
    return (D_O_K);
@@ -2213,13 +2209,10 @@ static int audio_output_menu_mixing_stereo (void)
 static int audio_output_menu_mixing_stereo_reversed (void)
 {
    apu_options.stereo = TRUE;
+   dsp_set_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS, DSP_SET_ENABLED_MODE_SET, TRUE);
 
-   dsp_set_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS,
-      DSP_SET_ENABLED_MODE_SET, TRUE);
-
-   update_menus ();
-    
    cycle_audio ();
+   update_menus ();
    
    message_local ("Audio output set to reverse stereo.");
 
@@ -2230,8 +2223,8 @@ static int audio_output_menu_mixing_stereo_reversed (void)
    static int audio_output_buffer_menu_##size##_##units (void)   \
    {  \
       audio_buffer_length = size; \
-      update_menus ();  \
       cycle_audio ();   \
+      update_menus ();  \
       message_local ("Audio buffer size set to %d %s.", size,  \
          "##units##");  \
       return (D_O_K);   \
@@ -2250,16 +2243,13 @@ AUDIO_OUTPUT_BUFFER_MENU_HANDLER(8, frames)
 
 static int audio_output_buffer_menu_custom (void) 
 {
-   int frames;
-
-   frames = audio_buffer_length;
-
+   int frames = audio_buffer_length;
    if (get_integer_input ("Custom", &frames, "frames"))
    {
       audio_buffer_length = frames;
-      update_menus ();
 
       cycle_audio ();
+      update_menus ();
 
       message_local ("Audio buffer size set to %d frames.", frames);
    }

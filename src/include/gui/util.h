@@ -144,9 +144,19 @@ static INLINE void cycle_audio (void)
    /* This function cycles (removes and reinstalls) the audio subsystem so
       that any major parameter changes can take effect. */
 
-   audio_exit ();
-   audio_init ();
-   apu_update ();
+   audio_exit();
+
+   if(audio_init() != 0) {
+      gui_alert("Error initializing sound",
+                "It looks like sound failed to initialize, so I'm disabling it for now.",
+                NULL,
+                NULL,
+                "&OK", NULL, 0, 0);
+      audio_enable_output = FALSE;
+      audio_init();
+   }
+
+   apu_update();
 }
 
 static INLINE void cycle_video (void)

@@ -137,16 +137,12 @@ static int audiolib_allegro_init (void)
    set_volume_per_voice (0);
         
    if (install_sound (DIGI_AUTODETECT, MIDI_NONE, NULL) != 0)
-   {
-      WARN_GENERIC();
+      /* Initialization warning mesages moved up one level to audio.c */
       return (1);
-   }
 
    if (digi_driver->id == DIGI_NONE)
-   {
-      WARN_GENERIC();
+      /* Initialization warning mesages moved up one level to audio.c */
       return (2);
-   }
 
    /* Autodetect settings. */
 

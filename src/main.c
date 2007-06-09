@@ -223,10 +223,19 @@ int main (int argc, char *argv[])
 
    if (audio_init () != 0)
    {
-      WARN("Failed to initialize audio interface");
+      /* WARN("Failed to initialize audio interface"); */
 
-      free_rom (&global_rom);
-      return (1);
+
+      /* free_rom (&global_rom);
+         return (1); */
+      
+      WARN("Oops!  It looks like audio failed to initialize.\n"
+           "Make sure another application isn't using it (a common problem).\n"
+           "\n"
+           "I'm disabling it for now.\n"
+           "You can try to re-enable it from the Audio menu once inside the program.");
+      audio_enable_output = FALSE;
+      audio_init ();
    }
 
 
