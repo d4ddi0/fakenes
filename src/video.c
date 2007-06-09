@@ -35,8 +35,8 @@ static BOOL allegro_gl_installed = FALSE;
 
 #endif   /* USE_ALLEGROGL */
 
-int video_buffer_width = 320;
-int video_buffer_height = 240;
+int video_buffer_width = 640;
+int video_buffer_height = 480;
 
 static BITMAP *page_buffer = NULL;
 static BITMAP *screen_buffer = NULL;
@@ -108,7 +108,7 @@ static void *blit_buffer_in  = NULL;
 static void *blit_buffer_out = NULL;
 
 /* Blitter variables. */
-static int blitter_id         = VIDEO_BLITTER_NORMAL;
+static int blitter_id         = VIDEO_BLITTER_NTSC;
 static const BLITTER *blitter = NULL;   /* Blitter interface. */
 static int blit_x_offset      = 0;      
 static int blit_y_offset      = 0;      

@@ -276,7 +276,7 @@ static void init_ntsc (BITMAP *src, BITMAP *dest)
       setup->bleed       = (bleed       / 100.0f);
    }
 
-   merge_fields  = get_config_int ("ntsc", "merge_fields", 1);
+   merge_fields  = get_config_int ("ntsc", "merge_fields", 0);
    doubling      = get_config_int ("ntsc", "doubling",     0);
    interpolation = get_config_int ("ntsc", "interpolated", 1);
 
