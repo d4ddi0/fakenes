@@ -18,7 +18,7 @@
 #include "version.h"
 #include "video.h"
 
-void actually_load_config(void)
+static void actually_load_config(void)
 {
    apu_load_config();
    audio_load_config();
