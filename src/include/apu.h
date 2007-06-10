@@ -172,6 +172,7 @@ typedef struct apu_options_s
    BOOL enabled;
    ENUM emulation;
    BOOL stereo;
+   BOOL normalize;
 
    /* Channels. */
    BOOL enable_square_1;

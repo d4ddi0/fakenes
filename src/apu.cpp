@@ -44,6 +44,7 @@ apu_options_t apu_options = {
    true,                   /* Enable processing. */
    APU_EMULATION_ACCURATE, /* Emulation accuracy/performance tradeoff. */
    false,                  /* Stereo output mode. */
+   false,                   /* Normalize for maximum volume (very basic). */
 
                            /* Enable channels: */
    true,                   /*    Square 1 */
@@ -903,6 +904,7 @@ void apu_load_config (void)
    apu_options.enabled = TRUE_OR_FALSE(get_config_int ("apu", "enabled", apu_options.enabled));
    apu_options.emulation = get_config_int ("apu", "emulation", apu_options.emulation);
    apu_options.stereo = TRUE_OR_FALSE(get_config_int ("apu", "stereo", apu_options.stereo));
+   apu_options.normalize = TRUE_OR_FALSE(get_config_int ("apu", "normalize", apu_options.normalize));
 
    apu_options.enable_square_1 = TRUE_OR_FALSE(get_config_int ("apu", "enable_square_1", apu_options.enable_square_1));
    apu_options.enable_square_2 = TRUE_OR_FALSE(get_config_int ("apu", "enable_square_2", apu_options.enable_square_2));
@@ -930,6 +932,7 @@ void apu_save_config (void)
    set_config_int ("apu", "enabled", (apu_options.enabled ? 1 : 0));
    set_config_int ("apu", "emulation", apu_options.emulation);
    set_config_int ("apu", "stereo", (apu_options.stereo ? 1 : 0));
+   set_config_int ("apu", "normalize", (apu_options.normalize ? 1 : 0));
 
    set_config_int ("apu", "enable_square_1", (apu_options.enable_square_1) ? 1 : 0);
    set_config_int ("apu", "enable_square_2", (apu_options.enable_square_2) ? 1 : 0);
@@ -1974,9 +1977,16 @@ static void process (bool finish)
             real b = ((q0 * one_minus_t) + (q1 * t));
 
             unsigned offset = (index * 2);
+
             real sample = DSP_UNPACK_SAMPLE(samples[offset]);
             sample -= b;
-            sample *= 2.0;
+            if(!apu_options.normalize) {
+               // When normalization is disabled we use a constant normalization to still be able to take advantage of
+               // the benefits of the high pass filter increasing the dynamic range of our waveform.
+               // This constant was taken as the maximum sample value outputted by Batman(US) after several minutes of
+               // gameplay, and should serve our purposes fairly well.
+               sample *= (1.0 / 0.686807);
+            }
             samples[offset] = DSP_PACK_SAMPLE(sample);
 
             // Right
@@ -1985,9 +1995,11 @@ static void process (bool finish)
             b = ((q0 * one_minus_t) + (q1 * t));
 
             offset = ((index * 2) + 1);
+
             sample = DSP_UNPACK_SAMPLE(samples[offset]);
             sample -= b;
-            sample *= 2.0;
+            if(!apu_options.normalize)
+               sample *= (1.0 / 0.686807);
             samples[offset] = DSP_PACK_SAMPLE(sample);
          }
       }
@@ -2006,9 +2018,32 @@ static void process (bool finish)
 
             real sample = DSP_UNPACK_SAMPLE(samples[index]);
             sample -= b;
-            sample *= 2.0;
+            if(!apu_options.normalize)
+               sample *= (1.0 / 0.686807);
             samples[index] = DSP_PACK_SAMPLE(sample);
          }
+      }
+
+      if(apu_options.normalize) {
+         // Maximization filter
+         static real maximum = 0.0;
+         static int maximumCycles = 0;
+
+         for(int index = 0; index < samples.size(); index++) {
+            real sample = DSP_UNPACK_SAMPLE(samples[index]);
+            if(sample > maximum) {
+               maximum += sample;
+               maximum /= 2.0;
+               maximumCycles += 60;  // Start to fall off after being held high for one second (60 ticks)
+            }
+            sample *= (1.0 / maximum);
+            samples[index] = DSP_PACK_SAMPLE(sample);
+         }
+
+         if(maximumCycles > 0)
+            maximumCycles--;
+         if(maximumCycles == 0)
+            maximum /= 2.0;
       }
 
       // Send all stored samples to the DSP for processing.

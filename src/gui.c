@@ -170,6 +170,8 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(audio_menu_emulation_accurate, (apu_options.emulation == APU_EMULATION_ACCURATE));
    TOGGLE_MENU_ITEM(audio_menu_emulation_ultra,    (apu_options.emulation == APU_EMULATION_ULTRA));
 
+   TOGGLE_MENU_ITEM(audio_menu_volume_auto_normalize, apu_options.normalize);
+
    TOGGLE_MENU_ITEM(audio_channels_menu_square_1, apu_options.enable_square_1);
    TOGGLE_MENU_ITEM(audio_channels_menu_square_2, apu_options.enable_square_2);
    TOGGLE_MENU_ITEM(audio_channels_menu_triangle, apu_options.enable_triangle);
@@ -2309,6 +2311,19 @@ static int audio_menu_volume_reset (void)
 
    message_local ("Audio master volume level reset to %d%%.",
       (int)ROUND(dsp_master_volume * 100.0));
+
+   return (D_O_K);
+}
+
+static int audio_menu_volume_auto_normalize (void)
+{
+   apu_options.normalize = !apu_options.normalize;
+   update_menus ();
+
+   apu_update ();
+
+   message_local ("Audio volume level normalization %s.",
+      get_enabled_text (apu_options.normalize)); 
 
    return (D_O_K);
 }
