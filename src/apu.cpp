@@ -678,9 +678,19 @@ static void apu_update_frame_sequencer(void)
 
    apu_reload_sequence_counter();
 
+   /* Frame sequencer operation:
+      4-step mode:
+         Envelope units and triangle length counter update at ~240Hz.
+         Sweep units and length counters update at ~120Hz.
+      5-step mode:
+         Envelope units and triangle length counter update at ~192Hz.
+         Sweep units and length counters update at ~96Hz. */
    switch(apu.sequence_step) {
       case 1:
       case 3: {
+         /* Frame sequencer steps 1 and 3
+            4-step mode: Updates envelope units and triangle length counter only
+            5-step mode: Updates everything */
          if (apu.sequence_steps == 5)
             apu_update_channels(UPDATE_192HZ | UPDATE_96HZ);
          else
@@ -691,6 +701,9 @@ static void apu_update_frame_sequencer(void)
 
       case 2:
       case 4: {
+         /* Frame sequencer steps 2 and 4
+            4-step mode: Updates everything
+            5-step mode: Updates envelope units and triangle length counter only */
          if (apu.sequence_steps == 5)
             apu_update_channels(UPDATE_192HZ);
          else
@@ -699,15 +712,20 @@ static void apu_update_frame_sequencer(void)
          break;
       }
 
-      case 5:
+      case 5: {
+         /* Frame sequencer step 5 (5-step mode only)
+            Nothing updated. */
          break;
+      }
 
       default:
          WARN_GENERIC();
    }
 
-   /* check to see if we should generate an irq */
-   if((apu.sequence_step == 4) &&
+   /* check to see if we should generate an irq
+      Note that IRQs are not generated in 5step mode */
+   if((apu.sequence_steps == 4) && 
+      (apu.sequence_step == 4) &&
       (apu.frame_irq_gen && !apu.frame_irq_occurred)) {
       apu.frame_irq_occurred = true;
       // This part is now handled by apu_predict_frame_irq() instead
@@ -730,10 +748,17 @@ static void apu_reset_frame_sequencer(void)
 
    /* If the mode flag is clear, the 4-step sequence is selected, otherwise the
       5-step sequence is selected and the sequencer is immediately clocked once. */
-   if(apu.sequence_steps == 5)
+   if(apu.sequence_steps == 5) {
+      // -- 5-step mode
+      /* Setting this to 1 will cause it to become 0 at the beginning of the next APU cycle, clocking the frame sequencer
+         and reloading the counter for us (see apu_update_frame_sequencer() above) - so no need to do that here. */
       apu.sequence_counter = 1;  // update on next CPU cycle
-   else
+   }
+   else {
+      // -- 4-step mode
+      // Otherwise, we skip clocking the frame sequencer and just reload the counter manually.
       apu_reload_sequence_counter();
+   }
 }
 
 static linear void apu_predict_frame_irq(cpu_time_t cycles)
@@ -766,8 +791,10 @@ static linear void apu_predict_frame_irq(cpu_time_t cycles)
    
       apu_reload_sequence_counter();
   
-      /* check to see if we should generate an irq */
-      if(apu.sequence_step == 4)
+      /* check to see if we should generate an irq
+         Note that IRQs are not generated in 5step mode */
+      if((apu.sequence_steps == 4) &&
+         (apu.sequence_step == 4))
          cpu_queue_interrupt(CPU_INTERRUPT_IRQ_FRAME, (apu.prediction_timestamp + (offset * CYCLE_LENGTH)));
 
       if(++apu.sequence_step > apu.sequence_steps)
@@ -822,10 +849,10 @@ void apu_load_config(void)
    apu_options.enable_extra_3  = TRUE_OR_FALSE(get_config_int("apu", "enable_extra_3",  apu_options.enable_extra_3));
 
    // Build mixer tables.
-   for (int n = 0; n < 31; n++)
-      square_table [n] = 95.52 / (8128.0 / n + 100);
-   for (int n = 0; n < 203; n++)
-      tnd_table [n] = 163.67 / (24329.0 / n + 100);
+   for(int n = 0; n < 31; n++)
+      square_table[n] = 95.52 / (8128.0 / n + 100);
+   for(int n = 0; n < 203; n++)
+      tnd_table[n] = 163.67 / (24329.0 / n + 100);
 
    // Disable ExSound.
    apu_set_exsound(APU_EXSOUND_NONE);
@@ -1012,8 +1039,8 @@ UINT8 apu_read(UINT16 address)
 
    switch(address) {
       case 0x4015: {
-         // Status register.
-         // $4015   if-d nt21   DMC IRQ, frame IRQ, length counter statuses
+         /* Status register.
+            $4015   if-d nt21   DMC IRQ, frame IRQ, length counter statuses */
 
          // Return 1 in 0-5 bit pos if a channel is playing
 
@@ -1074,8 +1101,8 @@ void apu_write(UINT16 address, UINT8 value)
    switch(address) {
       case 0x4000:
       case 0x4004: {
-         // Square Wave channels, register set 1.
-         /* $4000/4 ddle nnnn   duty, loop env/disable length, env disable, vol/env
+         /* Square Wave channels, register set 1.
+            $4000/4 ddle nnnn   duty, loop env/disable length, env disable, vol/env
             period */
 
          /* Determine which channel to use.
@@ -1098,8 +1125,8 @@ void apu_write(UINT16 address, UINT8 value)
 
       case 0x4001:
       case 0x4005: {
-         // Square Wave channels, register set 2.
-         // $4001/5 eppp nsss   enable sweep, period, negative, shift
+         /* Square Wave channels, register set 2.
+            $4001/5 eppp nsss   enable sweep, period, negative, shift */
          const int index = ((address & 4) ? 1 : 0);
          apu_chan_t& chan = apu.square[index];
 
@@ -1117,8 +1144,8 @@ void apu_write(UINT16 address, UINT8 value)
 
       case 0x4002:
       case 0x4006: {
-         // Square Wave channels, register set 3.
-         // $4002/6 pppp pppp   period low
+         /* Square Wave channels, register set 3.
+            $4002/6 pppp pppp   period low */
          const int index = ((address & 4) ? 1 : 0);
          apu_chan_t& chan = apu.square[index];
 
@@ -1129,8 +1156,8 @@ void apu_write(UINT16 address, UINT8 value)
 
       case 0x4003:
       case 0x4007: {
-         // Square Wave channels, register set 4.
-         // $4003/7 llll lppp   length index, period high
+         /* Square Wave channels, register set 4.
+            $4003/7 llll lppp   length index, period high */
          const int index = ((address & 4) ? 1 : 0);
          apu_chan_t& chan = apu.square[index];
 
@@ -1148,8 +1175,8 @@ void apu_write(UINT16 address, UINT8 value)
       }
 
       case 0x4008: {
-         // Triangle wave channel, register 1.
-         /* $4008     CRRR.RRRR   Linear counter setup (write)
+         /* Triangle wave channel, register 1.
+            $4008     CRRR.RRRR   Linear counter setup (write)
             bit 7     C---.----   Control flag (this bit is also the length counter halt flag)
             bits 6-0  -RRR RRRR   Counter reload value */
          apu_chan_t& chan = apu.triangle;
@@ -1165,8 +1192,8 @@ void apu_write(UINT16 address, UINT8 value)
       }
 
       case 0x400A: {
-         // Triangle wave channel, register 2.
-         // $400A   pppp pppp   period low
+         /* Triangle wave channel, register 2.
+            $400A   pppp pppp   period low */
          apu_chan_t& chan = apu.triangle;
          chan.period = ((chan.period & ~0xFF) | value);
 
@@ -1174,8 +1201,8 @@ void apu_write(UINT16 address, UINT8 value)
       }
 
       case 0x400B: {
-         // Triangle wave channel, register 3.
-         // $400A   pppp pppp   period low
+         /* Triangle wave channel, register 3.
+            $400A   pppp pppp   period low */
          apu_chan_t& chan = apu.triangle;
 
          chan.period = (((value & 7) << 8) | (chan.period & 0xFF));
@@ -1190,8 +1217,8 @@ void apu_write(UINT16 address, UINT8 value)
       }
       
       case 0x400C: {
-         // White noise channel, register 1.
-         // $400C   --le nnnn   loop env/disable length, env disable, vol/env period
+         /* White noise channel, register 1.
+            $400C   --le nnnn   loop env/disable length, env disable, vol/env period */
          apu_chan_t& chan = apu.noise;
 
          chan.volume = (value & 0x0F);
@@ -1205,8 +1232,8 @@ void apu_write(UINT16 address, UINT8 value)
       }
 
       case 0x400E: {
-         // White noise channel, register 2.
-         // $400E   s--- pppp   short mode, period index
+         /* White noise channel, register 2.
+            $400E   s--- pppp   short mode, period index */
          apu_chan_t& chan = apu.noise;
 
          if(machine_type == MACHINE_TYPE_NTSC)
@@ -1215,8 +1242,8 @@ void apu_write(UINT16 address, UINT8 value)
             chan.period = noise_period_lut_pal[value & 0x0F];
 
          /* Bit 15 of the shift register is replaced with the exclusive-OR of
-            bit 0 and one other bit: bit 6 if loop is set, otherwise bit 1. */
-         // Notes: xor_tap = loop, 0x40 = bit 6, 0x02 = bit 1.
+            bit 0 and one other bit: bit 6 if loop is set, otherwise bit 1.
+            Note: xor_tap = loop, 0x40 = bit 6, 0x02 = bit 1. */
          chan.xor_tap = ((value & 0x80) ? 0x40 : 0x02);
 
          break;
@@ -1237,8 +1264,8 @@ void apu_write(UINT16 address, UINT8 value)
       }
 
       case 0x4010: {
-         // Delta modulation channel, register 1.
-         // $4010   il-- ffff   IRQ enable, loop, frequency index
+         /* Delta modulation channel, register 1.
+            $4010   il-- ffff   IRQ enable, loop, frequency index */
          apu_chan_t& chan = apu.dmc;
 
          if(machine_type == MACHINE_TYPE_NTSC)
@@ -1259,8 +1286,8 @@ void apu_write(UINT16 address, UINT8 value)
       }
 
       case 0x4011: {
-         // Delta modulation channel, register 2.
-         // $4011   -ddd dddd   DAC
+         /* Delta modulation channel, register 2.
+            $4011   -ddd dddd   DAC */
          apu_chan_t& chan = apu.dmc;
 
          // Mask off MSB.
@@ -1273,8 +1300,8 @@ void apu_write(UINT16 address, UINT8 value)
       }
 
       case 0x4012: {
-         // Delta modulation channel, register 3.
-         // $4012   aaaa aaaa   sample address
+         /* Delta modulation channel, register 3.
+            $4012   aaaa aaaa   sample address */
          apu_chan_t& chan = apu.dmc;
 
          // DMCAddress=0x4000+(DMCAddressLatch<<6);
@@ -1287,8 +1314,8 @@ void apu_write(UINT16 address, UINT8 value)
       }
 
       case 0x4013: {
-         // Delta modulation channel, register 4.
-         // $4013   llll llll   sample length
+         /* Delta modulation channel, register 4.
+            $4013   llll llll   sample length */
          apu_chan_t& chan = apu.dmc;
 
          // DMCSize=(DMCSizeLatch<<4)+1;
@@ -1301,8 +1328,8 @@ void apu_write(UINT16 address, UINT8 value)
       }
 
       case 0x4015: {
-         // Common register set 1.
-         // $4015   ---d nt21   length ctr enable: DMC, noise, triangle, pulse 2, 1
+         /* Common register set 1.
+            $4015   ---d nt21   length ctr enable: DMC, noise, triangle, pulse 2, 1 */
 
          // Squares.
          for(int index = 0; index < 2; index++) {
@@ -1356,15 +1383,15 @@ void apu_write(UINT16 address, UINT8 value)
       }
 
       case 0x4017: {
-         // Common register set 2.
-         // $4017   fd-- ----   5-frame cycle, disable frame interrupt
+         /* Common register set 2.
+            $4017   fd-- ----   5-frame cycle, disable frame interrupt */
 
          apu.sequence_steps = ((value & 0x80) ? 5 : 4);
-
+         
          /* <_Q> setting $4017.6 or $4017.7 will turn off frame IRQs
             <_Q> setting $4017.7 puts it into the 5-step sequence
             <_Q> which does not generate interrupts */
-         apu.frame_irq_gen = ((value & 0xC0) ? false : true);
+         apu.frame_irq_gen = !TRUE_OR_FALSE(value & 0x40);
 
          // Reset frame sequencer.
          apu_reset_frame_sequencer();
