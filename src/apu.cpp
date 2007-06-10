@@ -41,20 +41,20 @@
 
 /* Global options. */
 apu_options_t apu_options = {
-   true,                   /* Enable processing. */
-   APU_EMULATION_ACCURATE, /* Emulation accuracy/performance tradeoff. */
-   false,                  /* Stereo output mode. */
-   false,                   /* Normalize for maximum volume (very basic). */
+   true,                       /* Enable processing. */
+   APU_EMULATION_HIGH_QUALITY, /* Emulation accuracy/performance tradeoff. */
+   false,                      /* Stereo output mode. */
+   false,                      /* Normalize for maximum volume (very basic). */
 
-                           /* Enable channels: */
-   true,                   /*    Square 1 */
-   true,                   /*    Square 2 */
-   true,                   /*    Triangle */
-   true,                   /*    Noise */
-   true,                   /*    DMC */
-   true,                   /*    Extra 1 */
-   true,                   /*    Extra 2 */
-   true,                   /*    Extra 3 */
+                       /* Enable channels: */
+   true,               /*    Square 1 */
+   true,               /*    Square 2 */
+   true,               /*    Triangle */
+   true,               /*    Noise */
+   true,               /*    DMC */
+   true,               /*    Extra 1 */
+   true,               /*    Extra 2 */
+   true,               /*    Extra 3 */
 };
 
 /* Static APU context. */
@@ -1865,7 +1865,7 @@ static void process (bool finish)
          break;
       }
 
-      case APU_EMULATION_ULTRA:
+      case APU_EMULATION_HIGH_QUALITY:
       {
          apu.timer_delta = 1;
 

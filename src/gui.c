@@ -166,9 +166,9 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(audio_menu_enable_apu,    apu_options.enabled);
    TOGGLE_MENU_ITEM(audio_menu_enable_output, audio_enable_output);
 
-   TOGGLE_MENU_ITEM(audio_menu_emulation_fast,     (apu_options.emulation == APU_EMULATION_FAST));
-   TOGGLE_MENU_ITEM(audio_menu_emulation_accurate, (apu_options.emulation == APU_EMULATION_ACCURATE));
-   TOGGLE_MENU_ITEM(audio_menu_emulation_ultra,    (apu_options.emulation == APU_EMULATION_ULTRA));
+   TOGGLE_MENU_ITEM(audio_menu_emulation_fast,         (apu_options.emulation == APU_EMULATION_FAST));
+   TOGGLE_MENU_ITEM(audio_menu_emulation_accurate,     (apu_options.emulation == APU_EMULATION_ACCURATE));
+   TOGGLE_MENU_ITEM(audio_menu_emulation_high_quality, (apu_options.emulation == APU_EMULATION_HIGH_QUALITY));
 
    TOGGLE_MENU_ITEM(audio_menu_volume_auto_normalize, apu_options.normalize);
 
@@ -2050,14 +2050,14 @@ static int audio_menu_emulation_accurate (void)
    return (D_O_K);
 }
 
-static int audio_menu_emulation_ultra (void)
+static int audio_menu_emulation_high_quality (void)
 {
-   apu_options.emulation = APU_EMULATION_ULTRA;
+   apu_options.emulation = APU_EMULATION_HIGH_QUALITY;
    update_menus ();
 
    apu_update ();
 
-   message_local ("APU emulation quality set to ultra.");
+   message_local ("APU emulation quality set to high quality.");
 
    return (D_O_K);
 }

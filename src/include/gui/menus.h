@@ -425,7 +425,7 @@ DEFINE_MENU_CALLBACK(audio_menu_enable_apu);
 DEFINE_MENU_CALLBACK(audio_menu_enable_output);
 DEFINE_MENU_CALLBACK(audio_menu_emulation_fast);
 DEFINE_MENU_CALLBACK(audio_menu_emulation_accurate);
-DEFINE_MENU_CALLBACK(audio_menu_emulation_ultra);
+DEFINE_MENU_CALLBACK(audio_menu_emulation_high_quality);
 DEFINE_MENU_CALLBACK(audio_menu_volume_increase);
 DEFINE_MENU_CALLBACK(audio_menu_volume_decrease);
 DEFINE_MENU_CALLBACK(audio_menu_volume_custom);
@@ -437,29 +437,29 @@ DEFINE_MENU_CALLBACK(audio_menu_volume_auto_normalize);
 
 static const MENU audio_menu_base[] =
 {
-   { "&Enable APU",       audio_menu_enable_apu,            NULL,                             0, NULL },
-   { "Enable &Output",    audio_menu_enable_output,         NULL,                             0, NULL },
+   { "&Enable APU",       audio_menu_enable_apu,             NULL,                             0, NULL },
+   { "Enable &Output",    audio_menu_enable_output,          NULL,                             0, NULL },
    MENU_SPLITTER,                                                                      
-   { "Emulation",         NULL,                             NULL,                             0, NULL },
-   { "  &Fast",           audio_menu_emulation_fast,        NULL,                             0, NULL },
-   { "  &Accurate",       audio_menu_emulation_accurate,    NULL,                             0, NULL },
-   { "  &Ultra",          audio_menu_emulation_ultra,       NULL,                             0, NULL },
-   { "  ",                NULL,                             NULL,                             0, NULL },
-   { "  &Channels",       NULL,                             IMPORT_MENU(audio_channels_menu), 0, NULL },
+   { "Emulation",         NULL,                              NULL,                             0, NULL },
+   { "  &Fast",           audio_menu_emulation_fast,         NULL,                             0, NULL },
+   { "  &Accurate",       audio_menu_emulation_accurate,     NULL,                             0, NULL },
+   { "  &High Quality",   audio_menu_emulation_high_quality, NULL,                             0, NULL },
+   { "  ",                NULL,                              NULL,                             0, NULL },
+   { "  &Channels",       NULL,                              IMPORT_MENU(audio_channels_menu), 0, NULL },
    MENU_SPLITTER,                                                                       
-   { "Out&put",           NULL,                             IMPORT_MENU(audio_output_menu),   0, NULL },
+   { "Out&put",           NULL,                              IMPORT_MENU(audio_output_menu),   0, NULL },
    MENU_SPLITTER,
    /* Kludge to make MENU_FROM_BASE() load the menu. */
-   { "insert text here",  NULL,                             NULL,                             0, NULL },
-   { "  &Increase (+)",   audio_menu_volume_increase,       NULL,                             0, NULL },
-   { "  &Decrease (-)",   audio_menu_volume_decrease,       NULL,                             0, NULL },
-   { "  ",                NULL,                             NULL,                             0, NULL },
-   { "  Cu&stom...",      audio_menu_volume_custom,         NULL,                             0, NULL },
-   { "  Rese&t",          audio_menu_volume_reset,          NULL,                             0, NULL },
-   { "  ",                NULL,                             NULL,                             0, NULL },
-   { "  Auto &Normalize", audio_menu_volume_auto_normalize, NULL,                             0, NULL },
+   { "insert text here",  NULL,                              NULL,                             0, NULL },
+   { "  &Increase (+)",   audio_menu_volume_increase,        NULL,                             0, NULL },
+   { "  &Decrease (-)",   audio_menu_volume_decrease,        NULL,                             0, NULL },
+   { "  ",                NULL,                              NULL,                             0, NULL },
+   { "  Cu&stom...",      audio_menu_volume_custom,          NULL,                             0, NULL },
+   { "  Rese&t",          audio_menu_volume_reset,           NULL,                             0, NULL },
+   { "  ",                NULL,                              NULL,                             0, NULL },
+   { "  Auto &Normalize", audio_menu_volume_auto_normalize,  NULL,                             0, NULL },
    MENU_SPLITTER,                                                       
-   { "&Record",           NULL,                             IMPORT_MENU(audio_record_menu),   0, NULL },
+   { "&Record",           NULL,                              IMPORT_MENU(audio_record_menu),   0, NULL },
    MENU_ENDCAP
 };
 
