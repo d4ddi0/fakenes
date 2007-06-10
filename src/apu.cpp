@@ -1941,13 +1941,81 @@ static void process (bool finish)
          WARN_GENERIC();
    }
 
-   if (finish && (samples.size () > 0))
-   {
-      /* Send all stored samples to the DSP for processing. */
-      dsp_write (&samples[0], samples.size ());
+   if(finish && (samples.size() > 0)) {
+      // DC blocking filter - just test
+      // Uses a quadratic bezier curve to perform a simple high pass, ~200Hz at 44.1kHz(or at least, that's what I
+      // started out with, I have no idea what it ended up as).
+      // Very crude, but very simple and very fast - and it DOES work.
+      const int nsamples = (samples.size() / apu.mixer.channels);
 
-      /* Clear sample buffer. */
-      samples.resize (0);
+      // Tangent space distance between samples
+      const real d = (1.0 / (nsamples - 1));
+ 
+      const unsigned start = 0;
+      const unsigned end = (nsamples - 1);
+      const unsigned middle = ((start + end) / 2);
+
+      if(apu.mixer.channels == 2) {
+         const real p0l = DSP_UNPACK_SAMPLE(samples[start * 2]);
+         const real p1l = DSP_UNPACK_SAMPLE(samples[middle * 2]);
+         const real p2l = DSP_UNPACK_SAMPLE(samples[end * 2]);
+
+         const real p0r = DSP_UNPACK_SAMPLE(samples[(start * 2) + 1]);
+         const real p1r = DSP_UNPACK_SAMPLE(samples[(middle * 2) + 1]);
+         const real p2r = DSP_UNPACK_SAMPLE(samples[(end * 2) + 1]);
+
+         for(int index = 0; index < nsamples; index++) {
+            const real t = (d * index);
+            const real one_minus_t = (1.0 - t);
+
+            // Left 
+            real q0 = ((p0l * one_minus_t) + (p1l * t));
+            real q1 = ((p1l * one_minus_t) + (p2l * t));
+            real b = ((q0 * one_minus_t) + (q1 * t));
+
+            unsigned offset = (index * 2);
+            real sample = DSP_UNPACK_SAMPLE(samples[offset]);
+            sample -= b;
+            sample *= 2.0;
+            samples[offset] = DSP_PACK_SAMPLE(sample);
+
+            // Right
+            q0 = ((p0r * one_minus_t) + (p1r * t));
+            q1 = ((p1r * one_minus_t) + (p2r * t));
+            b = ((q0 * one_minus_t) + (q1 * t));
+
+            offset = ((index * 2) + 1);
+            sample = DSP_UNPACK_SAMPLE(samples[offset]);
+            sample -= b;
+            sample *= 2.0;
+            samples[offset] = DSP_PACK_SAMPLE(sample);
+         }
+      }
+      else {
+         const real p0 = DSP_UNPACK_SAMPLE(samples[start]);
+         const real p1 = DSP_UNPACK_SAMPLE(samples[middle]);
+         const real p2 = DSP_UNPACK_SAMPLE(samples[end]);
+
+         for(int index = 0; index < nsamples; index++) {
+            const real t = (d * index);
+            const real one_minus_t = (1.0 - t);
+
+            const real q0 = ((p0 * one_minus_t) + (p1 * t));
+            const real q1 = ((p1 * one_minus_t) + (p2 * t));
+            const real b = ((q0 * one_minus_t) + (q1 * t));
+
+            real sample = DSP_UNPACK_SAMPLE(samples[index]);
+            sample -= b;
+            sample *= 2.0;
+            samples[index] = DSP_PACK_SAMPLE(sample);
+         }
+      }
+
+      // Send all stored samples to the DSP for processing.
+      dsp_write(&samples[0], samples.size());
+
+      // Clear sample buffer.
+      samples.resize(0);
    }
 
    /* Done processing - allow this function to be called again. */
