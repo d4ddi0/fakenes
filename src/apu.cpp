@@ -1959,25 +1959,25 @@ static void process (bool finish)
       const unsigned middle = ((start + end) / 2);
 
       if(apu.mixer.channels == 2) {
-         const real p0l = DSP_UNPACK_SAMPLE(samples[start * 2]);
-         const real p1l = DSP_UNPACK_SAMPLE(samples[middle * 2]);
-         const real p2l = DSP_UNPACK_SAMPLE(samples[end * 2]);
+         const real p0_left = DSP_UNPACK_SAMPLE(samples[start * 2]);
+         const real p1_left = DSP_UNPACK_SAMPLE(samples[middle * 2]);
+         const real p2_left = DSP_UNPACK_SAMPLE(samples[end * 2]);
 
-         const real p0r = DSP_UNPACK_SAMPLE(samples[(start * 2) + 1]);
-         const real p1r = DSP_UNPACK_SAMPLE(samples[(middle * 2) + 1]);
-         const real p2r = DSP_UNPACK_SAMPLE(samples[(end * 2) + 1]);
+         const real p0_right = DSP_UNPACK_SAMPLE(samples[(start * 2) + 1]);
+         const real p1_right = DSP_UNPACK_SAMPLE(samples[(middle * 2) + 1]);
+         const real p2_right = DSP_UNPACK_SAMPLE(samples[(end * 2) + 1]);
 
          for(int index = 0; index < nsamples; index++) {
             const real t = (d * index);
             const real one_minus_t = (1.0 - t);
 
             // Left 
-            real q0 = ((p0l * one_minus_t) + (p1l * t));
-            real q1 = ((p1l * one_minus_t) + (p2l * t));
+            real q0 = ((p0_left * one_minus_t) + (p1_left * t));
+            real q1 = ((p1_left * one_minus_t) + (p2_left * t));
+
             real b = ((q0 * one_minus_t) + (q1 * t));
 
             unsigned offset = (index * 2);
-
             real sample = DSP_UNPACK_SAMPLE(samples[offset]);
             sample -= b;
             if(!apu_options.normalize) {
@@ -1987,19 +1987,21 @@ static void process (bool finish)
                // gameplay, and should serve our purposes fairly well.
                sample *= (1.0 / 0.686807);
             }
+
             samples[offset] = DSP_PACK_SAMPLE(sample);
 
             // Right
-            q0 = ((p0r * one_minus_t) + (p1r * t));
-            q1 = ((p1r * one_minus_t) + (p2r * t));
+            q0 = ((p0_right * one_minus_t) + (p1_right * t));
+            q1 = ((p1_right * one_minus_t) + (p2_right * t));
+
             b = ((q0 * one_minus_t) + (q1 * t));
 
             offset = ((index * 2) + 1);
-
             sample = DSP_UNPACK_SAMPLE(samples[offset]);
             sample -= b;
             if(!apu_options.normalize)
                sample *= (1.0 / 0.686807);
+
             samples[offset] = DSP_PACK_SAMPLE(sample);
          }
       }
@@ -2014,12 +2016,14 @@ static void process (bool finish)
 
             const real q0 = ((p0 * one_minus_t) + (p1 * t));
             const real q1 = ((p1 * one_minus_t) + (p2 * t));
+
             const real b = ((q0 * one_minus_t) + (q1 * t));
 
             real sample = DSP_UNPACK_SAMPLE(samples[index]);
             sample -= b;
             if(!apu_options.normalize)
                sample *= (1.0 / 0.686807);
+
             samples[index] = DSP_PACK_SAMPLE(sample);
          }
       }
@@ -2036,7 +2040,9 @@ static void process (bool finish)
                maximum /= 2.0;
                maximumCycles += 60;  // Start to fall off after being held high for one second (60 ticks)
             }
+
             sample *= (1.0 / maximum);
+
             samples[index] = DSP_PACK_SAMPLE(sample);
          }
 
