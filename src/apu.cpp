@@ -288,15 +288,6 @@ static linear void apu_update_linear_counter(apu_chan_t& chan)
 
 static linear void apu_update_square(apu_chan_t& chan, FLAGS update_flags)
 {
-   if(update_flags & UPDATE_ENVELOPE)
-      apu_envelope(chan, chan.envelope);
-             
-   if(update_flags & UPDATE_SWEEP)
-      apu_sweep(chan, chan.sweep);
-
-   if(update_flags & UPDATE_LENGTH)
-      apu_update_length_counter(chan);
-
    if(update_flags & UPDATE_OUTPUT) {
       if(chan.timer > 0) {
          chan.timer -= apu.timer_delta;
@@ -316,6 +307,15 @@ static linear void apu_update_square(apu_chan_t& chan, FLAGS update_flags)
       if(++chan.sequence_step > 7)
          chan.sequence_step = 0;
    }
+   if(update_flags & UPDATE_ENVELOPE)
+      apu_envelope(chan, chan.envelope);
+             
+   if(update_flags & UPDATE_SWEEP)
+      apu_sweep(chan, chan.sweep);
+
+   if(update_flags & UPDATE_LENGTH)
+      apu_update_length_counter(chan);
+
 }
 
 static linear void apu_save_square(apu_chan_t& chan, PACKFILE* file, int version)
@@ -482,7 +482,7 @@ static linear void apu_load_noise(apu_chan_t& chan, PACKFILE* file, int version)
 }
 
 static void apu_reload_dmc(apu_chan_t& chan)
-{               
+{
    chan.address = chan.cached_address;
    chan.dma_length = chan.cached_dmalength;
 }
@@ -1489,11 +1489,11 @@ void apu_load_state(PACKFILE* file, int version)
 // --- Internal functions. --- 
 static void mix_outputs(void)
 {
-   static const apu_chan_t &square1  = apu.square[0];
-   static const apu_chan_t &square2  = apu.square[1];
-   static const apu_chan_t &triangle = apu.triangle;
-   static const apu_chan_t &noise = apu.noise;
-   static const apu_chan_t &dmc = apu.dmc;
+   static const apu_chan_t& square1  = apu.square[0];
+   static const apu_chan_t& square2  = apu.square[1];
+   static const apu_chan_t& triangle = apu.triangle;
+   static const apu_chan_t& noise = apu.noise;
+   static const apu_chan_t& dmc = apu.dmc;
 
    const real square_out = square_table[square1.output + square2.output];
    const real tnd_out = tnd_table[3 * triangle.output + 2 * noise.output + dmc.output];
@@ -1698,7 +1698,7 @@ static void process(bool finish)
    }
 
    if(finish && (samples.size() > 0)) {
-      // DC blocking filter - just test
+      // DC blocking filter
       // Uses a quadratic bezier curve to perform a simple high pass, ~200Hz at 44.1kHz(or at least, that's what I
       // started out with, I have no idea what it ended up as).
       // Very crude, but very simple and very fast - and it DOES work.
