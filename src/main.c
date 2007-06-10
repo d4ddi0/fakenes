@@ -48,7 +48,7 @@ ENUM machine_type = MACHINE_TYPE_NTSC;
 
    Smooth uses approximated timings that are much less likely to desync with
    the host machine while under heavy CPU load. */
-ENUM machine_timing = MACHINE_TIMING_SMOOTH;
+ENUM machine_timing = MACHINE_TIMING_ACCURATE;
 
 /* CPU usage (passive/normal/aggressive). */
 ENUM cpu_usage = CPU_USAGE_PASSIVE;
