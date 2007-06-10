@@ -190,7 +190,7 @@ static INLINE void update_menus (void)
 
    TOGGLE_MENU_ITEM(audio_output_menu_mixing_mono,            !apu_options.stereo);
    TOGGLE_MENU_ITEM(audio_output_menu_mixing_stereo,          (apu_options.stereo && !dsp_get_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS)));
-   TOGGLE_MENU_ITEM(audio_output_menu_mixing_stereo_reversed, (apu_options.stereo && dsp_get_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS)));
+   TOGGLE_MENU_ITEM(audio_output_menu_mixing_stereo_inverted, (apu_options.stereo && dsp_get_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS)));
 
    TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_1_frame,  (audio_buffer_length == 1));
    TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_2_frames, (audio_buffer_length == 2));
@@ -2208,7 +2208,7 @@ static int audio_output_menu_mixing_stereo (void)
    return (D_O_K);
 }
 
-static int audio_output_menu_mixing_stereo_reversed (void)
+static int audio_output_menu_mixing_stereo_inverted (void)
 {
    apu_options.stereo = TRUE;
    dsp_set_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS, DSP_SET_ENABLED_MODE_SET, TRUE);

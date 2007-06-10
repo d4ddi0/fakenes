@@ -387,7 +387,7 @@ DEFINE_MENU_CALLBACK(audio_output_menu_sampling_rate_48000_hz);
 DEFINE_MENU_CALLBACK(audio_output_menu_sampling_rate_custom);
 DEFINE_MENU_CALLBACK(audio_output_menu_mixing_mono);
 DEFINE_MENU_CALLBACK(audio_output_menu_mixing_stereo);
-DEFINE_MENU_CALLBACK(audio_output_menu_mixing_stereo_reversed);
+DEFINE_MENU_CALLBACK(audio_output_menu_mixing_stereo_inverted);
                                                   
 static const MENU audio_output_menu_base[] =
 {
@@ -405,7 +405,7 @@ static const MENU audio_output_menu_base[] =
    { "Mixing",               NULL,                                     NULL,                                       0, NULL },
    { "  &Mono",              audio_output_menu_mixing_mono,            NULL,                                       0, NULL },
    { "  &Stereo",            audio_output_menu_mixing_stereo,          NULL,                                       0, NULL },
-   { "  Stereo (&Reversed)", audio_output_menu_mixing_stereo_reversed, NULL,                                       0, NULL },
+   { "  Stereo (&Inverted)", audio_output_menu_mixing_stereo_inverted, NULL,                                       0, NULL },
    MENU_SPLITTER,
    { "&Buffer Size",         NULL,                                     IMPORT_MENU(audio_output_buffer_size_menu), 0, NULL },
    MENU_ENDCAP          
