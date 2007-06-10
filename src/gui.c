@@ -192,14 +192,14 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(audio_output_menu_mixing_stereo,          (apu_options.stereo && !dsp_get_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS)));
    TOGGLE_MENU_ITEM(audio_output_menu_mixing_stereo_reversed, (apu_options.stereo && dsp_get_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS)));
 
-   TOGGLE_MENU_ITEM(audio_output_buffer_menu_1_frame,  (audio_buffer_length == 1));
-   TOGGLE_MENU_ITEM(audio_output_buffer_menu_2_frames, (audio_buffer_length == 2));
-   TOGGLE_MENU_ITEM(audio_output_buffer_menu_3_frames, (audio_buffer_length == 3));
-   TOGGLE_MENU_ITEM(audio_output_buffer_menu_4_frames, (audio_buffer_length == 4));
-   TOGGLE_MENU_ITEM(audio_output_buffer_menu_5_frames, (audio_buffer_length == 5));
-   TOGGLE_MENU_ITEM(audio_output_buffer_menu_6_frames, (audio_buffer_length == 6));
-   TOGGLE_MENU_ITEM(audio_output_buffer_menu_7_frames, (audio_buffer_length == 7));
-   TOGGLE_MENU_ITEM(audio_output_buffer_menu_8_frames, (audio_buffer_length == 8));
+   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_1_frame,  (audio_buffer_length == 1));
+   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_2_frames, (audio_buffer_length == 2));
+   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_3_frames, (audio_buffer_length == 3));
+   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_4_frames, (audio_buffer_length == 4));
+   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_5_frames, (audio_buffer_length == 5));
+   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_6_frames, (audio_buffer_length == 6));
+   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_7_frames, (audio_buffer_length == 7));
+   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_8_frames, (audio_buffer_length == 8));
 
 #ifdef ALLEGRO_DOS
 
@@ -2221,8 +2221,8 @@ static int audio_output_menu_mixing_stereo_reversed (void)
    return (D_O_K);
 }
 
-#define AUDIO_OUTPUT_BUFFER_MENU_HANDLER(size, units)   \
-   static int audio_output_buffer_menu_##size##_##units (void)   \
+#define AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(size, units)   \
+   static int audio_output_buffer_size_menu_##size##_##units (void)   \
    {  \
       audio_buffer_length = size; \
       cycle_audio ();   \
@@ -2232,18 +2232,18 @@ static int audio_output_menu_mixing_stereo_reversed (void)
       return (D_O_K);   \
    }
                         
-AUDIO_OUTPUT_BUFFER_MENU_HANDLER(1, frame)
-AUDIO_OUTPUT_BUFFER_MENU_HANDLER(2, frames)
-AUDIO_OUTPUT_BUFFER_MENU_HANDLER(3, frames)
-AUDIO_OUTPUT_BUFFER_MENU_HANDLER(4, frames)
-AUDIO_OUTPUT_BUFFER_MENU_HANDLER(5, frames)
-AUDIO_OUTPUT_BUFFER_MENU_HANDLER(6, frames)
-AUDIO_OUTPUT_BUFFER_MENU_HANDLER(7, frames)
-AUDIO_OUTPUT_BUFFER_MENU_HANDLER(8, frames)
+AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(1, frame)
+AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(2, frames)
+AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(3, frames)
+AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(4, frames)
+AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(5, frames)
+AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(6, frames)
+AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(7, frames)
+AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(8, frames)
 
-#undef AUDIO_OUTPUT_BUFFER_MENU_HANDLER
+#undef AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER
 
-static int audio_output_buffer_menu_custom (void) 
+static int audio_output_buffer_size_menu_custom (void) 
 {
    int frames = audio_buffer_length;
    if (get_integer_input ("Custom", &frames, "frames"))

@@ -19,7 +19,7 @@ DEFINE_MENU(machine_speed_up_down_menu);
 DEFINE_MENU(machine_frame_skip_menu);
 DEFINE_MENU(machine_menu);
 DEFINE_MENU(audio_channels_menu);
-DEFINE_MENU(audio_output_buffer_menu);
+DEFINE_MENU(audio_output_buffer_size_menu);
 DEFINE_MENU(audio_output_menu);
 DEFINE_MENU(audio_record_menu);
 DEFINE_MENU(audio_menu);
@@ -354,28 +354,28 @@ static const MENU audio_channels_menu_base[] =
    MENU_ENDCAP
 };
 
-DEFINE_MENU_CALLBACK(audio_output_buffer_menu_1_frame);
-DEFINE_MENU_CALLBACK(audio_output_buffer_menu_2_frames);
-DEFINE_MENU_CALLBACK(audio_output_buffer_menu_3_frames);
-DEFINE_MENU_CALLBACK(audio_output_buffer_menu_4_frames);
-DEFINE_MENU_CALLBACK(audio_output_buffer_menu_5_frames);
-DEFINE_MENU_CALLBACK(audio_output_buffer_menu_6_frames);
-DEFINE_MENU_CALLBACK(audio_output_buffer_menu_7_frames);
-DEFINE_MENU_CALLBACK(audio_output_buffer_menu_8_frames);
-DEFINE_MENU_CALLBACK(audio_output_buffer_menu_custom);
+DEFINE_MENU_CALLBACK(audio_output_buffer_size_menu_1_frame);
+DEFINE_MENU_CALLBACK(audio_output_buffer_size_menu_2_frames);
+DEFINE_MENU_CALLBACK(audio_output_buffer_size_menu_3_frames);
+DEFINE_MENU_CALLBACK(audio_output_buffer_size_menu_4_frames);
+DEFINE_MENU_CALLBACK(audio_output_buffer_size_menu_5_frames);
+DEFINE_MENU_CALLBACK(audio_output_buffer_size_menu_6_frames);
+DEFINE_MENU_CALLBACK(audio_output_buffer_size_menu_7_frames);
+DEFINE_MENU_CALLBACK(audio_output_buffer_size_menu_8_frames);
+DEFINE_MENU_CALLBACK(audio_output_buffer_size_menu_custom);
 
-static const MENU audio_output_buffer_menu_base[] =
+static const MENU audio_output_buffer_size_menu_base[] =
 {
-   { "&1 Frame",   audio_output_buffer_menu_1_frame,  NULL, 0, NULL },
-   { "&2 Frames",  audio_output_buffer_menu_2_frames, NULL, 0, NULL },
-   { "&3 Frames",  audio_output_buffer_menu_3_frames, NULL, 0, NULL },
-   { "&4 Frames",  audio_output_buffer_menu_4_frames, NULL, 0, NULL },
-   { "&5 Frames",  audio_output_buffer_menu_5_frames, NULL, 0, NULL },
-   { "&6 Frames",  audio_output_buffer_menu_6_frames, NULL, 0, NULL },
-   { "&7 Frames",  audio_output_buffer_menu_7_frames, NULL, 0, NULL },
-   { "&8 Frames",  audio_output_buffer_menu_8_frames, NULL, 0, NULL },
+   { "&1 Frame",   audio_output_buffer_size_menu_1_frame,  NULL, 0, NULL },
+   { "&2 Frames",  audio_output_buffer_size_menu_2_frames, NULL, 0, NULL },
+   { "&3 Frames",  audio_output_buffer_size_menu_3_frames, NULL, 0, NULL },
+   { "&4 Frames",  audio_output_buffer_size_menu_4_frames, NULL, 0, NULL },
+   { "&5 Frames",  audio_output_buffer_size_menu_5_frames, NULL, 0, NULL },
+   { "&6 Frames",  audio_output_buffer_size_menu_6_frames, NULL, 0, NULL },
+   { "&7 Frames",  audio_output_buffer_size_menu_7_frames, NULL, 0, NULL },
+   { "&8 Frames",  audio_output_buffer_size_menu_8_frames, NULL, 0, NULL },
    MENU_SPLITTER,        
-   { "&Custom...", audio_output_buffer_menu_custom,   NULL, 0, NULL },
+   { "&Custom...", audio_output_buffer_size_menu_custom,   NULL, 0, NULL },
    MENU_ENDCAP
 };                                             
 
@@ -391,23 +391,23 @@ DEFINE_MENU_CALLBACK(audio_output_menu_mixing_stereo_reversed);
                                                   
 static const MENU audio_output_menu_base[] =
 {
-   { "Subsystem",            NULL,                                     NULL,                                  0, NULL },
-   { "  &Allegro",           audio_output_menu_subsystem_allegro,      NULL,                                  0, NULL },
-   { "  &OpenAL",            audio_output_menu_subsystem_openal,       NULL,                                  0, NULL },
+   { "Subsystem",            NULL,                                     NULL,                                       0, NULL },
+   { "  &Allegro",           audio_output_menu_subsystem_allegro,      NULL,                                       0, NULL },
+   { "  &OpenAL",            audio_output_menu_subsystem_openal,       NULL,                                       0, NULL },
    MENU_SPLITTER,          
-   { "Sampling Rate",        NULL,                                     NULL,                                  0, NULL },
-   { "  &1: 22050 Hz",       audio_output_menu_sampling_rate_22050_hz, NULL,                                  0, NULL },
-   { "  &2: 44100 Hz",       audio_output_menu_sampling_rate_44100_hz, NULL,                                  0, NULL },
-   { "  &3: 48000 Hz",       audio_output_menu_sampling_rate_48000_hz, NULL,                                  0, NULL },
-   { "  ",                   NULL,                                     NULL,                                  0, NULL },
-   { "  &Custom...",         audio_output_menu_sampling_rate_custom,   NULL,                                  0, NULL },
+   { "Sampling Rate",        NULL,                                     NULL,                                       0, NULL },
+   { "  &1: 22050 Hz",       audio_output_menu_sampling_rate_22050_hz, NULL,                                       0, NULL },
+   { "  &2: 44100 Hz",       audio_output_menu_sampling_rate_44100_hz, NULL,                                       0, NULL },
+   { "  &3: 48000 Hz",       audio_output_menu_sampling_rate_48000_hz, NULL,                                       0, NULL },
+   { "  ",                   NULL,                                     NULL,                                       0, NULL },
+   { "  &Custom...",         audio_output_menu_sampling_rate_custom,   NULL,                                       0, NULL },
    MENU_SPLITTER,
-   { "Mixing",               NULL,                                     NULL,                                  0, NULL },
-   { "  &Mono",              audio_output_menu_mixing_mono,            NULL,                                  0, NULL },
-   { "  &Stereo",            audio_output_menu_mixing_stereo,          NULL,                                  0, NULL },
-   { "  Stereo (&Reversed)", audio_output_menu_mixing_stereo_reversed, NULL,                                  0, NULL },
+   { "Mixing",               NULL,                                     NULL,                                       0, NULL },
+   { "  &Mono",              audio_output_menu_mixing_mono,            NULL,                                       0, NULL },
+   { "  &Stereo",            audio_output_menu_mixing_stereo,          NULL,                                       0, NULL },
+   { "  Stereo (&Reversed)", audio_output_menu_mixing_stereo_reversed, NULL,                                       0, NULL },
    MENU_SPLITTER,
-   { "&Buffer",              NULL,                                     IMPORT_MENU(audio_output_buffer_menu), 0, NULL },
+   { "&Buffer Size",         NULL,                                     IMPORT_MENU(audio_output_buffer_size_menu), 0, NULL },
    MENU_ENDCAP          
 };                                             
                           
@@ -1161,7 +1161,7 @@ static INLINE void load_menus (void)
    MENU_FROM_BASE(machine_speed_up_down_menu);
    MENU_FROM_BASE(machine_frame_skip_menu);
    MENU_FROM_BASE(machine_menu);
-   MENU_FROM_BASE(audio_output_buffer_menu);
+   MENU_FROM_BASE(audio_output_buffer_size_menu);
    MENU_FROM_BASE(audio_output_menu);
    MENU_FROM_BASE(audio_channels_menu);
    MENU_FROM_BASE(audio_record_menu);
@@ -1206,7 +1206,7 @@ static INLINE void unload_menus (void)
    unload_menu (machine_speed_up_down_menu);
    unload_menu (machine_frame_skip_menu);
    unload_menu (machine_menu);
-   unload_menu (audio_output_buffer_menu);
+   unload_menu (audio_output_buffer_size_menu);
    unload_menu (audio_output_menu);
    unload_menu (audio_channels_menu);
    unload_menu (audio_record_menu);
