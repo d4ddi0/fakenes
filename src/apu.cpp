@@ -58,7 +58,7 @@ apu_options_t apu_options = {
 };
 
 // Static APU context.
-static apu_t apu;      
+static apu_t apu;
 
 // ExSound contexts.
 static Sound::Interface* exsound = null;
@@ -290,7 +290,7 @@ static linear void apu_update_square(apu_chan_t& chan, FLAGS update_flags)
 {
    if(update_flags & UPDATE_ENVELOPE)
       apu_envelope(chan, chan.envelope);
-             
+
    if(update_flags & UPDATE_SWEEP)
       apu_sweep(chan, chan.sweep);
 
@@ -329,7 +329,7 @@ static linear void apu_save_square(apu_chan_t& chan, PACKFILE* file, int version
    pack_putc(chan.volume, file);
    pack_putc((chan.silence ? 1 : 0), file);
    pack_putc(chan.output, file);
-   
+
    // Envelope generator.
    apu_save_envelope(chan, chan.envelope, file, version);
    // Sweep unit.
@@ -421,7 +421,7 @@ static linear void apu_update_noise(apu_chan_t& chan, FLAGS update_flags)
 {
    if(update_flags & UPDATE_ENVELOPE)
       apu_envelope(chan, chan.envelope);
-             
+
    if(update_flags & UPDATE_LENGTH)
       apu_update_length_counter(chan);
 
@@ -449,7 +449,7 @@ static linear void apu_update_noise(apu_chan_t& chan, FLAGS update_flags)
       else
          chan.output = 0;
    }
-}                  
+}
 
 static linear void apu_save_noise(apu_chan_t& chan, PACKFILE* file, int version)
 {
@@ -570,7 +570,7 @@ static linear void apu_update_dmc(apu_chan_t& chan)
          chan.shift_reg = chan.cur_byte;
          chan.cur_byte = 0;
          chan.sample_bits = 0;
-      }        
+      }
       else {
          // Set silence flag.
          chan.silence = true;
@@ -597,7 +597,7 @@ static linear void apu_update_dmc(apu_chan_t& chan)
 
       chan.output = (chan.volume & 0x7F);
    }
-   
+
    // Clock shift register.
    chan.shift_reg >>= 1;
    // Decrement counter.
@@ -788,9 +788,9 @@ static linear void apu_predict_frame_irq(cpu_time_t cycles)
          if(apu.sequence_counter > 0)
             continue;
       }
-   
+
       apu_reload_sequence_counter();
-  
+
       /* check to see if we should generate an irq
          Note that IRQs are not generated in 5step mode */
       if((apu.sequence_steps == 4) &&
@@ -904,7 +904,7 @@ void apu_exit(void)
 void apu_reset(void)
 {
    // -- Initializes/resets emulated sound hardware, creates waveforms/voices
-   
+
    /* Save frame sequencer state, since it is not cleared by a soft reset (a
       hard reset always implies a call to apu_init(), which clears it). */
    const int16 sequence_counter = apu.sequence_counter;
@@ -1000,7 +1000,7 @@ void apu_end_frame(void)
       void *buffer = audio_get_buffer();
       if(!buffer)
          WARN_BREAK_GENERIC();
-   
+
       // Process DSP buffer into audio buffer.
       dsp_render(buffer, (apu_options.stereo ? 2 : 1), audio_sample_size, audio_unsigned_samples);
 
@@ -1074,7 +1074,7 @@ UINT8 apu_read(UINT16 address)
          chan = &apu.dmc;
          if(chan->enabled & (chan->dma_length > 0))
             value |= 0x10;
-         if (chan->irq_occurred)
+         if(chan->irq_occurred)
             value |= 0x80;
 
          // Frame IRQ.
@@ -1085,7 +1085,7 @@ UINT8 apu_read(UINT16 address)
          // Reset frame sequencer.
          apu_reset_frame_sequencer();
          apu_repredict_frame_irq();
-                                    
+
          break;
       }
 
@@ -1100,7 +1100,7 @@ UINT8 apu_read(UINT16 address)
 }
 
 void apu_write(UINT16 address, UINT8 value)
-{  
+{
    // Sync state.
    process(false);
 
@@ -1221,7 +1221,7 @@ void apu_write(UINT16 address, UINT8 value)
 
          break;
       }
-      
+
       case 0x400C: {
          /* White noise channel, register 1.
             $400C   --le nnnn   loop env/disable length, env disable, vol/env period */
@@ -1281,7 +1281,7 @@ void apu_write(UINT16 address, UINT8 value)
 
          chan.looping = TRUE_OR_FALSE(value & 0x40);
          chan.irq_gen = TRUE_OR_FALSE(value & 0x80);
-   
+
          if(!chan.irq_gen) {
             // Clear interrupt.
             chan.irq_occurred = false;
@@ -1348,7 +1348,7 @@ void apu_write(UINT16 address, UINT8 value)
 
          // Triangle.
          apu_chan_t& chan = apu.triangle;
-         
+
          chan.length_disable = !TRUE_OR_FALSE(value & 0x04);
          if(chan.length_disable)
             chan.length = 0;
@@ -1393,7 +1393,7 @@ void apu_write(UINT16 address, UINT8 value)
             $4017   fd-- ----   5-frame cycle, disable frame interrupt */
 
          apu.sequence_steps = ((value & 0x80) ? 5 : 4);
-         
+
          /* <_Q> setting $4017.6 or $4017.7 will turn off frame IRQs
             <_Q> setting $4017.7 puts it into the 5-step sequence
             <_Q> which does not generate interrupts */
@@ -1405,7 +1405,7 @@ void apu_write(UINT16 address, UINT8 value)
 
          break;
       }
-   
+
       default:
          break;
    }
@@ -1462,7 +1462,7 @@ void apu_save_state(PACKFILE* file, int version)
 }
 
 void apu_load_state(PACKFILE* file, int version)
-{              
+{
    RT_ASSERT(file);
 
    // Load registers.
@@ -1579,7 +1579,6 @@ static void process(bool finish)
             if(apu.mixer.accumulated_samples >= apu.mixer.max_samples) {
                // Set the timer delta to the # of cycles elapsed.
                apu.timer_delta = apu.mixer.delta_cycles;
-
                // Clear the cycle buffer.
                apu.mixer.delta_cycles = 0;
 
@@ -1606,7 +1605,7 @@ static void process(bool finish)
                   sample = ((sample + apu.mixer.filter[channel]) / 2.0);
                   // Update filter sample.
                   apu.mixer.filter[channel] = cached_sample;
-                  
+
                   // Store it in the buffer.
                   samples.push_back(DSP_PACK_SAMPLE(sample));
                }
@@ -1679,7 +1678,7 @@ static void process(bool finish)
 
             // Mix outputs together.
             mix_outputs();
-               
+
             // Gather samples.
             for(int channel = 0; channel < apu.mixer.channels; channel++) {
                // Fetch sample.
@@ -1689,14 +1688,14 @@ static void process(bool finish)
                // Cache it so that we can split it up later if need be.
                apu.mixer.sample_cache[channel] = sample;
             }
-         
+
             apu.mixer.accumulated_samples++;
             if(apu.mixer.accumulated_samples >= apu.mixer.max_samples) {
                // Determine how much of the last sample we want to keep for the next loop.
                const real residual = (apu.mixer.accumulated_samples - floor(apu.mixer.max_samples));
                // Calculate the divider for the APU:DSP frequency ratio.
                const real divider = (apu.mixer.accumulated_samples - residual);
-      
+
                for(int channel = 0; channel < apu.mixer.channels; channel++) {
                   real& sample = apu.mixer.accumulators[channel];
                   // Remove residual sample portion.
@@ -1706,11 +1705,11 @@ static void process(bool finish)
                   // Buffer sample.
                   samples.push_back(DSP_PACK_SAMPLE(sample));
                }
-      
+
                // Reload accumulators with residual sample portion.
                for(int channel = 0; channel < apu.mixer.channels; channel++)
                   apu.mixer.accumulators[channel] = (apu.mixer.sample_cache[channel] * residual);
-      
+
                // Adjust counter.
                apu.mixer.accumulated_samples -= apu.mixer.max_samples;
             }
