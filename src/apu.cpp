@@ -1820,7 +1820,7 @@ static void process(bool finish)
                maximumCycles += 60;  // Start to fall off after being held high for one second (60 ticks)
             }
 
-            sample *= (1.0 / maximum);
+            sample *= fixf((1.0 / maximum), 0.5, 2.0);
 
             samples[index] = DSP_PACK_SAMPLE(sample);
          }
