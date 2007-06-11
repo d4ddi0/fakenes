@@ -9,6 +9,12 @@ static int               _ntsc_phase;
 static int               _ntsc_scanline_doubling;
 static BOOL              _ntsc_interpolation;
 
+#define NTSC_OVERSCAN_WIDTH	16	/* Number of pixels added to the source image for overscan */
+                                        /* 272 pixels is good, so 256 + 16 = 272. */
+/* TODO: Make these values not dependant on the source buffer width being exactly 256 pixels. */
+#define NTSC_NES_PICTURE_LEFT   8       /* X position where the NES picture begins. */
+#define NTSC_NES_PICTURE_RIGHT  263     /* X position where the NES picture ends. */
+
 /* Blitter. */
 
 static void blit_ntsc (BITMAP *src, BITMAP *dest, int x_base, int y_base)
@@ -16,13 +22,16 @@ static void blit_ntsc (BITMAP *src, BITMAP *dest, int x_base, int y_base)
    int w, h, wm, hm, hx;
    unsigned short *in;
    unsigned short *out;
+   UINT8 c;
+   UINT8 r, g, b;
    int y;
+
              
    RT_ASSERT(src);
    RT_ASSERT(dest);
 
    /* Calculate sizes. */
-   w = src->w;
+   w = (src->w + NTSC_OVERSCAN_WIDTH);
    h = src->h;
    wm = SNES_NTSC_OUT_WIDTH(w);
    hm = 240;         /* Output height from ntsc_blit(). */
@@ -39,6 +48,15 @@ static void blit_ntsc (BITMAP *src, BITMAP *dest, int x_base, int y_base)
    in  = (unsigned short *)blit_buffer_in;
    out = (unsigned short *)blit_buffer_out;
 
+   /* Fetch PPU background color and cache it - for overscan. */
+   c = ppu_get_background_color ();
+
+   r = ((getr8 (c) >> 3) & 0x1f);
+   g = ((getg8 (c) >> 2) & 0x3f);
+   b = ((getb8 (c) >> 3) & 0x1f);
+
+   const UINT16 ppu_background_color = ((r << 11) | (g << 5) | b);
+
    /* Import source bitmap to input buffer. */
    for (y = 0; y < h; y++)
    {
@@ -46,16 +64,20 @@ static void blit_ntsc (BITMAP *src, BITMAP *dest, int x_base, int y_base)
 
       for (x = 0; x < w; x++)
       {
-         UINT8 c;
-         UINT8 r, g, b;
+         if ((x >= NTSC_NES_PICTURE_LEFT) && (x <= NTSC_NES_PICTURE_RIGHT))
+         {
+            c = FAST_GETPIXEL8(src, (x - NTSC_NES_PICTURE_LEFT), y);
+            
+            r = ((getr8 (c) >> 3) & 0x1f);
+            g = ((getg8 (c) >> 2) & 0x3f);
+            b = ((getb8 (c) >> 3) & 0x1f);
 
-         c = FAST_GETPIXEL8(src, x, y);
-
-         r = ((getr8 (c) >> 3) & 0x1f);
-         g = ((getg8 (c) >> 2) & 0x3f);
-         b = ((getb8 (c) >> 3) & 0x1f);
-
-         in[((y * w) + x)] = ((r << 11) | (g << 5) | b);
+            in[((y * w) + x)] = ((r << 11) | (g << 5) | b);
+         }
+         else
+         {
+            in[((y * w) + x)] = ppu_background_color;
+         }
       }
    }
 
@@ -276,8 +298,8 @@ static void init_ntsc (BITMAP *src, BITMAP *dest)
       setup->bleed       = (bleed       / 100.0f);
    }
 
-   merge_fields  = get_config_int ("ntsc", "merge_fields", 0); /* Default Off */
-   doubling      = get_config_int ("ntsc", "doubling",     1); /* Default Brighten */
+   merge_fields  = get_config_int ("ntsc", "merge_fields", 1); /* Default On */
+   doubling      = get_config_int ("ntsc", "doubling",     0); /* Default normal */
    interpolation = get_config_int ("ntsc", "interpolated", 1); /* Default On */
 
    setup->merge_fields     = merge_fields;
@@ -287,7 +309,7 @@ static void init_ntsc (BITMAP *src, BITMAP *dest)
    snes_ntsc_init (&_ntsc_ntsc, setup);
 
    /* Calculate sizes. */
-   w = src->w;
+   w = (src->w + NTSC_OVERSCAN_WIDTH);
    h = src->h;
    wm = SNES_NTSC_OUT_WIDTH(w);
    hm = 240;         /* Output height from snes_ntsc_blit(). */

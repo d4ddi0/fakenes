@@ -700,6 +700,13 @@ void ppu_vram_write(UINT8 value)
 
 }
 
+UINT8 ppu_get_background_color (void)
+{
+   /* Returns the current PPU background color - for drawing overscan for e.g NTSC */
+   /* In the future, this should be rendered by the PPU itself into a special kind of buffer. */
+   /* Returned as an index into the 256 color palette */
+   return (ppu_palette[0] & palette_mask) + 1;
+}
 
 static UINT8 last_ppu_write_value;
 

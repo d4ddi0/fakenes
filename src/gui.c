@@ -2773,21 +2773,21 @@ static int video_blitter_menu_configure (void)
 
          objhue->d2    = (get_config_int ("ntsc", "hue",         0) + 100);
          objhuew->d2   = (get_config_int ("ntsc", "hue_warping", 0) + 100);
-         objsat->d2    = (get_config_int ("ntsc", "saturation",  0) + 100);
-         objbright->d2 = (get_config_int ("ntsc", "brightness",  0) + 100);
+         objsat->d2    = (get_config_int ("ntsc", "saturation",  20) + 100);
+         objbright->d2 = (get_config_int ("ntsc", "brightness",  10) + 100);
          objcon->d2    = (get_config_int ("ntsc", "contrast",    0) + 100);
          objgamma->d2  = (get_config_int ("ntsc", "gamma",       0) + 100);
-         objsharp->d2  = (get_config_int ("ntsc", "sharpness",   0) + 100);
-         objres->d2    = (get_config_int ("ntsc", "resolution",  0) + 100);
+         objsharp->d2  = (get_config_int ("ntsc", "sharpness",   40) + 100);
+         objres->d2    = (get_config_int ("ntsc", "resolution",  30) + 100);
          objart->d2    = (get_config_int ("ntsc", "artifacts",   0) + 100);
          objbleed->d2  = (get_config_int ("ntsc", "bleed",       0) + 100);
          objfring->d2  = (get_config_int ("ntsc", "fringing",    0) + 100);
 
-         merge_fields = get_config_int ("ntsc", "merge_fields", 0); /* Default Off */
+         merge_fields = get_config_int ("ntsc", "merge_fields", 1); /* Default On */
          if (merge_fields)
             objmerge->flags |= D_SELECTED;
          
-         doubling = fix (get_config_int ("ntsc", "doubling", 1), 0, 2); /* Default Brighten */
+         doubling = fix (get_config_int ("ntsc", "doubling", 2), 0, 2); /* Default Darken */
 
          objdbl[doubling]->flags |= D_SELECTED;
 

@@ -207,6 +207,7 @@ void ppu_save_state (PACKFILE *, int);
 
 void ppu_load_state (PACKFILE *, int);
 
+UINT8 ppu_get_background_color (void);
 
 #ifdef __cplusplus
 }
