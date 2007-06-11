@@ -288,6 +288,15 @@ static linear void apu_update_linear_counter(apu_chan_t& chan)
 
 static linear void apu_update_square(apu_chan_t& chan, FLAGS update_flags)
 {
+   if(update_flags & UPDATE_ENVELOPE)
+      apu_envelope(chan, chan.envelope);
+             
+   if(update_flags & UPDATE_SWEEP)
+      apu_sweep(chan, chan.sweep);
+
+   if(update_flags & UPDATE_LENGTH)
+      apu_update_length_counter(chan);
+
    if(update_flags & UPDATE_OUTPUT) {
       if(chan.timer > 0) {
          chan.timer -= apu.timer_delta;
@@ -307,15 +316,6 @@ static linear void apu_update_square(apu_chan_t& chan, FLAGS update_flags)
       if(++chan.sequence_step > 7)
          chan.sequence_step = 0;
    }
-   if(update_flags & UPDATE_ENVELOPE)
-      apu_envelope(chan, chan.envelope);
-             
-   if(update_flags & UPDATE_SWEEP)
-      apu_sweep(chan, chan.sweep);
-
-   if(update_flags & UPDATE_LENGTH)
-      apu_update_length_counter(chan);
-
 }
 
 static linear void apu_save_square(apu_chan_t& chan, PACKFILE* file, int version)
@@ -794,8 +794,11 @@ static linear void apu_predict_frame_irq(cpu_time_t cycles)
       /* check to see if we should generate an irq
          Note that IRQs are not generated in 5step mode */
       if((apu.sequence_steps == 4) &&
-         (apu.sequence_step == 4))
+         (apu.sequence_step == 4)) {
+         /* TODO: Unqueue the interrupt if the ability to generate frame IRQs is lost (either via the disable bit in the 
+            control register, or switching to 5step mode).  Currently, the interrupt is(incorrectly) left in the queue. */
          cpu_queue_interrupt(CPU_INTERRUPT_IRQ_FRAME, (apu.prediction_timestamp + (offset * CYCLE_LENGTH)));
+      }
 
       if(++apu.sequence_step > apu.sequence_steps)
          apu.sequence_step = 1;
@@ -814,6 +817,9 @@ static void apu_repredict_frame_irq(void)
 
       This is probably not needed (since a frame IRQ cannot occur so
       suddenly after a reset?) but we emulate it anyway "just in case". */
+   if(!apu.frame_irq_gen)
+      return;
+
    const cpu_time_t cycles = cpu_get_cycles();
 
    cpu_time_t cycles_remaining = (cycles - apu.prediction_timestamp);
@@ -1590,8 +1596,20 @@ static void process(bool finish)
                mix_outputs();
 
                // Fetch and buffer samples.
-               for(int channel = 0; channel < apu.mixer.channels; channel++)
-                  samples.push_back(DSP_PACK_SAMPLE(apu.mixer.inputs[channel]));
+               for(int channel = 0; channel < apu.mixer.channels; channel++) {
+                  // Fetch sample.
+                  real sample = apu.mixer.inputs[channel];
+
+                  // Cache sample for filter.
+                  const real cached_sample = sample;
+                  // Filter sample.
+                  sample = ((sample + apu.mixer.filter[channel]) / 2.0);
+                  // Update filter sample.
+                  apu.mixer.filter[channel] = cached_sample;
+                  
+                  // Store it in the buffer.
+                  samples.push_back(DSP_PACK_SAMPLE(sample));
+               }
 
                // Adjust counter.
                apu.mixer.accumulated_samples -= apu.mixer.max_samples;
@@ -1622,8 +1640,20 @@ static void process(bool finish)
                mix_outputs();
 
                // Fetch and buffer samples.
-               for(int channel = 0; channel < apu.mixer.channels; channel++)
-                  samples.push_back(DSP_PACK_SAMPLE(apu.mixer.inputs[channel]));
+               for(int channel = 0; channel < apu.mixer.channels; channel++) {
+                  // Fetch sample.
+                  real sample = apu.mixer.inputs[channel];
+
+                  // Cache sample for filter.
+                  const real cached_sample = sample;
+                  // Filter sample.
+                  sample = ((sample + apu.mixer.filter[channel]) / 2.0);
+                  // Update filter sample.
+                  apu.mixer.filter[channel] = cached_sample;
+
+                  // Store it in the buffer.
+                  samples.push_back(DSP_PACK_SAMPLE(sample));
+               }
 
                // Adjust counter.
                apu.mixer.accumulated_samples -= apu.mixer.max_samples;
@@ -1653,15 +1683,11 @@ static void process(bool finish)
             // Gather samples.
             for(int channel = 0; channel < apu.mixer.channels; channel++) {
                // Fetch sample.
-               real sample = apu.mixer.inputs[channel];
-               // Filter sample.
-               sample = ((sample + apu.mixer.filter[channel]) / 2.0);
-               // Accumulate filtered sample.
+               const real sample = apu.mixer.inputs[channel];
+               // Accumulate sample.
                apu.mixer.accumulators[channel] += sample;
                // Cache it so that we can split it up later if need be.
                apu.mixer.sample_cache[channel] = sample;
-               // Update filter sample.
-               apu.mixer.filter[channel] = sample;
             }
          
             apu.mixer.accumulated_samples++;
