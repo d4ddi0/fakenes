@@ -41,10 +41,10 @@
 
 // Global options.
 apu_options_t apu_options = {
-   true,                       // Enable processing.
-   APU_EMULATION_HIGH_QUALITY, // Emulation accuracy/performance tradeoff.
-   false,                      // Stereo output mode.
-   false,                      // Normalize for maximum volume.
+   true,                   // Enable processing.
+   APU_EMULATION_ACCURATE, // Emulation quality/performance tradeoff.
+   false,                  // Stereo output mode.
+   false,                  // Normalize for maximum volume.
 
          // Enable channels:
    true, //    Square 1
