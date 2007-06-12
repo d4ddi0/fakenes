@@ -120,7 +120,6 @@ typedef struct apu_s
    /* Mixer. */
    struct
    {            
-      BOOL can_process;
       int channels;
       cpu_time_t delta_cycles;
       REAL inputs[APU_MIXER_MAX_CHANNELS];

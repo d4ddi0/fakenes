@@ -39,6 +39,9 @@
 #include "sound/mmc5.hpp"
 #include "sound/vrc6.hpp"
 
+// TODO: DMC emulation rethinking and cleanup.
+// TODO: DMC IRQ prediction(requires the above, otherwise it would be a mess to implement).
+
 // Global options.
 apu_options_t apu_options = {
    true,                   // Enable processing.
@@ -948,65 +951,19 @@ void apu_update(void)
       avoid overflowing the sample buffer. */
    apu.mixer.max_samples = ((timing_get_frequency() / CYCLE_LENGTH) / audio_sample_rate);
 
-   // Deinitialize DSP.
-   dsp_exit();
-
    // Determine number of channels to mix.
    apu.mixer.channels = (apu_options.stereo ? 2 : 1);
-
-   // Open DSP buffer.
-   if(dsp_open (audio_buffer_frame_size_samples, apu.mixer.channels) != 0)
-      WARN("Failed to open DSP buffer");
-
-   // Set up channel map.
-   if(apu_options.stereo) {
-      // Stereo output.
-      dsp_set_channel_params(0, 1.0, -1.0);
-      dsp_set_channel_params(1, 1.0, 1.0);
-
-      dsp_set_channel_enabled(0, DSP_SET_ENABLED_MODE_SET, true);
-      dsp_set_channel_enabled(1, DSP_SET_ENABLED_MODE_SET, true);
-   }
-   else {
-      // Mono output.
-      dsp_set_channel_params(0, 1.0, 0.0);
-
-      dsp_set_channel_enabled(0, DSP_SET_ENABLED_MODE_SET, true);
-      dsp_set_channel_enabled(1, DSP_SET_ENABLED_MODE_SET, false);
-   }
 }
 
 void apu_start_frame(void)
 {
-   // Start DSP buffer fill.
-   dsp_start();
-
-   // Enable processing.
-   apu.mixer.can_process = true;
+   // Do nothing.
 }
 
 void apu_end_frame(void)
 {
    // Flush all pending data.
    process(true);
-
-   // Disable processing.
-   apu.mixer.can_process = false;
-
-   // End DSP buffer fill.
-   dsp_end();
-
-   if(audio_enable_output) {
-      void *buffer = audio_get_buffer();
-      if(!buffer)
-         WARN_BREAK_GENERIC();
-
-      // Process DSP buffer into audio buffer.
-      dsp_render(buffer, (apu_options.stereo ? 2 : 1), audio_sample_size, audio_unsigned_samples);
-
-      // Let the audio code have at it.
-      audio_free_buffer();
-   }
 }
 
 void apu_set_exsound(ENUM type)
@@ -1434,6 +1391,9 @@ void apu_save_state(PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
+   // Sync state.
+   process(false);
+
    // Save registers.
    for (int index = 0; index < APU_REGS; index++)
       pack_putc(apu.regs[index], file);
@@ -1545,43 +1505,118 @@ static void mix_outputs(void)
 
 static void process(bool finish)
 {
+   // Keep this static so that the memory is reused between calls.
    static std::vector<DSP_SAMPLE> samples;
 
-   if((!apu_options.enabled) ||
-      (!apu.mixer.can_process))
+   if(!apu_options.enabled)
       return;
 
    // Calculate the delta period.
    const cpu_time_t elapsed_cycles = (cpu_get_elapsed_cycles(&apu.clock_counter) / CYCLE_LENGTH);
-   if(elapsed_cycles == 0) {
-      // Nothing to do.
-      return;
-   }
+   if(elapsed_cycles > 0) {
+      // We've got some stuff to emulate - do it.
 
-   // Avoid re-entry.
-   apu.mixer.can_process = false;
+      switch(apu_options.emulation) {
+         case APU_EMULATION_FAST: {
+            // -- Faster, inaccurate version of the mixer.
 
-   // Determine the size of our output buffer.
-   const unsigned buffer_size = dsp_get_buffer_size();
-   // Reserve a minimum amount of sample space (for performance reasons).
-   samples.reserve(buffer_size);
+            for(cpu_time_t count = 0; count < elapsed_cycles; count++) {
+               // Buffer a cycle.
+               apu.mixer.delta_cycles++;
 
-   switch(apu_options.emulation) {
-      case APU_EMULATION_FAST: {
-         // -- Faster, inaccurate version of the mixer.
+               // Simulate accumulation.
+               apu.mixer.accumulated_samples++;
+               if(apu.mixer.accumulated_samples >= apu.mixer.max_samples) {
+                  // Set the timer delta to the # of cycles elapsed.
+                  apu.timer_delta = apu.mixer.delta_cycles;
+                  // Clear the cycle buffer.
+                  apu.mixer.delta_cycles = 0;
 
-         for(cpu_time_t count = 0; count < elapsed_cycles; count++) {
-            // Buffer a cycle.
-            apu.mixer.delta_cycles++;
+                  // Update the frame sequencer.
+                  apu_update_frame_sequencer();
+                  // Update outputs.
+                  apu_update_channels(UPDATE_OUTPUT);
 
-            // Simulate accumulation.
-            apu.mixer.accumulated_samples++;
-            if(apu.mixer.accumulated_samples >= apu.mixer.max_samples) {
-               // Set the timer delta to the # of cycles elapsed.
-               apu.timer_delta = apu.mixer.delta_cycles;
-               // Clear the cycle buffer.
-               apu.mixer.delta_cycles = 0;
+                  // Update ExSound.
+                  if(exsound)
+                     exsound->process(apu.timer_delta);
 
+                  // Mix outputs together.
+                  mix_outputs();
+
+                  // Fetch and buffer samples.
+                  for(int channel = 0; channel < apu.mixer.channels; channel++) {
+                     // Fetch sample.
+                     real sample = apu.mixer.inputs[channel];
+
+                     // Cache sample for filter.
+                     const real cached_sample = sample;
+                     // Filter sample.
+                     sample = ((sample + apu.mixer.filter[channel]) / 2.0);
+                     // Update filter sample.
+                     apu.mixer.filter[channel] = cached_sample;
+
+                     // Store it in the buffer.
+                     samples.push_back(DSP_PACK_SAMPLE(sample));
+                  }
+
+                  // Adjust counter.
+                  apu.mixer.accumulated_samples -= apu.mixer.max_samples;
+               }
+            }
+
+            break;
+         }
+
+         case APU_EMULATION_ACCURATE: {
+            // Since we'll be emulating every cycle, we'll use a timer delta of 1.
+            apu.timer_delta = 1;
+
+            for(cpu_time_t count = 0; count < elapsed_cycles; count++) {
+               // Update the frame sequencer.
+               apu_update_frame_sequencer();
+               // ~1.79MHz update driven independantly of the frame sequencer.
+               apu_update_channels(UPDATE_OUTPUT);
+
+               // Update ExSound.
+               if(exsound)
+                  exsound->process(apu.timer_delta);
+
+               // Simulate accumulation.
+               apu.mixer.accumulated_samples++;
+               if(apu.mixer.accumulated_samples >= apu.mixer.max_samples) {
+                  // Mix outputs together.
+                  mix_outputs();
+
+                  // Fetch and buffer samples.
+                  for(int channel = 0; channel < apu.mixer.channels; channel++) {
+                     // Fetch sample.
+                     real sample = apu.mixer.inputs[channel];
+
+                     // Cache sample for filter.
+                     const real cached_sample = sample;
+                     // Filter sample.
+                     sample = ((sample + apu.mixer.filter[channel]) / 2.0);
+                     // Update filter sample.
+                     apu.mixer.filter[channel] = cached_sample;
+
+                     // Store it in the buffer.
+                     samples.push_back(DSP_PACK_SAMPLE(sample));
+                  }
+
+                  // Adjust counter.
+                  apu.mixer.accumulated_samples -= apu.mixer.max_samples;
+               }
+            }
+
+            break;
+         }
+
+         case APU_EMULATION_HIGH_QUALITY: {
+            // Since we'll be emulating every cycle, we'll use a timer delta of 1.
+            apu.timer_delta = 1;
+
+            for(cpu_time_t count = 0; count < elapsed_cycles; count++) {
                // Update the frame sequencer.
                apu_update_frame_sequencer();
                // Update outputs.
@@ -1594,132 +1629,48 @@ static void process(bool finish)
                // Mix outputs together.
                mix_outputs();
 
-               // Fetch and buffer samples.
+               // Gather samples.
                for(int channel = 0; channel < apu.mixer.channels; channel++) {
                   // Fetch sample.
-                  real sample = apu.mixer.inputs[channel];
-
-                  // Cache sample for filter.
-                  const real cached_sample = sample;
-                  // Filter sample.
-                  sample = ((sample + apu.mixer.filter[channel]) / 2.0);
-                  // Update filter sample.
-                  apu.mixer.filter[channel] = cached_sample;
-
-                  // Store it in the buffer.
-                  samples.push_back(DSP_PACK_SAMPLE(sample));
+                  const real sample = apu.mixer.inputs[channel];
+                  // Accumulate sample.
+                  apu.mixer.accumulators[channel] += sample;
+                  // Cache it so that we can split it up later if need be.
+                  apu.mixer.sample_cache[channel] = sample;
                }
 
-               // Adjust counter.
-               apu.mixer.accumulated_samples -= apu.mixer.max_samples;
-            }
-         }
+               apu.mixer.accumulated_samples++;
+               if(apu.mixer.accumulated_samples >= apu.mixer.max_samples) {
+                  // Determine how much of the last sample we want to keep for the next loop.
+                  const real residual = (apu.mixer.accumulated_samples - floor(apu.mixer.max_samples));
+                  // Calculate the divider for the APU:DSP frequency ratio.
+                  const real divider = (apu.mixer.accumulated_samples - residual);
 
-         break;
-      }
+                  for(int channel = 0; channel < apu.mixer.channels; channel++) {
+                     real& sample = apu.mixer.accumulators[channel];
+                     // Remove residual sample portion.
+                     sample -= (apu.mixer.sample_cache[channel] * residual);
+                     // Divide.
+                     sample /= divider;
+                     // Buffer sample.
+                     samples.push_back(DSP_PACK_SAMPLE(sample));
+                  }
 
-      case APU_EMULATION_ACCURATE: {
-         // Since we'll be emulating every cycle, we'll use a timer delta of 1.
-         apu.timer_delta = 1;
+                  // Reload accumulators with residual sample portion.
+                  for(int channel = 0; channel < apu.mixer.channels; channel++)
+                     apu.mixer.accumulators[channel] = (apu.mixer.sample_cache[channel] * residual);
 
-         for(cpu_time_t count = 0; count < elapsed_cycles; count++) {
-            // Update the frame sequencer.
-            apu_update_frame_sequencer();
-            // ~1.79MHz update driven independantly of the frame sequencer.
-            apu_update_channels(UPDATE_OUTPUT);
-
-            // Update ExSound.
-            if(exsound)
-               exsound->process(apu.timer_delta);
-
-            // Simulate accumulation.
-            apu.mixer.accumulated_samples++;
-            if(apu.mixer.accumulated_samples >= apu.mixer.max_samples) {
-               // Mix outputs together.
-               mix_outputs();
-
-               // Fetch and buffer samples.
-               for(int channel = 0; channel < apu.mixer.channels; channel++) {
-                  // Fetch sample.
-                  real sample = apu.mixer.inputs[channel];
-
-                  // Cache sample for filter.
-                  const real cached_sample = sample;
-                  // Filter sample.
-                  sample = ((sample + apu.mixer.filter[channel]) / 2.0);
-                  // Update filter sample.
-                  apu.mixer.filter[channel] = cached_sample;
-
-                  // Store it in the buffer.
-                  samples.push_back(DSP_PACK_SAMPLE(sample));
+                  // Adjust counter.
+                  apu.mixer.accumulated_samples -= apu.mixer.max_samples;
                }
-
-               // Adjust counter.
-               apu.mixer.accumulated_samples -= apu.mixer.max_samples;
-            }                      
-         }
-
-         break;
-      }
-
-      case APU_EMULATION_HIGH_QUALITY: {
-         // Since we'll be emulating every cycle, we'll use a timer delta of 1.
-         apu.timer_delta = 1;
-
-         for(cpu_time_t count = 0; count < elapsed_cycles; count++) {
-            // Update the frame sequencer.
-            apu_update_frame_sequencer();
-            // Update outputs.
-            apu_update_channels(UPDATE_OUTPUT);
-
-            // Update ExSound.
-            if(exsound)
-               exsound->process(apu.timer_delta);
-
-            // Mix outputs together.
-            mix_outputs();
-
-            // Gather samples.
-            for(int channel = 0; channel < apu.mixer.channels; channel++) {
-               // Fetch sample.
-               const real sample = apu.mixer.inputs[channel];
-               // Accumulate sample.
-               apu.mixer.accumulators[channel] += sample;
-               // Cache it so that we can split it up later if need be.
-               apu.mixer.sample_cache[channel] = sample;
             }
 
-            apu.mixer.accumulated_samples++;
-            if(apu.mixer.accumulated_samples >= apu.mixer.max_samples) {
-               // Determine how much of the last sample we want to keep for the next loop.
-               const real residual = (apu.mixer.accumulated_samples - floor(apu.mixer.max_samples));
-               // Calculate the divider for the APU:DSP frequency ratio.
-               const real divider = (apu.mixer.accumulated_samples - residual);
-
-               for(int channel = 0; channel < apu.mixer.channels; channel++) {
-                  real& sample = apu.mixer.accumulators[channel];
-                  // Remove residual sample portion.
-                  sample -= (apu.mixer.sample_cache[channel] * residual);
-                  // Divide.
-                  sample /= divider;
-                  // Buffer sample.
-                  samples.push_back(DSP_PACK_SAMPLE(sample));
-               }
-
-               // Reload accumulators with residual sample portion.
-               for(int channel = 0; channel < apu.mixer.channels; channel++)
-                  apu.mixer.accumulators[channel] = (apu.mixer.sample_cache[channel] * residual);
-
-               // Adjust counter.
-               apu.mixer.accumulated_samples -= apu.mixer.max_samples;
-            }
+            break;
          }
 
-         break;
+         default:
+            WARN_GENERIC();
       }
-
-      default:
-         WARN_GENERIC();
    }
 
    if(finish && (samples.size() > 0)) {
@@ -1830,13 +1781,48 @@ static void process(bool finish)
             maximum /= 2.0;
       }
 
+      // Open DSP buffer.
+      if(dsp_open(samples.size(), apu.mixer.channels) != 0)
+         WARN("Failed to open DSP buffer");
+
+      // Set up channel map.
+      if(apu_options.stereo) {
+         // Stereo output.
+         dsp_set_channel_params(0, 1.0, -1.0);
+         dsp_set_channel_params(1, 1.0, 1.0);
+
+         dsp_set_channel_enabled(0, DSP_SET_ENABLED_MODE_SET, true);
+         dsp_set_channel_enabled(1, DSP_SET_ENABLED_MODE_SET, true);
+      }
+      else {
+         // Mono output.
+         dsp_set_channel_params(0, 1.0, 0.0);
+
+         dsp_set_channel_enabled(0, DSP_SET_ENABLED_MODE_SET, true);
+         dsp_set_channel_enabled(1, DSP_SET_ENABLED_MODE_SET, false);
+      }
+
+      // Start DSP buffer fill.
+      dsp_start();
       // Send all stored samples to the DSP for processing.
       dsp_write(&samples[0], samples.size());
+      // End DSP buffer fill.
+      dsp_end();
+
+      void *buffer = audio_get_buffer();
+      if(!buffer)
+         WARN_BREAK_GENERIC();
+
+      // Process DSP buffer into audio buffer.
+      dsp_render(buffer, (apu_options.stereo ? 2 : 1), audio_sample_size, audio_unsigned_samples);
+
+      // Let the audio code have at it.
+      audio_free_buffer();
+   
+      // Close DSP buffer.
+      dsp_close();
 
       // Clear sample buffer.
       samples.resize(0);
    }
-
-   // Done processing - allow this function to be called again.
-   apu.mixer.can_process = true;
 }

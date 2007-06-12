@@ -147,7 +147,8 @@ int dsp_open (unsigned samples, int channels)
    }
 
    /* Clear buffer. */
-   memset (dsp_buffer, 0, size);
+   /* Disabled since it's not needed. */
+   /* memset (dsp_buffer, 0, size); */
    
    /* Set buffer parameters. */
 
