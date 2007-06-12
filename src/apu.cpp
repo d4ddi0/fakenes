@@ -509,8 +509,8 @@ static linear void apu_update_dmc(apu_chan_t& chan)
 
    chan.timer += chan.period;
 
-   if(!chan.enabled)
-      return;
+   //if(!chan.enabled)
+   //   return;
 
    // --- DMA reader ---
    /* When the sample buffer is in an empty state and the bytes counter is
