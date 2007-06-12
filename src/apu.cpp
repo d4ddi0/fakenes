@@ -1690,14 +1690,6 @@ static void process(bool finish)
             unsigned offset = (index * 2);
             real sample = DSP_UNPACK_SAMPLE(samples[offset]);
             sample -= b;
-            if(!apu_options.normalize) {
-               // When normalization is disabled we use a constant normalization to still be able to take advantage of
-               // the benefits of the high pass filter increasing the dynamic range of our waveform.
-               // This constant was taken as the maximum sample value outputted by Batman(US) after several minutes of
-               // gameplay, and should serve our purposes fairly well.
-               sample *= (1.0 / 0.686807);
-            }
-
             samples[offset] = DSP_PACK_SAMPLE(sample);
 
             // Right
@@ -1709,9 +1701,6 @@ static void process(bool finish)
             offset = ((index * 2) + 1);
             sample = DSP_UNPACK_SAMPLE(samples[offset]);
             sample -= b;
-            if(!apu_options.normalize)
-               sample *= (1.0 / 0.686807);
-
             samples[offset] = DSP_PACK_SAMPLE(sample);
          }
       }
@@ -1731,9 +1720,6 @@ static void process(bool finish)
 
             real sample = DSP_UNPACK_SAMPLE(samples[index]);
             sample -= b;
-            if(!apu_options.normalize)
-               sample *= (1.0 / 0.686807);
-
             samples[index] = DSP_PACK_SAMPLE(sample);
          }
       }
