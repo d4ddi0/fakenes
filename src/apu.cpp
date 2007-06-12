@@ -63,7 +63,7 @@ apu_options_t apu_options = {
 };
 
 // Static APU context.
-static apu_t apu;
+static APU apu;
 
 // ExSound contexts.
 static Sound::Interface* exsound = null;
@@ -169,7 +169,9 @@ enum {
 };
 
 // --- Sound generators. ---
-static void apu_envelope(apu_chan_t& chan, apu_envelope_t& env)
+
+// Envelope generator for squares and noise
+static void apu_envelope(APUChannel& chan, APUEnvelope& env)
 {
    /* When clocked by the frame sequencer, one of two actions occurs: if there was a
       write to the fourth channel register since the last clock, the counter is set
@@ -207,7 +209,7 @@ static void apu_envelope(apu_chan_t& chan, apu_envelope_t& env)
    chan.volume = (env.fixed ? env.fixed_volume : env.counter);
 }
 
-static void apu_save_envelope(apu_chan_t& chan, apu_envelope_t& env, PACKFILE* file, int version)
+static void apu_save_envelope(APUEnvelope& env, PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
@@ -216,7 +218,7 @@ static void apu_save_envelope(apu_chan_t& chan, apu_envelope_t& env, PACKFILE* f
    pack_putc((env.dirty ? 1 : 0), file);
 }
 
-static void apu_load_envelope(apu_chan_t& chan, apu_envelope_t& env, PACKFILE* file, int version)
+static void apu_load_envelope(APUEnvelope& env, PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
@@ -225,7 +227,8 @@ static void apu_load_envelope(apu_chan_t& chan, apu_envelope_t& env, PACKFILE* f
    env.dirty = true_or_false(pack_getc(file));
 }
 
-static linear void apu_sweep(apu_chan_t& chan, apu_sweep_t& sweep)
+// Sweep unit for squares.
+static linear void apu_sweep(APUChannel& chan, APUSweep& sweep)
 {
    if(sweep.timer > 0) {
       sweep.timer--;
@@ -268,13 +271,15 @@ static linear void apu_sweep(apu_chan_t& chan, apu_sweep_t& sweep)
       chan.period = delta;
 }
 
-static void apu_update_length_counter(apu_chan_t& chan)
+// Length counter for squares, triangle, and noise
+static void apu_update_length_counter(APUWaveformChannel& chan)
 {
    if((chan.length > 0) && !chan.looping)
       chan.length--;
 }
 
-static linear void apu_update_linear_counter(apu_chan_t& chan)
+// Linear counter for triangle
+static linear void apu_update_linear_counter(APUTriangle& chan)
 {
    /* When clocked by the frame sequencer, the following actions occur in order:
 
@@ -291,7 +296,7 @@ static linear void apu_update_linear_counter(apu_chan_t& chan)
       chan.halt_counter = false;          
 }
 
-static linear void apu_update_square(apu_chan_t& chan, FLAGS update_flags)
+static linear void apu_update_square(APUSquare& chan, FLAGS update_flags)
 {
    if(update_flags & UPDATE_ENVELOPE)
       apu_envelope(chan, chan.envelope);
@@ -323,7 +328,7 @@ static linear void apu_update_square(apu_chan_t& chan, FLAGS update_flags)
    }
 }
 
-static linear void apu_save_square(apu_chan_t& chan, PACKFILE* file, int version)
+static linear void apu_save_square(APUSquare& chan, PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
@@ -336,13 +341,13 @@ static linear void apu_save_square(apu_chan_t& chan, PACKFILE* file, int version
    pack_putc(chan.output, file);
 
    // Envelope generator.
-   apu_save_envelope(chan, chan.envelope, file, version);
+   apu_save_envelope(chan.envelope, file, version);
    // Sweep unit.
    pack_putc(chan.sweep.timer, file);
    pack_putc((chan.sweep.dirty ? 1 : 0), file);
 }
 
-static linear void apu_load_square(apu_chan_t& chan, PACKFILE* file, int version)
+static linear void apu_load_square(APUSquare& chan, PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
@@ -355,13 +360,13 @@ static linear void apu_load_square(apu_chan_t& chan, PACKFILE* file, int version
    chan.output = pack_getc(file);
 
    // Envelope generator.
-   apu_load_envelope(chan, chan.envelope, file, version);
+   apu_load_envelope(chan.envelope, file, version);
    // Sweep unit.
    chan.sweep.timer = pack_getc(file);
    chan.sweep.dirty = true_or_false(pack_getc(file));
 }
 
-static linear void apu_update_triangle(apu_chan_t& chan, FLAGS update_flags)
+static linear void apu_update_triangle(APUTriangle& chan, FLAGS update_flags)
 {
    if(update_flags & UPDATE_LENGTH)
       apu_update_length_counter(chan);
@@ -398,7 +403,7 @@ static linear void apu_update_triangle(apu_chan_t& chan, FLAGS update_flags)
    }
 }
 
-static linear void apu_save_triangle(apu_chan_t& chan, PACKFILE* file, int version)
+static linear void apu_save_triangle(APUTriangle& chan, PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
@@ -410,7 +415,7 @@ static linear void apu_save_triangle(apu_chan_t& chan, PACKFILE* file, int versi
    pack_putc(chan.output, file);
 }
 
-static linear void apu_load_triangle(apu_chan_t& chan, PACKFILE* file, int version)
+static linear void apu_load_triangle(APUTriangle& chan, PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
@@ -422,7 +427,7 @@ static linear void apu_load_triangle(apu_chan_t& chan, PACKFILE* file, int versi
    chan.output = pack_getc(file);
 }
 
-static linear void apu_update_noise(apu_chan_t& chan, FLAGS update_flags)
+static linear void apu_update_noise(APUNoise& chan, FLAGS update_flags)
 {
    if(update_flags & UPDATE_ENVELOPE)
       apu_envelope(chan, chan.envelope);
@@ -456,7 +461,7 @@ static linear void apu_update_noise(apu_chan_t& chan, FLAGS update_flags)
    }
 }
 
-static linear void apu_save_noise(apu_chan_t& chan, PACKFILE* file, int version)
+static linear void apu_save_noise(APUNoise& chan, PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
@@ -468,10 +473,10 @@ static linear void apu_save_noise(apu_chan_t& chan, PACKFILE* file, int version)
    pack_putc(chan.output, file);
 
    // Envelope generator.
-   apu_save_envelope(chan, chan.envelope, file, version);
+   apu_save_envelope(chan.envelope, file, version);
 }
 
-static linear void apu_load_noise(apu_chan_t& chan, PACKFILE* file, int version)
+static linear void apu_load_noise(APUNoise& chan, PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
@@ -483,16 +488,16 @@ static linear void apu_load_noise(apu_chan_t& chan, PACKFILE* file, int version)
    chan.output = pack_getc(file);
 
    // Envelope generator.
-   apu_load_envelope(chan, chan.envelope, file, version);
+   apu_load_envelope(chan.envelope, file, version);
 }
 
-static void apu_reload_dmc(apu_chan_t& chan)
+static void apu_reload_dmc(APUDMC& chan)
 {
    chan.address = chan.cached_address;
    chan.dma_length = chan.cached_dmalength;
 }
 
-static linear void apu_update_dmc(apu_chan_t& chan)
+static linear void apu_update_dmc(APUDMC& chan)
 {
    // --- Timer ---
    /* The DMC's timer has a selectable period that is loaded from an
@@ -609,7 +614,7 @@ static linear void apu_update_dmc(apu_chan_t& chan)
    chan.counter--;
 }
 
-static linear void apu_save_dmc(apu_chan_t& chan, PACKFILE* file, int version)
+static linear void apu_save_dmc(APUDMC& chan, PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
@@ -627,7 +632,7 @@ static linear void apu_save_dmc(apu_chan_t& chan, PACKFILE* file, int version)
    pack_putc((chan.irq_occurred ? 1 : 0), file);
 }
 
-static linear void apu_load_dmc(apu_chan_t& chan, PACKFILE* file, int version)
+static linear void apu_load_dmc(APUDMC& chan, PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
@@ -1010,30 +1015,24 @@ UINT8 apu_read(UINT16 address)
          // Return 1 in 0-5 bit pos if a channel is playing
 
          // Square 0.
-         // TODO: For some reason a const reference won't work here in GCC(and other compilers?).
-         const apu_chan_t* chan = &apu.square[0];
-         if(chan->length > 0)
+         if(apu.square[0].length > 0)
             value |= 0x01;
          // Square 1.
-         chan = &apu.square[1];
-         if(chan->length > 0)
+         if(apu.square[1].length > 0)
             value |= 0x02;
 
          // Triangle.
-         chan = &apu.triangle;
-         if(chan->length > 0)
+         if(apu.triangle.length > 0)
             value |= 0x04;
 
          // Noise.
-         chan = &apu.noise;
-         if(chan->length > 0)
+         if(apu.noise.length > 0)
             value |= 0x08;
 
          // DMC.
-         chan = &apu.dmc;
-         if(chan->enabled & (chan->dma_length > 0))
+         if(apu.dmc.enabled & (apu.dmc.dma_length > 0))
             value |= 0x10;
-         if(chan->irq_occurred)
+         if(apu.dmc.irq_occurred)
             value |= 0x80;
 
          // Frame IRQ.
@@ -1074,7 +1073,7 @@ void apu_write(UINT16 address, UINT8 value)
             $4000 - Square wave 1(0)
             $4004 - Square wave 2(1) */
          const int index = ((address & 4) ? 1 : 0);
-         apu_chan_t& chan = apu.square[index];
+         APUSquare& chan = apu.square[index];
 
          chan.volume = (value & 0x0F);
          chan.looping = true_or_false(value & 0x20);
@@ -1093,7 +1092,7 @@ void apu_write(UINT16 address, UINT8 value)
          /* Square Wave channels, register set 2.
             $4001/5 eppp nsss   enable sweep, period, negative, shift */
          const int index = ((address & 4) ? 1 : 0);
-         apu_chan_t& chan = apu.square[index];
+         APUSquare& chan = apu.square[index];
 
          // The divider's period is set to p + 1.
          chan.sweep.enabled = true_or_false(value & 0x80);
@@ -1112,7 +1111,7 @@ void apu_write(UINT16 address, UINT8 value)
          /* Square Wave channels, register set 3.
             $4002/6 pppp pppp   period low */
          const int index = ((address & 4) ? 1 : 0);
-         apu_chan_t& chan = apu.square[index];
+         APUSquare& chan = apu.square[index];
 
          chan.period = ((chan.period & ~0xFF) | value);
 
@@ -1124,7 +1123,7 @@ void apu_write(UINT16 address, UINT8 value)
          /* Square Wave channels, register set 4.
             $4003/7 llll lppp   length index, period high */
          const int index = ((address & 4) ? 1 : 0);
-         apu_chan_t& chan = apu.square[index];
+         APUSquare& chan = apu.square[index];
 
          chan.period = (((value & 7) << 8) | (chan.period & 0xFF));
 
@@ -1144,7 +1143,7 @@ void apu_write(UINT16 address, UINT8 value)
             $4008     CRRR.RRRR   Linear counter setup (write)
             bit 7     C---.----   Control flag (this bit is also the length counter halt flag)
             bits 6-0  -RRR RRRR   Counter reload value */
-         apu_chan_t& chan = apu.triangle;
+         APUTriangle& chan = apu.triangle;
 
          /* TODO: Are writes to this register really supposed to be
             affecting the linear counter immediately...? */
@@ -1159,7 +1158,7 @@ void apu_write(UINT16 address, UINT8 value)
       case 0x400A: {
          /* Triangle wave channel, register 2.
             $400A   pppp pppp   period low */
-         apu_chan_t& chan = apu.triangle;
+         APUTriangle& chan = apu.triangle;
          chan.period = ((chan.period & ~0xFF) | value);
 
          break;
@@ -1168,7 +1167,7 @@ void apu_write(UINT16 address, UINT8 value)
       case 0x400B: {
          /* Triangle wave channel, register 3.
             $400A   pppp pppp   period low */
-         apu_chan_t& chan = apu.triangle;
+         APUTriangle& chan = apu.triangle;
 
          chan.period = (((value & 7) << 8) | (chan.period & 0xFF));
 
@@ -1184,7 +1183,7 @@ void apu_write(UINT16 address, UINT8 value)
       case 0x400C: {
          /* White noise channel, register 1.
             $400C   --le nnnn   loop env/disable length, env disable, vol/env period */
-         apu_chan_t& chan = apu.noise;
+         APUNoise& chan = apu.noise;
 
          chan.volume = (value & 0x0F);
          chan.looping = true_or_false(value & 0x20);
@@ -1199,7 +1198,7 @@ void apu_write(UINT16 address, UINT8 value)
       case 0x400E: {
          /* White noise channel, register 2.
             $400E   s--- pppp   short mode, period index */
-         apu_chan_t& chan = apu.noise;
+         APUNoise& chan = apu.noise;
 
          if(machine_type == MACHINE_TYPE_NTSC)
             chan.period = noise_period_lut_ntsc[value & 0x0F];
@@ -1217,7 +1216,7 @@ void apu_write(UINT16 address, UINT8 value)
       case 0x400F: {
          // White noise channel, register 3.
          // $400F   llll l---   length index
-         apu_chan_t& chan = apu.noise;
+         APUNoise& chan = apu.noise;
 
          if (!chan.length_disable)
             chan.length = length_lut[(value >> 3)];
@@ -1231,7 +1230,7 @@ void apu_write(UINT16 address, UINT8 value)
       case 0x4010: {
          /* Delta modulation channel, register 1.
             $4010   il-- ffff   IRQ enable, loop, frequency index */
-         apu_chan_t& chan = apu.dmc;
+         APUDMC& chan = apu.dmc;
 
          if(machine_type == MACHINE_TYPE_NTSC)
             chan.period = dmc_period_lut_ntsc[value & 0x0F];
@@ -1253,7 +1252,7 @@ void apu_write(UINT16 address, UINT8 value)
       case 0x4011: {
          /* Delta modulation channel, register 2.
             $4011   -ddd dddd   DAC */
-         apu_chan_t& chan = apu.dmc;
+         APUDMC& chan = apu.dmc;
 
          // Mask off MSB.
          value &= 0x7F;
@@ -1267,7 +1266,7 @@ void apu_write(UINT16 address, UINT8 value)
       case 0x4012: {
          /* Delta modulation channel, register 3.
             $4012   aaaa aaaa   sample address */
-         apu_chan_t& chan = apu.dmc;
+         APUDMC& chan = apu.dmc;
 
          // DMCAddress=0x4000+(DMCAddressLatch<<6);
          chan.cached_address = (0x4000 + (value << 6));
@@ -1281,7 +1280,7 @@ void apu_write(UINT16 address, UINT8 value)
       case 0x4013: {
          /* Delta modulation channel, register 4.
             $4013   llll llll   sample length */
-         apu_chan_t& chan = apu.dmc;
+         APUDMC& chan = apu.dmc;
 
          // DMCSize=(DMCSizeLatch<<4)+1;
          chan.cached_dmalength = ((value << 4) + 1);
@@ -1298,7 +1297,7 @@ void apu_write(UINT16 address, UINT8 value)
 
          // Squares.
          for(int index = 0; index < 2; index++) {
-            apu_chan_t& chan = apu.square[index];
+            APUSquare& chan = apu.square[index];
 
             chan.length_disable = true_or_false(!(value & (1 << index)));
             if(chan.length_disable)
@@ -1306,42 +1305,36 @@ void apu_write(UINT16 address, UINT8 value)
          }
 
          // Triangle.
-         apu_chan_t& chan = apu.triangle;
-
-         chan.length_disable = true_or_false(!(value & 0x04));
-         if(chan.length_disable)
-            chan.length = 0;
+         apu.triangle.length_disable = true_or_false(!(value & 0x04));
+         if(apu.triangle.length_disable)
+            apu.triangle.length = 0;
 
          // Noise.
-         chan = apu.noise;
-
-         chan.length_disable = true_or_false(!(value & 0x08));
-         if (chan.length_disable)
-            chan.length = 0;
+         apu.noise.length_disable = true_or_false(!(value & 0x08));
+         if (apu.noise.length_disable)
+            apu.noise.length = 0;
 
          // DMC.
-         chan = apu.dmc;
-
          /* ---d xxxx
 
             If d is set and the DMC's DMA reader has no more sample bytes to fetch, the DMC
             sample is restarted. If d is clear then the DMA reader's sample bytes remaining
             is set to 0. */
-         chan.enabled = true_or_false(value & 0x10);
-         if(chan.enabled) {
+         apu.dmc.enabled = true_or_false(value & 0x10);
+         if(apu.dmc.enabled) {
             // Channel is enabled - check for a reload.
-            if(chan.dma_length == 0)
-               apu_reload_dmc(chan);
+            if(apu.dmc.dma_length == 0)
+               apu_reload_dmc(apu.dmc);
          }
          else {
             // Channel is disabled.
-            chan.dma_length = 0;
+            apu.dmc.dma_length = 0;
          }
 
          /* When $4015 is written to, the channels' length counter enable flags are set,
             the DMC is possibly started or stopped, and the DMC's IRQ occurred flag is
             cleared. */
-         chan.irq_occurred = false;
+         apu.dmc.irq_occurred = false;
          cpu_clear_interrupt(CPU_INTERRUPT_IRQ_DMC);
 
          break;
@@ -1457,11 +1450,11 @@ void apu_load_state(PACKFILE* file, int version)
 // --- Internal functions. --- 
 static void mix_outputs(void)
 {
-   static const apu_chan_t& square1  = apu.square[0];
-   static const apu_chan_t& square2  = apu.square[1];
-   static const apu_chan_t& triangle = apu.triangle;
-   static const apu_chan_t& noise = apu.noise;
-   static const apu_chan_t& dmc = apu.dmc;
+   static const APUSquare& square1  = apu.square[0];
+   static const APUSquare& square2  = apu.square[1];
+   static const APUTriangle& triangle = apu.triangle;
+   static const APUNoise& noise = apu.noise;
+   static const APUDMC& dmc = apu.dmc;
 
    const real square_out = square_table[square1.output + square2.output];
    const real tnd_out = tnd_table[3 * triangle.output + 2 * noise.output + dmc.output];

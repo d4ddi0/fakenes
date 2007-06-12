@@ -28,17 +28,18 @@
 // Maximum number of channels to send to the DSP (mono = 1, stereo = 2).
 #define APU_MIXER_MAX_CHANNELS 2
 
-typedef struct apu_envelope_s {
+class APUEnvelope {
+public:
    uint8 timer;               // save
    uint8 period;              // do not save
    uint8 counter;             // save
    bool fixed;                // do not save
    uint8 fixed_volume;        // do not save
    bool dirty;                // save
+};
 
-} apu_envelope_t;
-
-typedef struct apu_sweep_s {
+class APUSweep {
+public:
    bool enabled;              // do not save
    uint8 timer;               // save
    uint8 period;              // do not save
@@ -46,10 +47,10 @@ typedef struct apu_sweep_s {
    bool invert;               // do not save
    bool increment;            // do not save
    bool dirty;                // save
-             
-} apu_sweep_t;
+};
 
-typedef struct apu_chan_s {
+class APUChannel {
+public:
    // General.
    uint8 output;                 // save
    uint8 volume;                 // save for squares, noise, and dmc
@@ -59,17 +60,31 @@ typedef struct apu_chan_s {
    // Timer.
    int16 timer;                  // save
    uint16 period;                // save for squares
+};
 
+class APUWaveformChannel : public APUChannel {
+public:
    // Length counter (all except dmc).
    uint8 length;                 // save
    bool length_disable;          // do not save
+};
 
+class APUSquare : public APUWaveformChannel {
+public:
    // Envelope generator (square/noise).
-   apu_envelope_t envelope;
-
+   APUEnvelope envelope;
    // Sweep unit (squares). */
-   apu_sweep_t sweep;
+   APUSweep sweep;
 
+   // Sequencer (squares/triangle).
+   uint8 sequence_step;          // save
+
+   // Square.
+   uint8 duty_cycle;             // do not save
+};
+
+class APUTriangle : public APUWaveformChannel {
+public:
    // Sequencer (squares/triangle).
    uint8 sequence_step;          // save
 
@@ -77,14 +92,20 @@ typedef struct apu_chan_s {
    uint8 linear_length;          // save
    bool halt_counter;            // save
    uint8 cached_linear_length;   // do not save
+};
 
-   // Square.
-   uint8 duty_cycle;             // do not save
+class APUNoise : public APUWaveformChannel {
+public:
+   // Envelope generator (square/noise).
+   APUEnvelope envelope;
 
    // Noise.
    uint16 xor_tap;               // do not save
    uint16 shift16;               // save
+};
 
+class APUDMC : public APUChannel {
+public:
    // DMC.
    bool enabled;                 // save
    uint16 address;               // save
@@ -97,14 +118,14 @@ typedef struct apu_chan_s {
    bool irq_occurred;            // save
    uint16 cached_address;        // do not save
    uint16 cached_dmalength;      // do not save
+};
 
-} apu_chan_t;
-
-typedef struct apu_s {
-   apu_chan_t square[2];
-   apu_chan_t triangle;
-   apu_chan_t noise;
-   apu_chan_t dmc;
+class APU {
+public:
+   APUSquare square[2];
+   APUTriangle triangle;
+   APUNoise noise;
+   APUDMC dmc;
 
    // Delta value for timers.
    cpu_time_t timer_delta;
@@ -138,7 +159,6 @@ typedef struct apu_s {
    // IRQ prediction.
    cpu_time_t prediction_timestamp; // save
    cpu_time_t prediction_cycles;    // save
-
-} apu_t;
+};
 
 #endif //!APU_INT_H_INCLUDED
