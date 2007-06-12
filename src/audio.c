@@ -17,6 +17,9 @@
 #include "timing.h"
 #include "types.h"
 
+/* TODO: Rewrite audio system to be time-based instead of frame-based. */
+/* TODO: Automatic buffer size determination based upon current audio subsystem. */
+
 /* Parameters. */
 BOOL audio_enable_output    = TRUE;
 ENUM audio_subsystem        = AUDIO_SUBSYSTEM_ALLEGRO;

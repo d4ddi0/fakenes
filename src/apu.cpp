@@ -42,6 +42,7 @@
 
 // TODO: DMC emulation rethinking and cleanup.
 // TODO: DMC IRQ prediction(requires the above, otherwise it would be a mess to implement).
+// TODO: Make the DSP send samples to the audio system instead of having the APU do it.
 
 // Global options.
 apu_options_t apu_options = {

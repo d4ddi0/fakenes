@@ -18,6 +18,8 @@
 #include "log.h"
 #include "types.h"
 
+/* TODO: The entire DSP system needs a rethinking. */
+
 /* Master volume. */
 REAL dsp_master_volume = 1.0;
 

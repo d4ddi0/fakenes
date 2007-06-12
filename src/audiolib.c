@@ -15,6 +15,8 @@
 #include "debug.h"
 #include "types.h"
 
+/* TODO: More graceful handling of OpenAL failures, rather than just printing the error and exiting. */
+
 typedef struct _AUDIOLIB_DRIVER
 {
    int (*init) (void);
