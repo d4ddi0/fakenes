@@ -1,21 +1,10 @@
-/* Nofrendo (c) 1998-2000 Matthew Conte (matt@conte.com)
+/* FakeNES - A free, portable, Open Source NES emulator.
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of version 2 of the GNU Library General 
-   Public License as published by the Free Software Foundation.
+   apu.cpp: Implementation of the APU emulation.
 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-   Library General Public License for more details.  To obtain a 
-   copy of the GNU Library General Public License, write to the Free 
-   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-   Any permitted reproduction of these routines, in whole or in part,
-   must bear this legend.
-
-   Heavily modified for FakeNES by randilyn.
-   Portions (c) 2001-2006 FakeNES Team. */
+   Copyright (c) 2001-2007, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
 
 #include <allegro.h>
 #include <cmath>
@@ -516,9 +505,6 @@ static linear void apu_update_dmc(APUDMC& chan)
 
    chan.timer += chan.period;
 
-   //if(!chan.enabled)
-   //   return;
-
    // --- DMA reader ---
    /* When the sample buffer is in an empty state and the bytes counter is
       non-zero... */
@@ -526,16 +512,15 @@ static linear void apu_update_dmc(APUDMC& chan)
       // Fill sample buffer.
       // DMCDMABuf=X6502_DMR(0x8000+DMCAddress);
       chan.cur_byte = cpu_read(0x8000 + chan.address);
+      // Auto-increment address.
+      // DMCAddress=(DMCAddress+1)&0x7FFF;
+      chan.address = ((chan.address + 1) & 0x7FFF);
+      // Mark sample buffer as filled.
+      chan.sample_bits = 8;
 
       /* When the DMA reader accesses a byte of memory, the CPU is suspended
          for 4 clock cycles. */
       cpu_consume_cycles(4);
-
-      // DMCAddress=(DMCAddress+1)&0x7FFF;
-      chan.address = ((chan.address + 1) & 0x7FFF);
-
-      // ??
-      chan.sample_bits = 8;
 
       if (--chan.dma_length == 0) {
          // if loop bit set, we're cool to retrigger sample
@@ -1285,6 +1270,7 @@ void apu_write(UINT16 address, UINT8 value)
          // DMCSize=(DMCSizeLatch<<4)+1;
          chan.cached_dmalength = ((value << 4) + 1);
 
+         // Check for a reload.
          if(chan.dma_length == 0)
             apu_reload_dmc(chan);
 
