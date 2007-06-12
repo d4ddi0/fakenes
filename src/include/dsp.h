@@ -15,7 +15,7 @@
 extern "C" {
 #endif
 
-#define DSP_MAX_CHANNELS   APU_MIXER_MAX_CHANNELS
+#define DSP_MAX_CHANNELS   2
 
 /* Use short integers to minimize bandwidth of block memory transfers. */
 typedef INT16 DSP_SAMPLE;

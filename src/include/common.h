@@ -29,6 +29,9 @@ extern "C" {
 /* Cleaner lowercase versions for use in 'pure' C++ code. */
 #define true   TRUE
 #define false  FALSE
+
+#define true_or_false(x)   ((x) ? true : false)
+
 #define null   NULL
 
 #define inline    INLINE

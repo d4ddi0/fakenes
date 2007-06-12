@@ -25,6 +25,7 @@
 #include <ctime>
 #include <vector>
 #include "apu.h"
+#include "apu_int.h"
 #include "audio.h"
 #include "common.h"
 #include "core.h"
@@ -220,7 +221,7 @@ static void apu_load_envelope(apu_chan_t& chan, apu_envelope_t& env, PACKFILE* f
 
    env.timer = pack_getc(file);
    env.counter = pack_getc(file);
-   env.dirty = TRUE_OR_FALSE(pack_getc(file));
+   env.dirty = true_or_false(pack_getc(file));
 }
 
 static linear void apu_sweep(apu_chan_t& chan, apu_sweep_t& sweep)
@@ -349,14 +350,14 @@ static linear void apu_load_square(apu_chan_t& chan, PACKFILE* file, int version
    chan.length = pack_getc(file);
    chan.sequence_step = pack_getc(file);
    chan.volume = pack_getc(file);
-   chan.silence = TRUE_OR_FALSE(pack_getc(file));
+   chan.silence = true_or_false(pack_getc(file));
    chan.output = pack_getc(file);
 
    // Envelope generator.
    apu_load_envelope(chan, chan.envelope, file, version);
    // Sweep unit.
    chan.sweep.timer = pack_getc(file);
-   chan.sweep.dirty = TRUE_OR_FALSE(pack_getc(file));
+   chan.sweep.dirty = true_or_false(pack_getc(file));
 }
 
 static linear void apu_update_triangle(apu_chan_t& chan, FLAGS update_flags)
@@ -415,7 +416,7 @@ static linear void apu_load_triangle(apu_chan_t& chan, PACKFILE* file, int versi
    chan.timer = pack_igetw(file);
    chan.length = pack_getc(file);
    chan.linear_length = pack_getc(file);
-   chan.halt_counter = TRUE_OR_FALSE(pack_getc(file));
+   chan.halt_counter = true_or_false(pack_getc(file));
    chan.sequence_step = pack_getc(file);
    chan.output = pack_getc(file);
 }
@@ -477,7 +478,7 @@ static linear void apu_load_noise(apu_chan_t& chan, PACKFILE* file, int version)
    chan.length = pack_getc(file);
    chan.shift16 = pack_igetw(file);
    chan.volume = pack_getc(file);
-   chan.silence = TRUE_OR_FALSE(pack_getc(file));
+   chan.silence = true_or_false(pack_getc(file));
    chan.output = pack_getc(file);
 
    // Envelope generator.
@@ -587,7 +588,7 @@ static linear void apu_update_dmc(apu_chan_t& chan)
          the DAC counter: If bit 0 is clear and the counter is greater than 1, the
          counter is decremented by 2, otherwise if bit 0 is set and the counter is less
          than 126, the counter is incremented by 2. */
-      const bool bit0 = TRUE_OR_FALSE(chan.shift_reg & 1);
+      const bool bit0 = true_or_false(chan.shift_reg & 1);
 
       if(!bit0 && (chan.volume > 1)) {
          // positive delta
@@ -629,7 +630,7 @@ static linear void apu_load_dmc(apu_chan_t& chan, PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
-   chan.enabled = TRUE_OR_FALSE(pack_getc(file));
+   chan.enabled = true_or_false(pack_getc(file));
    chan.timer = pack_igetw(file);
    chan.address = pack_igetw(file);
    chan.dma_length = pack_igetw(file);
@@ -638,9 +639,9 @@ static linear void apu_load_dmc(apu_chan_t& chan, PACKFILE* file, int version)
    chan.counter = pack_getc(file);
    chan.shift_reg = pack_getc(file);
    chan.volume = pack_getc(file);
-   chan.silence = TRUE_OR_FALSE(pack_getc(file));
+   chan.silence = true_or_false(pack_getc(file));
    chan.output = pack_getc(file);
-   chan.irq_occurred = TRUE_OR_FALSE(pack_getc(file));
+   chan.irq_occurred = true_or_false(pack_getc(file));
 }
 
 static void apu_update_channels(FLAGS update_flags)
@@ -1075,12 +1076,12 @@ void apu_write(UINT16 address, UINT8 value)
          apu_chan_t& chan = apu.square[index];
 
          chan.volume = (value & 0x0F);
-         chan.looping = TRUE_OR_FALSE(value & 0x20);
+         chan.looping = true_or_false(value & 0x20);
          chan.duty_cycle = (value >> 6);
 
          // The divider's period is set to n + 1.
          chan.envelope.period = ((value & 0x0F) + 1);
-         chan.envelope.fixed = TRUE_OR_FALSE(value & 0x10);
+         chan.envelope.fixed = true_or_false(value & 0x10);
          chan.envelope.fixed_volume = (value & 0x0F);
 
          break;
@@ -1094,10 +1095,10 @@ void apu_write(UINT16 address, UINT8 value)
          apu_chan_t& chan = apu.square[index];
 
          // The divider's period is set to p + 1.
-         chan.sweep.enabled = TRUE_OR_FALSE(value & 0x80);
+         chan.sweep.enabled = true_or_false(value & 0x80);
          chan.sweep.period = (((value >> 4) & 7) + 1);
          chan.sweep.shifts = (value & 7);
-         chan.sweep.invert = TRUE_OR_FALSE(value & 0x08);
+         chan.sweep.invert = true_or_false(value & 0x08);
 
          // Reset the sweep unit.
          chan.sweep.dirty = true;
@@ -1147,7 +1148,7 @@ void apu_write(UINT16 address, UINT8 value)
          /* TODO: Are writes to this register really supposed to be
             affecting the linear counter immediately...? */
          chan.linear_length = (value & 0x7F);
-         chan.looping = TRUE_OR_FALSE(value & 0x80);
+         chan.looping = true_or_false(value & 0x80);
 
          chan.cached_linear_length = chan.linear_length;
 
@@ -1185,10 +1186,10 @@ void apu_write(UINT16 address, UINT8 value)
          apu_chan_t& chan = apu.noise;
 
          chan.volume = (value & 0x0F);
-         chan.looping = TRUE_OR_FALSE(value & 0x20);
+         chan.looping = true_or_false(value & 0x20);
 
          chan.envelope.period = ((value & 0x0F) + 1);
-         chan.envelope.fixed = TRUE_OR_FALSE(value & 0x10);
+         chan.envelope.fixed = true_or_false(value & 0x10);
          chan.envelope.fixed_volume = (value & 0x0F);
 
          break;
@@ -1236,8 +1237,8 @@ void apu_write(UINT16 address, UINT8 value)
          else
             chan.period = dmc_period_lut_pal[value & 0x0F];
 
-         chan.looping = TRUE_OR_FALSE(value & 0x40);
-         chan.irq_gen = TRUE_OR_FALSE(value & 0x80);
+         chan.looping = true_or_false(value & 0x40);
+         chan.irq_gen = true_or_false(value & 0x80);
 
          if(!chan.irq_gen) {
             // Clear interrupt.
@@ -1298,7 +1299,7 @@ void apu_write(UINT16 address, UINT8 value)
          for(int index = 0; index < 2; index++) {
             apu_chan_t& chan = apu.square[index];
 
-            chan.length_disable = !TRUE_OR_FALSE(value & (1 << index));
+            chan.length_disable = true_or_false(!(value & (1 << index)));
             if(chan.length_disable)
                chan.length = 0;
          }
@@ -1306,14 +1307,14 @@ void apu_write(UINT16 address, UINT8 value)
          // Triangle.
          apu_chan_t& chan = apu.triangle;
 
-         chan.length_disable = !TRUE_OR_FALSE(value & 0x04);
+         chan.length_disable = true_or_false(!(value & 0x04));
          if(chan.length_disable)
             chan.length = 0;
 
          // Noise.
          chan = apu.noise;
 
-         chan.length_disable = !TRUE_OR_FALSE(value & 0x08);
+         chan.length_disable = true_or_false(!(value & 0x08));
          if (chan.length_disable)
             chan.length = 0;
 
@@ -1325,7 +1326,7 @@ void apu_write(UINT16 address, UINT8 value)
             If d is set and the DMC's DMA reader has no more sample bytes to fetch, the DMC
             sample is restarted. If d is clear then the DMA reader's sample bytes remaining
             is set to 0. */
-         chan.enabled = TRUE_OR_FALSE(value & 0x10);
+         chan.enabled = true_or_false(value & 0x10);
          if(chan.enabled) {
             // Channel is enabled - check for a reload.
             if(chan.dma_length == 0)
@@ -1354,7 +1355,7 @@ void apu_write(UINT16 address, UINT8 value)
          /* <_Q> setting $4017.6 or $4017.7 will turn off frame IRQs
             <_Q> setting $4017.7 puts it into the 5-step sequence
             <_Q> which does not generate interrupts */
-         apu.frame_irq_gen = !TRUE_OR_FALSE(value & 0x40);
+         apu.frame_irq_gen = true_or_false(!(value & 0x40));
 
          // Reset frame sequencer.
          apu_reset_frame_sequencer();
@@ -1809,16 +1810,18 @@ static void process(bool finish)
       // End DSP buffer fill.
       dsp_end();
 
-      void *buffer = audio_get_buffer();
-      if(!buffer)
-         WARN_BREAK_GENERIC();
+      if(audio_enable_output) {
+         void *buffer = audio_get_buffer();
+         if(!buffer)
+            WARN_BREAK_GENERIC();
 
-      // Process DSP buffer into audio buffer.
-      dsp_render(buffer, (apu_options.stereo ? 2 : 1), audio_sample_size, audio_unsigned_samples);
+         // Process DSP buffer into audio buffer.
+         dsp_render(buffer, (apu_options.stereo ? 2 : 1), audio_sample_size, audio_unsigned_samples);
 
-      // Let the audio code have at it.
-      audio_free_buffer();
-   
+         // Let the audio code have at it.
+         audio_free_buffer();
+      }
+
       // Close DSP buffer.
       dsp_close();
 
