@@ -270,12 +270,12 @@ static void init_ntsc (BITMAP *src, BITMAP *dest)
       /* All parameters range from -100 to +100. */
    
       hue          = get_config_int ("ntsc", "hue",          0);
-      saturation   = get_config_int ("ntsc", "saturation",   0);
+      saturation   = get_config_int ("ntsc", "saturation",  20);
       contrast     = get_config_int ("ntsc", "contrast",     0);
-      brightness   = get_config_int ("ntsc", "brightness",   0);
-      sharpness    = get_config_int ("ntsc", "sharpness",    0);
+      brightness   = get_config_int ("ntsc", "brightness",  10);
+      sharpness    = get_config_int ("ntsc", "sharpness",   40);
       gamma        = get_config_int ("ntsc", "gamma",        0);
-      resolution   = get_config_int ("ntsc", "resolution",   0);
+      resolution   = get_config_int ("ntsc", "resolution",  30);
       artifacts    = get_config_int ("ntsc", "artifacts",    0);
       fringing     = get_config_int ("ntsc", "fringing",     0);
       bleed        = get_config_int ("ntsc", "bleed",        0);
@@ -299,7 +299,7 @@ static void init_ntsc (BITMAP *src, BITMAP *dest)
    }
 
    merge_fields  = get_config_int ("ntsc", "merge_fields", 1); /* Default On */
-   doubling      = get_config_int ("ntsc", "doubling",     0); /* Default normal */
+   doubling      = get_config_int ("ntsc", "doubling",     2); /* Default Darken */
    interpolation = get_config_int ("ntsc", "interpolated", 1); /* Default On */
 
    setup->merge_fields     = merge_fields;
