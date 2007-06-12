@@ -20,11 +20,11 @@ class Square : public Channel {
 protected:
    friend class Interface;
 
-   void reset (void);
-   void write (uint16 address, uint8 value);
-   void process (cpu_time_t cycles);
-   void save (PACKFILE *file, int version);
-   void load (PACKFILE *file, int version);
+   void reset(void);
+   void write(uint16 address, uint8 value);
+   void process(cpu_time_t cycles);
+   void save(PACKFILE* file, int version);
+   void load(PACKFILE* file, int version);
 
    uint8 output;     // save
 
@@ -45,11 +45,11 @@ class Saw : public Channel {
 protected:
    friend class Interface;
 
-   void reset (void);
-   void write (uint16 address, uint8 value);
-   void process (cpu_time_t cycles);
-   void save (PACKFILE *file, int version);
-   void load (PACKFILE *file, int version);
+   void reset(void);
+   void write(uint16 address, uint8 value);
+   void process(cpu_time_t cycles);
+   void save(PACKFILE* file, int version);
+   void load(PACKFILE* file, int version);
 
    uint8 output;     // save
 
@@ -67,12 +67,12 @@ private:
 
 class Interface : public Sound::Interface {
 public:
-   void reset (void);
-   void write (uint16 address, uint8 value);
-   void process (cpu_time_t cycles);
-   void save (PACKFILE *file, int version);
-   void load (PACKFILE *file, int version);
-   void mix (void);
+   void reset(void);
+   void write(uint16 address, uint8 value);
+   void process(cpu_time_t cycles);
+   void save(PACKFILE* file, int version);
+   void load(PACKFILE* file, int version);
+   void mix(real input);
 
 private:                    
    Square square1;
@@ -80,7 +80,7 @@ private:
    Saw saw;
 };
                         
-}  /* namespace VRC6 */
-}  /* namespace Sound */
+} //namespace VRC6
+} //namespace Sound
 
-#endif   /* !_SOUND__VRC6_HPP */
+#endif //!_SOUND__VRC6_HPP

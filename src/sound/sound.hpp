@@ -14,27 +14,27 @@ namespace Sound {
 
 class Channel {
 public:
-   virtual void reset (void);
-   virtual uint8 read (uint16 address);
-   virtual void write (uint16 address, uint8 value);
-   virtual void process (cpu_time_t cycles);
-   virtual void save (PACKFILE *file, int version);
-   virtual void load (PACKFILE *file, int version);
+   virtual void reset(void);
+   virtual uint8 read(uint16 address);
+   virtual void write(uint16 address, uint8 value);
+   virtual void process(cpu_time_t cycles);
+   virtual void save(PACKFILE* file, int version);
+   virtual void load(PACKFILE* file, int version);
 };
 
 class Interface {
 public:
-   virtual void reset (void);
-   virtual uint8 read (uint16 address);
-   virtual void write (uint16 address, uint8 value);
-   virtual void process (cpu_time_t cycles);
-   virtual void save (PACKFILE *file, int version);
-   virtual void load (PACKFILE *file, int version);
-   virtual void mix (void);
+   virtual void reset(void);
+   virtual uint8 read(uint16 address);
+   virtual void write(uint16 address, uint8 value);
+   virtual void process(cpu_time_t cycles);
+   virtual void save(PACKFILE* file, int version);
+   virtual void load(PACKFILE* file, int version);
+   virtual void mix(real input);
          
    real output;
 };
 
-}  /* namespace Sound */    
+} //namespace Sound
 
-#endif   /* !_SOUND__SOUND_HPP */
+#endif //!_SOUND__SOUND_HPP

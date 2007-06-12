@@ -1445,16 +1445,15 @@ static void mix_outputs(void)
    const real square_out = square_table[square1.output + square2.output];
    const real tnd_out = tnd_table[3 * triangle.output + 2 * noise.output + dmc.output];
 
-   if(exsound)
-      exsound->mix();
-
    switch(apu.mixer.channels) {
       case 1: {
-         // Mono.
+         // Mono output.
          real total = (square_out + tnd_out);   // 0...1
 
-         if(exsound)
-            total = ((total + exsound->output) / 2.0);
+         if(exsound) {
+            exsound->mix(total);
+            total = exsound->output;
+         }
 
          apu.mixer.inputs[0] = total;
 
@@ -1462,19 +1461,27 @@ static void mix_outputs(void)
       }
 
       case 2: {
-         // Stereo.
-         // Normalise output without damaging the relative volume levels.
-         real left = (square_out * (1.0 / MAX_TND));
-         real right = (tnd_out * (1.0 / MAX_TND));
-
+         // Stereo output.
          if(exsound) {
-            const real center = (exsound->output / 2.0);
-            left = ((left + center) / 1.5);
-            right = ((right + center) / 1.5);
-         }
+            /* In the case of cartridges with extra sound capabilities, we have to force the Famicom's sound to mono so
+               that it is suitable for passing through the cartridge mixer.  While this is not the ideal solution(since it
+               effectively disables stereo sound output for these games), it is the most accurate. */
+           real total = (square_out + tnd_out);   // 0...1
 
-         apu.mixer.inputs[0] = left;
-         apu.mixer.inputs[1] = right;
+            exsound->mix(total);
+            total = exsound->output;
+
+            apu.mixer.inputs[0] = total;
+            apu.mixer.inputs[1] = total;
+         }
+         else {
+            // Normalise output without damaging the relative volume levels.
+            real left = (square_out * (1.0 / MAX_TND));
+            real right = (tnd_out * (1.0 / MAX_TND));
+            
+            apu.mixer.inputs[0] = left;
+            apu.mixer.inputs[1] = right;
+         }
 
          break;
       }

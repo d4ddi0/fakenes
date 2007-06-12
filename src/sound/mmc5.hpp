@@ -20,14 +20,14 @@ class Square : public Channel {
 protected:
    friend class Interface;
 
-   void reset (void);
-   void write (uint16 address, uint8 value);
-   void process (cpu_time_t cycles);
-   void save (PACKFILE *file, int version);
-   void load (PACKFILE *file, int version);
+   void reset(void);
+   void write(uint16 address, uint8 value);
+   void process(cpu_time_t cycles);
+   void save(PACKFILE* file, int version);
+   void load(PACKFILE* file, int version);
 
-   void update_120hz (void);
-   void update_240hz (void);
+   void update_120hz(void);
+   void update_240hz(void);
 
    uint8 output;     // save
 
@@ -41,7 +41,7 @@ private:
    uint8 volume;     // save
    uint8 duty;       // do not save
    bool clamped;     // do not save
-                        
+
    uint8 step;       // save
 
    struct {
@@ -60,23 +60,23 @@ class PCM : public Channel {
 protected:
    friend class Interface;
 
-   void reset (void);
-   void write (uint16 address, uint8 value);
-   void save (PACKFILE *file, int version);
-   void load (PACKFILE *file, int version);
+   void reset(void);
+   void write(uint16 address, uint8 value);
+   void save(PACKFILE* file, int version);
+   void load(PACKFILE* file, int version);
 
    uint8 output;     // save
 };
 
 class Interface : public Sound::Interface {
 public:
-   void reset (void);
-   uint8 read (uint16 address);
-   void write (uint16 address, uint8 value);
-   void process (cpu_time_t cycles);
-   void save (PACKFILE *file, int version);
-   void load (PACKFILE *file, int version);
-   void mix (void);
+   void reset(void);
+   uint8 read(uint16 address);
+   void write(uint16 address, uint8 value);
+   void process(cpu_time_t cycles);
+   void save(PACKFILE* file, int version);
+   void load(PACKFILE* file, int version);
+   void mix(real input);
 
 private:
    Square square1;
@@ -87,7 +87,7 @@ private:
    bool flip;        // save
 };
 
-}  /* namespace MMC5 */
-}  /* namespace Sound */
+} //namespace MMC5
+} //namespace Sound
 
-#endif   /* !_SOUND__MMC5_HPP */
+#endif //!_SOUND__MMC5_HPP
