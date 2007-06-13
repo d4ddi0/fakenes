@@ -70,7 +70,7 @@ unsigned audio_buffer_size_bytes = 0;   // numframes*numchannels*(bitspersample/
 std::vector<uint16> audioQueue;
 
 // Audio buffer, for transfering samples from the queue to the active subsystem in the appropriate format.
-static void *audioBuffer = null;
+static void* audioBuffer = null;
 
 // The number of frames currently present in the audio buffer.
 static unsigned audioBufferedFrames = 0;
@@ -198,7 +198,8 @@ void audio_update(void)
          for(unsigned frame = 0; frame < framesToCopy; frame++) {
             // Read/write base addresses (read from queue, write to buffer).
             const unsigned readBase = (frame * audio_channels);
-            const unsigned writeBase = ((audioBufferedFrames + frame) * audio_channels);
+            // audioBufferedFrames changes within the loop(see below), so all we have to do is use it as a write pointer.
+            const unsigned writeBase = (audioBufferedFrames * audio_channels);
 
             for(int channel = 0; channel < audio_channels; channel++) {
                // Fetch a sample from the queue.
