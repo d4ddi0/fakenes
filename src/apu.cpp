@@ -1680,12 +1680,24 @@ static void mix(void)
    }
 }
 
+// Just enough to block DC.
+#define HIGHPASS_FREQUENCY 50
+
+// TODO: Normalizer.
 static void enqueue(real& sample)
 {
-   // TODO: Realtime high pass filter for DC removal.
-   // TODO: Normalizer.
+#if 0
+   static real filter_sample = 0.0;
+   static real timer = 0.0;
+   if(timer > 0.0)
+      timer--;
+   if(timer <= 0.0) {
+      timer += ((audio_sample_rate / HIGHPASS_FREQUENCY) * audio_channels);
+      filter_sample = sample;
+   }
+#endif
 
-   // Apply global volume.
+   // Apply global volume
    sample *= apu_options.volume;
 
    // Store it in the queue.

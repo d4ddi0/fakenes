@@ -180,6 +180,9 @@ void audio_exit(void)
       // Clear queue.
       audioQueue.clear();
    }
+
+   if(wavFile)
+      audio_close_wav();
 }
 
 void audio_update(void)
