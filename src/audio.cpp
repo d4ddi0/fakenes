@@ -195,6 +195,47 @@ void audio_update(void)
    if(!audio_options.enable_output)
       return;
 
+   // Check if the buffer is full.
+   if(audioBufferedFrames == audio_buffer_size_frames) {
+      // See if we can update the external buffer yet.
+      void* audiolibBuffer = audiolib_get_buffer();
+      if(audiolibBuffer) {
+         // Copy to the external buffer.
+         memcpy(audiolibBuffer, audioBuffer, audio_buffer_size_bytes);
+         // Let the subsystem have it.
+         audiolib_free_buffer();
+
+         // Empty the internal buffer.
+         audioBufferedFrames = 0;
+
+         audio_fps += audio_buffer_size_frames;
+      }
+      else {
+         // Determine how many frames are available in the queue.
+         const unsigned queuedFrames = (audioQueue.size() / audio_channels);
+         if(queuedFrames > 0) {
+            // Determine how many frames we want to make room for.
+            const unsigned framesToAdd = min(queuedFrames, audio_buffer_size_frames);
+            // Make room for the frames in the buffer.
+            const unsigned framesToMove = (audioBufferedFrames - framesToAdd);
+            if(framesToMove == 0) {
+               // Since no data would be leftover, just clear the buffer instead.
+               audioBufferedFrames = 0;
+            }
+            else {
+               const unsigned framesBase = (audioBufferedFrames - framesToMove);
+               const unsigned samplesToMove = (framesToMove * audio_channels);
+               const unsigned bytesToMove = (samplesToMove * (audio_sample_bits / 8));
+
+               uint8* buffer = (uint8*)audioBuffer;
+               memcpy(&buffer[0], &buffer[framesBase], bytesToMove);
+
+               audioBufferedFrames -= framesToAdd;
+            }
+         }
+      }
+   }
+
    if(audioBufferedFrames < audio_buffer_size_frames) {
       // Determine how many frames are available in the queue.
       const unsigned queuedFrames = (audioQueue.size() / audio_channels);
@@ -227,8 +268,21 @@ void audio_update(void)
                // Write our sample to the buffer.
                switch(audio_sample_bits) {
                   case 8: {
+                     // Reduce to 8 bits.
+                     sample >>= 8;
+
                      uint8* buffer = (uint8*)audioBuffer;
-                     buffer[writeOffset] = (sample >> 8);
+                     buffer[writeOffset] = sample;
+
+                     if(wavFile) {
+                        if(audio_signed_samples) {
+                           // Convert to unsigned.
+                           sample ^= 0x80;
+                        }
+
+                        putc(sample, wavFile);
+                        wavSize++;
+                     }
 
                      break;
                   }
@@ -236,6 +290,18 @@ void audio_update(void)
                   case 16: {
                      uint16* buffer = (uint16*)audioBuffer;
                      buffer[writeOffset] = sample;
+
+                     if(wavFile) {
+                        if(!audio_signed_samples) {
+                           // Convert to signed.
+                           sample ^= 0x8000;
+                        }
+
+                        putc((sample & 0xFF), wavFile);
+                        putc(((sample & 0xFF00) >> 8), wavFile);
+
+                        wavSize += 2;
+                     }
 
                      break;
                   }
@@ -262,59 +328,12 @@ void audio_update(void)
    // Check if the buffer is full.
    if(audioBufferedFrames == audio_buffer_size_frames) {
       // See if we can update the external buffer yet.
-      void *audiolibBuffer = audiolib_get_buffer();
+      void* audiolibBuffer = audiolib_get_buffer();
       if(audiolibBuffer) {
          // Copy to the external buffer.
          memcpy(audiolibBuffer, audioBuffer, audio_buffer_size_bytes);
          // Let the subsystem have it.
          audiolib_free_buffer();
-
-         // If we're recording a .WAV file, go ahead and write the buffer out to the disk.
-         if(wavFile) {
-            // Lousy WAV files requiring a signedness different than the output, grr...
-            switch(audio_sample_bits) {
-               case 8: {
-                  uint8* buffer = (uint8*)audioBuffer;
-
-                  for(unsigned offset = 0; offset < audio_buffer_size_samples; offset++) {
-                     uint8 sample = buffer[offset];
-
-                     if(audio_signed_samples) {
-                        // Convert to unsigned.
-                        sample ^= 0x80;
-                     }
-
-                     putc(sample, wavFile);
-                     wavSize++;
-                  }
-
-                  break;
-               }
-
-               case 16: {
-                  uint16* buffer = (uint16*)audioBuffer;
-
-                  for(unsigned offset = 0; offset < audio_buffer_size_samples; offset++) {
-                     uint16 sample = buffer[offset];
-
-                     if(!audio_signed_samples) {
-                        // Convert to signed.
-                        sample ^= 0x8000;
-                     }
-
-                     putc((sample & 0xFF), wavFile);
-                     putc(((sample & 0xFF00) >> 8), wavFile);
-
-                     wavSize += 2;
-                  }
-
-                  break;
-               }
-
-               default:
-                  WARN_GENERIC();
-            }
-         }
 
          // Empty the internal buffer.
          audioBufferedFrames = 0;
