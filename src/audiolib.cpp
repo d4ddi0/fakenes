@@ -57,6 +57,8 @@ static AudiolibDriver *audiolibDriver = null;
 
 int audiolib_init(void)
 {
+   DEBUG_PRINTF("audiolib_init()\n");
+
    if(audiolibDriver) {
       WARN_GENERIC();
       audiolib_exit();
@@ -110,6 +112,8 @@ int audiolib_init(void)
 
 void audiolib_exit(void)
 {
+   DEBUG_PRINTF("audiolib_exit()\n");
+
    if(audiolibDriver) {
       // Deinitialize driver.
       audiolibDriver->deinitialize();
@@ -121,6 +125,8 @@ void audiolib_exit(void)
 
 int audiolib_open_stream(void)
 {
+   DEBUG_PRINTF("audiolib_open_stream()\n");
+
    if(!audiolibDriver) {
       WARN_GENERIC();
       return 1;
@@ -131,6 +137,8 @@ int audiolib_open_stream(void)
 
 void audiolib_close_stream(void)
 {
+   DEBUG_PRINTF("audiolib_close_stream()\n");
+
    if(!audiolibDriver) {
       WARN_GENERIC();
       return;
@@ -141,6 +149,8 @@ void audiolib_close_stream(void)
 
 void* audiolib_get_buffer(void)
 {
+   DEBUG_PRINTF("audiolib_get_buffer()\n");
+
    if(!audiolibDriver) {
       WARN_GENERIC();
       return null;
@@ -151,6 +161,8 @@ void* audiolib_get_buffer(void)
 
 void audiolib_free_buffer(void)
 {
+   DEBUG_PRINTF("audiolib_free_buffer()\n");
+
    if(!audiolibDriver) {
       WARN_GENERIC();
       return;
@@ -161,6 +173,8 @@ void audiolib_free_buffer(void)
 
 void audiolib_suspend(void)
 {
+   DEBUG_PRINTF("audiolib_suspend()\n");
+
    if(!audiolibDriver) {
       WARN_GENERIC();
       return;
@@ -171,6 +185,8 @@ void audiolib_suspend(void)
 
 void audiolib_resume(void)
 {
+   DEBUG_PRINTF("audiolib_open_resume()\n");
+
    if(!audiolibDriver) {
       WARN_GENERIC();
       return;
