@@ -239,9 +239,13 @@ void audio_update(void)
             audioBufferedFrames++;
          }
 
-         // Removed copied frames from the queue by repeatedly erasing the first entry and moving the other frames back.
-         for(unsigned frame = 0; frame < framesToCopy; frame++)
-            audioQueue.erase(audioQueue.begin());
+         // Determine how many samples we copied.
+         const unsigned samplesCopied = (framesToCopy * audio_channels);
+         const unsigned samplesRemaining = (audioQueue.size() - samplesCopied);
+         /* Removed copied samples from the queue.
+            Thanks KittyCat! =^-^= */
+         memcpy(&audioQueue[0], &audioQueue[samplesCopied], (sizeof(uint16) * samplesRemaining));
+         audioQueue.resize(samplesRemaining);
       }
    }
 
