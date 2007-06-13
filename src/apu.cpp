@@ -16,6 +16,7 @@
 #include "apu.h"
 #include "apu_int.h"
 #include "audio.h"
+#include "audio_int.h"
 #include "common.h"
 #include "core.h"
 #include "cpu.h"

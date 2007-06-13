@@ -12,6 +12,7 @@
 #include <vector>
 #include "apu.h"
 #include "audio.h"
+#include "audio_int.h"
 #include "audiolib.h"
 #include "common.h"
 #include "debug.h"
