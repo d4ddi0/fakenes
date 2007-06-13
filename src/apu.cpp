@@ -1680,7 +1680,7 @@ static void mix(void)
    }
 }
 
-#define HIGHPASS_FREQUENCY 100  // Hz
+#define HIGHPASS_FREQUENCY 16   // Hz
 #define HIGHPASS_STEP_TIME 0.01 // In seconds
 
 // TODO: Normalizer.
