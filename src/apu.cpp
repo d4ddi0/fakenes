@@ -1680,8 +1680,8 @@ static void mix(void)
    }
 }
 
-// Taken from FamiTracker, should be ok.
-#define HIGHPASS_FREQUENCY 16
+#define HIGHPASS_FREQUENCY 100  // Hz
+#define HIGHPASS_STEP_TIME 0.01 // In seconds
 
 // TODO: Normalizer.
 static void enqueue(real& sample)
@@ -1690,15 +1690,34 @@ static void enqueue(real& sample)
    const real saved_sample = sample;
 
    static real filter_sample = 0.0;
-   sample -= filter_sample;
+   static real next_filter_sample = 0.0;
+   static real stepTime = 0.0;
+   static real weightPerStep = 0.0;
+   static real curStep = 0.0;
+
+   if(stepTime > 0.0) {
+      const real weight = (weightPerStep * curStep);
+      sample -= ((filter_sample * (1.0 - weight)) + (next_filter_sample * weight));
+      curStep++;
+   }
+   else
+      sample -= filter_sample;
+
+   if(stepTime > 0.0) {
+      stepTime--;
+      if(stepTime <= 0.0)
+         filter_sample = next_filter_sample;
+   }
 
    static real timer = 0.0;
    if(timer > 0.0)
       timer--;
    if(timer <= 0.0) {
-      timer += ((audio_sample_rate / HIGHPASS_FREQUENCY) * audio_channels);
-      // 4:1 weighting
-      filter_sample = ((filter_sample + (saved_sample * 0.25)) / 1.25);
+      timer += (audio_sample_rate / HIGHPASS_FREQUENCY);
+      next_filter_sample = saved_sample;
+      stepTime = (audio_sample_rate * HIGHPASS_STEP_TIME);
+      weightPerStep = (1.0 / stepTime);
+      curStep = 0.0;
    }
 
    // Apply global volume
