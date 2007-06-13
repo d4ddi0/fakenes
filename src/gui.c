@@ -34,6 +34,8 @@
 #include "version.h"
 #include "video.h"
 
+// TODO: Add configuration for the real-time game rewinder.
+
 static BITMAP *gui_buffer = NULL;
 
 static int dialog_x = 0;
