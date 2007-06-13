@@ -2033,6 +2033,11 @@ static int audio_menu_emulation_fast (void)
 
    apu_update ();
 
+   gui_alert ("Accuracy Warning", "The fast emulation mode may introduce permanent accuracy glitches into save states, "
+      "replays and the game rewinder.",
+      "Only use it if you have a very slow computer that cannot handle one of the other emulation modes.",
+      NULL, "&OK", NULL, 0, 0);
+
    message_local ("APU emulation quality set to fast.");
 
    return (D_O_K);
@@ -2215,6 +2220,11 @@ static int audio_output_menu_mixing_stereo (void)
    cycle_audio ();
    update_menus ();
 
+   gui_alert ("Information", "Stereo output may not be supported for all games, such as those with custom sound hardware (e.g MMC5, VRC6, etc.).",
+      "In cases where stereo output is not available, FakeNES will temporarily revert to mono output.",
+      "This is a harmless, accuracy-related procedure and should not be considered a bug.",
+      "&OK", NULL, 0, 0);
+      
    message_local ("Audio output set to stereo.");
 
    return (D_O_K);
