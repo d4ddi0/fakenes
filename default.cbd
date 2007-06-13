@@ -256,13 +256,12 @@ SRCFILES += "datafile.c "
 
 # Source files.
 SRCFILES += 'apu.cpp '
-SRCFILES += 'audio.c '
-SRCFILES += 'audiolib.c '
+SRCFILES += 'audio.cpp '
+SRCFILES += 'audiolib.cpp '
 SRCFILES += 'cheats.c '
 SRCFILES += 'config.c '
 SRCFILES += 'core.c '
 SRCFILES += 'cpu.c '
-SRCFILES += 'dsp.c '
 SRCFILES += "${SRC_ETCDIR}/hqx.c "
 SRCFILES += "${SRC_ETCDIR}/snes_ntsc.c "
 SRCFILES += 'gui.c '

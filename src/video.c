@@ -681,7 +681,7 @@ static INLINE void display_status (BITMAP *bitmap, FONT *font, int color)
    shadow_textout (bitmap, font, "Audio:", 0, y, color);
    y += line;
 
-   if (audio_enable_output)
+   if (audio_options.enable_output)
    {
       shadow_textprintf (bitmap, font, indent, y, color, "%02d FPS",
          timing_audio_fps);

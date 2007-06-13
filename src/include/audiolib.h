@@ -2,7 +2,7 @@
 
    audiolib.h: Declarations for the audio library.
 
-   Copyright (c) 2001-2006, FakeNES Team.
+   Copyright (c) 2001-2007, FakeNES Team.
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
 
@@ -14,16 +14,16 @@
 extern "C" {
 #endif
 
-int audiolib_init (void);
-void audiolib_exit (void);
-int audiolib_play (void);
-void audiolib_stop (void);
-void *audiolib_get_buffer (void);
-void audiolib_free_buffer (void);
-void audiolib_suspend (void);
-void audiolib_resume (void);
+extern int audiolib_init(void);
+extern void audiolib_exit(void);
+extern int audiolib_open_stream (void);
+extern void audiolib_close_stream (void);
+extern void *audiolib_get_buffer (void);
+extern void audiolib_free_buffer (void);
+extern void audiolib_suspend (void);
+extern void audiolib_resume (void);
 
 #ifdef __cplusplus
 }
 #endif
-#endif   /* !AUDIOLIB_H_INCLUDED */
+#endif /* !AUDIOLIB_H_INCLUDED */

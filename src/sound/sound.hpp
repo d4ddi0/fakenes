@@ -14,6 +14,9 @@ namespace Sound {
 
 class Channel {
 public:
+   Channel(void);
+   virtual ~Channel(void);
+
    virtual void reset(void);
    virtual uint8 read(uint16 address);
    virtual void write(uint16 address, uint8 value);
@@ -24,6 +27,9 @@ public:
 
 class Interface {
 public:
+   Interface(void);
+   virtual ~Interface(void);
+
    virtual void reset(void);
    virtual uint8 read(uint16 address);
    virtual void write(uint16 address, uint8 value);

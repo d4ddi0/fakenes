@@ -23,8 +23,6 @@ extern int apu_init(void);
 extern void apu_exit(void);
 extern void apu_reset(void);
 extern void apu_update(void);
-extern void apu_start_frame(void);
-extern void apu_end_frame(void);
 extern void apu_set_exsound(ENUM type);
 extern UINT8 apu_read(UINT16 address);
 extern void apu_write(UINT16 address, UINT8 value);
@@ -33,10 +31,14 @@ extern void apu_save_state(PACKFILE* file, int version);
 extern void apu_load_state(PACKFILE* file, int version);
 
 typedef struct apu_options_s {
-   BOOL enabled;
-   ENUM emulation;
-   BOOL stereo;
-   BOOL normalize;
+   BOOL enabled;       /* Enable emulation */
+   ENUM emulation;     /* Emulation mode */
+   BOOL stereo;        /* Stereo output mode */
+   BOOL swap_channels; /* Swap stereo channels */
+   REAL volume;        /* Global volume */
+
+   /* Filters. */
+   BOOL normalize;     /* Normalize output */
 
    /* Channels. */
    BOOL enable_square_1;
@@ -61,11 +63,11 @@ enum {
 enum {
    APU_EXSOUND_NONE = 0,
    APU_EXSOUND_MMC5,
-   APU_EXSOUND_VRC6
+   APU_EXSOUND_VRC6,
 };
 
 #ifdef __cplusplus
 }
-#endif   /* __cplusplus */
-#endif   /* !APU_H_INCLUDED */
+#endif /* __cplusplus */
+#endif /* !APU_H_INCLUDED */
 

@@ -12,6 +12,14 @@ namespace Sound {
 /* These are just stubs for when a sound driver doesn't explicitly implement
    a particular method. */
 
+Channel::Channel(void)
+{
+}
+
+Channel::~Channel(void)
+{
+}
+
 void Channel::reset(void)
 {
 }
@@ -37,6 +45,14 @@ void Channel::save(PACKFILE* file, int version)
 void Channel::load(PACKFILE* file, int version)
 {
    RT_ASSERT(file);
+}
+
+Interface::Interface(void)
+{
+}
+
+Interface::~Interface(void)
+{
 }
 
 void Interface::reset(void)

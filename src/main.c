@@ -15,7 +15,6 @@
 #include "cpu.h"
 #include "data.h"
 #include "debug.h"
-#include "dsp.h"
 #include "gui.h"
 #include "input.h"
 #include "log.h"
@@ -234,17 +233,8 @@ int main (int argc, char *argv[])
            "\n"
            "I'm disabling it for now.\n"
            "You can try to re-enable it from the Audio menu once inside the program.");
-      audio_enable_output = FALSE;
+      audio_options.enable_output = FALSE;
       audio_init ();
-   }
-
-
-   if (dsp_init () != 0)
-   {
-      WARN("Failed to initialize digital sound processor");
-
-      free_rom (&global_rom);
-      return (1);
    }
 
 
@@ -407,6 +397,8 @@ int main (int argc, char *argv[])
                         by splitting it away from the emulation input
                         processing, somehow. */
    
+                     /* TODO: Is one update per frame enough for the new audio system?  Not that it's going to perform
+                        very wellduring rewinding anyway. :b */
                      audio_update ();
    
                      continue;
@@ -475,8 +467,6 @@ int main (int argc, char *argv[])
                WARN_GENERIC ();
          }
 
-         apu_start_frame ();
-
          if (redraw_flag)
          {
             /* Perform a full render. */
@@ -518,7 +508,7 @@ int main (int argc, char *argv[])
                   }
 
                   cpu_execute (RENDER_CLOCKS);
-               }
+              }
                else if (ppu_scanline == FIRST_VBLANK_LINE)
                {
                    ppu_end_render ();
@@ -562,6 +552,9 @@ int main (int argc, char *argv[])
 
                if (mmc_scanline_end)
                   cpu_interrupt (mmc_scanline_end (ppu_scanline));
+
+               /* Audio updates every scanline should be more than often enough. */
+               audio_update ();
             }
 
             video_blit (screen);
@@ -653,12 +646,10 @@ int main (int argc, char *argv[])
 
                if (mmc_scanline_end)
                   cpu_interrupt (mmc_scanline_end (ppu_scanline));
+
+               audio_update ();
             }
          }
-
-         apu_end_frame ();
-
-         audio_update ();
 
          if ((frames_to_execute != -1) &&
              (frames_to_execute > 0))
@@ -696,8 +687,6 @@ int main (int argc, char *argv[])
 
    video_exit ();
 
-
-   dsp_exit ();
 
    audio_exit ();
 

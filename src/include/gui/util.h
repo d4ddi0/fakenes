@@ -152,7 +152,7 @@ static INLINE void cycle_audio (void)
                 NULL,
                 NULL,
                 "&OK", NULL, 0, 0);
-      audio_enable_output = FALSE;
+      audio_options.enable_output = FALSE;
       audio_init();
    }
 

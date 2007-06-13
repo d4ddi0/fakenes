@@ -21,7 +21,6 @@
 #include "cpu.h"
 #include "data.h"
 #include "debug.h"
-#include "dsp.h"
 #include "gui.h"
 #include "input.h"
 #include "log.h"
@@ -164,7 +163,7 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(machine_frame_skip_menu_10_frames, (frame_skip == 10));
 
    TOGGLE_MENU_ITEM(audio_menu_enable_apu,    apu_options.enabled);
-   TOGGLE_MENU_ITEM(audio_menu_enable_output, audio_enable_output);
+   TOGGLE_MENU_ITEM(audio_menu_enable_output, audio_options.enable_output);
 
    TOGGLE_MENU_ITEM(audio_menu_emulation_fast,         (apu_options.emulation == APU_EMULATION_FAST));
    TOGGLE_MENU_ITEM(audio_menu_emulation_accurate,     (apu_options.emulation == APU_EMULATION_ACCURATE));
@@ -181,25 +180,25 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(audio_channels_menu_extra_2,  apu_options.enable_extra_2);
    TOGGLE_MENU_ITEM(audio_channels_menu_extra_3,  apu_options.enable_extra_3);
 
-   TOGGLE_MENU_ITEM(audio_output_menu_subsystem_allegro, (audio_subsystem == AUDIO_SUBSYSTEM_ALLEGRO));
-   TOGGLE_MENU_ITEM(audio_output_menu_subsystem_openal,  (audio_subsystem == AUDIO_SUBSYSTEM_OPENAL));
+   TOGGLE_MENU_ITEM(audio_output_menu_subsystem_allegro, (audio_options.subsystem == AUDIO_SUBSYSTEM_ALLEGRO));
+   TOGGLE_MENU_ITEM(audio_output_menu_subsystem_openal,  (audio_options.subsystem == AUDIO_SUBSYSTEM_OPENAL));
 
-   TOGGLE_MENU_ITEM(audio_output_menu_sampling_rate_22050_hz, (audio_sample_rate == 22050));
-   TOGGLE_MENU_ITEM(audio_output_menu_sampling_rate_44100_hz, (audio_sample_rate == 44100));
-   TOGGLE_MENU_ITEM(audio_output_menu_sampling_rate_48000_hz, (audio_sample_rate == 48000));
+   TOGGLE_MENU_ITEM(audio_output_menu_sampling_rate_22050_hz, (audio_options.sample_rate_hint == 22050));
+   TOGGLE_MENU_ITEM(audio_output_menu_sampling_rate_44100_hz, (audio_options.sample_rate_hint == 44100));
+   TOGGLE_MENU_ITEM(audio_output_menu_sampling_rate_48000_hz, (audio_options.sample_rate_hint == 48000));
 
    TOGGLE_MENU_ITEM(audio_output_menu_mixing_mono,            !apu_options.stereo);
-   TOGGLE_MENU_ITEM(audio_output_menu_mixing_stereo,          (apu_options.stereo && !dsp_get_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS)));
-   TOGGLE_MENU_ITEM(audio_output_menu_mixing_stereo_inverted, (apu_options.stereo && dsp_get_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS)));
+   TOGGLE_MENU_ITEM(audio_output_menu_mixing_stereo,          (apu_options.stereo && !apu_options.swap_channels)); TOGGLE_MENU_ITEM(audio_output_menu_mixing_stereo_inverted, (apu_options.stereo && apu_options.swap_channels)); 
 
-   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_1_frame,  (audio_buffer_length == 1));
-   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_2_frames, (audio_buffer_length == 2));
-   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_3_frames, (audio_buffer_length == 3));
-   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_4_frames, (audio_buffer_length == 4));
-   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_5_frames, (audio_buffer_length == 5));
-   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_6_frames, (audio_buffer_length == 6));
-   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_7_frames, (audio_buffer_length == 7));
-   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_8_frames, (audio_buffer_length == 8));
+   TOGGLE_MENU_ITEM(audio_output_buffer_menu_automatic, (audio_options.buffer_length_ms_hint == -1));
+   TOGGLE_MENU_ITEM(audio_output_buffer_menu_30ms,      (audio_options.buffer_length_ms_hint == 30));
+   TOGGLE_MENU_ITEM(audio_output_buffer_menu_50ms,      (audio_options.buffer_length_ms_hint == 50));
+   TOGGLE_MENU_ITEM(audio_output_buffer_menu_75ms,      (audio_options.buffer_length_ms_hint == 75));
+   TOGGLE_MENU_ITEM(audio_output_buffer_menu_100ms,     (audio_options.buffer_length_ms_hint == 100));
+   TOGGLE_MENU_ITEM(audio_output_buffer_menu_125ms,     (audio_options.buffer_length_ms_hint == 125));
+   TOGGLE_MENU_ITEM(audio_output_buffer_menu_150ms,     (audio_options.buffer_length_ms_hint == 150));
+   TOGGLE_MENU_ITEM(audio_output_buffer_menu_175ms,     (audio_options.buffer_length_ms_hint == 175));
+   TOGGLE_MENU_ITEM(audio_output_buffer_menu_200ms,     (audio_options.buffer_length_ms_hint == 200));
 
 #ifdef ALLEGRO_DOS
 
@@ -349,7 +348,7 @@ static INLINE void update_menus (void)
 
    /* TODO: Find a better way to do this. */
    uszprintf (audio_menu_volume_text, sizeof (audio_menu_volume_text),
-      "Current volume: %d%%", (int)ROUND((dsp_master_volume * 100.0)));
+      "Current volume: %d%%", (int)ROUND((apu_options.volume * 100.0)));
    audio_menu[AUDIO_MENU_VOLUME_TEXT].text = audio_menu_volume_text;
 }
 
@@ -2016,12 +2015,12 @@ static int audio_menu_enable_apu (void)
 
 static int audio_menu_enable_output (void)
 {
-   audio_enable_output = !audio_enable_output;
+   audio_options.enable_output = !audio_options.enable_output;
 
    cycle_audio ();
    update_menus ();
 
-   message_local ("Audio output %s.", get_enabled_text (audio_enable_output));
+   message_local ("Audio output %s.", get_enabled_text (audio_options.enable_output));
 
    return (D_O_K);
 }
@@ -2126,7 +2125,7 @@ static int audio_channels_menu_disable_all (void)
 
 static int audio_output_menu_subsystem_allegro (void)
 {
-   audio_subsystem = AUDIO_SUBSYSTEM_ALLEGRO;
+   audio_options.subsystem = AUDIO_SUBSYSTEM_ALLEGRO;
    
    cycle_audio ();
    update_menus ();
@@ -2138,7 +2137,7 @@ static int audio_output_menu_subsystem_allegro (void)
 
 static int audio_output_menu_subsystem_openal (void)
 {
-   audio_subsystem = AUDIO_SUBSYSTEM_OPENAL;
+   audio_options.subsystem = AUDIO_SUBSYSTEM_OPENAL;
 
    cycle_audio ();
    update_menus ();
@@ -2151,7 +2150,7 @@ static int audio_output_menu_subsystem_openal (void)
 #define AUDIO_OUTPUT_MENU_SAMPLING_RATE_HANDLER(rate)  \
    static int audio_output_menu_sampling_rate_##rate##_hz (void) \
    {  \
-      audio_sample_rate = rate;  \
+      audio_options.sample_rate_hint = rate;  \
       cycle_audio ();   \
       update_menus ();  \
       message_local ("Audio sampling rate set to %d Hz.", rate);  \
@@ -2168,11 +2167,11 @@ static int audio_output_menu_sampling_rate_custom (void)
 {
    int rate;
 
-   rate = audio_sample_rate;
+   rate = audio_options.sample_rate_hint;
 
    if (get_integer_input ("Custom", &rate, "Hz"))
    {
-      audio_sample_rate = rate;
+      audio_options.sample_rate_hint = rate;
 
       cycle_audio ();
       update_menus ();
@@ -2198,7 +2197,7 @@ static int audio_output_menu_mixing_mono (void)
 static int audio_output_menu_mixing_stereo (void)
 {
    apu_options.stereo = TRUE;
-   dsp_set_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS, DSP_SET_ENABLED_MODE_SET, FALSE);
+   apu_options.swap_channels = FALSE;
 
    cycle_audio ();
    update_menus ();
@@ -2211,7 +2210,7 @@ static int audio_output_menu_mixing_stereo (void)
 static int audio_output_menu_mixing_stereo_inverted (void)
 {
    apu_options.stereo = TRUE;
-   dsp_set_effector_enabled (DSP_EFFECTOR_SWAP_CHANNELS, DSP_SET_ENABLED_MODE_SET, TRUE);
+   apu_options.swap_channels = TRUE;
 
    cycle_audio ();
    update_menus ();
@@ -2221,39 +2220,50 @@ static int audio_output_menu_mixing_stereo_inverted (void)
    return (D_O_K);
 }
 
-#define AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(size, units)   \
-   static int audio_output_buffer_size_menu_##size##_##units (void)   \
-   {  \
-      audio_buffer_length = size; \
-      cycle_audio ();   \
-      update_menus ();  \
-      message_local ("Audio buffer size set to %d %s.", size,  \
-         "##units##");  \
-      return (D_O_K);   \
+#define AUDIO_OUTPUT_BUFFER_MENU_HANDLER(length_ms) \
+   static int audio_output_buffer_menu_##length_ms##ms (void) \
+   { \
+      audio_options.buffer_length_ms_hint = length_ms; \
+      cycle_audio (); \
+      update_menus (); \
+      message_local ("Audio buffer size set to %dms.", length_ms); \
+      return (D_O_K); \
    }
                         
-AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(1, frame)
-AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(2, frames)
-AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(3, frames)
-AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(4, frames)
-AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(5, frames)
-AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(6, frames)
-AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(7, frames)
-AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(8, frames)
+AUDIO_OUTPUT_BUFFER_MENU_HANDLER(30)
+AUDIO_OUTPUT_BUFFER_MENU_HANDLER(50)
+AUDIO_OUTPUT_BUFFER_MENU_HANDLER(75)
+AUDIO_OUTPUT_BUFFER_MENU_HANDLER(100)
+AUDIO_OUTPUT_BUFFER_MENU_HANDLER(125)
+AUDIO_OUTPUT_BUFFER_MENU_HANDLER(150)
+AUDIO_OUTPUT_BUFFER_MENU_HANDLER(175)
+AUDIO_OUTPUT_BUFFER_MENU_HANDLER(200)
 
-#undef AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER
+#undef AUDIO_OUTPUT_BUFFER_MENU_HANDLER
 
-static int audio_output_buffer_size_menu_custom (void) 
+static int audio_output_buffer_menu_automatic (void)
 {
-   int frames = audio_buffer_length;
-   if (get_integer_input ("Custom", &frames, "frames"))
+   audio_options.buffer_length_ms_hint = -1;
+
+   cycle_audio ();
+   update_menus ();
+
+   message_local ("Audio buffer size set to automatic.");
+
+   return (D_O_K);
+}
+
+static int audio_output_buffer_menu_custom (void) 
+{
+   int ms = audio_options.buffer_length_ms_hint;
+   if (get_integer_input ("Custom", &ms, "ms"))
    {
-      audio_buffer_length = frames;
+      audio_options.buffer_length_ms_hint = ms;
 
       cycle_audio ();
       update_menus ();
 
-      message_local ("Audio buffer size set to %d frames.", frames);
+      message_local ("Audio buffer size set to %dms.", ms);
    }
 
    return (D_O_K);
@@ -2261,28 +2271,28 @@ static int audio_output_buffer_size_menu_custom (void)
 
 static int audio_menu_volume_increase (void)
 {
-   dsp_master_volume += 0.25;
-   if (dsp_master_volume > 4.0)
-      dsp_master_volume = 4.0;
+   apu_options.volume += 0.25;
+   if (apu_options.volume > 4.0)
+      apu_options.volume = 4.0;
 
    update_menus ();
 
    message_local ("Audio master volume level increased to %d%%.",
-      (int)ROUND(dsp_master_volume * 100.0));
+      (int)ROUND(apu_options.volume * 100.0));
 
    return (D_O_K);
 }
 
 static int audio_menu_volume_decrease (void)
 {
-   dsp_master_volume -= 0.25;
-   if (dsp_master_volume < 0)
-      dsp_master_volume = 0;
+   apu_options.volume -= 0.25;
+   if (apu_options.volume < 0)
+      apu_options.volume = 0;
 
    update_menus ();
 
    message_local ("Audio master volume level decreased to %d%%.",
-      (int)ROUND(dsp_master_volume * 100.0));
+      (int)ROUND(apu_options.volume * 100.0));
 
    return (D_O_K);
 }
@@ -2291,11 +2301,11 @@ static int audio_menu_volume_custom (void)
 {
    int percent;
 
-   percent = ROUND(dsp_master_volume * 100.0);
+   percent = ROUND(apu_options.volume * 100.0);
 
    if (get_integer_input ("Custom", &percent, "percent"))
    {
-      dsp_master_volume = (percent / 100.0);
+      apu_options.volume = (percent / 100.0);
       update_menus ();
    
       message_local ("Audio master volume level set to %d%%.", percent);
@@ -2306,11 +2316,11 @@ static int audio_menu_volume_custom (void)
 
 static int audio_menu_volume_reset (void)
 {
-   dsp_master_volume = 1.0;
+   apu_options.volume = 1.0;
    update_menus ();
 
    message_local ("Audio master volume level reset to %d%%.",
-      (int)ROUND(dsp_master_volume * 100.0));
+      (int)ROUND(apu_options.volume * 100.0));
 
    return (D_O_K);
 }
@@ -2345,8 +2355,7 @@ static int audio_record_menu_start (void)
       if (exists (filename))
          continue;
 
-      if (dsp_open_wav (filename, audio_sample_rate,
-            (apu_options.stereo ? 2 : 1), audio_sample_size) == 0)
+      if (audio_open_wav (filename) == 0)
       {
          DISABLE_MENU_ITEM(audio_record_menu_start);
          ENABLE_MENU_ITEM(audio_record_menu_stop);
@@ -2365,7 +2374,7 @@ static int audio_record_menu_start (void)
 
 static int audio_record_menu_stop (void)
 {
-   dsp_close_wav ();
+   audio_close_wav ();
 
    ENABLE_MENU_ITEM(audio_record_menu_start);
    DISABLE_MENU_ITEM(audio_record_menu_stop);

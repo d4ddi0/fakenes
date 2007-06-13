@@ -10,7 +10,6 @@
 #include "audio.h"
 #include "common.h"
 #include "config.h"
-#include "dsp.h"
 #include "gui.h"
 #include "input.h"
 #include "main.h"
@@ -22,7 +21,6 @@ static void actually_load_config(void)
 {
    apu_load_config();
    audio_load_config();
-   dsp_load_config();
    gui_load_config();
    input_load_config();
    main_load_config();
@@ -61,7 +59,6 @@ void save_config(void)
 
    apu_save_config();
    audio_save_config();
-   dsp_save_config();
    gui_save_config();
    input_save_config();
    main_save_config();

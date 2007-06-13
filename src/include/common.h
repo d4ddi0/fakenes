@@ -30,13 +30,16 @@ extern "C" {
 #define true   TRUE
 #define false  FALSE
 
+#define min(x,y)   MIN((x),(y))
+#define max(x,y)   MAX((x),(y))
+
 #define true_or_false(x)   ((x) ? true : false)
 
 #define null   NULL
 
 #define inline    INLINE
 #define linear    INLINE   // for functions that are called only once
-#endif
+#endif /* __cplusplus */
 
 #define ROUND(x)  ((x) + 0.5)
 
