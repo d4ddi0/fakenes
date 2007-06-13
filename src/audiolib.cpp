@@ -280,7 +280,7 @@ int AudiolibAllegroDriver::openStream(void)
    }
 
    // Create stream.
-   stream = play_audio_stream(audio_buffer_size_samples,
+   stream = play_audio_stream(audio_buffer_size_frames,
       audio_sample_bits, (audio_channels == 2), audio_sample_rate, 255, 128);
    if(!stream)
       return 1;
