@@ -183,9 +183,10 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(audio_output_menu_subsystem_allegro, (audio_options.subsystem == AUDIO_SUBSYSTEM_ALLEGRO));
    TOGGLE_MENU_ITEM(audio_output_menu_subsystem_openal,  (audio_options.subsystem == AUDIO_SUBSYSTEM_OPENAL));
 
-   TOGGLE_MENU_ITEM(audio_output_menu_sampling_rate_22050_hz, (audio_options.sample_rate_hint == 22050));
-   TOGGLE_MENU_ITEM(audio_output_menu_sampling_rate_44100_hz, (audio_options.sample_rate_hint == 44100));
-   TOGGLE_MENU_ITEM(audio_output_menu_sampling_rate_48000_hz, (audio_options.sample_rate_hint == 48000));
+   TOGGLE_MENU_ITEM(audio_output_menu_sampling_rate_automatic, (audio_options.sample_rate_hint == -1));
+   TOGGLE_MENU_ITEM(audio_output_menu_sampling_rate_22050_hz,  (audio_options.sample_rate_hint == 22050));
+   TOGGLE_MENU_ITEM(audio_output_menu_sampling_rate_44100_hz,  (audio_options.sample_rate_hint == 44100));
+   TOGGLE_MENU_ITEM(audio_output_menu_sampling_rate_48000_hz,  (audio_options.sample_rate_hint == 48000));
 
    TOGGLE_MENU_ITEM(audio_output_menu_mixing_mono,            !apu_options.stereo);
    TOGGLE_MENU_ITEM(audio_output_menu_mixing_stereo,          (apu_options.stereo && !apu_options.swap_channels)); TOGGLE_MENU_ITEM(audio_output_menu_mixing_stereo_inverted, (apu_options.stereo && apu_options.swap_channels)); 
@@ -2162,6 +2163,18 @@ AUDIO_OUTPUT_MENU_SAMPLING_RATE_HANDLER(44100)
 AUDIO_OUTPUT_MENU_SAMPLING_RATE_HANDLER(48000)
 
 #undef AUDIO_OUTPUT_MENU_SAMPLING_RATE_HANDLER
+
+static int audio_output_menu_sampling_rate_automatic (void)
+{
+   audio_options.sample_rate_hint = -1;
+
+   cycle_audio ();
+   update_menus ();
+
+   message_local ("Audio sampling rate set to automatic.");
+
+   return (D_O_K);
+}
 
 static int audio_output_menu_sampling_rate_custom (void)
 {

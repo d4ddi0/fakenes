@@ -384,6 +384,7 @@ static const MENU audio_output_buffer_menu_base[] =
 
 DEFINE_MENU_CALLBACK(audio_output_menu_subsystem_allegro);
 DEFINE_MENU_CALLBACK(audio_output_menu_subsystem_openal);
+DEFINE_MENU_CALLBACK(audio_output_menu_sampling_rate_automatic);
 DEFINE_MENU_CALLBACK(audio_output_menu_sampling_rate_22050_hz);
 DEFINE_MENU_CALLBACK(audio_output_menu_sampling_rate_44100_hz);
 DEFINE_MENU_CALLBACK(audio_output_menu_sampling_rate_48000_hz);
@@ -394,23 +395,25 @@ DEFINE_MENU_CALLBACK(audio_output_menu_mixing_stereo_inverted);
                                                   
 static const MENU audio_output_menu_base[] =
 {
-   { "Subsystem",            NULL,                                     NULL,                                  0, NULL },
-   { "  &Allegro",           audio_output_menu_subsystem_allegro,      NULL,                                  0, NULL },
-   { "  &OpenAL",            audio_output_menu_subsystem_openal,       NULL,                                  0, NULL },
+   { "Subsystem",            NULL,                                      NULL,                                  0, NULL },
+   { "  &Allegro",           audio_output_menu_subsystem_allegro,       NULL,                                  0, NULL },
+   { "  &OpenAL",            audio_output_menu_subsystem_openal,        NULL,                                  0, NULL },
    MENU_SPLITTER,          
-   { "Sampling Rate",        NULL,                                     NULL,                                  0, NULL },
-   { "  &1: 22050 Hz",       audio_output_menu_sampling_rate_22050_hz, NULL,                                  0, NULL },
-   { "  &2: 44100 Hz",       audio_output_menu_sampling_rate_44100_hz, NULL,                                  0, NULL },
-   { "  &3: 48000 Hz",       audio_output_menu_sampling_rate_48000_hz, NULL,                                  0, NULL },
-   { "  ",                   NULL,                                     NULL,                                  0, NULL },
-   { "  &Custom...",         audio_output_menu_sampling_rate_custom,   NULL,                                  0, NULL },
+   { "Sampling Rate",        NULL,                                      NULL,                                  0, NULL },
+   { "  A&utomatic",         audio_output_menu_sampling_rate_automatic, NULL,                                  0, NULL },
+   { "  ",                   NULL,                                      NULL,                                  0, NULL },
+   { "  &1: 22050 Hz",       audio_output_menu_sampling_rate_22050_hz,  NULL,                                  0, NULL },
+   { "  &2: 44100 Hz",       audio_output_menu_sampling_rate_44100_hz,  NULL,                                  0, NULL },
+   { "  &3: 48000 Hz",       audio_output_menu_sampling_rate_48000_hz,  NULL,                                  0, NULL },
+   { "  ",                   NULL,                                      NULL,                                  0, NULL },
+   { "  &Custom...",         audio_output_menu_sampling_rate_custom,    NULL,                                  0, NULL },
    MENU_SPLITTER,
-   { "Mixing",               NULL,                                     NULL,                                  0, NULL },
-   { "  &Mono",              audio_output_menu_mixing_mono,            NULL,                                  0, NULL },
-   { "  &Stereo",            audio_output_menu_mixing_stereo,          NULL,                                  0, NULL },
-   { "  Stereo (&Inverted)", audio_output_menu_mixing_stereo_inverted, NULL,                                  0, NULL },
+   { "Mixing",               NULL,                                      NULL,                                  0, NULL },
+   { "  &Mono",              audio_output_menu_mixing_mono,             NULL,                                  0, NULL },
+   { "  &Stereo",            audio_output_menu_mixing_stereo,           NULL,                                  0, NULL },
+   { "  Stereo (&Inverted)", audio_output_menu_mixing_stereo_inverted,  NULL,                                  0, NULL },
    MENU_SPLITTER,
-   { "&Buffer",              NULL,                                     IMPORT_MENU(audio_output_buffer_menu), 0, NULL },
+   { "&Buffer",              NULL,                                      IMPORT_MENU(audio_output_buffer_menu), 0, NULL },
    MENU_ENDCAP          
 };                                             
                           
