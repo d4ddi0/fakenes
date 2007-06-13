@@ -211,6 +211,11 @@ void audio_update(void)
          audio_fps += audio_buffer_size_frames;
       }
       else {
+         /* This code simulates a ring buffer for when the output system can't keep up with the emulation (e.g while using
+            fast forward), by scrapping the oldest data in the buffer and adding the new data(see below).
+
+            This is functionally identical to using an actual ring buffer, though not nearly as efficient. */
+
          // Determine how many frames are available in the queue.
          const unsigned queuedFrames = (audioQueue.size() / audio_channels);
          if(queuedFrames > 0) {
@@ -218,11 +223,7 @@ void audio_update(void)
             const unsigned framesToAdd = min(queuedFrames, audio_buffer_size_frames);
             // Make room for the frames in the buffer.
             const unsigned framesToMove = (audioBufferedFrames - framesToAdd);
-            if(framesToMove == 0) {
-               // Since no data would be leftover, just clear the buffer instead.
-               audioBufferedFrames = 0;
-            }
-            else {
+            if(framesToMove > 0) {
                const unsigned framesBase = (audioBufferedFrames - framesToMove);
                const unsigned samplesToMove = (framesToMove * audio_channels);
                const unsigned bytesToMove = (samplesToMove * (audio_sample_bits / 8));
@@ -230,8 +231,9 @@ void audio_update(void)
                uint8* buffer = (uint8*)audioBuffer;
                memcpy(&buffer[0], &buffer[framesBase], bytesToMove);
 
-               audioBufferedFrames -= framesToAdd;
             }
+            
+            audioBufferedFrames -= framesToAdd;
          }
       }
    }
