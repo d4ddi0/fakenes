@@ -20,7 +20,9 @@
 #include "timing.h"
 #include "types.h"
 
-// TODO: .WAV recording functions lifted from the old DSP code.
+/* TODO: Fix WAV recording stuff up to work properly on big-endian platforms(currently it produces a big-endian ordered
+         WAV file, I think). */
+
 
 /* Note that, whenever something is marked as "Read-only outside of the audio system", it means that it should NEVER be
    modified outside of audio.c, audio.h(inline functions only), and audiolib.c.
@@ -269,8 +271,49 @@ void audio_update(void)
 
          // If we're recording a .WAV file, go ahead and write the buffer out to the disk.
          if(wavFile) {
-            fwrite(audioBuffer, 1, audio_buffer_size_bytes, wavFile);
-            wavSize += audio_buffer_size_bytes;
+            // Lousy WAV files requiring a signedness different than the output, grr...
+            switch(audio_sample_bits) {
+               case 8: {
+                  uint8* buffer = (uint8*)audioBuffer;
+
+                  for(unsigned offset = 0; offset < audio_buffer_size_samples; offset++) {
+                     uint8 sample = buffer[offset];
+
+                     if(audio_signed_samples) {
+                        // Convert to unsigned.
+                        sample ^= 0x80;
+                     }
+
+                     putc(sample, wavFile);
+                     wavSize++;
+                  }
+
+                  break;
+               }
+
+               case 16: {
+                  uint16* buffer = (uint16*)audioBuffer;
+
+                  for(unsigned offset = 0; offset < audio_buffer_size_samples; offset++) {
+                     uint16 sample = buffer[offset];
+
+                     if(!audio_signed_samples) {
+                        // Convert to signed.
+                        sample ^= 0x8000;
+                     }
+
+                     putc((sample & 0xFF), wavFile);
+                     putc(((sample & 0xFF00) >> 8), wavFile);
+
+                     wavSize += 2;
+                  }
+
+                  break;
+               }
+
+               default:
+                  WARN_GENERIC();
+            }
          }
 
          // Empty the internal buffer.
@@ -302,11 +345,6 @@ void audio_resume(void)
 }
 
 // --- WAV recording functions. ---
-/* TODO: Fix this stuff up to work properly on big-endian platforms
-   (currently it produces a big-endian ordered WAV file, I think). */
-
-// TODO: Move this stuff into another file?
-// 
 typedef struct _WAVRIFFTypeChunk {
    uint32 chunkID;
    int32 chunkSize;

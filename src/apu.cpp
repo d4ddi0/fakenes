@@ -1680,22 +1680,26 @@ static void mix(void)
    }
 }
 
-// Just enough to block DC.
-#define HIGHPASS_FREQUENCY 50
+// Taken from FamiTracker, should be ok.
+#define HIGHPASS_FREQUENCY 16
 
 // TODO: Normalizer.
 static void enqueue(real& sample)
 {
-#if 0
+   // DC blocking filter.
+   const real saved_sample = sample;
+
    static real filter_sample = 0.0;
+   sample -= filter_sample;
+
    static real timer = 0.0;
    if(timer > 0.0)
       timer--;
    if(timer <= 0.0) {
       timer += ((audio_sample_rate / HIGHPASS_FREQUENCY) * audio_channels);
-      filter_sample = sample;
+      // 4:1 weighting
+      filter_sample = ((filter_sample + (saved_sample * 0.25)) / 1.25);
    }
-#endif
 
    // Apply global volume
    sample *= apu_options.volume;

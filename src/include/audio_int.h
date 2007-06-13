@@ -77,8 +77,8 @@ static inline void audio_queue_sample(real& sample)
 {
    // Clip to valid range.
    sample = fixf(sample, -1.0, 1.0);
-   // Convert to 16-bit.
-   uint16 packed = (uint16)fix((int)ROUND(sample * 32768.0), -32768, 32767);
+   // Convert to 16-bit unsigned.
+   uint16 packed = (((int16)fix((int)ROUND(sample * 32768.0), -32768, 32767)) ^ 0x8000);
    // Store it in the queue.
    audioQueue.push_back(packed);
 }
