@@ -79,6 +79,10 @@ static unsigned audioBufferedFrames = 0;
 // Frame rate counter.
 volatile int audio_fps = 0;
 
+// Variables for the WAV writer(see bottom).
+static FILE* wavFile = null;
+static unsigned wavSize = 0;
+
 void audio_load_config(void)
 {
    DEBUG_PRINTF("audio_load_config()\n");
@@ -260,6 +264,12 @@ void audio_update(void)
          // Let the subsystem have it.
          audiolib_free_buffer();
 
+         // If we're recording a .WAV file, go ahead and write the buffer out to the disk.
+         if(wavFile) {
+            fwrite(audioBuffer, 1, audio_buffer_size_bytes, wavFile);
+            wavSize += audio_buffer_size_bytes;
+         }
+
          // Empty the internal buffer.
          audioBufferedFrames = 0;
 
@@ -289,12 +299,91 @@ void audio_resume(void)
 }
 
 // --- WAV recording functions. ---
+/* TODO: Fix this stuff up to work properly on big-endian platforms
+   (currently it produces a big-endian ordered WAV file, I think). */
+
+// TODO: Move this stuff into another file?
+// 
+typedef struct _WAVRIFFTypeChunk {
+   uint32 chunkID;
+   int32 chunkSize;
+   uint32 riffType;
+
+} WAVRIFFTypeChunk;
+
+typedef struct _WAVFormatChunk {
+   uint32 chunkID;
+   int32 chunkSize;
+   int16 formatTag;
+   uint16 channels;
+   uint32 samplesPerSec;
+   uint32 avgBytesPerSec;
+   uint16 blockAlign;
+   uint16 bitsPerSample;
+
+} WAVFormatChunk;
+
+typedef struct _WAVDataChunk {
+   uint32 chunkID;
+   int32 chunkSize;
+
+} WAVDataChunk;
+
+#define WAV_ID(a,b,c,d) ((d << 24) | (c << 16) | (b << 8) | a)
+
+#define WAV_HEADER_SIZE (sizeof(WAVRIFFTypeChunk) + \
+                         sizeof(WAVFormatChunk) + \
+                         sizeof(WAVDataChunk))
+
 int audio_open_wav(const UCHAR* filename)
 {
-   // Return failure since this isn't implemented yet.
-   return 1;
+   /* Open file. */
+   wavFile = fopen(filename, "wb");
+   if(!wavFile)
+      return 1;
+
+   // Skip header space.
+   fseek(wavFile, WAV_HEADER_SIZE, SEEK_SET);
+
+   // Clear size counter.
+   wavSize = 0;
+
+   // Return success.
+   return 0;
 }
 
 void audio_close_wav(void)
 {
+   if(wavFile) {
+      // Write header.
+      fseek(wavFile, 0, SEEK_SET);
+
+      WAVRIFFTypeChunk riff;
+      riff.chunkID = WAV_ID('R','I','F','F');
+      riff.chunkSize = ((WAV_HEADER_SIZE + wavSize) - 8);
+      riff.riffType = WAV_ID('W','A','V','E');
+      fwrite(&riff, sizeof(riff), 1, wavFile);
+
+      WAVFormatChunk fmt;
+      fmt.chunkID = WAV_ID('f','m','t',' ');
+      fmt.chunkSize = (sizeof(fmt) - 8);
+      fmt.formatTag = 1; // No compression.
+      fmt.channels = audio_channels;
+      fmt.samplesPerSec = audio_sample_rate;
+      fmt.avgBytesPerSec = ((audio_sample_rate * audio_channels) * (audio_sample_bits / 8));
+      fmt.blockAlign = (audio_channels * (audio_sample_bits / 8));
+      fmt.bitsPerSample = audio_sample_bits;
+      fwrite(&fmt,  sizeof(fmt),  1, wavFile);
+      
+      WAVDataChunk data;
+      data.chunkID = WAV_ID('d','a','t','a');
+      data.chunkSize = ((sizeof(data) + wavSize) - 8);
+      fwrite(&data, sizeof(data), 1, wavFile);
+
+      // Close file.
+      fclose(wavFile);
+      wavFile = null;
+      // Clear counter.
+      wavSize = 0;
+   }
 }
