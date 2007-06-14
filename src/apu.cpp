@@ -63,6 +63,12 @@ static const real apu_lpf_previous_weight = 0.25;
 static const real apu_dcf_frequency = 16.0; // Hz
 static const real apu_dcf_step_time = 0.01; // In seconds
 
+// Options for the normalizer.
+static const real apu_agc_attack_time = 0.100; // In seconds
+static const real apu_agc_release_time = 0.100;
+static const real apu_agc_gain_floor = 0.5;
+static const real apu_agc_gain_ceiling = 2.0;
+
 // Static APU context.
 static APU apu;
 
@@ -1691,6 +1697,7 @@ static void filter(real& sample, APULPFilter* lpEnv, APUDCFilter* dcEnv)
       // DC blocking filter.
       const real saved_sample = sample;
 
+      // Apply filter.
       if(dcEnv->stepTime > 0.0) {
          const real weight = (dcEnv->weightPerStep * dcEnv->curStep);
          sample -= ((dcEnv->filter_sample * (1.0 - weight)) + (dcEnv->next_filter_sample * weight));
@@ -1699,6 +1706,7 @@ static void filter(real& sample, APULPFilter* lpEnv, APUDCFilter* dcEnv)
       else
          sample -= dcEnv->filter_sample;
 
+      // Update filtering parameters.
       if(dcEnv->stepTime > 0.0) {
          dcEnv->stepTime--;
          if(dcEnv->stepTime <= 0.0)
@@ -1717,9 +1725,29 @@ static void filter(real& sample, APULPFilter* lpEnv, APUDCFilter* dcEnv)
    }
 }
 
-// TODO: Normalizer.
 static void amplify(real& sample)
 {
+   if(apu_options.normalize) {
+      // Normalizer.
+      static real gain = 0.0;
+
+      const real amplitude = fabs(sample);
+      if(amplitude > gain) {
+         const real attackTime = (audio_sample_rate * apu_agc_attack_time);
+         const real attackRate = (1.0 / attackTime);
+         gain += attackRate;
+      }
+      else if(amplitude < gain) {
+         const real releaseTime = (audio_sample_rate * apu_agc_release_time);
+         const real releaseRate = (1.0 / releaseTime);
+         gain -= releaseRate;
+      }
+
+      real output = (1.0 / max(gain, EPSILON));
+      output = fixf(output, apu_agc_gain_floor, apu_agc_gain_ceiling);
+      sample *= output;
+   }
+
    // Apply global volume
    sample *= apu_options.volume;
 }

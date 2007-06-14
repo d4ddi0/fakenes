@@ -25,6 +25,17 @@ extern "C" {
 #undef NULL
 #define NULL   0
 
+#define ROUND(x)  ((x) + 0.5)
+
+#ifndef M_PI
+#define M_PI      3.14159265358979323846
+#endif
+
+/* <+KittyCat> $ grep EPSILON include/3dobject.h
+   <+KittyCat> #define EPSILON (1.0f/1024.0f)
+   */
+#define EPSILON   (1.0 / 1024.0)
+
 #ifdef __cplusplus
 /* Cleaner lowercase versions for use in 'pure' C++ code. */
 #define true   TRUE
@@ -39,18 +50,9 @@ extern "C" {
 
 #define inline    INLINE
 #define linear    INLINE   // for functions that are called only once
+
+#define epsilon   EPSILON
 #endif /* __cplusplus */
-
-#define ROUND(x)  ((x) + 0.5)
-
-#ifndef M_PI
-#define M_PI      3.14159265358979323846
-#endif
-
-/* <+KittyCat> $ grep EPSILON include/3dobject.h
-   <+KittyCat> #define EPSILON (1.0f/1024.0f)
-   */
-#define EPSILON   (1.0 / 1024.0)
 
 /* Macro to compare 2 REALs. */
 #define COMPARE_TWO_REALS(a, b)  \
