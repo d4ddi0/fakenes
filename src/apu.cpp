@@ -54,6 +54,15 @@ apu_options_t apu_options = {
    TRUE, //    Extra 3
 };
 
+/* Coefficients for the low pass filter.  The sum of these values should always be equal to 1.0.
+   Note that the low pass filter is not used in the High Quality mode, since it is already implied by the mixing method. */
+static const real apu_lpf_input_weight = 0.75;
+static const real apu_lpf_previous_weight = 0.25;
+
+// Options for the DC blocking filter.
+static const real apu_dcf_frequency = 16.0; // Hz
+static const real apu_dcf_step_time = 0.01; // In seconds
+
 // Static APU context.
 static APU apu;
 
@@ -65,7 +74,9 @@ static Sound::VRC6::Interface VRC6;
 // Internal function prototypes (defined at bottom).
 static void process(void);
 static void mix(void);
-static void enqueue(real&);
+static void filter(real& sample, APULPFilter *lpEnv, APUDCFilter* dcEnv);
+static void amplify(real& sample);
+static void enqueue(real& sample);
 
 // Channel indices.
 enum {
@@ -1480,14 +1491,9 @@ static void process(void)
                   // Fetch sample.
                   real sample = apu.mixer.inputs[channel];
 
-                  // Cache sample for filter.
-                  const real cached_sample = sample;
-                  // Filter sample.
-                  sample = ((sample + apu.mixer.filter[channel]) / 2.0);
-                  // Update filter sample.
-                  apu.mixer.filter[channel] = cached_sample;
-
                   // Send it to the audio queue.
+                  filter(sample, &apu.mixer.lpEnv[channel], &apu.mixer.dcEnv[channel]);
+                  amplify(sample);
                   enqueue(sample);
                }
 
@@ -1524,14 +1530,9 @@ static void process(void)
                   // Fetch sample.
                   real sample = apu.mixer.inputs[channel];
 
-                  // Cache sample for filter.
-                  const real cached_sample = sample;
-                  // Filter sample.
-                  sample = ((sample + apu.mixer.filter[channel]) / 2.0);
-                  // Update filter sample.
-                  apu.mixer.filter[channel] = cached_sample;
-
                   // Send it to the audio queue.
+                  filter(sample, &apu.mixer.lpEnv[channel], &apu.mixer.dcEnv[channel]);
+                  amplify(sample);
                   enqueue(sample);
                }
 
@@ -1585,6 +1586,8 @@ static void process(void)
                   sample /= divider;
 
                   // Send it to the audio queue.
+                  filter(sample, null, &apu.mixer.dcEnv[channel]);
+                  amplify(sample);
                   enqueue(sample);
                }
 
@@ -1647,16 +1650,12 @@ static void mix(void)
             /* In the case of cartridges with extra sound capabilities, we have to force the Famicom's sound to mono so
                that it is suitable for passing through the cartridge mixer.  While this is not the ideal solution(since it
                effectively disables stereo sound output for these games), it is the most accurate. */
-           real total = (square_out + tnd_out);   // 0...1
+            const real total = (square_out + tnd_out);   // 0...1
 
             exsound->mix(total);
-            total = exsound->output;
 
-            // Halve the volume since we'll be outputting the same thing to both channels.
-            total /= 2.0;
-
-            apu.mixer.inputs[leftInput] = total;
-            apu.mixer.inputs[rightInput] = total;
+            apu.mixer.inputs[leftInput] = exsound->output;
+            apu.mixer.inputs[rightInput] = exsound->output;
          }
          else {
             // Normalise output without damaging the relative volume levels.
@@ -1680,49 +1679,52 @@ static void mix(void)
    }
 }
 
-#define HIGHPASS_FREQUENCY 16   // Hz
-#define HIGHPASS_STEP_TIME 0.01 // In seconds
+static void filter(real& sample, APULPFilter* lpEnv, APUDCFilter* dcEnv)
+{
+   if(lpEnv) {
+      // Low pass filter.
+      sample = ((sample * apu_lpf_input_weight) + (lpEnv->filter_sample * apu_lpf_previous_weight));
+      lpEnv->filter_sample = sample;
+   }
+
+   if(dcEnv) {
+      // DC blocking filter.
+      const real saved_sample = sample;
+
+      if(dcEnv->stepTime > 0.0) {
+         const real weight = (dcEnv->weightPerStep * dcEnv->curStep);
+         sample -= ((dcEnv->filter_sample * (1.0 - weight)) + (dcEnv->next_filter_sample * weight));
+         dcEnv->curStep++;
+      }
+      else
+         sample -= dcEnv->filter_sample;
+
+      if(dcEnv->stepTime > 0.0) {
+         dcEnv->stepTime--;
+         if(dcEnv->stepTime <= 0.0)
+            dcEnv->filter_sample = dcEnv->next_filter_sample;
+      }
+
+      if(dcEnv->timer > 0.0)
+         dcEnv->timer--;
+      if(dcEnv->timer <= 0.0) {
+         dcEnv->timer += (audio_sample_rate / apu_dcf_frequency);
+         dcEnv->next_filter_sample = saved_sample;
+         dcEnv->stepTime = (audio_sample_rate * apu_dcf_step_time);
+         dcEnv->weightPerStep = (1.0 / dcEnv->stepTime);
+         dcEnv->curStep = 0.0;
+      }
+   }
+}
 
 // TODO: Normalizer.
-static void enqueue(real& sample)
+static void amplify(real& sample)
 {
-   // DC blocking filter.
-   const real saved_sample = sample;
-
-   static real filter_sample = 0.0;
-   static real next_filter_sample = 0.0;
-   static real stepTime = 0.0;
-   static real weightPerStep = 0.0;
-   static real curStep = 0.0;
-
-   if(stepTime > 0.0) {
-      const real weight = (weightPerStep * curStep);
-      sample -= ((filter_sample * (1.0 - weight)) + (next_filter_sample * weight));
-      curStep++;
-   }
-   else
-      sample -= filter_sample;
-
-   if(stepTime > 0.0) {
-      stepTime--;
-      if(stepTime <= 0.0)
-         filter_sample = next_filter_sample;
-   }
-
-   static real timer = 0.0;
-   if(timer > 0.0)
-      timer--;
-   if(timer <= 0.0) {
-      timer += (audio_sample_rate / HIGHPASS_FREQUENCY);
-      next_filter_sample = saved_sample;
-      stepTime = (audio_sample_rate * HIGHPASS_STEP_TIME);
-      weightPerStep = (1.0 / stepTime);
-      curStep = 0.0;
-   }
-
    // Apply global volume
    sample *= apu_options.volume;
+}
 
-   // Store it in the queue.
+static void enqueue(real& sample)
+{
    audio_queue_sample(sample);
 }

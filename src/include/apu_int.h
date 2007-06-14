@@ -109,6 +109,23 @@ public:
    uint16 cached_dmalength;      // do not save
 };
 
+// Mixer environment for the low pass filter.
+typedef struct _APULPFilter {
+   real filter_sample;
+
+} APULPFilter;
+
+// Mixer environment for the DC blocking filter.
+typedef struct _APUDCFilter {
+   real timer;
+   real filter_sample;
+   real next_filter_sample;
+   real stepTime;
+   real weightPerStep;
+   real curStep;
+
+} APUDCFilter;
+
 class APU {
 public:
    APUSquare square[2];
@@ -126,9 +143,12 @@ public:
       real inputs[APU_MIXER_MAX_CHANNELS];
       real accumulators[APU_MIXER_MAX_CHANNELS];
       real sample_cache[APU_MIXER_MAX_CHANNELS];
-      real filter[APU_MIXER_MAX_CHANNELS];
       real accumulated_samples;
       real max_samples;
+
+      // Filtering environments.
+      APULPFilter lpEnv[APU_MIXER_MAX_CHANNELS];
+      APUDCFilter dcEnv[APU_MIXER_MAX_CHANNELS];
 
    } mixer;
 
