@@ -2,7 +2,7 @@
 
    main.c: Implementation of the main emulation.
 
-   Copyright (c) 2001-2006, FakeNES Team.
+   Copyright (c) 2001-2007, FakeNES Team.
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
  
@@ -148,14 +148,7 @@ int main (int argc, char *argv[])
    console_printf ("FakeNES version " VERSION_STRING ", by randilyn and TRAC.\n");
    console_printf ("Using Allegro version " ALLEGRO_VERSION_STR " (" ALLEGRO_PLATFORM_STR ").\n");
    console_printf ("\n");
-   console_printf ("Assistance provided by amit, Astxist, ipher, KCat,\n");
-   console_printf ("Lord_Nightmare, Mexandrew, and others.  See the\n");
-   console_printf ("About box for a more complete listing.\n");
-   console_printf ("\n");
-   console_printf ("Be sure to visit http://fakenes.sourceforge.net/.\n");
-   console_printf ("Report bugs to fakenes-bugs@lists.sourceforge.net.\n");
-   console_printf ("\n");
-   console_printf ("Copyright (c) 2001-2006, FakeNES Team.\n");
+   console_printf ("Copyright (c) 2001-2007, FakeNES Team.\n");
 #ifdef POSIX
    console_printf ("This is free software.  See 'LICENSE' for details.\n");
    console_printf ("You must read and accept the license prior to use.\n");

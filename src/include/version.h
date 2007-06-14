@@ -2,7 +2,7 @@
 
    version.h: Global version definitions.
 
-   Copyright (c) 2001-2006, FakeNES Team.
+   Copyright (c) 2001-2007, FakeNES Team.
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
 
@@ -13,15 +13,15 @@ extern "C" {
 #endif
 
 #define VERSION_MAJOR   0
-#define VERSION_MINOR   58
-#define VERSION         0x058
+#define VERSION_MINOR   59
+#define VERSION         0x059
 
 /* Version tag can be overriden by Makefiles. */
 #ifndef VERSION_TAG
 #define VERSION_TAG     "CVS"
 #endif
 
-#define VERSION_STRING  "0.5.8 (" VERSION_TAG ")"
+#define VERSION_STRING  "0.5.9 (" VERSION_TAG ")"
 
 #ifdef __cplusplus
 }
