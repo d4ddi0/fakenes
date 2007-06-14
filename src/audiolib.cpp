@@ -21,6 +21,9 @@
 #include <AL/alut.h>
 #endif
 
+// TODO: Beef up Allegro support.
+// TODO: Beef up OpenAL support.  Error handling is a must.
+
 static AudiolibDriver *audiolibDriver = null;
 
 int audiolib_init(void)
@@ -187,7 +190,7 @@ int AudiolibAllegroDriver::initialize(void)
 
    audio_sample_bits = get_mixer_bits();
 
-   // Allegro always uses unsignedsamples.
+   // Allegro always uses unsigned samples.
    audio_signed_samples = FALSE;
 
    if(audio_options.buffer_length_ms_hint == -1) {
@@ -203,7 +206,7 @@ int AudiolibAllegroDriver::initialize(void)
 
 void AudiolibAllegroDriver::deinitialize(void)
 {
-   // stop and destroy the stream if it is playing.
+   // Stop and destroy the stream if it is playing.
    closeStream();
 
    // Remove Allegro sound driver so that it doesn't conflict.
@@ -220,8 +223,10 @@ int AudiolibAllegroDriver::openStream(void)
    // Create stream.
    stream = play_audio_stream(audio_buffer_size_frames,
       audio_sample_bits, (audio_channels == 2), audio_sample_rate, 255, 128);
-   if(!stream)
+   if(!stream) {
+      closeStream();
       return 1;
+   }
 
    // Pause stream.
    suspend();
@@ -283,37 +288,127 @@ void AudiolibAllegroDriver::resume(void)
 
 #ifdef USE_OPENAL
 // --- OpenAL driver. ---
+#define AUDIOLIB_OPENAL_BUFFERS	2
+
 int AudiolibOpenALDriver::initialize(void)
 {
+   // Initialize variables.
+   copyBuffer = null;
+   buffers = null;
+
+   // Initialize ALUT.
+   alutInit(&saved_argc, saved_argv);
+
+   // Determine settings to use.
+   if(audio_options.sample_rate_hint == -1)
+       audio_sample_rate = 44100;
+   else
+       audio_sample_rate = audio_options.sample_rate_hint;
+
+   audio_sample_bits = 16;
+   audio_signed_samples = TRUE;
+
+   if(audio_options.buffer_length_ms_hint == -1) {
+      // OpenAL requires a notably higher buffer size than Allegro - but ~83ms should do.
+      audio_buffer_length_ms = 83;
+   }
+   else
+      audio_buffer_length_ms = audio_options.buffer_length_ms_hint;
+
+   if(audio_channels == 2) 
+      format = AL_FORMAT_STEREO16;
+   else
+      format = AL_FORMAT_MONO16;
+
+   // Return success.
    return 0;
 }
 
 void AudiolibOpenALDriver::deinitialize(void)
 {
+   // Stop and destroy the stream if it is playing.
    closeStream();
+
+   // Deinitialize ALUT.
+   alutExit();
 }
 
 int AudiolibOpenALDriver::openStream(void)
 {
+   copyBuffer = malloc(audio_buffer_size_bytes);
+   if (!copyBuffer) {
+      closeStream();
+      return 1;
+   }
+
+   memset(copyBuffer, 0, audio_buffer_size_bytes);
+
+   buffers = (ALuint*)malloc((sizeof(ALuint) * AUDIOLIB_OPENAL_BUFFERS));
+   if(!buffers) {
+      closeStream();
+      return 2;
+   }
+
+   alGenBuffers(AUDIOLIB_OPENAL_BUFFERS, buffers);
+   alGenSources(1, &source);
+
+   for(int index = 0; index < AUDIOLIB_OPENAL_BUFFERS; index++) {
+      ALuint buffer = buffers[index];
+      alBufferData(buffer, format, copyBuffer, audio_buffer_size_bytes, audio_sample_rate);
+   }
+
+   alSourceQueueBuffers(source, AUDIOLIB_OPENAL_BUFFERS, buffers);
+
+   return 0;
 }
 
 void AudiolibOpenALDriver::closeStream(void)
 {
+   alSourceStop(source);
+   alDeleteSources(1, &source);
+   alDeleteBuffers(AUDIOLIB_OPENAL_BUFFERS, buffers);
+
+   if(copyBuffer) {
+      free(copyBuffer);
+      copyBuffer = null;
+   }
+
+   if(buffers) {
+      free(buffers);
+      buffers = null;
+   }
 }
 
 void* AudiolibOpenALDriver::getBuffer(void)
 {
+   ALint processed;
+   alGetSourcei(source, AL_BUFFERS_PROCESSED, &processed);
+   if(processed == 0)
+      return null;
+
+   alSourceUnqueueBuffers(source, 1, &floatingBuffer);
+
+   return copyBuffer;
 }
 
 void AudiolibOpenALDriver::freeBuffer(void)
 {
+   alBufferData(floatingBuffer, format, copyBuffer, audio_buffer_size_bytes, audio_sample_rate);
+   alSourceQueueBuffers(source, 1, &floatingBuffer);
+   
+   ALint state;
+   alGetSourcei(source, AL_SOURCE_STATE, &state);
+   if(state == AL_STOPPED)
+      resume();
 }
 
 void AudiolibOpenALDriver::suspend(void)
 {
+   alSourceStop(source);
 }
 
 void AudiolibOpenALDriver::resume(void)
 {
+   alSourcePlay(source);
 }
 #endif //USE_OPENAL

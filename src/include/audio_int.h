@@ -13,6 +13,10 @@
 #include "common.h"
 #include "types.h"
 
+#ifdef USE_OPENAL
+#include <AL/al.h>
+#endif
+
 // Driver interfaces for the audio library.
 class AudiolibDriver {
 public:
@@ -56,6 +60,12 @@ public:
    void suspend(void);
    void resume(void);
 
+private:
+   void* copyBuffer;
+   ALuint source;
+   ALuint format;
+   ALuint* buffers;
+   ALuint floatingBuffer;
 };
 #endif //USE_OPENAL
 
