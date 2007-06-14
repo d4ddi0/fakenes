@@ -26,21 +26,21 @@ extern "C" {
 {  \
    allegro_message ("WARNING\n\n" message "\n\nat line %d of %s", \
       __LINE__, __FILE__); \
-   log_printf ("Warning: " message " (line %d, %s)", __LINE__, __FILE__);  \
+   log_printf ("\nWarning: " message " (line %d, %s)\n", __LINE__, __FILE__);  \
 }
 
-#define WARN_GENERIC()  WARN("Possible code fault")
+#define WARN_GENERIC()  WARN("***Possible code fault***\nPlease report this to the developers.")
 
 #define WARN_BREAK(message) { \
    WARN(message); \
    return;  \
 }
 
-#define WARN_BREAK_GENERIC()  WARN_BREAK("Possible code fault")
+#define WARN_BREAK_GENERIC()  WARN_BREAK("***Possible code fault***\nPlease report this to the developers.")
 
 #define RT_ASSERT(cond) {  \
    if (!(cond)) { \
-      WARN("Runtime assertion error"); \
+      WARN("***Runtime assertion error***\nPlease report this to the developers."); \
       exit (-1);  \
    }  \
 }

@@ -14,6 +14,7 @@
 #include "audiolib.h"
 #include "common.h"
 #include "debug.h"
+#include "log.h"
 #include "types.h"
 
 #ifdef USE_OPENAL
@@ -21,7 +22,6 @@
 #include <AL/alc.h>
 #endif
 
-// TODO: Beef up Allegro support.
 // TODO: Beef up OpenAL support.  Error handling is a must.
 
 static AudiolibDriver *audiolibDriver = null;
@@ -34,17 +34,20 @@ int audiolib_init(void)
       WARN_GENERIC();
       audiolib_exit();
    }
-
+   
    switch(audio_options.subsystem) {
       case AUDIO_SUBSYSTEM_ALLEGRO: {
          audiolibDriver = new AudiolibAllegroDriver;
          if(!audiolibDriver) {
+            log_printf("AUDIOLIB: audiolib_init(): Creating of audio driver failed for AUDIO_SUBSYSTEM_ALLEGRO.");
             audiolib_exit();
             return 1;
          }
 
          const int result = audiolibDriver->initialize();
          if(result != 0) {
+            log_printf("AUDIOLIB: audiolib_init(): Initialization of audio driver failed for AUDIO_SUBSYSTEM_ALLEGRO.");
+            log_printf("AUDIOLIB: audiolib_init(): audiolibDriver->initialize() error code %d.", result);
             audiolib_exit();
             return (8 + result);
          }
@@ -56,12 +59,15 @@ int audiolib_init(void)
       case AUDIO_SUBSYSTEM_OPENAL: {
          audiolibDriver = new AudiolibOpenALDriver;
          if(!audiolibDriver) {
+            log_printf("AUDIOLIB: audiolib_init(): Creating of audio driver failed for AUDIO_SUBSYSTEM_OPENAL.");
             audiolib_exit();
             return 1;
          }
 
          const int result = audiolibDriver->initialize();
          if(result != 0) {
+            log_printf("AUDIOLIB: audiolib_init(): Initialization of audio driver failed for AUDIO_SUBSYSTEM_OPENAL.");
+            log_printf("AUDIOLIB: audiolib_init(): audiolibDriver->initialize() error code %d.", result);
             audiolib_exit();
             return (8 + result);
          }
@@ -154,7 +160,7 @@ void audiolib_suspend(void)
 
 void audiolib_resume(void)
 {
-   DEBUG_PRINTF("audiolib_open_resume()\n");
+   DEBUG_PRINTF("audiolib_resume()\n");
 
    if(!audiolibDriver) {
       WARN_GENERIC();
@@ -179,11 +185,19 @@ int AudiolibAllegroDriver::initialize(void)
    set_volume(255, -1);
    set_volume_per_voice(0);
 
-   if(install_sound(DIGI_AUTODETECT, MIDI_NONE, null) != 0)
+   const int result = install_sound(DIGI_AUTODETECT, MIDI_NONE, null);
+   if(result != 0) {
+      log_printf("AUDIOLIB: AudiolibAllegroDriver::initialize(): Installation of sound driver failed.");
+      log_printf("AUDIOLIB: AudiolibAllegroDriver::initialize(): install_sound() error code %d.", result);
+      log_printf("AUDIOLIB: AudiolibAllegroDriver::initialize(): Allegro says: %s.", allegro_error);
       return 1;
+   }
    // Sometimes the above call succeeds but we get a null driver.  How dumb. x.x
-   if(digi_driver->id == DIGI_NONE)
+   if(digi_driver->id == DIGI_NONE) {
+      log_printf("AUDIOLIB: AudiolibAllegroDriver::initialize(): Installation of sound driver failed.");
+      log_printf("AUDIOLIB: AudiolibAllegroDriver::initialize(): DIGI_NONE is not supported.");
       return 2;
+   }
 
    // Determine settings to use.
    if(audio_options.sample_rate_hint == -1)
@@ -202,6 +216,21 @@ int AudiolibAllegroDriver::initialize(void)
    }
    else
       audio_buffer_length_ms = audio_options.buffer_length_ms_hint;
+
+   log_printf("\n"
+              "AUDIOLIB: AudiolibAllegroDriver::initialize(): Configuration:\n"
+              "AUDIOLIB: AudiolibAllegroDriver::initialize():    Channels: %s\n"
+              "AUDIOLIB: AudiolibAllegroDriver::initialize():    Sample rate: %d Hz (%s)\n"
+              "AUDIOLIB: AudiolibAllegroDriver::initialize():    Sample format: %s %d-bit\n"
+              "AUDIOLIB: AudiolibAllegroDriver::initialize():    Buffer length: %dms (%s)\n"
+              "\n",
+              ((audio_channels == 2) ? "Stereo" : "Mono"),
+              audio_sample_rate,
+              ((audio_options.sample_rate_hint == -1) ? "Autodetect" : "Forced"),
+              (audio_signed_samples ? "Signed" : "Unsigned"),
+              audio_sample_bits,
+              audio_buffer_length_ms,
+              ((audio_options.buffer_length_ms_hint == -1) ? "Autodetect" : "Forced"));
 
    // Return success.
    return 0;
@@ -227,6 +256,8 @@ int AudiolibAllegroDriver::openStream(void)
    stream = play_audio_stream(audio_buffer_size_frames,
       audio_sample_bits, (audio_channels == 2), audio_sample_rate, 255, 128);
    if(!stream) {
+      log_printf("AUDIOLIB: AudiolibAllegroDriver::openStream(): Creation of audio stream failed.");
+      log_printf("AUDIOLIB: AudiolibAllegroDriver::openStream(): Allegro says: %s.", allegro_error);
       closeStream();
       return 1;
    }

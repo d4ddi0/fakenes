@@ -1372,7 +1372,7 @@ void apu_write(UINT16 address, UINT8 value)
             If d is set and the DMC's DMA reader has no more sample bytes to fetch, the DMC
             sample is restarted. If d is clear then the DMA reader's sample bytes remaining
             is set to 0. */
-         const bool enabled = true_or_false(value & 0x10);
+         bool enabled = true_or_false(value & 0x10);
          if(enabled) {
             // Check for a reload.
             if(apu.dmc.dma_length == 0)
