@@ -29,9 +29,6 @@
 #include "sound/mmc5.hpp"
 #include "sound/vrc6.hpp"
 
-// TODO: DMC emulation rethinking and cleanup.
-// TODO: DMC IRQ prediction(requires the above, otherwise it would be a mess to implement).
-
 // Global options.
 apu_options_t apu_options = {
    TRUE,                       // Enable processing
@@ -509,45 +506,28 @@ static void apu_reload_dmc(APUDMC& chan)
 
 static linear void apu_update_dmc(APUDMC& chan)
 {
-   // --- Timer ---
-   /* The DMC's timer has a selectable period that is loaded from an
-      internal table during writes to $4010.
-
-      The output from the divider is used for clocking both the counter and
-      the shift register of the output unit.
-
-      The DMA reader is supposedly cycle-aware, though according to the
-      "unreliable behavior" section of Blargg's doc, may not always be. */
-   if(chan.timer > 0) {
-      chan.timer -= apu.timer_delta;
-      if(chan.timer > 0)
-         return;
-   }
-
-   chan.timer += chan.period;
-
-   // --- DMA reader ---
-   /* When the sample buffer is in an empty state and the bytes counter is
-      non-zero... */
-   if((chan.dma_length > 0) && (chan.sample_bits == 0)) {
-      // Fill sample buffer.
+   // -- Memory reader --
+   // Any time the sample buffer is in an empty state and bytes remaining is not zero, the following occur:
+   if((chan.sample_bits == 0) && (chan.dma_length > 0)) {
+       /* The sample buffer is filled with the next sample byte read from the current address, subject to whatever mapping
+          hardware is present. */
       // DMCDMABuf=X6502_DMR(0x8000+DMCAddress);
       chan.cur_byte = cpu_read(0x8000 + chan.address);
-      // Auto-increment address.
-      // DMCAddress=(DMCAddress+1)&0x7FFF;
-      chan.address = ((chan.address + 1) & 0x7FFF);
-      // Mark sample buffer as filled.
       chan.sample_bits = 8;
 
-      /* When the DMA reader accesses a byte of memory, the CPU is suspended
-         for 4 clock cycles. */
+      // The CPU is suspend for four clock cycles.
       cpu_consume_cycles(4);
 
-      if (--chan.dma_length == 0) {
-         // if loop bit set, we're cool to retrigger sample
-         if (chan.looping) {
-            /* The bytes counter is decremented;
-               if it becomes zero and the loop flag is set, the sample is restarted */
+      // The address is incremented; if it exceeds $FFFF, it is wrapped around to $8000.
+      // DMCAddress=(DMCAddress+1)&0x7FFF;
+      chan.address = ((chan.address + 1) & 0x7FFF);
+
+      /* The bytes counter is decremented;
+         if it becomes zero and the loop flag is set, the sample is restarted */
+      chan.dma_length--;
+      if(chan.dma_length == 0) {
+         if(chan.looping) {
+            // if loop bit set, we're cool to retrigger sample
             apu_reload_dmc(chan);
          }
          else {
@@ -556,45 +536,46 @@ static linear void apu_update_dmc(APUDMC& chan)
                /* if the bytes counter becomes zero and the interrupt enabled
                   flag is set, the interrupt flag is set. */
                chan.irq_occurred = true;
-               cpu_interrupt(CPU_INTERRUPT_IRQ_DMC);
+               // This part is now handled by apu_predict_dmc_irq().
+               // cpu_interrupt(CPU_INTERRUPT_IRQ_DMC);
             }
-
-            /* The DMC seems to become disabled after the length counter
-               reaches 0, regardless of whether or not new values are
-               written to the length counter afterwards.  The channel must
-               be restarted via a write to $4015 with bit 4 set.
-
-               Fixes Crystalis, quite possibly other games.
-               - randi */
-            chan.enabled = false;
          }
       }
    }
 
-   // --- Output unit ---
+   // -- Output unit. --
    if(chan.counter == 0) {
-      // -- Start a new cycle.
-      // Reload counter.
+      /* When an output cycle is started, the counter is loaded with 8 and if the sample
+         buffer is empty, the silence flag is set, otherwise the silence flag is cleared
+         and the sample buffer is emptied into the shift register. */
       chan.counter = 8;
 
       if(chan.sample_bits > 0) {
-         // -- Sample buffer contains data.
-        // Clear silence flag.
+         // The sample buffer contains data - unsilence channel.
          chan.silence = false;
 
          // Empty sample buffer into the shift register.
          chan.shift_reg = chan.cur_byte;
-         chan.cur_byte = 0;
+         chan.cur_byte = 0x00;
          chan.sample_bits = 0;
       }
       else {
-         // Set silence flag.
+         // The sample buffer is empty - silence channel.
          chan.silence = true;
-         // Clear output.
          chan.output = 0;
       }
    }
 
+   // On the arrival of a clock from the timer...
+   if(chan.timer > 0) {
+      chan.timer -= apu.timer_delta;
+      if(chan.timer > 0)
+         return;
+   }
+
+   chan.timer += chan.period;
+
+   // the following actions occur in order:
    if(!chan.silence) {
       /* If the silence flag is clear, bit 0 of the shift register is applied to
          the DAC counter: If bit 0 is clear and the counter is greater than 1, the
@@ -614,17 +595,80 @@ static linear void apu_update_dmc(APUDMC& chan)
       chan.output = (chan.volume & 0x7F);
    }
 
-   // Clock shift register.
+   // The shift register is clocked.
    chan.shift_reg >>= 1;
-   // Decrement counter.
+   // The counter is decremented. If it becomes zero, a new cycle is started.
    chan.counter--;
+}
+
+static linear void apu_predict_dmc_irq(APUDMC& chan, cpu_time_t cycles)
+{
+   // DMC IRQ predictor.  See apu_predict_frame_irq() for more information.
+
+   // DMC IRQs are not generated if they are disabled or the channel's loop flag is set.
+   if(!chan.irq_gen || chan.looping)
+      return;
+
+   // Convert from PPU clocks to APU clocks.
+   cycles /= CYCLE_LENGTH;
+
+   // Save everything before processing.
+   const APUDMC saved_chan = chan;
+
+   for(cpu_time_t offset = 0; offset < cycles; offset++) {
+      // Just go through the motions...
+      if((chan.sample_bits == 0) && (chan.dma_length > 0)) {
+         chan.sample_bits = 8;
+
+         chan.dma_length--;
+         if(chan.dma_length == 0)
+              cpu_queue_interrupt(CPU_INTERRUPT_IRQ_DMC, (apu.prediction_timestamp + (offset * CYCLE_LENGTH)));
+      }
+
+      if(chan.counter == 0) {
+         chan.counter = 8;
+
+         if(chan.sample_bits > 0)
+            chan.sample_bits = 0;
+      }
+
+      if(chan.timer > 0) {
+         chan.timer--;
+         if(chan.timer > 0)
+            continue;
+      }
+
+      chan.timer += chan.period;
+
+      chan.counter--;
+   }
+
+   // Restore everything from saved copy. 
+   chan = saved_chan;
+}
+
+static void apu_repredict_dmc_irq(APUDMC& chan)
+{
+   // DMC IRQs are not generated if they are disabled or the channel's loop flag is set.
+   if(!chan.irq_gen || chan.looping)
+      return;
+
+   const cpu_time_t cycles = cpu_get_cycles();
+
+   cpu_time_t cycles_remaining = (cycles - apu.prediction_timestamp);
+   if(cycles_remaining <= 0)
+      return;
+
+   if (cycles_remaining > apu.prediction_cycles)
+      cycles_remaining = apu.prediction_cycles;
+
+   apu_predict_dmc_irq(chan, cycles_remaining);
 }
 
 static linear void apu_save_dmc(APUDMC& chan, PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
-   pack_putc((chan.enabled ? 1 : 0), file);
    pack_iputw(chan.timer, file);
    pack_iputw(chan.address, file);
    pack_iputw(chan.dma_length, file);
@@ -642,7 +686,6 @@ static linear void apu_load_dmc(APUDMC& chan, PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
-   chan.enabled = true_or_false(pack_getc(file));
    chan.timer = pack_igetw(file);
    chan.address = pack_igetw(file);
    chan.dma_length = pack_igetw(file);
@@ -785,7 +828,10 @@ static linear void apu_predict_frame_irq(cpu_time_t cycles)
       We must be very careful to back up any variables we modify in this
       function, since we don't want to affect the APU's actual state - only
       get a rough(more accurate than not) idea of when the IRQ will occur. */
-   if(!apu.frame_irq_gen)
+
+   // Frame IRQs are not generated if they are disabled or if the APU is in 5-step mode.
+   if(!apu.frame_irq_gen ||
+      (apu.sequence_steps == 5))
       return;
 
    const int16 saved_sequence_counter = apu.sequence_counter;
@@ -807,14 +853,9 @@ static linear void apu_predict_frame_irq(cpu_time_t cycles)
 
       apu_reload_sequence_counter();
 
-      /* check to see if we should generate an irq
-         Note that IRQs are not generated in 5step mode */
-      if((apu.sequence_steps == 4) &&
-         (apu.sequence_step == 4)) {
-         /* TODO: Unqueue the interrupt if the ability to generate frame IRQs is lost (either via the disable bit in the 
-            control register, or switching to 5step mode).  Currently, the interrupt is(incorrectly) left in the queue. */
+      // check to see if we should generate an irq
+      if(apu.sequence_step == 4)
          cpu_queue_interrupt(CPU_INTERRUPT_IRQ_FRAME, (apu.prediction_timestamp + (offset * CYCLE_LENGTH)));
-      }
 
       if(++apu.sequence_step > apu.sequence_steps)
          apu.sequence_step = 1;
@@ -833,7 +874,10 @@ static void apu_repredict_frame_irq(void)
 
       This is probably not needed (since a frame IRQ cannot occur so
       suddenly after a reset?) but we emulate it anyway "just in case". */
-   if(!apu.frame_irq_gen)
+
+   // Frame IRQs are not generated if they are disabled or if the APU is in 5-step mode.
+   if(!apu.frame_irq_gen ||
+      (apu.sequence_steps == 5))
       return;
 
    const cpu_time_t cycles = cpu_get_cycles();
@@ -1031,7 +1075,7 @@ UINT8 apu_read(UINT16 address)
             value |= 0x08;
 
          // DMC.
-         if(apu.dmc.enabled & (apu.dmc.dma_length > 0))
+         if(apu.dmc.dma_length > 0)
             value |= 0x10;
          if(apu.dmc.irq_occurred)
             value |= 0x80;
@@ -1241,11 +1285,13 @@ void apu_write(UINT16 address, UINT8 value)
          chan.looping = true_or_false(value & 0x40);
          chan.irq_gen = true_or_false(value & 0x80);
 
+         // IRQ enabled flag. If clear, the interrupt flag is cleared.
          if(!chan.irq_gen) {
-            // Clear interrupt.
             chan.irq_occurred = false;
             cpu_clear_interrupt(CPU_INTERRUPT_IRQ_DMC);
          }
+
+         apu_repredict_dmc_irq(chan);
 
          break;
       }
@@ -1275,6 +1321,8 @@ void apu_write(UINT16 address, UINT8 value)
          if(chan.dma_length == 0)
             apu_reload_dmc(chan);
 
+         apu_repredict_dmc_irq(chan);
+
          break;
       }
 
@@ -1289,6 +1337,8 @@ void apu_write(UINT16 address, UINT8 value)
          // Check for a reload.
          if(chan.dma_length == 0)
             apu_reload_dmc(chan);
+
+         apu_repredict_dmc_irq(chan);
 
          break;
       }
@@ -1322,16 +1372,14 @@ void apu_write(UINT16 address, UINT8 value)
             If d is set and the DMC's DMA reader has no more sample bytes to fetch, the DMC
             sample is restarted. If d is clear then the DMA reader's sample bytes remaining
             is set to 0. */
-         apu.dmc.enabled = true_or_false(value & 0x10);
-         if(apu.dmc.enabled) {
-            // Channel is enabled - check for a reload.
+         const bool enabled = true_or_false(value & 0x10);
+         if(enabled) {
+            // Check for a reload.
             if(apu.dmc.dma_length == 0)
                apu_reload_dmc(apu.dmc);
          }
-         else {
-            // Channel is disabled.
+         else
             apu.dmc.dma_length = 0;
-         }
 
          /* When $4015 is written to, the channels' length counter enable flags are set,
             the DMC is possibly started or stopped, and the DMC's IRQ occurred flag is
@@ -1381,6 +1429,7 @@ void apu_predict_irqs(cpu_time_t cycles)
    // Sync state.
    process();
 
+   apu_predict_dmc_irq(apu.dmc, cycles);
    apu_predict_frame_irq(cycles);
 }
 

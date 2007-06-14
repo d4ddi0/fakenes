@@ -96,7 +96,6 @@ public:
 class APUDMC : public APUChannel {
 public:
    // DMC.
-   bool enabled;                 // save
    uint16 address;               // save
    uint16 dma_length;            // save
    uint8 cur_byte;               // save
