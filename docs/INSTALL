@@ -5,7 +5,7 @@ GCC
 
 A GNU-compatible make utility (optional)
 
-Allegro, version 4.2 or higher
+Allegro, version 4.2
 Get it from http://alleg.sourceforge.net
 
 
@@ -30,7 +30,7 @@ Get it at http://allegrogl.sourceforge.net
 HawkNL
 Get it at http://www.hawksoft.com
 
-OpenAL and freealut
+OpenAL
 Get it at http://www.openal.org
 
 zlib
