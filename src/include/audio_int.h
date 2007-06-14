@@ -15,6 +15,7 @@
 
 #ifdef USE_OPENAL
 #include <AL/al.h>
+#include <AL/alc.h>
 #endif
 
 // Driver interfaces for the audio library.
@@ -35,6 +36,8 @@ public:
 
 class AudiolibAllegroDriver : public AudiolibDriver {
 public:
+   AudiolibAllegroDriver(void);
+
    int initialize(void);
    void deinitialize(void);
    int openStream(void);
@@ -51,6 +54,8 @@ private:
 #ifdef USE_OPENAL
 class AudiolibOpenALDriver : public AudiolibDriver {
 public:
+   AudiolibOpenALDriver(void);
+
    int initialize(void);
    void deinitialize(void);
    int openStream(void);
@@ -61,6 +66,8 @@ public:
    void resume(void);
 
 private:
+   ALCdevice* device;
+   ALCcontext* context;
    void* copyBuffer;
    ALuint source;
    ALuint format;

@@ -61,9 +61,6 @@ extern "C" {
 /* TODO: Remove all references to NIL and correct compiler warnings. */
 #define NIL    0
 
-extern int saved_argc;
-extern char **saved_argv;   /* Saved from main(), needed for ALUT. */
-
 static INLINE int fix (int value, int base, int limit)
 {
    if (value < base)

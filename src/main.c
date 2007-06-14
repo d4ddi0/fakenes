@@ -30,10 +30,6 @@
 #include "version.h"
 #include "video.h"
 
-/* These are needed for ALUT. */
-int saved_argc;
-char **saved_argv;
-
 /* Whether or not this is the first run of the emulator. */
 static BOOL first_run = TRUE;
 
@@ -139,10 +135,6 @@ int main (int argc, char *argv[])
    int result;
    BOOL want_exit = FALSE;
    BOOL enter_gui = TRUE;
-
-   /* Save argc and argv. */
-   saved_argc = argc;
-   saved_argv = argv;
 
    /* Clear the console. */
    console_clear ();

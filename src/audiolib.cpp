@@ -18,7 +18,7 @@
 
 #ifdef USE_OPENAL
 #include <AL/al.h>
-#include <AL/alut.h>
+#include <AL/alc.h>
 #endif
 
 // TODO: Beef up Allegro support.
@@ -165,11 +165,14 @@ void audiolib_resume(void)
 }
 
 // --- Allegro driver. ---
-int AudiolibAllegroDriver::initialize(void)
+AudiolibAllegroDriver::AudiolibAllegroDriver(void)
 {
    // Initialize variables.
    stream = null;
+}
 
+int AudiolibAllegroDriver::initialize(void)
+{
    // Force interpolation.
    set_mixer_quality(2);
    // Maximize volume level.
@@ -290,14 +293,30 @@ void AudiolibAllegroDriver::resume(void)
 // --- OpenAL driver. ---
 #define AUDIOLIB_OPENAL_BUFFERS	2
 
-int AudiolibOpenALDriver::initialize(void)
+AudiolibOpenALDriver::AudiolibOpenALDriver(void)
 {
    // Initialize variables.
+   device = null;
+   context = null;
    copyBuffer = null;
    buffers = null;
+}
 
-   // Initialize ALUT.
-   alutInit(&saved_argc, saved_argv);
+int AudiolibOpenALDriver::initialize(void)
+{
+   device = alcOpenDevice(null);
+   if(!device) {
+      deinitialize();
+      return 1;
+   }
+
+   context = alcCreateContext(device, null);
+   if(!context) {
+      deinitialize();
+      return 2;
+   }
+
+   alcMakeContextCurrent(context);
 
    // Determine settings to use.
    if(audio_options.sample_rate_hint == -1)
@@ -329,8 +348,15 @@ void AudiolibOpenALDriver::deinitialize(void)
    // Stop and destroy the stream if it is playing.
    closeStream();
 
-   // Deinitialize ALUT.
-   alutExit();
+   if(context) {
+      alcDestroyContext(context);
+      context = null;
+   }
+
+   if(device) {
+      alcCloseDevice(device);
+      device = null;
+   }
 }
 
 int AudiolibOpenALDriver::openStream(void)

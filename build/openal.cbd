@@ -7,8 +7,8 @@ do ifnret 0
    setstdout ''
    setstderr ''
 
-   echo 'you\'re missing one or more of: OpenAL, ALUT'
-   echo 'continuing on without them...'
+   echo 'you\'re missing OpenAL'
+   echo 'continuing on without it...'
 
    uninvoke 0
 done
@@ -27,5 +27,3 @@ do ifplat unix
 else
    LDFLAGS += ' -lOpenAL32'
 done
-
-LDFLAGS += ' -lalut'
