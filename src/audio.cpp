@@ -195,8 +195,6 @@ void audio_update(void)
    if(!audio_options.enable_output)
       return;
 
-   // --- Disabled, currently broken(?)
-#if 0
    // Check if the buffer is full.
    if(audioBufferedFrames == audio_buffer_size_frames) {
       // See if we can update the driver buffer yet.
@@ -229,20 +227,18 @@ void audio_update(void)
             // Make room for the frames in the buffer.
             const unsigned framesToMove = (audioBufferedFrames - framesToAdd);
             if(framesToMove > 0) {
-               const unsigned framesBase = (audioBufferedFrames - framesToMove);
+               const unsigned copyBase = (((audioBufferedFrames - framesToMove) * audio_channels) * (audio_sample_bits / 8));
                const unsigned samplesToMove = (framesToMove * audio_channels);
                const unsigned bytesToMove = (samplesToMove * (audio_sample_bits / 8));
 
                uint8* buffer = (uint8*)audioBuffer;
-               memcpy(&buffer[0], &buffer[framesBase], bytesToMove);
-
+               memcpy(&buffer[0], &buffer[copyBase], bytesToMove);
             }
-            
+
             audioBufferedFrames -= framesToAdd;
          }
       }
    }
-#endif
 
    if(audioBufferedFrames < audio_buffer_size_frames) {
       // Determine how many frames are available in the queue.

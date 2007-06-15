@@ -1498,6 +1498,13 @@ void apu_load_state(PACKFILE* file, int version)
       exsound->load(file, version);
 }
 
+void apu_sync_update(void)
+{
+   /* All this function does is force all the pending cycles to be emulated and the respective samples to be produced.  This
+      is usually called just before an audio update cycle, at the end of each scanline. */
+   process();
+}
+
 // --- Internal functions. --- 
 static void process(void)
 {

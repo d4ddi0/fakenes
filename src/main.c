@@ -384,6 +384,7 @@ int main (int argc, char *argv[])
    
                      /* TODO: Is one update per frame enough for the new audio system?  Not that it's going to perform
                         very wellduring rewinding anyway. :b */
+                     apu_sync_update ();
                      audio_update ();
    
                      continue;
@@ -539,6 +540,7 @@ int main (int argc, char *argv[])
                   cpu_interrupt (mmc_scanline_end (ppu_scanline));
 
                /* Audio updates every scanline should be more than often enough. */
+               apu_sync_update ();
                audio_update ();
             }
 
@@ -632,6 +634,7 @@ int main (int argc, char *argv[])
                if (mmc_scanline_end)
                   cpu_interrupt (mmc_scanline_end (ppu_scanline));
 
+               apu_sync_update ();
                audio_update ();
             }
          }

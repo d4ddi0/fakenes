@@ -330,7 +330,7 @@ void AudiolibAllegroDriver::resume(void)
 
 #ifdef USE_OPENAL
 // --- OpenAL driver. ---
-#define AUDIOLIB_OPENAL_BUFFERS	2
+#define AUDIOLIB_OPENAL_BUFFERS	3
 
 AudiolibOpenALDriver::AudiolibOpenALDriver(void)
 {
@@ -410,11 +410,13 @@ void AudiolibOpenALDriver::deinitialize(void)
    closeStream();
 
    if(context) {
+      // Destroy the device context.
       alcDestroyContext(context);
       context = null;
    }
 
    if(device) {
+      // Close the device.
       alcCloseDevice(device);
       device = null;
    }

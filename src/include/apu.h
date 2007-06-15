@@ -29,6 +29,7 @@ extern void apu_write(UINT16 address, UINT8 value);
 extern void apu_predict_irqs(cpu_time_t cycles);
 extern void apu_save_state(PACKFILE* file, int version);
 extern void apu_load_state(PACKFILE* file, int version);
+extern void apu_sync_update(void);
 
 typedef struct apu_options_s {
    BOOL enabled;       /* Enable emulation */
