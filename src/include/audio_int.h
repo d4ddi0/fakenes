@@ -28,8 +28,8 @@ public:
    virtual void deinitialize(void) { }
    virtual int openStream(void) { return 1; }
    virtual void closeStream(void) { }
-   virtual void* getBuffer(void) { return null; }
-   virtual void freeBuffer(void) { }
+   virtual void* getBuffer(void* buffer) { return null; }
+   virtual void freeBuffer(void* buffer) { }
    virtual void suspend(void) { }
    virtual void resume(void) { }
 };
@@ -42,8 +42,8 @@ public:
    void deinitialize(void);
    int openStream(void);
    void closeStream(void);
-   void* getBuffer(void);
-   void freeBuffer(void);
+   void* getBuffer(void* buffer);
+   void freeBuffer(void* buffer);
    void suspend(void);
    void resume(void);
 
@@ -60,12 +60,15 @@ public:
    void deinitialize(void);
    int openStream(void);
    void closeStream(void);
-   void* getBuffer(void);
-   void freeBuffer(void);
+   void* getBuffer(void* buffer);
+   void freeBuffer(void* buffer);
    void suspend(void);
    void resume(void);
 
 private:
+   const UCHAR* getErrorStringAL(ALenum error);
+   const UCHAR* getErrorStringALC(ALCenum error);
+
    ALCdevice* device;
    ALCcontext* context;
    void* copyBuffer;

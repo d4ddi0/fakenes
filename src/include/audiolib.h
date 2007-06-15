@@ -16,12 +16,12 @@ extern "C" {
 
 extern int audiolib_init(void);
 extern void audiolib_exit(void);
-extern int audiolib_open_stream (void);
-extern void audiolib_close_stream (void);
-extern void *audiolib_get_buffer (void);
-extern void audiolib_free_buffer (void);
-extern void audiolib_suspend (void);
-extern void audiolib_resume (void);
+extern int audiolib_open_stream(void);
+extern void audiolib_close_stream(void);
+extern void *audiolib_get_buffer(void* buffer);
+extern void audiolib_free_buffer(void* buffer);
+extern void audiolib_suspend(void);
+extern void audiolib_resume(void);
 
 #ifdef __cplusplus
 }

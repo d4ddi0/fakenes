@@ -122,28 +122,32 @@ void audiolib_close_stream(void)
    audiolibDriver->closeStream();
 }
 
-void* audiolib_get_buffer(void)
+void* audiolib_get_buffer(void* buffer)
 {
    DEBUG_PRINTF("audiolib_get_buffer()\n");
+
+   RT_ASSERT(buffer);
 
    if(!audiolibDriver) {
       WARN_GENERIC();
       return null;
    }
 
-   return audiolibDriver->getBuffer();
+   return audiolibDriver->getBuffer(buffer);
 }
 
-void audiolib_free_buffer(void)
+void audiolib_free_buffer(void* buffer)
 {
    DEBUG_PRINTF("audiolib_free_buffer()\n");
+
+   RT_ASSERT(buffer);
 
    if(!audiolibDriver) {
       WARN_GENERIC();
       return;
    }
 
-   audiolibDriver->freeBuffer();
+   audiolibDriver->freeBuffer(buffer);
 }
 
 void audiolib_suspend(void)
@@ -277,8 +281,10 @@ void AudiolibAllegroDriver::closeStream(void)
    }
 }
 
-void* AudiolibAllegroDriver::getBuffer(void)
+void* AudiolibAllegroDriver::getBuffer(void* buffer)
 {
+   RT_ASSERT(buffer);
+
    if(!stream) {
       WARN_GENERIC();
       return null;
@@ -287,8 +293,10 @@ void* AudiolibAllegroDriver::getBuffer(void)
    return get_audio_stream_buffer(stream);
 }
 
-void AudiolibAllegroDriver::freeBuffer(void)
+void AudiolibAllegroDriver::freeBuffer(void* buffer)
 {
+   RT_ASSERT(buffer);
+
    if(!stream) {
       WARN_GENERIC();
       return;
@@ -329,20 +337,27 @@ AudiolibOpenALDriver::AudiolibOpenALDriver(void)
    // Initialize variables.
    device = null;
    context = null;
-   copyBuffer = null;
    buffers = null;
 }
 
 int AudiolibOpenALDriver::initialize(void)
 {
+   // Open the default device.
    device = alcOpenDevice(null);
    if(!device) {
+      log_printf("AUDIOLIB: AudiolibOpenALDriver::initialize(): Fatal: Couldn't open default device.");
       deinitialize();
       return 1;
    }
 
+   // Create a context for the device using the default attributes.
+   alcGetError(device);
    context = alcCreateContext(device, null);
    if(!context) {
+      const ALCenum error = alcGetError(device);
+      log_printf("AUDIOLIB: AudiolibOpenALDriver::initialize(): Creation of device context failed.");
+      log_printf("AUDIOLIB: AudiolibOpenALDriver::initialize(): alcCreateContext() error code %d.", error);
+      log_printf("AUDIOLIB: AudiolibOpenALDriver::initialize(): OpenAL says: %s.", getErrorStringALC(error));
       deinitialize();
       return 2;
    }
@@ -370,6 +385,21 @@ int AudiolibOpenALDriver::initialize(void)
    else
       format = AL_FORMAT_MONO16;
 
+   log_printf("\n"
+              "AUDIOLIB: AudiolibOpenALDriver::initialize(): Configuration:\n"
+              "AUDIOLIB: AudiolibOpenALDriver::initialize():    Channels: %s\n"
+              "AUDIOLIB: AudiolibOpenALDriver::initialize():    Sample rate: %d Hz (%s)\n"
+              "AUDIOLIB: AudiolibOpenALDriver::initialize():    Sample format: %s %d-bit\n"
+              "AUDIOLIB: AudiolibOpenALDriver::initialize():    Buffer length: %dms (%s)\n"
+              "\n",
+              ((audio_channels == 2) ? "Stereo" : "Mono"),
+              audio_sample_rate,
+              ((audio_options.sample_rate_hint == -1) ? "Autodetect" : "Forced"),
+              (audio_signed_samples ? "Signed" : "Unsigned"),
+              audio_sample_bits,
+              audio_buffer_length_ms,
+              ((audio_options.buffer_length_ms_hint == -1) ? "Autodetect" : "Forced"));
+
    // Return success.
    return 0;
 }
@@ -392,27 +422,30 @@ void AudiolibOpenALDriver::deinitialize(void)
 
 int AudiolibOpenALDriver::openStream(void)
 {
-   copyBuffer = malloc(audio_buffer_size_bytes);
-   if (!copyBuffer) {
-      closeStream();
-      return 1;
-   }
-
-   memset(copyBuffer, 0, audio_buffer_size_bytes);
-
    buffers = (ALuint*)malloc((sizeof(ALuint) * AUDIOLIB_OPENAL_BUFFERS));
    if(!buffers) {
       closeStream();
-      return 2;
+      return 1;
    }
 
    alGenBuffers(AUDIOLIB_OPENAL_BUFFERS, buffers);
    alGenSources(1, &source);
 
+   void* tempBuffer = malloc(audio_buffer_size_bytes);
+   if (!tempBuffer) {
+      free(tempBuffer);
+      closeStream();
+      return 2;
+   }
+
+   memset(tempBuffer, 0, audio_buffer_size_bytes);
+
    for(int index = 0; index < AUDIOLIB_OPENAL_BUFFERS; index++) {
       ALuint buffer = buffers[index];
-      alBufferData(buffer, format, copyBuffer, audio_buffer_size_bytes, audio_sample_rate);
+      alBufferData(buffer, format, tempBuffer, audio_buffer_size_bytes, audio_sample_rate);
    }
+
+   free(tempBuffer);
 
    alSourceQueueBuffers(source, AUDIOLIB_OPENAL_BUFFERS, buffers);
 
@@ -425,19 +458,16 @@ void AudiolibOpenALDriver::closeStream(void)
    alDeleteSources(1, &source);
    alDeleteBuffers(AUDIOLIB_OPENAL_BUFFERS, buffers);
 
-   if(copyBuffer) {
-      free(copyBuffer);
-      copyBuffer = null;
-   }
-
    if(buffers) {
       free(buffers);
       buffers = null;
    }
 }
 
-void* AudiolibOpenALDriver::getBuffer(void)
+void* AudiolibOpenALDriver::getBuffer(void* buffer)
 {
+   RT_ASSERT(buffer);
+
    ALint processed;
    alGetSourcei(source, AL_BUFFERS_PROCESSED, &processed);
    if(processed == 0)
@@ -445,12 +475,14 @@ void* AudiolibOpenALDriver::getBuffer(void)
 
    alSourceUnqueueBuffers(source, 1, &floatingBuffer);
 
-   return copyBuffer;
+   return buffer;
 }
 
-void AudiolibOpenALDriver::freeBuffer(void)
+void AudiolibOpenALDriver::freeBuffer(void* buffer)
 {
-   alBufferData(floatingBuffer, format, copyBuffer, audio_buffer_size_bytes, audio_sample_rate);
+   RT_ASSERT(buffer);
+
+   alBufferData(floatingBuffer, format, buffer, audio_buffer_size_bytes, audio_sample_rate);
    alSourceQueueBuffers(source, 1, &floatingBuffer);
    
    ALint state;
@@ -467,5 +499,21 @@ void AudiolibOpenALDriver::suspend(void)
 void AudiolibOpenALDriver::resume(void)
 {
    alSourcePlay(source);
+}
+
+const UCHAR* AudiolibOpenALDriver::getErrorStringAL(ALenum error)
+{
+   switch(error) {
+      default:
+         return "Unknown error";
+   }
+}
+
+const UCHAR* AudiolibOpenALDriver::getErrorStringALC(ALCenum error)
+{
+   switch(error) {
+      default:
+         return "Unknown error";
+   }
 }
 #endif //USE_OPENAL

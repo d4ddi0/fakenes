@@ -199,13 +199,16 @@ void audio_update(void)
 #if 0
    // Check if the buffer is full.
    if(audioBufferedFrames == audio_buffer_size_frames) {
-      // See if we can update the external buffer yet.
-      void* audiolibBuffer = audiolib_get_buffer();
+      // See if we can update the driver buffer yet.
+      void* audiolibBuffer = audiolib_get_buffer(audioBuffer);
       if(audiolibBuffer) {
-         // Copy to the external buffer.
-         memcpy(audiolibBuffer, audioBuffer, audio_buffer_size_bytes);
+         if(audiolibBuffer != audioBuffer) {
+            // Copy to external buffer.
+            memcpy(audiolibBuffer, audioBuffer, audio_buffer_size_bytes);
+         }
+
          // Let the subsystem have it.
-         audiolib_free_buffer();
+         audiolib_free_buffer(audiolibBuffer);
 
          // Empty the internal buffer.
          audioBufferedFrames = 0;
@@ -332,13 +335,16 @@ void audio_update(void)
 
    // Check if the buffer is full.
    if(audioBufferedFrames == audio_buffer_size_frames) {
-      // See if we can update the external buffer yet.
-      void* audiolibBuffer = audiolib_get_buffer();
+      // See if we can update the driver buffer yet.
+      void* audiolibBuffer = audiolib_get_buffer(audioBuffer);
       if(audiolibBuffer) {
-         // Copy to the external buffer.
-         memcpy(audiolibBuffer, audioBuffer, audio_buffer_size_bytes);
+         if(audiolibBuffer != audioBuffer) {
+            // Copy to external buffer.
+            memcpy(audiolibBuffer, audioBuffer, audio_buffer_size_bytes);
+         }
+
          // Let the subsystem have it.
-         audiolib_free_buffer();
+         audiolib_free_buffer(audiolibBuffer);
 
          // Empty the internal buffer.
          audioBufferedFrames = 0;
