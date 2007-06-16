@@ -215,8 +215,8 @@ int AudiolibAllegroDriver::initialize(void)
    audio_signed_samples = FALSE;
 
    if(audio_options.buffer_length_ms_hint == -1) {
-      // Any buffer length should do, but ~67ms has served me well in the past.
-      audio_buffer_length_ms = 67;
+      // 75ms should do.
+      audio_buffer_length_ms = 75;
    }
    else
       audio_buffer_length_ms = audio_options.buffer_length_ms_hint;
@@ -330,7 +330,7 @@ void AudiolibAllegroDriver::resume(void)
 
 #ifdef USE_OPENAL
 // --- OpenAL driver. ---
-#define AUDIOLIB_OPENAL_BUFFERS	3
+#define AUDIOLIB_OPENAL_BUFFERS	2
 
 AudiolibOpenALDriver::AudiolibOpenALDriver(void)
 {
@@ -374,8 +374,8 @@ int AudiolibOpenALDriver::initialize(void)
    audio_signed_samples = TRUE;
 
    if(audio_options.buffer_length_ms_hint == -1) {
-      // OpenAL requires a notably higher buffer size than Allegro - but ~83ms should do.
-      audio_buffer_length_ms = 83;
+      // 75ms should do.
+      audio_buffer_length_ms = 75;
    }
    else
       audio_buffer_length_ms = audio_options.buffer_length_ms_hint;
@@ -451,6 +451,8 @@ int AudiolibOpenALDriver::openStream(void)
 
    alSourceQueueBuffers(source, AUDIOLIB_OPENAL_BUFFERS, buffers);
 
+   alSourcePlay(source);
+   
    return 0;
 }
 
@@ -472,7 +474,7 @@ void* AudiolibOpenALDriver::getBuffer(void* buffer)
 
    ALint processed;
    alGetSourcei(source, AL_BUFFERS_PROCESSED, &processed);
-   if(processed == 0)
+   if (processed == 0)
       return null;
 
    alSourceUnqueueBuffers(source, 1, &floatingBuffer);
@@ -490,7 +492,7 @@ void AudiolibOpenALDriver::freeBuffer(void* buffer)
    ALint state;
    alGetSourcei(source, AL_SOURCE_STATE, &state);
    if(state == AL_STOPPED)
-      resume();
+      alSourcePlay(source);
 }
 
 void AudiolibOpenALDriver::suspend(void)
@@ -506,6 +508,16 @@ void AudiolibOpenALDriver::resume(void)
 const UCHAR* AudiolibOpenALDriver::getErrorStringAL(ALenum error)
 {
    switch(error) {
+      case AL_INVALID_ENUM:
+         return "Invalid enum";
+      case AL_INVALID_NAME:
+         return "Invalid name";
+      case AL_INVALID_OPERATION:
+         return "Invalid operation";
+      case AL_INVALID_VALUE:
+         return "Invalid value";
+      case AL_OUT_OF_MEMORY:
+         return "Out of memory";
       default:
          return "Unknown error";
    }
@@ -514,6 +526,15 @@ const UCHAR* AudiolibOpenALDriver::getErrorStringAL(ALenum error)
 const UCHAR* AudiolibOpenALDriver::getErrorStringALC(ALCenum error)
 {
    switch(error) {
+      case ALC_INVALID_CONTEXT:
+         return "Invalid context";
+      case ALC_INVALID_DEVICE:
+         return "Invalid device";
+      case ALC_INVALID_ENUM:
+         return "Invalid enum";
+      case ALC_INVALID_VALUE:
+         return "Invalid value";
+
       default:
          return "Unknown error";
    }
