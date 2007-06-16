@@ -121,7 +121,7 @@ CLEANFILES += " ${STDOUT_LOG} ${STDERR_LOG}"
 
 # Our little configure script. =)
 
-CFG_HEADER = "${DEP_DIR}/config.h"
+CFG_HEADER = "${DEP_DIR}/buildconfig.h"
 
 do ifnopt clean
    do ifnexist "${CFG_HEADER}"
