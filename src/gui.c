@@ -497,8 +497,8 @@ int show_gui (BOOL first_run)
    
       if (first_run)
       {
-         /* Show console. */
-         main_menu_view_console ();
+         /* Show version. */
+         help_menu_about ();
 
          /* Clear flag. */
          first_run = FALSE;
@@ -1512,74 +1512,6 @@ static int main_menu_advance_frame (void)
    frames_to_execute = 1;
 
    return (D_CLOSE);
-}
-
-static int main_menu_view_console (void)
-{
-   DIALOG *dialog;
-   DIALOG *objframe;
-   DIALOG *objview;
-
-   /* Create dialog. */
-   dialog = load_dialog (viewer_dialog_base);
-   if (!dialog)
-   {
-      WARN("Failed to create dialog structure");
-      return (-1);
-   }
-
-   /* Get objects. */
-
-   objframe = &dialog[VIEWER_DIALOG_FRAME];
-   objview  = &dialog[VIEWER_DIALOG_TEXT];
-
-   /* Set up objects. */
-
-   objframe->dp2 = "Console";
-
-   objview->dp = get_console_text ();
-
-   /* Show dialog. */
-   show_dialog (dialog, -1);
-
-   /* Destroy dialog. */
-   unload_dialog (dialog);
-
-   return (D_O_K);
-}
-
-static int main_menu_view_log (void)
-{
-   DIALOG *dialog;
-   DIALOG *objframe;
-   DIALOG *objview;
-
-   /* Create dialog. */
-   dialog = load_dialog (viewer_dialog_base);
-   if (!dialog)
-   {
-      WARN("Failed to create dialog structure");
-      return (-1);
-   }
-
-   /* Get objects. */
-
-   objframe = &dialog[VIEWER_DIALOG_FRAME];
-   objview  = &dialog[VIEWER_DIALOG_TEXT];
-
-   /* Set up objects. */
-
-   objframe->dp2 = "Log";
-
-   objview->dp = get_log_text ();
-
-   /* Show dialog. */
-   show_dialog (dialog, -1);
-
-   /* Destroy dialog. */
-   unload_dialog (dialog);
-
-   return (D_O_K);
 }
 
 static int main_menu_save_configuration (void)
@@ -3492,25 +3424,93 @@ static int netplay_menu_start_as_client (void)
    return (open_lobby ());
 }
 
-static int help_menu_shortcuts (void)
+static int help_menu_view_license (void)
 {
-   show_dialog (help_shortcuts_dialog, -1);
+   DIALOG *dialog;
+   DIALOG *objframe;
+   DIALOG *objview;
+
+   /* Create dialog. */
+   dialog = load_dialog (viewer_dialog_base);
+   if (!dialog)
+   {
+      WARN("Failed to create dialog structure");
+      return (-1);
+   }
+
+   /* Get objects. */
+
+   objframe = &dialog[VIEWER_DIALOG_FRAME];
+   objview  = &dialog[VIEWER_DIALOG_TEXT];
+
+   /* Set up objects. */
+
+   objframe->dp2 = "License";
+
+   objview->dp = get_console_text ();
+
+   /* Show dialog. */
+   show_dialog (dialog, -1);
+
+   /* Destroy dialog. */
+   unload_dialog (dialog);
+
+   return (D_O_K);
+}
+
+static int help_menu_view_log (void)
+{
+   DIALOG *dialog;
+   DIALOG *objframe;
+   DIALOG *objview;
+
+   /* Create dialog. */
+   dialog = load_dialog (viewer_dialog_base);
+   if (!dialog)
+   {
+      WARN("Failed to create dialog structure");
+      return (-1);
+   }
+
+   /* Get objects. */
+
+   objframe = &dialog[VIEWER_DIALOG_FRAME];
+   objview  = &dialog[VIEWER_DIALOG_TEXT];
+
+   /* Set up objects. */
+
+   objframe->dp2 = "Log";
+
+   objview->dp = get_log_text ();
+
+   /* Show dialog. */
+   show_dialog (dialog, -1);
+
+   /* Destroy dialog. */
+   unload_dialog (dialog);
+
+   return (D_O_K);
+}
+
+static int help_menu_keyboard_shortcuts (void)
+{
+   show_dialog (help_keyboard_shortcuts_dialog, -1);
 
    return (D_O_K);
 }
 
 static int help_menu_about (void)
 {
-   show_dialog (help_about_dialog, -1);
+   gui_alert ("About", "FakeNES version " VERSION_STRING " "
+      ALLEGRO_PLATFORM_STR, "Get the latest from "
+         "http://fakenes.sourceforge.net/.", NULL, "&OK", NULL, 'o', 0);
 
    return (D_O_K);
 }
 
-static int help_menu_version (void)
+static int help_menu_fakenes_team (void)
 {
-   gui_alert ("Version", "FakeNES version " VERSION_STRING " "
-      ALLEGRO_PLATFORM_STR, "Get the latest from "
-         "http://fakenes.sourceforge.net/.", NULL, "&OK", NULL, 'o', 0);
+   show_dialog (help_fakenes_team_dialog, -1);
 
    return (D_O_K);
 }

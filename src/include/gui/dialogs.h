@@ -15,8 +15,8 @@ DEFINE_DIALOG(options_input_configure_dialog);
 DEFINE_DIALOG(options_paths_dialog);
 DEFINE_DIALOG(netplay_dialog);
 DEFINE_DIALOG(lobby_dialog);
-DEFINE_DIALOG(help_shortcuts_dialog);
-DEFINE_DIALOG(help_about_dialog);
+DEFINE_DIALOG(help_keyboard_shortcuts_dialog);
+DEFINE_DIALOG(help_fakenes_team_dialog);
 
 /* alert() replacement dialog, loaded and built by gui_alert(). */
 static const DIALOG alert_dialog_base[] =
@@ -485,9 +485,9 @@ enum
    LOBBY_DIALOG_CANCEL_BUTTON
 };
 
-static const DIALOG help_shortcuts_dialog_base[] =
+static const DIALOG help_keyboard_shortcuts_dialog_base[] =
 {
-    { sl_frame,    0,   0,   278, 166, 0, 0, 0,   0,      0, 0, NULL,    "Shortcuts",                 NULL },
+    { sl_frame,    0,   0,   278, 166, 0, 0, 0,   0,      0, 0, NULL,    "Keyboard Shortcuts",        NULL },
     { sl_x_button, 258, 4,   16,  12,  0, 0, 0,   D_EXIT, 0, 0, "X",     NULL,                        NULL },
     { sl_text,     9,   28,  0,   0,   0, 0, 0,   0,      0, 0, NULL,    "F1  - Save Snapshot",       NULL },
     { sl_text,     9,   41,  0,   0,   0, 0, 0,   0,      0, 0, NULL,    "F2  - Toggle Status",       NULL },
@@ -513,9 +513,9 @@ static const DIALOG help_shortcuts_dialog_base[] =
     DIALOG_FRAME_ENDCAP
 };
 
-static const DIALOG help_about_dialog_base[] =
+static const DIALOG help_fakenes_team_dialog_base[] =
 {
-   { sl_frame,    0,   0,   227, 159, 0, 0, 0, 0,      0, 0, NULL, "About",              NULL },
+   { sl_frame,    0,   0,   227, 159, 0, 0, 0, 0,      0, 0, NULL, "FakeNES Team",       NULL },
    { sl_x_button, 207, 4,   16,  12,  0, 0, 0, D_EXIT, 0, 0, "X",  NULL,                 NULL },
    { sl_text,     9,   28,  0 ,  0,   0, 0, 0, 0,      0, 0, NULL, "Developers:",        NULL },
    { sl_text,     18,  37,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "randilyn",           NULL },
@@ -745,8 +745,8 @@ static INLINE void load_dialogs (void)
    DIALOG_FROM_BASE(options_paths_dialog);
    DIALOG_FROM_BASE(netplay_dialog);
    DIALOG_FROM_BASE(lobby_dialog);
-   DIALOG_FROM_BASE(help_shortcuts_dialog);
-   DIALOG_FROM_BASE(help_about_dialog);
+   DIALOG_FROM_BASE(help_keyboard_shortcuts_dialog);
+   DIALOG_FROM_BASE(help_fakenes_team_dialog);
 }
 
 #undef DIALOG_FROM_BASE
@@ -763,8 +763,8 @@ static INLINE void unload_dialogs (void)
    unload_dialog (options_paths_dialog);
    unload_dialog (netplay_dialog);
    unload_dialog (lobby_dialog);
-   unload_dialog (help_shortcuts_dialog);
-   unload_dialog (help_about_dialog);
+   unload_dialog (help_keyboard_shortcuts_dialog);
+   unload_dialog (help_fakenes_team_dialog);
 }
 
 static INLINE int run_dialog (DIALOG *dialog, int focus)

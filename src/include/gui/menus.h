@@ -136,8 +136,6 @@ DEFINE_MENU_CALLBACK(main_menu_open);
 DEFINE_MENU_CALLBACK(main_menu_close);
 DEFINE_MENU_CALLBACK(main_menu_save_snapshot);
 DEFINE_MENU_CALLBACK(main_menu_advance_frame);
-DEFINE_MENU_CALLBACK(main_menu_view_console);
-DEFINE_MENU_CALLBACK(main_menu_view_log);
 DEFINE_MENU_CALLBACK(main_menu_save_configuration);
 DEFINE_MENU_CALLBACK(main_menu_exit);
 
@@ -154,9 +152,6 @@ static const MENU main_menu_base[] =
    { "&Save Snapshot (F1)",  main_menu_save_snapshot,      NULL,                               0, NULL },
    { "&Advance Frame",       main_menu_advance_frame,      NULL,                                    0, NULL },
    MENU_SPLITTER,
-   { "&View Console...",     main_menu_view_console,       NULL,                               0, NULL },
-   { "View &Log...",         main_menu_view_log,           NULL,                               0, NULL },
-   MENU_SPLITTER,       
    { "Save Co&nfiguration",  main_menu_save_configuration, NULL,                               0, NULL },
    MENU_SPLITTER,       
    { "E&xit",                main_menu_exit,               NULL,                               0, NULL },
@@ -920,16 +915,21 @@ static const MENU options_menu_base[] =
    MENU_ENDCAP      
 };
 
-DEFINE_MENU_CALLBACK(help_menu_shortcuts);
+DEFINE_MENU_CALLBACK(help_menu_view_license);
+DEFINE_MENU_CALLBACK(help_menu_view_log);
+DEFINE_MENU_CALLBACK(help_menu_keyboard_shortcuts);
 DEFINE_MENU_CALLBACK(help_menu_about);
-DEFINE_MENU_CALLBACK(help_menu_version);
+DEFINE_MENU_CALLBACK(help_menu_fakenes_team);
 
 static const MENU help_menu_base[] =
 {
-   { "&Shortcuts...", help_menu_shortcuts, NULL, 0, NULL },
+   { "&View License...",       help_menu_view_license,       NULL, 0, NULL },
+   { "View &Log...",           help_menu_view_log,           NULL, 0, NULL },
+   MENU_SPLITTER,       
+   { "&Keyboard Shortcuts...", help_menu_keyboard_shortcuts, NULL, 0, NULL },
    MENU_SPLITTER,
-   { "&About...",     help_menu_about,     NULL, 0, NULL },
-   { "&Version...",   help_menu_version,     NULL, 0, NULL },
+   { "&About...",              help_menu_about,              NULL, 0, NULL },
+   { "&FakeNES Team...",       help_menu_fakenes_team,       NULL, 0, NULL },
    MENU_ENDCAP
 };
 
