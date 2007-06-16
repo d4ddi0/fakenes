@@ -337,7 +337,11 @@ AudiolibOpenALDriver::AudiolibOpenALDriver(void)
    // Initialize variables.
    device = null;
    context = null;
+
    buffers = null;
+   source = AL_INVALID;
+
+   floatingBuffer = AL_INVALID;
 }
 
 int AudiolibOpenALDriver::initialize(void)
@@ -424,20 +428,41 @@ void AudiolibOpenALDriver::deinitialize(void)
 
 int AudiolibOpenALDriver::openStream(void)
 {
-   buffers = (ALuint*)malloc((sizeof(ALuint) * AUDIOLIB_OPENAL_BUFFERS));
+   buffers = new ALuint[AUDIOLIB_OPENAL_BUFFERS];
    if(!buffers) {
+      log_printf("AUDIOLIB: AudiolibOpenALDriver::openStream(): Allocation of buffer space failed.");
       closeStream();
       return 1;
    }
 
+   alGetError();
    alGenBuffers(AUDIOLIB_OPENAL_BUFFERS, buffers);
+   ALenum error = alGetError();
+   if(error != AL_NO_ERROR) {
+      log_printf("AUDIOLIB: AudiolibOpenALDriver::openStream(): Generation of buffers failed.");
+      log_printf("AUDIOLIB: AudiolibOpenALDriver::openStream(): alGenBuffers() error code %d.", error);
+      log_printf("AUDIOLIB: AudiolibOpenALDriver::openStream(): OpenAL says: %s.", getErrorStringAL(error));
+      closeStream();
+      return 2;
+   }
+
+   alGetError();
    alGenSources(1, &source);
+   error = alGetError();
+   if(error != AL_NO_ERROR) {
+      log_printf("AUDIOLIB: AudiolibOpenALDriver::openStream(): Generation of source failed.");
+      log_printf("AUDIOLIB: AudiolibOpenALDriver::openStream(): alGenSources() error code %d.", error);
+      log_printf("AUDIOLIB: AudiolibOpenALDriver::openStream(): OpenAL says: %s.", getErrorStringAL(error));
+      closeStream();
+      return 3;
+   }
 
    void* tempBuffer = malloc(audio_buffer_size_bytes);
    if (!tempBuffer) {
+      log_printf("AUDIOLIB: AudiolibOpenALDriver::openStream(): Allocation of temporary buffer failed.");
       free(tempBuffer);
       closeStream();
-      return 2;
+      return 4;
    }
 
    memset(tempBuffer, 0, audio_buffer_size_bytes);
@@ -458,12 +483,17 @@ int AudiolibOpenALDriver::openStream(void)
 
 void AudiolibOpenALDriver::closeStream(void)
 {
-   alSourceStop(source);
-   alDeleteSources(1, &source);
-   alDeleteBuffers(AUDIOLIB_OPENAL_BUFFERS, buffers);
+   if(source != AL_INVALID) {
+      alSourceStop(source);
+      alDeleteSources(1, &source);
+      source = AL_INVALID;
+   }
 
    if(buffers) {
-      free(buffers);
+      if(buffers[0] != AL_INVALID)
+         alDeleteBuffers(AUDIOLIB_OPENAL_BUFFERS, buffers);
+
+      delete[] buffers;
       buffers = null;
    }
 }
@@ -472,12 +502,21 @@ void* AudiolibOpenALDriver::getBuffer(void* buffer)
 {
    RT_ASSERT(buffer);
 
+   if(source == AL_INVALID) {
+      WARN_GENERIC();
+      return null;
+   }
+
    ALint processed;
    alGetSourcei(source, AL_BUFFERS_PROCESSED, &processed);
-   if (processed == 0)
+   if(processed == 0)
       return null;
 
    alSourceUnqueueBuffers(source, 1, &floatingBuffer);
+   if(floatingBuffer == AL_INVALID) {
+      WARN_GENERIC();
+      return null;
+   }
 
    return buffer;
 }
@@ -486,9 +525,21 @@ void AudiolibOpenALDriver::freeBuffer(void* buffer)
 {
    RT_ASSERT(buffer);
 
+   if(source == AL_INVALID) {
+      WARN_GENERIC();
+      return;
+   }
+
+   if(floatingBuffer == AL_INVALID) {
+      WARN_GENERIC();
+      return;
+   }
+
    alBufferData(floatingBuffer, format, buffer, audio_buffer_size_bytes, audio_sample_rate);
    alSourceQueueBuffers(source, 1, &floatingBuffer);
-   
+
+   floatingBuffer = AL_INVALID;
+
    ALint state;
    alGetSourcei(source, AL_SOURCE_STATE, &state);
    if(state == AL_STOPPED)
@@ -497,11 +548,21 @@ void AudiolibOpenALDriver::freeBuffer(void* buffer)
 
 void AudiolibOpenALDriver::suspend(void)
 {
+   if(source == AL_INVALID) {
+      WARN_GENERIC();
+      return;
+   }
+
    alSourceStop(source);
 }
 
 void AudiolibOpenALDriver::resume(void)
 {
+   if(source == AL_INVALID) {
+      WARN_GENERIC();
+      return;
+   }
+
    alSourcePlay(source);
 }
 

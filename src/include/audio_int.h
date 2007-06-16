@@ -71,10 +71,11 @@ private:
 
    ALCdevice* device;
    ALCcontext* context;
-   void* copyBuffer;
-   ALuint source;
    ALuint format;
+
    ALuint* buffers;
+   ALuint source;
+
    ALuint floatingBuffer;
 };
 #endif //USE_OPENAL
