@@ -145,18 +145,25 @@ int main (int argc, char *argv[])
          "9/11 attacks.\n\n");
    }
 
-   console_printf ("FakeNES version " VERSION_STRING ", by randilyn and TRAC.\n");
-   console_printf ("Using Allegro version " ALLEGRO_VERSION_STR " (" ALLEGRO_PLATFORM_STR ").\n");
+   console_printf ("FakeNES - A free, portable, Open Source NES emulator.\n");
    console_printf ("\n");
    console_printf ("Copyright (c) 2001-2007, FakeNES Team.\n");
-#ifdef POSIX
-   console_printf ("This is free software.  See 'LICENSE' for details.\n");
-   console_printf ("You must read and accept the license prior to use.\n");
-#else
-   console_printf ("This is free software.  See 'LICENSE.TXT' for details.\n");
-   console_printf ("You must read and accept the license prior to use.\n");
-#endif
    console_printf ("\n");
+   console_printf( "This software is provided 'as-is', without any express or implied\n");
+   console_printf( "warranty.  In no event will the authors be held liable for any damages\n");
+   console_printf( "arising from the use of this software.\n");
+   console_printf ("\n");
+   console_printf( "Permission is granted to anyone to use this software for any purpose,\n");
+   console_printf( "including commercial applications, and to alter it and redistribute it\n");
+   console_printf( "freely, subject to the following restrictions:\n");
+   console_printf ("\n");
+   console_printf( "1. The origin of this software must not be misrepresented; you must not\n");
+   console_printf( "   claim that you wrote the original software. If you use this software\n");
+   console_printf( "   in a product, an acknowledgment in the product documentation would be\n");
+   console_printf( "   appreciated but is not required.\n");
+   console_printf( "2. Altered source versions must be plainly marked as such, and must not be\n");
+   console_printf( "   misrepresented as being the original software.\n");
+   console_printf( "3. This notice may not be removed or altered from any source distribution.\n");
 
    allegro_init ();
 
