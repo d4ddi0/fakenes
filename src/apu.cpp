@@ -1108,15 +1108,24 @@ void apu_update(void)
    /* Updates the APU to external changes without resetting it, since that
       might cause problems in a currently running game. */
 
-   /* Number of samples to be held in the APU mixer accumulators before
-      being divided and sent to the DSP.
-
-      This should be directly synchronized with the code execution rate to
-      avoid overflowing the sample buffer. */
-   apu.mixer.max_samples = ((timing_get_frequency() / CYCLE_LENGTH) / audio_sample_rate);
+   // Clear mixer state.
+   memset(&apu.mixer, 0, sizeof(apu.mixer));
 
    // Determine number of channels to mix.
    apu.mixer.channels = (apu_options.stereo ? 2 : 1);
+
+   /* Number of samples to be held in the APU mixer accumulators before
+      being divided and sent to the audio queue.
+
+      This should be directly synchronized with the code execution rate to
+      avoid overflowing the sample buffer. */
+   real frequency;
+   if(audio_options.enable_output)
+      frequency = audio_sample_rate;
+   else
+      frequency = 44100;  // Just a dumb default for the 'Fast' mixer.
+
+   apu.mixer.max_samples = ((timing_get_frequency() / CYCLE_LENGTH) / frequency);
 }
 
 void apu_set_exsound(ENUM type)
@@ -1635,18 +1644,20 @@ static void process(void)
                if(exsound)
                   exsound->process(apu.timer_delta);
 
-               // Mix outputs together.
-               mix();
+               if(audio_options.enable_output) {
+                  // Mix outputs together.
+                  mix();
 
-               // Fetch and buffer samples.
-               for(int channel = 0; channel < apu.mixer.channels; channel++) {
-                  // Fetch sample.
-                  real sample = apu.mixer.inputs[channel];
+                  // Fetch and buffer samples.
+                  for(int channel = 0; channel < apu.mixer.channels; channel++) {
+                     // Fetch sample.
+                     real sample = apu.mixer.inputs[channel];
 
-                  // Send it to the audio queue.
-                  filter(sample, &apu.mixer.lpEnv[channel], &apu.mixer.dcEnv[channel]);
-                  amplify(sample);
-                  enqueue(sample);
+                     // Send it to the audio queue.
+                     filter(sample, &apu.mixer.lpEnv[channel], &apu.mixer.dcEnv[channel]);
+                     amplify(sample);
+                     enqueue(sample);
+                  }
                }
 
                // Adjust counter.
@@ -1671,25 +1682,27 @@ static void process(void)
             if(exsound)
                exsound->process(apu.timer_delta);
 
-            // Simulate accumulation.
-            apu.mixer.accumulated_samples++;
-            if(apu.mixer.accumulated_samples >= apu.mixer.max_samples) {
-               // Mix outputs together.
-               mix();
+            if(audio_options.enable_output) {
+               // Simulate accumulation.
+               apu.mixer.accumulated_samples++;
+               if(apu.mixer.accumulated_samples >= apu.mixer.max_samples) {
+                  // Mix outputs together.
+                  mix();
 
-               // Fetch and buffer samples.
-               for(int channel = 0; channel < apu.mixer.channels; channel++) {
-                  // Fetch sample.
-                  real sample = apu.mixer.inputs[channel];
+                  // Fetch and buffer samples.
+                  for(int channel = 0; channel < apu.mixer.channels; channel++) {
+                     // Fetch sample.
+                     real sample = apu.mixer.inputs[channel];
 
-                  // Send it to the audio queue.
-                  filter(sample, &apu.mixer.lpEnv[channel], &apu.mixer.dcEnv[channel]);
-                  amplify(sample);
-                  enqueue(sample);
+                     // Send it to the audio queue.
+                     filter(sample, &apu.mixer.lpEnv[channel], &apu.mixer.dcEnv[channel]);
+                     amplify(sample);
+                     enqueue(sample);
+                  }
+
+                  // Adjust counter.
+                  apu.mixer.accumulated_samples -= apu.mixer.max_samples;
                }
-
-               // Adjust counter.
-               apu.mixer.accumulated_samples -= apu.mixer.max_samples;
             }
          }
 
@@ -1710,45 +1723,47 @@ static void process(void)
             if(exsound)
                exsound->process(apu.timer_delta);
 
-            // Mix outputs together.
-            mix();
+            if(audio_options.enable_output) {
+               // Mix outputs together.
+               mix();
 
-            // Gather samples.
-            for(int channel = 0; channel < apu.mixer.channels; channel++) {
-               // Fetch sample.
-               const real sample = apu.mixer.inputs[channel];
-               // Accumulate sample.
-               apu.mixer.accumulators[channel] += sample;
-               // Cache it so that we can split it up later if need be.
-               apu.mixer.sample_cache[channel] = sample;
-            }
-
-            apu.mixer.accumulated_samples++;
-            if(apu.mixer.accumulated_samples >= apu.mixer.max_samples) {
-               // Determine how much of the last sample we want to keep for the next loop.
-               const real residual = (apu.mixer.accumulated_samples - floor(apu.mixer.max_samples));
-               // Calculate the divider for the APU:DSP frequency ratio.
-               const real divider = (apu.mixer.accumulated_samples - residual);
-
+               // Gather samples.
                for(int channel = 0; channel < apu.mixer.channels; channel++) {
-                  real& sample = apu.mixer.accumulators[channel];
-                  // Remove residual sample portion.
-                  sample -= (apu.mixer.sample_cache[channel] * residual);
-                  // Divide.
-                  sample /= divider;
-
-                  // Send it to the audio queue.
-                  filter(sample, null, &apu.mixer.dcEnv[channel]);
-                  amplify(sample);
-                  enqueue(sample);
+                  // Fetch sample.
+                  const real sample = apu.mixer.inputs[channel];
+                  // Accumulate sample.
+                  apu.mixer.accumulators[channel] += sample;
+                  // Cache it so that we can split it up later if need be.
+                  apu.mixer.sample_cache[channel] = sample;
                }
 
-               // Reload accumulators with residual sample portion.
-               for(int channel = 0; channel < apu.mixer.channels; channel++)
-                  apu.mixer.accumulators[channel] = (apu.mixer.sample_cache[channel] * residual);
+               apu.mixer.accumulated_samples++;
+               if(apu.mixer.accumulated_samples >= apu.mixer.max_samples) {
+                  // Determine how much of the last sample we want to keep for the next loop.
+                  const real residual = (apu.mixer.accumulated_samples - floor(apu.mixer.max_samples));
+                  // Calculate the divider for the APU:DSP frequency ratio.
+                  const real divider = (apu.mixer.accumulated_samples - residual);
 
-               // Adjust counter.
-               apu.mixer.accumulated_samples -= apu.mixer.max_samples;
+                  for(int channel = 0; channel < apu.mixer.channels; channel++) {
+                     real& sample = apu.mixer.accumulators[channel];
+                     // Remove residual sample portion.
+                     sample -= (apu.mixer.sample_cache[channel] * residual);
+                     // Divide.
+                     sample /= divider;
+
+                     // Send it to the audio queue.
+                     filter(sample, null, &apu.mixer.dcEnv[channel]);
+                     amplify(sample);
+                     enqueue(sample);
+                  }
+
+                  // Reload accumulators with residual sample portion.
+                  for(int channel = 0; channel < apu.mixer.channels; channel++)
+                     apu.mixer.accumulators[channel] = (apu.mixer.sample_cache[channel] * residual);
+
+                  // Adjust counter.
+                  apu.mixer.accumulated_samples -= apu.mixer.max_samples;
+               }
             }
          }
 
