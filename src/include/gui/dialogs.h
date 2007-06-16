@@ -7,11 +7,11 @@
   
 DEFINE_DIALOG(main_dialog);
 DEFINE_DIALOG(main_replay_record_start_dialog);
+DEFINE_DIALOG(main_cheat_manager_add_dialog);
+DEFINE_DIALOG(main_cheat_manager_dialog);
 DEFINE_DIALOG(machine_save_state_save_dialog);
-DEFINE_DIALOG(machine_cheat_manager_add_dialog);
-DEFINE_DIALOG(machine_cheat_manager_dialog);
 DEFINE_DIALOG(video_color_dialog);
-DEFINE_DIALOG(options_input_configure_dialog);
+DEFINE_DIALOG(input_configure_dialog);
 DEFINE_DIALOG(options_paths_dialog);
 DEFINE_DIALOG(netplay_dialog);
 DEFINE_DIALOG(lobby_dialog);
@@ -165,6 +165,59 @@ enum
    MAIN_REPLAY_RECORD_START_DIALOG_CANCEL_BUTTON
 };
 
+static const DIALOG main_cheat_manager_add_dialog_base[] =
+{
+   { sl_frame,    0,   0,  156, 100, 0, 0, 0,   0,      0, 0, NULL,  "Add Cheat", NULL },
+   { sl_x_button, 136, 4,  16,  12,  0, 0, 0,   D_EXIT, 0, 0, "X",   NULL,        NULL },
+   { sl_text,     9,   36, 0,   0,   0, 0, 0,   0,      0, 0, NULL,  "&Title:",   NULL },
+   { sl_editbox,  48,  32, 96,  16,  0, 0, 't', 0,      0, 0, NULL,  NULL,        NULL },
+   { sl_text,     14,  56, 0,   0,   0, 0, 0,   0,      0, 0, NULL,  "&Code:",    NULL },
+   { sl_editbox,  48,  52, 61,  16,  0, 0, 'c', 0,      0, 0, NULL,  NULL,        NULL },
+   { sl_button,   112, 76, 32,  16,  0, 0, 'o', D_EXIT, 0, 0, "&OK", NULL,        NULL },
+   DIALOG_FRAME_ENDCAP
+};
+
+enum
+{
+   MAIN_CHEAT_MANAGER_ADD_DIALOG_FRAME = 0,
+   MAIN_CHEAT_MANAGER_ADD_DIALOG_CLOSE_BUTTON,
+   MAIN_CHEAT_MANAGER_ADD_DIALOG_TITLE_LABEL,
+   MAIN_CHEAT_MANAGER_ADD_DIALOG_TITLE,
+   MAIN_CHEAT_MANAGER_ADD_DIALOG_CODE_LABEL,
+   MAIN_CHEAT_MANAGER_ADD_DIALOG_CODE,
+   MAIN_CHEAT_MANAGER_ADD_DIALOG_OK_BUTTON
+};
+
+DEFINE_DIALOG_CALLBACK(main_cheat_manager_dialog_list);
+DEFINE_DIALOG_CALLBACK(main_cheat_manager_dialog_add);
+DEFINE_DIALOG_CALLBACK(main_cheat_manager_dialog_remove);
+DEFINE_DIALOG_CALLBACK(main_cheat_manager_dialog_enabled);
+
+static char *main_cheat_manager_dialog_list_filler (int, int *);
+
+static const DIALOG main_cheat_manager_dialog_base[] =
+{
+   { sl_frame,    0,   0,   226, 160, 0, 0, 0,   0,      0, 0, NULL,                                      "Cheat Manager",                      NULL                              },
+   { sl_x_button, 206, 4,   16,  12,  0, 0, 0,   D_EXIT, 0, 0, "X",                                       NULL,                                 NULL                              },
+   { sl_listbox,  9,   29,  207, 98,  0, 0, 0,   0,      0, 0, main_cheat_manager_dialog_list_filler, NULL,                                  main_cheat_manager_dialog_list },
+   { sl_button,   8,   136, 32,  16,  0, 0, 'a', 0,      0, 0, "&Add",                                    main_cheat_manager_dialog_add,     NULL                              },
+   { sl_button,   48,  136, 53,  16,  0, 0, 'r', 0,      0, 0, "&Remove",                                 main_cheat_manager_dialog_remove,  NULL                              },
+   { sl_checkbox, 121, 140, 64,  8,   0, 0, 'e', 0,      0, 0, "&Enabled",                                main_cheat_manager_dialog_enabled, NULL                              },
+   { sl_button,   185, 136, 32,  16,  0, 0, 's', D_EXIT, 0, 0, "&Save",                                   NULL,                                 NULL                              },
+   DIALOG_FRAME_ENDCAP
+};
+
+enum
+{
+   MAIN_CHEAT_MANAGER_DIALOG_FRAME = 0,
+   MAIN_CHEAT_MANAGER_DIALOG_CLOSE_BUTTON,
+   MAIN_CHEAT_MANAGER_DIALOG_LIST,
+   MAIN_CHEAT_MANAGER_DIALOG_ADD_BUTTON,
+   MAIN_CHEAT_MANAGER_DIALOG_REMOVE_BUTTON,
+   MAIN_CHEAT_MANAGER_DIALOG_ENABLED_CHECKBOX,
+   MAIN_CHEAT_MANAGER_DIALOG_SAVE_BUTTON
+};
+
 static const DIALOG machine_save_state_save_dialog_base[] =
 {
    { sl_frame,    0,   0,  220, 89, 0, 0, 0,   0,      0, 0, NULL,      "Save State", NULL },
@@ -184,59 +237,6 @@ enum
    MACHINE_SAVE_STATE_SAVE_DIALOG_TITLE,
    MACHINE_SAVE_STATE_SAVE_DIALOG_OK_BUTTON,
    MACHINE_SAVE_STATE_SAVE_DIALOG_CANCEL_BUTTON
-};
-
-static const DIALOG machine_cheat_manager_add_dialog_base[] =
-{
-   { sl_frame,    0,   0,  156, 100, 0, 0, 0,   0,      0, 0, NULL,  "Add Cheat", NULL },
-   { sl_x_button, 136, 4,  16,  12,  0, 0, 0,   D_EXIT, 0, 0, "X",   NULL,        NULL },
-   { sl_text,     9,   36, 0,   0,   0, 0, 0,   0,      0, 0, NULL,  "&Title:",   NULL },
-   { sl_editbox,  48,  32, 96,  16,  0, 0, 't', 0,      0, 0, NULL,  NULL,        NULL },
-   { sl_text,     14,  56, 0,   0,   0, 0, 0,   0,      0, 0, NULL,  "&Code:",    NULL },
-   { sl_editbox,  48,  52, 61,  16,  0, 0, 'c', 0,      0, 0, NULL,  NULL,        NULL },
-   { sl_button,   112, 76, 32,  16,  0, 0, 'o', D_EXIT, 0, 0, "&OK", NULL,        NULL },
-   DIALOG_FRAME_ENDCAP
-};
-
-enum
-{
-   MACHINE_CHEAT_MANAGER_ADD_DIALOG_FRAME = 0,
-   MACHINE_CHEAT_MANAGER_ADD_DIALOG_CLOSE_BUTTON,
-   MACHINE_CHEAT_MANAGER_ADD_DIALOG_TITLE_LABEL,
-   MACHINE_CHEAT_MANAGER_ADD_DIALOG_TITLE,
-   MACHINE_CHEAT_MANAGER_ADD_DIALOG_CODE_LABEL,
-   MACHINE_CHEAT_MANAGER_ADD_DIALOG_CODE,
-   MACHINE_CHEAT_MANAGER_ADD_DIALOG_OK_BUTTON
-};
-
-DEFINE_DIALOG_CALLBACK(machine_cheat_manager_dialog_list);
-DEFINE_DIALOG_CALLBACK(machine_cheat_manager_dialog_add);
-DEFINE_DIALOG_CALLBACK(machine_cheat_manager_dialog_remove);
-DEFINE_DIALOG_CALLBACK(machine_cheat_manager_dialog_enabled);
-
-static char *machine_cheat_manager_dialog_list_filler (int, int *);
-
-static const DIALOG machine_cheat_manager_dialog_base[] =
-{
-   { sl_frame,    0,   0,   226, 160, 0, 0, 0,   0,      0, 0, NULL,                                      "Cheat Manager",                      NULL                              },
-   { sl_x_button, 206, 4,   16,  12,  0, 0, 0,   D_EXIT, 0, 0, "X",                                       NULL,                                 NULL                              },
-   { sl_listbox,  9,   29,  207, 98,  0, 0, 0,   0,      0, 0, machine_cheat_manager_dialog_list_filler, NULL,                                  machine_cheat_manager_dialog_list },
-   { sl_button,   8,   136, 32,  16,  0, 0, 'a', 0,      0, 0, "&Add",                                    machine_cheat_manager_dialog_add,     NULL                              },
-   { sl_button,   48,  136, 53,  16,  0, 0, 'r', 0,      0, 0, "&Remove",                                 machine_cheat_manager_dialog_remove,  NULL                              },
-   { sl_checkbox, 121, 140, 64,  8,   0, 0, 'e', 0,      0, 0, "&Enabled",                                machine_cheat_manager_dialog_enabled, NULL                              },
-   { sl_button,   185, 136, 32,  16,  0, 0, 's', D_EXIT, 0, 0, "&Save",                                   NULL,                                 NULL                              },
-   DIALOG_FRAME_ENDCAP
-};
-
-enum
-{
-   MACHINE_CHEAT_MANAGER_DIALOG_FRAME = 0,
-   MACHINE_CHEAT_MANAGER_DIALOG_CLOSE_BUTTON,
-   MACHINE_CHEAT_MANAGER_DIALOG_LIST,
-   MACHINE_CHEAT_MANAGER_DIALOG_ADD_BUTTON,
-   MACHINE_CHEAT_MANAGER_DIALOG_REMOVE_BUTTON,
-   MACHINE_CHEAT_MANAGER_DIALOG_ENABLED_CHECKBOX,
-   MACHINE_CHEAT_MANAGER_DIALOG_SAVE_BUTTON
 };
 
 static const DIALOG video_color_dialog_base[] =
@@ -303,55 +303,55 @@ enum
    OPTIONS_PATHS_DIALOG_CANCEL_BUTTON
 };
 
-DEFINE_DIALOG_CALLBACK(options_input_configure_dialog_player_select);
-DEFINE_DIALOG_CALLBACK(options_input_configure_dialog_device_select);
-DEFINE_DIALOG_CALLBACK(options_input_configure_dialog_calibrate);
-DEFINE_DIALOG_CALLBACK(options_input_configure_dialog_set_buttons);
+DEFINE_DIALOG_CALLBACK(input_configure_dialog_player_select);
+DEFINE_DIALOG_CALLBACK(input_configure_dialog_device_select);
+DEFINE_DIALOG_CALLBACK(input_configure_dialog_calibrate);
+DEFINE_DIALOG_CALLBACK(input_configure_dialog_set_buttons);
 
-static const DIALOG options_input_configure_dialog_base[] =
+static const DIALOG input_configure_dialog_base[] =
 {
    { sl_frame,      0,   0,   255, 260, 0, 0, 0,   0,      0,   0,                       NULL,                                       "Input",                                      NULL },
    { sl_x_button,   236, 4,   16,  12,  0, 0, 0,   D_EXIT, 0,   0,                       "X",                                        NULL,                                         NULL },
    { sl_text,       9,   28,  0,   0,   0, 0, 0,   0,      0,   0,                       NULL,                                       "Player:",                                    NULL },
-   { sl_radiobox,   52,  28,  28,  6,   0, 0, '1', 0,      1,   INPUT_PLAYER_1,          "&1",                                       options_input_configure_dialog_player_select, NULL },
-   { sl_radiobox,   76,  28,  28,  6,   0, 0, '2', 0,      1,   INPUT_PLAYER_2,          "&2",                                       options_input_configure_dialog_player_select, NULL },
-   { sl_radiobox,   100, 28,  28,  6,   0, 0, '3', 0,      1,   INPUT_PLAYER_3,          "&3",                                       options_input_configure_dialog_player_select, NULL },
-   { sl_radiobox,   124, 28,  28,  6,   0, 0, '4', 0,      1,   INPUT_PLAYER_4,          "&4",                                       options_input_configure_dialog_player_select, NULL },
+   { sl_radiobox,   52,  28,  28,  6,   0, 0, '1', 0,      1,   INPUT_PLAYER_1,          "&1",                                       input_configure_dialog_player_select, NULL },
+   { sl_radiobox,   76,  28,  28,  6,   0, 0, '2', 0,      1,   INPUT_PLAYER_2,          "&2",                                       input_configure_dialog_player_select, NULL },
+   { sl_radiobox,   100, 28,  28,  6,   0, 0, '3', 0,      1,   INPUT_PLAYER_3,          "&3",                                       input_configure_dialog_player_select, NULL },
+   { sl_radiobox,   124, 28,  28,  6,   0, 0, '4', 0,      1,   INPUT_PLAYER_4,          "&4",                                       input_configure_dialog_player_select, NULL },
    { sl_text,       9,   43,  0,   0,   0, 0, 0,   0,      0,   0,                       NULL,                                       "Device:",                                    NULL },
-   { sl_radiobox,   18,  55,  80,  6,   0, 0, 0,   0,      2,   INPUT_DEVICE_NONE,       "Disabled",                                 options_input_configure_dialog_device_select, NULL },
-   { sl_radiobox,   18,  64,  80,  6,   0, 0, 'k', 0,      2,   INPUT_DEVICE_KEYS_1,     "&Key Set 1",                               options_input_configure_dialog_device_select, NULL },
-   { sl_radiobox,   18,  73,  80,  6,   0, 0, 0,   0,      2,   INPUT_DEVICE_KEYS_2,     "Key Set 2",                                options_input_configure_dialog_device_select, NULL },
-   { sl_radiobox,   18,  82,  80,  6,   0, 0, 'p', 0,      2,   INPUT_DEVICE_JOYSTICK_1, "Stick/&Pad 1",                             options_input_configure_dialog_device_select, NULL },
-   { sl_radiobox,   18,  91,  80,  6,   0, 0, 0,   0,      2,   INPUT_DEVICE_JOYSTICK_2, "Stick/Pad 2",                              options_input_configure_dialog_device_select, NULL },
-   { sl_radiobox,   18,  100, 80,  6,   0, 0, 0,   0,      2,   INPUT_DEVICE_JOYSTICK_3, "Stick/Pad 3",                              options_input_configure_dialog_device_select, NULL },
-   { sl_radiobox,   18,  109, 80,  6,   0, 0, 0,   0,      2,   INPUT_DEVICE_JOYSTICK_4, "Stick/Pad 4",                              options_input_configure_dialog_device_select, NULL },
-   { sl_radiobox,   18,  118, 80,  6,   0, 0, 'm', 0,      2,   INPUT_DEVICE_MOUSE,      "&Mouse",                                   options_input_configure_dialog_device_select, NULL },
-   { sl_button,     18,  132, 80,  16,  0, 0, 'c', 0,      0,   0,                       "&Calibrate",                               options_input_configure_dialog_calibrate,     NULL },
+   { sl_radiobox,   18,  55,  80,  6,   0, 0, 0,   0,      2,   INPUT_DEVICE_NONE,       "Disabled",                                 input_configure_dialog_device_select, NULL },
+   { sl_radiobox,   18,  64,  80,  6,   0, 0, 'k', 0,      2,   INPUT_DEVICE_KEYS_1,     "&Key Set 1",                               input_configure_dialog_device_select, NULL },
+   { sl_radiobox,   18,  73,  80,  6,   0, 0, 0,   0,      2,   INPUT_DEVICE_KEYS_2,     "Key Set 2",                                input_configure_dialog_device_select, NULL },
+   { sl_radiobox,   18,  82,  80,  6,   0, 0, 'p', 0,      2,   INPUT_DEVICE_JOYSTICK_1, "Stick/&Pad 1",                             input_configure_dialog_device_select, NULL },
+   { sl_radiobox,   18,  91,  80,  6,   0, 0, 0,   0,      2,   INPUT_DEVICE_JOYSTICK_2, "Stick/Pad 2",                              input_configure_dialog_device_select, NULL },
+   { sl_radiobox,   18,  100, 80,  6,   0, 0, 0,   0,      2,   INPUT_DEVICE_JOYSTICK_3, "Stick/Pad 3",                              input_configure_dialog_device_select, NULL },
+   { sl_radiobox,   18,  109, 80,  6,   0, 0, 0,   0,      2,   INPUT_DEVICE_JOYSTICK_4, "Stick/Pad 4",                              input_configure_dialog_device_select, NULL },
+   { sl_radiobox,   18,  118, 80,  6,   0, 0, 'm', 0,      2,   INPUT_DEVICE_MOUSE,      "&Mouse",                                   input_configure_dialog_device_select, NULL },
+   { sl_button,     18,  132, 80,  16,  0, 0, 'c', 0,      0,   0,                       "&Calibrate",                               input_configure_dialog_calibrate,     NULL },
    { sl_text,       98,  43,  0,   0,   0, 0, 0,   0,      0,   0,                       NULL,                                       "Set Buttons:",                               NULL },
-   { sl_button,     107, 55,  48,  12,  0, 0, 'u', 0,      0,   INPUT_BUTTON_UP,         "&Up",                                      options_input_configure_dialog_set_buttons,   NULL },
-   { sl_button,     107, 69,  48,  12,  0, 0, 'd', 0,      0,   INPUT_BUTTON_DOWN,       "&Down",                                    options_input_configure_dialog_set_buttons,   NULL },
-   { sl_button,     107, 83,  48,  12,  0, 0, 'l', 0,      0,   INPUT_BUTTON_LEFT,       "&Left",                                    options_input_configure_dialog_set_buttons,   NULL },
-   { sl_button,     107, 97,  48,  12,  0, 0, 'r', 0,      0,   INPUT_BUTTON_RIGHT,      "&Right",                                   options_input_configure_dialog_set_buttons,   NULL },
-   { sl_button,     107, 111, 48,  12,  0, 0, 's', 0,      0,   INPUT_BUTTON_START,      "&Start",                                   options_input_configure_dialog_set_buttons,   NULL },
-   { sl_button,     107, 125, 48,  12,  0, 0, 't', 0,      0,   INPUT_BUTTON_SELECT,     "Selec&t",                                  options_input_configure_dialog_set_buttons,   NULL },
-   { sl_button,     107, 139, 48,  12,  0, 0, 'a', 0,      0,   INPUT_BUTTON_A,          "&A",                                       options_input_configure_dialog_set_buttons,   NULL },
-   { sl_button,     107, 153, 48,  12,  0, 0, 'b', 0,      0,   INPUT_BUTTON_B,          "&B",                                       options_input_configure_dialog_set_buttons,   NULL },
-   { sl_checkbox,   164, 57,  40,  7,   0, 0, 0,   0,      1,   INPUT_BUTTON_UP,         "Auto",                                     options_input_configure_dialog_set_buttons,   NULL },
-   { sl_checkbox,   164, 71,  40,  7,   0, 0, 0,   0,      1,   INPUT_BUTTON_DOWN,       "Auto",                                     options_input_configure_dialog_set_buttons,   NULL },
-   { sl_checkbox,   164, 85,  40,  7,   0, 0, 0,   0,      1,   INPUT_BUTTON_LEFT,       "Auto",                                     options_input_configure_dialog_set_buttons,   NULL },
-   { sl_checkbox,   164, 99,  40,  7,   0, 0, 0,   0,      1,   INPUT_BUTTON_RIGHT,      "Auto",                                     options_input_configure_dialog_set_buttons,   NULL },
-   { sl_checkbox,   164, 113, 40,  7,   0, 0, 0,   0,      1,   INPUT_BUTTON_START,      "Auto",                                     options_input_configure_dialog_set_buttons,   NULL },
-   { sl_checkbox,   164, 127, 40,  7,   0, 0, 0,   0,      1,   INPUT_BUTTON_SELECT,     "Auto",                                     options_input_configure_dialog_set_buttons,   NULL },
-   { sl_checkbox,   164, 141, 40,  7,   0, 0, 0,   0,      1,   INPUT_BUTTON_A,          "Auto",                                     options_input_configure_dialog_set_buttons,   NULL },
-   { sl_checkbox,   164, 155, 40,  7,   0, 0, 0,   0,      1,   INPUT_BUTTON_B,          "Auto",                                     options_input_configure_dialog_set_buttons,   NULL },
-   { sl_checkbox,   207, 57,  48,  7,   0, 0, 0,   0,      2,   INPUT_BUTTON_UP,         "Turbo",                                    options_input_configure_dialog_set_buttons,   NULL },
-   { sl_checkbox,   207, 71,  48,  7,   0, 0, 0,   0,      2,   INPUT_BUTTON_DOWN,       "Turbo",                                    options_input_configure_dialog_set_buttons,   NULL },
-   { sl_checkbox,   207, 85,  48,  7,   0, 0, 0,   0,      2,   INPUT_BUTTON_LEFT,       "Turbo",                                    options_input_configure_dialog_set_buttons,   NULL },
-   { sl_checkbox,   207, 99,  48,  7,   0, 0, 0,   0,      2,   INPUT_BUTTON_RIGHT,      "Turbo",                                    options_input_configure_dialog_set_buttons,   NULL },
-   { sl_checkbox,   207, 113, 48,  7,   0, 0, 0,   0,      2,   INPUT_BUTTON_START,      "Turbo",                                    options_input_configure_dialog_set_buttons,   NULL },
-   { sl_checkbox,   207, 127, 48,  7,   0, 0, 0,   0,      2,   INPUT_BUTTON_SELECT,     "Turbo",                                    options_input_configure_dialog_set_buttons,   NULL },
-   { sl_checkbox,   207, 141, 48,  7,   0, 0, 0,   0,      2,   INPUT_BUTTON_A,          "Turbo",                                    options_input_configure_dialog_set_buttons,   NULL },
-   { sl_checkbox,   207, 155, 48,  7,   0, 0, 0,   0,      2,   INPUT_BUTTON_B,          "Turbo",                                    options_input_configure_dialog_set_buttons,   NULL },
+   { sl_button,     107, 55,  48,  12,  0, 0, 'u', 0,      0,   INPUT_BUTTON_UP,         "&Up",                                      input_configure_dialog_set_buttons,   NULL },
+   { sl_button,     107, 69,  48,  12,  0, 0, 'd', 0,      0,   INPUT_BUTTON_DOWN,       "&Down",                                    input_configure_dialog_set_buttons,   NULL },
+   { sl_button,     107, 83,  48,  12,  0, 0, 'l', 0,      0,   INPUT_BUTTON_LEFT,       "&Left",                                    input_configure_dialog_set_buttons,   NULL },
+   { sl_button,     107, 97,  48,  12,  0, 0, 'r', 0,      0,   INPUT_BUTTON_RIGHT,      "&Right",                                   input_configure_dialog_set_buttons,   NULL },
+   { sl_button,     107, 111, 48,  12,  0, 0, 's', 0,      0,   INPUT_BUTTON_START,      "&Start",                                   input_configure_dialog_set_buttons,   NULL },
+   { sl_button,     107, 125, 48,  12,  0, 0, 't', 0,      0,   INPUT_BUTTON_SELECT,     "Selec&t",                                  input_configure_dialog_set_buttons,   NULL },
+   { sl_button,     107, 139, 48,  12,  0, 0, 'a', 0,      0,   INPUT_BUTTON_A,          "&A",                                       input_configure_dialog_set_buttons,   NULL },
+   { sl_button,     107, 153, 48,  12,  0, 0, 'b', 0,      0,   INPUT_BUTTON_B,          "&B",                                       input_configure_dialog_set_buttons,   NULL },
+   { sl_checkbox,   164, 57,  40,  7,   0, 0, 0,   0,      1,   INPUT_BUTTON_UP,         "Auto",                                     input_configure_dialog_set_buttons,   NULL },
+   { sl_checkbox,   164, 71,  40,  7,   0, 0, 0,   0,      1,   INPUT_BUTTON_DOWN,       "Auto",                                     input_configure_dialog_set_buttons,   NULL },
+   { sl_checkbox,   164, 85,  40,  7,   0, 0, 0,   0,      1,   INPUT_BUTTON_LEFT,       "Auto",                                     input_configure_dialog_set_buttons,   NULL },
+   { sl_checkbox,   164, 99,  40,  7,   0, 0, 0,   0,      1,   INPUT_BUTTON_RIGHT,      "Auto",                                     input_configure_dialog_set_buttons,   NULL },
+   { sl_checkbox,   164, 113, 40,  7,   0, 0, 0,   0,      1,   INPUT_BUTTON_START,      "Auto",                                     input_configure_dialog_set_buttons,   NULL },
+   { sl_checkbox,   164, 127, 40,  7,   0, 0, 0,   0,      1,   INPUT_BUTTON_SELECT,     "Auto",                                     input_configure_dialog_set_buttons,   NULL },
+   { sl_checkbox,   164, 141, 40,  7,   0, 0, 0,   0,      1,   INPUT_BUTTON_A,          "Auto",                                     input_configure_dialog_set_buttons,   NULL },
+   { sl_checkbox,   164, 155, 40,  7,   0, 0, 0,   0,      1,   INPUT_BUTTON_B,          "Auto",                                     input_configure_dialog_set_buttons,   NULL },
+   { sl_checkbox,   207, 57,  48,  7,   0, 0, 0,   0,      2,   INPUT_BUTTON_UP,         "Turbo",                                    input_configure_dialog_set_buttons,   NULL },
+   { sl_checkbox,   207, 71,  48,  7,   0, 0, 0,   0,      2,   INPUT_BUTTON_DOWN,       "Turbo",                                    input_configure_dialog_set_buttons,   NULL },
+   { sl_checkbox,   207, 85,  48,  7,   0, 0, 0,   0,      2,   INPUT_BUTTON_LEFT,       "Turbo",                                    input_configure_dialog_set_buttons,   NULL },
+   { sl_checkbox,   207, 99,  48,  7,   0, 0, 0,   0,      2,   INPUT_BUTTON_RIGHT,      "Turbo",                                    input_configure_dialog_set_buttons,   NULL },
+   { sl_checkbox,   207, 113, 48,  7,   0, 0, 0,   0,      2,   INPUT_BUTTON_START,      "Turbo",                                    input_configure_dialog_set_buttons,   NULL },
+   { sl_checkbox,   207, 127, 48,  7,   0, 0, 0,   0,      2,   INPUT_BUTTON_SELECT,     "Turbo",                                    input_configure_dialog_set_buttons,   NULL },
+   { sl_checkbox,   207, 141, 48,  7,   0, 0, 0,   0,      2,   INPUT_BUTTON_A,          "Turbo",                                    input_configure_dialog_set_buttons,   NULL },
+   { sl_checkbox,   207, 155, 48,  7,   0, 0, 0,   0,      2,   INPUT_BUTTON_B,          "Turbo",                                    input_configure_dialog_set_buttons,   NULL },
    { sl_hr,         0,   173, 255, 3,   0, 0, 0,   0,      0,   0,                       NULL,                                       NULL,                                         NULL },
    { sl_checkbox,   9,   182, 216, 7,   0, 0, 0,   0,      0,   0,                       "Allow conflicting directional controls",   NULL,                                         NULL },
    { sl_checkbox,   9,   193, 80,  7,   0, 0, 0,   0,      0,   0,                       "Toggled auto",                             NULL,                                         NULL },
@@ -364,55 +364,55 @@ static const DIALOG options_input_configure_dialog_base[] =
 
 enum
 {
-   OPTIONS_INPUT_CONFIGURE_DIALOG_FRAME = 0,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_CLOSE_BUTTON,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_PLAYER_LABEL,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_PLAYER_1_SELECT,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_PLAYER_2_SELECT,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_PLAYER_3_SELECT,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_PLAYER_4_SELECT,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_LABEL,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_0_SELECT,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_1_SELECT,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_2_SELECT,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_3_SELECT,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_4_SELECT,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_5_SELECT,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_6_SELECT,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_7_SELECT,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_CALIBRATE_BUTTON,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTONS_LABEL,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_UP,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_DOWN,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_LEFT,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_RIGHT,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_START,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_SELECT,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_A,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_B,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_1,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_2,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_3,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_4,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_5,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_6,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_7,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_8,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_1,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_2,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_3,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_4,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_5,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_6,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_7,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_8,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SPLITTER,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_ALLOW_CONFLICTS,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_TOGGLED_AUTO,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_MERGE_PLAYERS,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_TURBO_LABEL,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_TURBO,
-   OPTIONS_INPUT_CONFIGURE_DIALOG_SAVE_BUTTON
+   INPUT_CONFIGURE_DIALOG_FRAME = 0,
+   INPUT_CONFIGURE_DIALOG_CLOSE_BUTTON,
+   INPUT_CONFIGURE_DIALOG_PLAYER_LABEL,
+   INPUT_CONFIGURE_DIALOG_PLAYER_1_SELECT,
+   INPUT_CONFIGURE_DIALOG_PLAYER_2_SELECT,
+   INPUT_CONFIGURE_DIALOG_PLAYER_3_SELECT,
+   INPUT_CONFIGURE_DIALOG_PLAYER_4_SELECT,
+   INPUT_CONFIGURE_DIALOG_DEVICE_LABEL,
+   INPUT_CONFIGURE_DIALOG_DEVICE_0_SELECT,
+   INPUT_CONFIGURE_DIALOG_DEVICE_1_SELECT,
+   INPUT_CONFIGURE_DIALOG_DEVICE_2_SELECT,
+   INPUT_CONFIGURE_DIALOG_DEVICE_3_SELECT,
+   INPUT_CONFIGURE_DIALOG_DEVICE_4_SELECT,
+   INPUT_CONFIGURE_DIALOG_DEVICE_5_SELECT,
+   INPUT_CONFIGURE_DIALOG_DEVICE_6_SELECT,
+   INPUT_CONFIGURE_DIALOG_DEVICE_7_SELECT,
+   INPUT_CONFIGURE_DIALOG_CALIBRATE_BUTTON,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTONS_LABEL,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_UP,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_DOWN,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_LEFT,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_RIGHT,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_START,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_SELECT,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_A,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_B,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_1,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_2,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_3,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_4,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_5,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_6,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_7,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_8,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_1,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_2,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_3,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_4,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_5,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_6,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_7,
+   INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_8,
+   INPUT_CONFIGURE_DIALOG_SPLITTER,
+   INPUT_CONFIGURE_DIALOG_ALLOW_CONFLICTS,
+   INPUT_CONFIGURE_DIALOG_TOGGLED_AUTO,
+   INPUT_CONFIGURE_DIALOG_MERGE_PLAYERS,
+   INPUT_CONFIGURE_DIALOG_TURBO_LABEL,
+   INPUT_CONFIGURE_DIALOG_TURBO,
+   INPUT_CONFIGURE_DIALOG_SAVE_BUTTON
 };
 
 static const DIALOG netplay_dialog_base[] =
@@ -738,10 +738,10 @@ static INLINE void load_dialogs (void)
    DIALOG_FROM_BASE(main_dialog);
    DIALOG_FROM_BASE(main_replay_record_start_dialog);
    DIALOG_FROM_BASE(machine_save_state_save_dialog);
-   DIALOG_FROM_BASE(machine_cheat_manager_add_dialog);
-   DIALOG_FROM_BASE(machine_cheat_manager_dialog);
+   DIALOG_FROM_BASE(main_cheat_manager_add_dialog);
+   DIALOG_FROM_BASE(main_cheat_manager_dialog);
    DIALOG_FROM_BASE(video_color_dialog);
-   DIALOG_FROM_BASE(options_input_configure_dialog);
+   DIALOG_FROM_BASE(input_configure_dialog);
    DIALOG_FROM_BASE(options_paths_dialog);
    DIALOG_FROM_BASE(netplay_dialog);
    DIALOG_FROM_BASE(lobby_dialog);
@@ -756,10 +756,10 @@ static INLINE void unload_dialogs (void)
    unload_dialog (main_dialog);
    unload_dialog (main_replay_record_start_dialog);
    unload_dialog (machine_save_state_save_dialog);
-   unload_dialog (machine_cheat_manager_add_dialog);
-   unload_dialog (machine_cheat_manager_dialog);
+   unload_dialog (main_cheat_manager_add_dialog);
+   unload_dialog (main_cheat_manager_dialog);
    unload_dialog (video_color_dialog);
-   unload_dialog (options_input_configure_dialog);
+   unload_dialog (input_configure_dialog);
    unload_dialog (options_paths_dialog);
    unload_dialog (netplay_dialog);
    unload_dialog (lobby_dialog);

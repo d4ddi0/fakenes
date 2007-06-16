@@ -101,10 +101,10 @@ static INLINE void update_menus (void)
       DISABLE_SUBMENU(main_replay_menu);
       DISABLE_MENU_ITEM(main_menu_save_snapshot);
       DISABLE_MENU_ITEM(main_menu_advance_frame);
+      DISABLE_MENU_ITEM(main_menu_cheat_manager);
       DISABLE_MENU_ITEM(machine_menu_soft_reset);
       DISABLE_MENU_ITEM(machine_menu_hard_reset);
       DISABLE_SUBMENU(machine_save_state_menu);
-      DISABLE_MENU_ITEM(machine_menu_cheat_manager);
       DISABLE_SUBMENU(audio_record_menu);
       DISABLE_MENU_ITEM(video_layers_menu_flip_mirroring);
       DISABLE_MENU_ITEM(options_menu_reset_clock);
@@ -122,7 +122,7 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(main_replay_select_menu_3, (replay_index == 3));
    TOGGLE_MENU_ITEM(main_replay_select_menu_4, (replay_index == 4));
 
-   TOGGLE_MENU_ITEM(machine_menu_timing_smoothest,     (machine_timing == MACHINE_TIMING_SMOOTH));
+      TOGGLE_MENU_ITEM(machine_menu_timing_smoothest,     (machine_timing == MACHINE_TIMING_SMOOTH));
    TOGGLE_MENU_ITEM(machine_menu_timing_most_accurate, (machine_timing == MACHINE_TIMING_ACCURATE));
 
    TOGGLE_MENU_ITEM(machine_save_state_select_menu_0, (save_state_index == 0));
@@ -163,6 +163,8 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(machine_frame_skip_menu_8_frames,  (frame_skip == 8));
    TOGGLE_MENU_ITEM(machine_frame_skip_menu_9_frames,  (frame_skip == 9));
    TOGGLE_MENU_ITEM(machine_frame_skip_menu_10_frames, (frame_skip == 10));
+
+   TOGGLE_MENU_ITEM(machine_menu_show_status, video_display_status);
 
    TOGGLE_MENU_ITEM(audio_menu_enable_apu,    apu_options.enabled);
    TOGGLE_MENU_ITEM(audio_menu_enable_output, audio_options.enable_output);
@@ -331,9 +333,7 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(video_layers_menu_hide_horizontal_scrolling, (video_edge_clipping & VIDEO_EDGE_CLIPPING_HORIZONTAL));
    TOGGLE_MENU_ITEM(video_layers_menu_hide_vertical_scrolling,   (video_edge_clipping & VIDEO_EDGE_CLIPPING_VERTICAL));
 
-   TOGGLE_MENU_ITEM(options_input_menu_enable_zapper, input_enable_zapper);
-
-   TOGGLE_MENU_ITEM(options_menu_show_status, video_display_status);
+   TOGGLE_MENU_ITEM(input_menu_enable_zapper, input_enable_zapper);
 
    TOGGLE_MENU_ITEM(options_cpu_usage_menu_passive,    (cpu_usage == CPU_USAGE_PASSIVE));
    TOGGLE_MENU_ITEM(options_cpu_usage_menu_normal,     (cpu_usage == CPU_USAGE_NORMAL));
@@ -395,6 +395,7 @@ int gui_init (void)
 
    CHECK_MENU_ITEM(video_menu_fullscreen);
    DISABLE_MENU_ITEM(video_menu_fullscreen);
+   DISABLE_MENU(options_cpu_usage_menu);
 
 #endif   /* ALLEGRO_DOS */
 
@@ -702,7 +703,7 @@ void gui_handle_keypress (int c, int scancode)
       case KEY_F2:
       {
          /* Toggle status display. */
-         options_menu_show_status ();
+         machine_menu_show_status ();
 
          break;
       }
@@ -926,10 +927,10 @@ static INLINE int load_file (const UCHAR *filename)
       ENABLE_SUBMENU(main_replay_menu);
       ENABLE_MENU_ITEM(main_menu_save_snapshot);
       ENABLE_MENU_ITEM(main_menu_advance_frame);
+      ENABLE_MENU_ITEM(main_menu_cheat_manager);
       ENABLE_MENU_ITEM(machine_menu_soft_reset);
       ENABLE_MENU_ITEM(machine_menu_hard_reset);
       ENABLE_SUBMENU(machine_save_state_menu);
-      ENABLE_MENU_ITEM(machine_menu_cheat_manager);
       ENABLE_SUBMENU(audio_record_menu);
       ENABLE_MENU_ITEM(video_layers_menu_flip_mirroring);
       ENABLE_MENU_ITEM(options_menu_reset_clock);
@@ -1426,11 +1427,11 @@ static int main_replay_play_menu_start (void)
    ENABLE_MENU_ITEM(main_replay_play_menu_stop);
    DISABLE_SUBMENU(main_replay_select_menu);
    DISABLE_SUBMENU(main_replay_record_menu);
+   DISABLE_MENU_ITEM(main_menu_cheat_manager);
    DISABLE_MENU_ITEM(machine_menu_soft_reset);
    DISABLE_MENU_ITEM(machine_menu_hard_reset);
    DISABLE_MENU_ITEM(machine_save_state_menu_quick_load);
    DISABLE_MENU_ITEM(machine_save_state_menu_restore);
-   DISABLE_MENU_ITEM(machine_menu_cheat_manager);
    DISABLE_SUBMENU(netplay_menu);
 
    /* Enter replay playback mode. */
@@ -1461,11 +1462,11 @@ static int main_replay_play_menu_stop (void)
    DISABLE_MENU_ITEM(main_replay_play_menu_stop);
    ENABLE_SUBMENU(main_replay_select_menu);
    ENABLE_SUBMENU(main_replay_record_menu);
+   ENABLE_MENU_ITEM(main_menu_cheat_manager);
    ENABLE_MENU_ITEM(machine_menu_soft_reset);
    ENABLE_MENU_ITEM(machine_menu_hard_reset);
    ENABLE_MENU_ITEM(machine_save_state_menu_quick_load);
    ENABLE_MENU_ITEM(machine_save_state_menu_restore);
-   ENABLE_MENU_ITEM(machine_menu_cheat_manager);
    ENABLE_SUBMENU(netplay_menu);
 
    if (gui_is_active)
@@ -1512,6 +1513,17 @@ static int main_menu_advance_frame (void)
    frames_to_execute = 1;
 
    return (D_CLOSE);
+}
+
+static int main_menu_cheat_manager (void)
+{
+   if (show_dialog (main_cheat_manager_dialog, -1) ==
+      MAIN_CHEAT_MANAGER_DIALOG_SAVE_BUTTON)
+   {
+      save_patches ();
+   }
+
+   return (D_O_K);
 }
 
 static int main_menu_save_configuration (void)
@@ -1924,13 +1936,10 @@ static int machine_menu_speed_cap (void)
    return (D_O_K);
 }
 
-static int machine_menu_cheat_manager (void)
+static int machine_menu_show_status (void)
 {
-   if (show_dialog (machine_cheat_manager_dialog, -1) ==
-      MACHINE_CHEAT_MANAGER_DIALOG_SAVE_BUTTON)
-   {
-      save_patches ();
-   }
+   video_display_status = (! video_display_status);
+   update_menus ();
 
    return (D_O_K);
 }
@@ -3073,19 +3082,113 @@ static int video_palette_menu_custom (void)
    return (D_O_K);
 }
 
-static int options_menu_show_status (void)
+static int input_menu_configure (void)
 {
-   video_display_status = (! video_display_status);
-   update_menus ();
+   BOOL allow_conflicts, toggled_auto, merge_players;
+   REAL turbo_rate;
+   DIALOG *dialog;
+   DIALOG *objconf, *objauto, *objmerge, *objturbo;
+
+   /* Load configuration. */
+
+   allow_conflicts = get_config_int   ("input", "allow_conflicts", FALSE);
+   toggled_auto    = get_config_int   ("input", "toggled_auto",    FALSE);
+   merge_players   = get_config_int   ("input", "merge_players",   FALSE);
+   turbo_rate      = get_config_float ("input", "turbo_rate",      0.5);
+
+   /* Get dialog. */
+
+   dialog = input_configure_dialog;
+
+   /* Get dialog objects. */
+
+   objconf  = &dialog[INPUT_CONFIGURE_DIALOG_ALLOW_CONFLICTS];
+   objauto  = &dialog[INPUT_CONFIGURE_DIALOG_TOGGLED_AUTO];
+   objmerge = &dialog[INPUT_CONFIGURE_DIALOG_MERGE_PLAYERS];
+   objturbo = &dialog[INPUT_CONFIGURE_DIALOG_TURBO];
+
+   /* Set up objects. */
+
+   if (allow_conflicts)
+      objconf->flags |= D_SELECTED;
+
+   if (toggled_auto)
+      objauto->flags |= D_SELECTED;
+
+   if (merge_players)
+      objmerge->flags |= D_SELECTED;
+
+   objturbo->d2 = ROUND((turbo_rate * 100.0));
+
+   /* Show dialog. */   
+
+   if (show_dialog (dialog, -1) ==
+      INPUT_CONFIGURE_DIALOG_SAVE_BUTTON)
+   {
+      /* Save configuration. */
+
+      allow_conflicts = TRUE_OR_FALSE(objconf->flags  & D_SELECTED);
+      toggled_auto    = TRUE_OR_FALSE(objauto->flags  & D_SELECTED);
+      merge_players   = TRUE_OR_FALSE(objmerge->flags & D_SELECTED);
+
+      turbo_rate = (objturbo->d2 / 100.0);
+
+      /* Save existing configuration so we don't lose it. */
+      input_save_config ();
+
+      /* Make any necessary changes. */
+
+      set_config_int   ("input", "allow_conflicts", allow_conflicts);
+      set_config_int   ("input", "toggled_auto",    toggled_auto);
+      set_config_int   ("input", "merge_players",   merge_players);
+      set_config_float ("input", "turbo_rate",      turbo_rate);
+
+      /* Reload configuration with our changes. */
+      input_load_config ();
+   }
 
    return (D_O_K);
 }
 
-static int options_menu_reset_clock (void)
+static int input_menu_enable_zapper (void)
 {
-   timing_clock = 0;
+   input_enable_zapper = !input_enable_zapper;
+   update_menus ();
+
+   message_local ("Zapper emulation %s.", get_enabled_text
+      (input_enable_zapper));
 
    return (D_O_K);
+}
+
+static int options_cpu_usage_menu_passive (void)
+{
+    cpu_usage = CPU_USAGE_PASSIVE;
+    update_menus ();
+
+    message_local ("System CPU usage set to passive.");
+
+    return (D_O_K);
+}
+
+static int options_cpu_usage_menu_normal (void)
+{
+    cpu_usage = CPU_USAGE_NORMAL;
+    update_menus ();
+
+    message_local ("System CPU usage set to normal.");
+
+    return (D_O_K);
+}
+
+static int options_cpu_usage_menu_aggressive (void)
+{
+    cpu_usage = CPU_USAGE_AGGRESSIVE;
+    update_menus ();
+
+    message_local ("System CPU usage set to aggressive.");
+
+    return (D_O_K);
 }
 
 static int options_menu_paths (void)
@@ -3143,115 +3246,6 @@ static int options_menu_paths (void)
    return (D_O_K);
 }
 
-static int options_input_menu_configure (void)
-{
-   BOOL allow_conflicts, toggled_auto, merge_players;
-   REAL turbo_rate;
-   DIALOG *dialog;
-   DIALOG *objconf, *objauto, *objmerge, *objturbo;
-
-   /* Load configuration. */
-
-   allow_conflicts = get_config_int   ("input", "allow_conflicts", FALSE);
-   toggled_auto    = get_config_int   ("input", "toggled_auto",    FALSE);
-   merge_players   = get_config_int   ("input", "merge_players",   FALSE);
-   turbo_rate      = get_config_float ("input", "turbo_rate",      0.5);
-
-   /* Get dialog. */
-
-   dialog = options_input_configure_dialog;
-
-   /* Get dialog objects. */
-
-   objconf  = &dialog[OPTIONS_INPUT_CONFIGURE_DIALOG_ALLOW_CONFLICTS];
-   objauto  = &dialog[OPTIONS_INPUT_CONFIGURE_DIALOG_TOGGLED_AUTO];
-   objmerge = &dialog[OPTIONS_INPUT_CONFIGURE_DIALOG_MERGE_PLAYERS];
-   objturbo = &dialog[OPTIONS_INPUT_CONFIGURE_DIALOG_TURBO];
-
-   /* Set up objects. */
-
-   if (allow_conflicts)
-      objconf->flags |= D_SELECTED;
-
-   if (toggled_auto)
-      objauto->flags |= D_SELECTED;
-
-   if (merge_players)
-      objmerge->flags |= D_SELECTED;
-
-   objturbo->d2 = ROUND((turbo_rate * 100.0));
-
-   /* Show dialog. */   
-
-   if (show_dialog (dialog, -1) ==
-      OPTIONS_INPUT_CONFIGURE_DIALOG_SAVE_BUTTON)
-   {
-      /* Save configuration. */
-
-      allow_conflicts = TRUE_OR_FALSE(objconf->flags  & D_SELECTED);
-      toggled_auto    = TRUE_OR_FALSE(objauto->flags  & D_SELECTED);
-      merge_players   = TRUE_OR_FALSE(objmerge->flags & D_SELECTED);
-
-      turbo_rate = (objturbo->d2 / 100.0);
-
-      /* Save existing configuration so we don't lose it. */
-      input_save_config ();
-
-      /* Make any necessary changes. */
-
-      set_config_int   ("input", "allow_conflicts", allow_conflicts);
-      set_config_int   ("input", "toggled_auto",    toggled_auto);
-      set_config_int   ("input", "merge_players",   merge_players);
-      set_config_float ("input", "turbo_rate",      turbo_rate);
-
-      /* Reload configuration with our changes. */
-      input_load_config ();
-   }
-
-   return (D_O_K);
-}
-
-static int options_input_menu_enable_zapper (void)
-{
-   input_enable_zapper = !input_enable_zapper;
-   update_menus ();
-
-   message_local ("Zapper emulation %s.", get_enabled_text
-      (input_enable_zapper));
-
-   return (D_O_K);
-}
-
-static int options_cpu_usage_menu_passive (void)
-{
-    cpu_usage = CPU_USAGE_PASSIVE;
-    update_menus ();
-
-    message_local ("System CPU usage set to passive.");
-
-    return (D_O_K);
-}
-
-static int options_cpu_usage_menu_normal (void)
-{
-    cpu_usage = CPU_USAGE_NORMAL;
-    update_menus ();
-
-    message_local ("System CPU usage set to normal.");
-
-    return (D_O_K);
-}
-
-static int options_cpu_usage_menu_aggressive (void)
-{
-    cpu_usage = CPU_USAGE_AGGRESSIVE;
-    update_menus ();
-
-    message_local ("System CPU usage set to aggressive.");
-
-    return (D_O_K);
-}
-
 #define OPTIONS_GUI_THEME_MENU_HANDLER(name)   \
    static int options_gui_theme_menu_##name (void) \
    {  \
@@ -3271,6 +3265,13 @@ OPTIONS_GUI_THEME_MENU_HANDLER(voodoo)
 OPTIONS_GUI_THEME_MENU_HANDLER(hugs_and_kisses)
 
 #undef OPTIONS_GUI_THEME_MENU_HANDLER
+
+static int options_menu_reset_clock (void)
+{
+   timing_clock = 0;
+
+   return (D_O_K);
+}
 
 static int netplay_menu_start_as_server (void)
 {
@@ -3519,7 +3520,7 @@ static int help_menu_fakenes_team (void)
 /* ---- Dialog handlers. ---- */
 
 
-static int machine_cheat_manager_dialog_list (DIALOG *dialog)
+static int main_cheat_manager_dialog_list (DIALOG *dialog)
 {
    CPU_PATCH *patch;
    DIALOG *main_dialog;
@@ -3533,10 +3534,10 @@ static int machine_cheat_manager_dialog_list (DIALOG *dialog)
    patch = &cpu_patch_info[dialog->d1];
 
    /* Get main dialog. */
-   main_dialog = machine_cheat_manager_dialog;
+   main_dialog = main_cheat_manager_dialog;
 
    /* Get "Enabled" checkbox. */
-   obj_enabled = &main_dialog[MACHINE_CHEAT_MANAGER_DIALOG_ENABLED_CHECKBOX];
+   obj_enabled = &main_dialog[MAIN_CHEAT_MANAGER_DIALOG_ENABLED_CHECKBOX];
 
    if (patch->enabled)
       obj_enabled->flags |= D_SELECTED;
@@ -3550,7 +3551,7 @@ static int machine_cheat_manager_dialog_list (DIALOG *dialog)
    return (D_O_K);
 }
 
-static int machine_cheat_manager_dialog_add (DIALOG *dialog)
+static int main_cheat_manager_dialog_add (DIALOG *dialog)
 {
    DIALOG *main_dialog;
    DIALOG *obj_title;
@@ -3569,11 +3570,11 @@ static int machine_cheat_manager_dialog_add (DIALOG *dialog)
    }
 
    /* Get dialog. */
-   main_dialog = machine_cheat_manager_add_dialog;
+   main_dialog = main_cheat_manager_add_dialog;
 
    /* Get dialog objects. */
-   obj_title = &main_dialog[MACHINE_CHEAT_MANAGER_ADD_DIALOG_TITLE];
-   obj_code  = &main_dialog[MACHINE_CHEAT_MANAGER_ADD_DIALOG_CODE];
+   obj_title = &main_dialog[MAIN_CHEAT_MANAGER_ADD_DIALOG_TITLE];
+   obj_code  = &main_dialog[MAIN_CHEAT_MANAGER_ADD_DIALOG_CODE];
 
    /* Set up dialog objects. */
 
@@ -3587,7 +3588,7 @@ static int machine_cheat_manager_dialog_add (DIALOG *dialog)
 
    /* Show dialog. */
    if (show_dialog (main_dialog, -1) !=
-      MACHINE_CHEAT_MANAGER_ADD_DIALOG_OK_BUTTON)
+      MAIN_CHEAT_MANAGER_ADD_DIALOG_OK_BUTTON)
    {
       return (D_O_K);
    }
@@ -3622,7 +3623,7 @@ static int machine_cheat_manager_dialog_add (DIALOG *dialog)
    return (D_REDRAW);
 }
 
-static int machine_cheat_manager_dialog_remove (DIALOG *dialog)
+static int main_cheat_manager_dialog_remove (DIALOG *dialog)
 {
    DIALOG *main_dialog;
    int start;
@@ -3634,9 +3635,9 @@ static int machine_cheat_manager_dialog_remove (DIALOG *dialog)
    if (cpu_patch_count == 0)
       return (D_O_K);
 
-   main_dialog = machine_cheat_manager_dialog;
+   main_dialog = main_cheat_manager_dialog;
 
-   start = main_dialog[MACHINE_CHEAT_MANAGER_DIALOG_LIST].d1;
+   start = main_dialog[MAIN_CHEAT_MANAGER_DIALOG_LIST].d1;
    src = &cpu_patch_info[start];
 
    /* Disable patch. */
@@ -3670,14 +3671,14 @@ static int machine_cheat_manager_dialog_remove (DIALOG *dialog)
 
    if (cpu_patch_count == 0)
    {
-      main_dialog[MACHINE_CHEAT_MANAGER_DIALOG_ENABLED_CHECKBOX].flags &=
+      main_dialog[MAIN_CHEAT_MANAGER_DIALOG_ENABLED_CHECKBOX].flags &=
          ~D_SELECTED;
    }
 
    return (D_REDRAW);
 }
 
-static int machine_cheat_manager_dialog_enabled (DIALOG *dialog)
+static int main_cheat_manager_dialog_enabled (DIALOG *dialog)
 {
    DIALOG *obj_list;
    CPU_PATCH *patch;
@@ -3691,7 +3692,7 @@ static int machine_cheat_manager_dialog_enabled (DIALOG *dialog)
       return (D_O_K);
    }
 
-   obj_list = &machine_cheat_manager_dialog[MACHINE_CHEAT_MANAGER_DIALOG_LIST];
+   obj_list = &main_cheat_manager_dialog[MAIN_CHEAT_MANAGER_DIALOG_LIST];
 
    patch = &cpu_patch_info[obj_list->d1];
 
@@ -3724,14 +3725,14 @@ static int machine_cheat_manager_dialog_enabled (DIALOG *dialog)
    return (D_O_K);
 }
 
-static USTRING machine_cheat_manager_dialog_list_texts[CPU_MAX_PATCHES];
+static USTRING main_cheat_manager_dialog_list_texts[CPU_MAX_PATCHES];
 
-static char *machine_cheat_manager_dialog_list_filler (int index, int *list_size)
+static char *main_cheat_manager_dialog_list_filler (int index, int *list_size)
 {
    if (index >= 0)
    {
       CPU_PATCH *patch = &cpu_patch_info[index];
-      UCHAR *text = machine_cheat_manager_dialog_list_texts[index];
+      UCHAR *text = main_cheat_manager_dialog_list_texts[index];
 
       USTRING_CLEAR(text);
       uszprintf (text, USTRING_SIZE, "$%04x -$%02x +$%02x %s ",
@@ -3756,7 +3757,7 @@ static char *machine_cheat_manager_dialog_list_filler (int index, int *list_size
 static int selected_player = -1;
 static int selected_player_device = INPUT_DEVICE_NONE;
 
-static int options_input_configure_dialog_player_select (DIALOG *dialog)
+static int input_configure_dialog_player_select (DIALOG *dialog)
 {
    DIALOG *main_dialog;
    int first, last;
@@ -3767,10 +3768,10 @@ static int options_input_configure_dialog_player_select (DIALOG *dialog)
    selected_player = dialog->d2;
    selected_player_device = input_get_player_device (selected_player);
 
-   main_dialog = options_input_configure_dialog;
+   main_dialog = input_configure_dialog;
 
-   first = OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_0_SELECT;
-   last  = OPTIONS_INPUT_CONFIGURE_DIALOG_DEVICE_7_SELECT;
+   first = INPUT_CONFIGURE_DIALOG_DEVICE_0_SELECT;
+   last  = INPUT_CONFIGURE_DIALOG_DEVICE_7_SELECT;
 
    for (index = first; index <= last; index++)
       main_dialog[index].flags &= ~D_SELECTED;
@@ -3782,8 +3783,8 @@ static int options_input_configure_dialog_player_select (DIALOG *dialog)
    for (index = first; index <= last; index++)
       object_message (&main_dialog[index],  MSG_DRAW, 0);
 
-   first = OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_1;
-   last  = OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_8;
+   first = INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_1;
+   last  = INPUT_CONFIGURE_DIALOG_SET_BUTTON_AUTO_8;
 
    for (index = first; index <= last; index++)
    {
@@ -3804,8 +3805,8 @@ static int options_input_configure_dialog_player_select (DIALOG *dialog)
       object_message (dialog, MSG_DRAW, 0);
    }
 
-   first = OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_1;
-   last  = OPTIONS_INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_8;
+   first = INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_1;
+   last  = INPUT_CONFIGURE_DIALOG_SET_BUTTON_TURBO_8;
 
    for (index = first; index <= last; index++)
    {
@@ -3831,7 +3832,7 @@ static int options_input_configure_dialog_player_select (DIALOG *dialog)
    return (D_O_K);
 }
 
-static int options_input_configure_dialog_device_select (DIALOG *dialog)
+static int input_configure_dialog_device_select (DIALOG *dialog)
 {
    RT_ASSERT(dialog);
 
@@ -3850,7 +3851,7 @@ static int options_input_configure_dialog_device_select (DIALOG *dialog)
    return (D_O_K);
 }
 
-static int options_input_configure_dialog_set_buttons (DIALOG *dialog)
+static int input_configure_dialog_set_buttons (DIALOG *dialog)
 {
    int button;
 
@@ -3919,7 +3920,7 @@ static int options_input_configure_dialog_set_buttons (DIALOG *dialog)
    return (D_O_K);
 }
 
-static int options_input_configure_dialog_calibrate (DIALOG *dialog)
+static int input_configure_dialog_calibrate (DIALOG *dialog)
 {
    RT_ASSERT(dialog);
 

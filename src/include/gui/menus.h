@@ -37,7 +37,7 @@ DEFINE_MENU(video_filters_menu);
 DEFINE_MENU(video_layers_menu);
 DEFINE_MENU(video_palette_menu);
 DEFINE_MENU(video_menu);
-DEFINE_MENU(options_input_menu);
+DEFINE_MENU(input_menu);
 DEFINE_MENU(options_cpu_usage_menu);
 DEFINE_MENU(options_gui_theme_menu);
 DEFINE_MENU(options_menu);
@@ -136,6 +136,7 @@ DEFINE_MENU_CALLBACK(main_menu_open);
 DEFINE_MENU_CALLBACK(main_menu_close);
 DEFINE_MENU_CALLBACK(main_menu_save_snapshot);
 DEFINE_MENU_CALLBACK(main_menu_advance_frame);
+DEFINE_MENU_CALLBACK(main_menu_cheat_manager);
 DEFINE_MENU_CALLBACK(main_menu_save_configuration);
 DEFINE_MENU_CALLBACK(main_menu_exit);
 
@@ -150,7 +151,9 @@ static const MENU main_menu_base[] =
    { "Re&play",              NULL,                         IMPORT_MENU(main_replay_menu),      0, NULL },
    MENU_SPLITTER,            
    { "&Save Snapshot (F1)",  main_menu_save_snapshot,      NULL,                               0, NULL },
-   { "&Advance Frame",       main_menu_advance_frame,      NULL,                                    0, NULL },
+   { "&Advance Frame",       main_menu_advance_frame,      NULL,                               0, NULL },
+   MENU_SPLITTER,
+   { "Cheat &Manager...",    main_menu_cheat_manager,      NULL,                               0, NULL },
    MENU_SPLITTER,
    { "Save Co&nfiguration",  main_menu_save_configuration, NULL,                               0, NULL },
    MENU_SPLITTER,       
@@ -289,13 +292,13 @@ DEFINE_MENU_CALLBACK(machine_menu_hard_reset);
 DEFINE_MENU_CALLBACK(machine_menu_timing_smoothest);
 DEFINE_MENU_CALLBACK(machine_menu_timing_most_accurate);
 DEFINE_MENU_CALLBACK(machine_menu_speed_cap);
-DEFINE_MENU_CALLBACK(machine_menu_cheat_manager);
+DEFINE_MENU_CALLBACK(machine_menu_show_status);
 
 static const MENU machine_menu_base[] =
 {
    { "&Soft Reset",       machine_menu_soft_reset,           NULL,                                    0, NULL },
    { "&Hard Reset",       machine_menu_hard_reset,           NULL,                                    0, NULL },
-   MENU_SPLITTER,                                                                      
+   MENU_SPLITTER,
    { "Timing",            NULL,                              NULL,                                    0, NULL },
    { "  S&moothest",      machine_menu_timing_smoothest,     NULL,                                    0, NULL },
    { "  Most &Accurate",  machine_menu_timing_most_accurate, NULL,                                    0, NULL },
@@ -308,7 +311,7 @@ static const MENU machine_menu_base[] =
    MENU_SPLITTER,
    { "&Region",           NULL,                              IMPORT_MENU(machine_region_menu),        0, NULL },
    MENU_SPLITTER,
-   { "Ch&eat Manager...", machine_menu_cheat_manager,        NULL,                                    0, NULL },
+   { "Sh&ow Status (F2)", machine_menu_show_status,          NULL,                                0, NULL },
    MENU_ENDCAP
 };
 
@@ -845,14 +848,14 @@ static const MENU video_menu_base[] =
    MENU_ENDCAP
 };
 
-DEFINE_MENU_CALLBACK(options_input_menu_configure);
-DEFINE_MENU_CALLBACK(options_input_menu_enable_zapper);
+DEFINE_MENU_CALLBACK(input_menu_configure);
+DEFINE_MENU_CALLBACK(input_menu_enable_zapper);
 
-static const MENU options_input_menu_base[] =
+static const MENU input_menu_base[] =
 {
-   { "&Configure...",  options_input_menu_configure,     NULL, 0, NULL },
+   { "&Configure...",  input_menu_configure,     NULL, 0, NULL },
    MENU_SPLITTER,
-   { "&Enable Zapper", options_input_menu_enable_zapper, NULL, 0, NULL },
+   { "&Enable Zapper", input_menu_enable_zapper, NULL, 0, NULL },
    MENU_ENDCAP
 };
 
@@ -895,23 +898,17 @@ static const MENU options_gui_theme_menu_base[] =
    MENU_ENDCAP
 };
 
-DEFINE_MENU_CALLBACK(options_menu_show_status);
-DEFINE_MENU_CALLBACK(options_menu_reset_clock);
 DEFINE_MENU_CALLBACK(options_menu_paths);
+DEFINE_MENU_CALLBACK(options_menu_reset_clock);
 
 static const MENU options_menu_base[] =
 {
-   { "&Show Status (F2)", options_menu_show_status,  NULL,                                0, NULL },
-   { "&Reset Clock",      options_menu_reset_clock,  NULL,                                0, NULL },
-   MENU_SPLITTER,
-   { "&Input",            NULL,                      IMPORT_MENU(options_input_menu),     0, NULL },
-#ifndef ALLEGRO_DOS
    { "&CPU Usage",        NULL,                      IMPORT_MENU(options_cpu_usage_menu), 0, NULL },
    MENU_SPLITTER,
-#endif
+   { "&Paths...",         options_menu_paths,        NULL,                                0, NULL },
    { "&GUI Theme",        NULL,                      IMPORT_MENU(options_gui_theme_menu), 0, NULL },
    MENU_SPLITTER,
-   { "&Paths...",         options_menu_paths,        NULL,                                0, NULL },
+   { "&Reset Clock",      options_menu_reset_clock,  NULL,                                0, NULL },
    MENU_ENDCAP      
 };
 
@@ -939,6 +936,7 @@ static const MENU top_menu_base[] =
    { "M&achine", NULL, IMPORT_MENU(machine_menu), 0, NULL },
    { "A&udio",   NULL, IMPORT_MENU(audio_menu),   0, NULL },
    { "&Video",   NULL, IMPORT_MENU(video_menu),   0, NULL },
+   { "&Input",   NULL, IMPORT_MENU(input_menu),   0, NULL },
    { "&Options", NULL, IMPORT_MENU(options_menu), 0, NULL },
 #ifdef USE_HAWKNL
    { "&NetPlay", NULL, IMPORT_MENU(netplay_menu), 0, NULL },
@@ -1186,7 +1184,7 @@ static INLINE void load_menus (void)
    MENU_FROM_BASE(video_layers_menu);
    MENU_FROM_BASE(video_palette_menu);
    MENU_FROM_BASE(video_menu);
-   MENU_FROM_BASE(options_input_menu);
+   MENU_FROM_BASE(input_menu);
    MENU_FROM_BASE(options_cpu_usage_menu);
    MENU_FROM_BASE(options_gui_theme_menu);
    MENU_FROM_BASE(options_menu);
@@ -1231,7 +1229,7 @@ static INLINE void unload_menus (void)
    unload_menu (video_layers_menu);
    unload_menu (video_palette_menu);
    unload_menu (video_menu);
-   unload_menu (options_input_menu);
+   unload_menu (input_menu);
    unload_menu (options_cpu_usage_menu);
    unload_menu (options_gui_theme_menu);
    unload_menu (options_menu);
