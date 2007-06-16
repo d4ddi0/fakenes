@@ -221,7 +221,10 @@ static void apu_save_envelope(APUEnvelope& env, PACKFILE* file, int version)
    RT_ASSERT(file);
 
    pack_putc(env.timer, file);
+   pack_putc(env.period, file);
    pack_putc(env.counter, file);
+   pack_putc((env.fixed ? 1 : 0), file);
+   pack_putc(env.fixed_volume, file);
    pack_putc((env.dirty ? 1 : 0), file);
 }
 
@@ -230,7 +233,10 @@ static void apu_load_envelope(APUEnvelope& env, PACKFILE* file, int version)
    RT_ASSERT(file);
 
    env.timer = pack_getc(file);
+   env.period = pack_getc(file);
    env.counter = pack_getc(file);
+   env.fixed = true_or_false(pack_getc(file));
+   env.fixed_volume = pack_getc(file);
    env.dirty = true_or_false(pack_getc(file));
 }
 
@@ -278,29 +284,35 @@ static linear void apu_sweep(APUChannel& chan, APUSweep& sweep)
       chan.period = delta;
 }
 
+static void apu_save_sweep(APUSweep& env, PACKFILE* file, int version)
+{
+   RT_ASSERT(file);
+
+   pack_putc((env.enabled ? 1 : 0), file);
+   pack_putc(env.timer, file);
+   pack_putc(env.period, file);
+   pack_putc(env.shifts, file);
+   pack_putc((env.invert ? 1 : 0), file);
+   pack_putc((env.dirty ? 1 : 0), file);
+}
+
+static void apu_load_sweep(APUSweep& env, PACKFILE* file, int version)
+{
+   RT_ASSERT(file);
+
+   env.enabled = true_or_false(pack_getc(file));
+   env.timer = pack_getc(file);
+   env.period = pack_getc(file);
+   env.shifts = pack_getc(file);
+   env.invert = true_or_false(pack_getc(file));
+   env.dirty = true_or_false(pack_getc(file));
+}
+
 // Length counter for squares, triangle, and noise
 static void apu_update_length_counter(APUWaveformChannel& chan)
 {
    if((chan.length > 0) && !chan.looping)
       chan.length--;
-}
-
-// Linear counter for triangle
-static linear void apu_update_linear_counter(APUTriangle& chan)
-{
-   /* When clocked by the frame sequencer, the following actions occur in order:
-
-          1) If halt flag is set, set counter to reload value, otherwise if counter
-          is non-zero, decrement it.
-
-          2) If control flag is clear, clear halt flag. */
-   if(chan.halt_counter)
-      chan.linear_length = chan.cached_linear_length;
-   else if(chan.linear_length > 0)
-      chan.linear_length--;
-
-   if(chan.halt_counter && !chan.looping)
-      chan.halt_counter = false;          
 }
 
 static linear void apu_update_square(APUSquare& chan, FLAGS update_flags)
@@ -339,38 +351,68 @@ static linear void apu_save_square(APUSquare& chan, PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
+   // General
+   pack_putc(chan.output, file);
+   pack_putc(chan.volume, file);
+   pack_putc((chan.looping ? 1 : 0), file);
+   pack_putc((chan.silence ? 1 : 0), file);
+
+   // Timer
    pack_iputw(chan.timer, file);
    pack_iputw(chan.period, file);
+
+   // Length counter
    pack_putc(chan.length, file);
-   pack_putc(chan.sequence_step, file);
-   pack_putc(chan.volume, file);
-   pack_putc((chan.silence ? 1 : 0), file);
-   pack_putc(chan.output, file);
+   pack_putc((chan.length_disable ? 1 : 0), file);
 
    // Envelope generator.
    apu_save_envelope(chan.envelope, file, version);
    // Sweep unit.
-   pack_putc(chan.sweep.timer, file);
-   pack_putc((chan.sweep.dirty ? 1 : 0), file);
+   apu_save_sweep(chan.sweep, file, version);
+
+   // Sequencer & duty cycle.
+   pack_putc(chan.sequence_step, file);
+   pack_putc(chan.duty_cycle, file);
 }
 
 static linear void apu_load_square(APUSquare& chan, PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
+   chan.output = pack_getc(file);
+   chan.volume = pack_getc(file);
+   chan.looping = true_or_false(pack_getc(file));
+   chan.silence = true_or_false(pack_getc(file));
+
    chan.timer = pack_igetw(file);
    chan.period = pack_igetw(file);
-   chan.length = pack_getc(file);
-   chan.sequence_step = pack_getc(file);
-   chan.volume = pack_getc(file);
-   chan.silence = true_or_false(pack_getc(file));
-   chan.output = pack_getc(file);
 
-   // Envelope generator.
+   chan.length = pack_getc(file);
+   chan.length_disable = true_or_false(pack_getc(file));
+
    apu_load_envelope(chan.envelope, file, version);
-   // Sweep unit.
-   chan.sweep.timer = pack_getc(file);
-   chan.sweep.dirty = true_or_false(pack_getc(file));
+   apu_load_sweep(chan.sweep, file, version);
+
+   chan.sequence_step = pack_getc(file);
+   chan.duty_cycle = pack_getc(file);
+}
+
+// Linear counter for triangle
+static linear void apu_update_linear_counter(APUTriangle& chan)
+{
+   /* When clocked by the frame sequencer, the following actions occur in order:
+
+          1) If halt flag is set, set counter to reload value, otherwise if counter
+          is non-zero, decrement it.
+
+          2) If control flag is clear, clear halt flag. */
+   if(chan.halt_counter)
+      chan.linear_length = chan.cached_linear_length;
+   else if(chan.linear_length > 0)
+      chan.linear_length--;
+
+   if(chan.halt_counter && !chan.looping)
+      chan.halt_counter = false;          
 }
 
 static linear void apu_update_triangle(APUTriangle& chan, FLAGS update_flags)
@@ -414,24 +456,40 @@ static linear void apu_save_triangle(APUTriangle& chan, PACKFILE* file, int vers
 {
    RT_ASSERT(file);
 
+   // General
+   pack_putc(chan.output, file);
+   pack_putc((chan.looping ? 1 : 0), file);
+
+   // Timer
    pack_iputw(chan.timer, file);
+   pack_iputw(chan.period, file);
+
+   // Length counter
    pack_putc(chan.length, file);
+   pack_putc((chan.length_disable ? 1 : 0), file);
+
+   // Linear counter
    pack_putc(chan.linear_length, file);
    pack_putc((chan.halt_counter ? 1 : 0), file);
-   pack_putc(chan.sequence_step, file);
-   pack_putc(chan.output, file);
+   pack_putc(chan.cached_linear_length, file);
 }
 
 static linear void apu_load_triangle(APUTriangle& chan, PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
+   chan.output = pack_getc(file);
+   chan.looping = true_or_false(pack_getc(file));
+
    chan.timer = pack_igetw(file);
+   chan.period = pack_igetw(file);
+
    chan.length = pack_getc(file);
+   chan.length_disable = true_or_false(pack_getc(file));
+
    chan.linear_length = pack_getc(file);
    chan.halt_counter = true_or_false(pack_getc(file));
-   chan.sequence_step = pack_getc(file);
-   chan.output = pack_getc(file);
+   chan.cached_linear_length = pack_getc(file);
 }
 
 static linear void apu_update_noise(APUNoise& chan, FLAGS update_flags)
@@ -472,30 +530,47 @@ static linear void apu_save_noise(APUNoise& chan, PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
-   pack_iputw(chan.timer, file);
-   pack_putc(chan.length, file);
-   pack_iputw(chan.shift16, file);
-   pack_putc(chan.volume, file);
-   pack_putc((chan.silence ? 1 : 0), file);
+   // General
    pack_putc(chan.output, file);
+   pack_putc(chan.volume, file);
+   pack_putc((chan.looping ? 1 : 0), file);
+   pack_putc((chan.silence ? 1 : 0), file);
+
+   // Timer
+   pack_iputw(chan.timer, file);
+   pack_iputw(chan.period, file);
+
+   // Length counter
+   pack_putc(chan.length, file);
+   pack_putc((chan.length_disable ? 1 : 0), file);
 
    // Envelope generator.
    apu_save_envelope(chan.envelope, file, version);
+
+   // Noise generator.
+   pack_iputw(chan.xor_tap, file);
+   pack_iputw(chan.shift16, file);
 }
 
 static linear void apu_load_noise(APUNoise& chan, PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
-   chan.timer = pack_igetw(file);
-   chan.length = pack_getc(file);
-   chan.shift16 = pack_igetw(file);
-   chan.volume = pack_getc(file);
-   chan.silence = true_or_false(pack_getc(file));
    chan.output = pack_getc(file);
+   chan.volume = pack_getc(file);
+   chan.looping = true_or_false(pack_getc(file));
+   chan.silence = true_or_false(pack_getc(file));
 
-   // Envelope generator.
+   chan.timer = pack_igetw(file);
+   chan.period = pack_igetw(file);
+
+   chan.length = pack_getc(file);
+   chan.length_disable = true_or_false(pack_getc(file));
+
    apu_load_envelope(chan.envelope, file, version);
+
+   chan.xor_tap = pack_igetw(file);
+   chan.shift16 = pack_igetw(file);
 }
 
 static void apu_reload_dmc(APUDMC& chan)
@@ -669,16 +744,32 @@ static linear void apu_save_dmc(APUDMC& chan, PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
+   // General
+   pack_putc(chan.output, file);
+   pack_putc(chan.volume, file);
+   pack_putc((chan.looping ? 1 : 0), file);
+   pack_putc((chan.silence ? 1 : 0), file);
+
+   // Timer
    pack_iputw(chan.timer, file);
+   pack_iputw(chan.period, file);
+
+   // Memory reader
    pack_iputw(chan.address, file);
    pack_iputw(chan.dma_length, file);
+   pack_iputw(chan.cached_address, file);
+   pack_iputw(chan.cached_dmalength, file);
+
+   // Sample buffer
    pack_putc(chan.cur_byte, file);
    pack_putc(chan.sample_bits, file);
+
+   // Output unit
    pack_putc(chan.counter, file);
    pack_putc(chan.shift_reg, file);
-   pack_putc(chan.volume, file);
-   pack_putc((chan.silence ? 1 : 0), file);
-   pack_putc(chan.output, file);
+
+   // IRQ generator
+   pack_putc((chan.irq_gen ? 1 : 0), file);
    pack_putc((chan.irq_occurred ? 1 : 0), file);
 }
 
@@ -686,16 +777,26 @@ static linear void apu_load_dmc(APUDMC& chan, PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
+   chan.output = pack_getc(file);
+   chan.volume = pack_getc(file);
+   chan.looping = true_or_false(pack_getc(file));
+   chan.silence = true_or_false(pack_getc(file));
+
    chan.timer = pack_igetw(file);
+   chan.period = pack_igetw(file);
+
    chan.address = pack_igetw(file);
    chan.dma_length = pack_igetw(file);
+   chan.cached_address = pack_igetw(file);
+   chan.cached_dmalength = pack_igetw(file);
+
    chan.cur_byte = pack_getc(file);
    chan.sample_bits = pack_getc(file);
+
    chan.counter = pack_getc(file);
    chan.shift_reg = pack_getc(file);
-   chan.volume = pack_getc(file);
-   chan.silence = true_or_false(pack_getc(file));
-   chan.output = pack_getc(file);
+
+   chan.irq_gen = true_or_false(pack_getc(file));
    chan.irq_occurred = true_or_false(pack_getc(file));
 }
 
@@ -1412,10 +1513,6 @@ void apu_write(UINT16 address, UINT8 value)
          break;
    }
 
-   // Cache register writes for state saving.
-   if((address >= 0x4000) && (address <= 0x4017))
-      apu.regs[(address - 0x4000)] = value;
-
    if(exsound)
       exsound->write(address, value);
 }
@@ -1440,29 +1537,28 @@ void apu_save_state(PACKFILE* file, int version)
    // Sync state.
    process();
 
-   // Save registers.
-   for(int index = 0; index < APU_REGS; index++)
-      pack_putc(apu.regs[index], file);
-
-   // Save processing timestamp.
+   // Processing timestamp
    pack_iputl(apu.clock_counter, file);
 
-   // Save frame sequencer state.
-   pack_iputw(apu.sequence_counter, file);
-   pack_putc(apu.sequence_step, file);
-
-   // Save IRQ prediction state.
+   // IRQ prediction
    pack_iputl(apu.prediction_timestamp, file);
    pack_iputl(apu.prediction_cycles, file);
 
-   // Save channel states.
+   // Frame sequencer & frame IRQs
+   pack_iputw(apu.sequence_counter, file);
+   pack_putc(apu.sequence_step, file);
+   pack_putc(apu.sequence_steps, file);
+   pack_putc((apu.frame_irq_gen ? 1 : 0), file);
+   pack_putc((apu.frame_irq_occurred ? 1 : 0), file);
+
+   // Sound generators
    apu_save_square(apu.square[0], file, version);
    apu_save_square(apu.square[1], file, version);
    apu_save_triangle(apu.triangle, file, version);
    apu_save_noise(apu.noise, file, version);
    apu_save_dmc(apu.dmc, file, version);
 
-   // Save ExSound state.
+   // ExSound
    if(exsound)
       exsound->save(file, version);
 }
@@ -1471,29 +1567,23 @@ void apu_load_state(PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
-   // Load registers.
-   for(int index = 0; index < APU_REGS; index++)
-      apu_write((0x4000 + index), pack_getc (file));
-
-   // Load processing timestamp.
    apu.clock_counter = pack_igetl(file);
 
-   // Load frame sequencer state.
-   apu.sequence_counter = pack_igetw(file);
-   apu.sequence_step = pack_getc(file);
-
-   // Load IRQ prediction state.
    apu.prediction_timestamp = pack_igetl(file);
    apu.prediction_cycles = pack_igetl(file);
 
-   // Load channel states.
+   apu.sequence_counter = pack_igetw(file);
+   apu.sequence_step = pack_getc(file);
+   apu.sequence_steps = pack_getc(file);
+   apu.frame_irq_gen = true_or_false(pack_getc(file));
+   apu.frame_irq_occurred = true_or_false(pack_getc(file));
+
    apu_load_square(apu.square[0], file, version);
    apu_load_square(apu.square[1], file, version);
    apu_load_triangle(apu.triangle, file, version);
    apu_load_noise(apu.noise, file, version);
    apu_load_dmc(apu.dmc, file, version);
 
-   // Load ExSound state.
    if(exsound)
       exsound->load(file, version);
 }
