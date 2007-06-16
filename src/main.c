@@ -57,6 +57,7 @@ int frame_skip = -1;
 /* Speed modifiers (all apply in the order listed). */
 REAL timing_speed_multiplier = 1.0f;
 BOOL timing_half_speed = FALSE;
+BOOL timing_fast_forward = FALSE;
 
 /* Public counters (updated once per frame). */
 int timing_fps = 0;
@@ -273,7 +274,6 @@ int main (int argc, char *argv[])
 
       if (rom_is_loaded)
       {
-         static BOOL fast_forward = FALSE;
          BOOL redraw_flag;
 
          if (frame_interrupt)
@@ -305,18 +305,20 @@ int main (int argc, char *argv[])
 
          if ((key [KEY_TILDE]) && (!(input_mode & INPUT_MODE_CHAT)))
          {
-            if (!fast_forward)
+            if (!timing_fast_forward)
             {
                /* Enter fast forward mode. */
-               fast_forward = TRUE;
+               timing_fast_forward = TRUE;
+               timing_update_speed ();
             }
          }
          else
          {
-            if (fast_forward)
+            if (timing_fast_forward)
             {
                /* Exit fast forward mode. */
-               fast_forward = FALSE;
+               timing_fast_forward = FALSE;
+               timing_update_speed ();
             }
          }
 
@@ -331,29 +333,16 @@ int main (int argc, char *argv[])
             /* This frame will be executed, and drawn. */
             redraw_flag = TRUE;
 
-            if (fast_forward)
+            if (speed_cap)
             {
-               if (frame_skip == -1)
-                  frame_count = ROUND(timing_get_speed ());
-               else
-                  frame_count = frame_skip;
-
-               /* Clear throttle counter since we are bypassing it. */
-               throttle_counter = 0;
-            }
-            else
-            {
-               if (speed_cap)
-               {
-                  /* Speed throttling. */
+               /* Speed throttling. */
       
-                  while (throttle_counter == 0)
-                  {
-                     if (cpu_usage == CPU_USAGE_NORMAL)
-                        rest (0);
-                     else if (cpu_usage == CPU_USAGE_PASSIVE)
-                        rest (1);
-                  }
+               while (throttle_counter == 0)
+               {
+                  if (cpu_usage == CPU_USAGE_NORMAL)
+                     rest (0);
+                  else if (cpu_usage == CPU_USAGE_PASSIVE)
+                     rest (1);
                }
    
                /* Get all currently pending frames into the frame

@@ -37,6 +37,7 @@ extern int timing_audio_fps;
 
 extern REAL timing_speed_multiplier;
 extern BOOL timing_half_speed;
+extern BOOL timing_fast_forward;
 
 extern unsigned timing_clock;
 
@@ -106,6 +107,9 @@ static INLINE REAL timing_get_speed_ratio (void)
    if (timing_half_speed)
       ratio /= 2.0;
 
+   if (timing_fast_forward)
+      ratio *= 2.0;
+
    return (ratio);
 }
 
@@ -145,12 +149,8 @@ static INLINE void timing_update_speed (void)
       resume_timing ();
    }
 
-   /* Cycle audio to match new emulation speeds. */
-   audio_exit ();
-   audio_init ();
-
-   if (rom_is_loaded)
-      apu_update ();
+   /* Update the APU's mixer. */
+   apu_update ();
 }
 
 static INLINE void timing_update_machine_type (void)
