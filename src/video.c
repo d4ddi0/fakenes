@@ -62,7 +62,15 @@ BOOL video_enable_vsync = FALSE;
 BOOL video_force_fullscreen = FALSE;
 int video_cached_color_depth = 0;   /* Read only. */
 
-int video_driver = 0;
+#ifdef ALLEGRO_DOS
+/* We use autodetect under DOS because I think the safe driver defaults to like 320x200 or something which is too small
+   for the new GUI even with the smallest font. */
+int video_driver = GFX_AUTODETECT;
+else
+/* Under Windowed operating systems, resolutions above or equal to 640x480 are always present and therefor we can go ahead
+   and use the safe driver for better compatibility without hampering the GUI at the same time. */
+int video_driver = GFX_SAFE;
+#endif
 
 BITMAP *base_video_buffer = NULL;
 BITMAP *video_buffer = NULL;
@@ -197,40 +205,41 @@ int video_init (void)
    install_int_ex (video_message_timer, BPS_TO_TIMER(1));
 
    /* Determine which driver to use. */
+   if((video_driver == GFX_AUTODETECT) ||
+      (video_driver == GFX_SAFE)) {
+      BOOL has_desktop;
 
-   if (video_driver == GFX_AUTODETECT)
-   {
-      if (video_force_fullscreen)
-      {
-         driver = GFX_AUTODETECT_FULLSCREEN;
+      /* Attempt to detect a windowed environment.  This has a side
+         effect of changing the default color depth to that of the
+         desktop. */
+      const int depth = desktop_color_depth();
+      if(depth > 0) {
+         has_desktop = TRUE;
+
+         if(color_depth == -1)
+            color_depth = depth;
       }
       else
-      {
-         int depth;
+         has_desktop = FALSE;
 
-         depth = desktop_color_depth ();
+      /* We want to switch from the safe driver to an automatic driver when entering fullscreen modes. */
+      if((video_driver == GFX_SAFE) && video_force_fullscreen)
+         driver = GFX_AUTODETECT;
 
-         /* Attempt to detect a windowed environment.  This has a side
-            effect of changing the default color depth to that of the
-            desktop. */
-
-         if (depth > 0)
-         {
+      if(video_driver == GFX_AUTODETECT ) {
+         /* Determine which automatic driver to use. */
+         if(video_force_fullscreen)
+            driver = GFX_AUTODETECT_FULLSCREEN;
+         else if(has_desktop)
             driver = GFX_AUTODETECT_WINDOWED;
-
-            if (color_depth == -1)
-               color_depth = depth;
-         }
          else
-         {
             driver = GFX_AUTODETECT;
-         }
       }
+      else
+         driver = video_driver;
    }
    else
-   {
       driver = video_driver;
-   }
 
 #ifdef USE_ALLEGROGL
 
@@ -403,7 +412,11 @@ int video_init (void)
       {
          WARN("Font load failed");
 
-         font = DATA_TO_FONT(SMALL_FONT_CLEAN);
+         if((SCREEN_W < 512) || (SCREEN_H < 448))
+            font = small_font;
+         else
+            font = DATA_TO_FONT(SMALL_FONT_CLEAN);
+
          using_custom_font = FALSE;
       }
    }
@@ -411,7 +424,11 @@ int video_init (void)
    {
       /* Reset just in case. */
 
-      font = DATA_TO_FONT (SMALL_FONT_CLEAN);
+      if((SCREEN_W < 512) || (SCREEN_H < 448))
+         font = small_font;
+      else
+         font = DATA_TO_FONT (SMALL_FONT_CLEAN);
+
       using_custom_font = FALSE;
    }
       
