@@ -26,4 +26,8 @@ CFLAGS += ' -DUSE_ZLIB'
 
 # --
 
-LDFLAGS += ' -lz'
+do ifplat win32
+   LDFLAGS += ' -lzdll'
+else
+   LDFLAGS += ' -lz'
+done
