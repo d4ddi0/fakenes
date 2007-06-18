@@ -899,6 +899,8 @@ static INLINE int load_file (const UCHAR *filename)
 
    ROM rom;
 
+   status_message ("Loading.  Please wait...");
+
    if (load_rom (filename, &rom) != 0)
    {
       gui_message (GUI_ERROR_COLOR, "Failed to load ROM!");
