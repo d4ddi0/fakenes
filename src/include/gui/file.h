@@ -163,6 +163,7 @@ static int fs_get_file_callback (const char *filename, int attrib, void
 
    ustrzncpy (entry->text, entry->size, filename, ustrsize (filename));
 
+   /* Show in status bar. */
    status_message (entry->text);
 
    fs_info.num_files++;
@@ -242,6 +243,7 @@ static int fs_get_directory_callback (const char *filename, int attrib, void
 
    ustrzncpy (entry->text, entry->size, buffer, ustrsize (buffer));
 
+   /* Show in status bar. */
    status_message (entry->text);
 
    fs_info.num_dirs++;
@@ -419,6 +421,9 @@ static char *file_select_dialog_file_list_filler (int index, int
          /* Disable double-click. */
          fs_info.objfiles->flags &= ~D_EXIT;
       }
+
+      /* Clear status bar. */
+      status_message ("");
    }
 
    if (index >= 0)
@@ -574,6 +579,9 @@ static char *file_select_dialog_directory_list_filler (int index, int
       }
 
 #endif   /* (ALLEGRO_DOS || ALLEGRO_WINDOWS) */
+
+      /* Clear status bar. */
+      status_message ("");
    }
 
    if (index >= 0)

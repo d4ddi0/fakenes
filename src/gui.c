@@ -899,7 +899,7 @@ static INLINE int load_file (const UCHAR *filename)
 
    ROM rom;
 
-   status_message ("Loading.  Please wait...");
+   status_message ("Loading, please wait...");
 
    if (load_rom (filename, &rom) != 0)
    {
@@ -910,6 +910,9 @@ static INLINE int load_file (const UCHAR *filename)
    else
    {
       USTRING scratch;
+
+      /* Clear status bar. */
+      status_message ("");
 
       if (rom_is_loaded)
       {
