@@ -242,19 +242,20 @@ static INLINE int gui_open (void)
 
    gui_is_active = TRUE;
 
-   if (video_is_opengl_mode ())
+   /* In the past we only double buffered in OpenGL mode, but now we
+      always do it to fix some issues related to the horrible
+      performance of screen reads/writes. */
+
+   /* Create drawing buffer. */
+   gui_buffer = create_bitmap (SCREEN_W, SCREEN_H);
+   if (!gui_buffer)
    {
-      /* Create drawing buffer. */
-      gui_buffer = create_bitmap (SCREEN_W, SCREEN_H);
-      if (!gui_buffer)
-      {
-         WARN("Couldn't create GUI drawing buffer");
-         return (1);
-      }
-   
-      /* Make Allegro use it. */
-      gui_set_screen (gui_buffer);
+      WARN("Couldn't create GUI drawing buffer");
+      return (1);
    }
+   
+   /* Make Allegro use it. */
+   gui_set_screen (gui_buffer);
 
    cycle_video ();
 

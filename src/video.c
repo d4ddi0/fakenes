@@ -885,7 +885,7 @@ void video_blit (BITMAP *bitmap)
    clear (status_buffer);
 }
 
-void video_show_bitmap (BITMAP *bitmap, ENUM quality, BOOL with_mouse)
+void video_show_bitmap(BITMAP *bitmap, ENUM quality, BOOL with_mouse)
 {
    /* Generic buffer-to-screen display function.
 
@@ -898,66 +898,55 @@ void video_show_bitmap (BITMAP *bitmap, ENUM quality, BOOL with_mouse)
          1 - OpenGL Map Nearest.
          2 - OpenGL Map Linear. */
 
+   BITMAP *saved = NULL;   /* Qwell warnings. */
+   int saved_x = 0, saved_y = 0;
+
    RT_ASSERT(bitmap);
 
-#ifdef USE_ALLEGROGL
+   if(with_mouse) {
+      /* Save mouse coordinates. */
+      saved_x = (mouse_x - mouse_x_focus);
+      saved_y = (mouse_y - mouse_y_focus);
+   
+      saved = create_bitmap(mouse_sprite->w, mouse_sprite->h);
+      if(saved)
+         blit(bitmap, saved, saved_x, saved_y, 0, 0, saved->w, saved->h);
 
-   if (video_is_opengl_mode ())
-   {
-      BITMAP *saved = NULL;   /* Qwell warnings. */
-      int saved_x = 0, saved_y = 0;
+      /* Draw mouse pointer. */
+      draw_sprite(bitmap, mouse_sprite, saved_x, saved_y);
+   }
+
+   if(video_is_opengl_mode()) {
+#ifdef USE_ALLEGROGL
       GLuint texture_id;
 
-      if (with_mouse)
-      {
-         /* Save mouse coordinates. */
-         saved_x = (mouse_x - mouse_x_focus);
-         saved_y = (mouse_y - mouse_y_focus);
-   
-         saved = create_bitmap (mouse_sprite->w, mouse_sprite->h);
-   
-         if (saved)
-         {
-            blit (bitmap, saved, saved_x, saved_y, 0, 0, saved->w,
-               saved->h);
-         }
-
-         /* Draw mouse pointer. */
-         draw_sprite (bitmap, mouse_sprite, saved_x, saved_y);
-      }
-
       /* Create and upload texture. */
-
-      texture_id = allegro_gl_make_texture (bitmap);
+      texture_id = allegro_gl_make_texture(bitmap);
       if (texture_id == 0)
          WARN("Creation of OpenGL texture failed");
 
       /* Select texture. */
-      glBindTexture (GL_TEXTURE_2D, texture_id);
+      glBindTexture(GL_TEXTURE_2D, texture_id);
 
       /* Set texture properties. */
-
-      switch (quality)
-      {
-         case 0:  /* Default. */
+      switch(quality) {
+         case 0: {
+            /* Default. */
             break;
+         }
 
-         case 1:  /* OpenGL Map Nearest. */
-         {
-            glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-               GL_NEAREST);
-            glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-               GL_NEAREST);
+         case 1: {
+            /* OpenGL Map Nearest. */
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
             break;
          }
 
-         case 2:  /* OpenGL Map Linear. */
-         {
-            glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-               GL_LINEAR);
-            glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-               GL_LINEAR);
+         case 2: {
+            /* OpenGL Map Linear. */
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
             break;
          }
@@ -967,51 +956,45 @@ void video_show_bitmap (BITMAP *bitmap, ENUM quality, BOOL with_mouse)
       }
 
       /* Clamp edges. */
-
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_CLAMP);
-      glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_CLAMP);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
       /* Disable environmental modifications. */
-      glTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 
       /* Draw quad. */
+      /* TODO: Use Orthographic 2D drawing instead. */
+      glBegin(GL_QUADS);
 
-      glBegin (GL_QUADS);
+      glTexCoord2f(0, 0);
+      glVertex3f(-1.0f, -1.0f, 0);
 
-         glTexCoord2f (0, 0);
-         glVertex3f (-1.0f, -1.0f, 0);
+      glTexCoord2f(1.0f, 0);
+      glVertex3f(1.0f, -1.0f, 0);
 
-         glTexCoord2f (1.0f, 0);
-         glVertex3f (1.0f, -1.0f, 0);
-
-         glTexCoord2f (1.0f, 1.0f);
-         glVertex3f (1.0f, 1.0f, 0);
+      glTexCoord2f(1.0f, 1.0f);
+      glVertex3f(1.0f, 1.0f, 0);
                            
-         glTexCoord2f (0, 1.0f);
-         glVertex3f (-1.0f, 1.0f, 0);
+      glTexCoord2f(0, 1.0f);
+      glVertex3f(-1.0f, 1.0f, 0);
 
-      glEnd ();
+      glEnd();
 
       /* Update screen. */
-      allegro_gl_flip ();
+      allegro_gl_flip();
 
       /* Delete texture. */
-      glDeleteTextures (1, &texture_id);
-
-      if (with_mouse && saved)
-      {
-         /* Erase mouse pointer. */
-         blit (saved, bitmap, 0, 0, saved_x, saved_y, saved->w, saved->h);
-
-         destroy_bitmap (saved);
-      }
-
-      return;
-   }
-
+      glDeleteTextures(1, &texture_id);
 #endif   /* USE_ALLEGROGL */
+   }
+   else
+      blit(bitmap, screen, 0, 0, 0, 0, bitmap->w, bitmap->h);
 
-   blit (bitmap, screen, 0, 0, 0, 0, bitmap->w, bitmap->h);
+   if(with_mouse && saved) {
+      /* Erase mouse pointer. */
+      blit(saved, bitmap, 0, 0, saved_x, saved_y, saved->w, saved->h);
+      destroy_bitmap(saved);
+   }
 }
 
 void video_handle_keypress (int c, int scancode)
