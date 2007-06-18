@@ -44,47 +44,56 @@ static INLINE void refresh (void)
 
 static INLINE void draw_message (int color)
 {
-   /* This function draws the message currently present in message_buffer,
-      either directly to the screen or by sending it to the video code. */
+   /* This function draws the message currenty present in message_buffer
+      in the GUI status bar area. */
 
-   if (gui_is_active)
-   {
-      BITMAP *bmp;
-      int x1, y1, x2, y2;
+   BITMAP *bmp;
+   int x1, y1, x2, y2;
 
-      bmp = gui_get_screen ();
+   bmp = gui_get_screen ();
 
-      x1 = 16;
-      y1 = (((bmp->h - 16) - text_height (font)) - 8);
-      x2 = (bmp->w - 16);
-      y2 = (bmp->h - 16);
-   
-      vline (bmp, (x2 + 1), (y1 + 1), (y2 + 1), GUI_SHADOW_COLOR);
-      hline (bmp, (x1 + 1), (y2 + 1), (x2 + 1), GUI_SHADOW_COLOR);
-   
-      rectfill (bmp, x1, y1, x2, y2, GUI_FILL_COLOR);
-      rect (bmp, x1, y1, x2, y2, GUI_BORDER_COLOR);
-   
-      textout_centre_ex (bmp, font, message_buffer, (bmp->w / 2), ((bmp->h
-         - 19) - text_height (font)), 0, -1);
-      textout_centre_ex (bmp, font, message_buffer, ((bmp->w / 2) - 1),
-         (((bmp->h - 19) - text_height (font)) - 1), color, -1);
+   x1 = 16;
+   y1 = (((bmp->h - 16) - text_height (font)) - 8);
+   x2 = (bmp->w - 16);
+   y2 = (bmp->h - 16);
 
-      refresh ();
+   vline (bmp, (x2 + 1), (y1 + 1), (y2 + 1), GUI_SHADOW_COLOR);
+   hline (bmp, (x1 + 1), (y2 + 1), (x2 + 1), GUI_SHADOW_COLOR);
 
-      log_printf ("GUI: %s", message_buffer);
-   }
-   else
-   {
-      video_message (message_buffer);
-      video_message_duration = 3000;
-   }
+   rectfill (bmp, x1, y1, x2, y2, GUI_FILL_COLOR);
+   rect (bmp, x1, y1, x2, y2, GUI_BORDER_COLOR);
+
+   textout_centre_ex (bmp, font, message_buffer, (bmp->w / 2), ((bmp->h
+      - 19) - text_height (font)), 0, -1);
+   textout_centre_ex (bmp, font, message_buffer, ((bmp->w / 2) - 1),
+      (((bmp->h - 19) - text_height (font)) - 1), color, -1);
+
+   refresh ();
 }
 
 static INLINE void message_local (const UCHAR *message, ...)
 {
    /* This is identical to gui_message(), except that it always uses the
-      GUI text color. */
+      GUI text color and does not check if the GUI is active or not. */
+
+   va_list format;
+
+   RT_ASSERT(message);
+
+   va_start (format, message);
+   uvszprintf (message_buffer, USTRING_SIZE, message, format);
+   va_end (format);
+
+   draw_message (GUI_TEXT_COLOR);
+
+   video_message (message_buffer);
+   video_message_duration = 3000;
+
+   log_printf ("GUI: %s", message_buffer);}
+
+static INLINE void status_message (const UCHAR *message, ...)
+{
+   /* Like message_local(), but does not log anywhere. */
 
    va_list format;
 

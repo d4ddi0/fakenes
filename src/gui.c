@@ -666,10 +666,18 @@ void gui_message (int color, const UCHAR *message, ...)
    uvszprintf (message_buffer, USTRING_SIZE, message, format);
    va_end (format);
 
-   if (color == -1)
-      color = GUI_TEXT_COLOR;
+   if (gui_is_active)
+   {
+      if (color == -1)
+         color = GUI_TEXT_COLOR;
 
-   draw_message (color);
+      draw_message (color);
+   }
+
+   video_message (message_buffer);
+   video_message_duration = 3000;
+
+   log_printf ("GUI: %s", message_buffer);
 }
 
 void gui_heartbeat (void)

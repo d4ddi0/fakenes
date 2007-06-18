@@ -163,6 +163,8 @@ static int fs_get_file_callback (const char *filename, int attrib, void
 
    ustrzncpy (entry->text, entry->size, filename, ustrsize (filename));
 
+   status_message (entry->text);
+
    fs_info.num_files++;
 
    return (0);
@@ -239,6 +241,8 @@ static int fs_get_directory_callback (const char *filename, int attrib, void
    }
 
    ustrzncpy (entry->text, entry->size, buffer, ustrsize (buffer));
+
+   status_message (entry->text);
 
    fs_info.num_dirs++;
 
