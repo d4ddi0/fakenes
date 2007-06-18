@@ -141,9 +141,6 @@ int load_ines_rom (PACKFILE *file, ROM *rom)
    RT_ASSERT(file);
    RT_ASSERT(rom);
 
-   /* Initialize the ROM context. */
-   memset (rom, NULL, sizeof(ROM));
-
    /* Read the header. */
    pack_fread (&header, sizeof(INES_HEADER), file);
 
@@ -248,6 +245,9 @@ int load_rom (const UCHAR *filename, ROM *rom)
 
    RT_ASSERT(filename);
    RT_ASSERT(rom);
+
+   /* Initialize the ROM context. */
+   memset (rom, NULL, sizeof(ROM));
 
    /* Check if ROM is inside a ZIP file. */
    if (ustrnicmp (get_extension (filename), "zip", USTRING_SIZE) == 0)

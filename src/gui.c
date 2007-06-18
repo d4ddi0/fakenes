@@ -947,7 +947,7 @@ static INLINE int load_file (const UCHAR *filename)
       ENABLE_SUBMENU(audio_record_menu);
       ENABLE_MENU_ITEM(video_layers_menu_flip_mirroring);
       ENABLE_MENU_ITEM(options_menu_reset_clock);
-      
+
       /* Update window title. */
       uszprintf (scratch, sizeof (scratch), "FakeNES - %s", get_filename
          (global_rom.filename));
