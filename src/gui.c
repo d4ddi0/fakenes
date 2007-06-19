@@ -102,8 +102,8 @@ static INLINE void update_menus (void)
       DISABLE_MENU_ITEM(main_menu_cheat_manager);
       DISABLE_MENU_ITEM(main_menu_save_snapshot);
       DISABLE_MENU_ITEM(main_menu_advance_frame);
-      DISABLE_MENU_ITEM(machine_menu_soft_reset);
-      DISABLE_MENU_ITEM(machine_menu_hard_reset);
+      DISABLE_MENU_ITEM(machine_menu_reset);
+      DISABLE_MENU_ITEM(machine_menu_power_cycle);
       DISABLE_SUBMENU(machine_save_state_menu);
       DISABLE_SUBMENU(audio_record_menu);
       DISABLE_MENU_ITEM(video_layers_menu_flip_mirroring);
@@ -941,8 +941,8 @@ static INLINE int load_file (const UCHAR *filename)
       ENABLE_MENU_ITEM(main_menu_cheat_manager);
       ENABLE_MENU_ITEM(main_menu_save_snapshot);
       ENABLE_MENU_ITEM(main_menu_advance_frame);
-      ENABLE_MENU_ITEM(machine_menu_soft_reset);
-      ENABLE_MENU_ITEM(machine_menu_hard_reset);
+      ENABLE_MENU_ITEM(machine_menu_reset);
+      ENABLE_MENU_ITEM(machine_menu_power_cycle);
       ENABLE_SUBMENU(machine_save_state_menu);
       ENABLE_SUBMENU(audio_record_menu);
       ENABLE_MENU_ITEM(video_layers_menu_flip_mirroring);
@@ -1441,8 +1441,8 @@ static int main_replay_play_menu_start (void)
    DISABLE_SUBMENU(main_replay_select_menu);
    DISABLE_SUBMENU(main_replay_record_menu);
    DISABLE_MENU_ITEM(main_menu_cheat_manager);
-   DISABLE_MENU_ITEM(machine_menu_soft_reset);
-   DISABLE_MENU_ITEM(machine_menu_hard_reset);
+   DISABLE_MENU_ITEM(machine_menu_reset);
+   DISABLE_MENU_ITEM(machine_menu_power_cycle);
    DISABLE_MENU_ITEM(machine_save_state_menu_quick_load);
    DISABLE_MENU_ITEM(machine_save_state_menu_restore);
    DISABLE_SUBMENU(netplay_menu);
@@ -1476,8 +1476,8 @@ static int main_replay_play_menu_stop (void)
    ENABLE_SUBMENU(main_replay_select_menu);
    ENABLE_SUBMENU(main_replay_record_menu);
    ENABLE_MENU_ITEM(main_menu_cheat_manager);
-   ENABLE_MENU_ITEM(machine_menu_soft_reset);
-   ENABLE_MENU_ITEM(machine_menu_hard_reset);
+   ENABLE_MENU_ITEM(machine_menu_reset);
+   ENABLE_MENU_ITEM(machine_menu_power_cycle);
    ENABLE_MENU_ITEM(machine_save_state_menu_quick_load);
    ENABLE_MENU_ITEM(machine_save_state_menu_restore);
    ENABLE_SUBMENU(netplay_menu);
@@ -1904,7 +1904,7 @@ static int machine_menu_show_status (void)
    return (D_O_K);
 }
 
-static int machine_menu_soft_reset (void)
+static int machine_menu_reset (void)
 {
    /* Confirm reset. */
 
@@ -1924,11 +1924,11 @@ static int machine_menu_soft_reset (void)
    }
 }
 
-static int machine_menu_hard_reset (void)
+static int machine_menu_power_cycle (void)
 {
-   /* Confirm reset. */
+   /* Confirm power cycle. */
 
-   if (gui_alert ("Confirmation", "This action will reset the virtual machine.", "If you continue, any unsaved progress will be lost.", "Really reset the virtual machine?", "&OK", "&Cancel", 0, 0) == 2)
+   if (gui_alert ("Confirmation", "This action will power cycle the virtual machine.", "If you continue, any unsaved progress will be lost.", "Really power cycle the virtual machine?", "&OK", "&Cancel", 0, 0) == 2)
    {
       /* Cancelled. */
       return (D_O_K);

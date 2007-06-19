@@ -288,18 +288,18 @@ static const MENU machine_frame_skip_menu_base[] =
 };
 
 DEFINE_MENU_CALLBACK(machine_menu_show_status);
-DEFINE_MENU_CALLBACK(machine_menu_soft_reset);
-DEFINE_MENU_CALLBACK(machine_menu_hard_reset);
+DEFINE_MENU_CALLBACK(machine_menu_reset);
+DEFINE_MENU_CALLBACK(machine_menu_power_cycle);
 DEFINE_MENU_CALLBACK(machine_menu_timing_smoothest);
 DEFINE_MENU_CALLBACK(machine_menu_timing_most_accurate);
 DEFINE_MENU_CALLBACK(machine_menu_speed_cap);
 
 static const MENU machine_menu_base[] =
 {
-   { "Sh&ow Status (F2)", machine_menu_show_status,          NULL,                                    0, NULL },
+   { "&Show Status (F2)", machine_menu_show_status,          NULL,                                    0, NULL },
    MENU_SPLITTER,
-   { "&Soft Reset",       machine_menu_soft_reset,           NULL,                                    0, NULL },
-   { "&Hard Reset",       machine_menu_hard_reset,           NULL,                                    0, NULL },
+   { "&Reset",            machine_menu_reset,                NULL,                                    0, NULL },
+   { "&Power Cycle",      machine_menu_power_cycle,          NULL,                                    0, NULL },
    MENU_SPLITTER,
    { "Timing",            NULL,                              NULL,                                    0, NULL },
    { "  S&moothest",      machine_menu_timing_smoothest,     NULL,                                    0, NULL },
@@ -311,7 +311,7 @@ static const MENU machine_menu_base[] =
    { "Speed &Cap",        machine_menu_speed_cap,            NULL,                                    0, NULL },
    { "&Frame Skip",       NULL,                              IMPORT_MENU(machine_frame_skip_menu),    0, NULL },
    MENU_SPLITTER,
-   { "&Region",           NULL,                              IMPORT_MENU(machine_region_menu),        0, NULL },
+   { "R&egion",           NULL,                              IMPORT_MENU(machine_region_menu),        0, NULL },
    MENU_ENDCAP
 };
 
