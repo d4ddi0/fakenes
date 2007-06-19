@@ -631,13 +631,12 @@ static linear void apu_update_dmc(APUDMC& chan)
 
          // Empty sample buffer into the shift register.
          chan.shift_reg = chan.cur_byte;
-         chan.cur_byte = 0x00;
+         //chan.cur_byte = 0x00;
          chan.sample_bits = 0;
       }
       else {
          // The sample buffer is empty - silence channel.
          chan.silence = true;
-         chan.output = 0;
       }
    }
 
