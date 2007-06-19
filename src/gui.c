@@ -1906,23 +1906,43 @@ static int machine_menu_show_status (void)
 
 static int machine_menu_soft_reset (void)
 {
-   machine_reset ();
+   /* Confirm reset. */
 
-   /* Clear the game clock. */
-   options_menu_reset_clock ();
+   if (gui_alert ("Confirmation", "This action will reset the virtual machine.", "If you continue, any unsaved progress will be lost.", "Really reset the virtual machine?", "&OK", "&Cancel", 0, 0) == 2)
+   {
+      /* Cancelled. */
+      return (D_O_K);
+   }
+   else
+   {
+      machine_reset ();
 
-   return (D_CLOSE);
+      /* Clear the game clock. */
+      options_menu_reset_clock ();
+
+      return (D_CLOSE);
+   }
 }
 
 static int machine_menu_hard_reset (void)
 {
-   machine_exit ();
-   machine_init ();
+   /* Confirm reset. */
 
-   /* Clear the game clock. */
-   options_menu_reset_clock ();
+   if (gui_alert ("Confirmation", "This action will reset the virtual machine.", "If you continue, any unsaved progress will be lost.", "Really reset the virtual machine?", "&OK", "&Cancel", 0, 0) == 2)
+   {
+      /* Cancelled. */
+      return (D_O_K);
+   }
+   else
+   {
+      machine_exit ();
+      machine_init ();
 
-   return (D_CLOSE);
+      /* Clear the game clock. */
+      options_menu_reset_clock ();
+
+      return (D_CLOSE);
+   }
 }
 
 static int machine_menu_timing_smoothest (void)
