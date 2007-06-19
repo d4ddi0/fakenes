@@ -99,9 +99,9 @@ static INLINE void update_menus (void)
       DISABLE_MENU_ITEM(main_menu_resume);
       DISABLE_MENU_ITEM(main_menu_close);
       DISABLE_SUBMENU(main_replay_menu);
+      DISABLE_MENU_ITEM(main_menu_cheat_manager);
       DISABLE_MENU_ITEM(main_menu_save_snapshot);
       DISABLE_MENU_ITEM(main_menu_advance_frame);
-      DISABLE_MENU_ITEM(main_menu_cheat_manager);
       DISABLE_MENU_ITEM(machine_menu_soft_reset);
       DISABLE_MENU_ITEM(machine_menu_hard_reset);
       DISABLE_SUBMENU(machine_save_state_menu);
@@ -122,7 +122,9 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(main_replay_select_menu_3, (replay_index == 3));
    TOGGLE_MENU_ITEM(main_replay_select_menu_4, (replay_index == 4));
 
-      TOGGLE_MENU_ITEM(machine_menu_timing_smoothest,     (machine_timing == MACHINE_TIMING_SMOOTH));
+   TOGGLE_MENU_ITEM(machine_menu_show_status, video_display_status);
+
+   TOGGLE_MENU_ITEM(machine_menu_timing_smoothest,     (machine_timing == MACHINE_TIMING_SMOOTH));
    TOGGLE_MENU_ITEM(machine_menu_timing_most_accurate, (machine_timing == MACHINE_TIMING_ACCURATE));
 
    TOGGLE_MENU_ITEM(machine_save_state_select_menu_0, (save_state_index == 0));
@@ -163,8 +165,6 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(machine_frame_skip_menu_8_frames,  (frame_skip == 8));
    TOGGLE_MENU_ITEM(machine_frame_skip_menu_9_frames,  (frame_skip == 9));
    TOGGLE_MENU_ITEM(machine_frame_skip_menu_10_frames, (frame_skip == 10));
-
-   TOGGLE_MENU_ITEM(machine_menu_show_status, video_display_status);
 
    TOGGLE_MENU_ITEM(audio_menu_enable_apu,    apu_options.enabled);
    TOGGLE_MENU_ITEM(audio_menu_enable_output, audio_options.enable_output);
@@ -938,9 +938,9 @@ static INLINE int load_file (const UCHAR *filename)
       ENABLE_MENU_ITEM(main_menu_resume);
       ENABLE_MENU_ITEM(main_menu_close);
       ENABLE_SUBMENU(main_replay_menu);
+      ENABLE_MENU_ITEM(main_menu_cheat_manager);
       ENABLE_MENU_ITEM(main_menu_save_snapshot);
       ENABLE_MENU_ITEM(main_menu_advance_frame);
-      ENABLE_MENU_ITEM(main_menu_cheat_manager);
       ENABLE_MENU_ITEM(machine_menu_soft_reset);
       ENABLE_MENU_ITEM(machine_menu_hard_reset);
       ENABLE_SUBMENU(machine_save_state_menu);
@@ -1490,6 +1490,17 @@ static int main_replay_play_menu_stop (void)
    return (D_O_K);
 }
 
+static int main_menu_cheat_manager (void)
+{
+   if (show_dialog (main_cheat_manager_dialog, -1) ==
+      MAIN_CHEAT_MANAGER_DIALOG_SAVE_BUTTON)
+   {
+      save_patches ();
+   }
+
+   return (D_O_K);
+}
+
 static int main_menu_save_snapshot (void)
 {
    int index;
@@ -1526,17 +1537,6 @@ static int main_menu_advance_frame (void)
    frames_to_execute = 1;
 
    return (D_CLOSE);
-}
-
-static int main_menu_cheat_manager (void)
-{
-   if (show_dialog (main_cheat_manager_dialog, -1) ==
-      MAIN_CHEAT_MANAGER_DIALOG_SAVE_BUTTON)
-   {
-      save_patches ();
-   }
-
-   return (D_O_K);
 }
 
 static int main_menu_save_configuration (void)
@@ -1896,6 +1896,14 @@ static int machine_frame_skip_menu_custom (void)
    return (D_O_K);
 }
 
+static int machine_menu_show_status (void)
+{
+   video_display_status = (! video_display_status);
+   update_menus ();
+
+   return (D_O_K);
+}
+
 static int machine_menu_soft_reset (void)
 {
    machine_reset ();
@@ -1945,14 +1953,6 @@ static int machine_menu_speed_cap (void)
    update_menus ();
 
    message_local ("Speed cap %s.", get_enabled_text (speed_cap));
-
-   return (D_O_K);
-}
-
-static int machine_menu_show_status (void)
-{
-   video_display_status = (! video_display_status);
-   update_menus ();
 
    return (D_O_K);
 }

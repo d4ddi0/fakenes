@@ -134,9 +134,9 @@ static const MENU main_replay_menu_base[] =
 DEFINE_MENU_CALLBACK(main_menu_resume);
 DEFINE_MENU_CALLBACK(main_menu_open);
 DEFINE_MENU_CALLBACK(main_menu_close);
+DEFINE_MENU_CALLBACK(main_menu_cheat_manager);
 DEFINE_MENU_CALLBACK(main_menu_save_snapshot);
 DEFINE_MENU_CALLBACK(main_menu_advance_frame);
-DEFINE_MENU_CALLBACK(main_menu_cheat_manager);
 DEFINE_MENU_CALLBACK(main_menu_save_configuration);
 DEFINE_MENU_CALLBACK(main_menu_exit);
 
@@ -149,11 +149,11 @@ static const MENU main_menu_base[] =
    { "&Close",               main_menu_close,              NULL,                               0, NULL },
    MENU_SPLITTER,            
    { "Re&play",              NULL,                         IMPORT_MENU(main_replay_menu),      0, NULL },
+   MENU_SPLITTER,
+   { "Cheat &Manager...",    main_menu_cheat_manager,      NULL,                               0, NULL },
    MENU_SPLITTER,            
    { "&Save Snapshot (F1)",  main_menu_save_snapshot,      NULL,                               0, NULL },
    { "&Advance Frame",       main_menu_advance_frame,      NULL,                               0, NULL },
-   MENU_SPLITTER,
-   { "Cheat &Manager...",    main_menu_cheat_manager,      NULL,                               0, NULL },
    MENU_SPLITTER,
    { "Save Co&nfiguration",  main_menu_save_configuration, NULL,                               0, NULL },
    MENU_SPLITTER,       
@@ -287,15 +287,17 @@ static const MENU machine_frame_skip_menu_base[] =
    MENU_ENDCAP
 };
 
+DEFINE_MENU_CALLBACK(machine_menu_show_status);
 DEFINE_MENU_CALLBACK(machine_menu_soft_reset);
 DEFINE_MENU_CALLBACK(machine_menu_hard_reset);
 DEFINE_MENU_CALLBACK(machine_menu_timing_smoothest);
 DEFINE_MENU_CALLBACK(machine_menu_timing_most_accurate);
 DEFINE_MENU_CALLBACK(machine_menu_speed_cap);
-DEFINE_MENU_CALLBACK(machine_menu_show_status);
 
 static const MENU machine_menu_base[] =
 {
+   { "Sh&ow Status (F2)", machine_menu_show_status,          NULL,                                    0, NULL },
+   MENU_SPLITTER,
    { "&Soft Reset",       machine_menu_soft_reset,           NULL,                                    0, NULL },
    { "&Hard Reset",       machine_menu_hard_reset,           NULL,                                    0, NULL },
    MENU_SPLITTER,
@@ -310,8 +312,6 @@ static const MENU machine_menu_base[] =
    { "&Frame Skip",       NULL,                              IMPORT_MENU(machine_frame_skip_menu),    0, NULL },
    MENU_SPLITTER,
    { "&Region",           NULL,                              IMPORT_MENU(machine_region_menu),        0, NULL },
-   MENU_SPLITTER,
-   { "Sh&ow Status (F2)", machine_menu_show_status,          NULL,                                0, NULL },
    MENU_ENDCAP
 };
 
