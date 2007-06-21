@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-volatile int video_message_duration;
+extern volatile int video_message_duration;
 
 enum
 {
@@ -41,59 +41,59 @@ enum
 #define VIDEO_FILTER_SCANLINES_MEDIUM   2
 #define VIDEO_FILTER_SCANLINES_HIGH     4
 
-int video_buffer_width;
-int video_buffer_height;
+extern int video_buffer_width;
+extern int video_buffer_height;
 
-BOOL video_display_status;
-BOOL video_enable_page_buffer;
-BOOL video_enable_vsync;
-BOOL video_force_fullscreen;
-int video_cached_color_depth; /* Read only. */
+extern BOOL video_display_status;
+extern BOOL video_enable_page_buffer;
+extern BOOL video_enable_vsync;
+extern BOOL video_force_fullscreen;
+extern int video_cached_color_depth; /* Read only. */
 
-int video_driver;
+extern int video_driver;
    
-BITMAP *base_video_buffer;
-BITMAP *video_buffer;
+extern BITMAP *base_video_buffer;
+extern BITMAP *video_buffer;
 
-FONT *small_font;
+extern FONT *small_font;
 
-LIST video_edge_clipping;
+extern LIST video_edge_clipping;
 
 #define VIDEO_EDGE_CLIPPING_HORIZONTAL (1 << 0)
 #define VIDEO_EDGE_CLIPPING_VERTICAL   (1 << 1)
 
-RGB *video_palette;
+extern RGB *video_palette;
 
-void video_load_config (void);
-void video_save_config (void);
-int video_init (void);
-int video_reinit (void);
-int video_init_buffer (void);
-void video_exit (void);
-void video_blit (BITMAP *);
-void video_filter (void);
-void video_handle_keypress (int, int);
-void video_set_palette (RGB *);
-void video_set_palette_id (int);
-int video_get_palette_id (void);
-int video_create_color_dither (int, int, int, int, int);
-int video_create_gradient (int, int, int, int, int);
-void video_create_gui_gradient (GUI_COLOR *, GUI_COLOR *, int);
-void video_set_blitter (ENUM);
-ENUM video_get_blitter (void);
-void video_blitter_reinit (void);
-void video_set_filter_list (LIST);
-LIST video_get_filter_list (void);
-void video_set_resolution (int, int);
-int video_get_color_depth (void);
-void video_set_color_depth (int);
-void video_set_driver (int);
-BOOL video_is_opengl_mode (void);
-void video_show_bitmap (BITMAP *, ENUM, BOOL);
+extern void video_load_config (void);
+extern void video_save_config (void);
+extern int video_init (void);
+extern int video_reinit (void);
+extern int video_init_buffer (void);
+extern void video_exit (void);
+extern void video_blit (BITMAP *);
+extern void video_filter (void);
+extern void video_handle_keypress (int, int);
+extern void video_set_palette (RGB *);
+extern void video_set_palette_id (int);
+extern int video_get_palette_id (void);
+extern int video_create_color_dither (int, int, int, int, int);
+extern int video_create_gradient (int, int, int, int, int);
+extern void video_create_gui_gradient (GUI_COLOR *, GUI_COLOR *, int);
+extern void video_set_blitter (ENUM);
+extern ENUM video_get_blitter (void);
+extern void video_blitter_reinit (void);
+extern void video_set_filter_list (LIST);
+extern LIST video_get_filter_list (void);
+extern void video_set_resolution (int, int);
+extern int video_get_color_depth (void);
+extern void video_set_color_depth (int);
+extern void video_set_driver (int);
+extern BOOL video_is_opengl_mode (void);
+extern void video_show_bitmap (BITMAP *, ENUM, BOOL);
 
-void video_message (const UCHAR *, ...);
+extern void video_message (const UCHAR *, ...);
 
-UINT8 video_color_map[32][32][32];
+extern UINT8 video_color_map[32][32][32];
 
 static INLINE int video_create_color (int r, int g, int b)
 {

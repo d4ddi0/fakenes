@@ -35,6 +35,7 @@ extern int timing_fps;
 extern int timing_hertz;
 extern int timing_audio_fps;
 
+extern ENUM timing_mode;
 extern REAL timing_speed_multiplier;
 extern BOOL timing_half_speed;
 extern BOOL timing_fast_forward;
@@ -76,6 +77,14 @@ enum
    CPU_USAGE_AGGRESSIVE
 };
 
+enum
+{
+   /* Direct timing bypasses all speed modifiers(the timings used always match the real thing). */
+   TIMING_MODE_DIRECT,
+   /* Indirect timing takes all speed modifiers, etc. into account. */
+   TIMING_MODE_INDIRECT,
+};
+
 #define SCANLINE_CLOCKS       341
 #define RENDER_CLOCKS         256
 #define HBLANK_CLOCKS         (SCANLINE_CLOCKS - RENDER_CLOCKS)
@@ -100,6 +109,8 @@ static INLINE REAL timing_get_speed_ratio (void)
       > 1.0 = faster
       */
 
+   /* This function should NOT be called by anything except timing_get_speed(). */
+
    ratio = 1.0;
 
    ratio *= timing_speed_multiplier;
@@ -119,23 +130,26 @@ static INLINE REAL timing_get_speed (void)
 
    scalar = ((machine_type == MACHINE_TYPE_NTSC) ? MACHINE_RATE_NTSC : MACHINE_RATE_PAL);
 
-   switch (machine_timing)
+   if (timing_mode == TIMING_MODE_INDIRECT)
    {
-      case MACHINE_TIMING_SMOOTH:
-         scalar = floor (scalar);   /* Approximated. */
-
-      case MACHINE_TIMING_ACCURATE:
-         break;                     /* Real(unmodified). */
-
-      default:
+      switch (machine_timing)
       {
-         WARN_GENERIC();
-         break;
-      }
-   }
+         case MACHINE_TIMING_SMOOTH:
+            scalar = floor (scalar);   /* Approximated. */
 
-   /* Apply any speed modifiers. */
-   scalar *= timing_get_speed_ratio ();
+         case MACHINE_TIMING_ACCURATE:
+            break;                     /* Real(unmodified). */
+
+         default:
+         {
+            WARN_GENERIC();
+            break;
+         }
+      }
+
+      /* Apply any speed modifiers. */
+      scalar *= timing_get_speed_ratio ();
+   }
 
    return (scalar);
 }
@@ -148,6 +162,14 @@ static INLINE void timing_update_speed (void)
       suspend_timing ();
       resume_timing ();
    }
+
+   /* Update the APU's mixer. */
+   apu_update ();
+}
+
+static INLINE void timing_update_mode (void)
+{
+   /* Note: Mode changes should NOT affect anything outside of emulation. */
 
    /* Update the APU's mixer. */
    apu_update ();

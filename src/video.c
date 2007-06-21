@@ -66,7 +66,7 @@ int video_cached_color_depth = 0;   /* Read only. */
 /* We use autodetect under DOS because I think the safe driver defaults to like 320x200 or something which is too small
    for the new GUI even with the smallest font. */
 int video_driver = GFX_AUTODETECT;
-else
+#else
 /* Under Windowed operating systems, resolutions above or equal to 640x480 are always present and therefor we can go ahead
    and use the safe driver for better compatibility without hampering the GUI at the same time. */
 int video_driver = GFX_SAFE;

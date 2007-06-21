@@ -164,9 +164,12 @@ void cpu_memmap_init (void)
         global_rom.trainer_crc32 = 0;
     }
 
-    /* compute CRC32 for PRG ROM */
-    global_rom.prg_rom_crc32 = make_crc32 (global_rom.prg_rom,
-        (global_rom.prg_rom_pages * 0x4000));
+    /* compute CRC32 for PRG ROM, if present */
+    if (global_rom.prg_rom_pages > 0)
+    {
+       global_rom.prg_rom_crc32 = make_crc32 (global_rom.prg_rom,
+           (global_rom.prg_rom_pages * 0x4000));
+    }
 }
 
 void cpu_exit (void)

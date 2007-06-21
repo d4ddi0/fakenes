@@ -26,6 +26,7 @@
 #include "log.h"
 #include "mmc.h"
 #include "netplay.h"
+#include "nsf.h"
 #include "ppu.h"
 #include "rom.h"
 #include "save.h"
@@ -894,12 +895,72 @@ static INLINE int load_file (const UCHAR *filename)
       automatically added to the recent items list.  That must be done
       manually (currently by main_menu_open()).
 
+      NSFs are also supported, and are determined from their extension.
+      GZipped/Zipped NSFs are not supported however.
+
       The return value of this function should be passed back to the calling
       dialog (e.g, D_CLOSE to close it and start the emulation, etc.). */
 
    ROM rom;
 
    status_message ("Loading, please wait...");
+
+   if (ustricmp (get_extension (filename), "NSF") == 0)
+   {
+      /* Attempt to intercept NSF file. */
+
+      if (!nsf_open (filename))
+      {
+         gui_message (GUI_ERROR_COLOR, "Failed to load NSF file!");
+
+         return (D_O_K);
+      }
+      else
+      {
+         USTRING scratch;
+
+         /* Clear status bar. */
+         status_message ("");
+
+         if (rom_is_loaded)
+         {
+            /* Close currently open ROM and save data. */
+            close_file ();
+         }
+
+         /* Big Batch O' Botches. */
+         rom_is_loaded = TRUE;
+         memset(&global_rom, 0, sizeof(global_rom));
+         /* Mapper #0 = NONE. */
+         mmc_force (&global_rom, &nsf_mapper);
+
+         /* Initialize machine. */
+         machine_init ();
+
+         /* Update window title. */
+         uszprintf (scratch, sizeof (scratch), "FakeNES - %s", get_filename (filename));
+         set_window_title (scratch);
+
+         /* Unfreeze audio. */
+         audio_resume ();
+
+         nsf_main ();
+
+         /* Re-freeze audio. */
+         audio_suspend ();
+
+         /* Close NSF file. */
+         nsf_close ();
+
+         /* Close machine. */
+         machine_exit ();
+
+         /* Botch. */
+         rom_is_loaded = FALSE;
+
+         return (D_REDRAW);
+      }
+   }
 
    if (load_rom (filename, &rom) != 0)
    {
@@ -1144,9 +1205,9 @@ static int main_menu_open (void)
    locked = get_config_int ("gui", "lock_paths", FALSE);
 
 #ifdef USE_ZLIB
-   result = gui_file_select ("Open", "Supported file types (*.NES, *.GZ, *.ZIP)", path, sizeof(path), "*.nes;*.gz;*.zip");
+   result = gui_file_select ("Open", "Supported file types (*.NES, *.GZ, *.ZIP, *.NSF)", path, sizeof(path), "*.nes;*.gz;*.zip;*.nsf");
 #else
-   result = gui_file_select ("Open", "Supported file types (*.NES)", path, sizeof(path), "*.nes");
+   result = gui_file_select ("Open", "Supported file types (*.NES, *.NSF)", path, sizeof(path), "*.nes;*.nsf");
 #endif
 
    if (!locked)

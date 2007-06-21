@@ -207,6 +207,12 @@ void mmc_request (ROM * rom)
     MMC_LAST_LIST_ITEM ();          /* Unsupported mapper. */
 }
 
+void mmc_force (ROM *rom, const MMC *mmc)
+{
+   /* Like mmc_request(), but forces a mapper without requiring a mapper number. */
+
+   rom -> current_mmc = mmc;
+}
 
 int mmc_init (void)
 {

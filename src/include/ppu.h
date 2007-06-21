@@ -87,104 +87,104 @@ extern "C" {
 #define PPU_MAP_SPRITES     4
 
 
-UINT8 ppu_register_2000;
+extern UINT8 ppu_register_2000;
 
-UINT8 ppu_register_2001;
+extern UINT8 ppu_register_2001;
 
-int ppu_enable_sprite_layer_a;
+extern int ppu_enable_sprite_layer_a;
 
-int ppu_enable_sprite_layer_b;
+extern int ppu_enable_sprite_layer_b;
 
-int ppu_enable_background_layer;
-
-
-int ppu_scanline;
-
-int ppu_frame_last_line;
+extern int ppu_enable_background_layer;
 
 
-int background_enabled;
+extern int ppu_scanline;
 
-int sprites_enabled;
-
-
-UINT8 * one_screen_base_address;
+extern int ppu_frame_last_line;
 
 
-void ppu_free_chr_rom (const ROM *);
+extern int background_enabled;
+
+extern int sprites_enabled;
 
 
-UINT8 * ppu_get_chr_rom_pages (ROM *);
-
-void ppu_cache_chr_rom_pages (void);
+extern UINT8 * one_screen_base_address;
 
 
-void ppu_set_ram_1k_pattern_vram_block (UINT16, int);
-
-void ppu_set_ram_1k_pattern_vrom_block (UINT16, int);
-
-void ppu_set_ram_1k_pattern_vrom_block_ex (UINT16, int, int);
-
-void ppu_set_ram_8k_pattern_vram (void);
+extern void ppu_free_chr_rom (ROM *);
 
 
-int ppu_init (void);
+extern UINT8 * ppu_get_chr_rom_pages (ROM *);
 
-void ppu_exit (void);
-
-
-void ppu_reset (void);
+extern void ppu_cache_chr_rom_pages (void);
 
 
-UINT8 ppu_read (UINT16);
+extern void ppu_set_ram_1k_pattern_vram_block (UINT16, int);
 
-void ppu_write (UINT16, UINT8);
+extern void ppu_set_ram_1k_pattern_vrom_block (UINT16, int);
 
+extern void ppu_set_ram_1k_pattern_vrom_block_ex (UINT16, int, int);
 
-void ppu_clear (void);
-
-
-void ppu_vblank (void);
-
-void ppu_vblank_nmi (void);
+extern void ppu_set_ram_8k_pattern_vram (void);
 
 
-void ppu_start_line (void);
+extern int ppu_init (void);
 
-void ppu_end_line (void);
-
-
-void ppu_stub_render_line (int);
-
-void ppu_render_line (int);
+extern void ppu_exit (void);
 
 
-void ppu_start_frame (void);
+extern void ppu_reset (void);
 
 
-void ppu_start_render (void);
+extern UINT8 ppu_read (UINT16);
 
-void ppu_end_render (void);
-
-
-void ppu_set_mirroring_one_screen (void);
+extern void ppu_write (UINT16, UINT8);
 
 
-int ppu_get_mirroring (void);
-
-void ppu_set_mirroring (int);
+extern void ppu_clear (void);
 
 
-void ppu_invert_mirroring (void);
+extern void ppu_vblank (void);
+
+extern void ppu_vblank_nmi (void);
 
 
-void ppu_set_name_table_internal (int, int);
+extern void ppu_start_line (void);
 
-void ppu_set_name_table_address (int, UINT8 *);
+extern void ppu_end_line (void);
 
-void ppu_set_name_table_address_rom (int, UINT8 *);
 
-void ppu_set_name_table_address_vrom (int, int);
+extern void ppu_stub_render_line (int);
+
+extern void ppu_render_line (int);
+
+
+extern void ppu_start_frame (void);
+
+
+extern void ppu_start_render (void);
+
+extern void ppu_end_render (void);
+
+
+extern void ppu_set_mirroring_one_screen (void);
+
+
+extern int ppu_get_mirroring (void);
+
+extern void ppu_set_mirroring (int);
+
+
+extern void ppu_invert_mirroring (void);
+
+
+extern void ppu_set_name_table_internal (int, int);
+
+extern void ppu_set_name_table_address (int, UINT8 *);
+
+extern void ppu_set_name_table_address_rom (int, UINT8 *);
+
+extern void ppu_set_name_table_address_vrom (int, int);
 
 
 enum
@@ -203,11 +203,11 @@ enum
 };
 
 
-void ppu_save_state (PACKFILE *, int);
+extern void ppu_save_state (PACKFILE *, int);
 
-void ppu_load_state (PACKFILE *, int);
+extern void ppu_load_state (PACKFILE *, int);
 
-UINT8 ppu_get_background_color (void);
+extern UINT8 ppu_get_background_color (void);
 
 #ifdef __cplusplus
 }

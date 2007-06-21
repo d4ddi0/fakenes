@@ -54,6 +54,9 @@ BOOL speed_cap = TRUE;
 /* Amount of frames to skip when we fall behind.  -1 = auto. */
 int frame_skip = -1;
 
+/* Timing mode.  This should generally always be set to INDIRECT.  See 'timing.h' for comments. */
+ENUM timing_mode = TIMING_MODE_INDIRECT;
+
 /* Speed modifiers (all apply in the order listed). */
 REAL timing_speed_multiplier = 1.0f;
 BOOL timing_half_speed = FALSE;

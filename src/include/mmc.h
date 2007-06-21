@@ -31,6 +31,7 @@ typedef struct _MMC
 extern int mmc_init (void);
 extern void mmc_reset (void);
 extern void mmc_request (ROM *);
+extern void mmc_force (ROM *, const MMC *);
 extern int (*mmc_hblank_start) (int);
 extern int (*mmc_scanline_start) (int);
 extern int (*mmc_scanline_end) (int);

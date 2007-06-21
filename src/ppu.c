@@ -20,6 +20,19 @@
 #include "types.h"
 #include "video.h"
 
+UINT8 ppu_register_2000 = 0;
+UINT8 ppu_register_2001 = 0;
+int ppu_enable_sprite_layer_a = TRUE;
+int ppu_enable_sprite_layer_b = TRUE;
+int ppu_enable_background_layer = TRUE;
+
+int ppu_scanline = 0;
+int ppu_frame_last_line = 0;
+
+int background_enabled = FALSE;
+int sprites_enabled = FALSE;
+
+UINT8 * one_screen_base_address = 0;
 
 /* delay for sprite 0 collision detection in PPU clocks */
 /* should be <= SCANLINE_CLOCKS - 256 */
@@ -68,10 +81,6 @@ static UINT8 ppu_palette [32];
 
 
 static UINT8 ppu_spr_ram [256];
-
-int ppu_enable_sprite_layer_a = TRUE;
-int ppu_enable_sprite_layer_b = TRUE;
-int ppu_enable_background_layer = TRUE;
 
 #define ppu_background_palette ppu_palette
 #define ppu_sprite_palette (ppu_palette + 16)
@@ -143,11 +152,25 @@ static INLINE UINT8 vram_read (UINT16 address)
 }
 
 
-void ppu_free_chr_rom (const ROM *rom)
+void ppu_free_chr_rom (ROM *rom)
 {
-    if (rom -> chr_rom) free (rom -> chr_rom);
-    if (rom -> chr_rom_cache) free (rom -> chr_rom_cache);
-    if (rom -> chr_rom_cache_tag) free (rom -> chr_rom_cache_tag);
+    if (rom -> chr_rom)
+    {
+        free (rom -> chr_rom);
+        rom -> chr_rom = NULL;
+    }
+
+    if (rom -> chr_rom_cache)
+    {
+        free (rom -> chr_rom_cache);
+        rom -> chr_rom_cache = NULL;
+    }
+
+    if (rom -> chr_rom_cache_tag)
+    {
+        free (rom -> chr_rom_cache_tag);
+        rom -> chr_rom_cache_tag = NULL;
+    }
 }
 
 
