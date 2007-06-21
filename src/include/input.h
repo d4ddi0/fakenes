@@ -15,34 +15,35 @@
 extern "C" {
 #endif
 
-LIST input_mode;
-USTRING input_chat_text;
+extern LIST input_mode;
+extern USTRING input_chat_text;
 
-int input_autosave_interval;
-BOOL input_enable_zapper;
-int input_zapper_x_offset;
-int input_zapper_y_offset;
-BOOL input_zapper_trigger;
-BOOL input_zapper_on_screen;
+extern int input_autosave_interval;
+extern BOOL input_enable_zapper;
+extern int input_zapper_x_offset;
+extern int input_zapper_y_offset;
+extern BOOL input_zapper_trigger;
+extern BOOL input_zapper_on_screen;
 
-void input_load_config (void);
-void input_save_config (void);
-int input_init (void);
-void input_exit (void);
-void input_reset (void);
-UINT8 input_read (UINT16);
-void input_write (UINT16, UINT8);
-void input_process (void);
-void input_update_zapper (void);
-void input_update_zapper_offsets (void);
-void input_handle_keypress (int, int);
-ENUM input_get_player_device (ENUM);
-void input_set_player_device (ENUM, ENUM);
-void input_map_player_button (ENUM, ENUM);
-int input_get_player_button_param (ENUM, ENUM, ENUM);
-void input_set_player_button_param (ENUM, ENUM, ENUM, int);
-void input_save_state (PACKFILE *, int);
-void input_load_state (PACKFILE *, int);
+extern void input_load_config (void);
+extern void input_save_config (void);
+extern int input_init (void);
+extern void input_exit (void);
+extern void input_reset (void);
+extern UINT8 input_read (UINT16);
+extern void input_write (UINT16, UINT8);
+extern void input_process (void);
+extern void input_update_zapper (void);
+extern void input_update_zapper_offsets (void);
+extern void input_handle_keypress (int, int);
+extern ENUM input_get_player_device (ENUM);
+extern void input_set_player_device (ENUM, ENUM);
+extern void input_map_player_button (ENUM, ENUM);
+extern int input_get_player_button_param (ENUM, ENUM, ENUM);
+extern void input_set_player_button_param (ENUM, ENUM, ENUM, int);
+extern BOOL input_get_button_state (ENUM, ENUM);
+extern void input_save_state (PACKFILE *, int);
+extern void input_load_state (PACKFILE *, int);
 
 enum
 {

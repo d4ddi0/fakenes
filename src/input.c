@@ -64,6 +64,12 @@ enum {
    sometimes the PPU has to render skipped frames for Zapper hitscan. */
 BOOL input_enable_zapper = FALSE;
 
+/* Other global Zapper-related variables. */
+int input_zapper_x_offset = 0;
+int input_zapper_y_offset = 0;
+BOOL input_zapper_trigger = FALSE;
+BOOL input_zapper_on_screen = FALSE;
+
 /* Which input device a given player is using. */
 static ENUM input_devices[INPUT_PLAYERS];
 
@@ -1516,6 +1522,11 @@ void input_set_player_button_param (ENUM player, ENUM button, ENUM param,
       default:
          WARN_GENERIC();
    }
+}
+
+BOOL input_get_button_state (ENUM player, ENUM button)
+{
+   return ((player_buttons[player][button] == BUTTON_ON));
 }
 
 void input_save_state (PACKFILE *file, int version)
