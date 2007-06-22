@@ -240,11 +240,11 @@ void nsf_main(void)
       1 = power bars (bottom left),
       2 = frequency spectrum (bottom right),
       3 = waveform (top right) */
-   const int visualizationNone = 0;
-   const int visualizationPowerBars = 1;
-   const int visualizationFrequencySpectrum = 2;
-   const int visualizationWaveform = 3;
-   int currentVisualization = visualizationPowerBars;
+   static const int visualizationNone = 0;
+   static const int visualizationPowerBars = 1;
+   static const int visualizationFrequencySpectrum = 2;
+   static const int visualizationWaveform = 3;
+   int currentVisualization = visualizationWaveform;
 
    // Install frame timer.
    LOCK_VARIABLE(nsfFrameTicks);
@@ -397,14 +397,57 @@ void nsf_main(void)
 
          textprintf_ex(video_buffer, small_font, 8, 8 + (12 * 11), 1 + 0x30, -1, "Press SELECT to exit");
 
-         REAL* visdata1 = apu_get_visdata();
-         if(visdata1) {
+         // Begin "Power Bars" visualization.
+         {
             static real inputs[APU_VISDATA_ENTRIES];
             static real outputs[APU_VISDATA_ENTRIES];
             static real peaks[APU_VISDATA_ENTRIES];
+            static bool initialized = false;
 
-            // If the display is inactive darken it by ANDing all color palette entries with $1D.
-            const uint8 colorMask = ((currentVisualization == visualizationPowerBars) ? 0xFF : 0x1D);
+            if(!initialized) {
+               // Initialize data.
+               memset(inputs, 0, sizeof(inputs));
+               memset(outputs, 0, sizeof(outputs));
+               memset(peaks, 0, sizeof(peaks));
+               initialized = true;
+            }
+
+            const int first_channel = APU_VISDATA_SQUARE_1;
+            
+            int last_channel;
+            if(apu_options.stereo)
+               last_channel = APU_VISDATA_MASTER_2;
+            else
+               last_channel = APU_VISDATA_MASTER_1;
+
+            uint8 colorMask;
+            if(currentVisualization == visualizationPowerBars) {
+               // Only update the display if this is the currently active visualization.
+               REAL* visdata = apu_get_visdata();
+               if(visdata) {
+                  for(int channel = first_channel; channel <= last_channel; channel++) {
+                     const real difference = fabs(visdata[channel] - inputs[channel]);
+                     inputs[channel] = visdata[channel];
+
+                     outputs[channel] = ((difference / 2.0) + 0.5);
+
+                     if(outputs[channel] >= peaks[channel])
+                        peaks[channel] = outputs[channel];
+                     else
+                        peaks[channel] -= (0.10 / frameBPM);
+                  }
+
+                  // Destroy it.
+                  delete[] visdata;
+               }
+
+               // Since this is the currently active visualization, use a fullbright display.
+               colorMask = 0xFF;
+            }
+            else {
+               // The display is inactive, darken it by ANDing all colors with $1D.
+               colorMask = 0x1D;
+            }
 
             // Draw channel VUs.
             int x = 64;
@@ -415,14 +458,6 @@ void nsf_main(void)
             int line_height = 8;
             int y_spacing = 12;
 
-            const int first_channel = APU_VISDATA_SQUARE_1;
-            
-            int last_channel;
-            if(apu_options.stereo)
-               last_channel = APU_VISDATA_MASTER_2;
-            else
-               last_channel = APU_VISDATA_MASTER_1;
-
             for(int channel = first_channel; channel <= last_channel; channel++) {
                if((channel >= APU_VISDATA_MASTER_1) &&
                   apu_options.stereo) {
@@ -430,36 +465,23 @@ void nsf_main(void)
                   y_spacing = 6;
                }
 
-               if(currentVisualization == visualizationPowerBars) {
-                  // Only update the display if this is the currently active visualization.
-                  const real difference = fabs(visdata1[channel] - inputs[channel]);
-                  inputs[channel] = visdata1[channel];
-   
-                  outputs[channel] = ((difference / 2.0) + 0.5);
-
-                  if(outputs[channel] >= peaks[channel])
-                     peaks[channel] = outputs[channel];
-                  else
-                     peaks[channel] -= (0.10 / frameBPM);
-               }
-
                // Draw unlit bars.
                for(int dx = x; dx <= max_x; dx += x_spacing)
-                  vline(video_buffer, dx, y, (y + line_height), 1 + (0x1D & colorMask));
+                  vline(video_buffer, dx, y, (y + line_height), 1 + (0x2D & colorMask));
 
                // Draw partially lit bars.
                int power = (int)ROUND(max_x * peaks[channel]);
                for(int dx = x; dx <= power; dx += x_spacing)
-                  vline(video_buffer, dx, y, (y + line_height), 1 + (0x2D & colorMask));
+                  vline(video_buffer, dx, y, (y + line_height), 1 + (0x1C & colorMask));
 
                // Draw lit bars.
                power = (int)ROUND(max_x * outputs[channel]);
                for(int dx = x; dx <= power; dx += x_spacing)
-                  vline(video_buffer, dx, y, (y + line_height), 1 + (0x21 & colorMask));
+                  vline(video_buffer, dx, y, (y + line_height), 1 + (0x2C & colorMask));
 
                // Draw peak.
                power = (int)ROUND(max_x * peaks[channel]);
-               vline(video_buffer, power, y, (y + line_height), 1 + (0x30 & colorMask));
+               vline(video_buffer, power, y, (y + line_height), 1 + (0x3D & colorMask));
 
                y += y_spacing;
             }
@@ -471,42 +493,58 @@ void nsf_main(void)
             textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 16) + 2, 1 + (0x30 & colorMask), -1, "   Noise");
             textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 17) + 2, 1 + (0x30 & colorMask), -1, " Digital");
             textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 18) + 2, 1 + (0x30 & colorMask), -1, "  Master");
-
-            // Destroy it.
-            delete[] visdata1;
          }
+         // End "Power Bars" visualization.
 
-         // TODO: Fix variable names.
-         UINT16* visdata3 = audio_get_visdata();
-         if(visdata3) {
+         // Begin "Frequency Spectrum" visualization.
+         {
             static real levels[10]; // 10 steps(see below)
+            static bool initialized = false;
 
-            // If the display is inactive darken it by ANDing all color palette entries with $1D.
-            const uint8 colorMask = ((currentVisualization == visualizationFrequencySpectrum) ? 0xFF : 0x1D);
+            if(!initialized) {
+               // Initialize data.
+               memset(levels, 0, sizeof(levels));
+               initialized = true;
+            }
+
+            uint8 colorMask;
+            if(currentVisualization == visualizationFrequencySpectrum) {
+               // Only update the display if this is the currently active visualization.
+               UINT16* visdata = audio_get_visdata();
+               if(visdata) {
+                  // 10 steps of 600Hz each, yielding 2kHz-8kHz
+                  for(int step = 0; step < 10; step++) {
+                     real power = bandpass(&visdata[0], visualizationSamples, audio_sample_rate, ((step + 2) * 600), (((step + 2) * 600) + 600));
+                     power = fabs(power);
+                     power *= 256.0;
+                     power = fixf(power, 0.0, 1.0);
+
+                     if(power > levels[step])
+                        levels[step] += (2.0 / frameBPM);
+                     else if(power < levels[step])
+                        levels[step] -= (2.0 / frameBPM);
+                  }
+     
+                  // Destroy it.
+                  delete[] visdata;
+               }
+
+               // Since this is the currently active visualization, use a fullbright display.
+               colorMask = 0xFF;
+            }
+            else {
+               // The display is inactive, darken it by ANDing all colors with $1D.
+               colorMask = 0x1D;
+            }
 
             const int x = 160;
             const int bar_width = 4;
             const int bar_spacing = (bar_width + 4);
 
-            const int y_start = (8 + (12 * 13)) + 4; // Just below "Frequencies" line
-            const int y_end = (8 + (12 * 17)) + 8;
+            const int y_start = (8 + (12 * 13)); // Draw on same line as "Square 1" above.
+            const int y_end = (8 + (12 * 17)) + 8; // Just above frequencies text(drawn below).
             const int y = y_end;
             const int max_height = (y_end - y_start);
-
-            if(currentVisualization == visualizationFrequencySpectrum) {
-               // 10 steps of 600Hz each, yielding 2kHz-8kHz
-               for(int step = 0; step < 10; step++) {
-                  real power = bandpass(&visdata3[0], visualizationSamples, audio_sample_rate, ((step + 2) * 600), (((step + 2) * 600) + 600));
-                  power = fabs(power);
-                  power *= 256.0;
-                  power = fixf(power, 0.0, 1.0);
-
-                  if(power > levels[step])
-                     levels[step] += (2.0 / frameBPM);
-                  else if(power < levels[step])
-                     levels[step] -= (2.0 / frameBPM);
-               }
-            }
 
             for(int step = 0; step < 10; step++) {
                // Draw bar.
@@ -514,88 +552,126 @@ void nsf_main(void)
                rectfill(video_buffer, (x + (bar_spacing * step)), y, ((x + (bar_spacing * step)) + bar_width), (y - height), 1 + (0x24 & colorMask));
             }
 
-            textprintf_ex(video_buffer, small_font, 160 + 8, 8 + (12 * 12),     1 + (0x30 & colorMask), -1, "FREQUENCIES");
             textprintf_ex(video_buffer, small_font, 152 + 3, 8 + (12 * 18) + 3, 1 + (0x30 & colorMask), -1, "2k   4k   6k   8k");
          }
+         // End "Frequency Spectrum" visualization.
 
-         if(visdata3) {
-            // If the display is inactive darken it by ANDing all color palette entries with $1D.
-            const uint8 colorMask = ((currentVisualization == visualizationWaveform) ? 0xFF : 0x1D);
+         // Begin "Waveform" visualization.
+         {
+            const int x = 152;
+            const int max_x = (256 - 8);
+            const int num_steps = (max_x - x);
 
-            if(apu_options.stereo) {
-               const int x = 152;
-               const int max_x = (256 - 8); 
+            static real steps[num_steps];
+            static real stereo_steps_left[num_steps];
+            static real stereo_steps_right[num_steps];
+            static bool initialized = false;
 
-               const int y = (8 + (12 * 7)); // Same line as track number.
-               const int max_height = 10;
-               const int y_base = (y + max_height);
+            if(!initialized) {
+               memset(steps, 0, sizeof(steps));
+               memset(stereo_steps_left, 0, sizeof(stereo_steps_left));
+               memset(stereo_steps_right, 0, sizeof(stereo_steps_right));
+               initialized = true;
+            }
 
-               // Vertical offset for the second box.
-               const int box_spacing = 4;
-               const int y_offset = ((max_height * 2) + box_spacing);
-
-               if(currentVisualization == visualizationWaveform) {
+            uint8 colorMask;
+            if(currentVisualization == visualizationWaveform) {
+               // Only update the display if this is the currently active visualization.
+               UINT16* visdata = audio_get_visdata();
+               if(visdata) {
                   for(int draw_x = x; draw_x < max_x; draw_x++) {
-                     // Determine sample position.
-                     const unsigned offset = ((((draw_x - x) * (max_x - x)) / visualizationSamples) * 2);
+                     // Determine step index.
+                     const int step = (draw_x - x);
 
-                     // Fetch and convert samples to signed format.
-                     const int16 sample_left = (visdata3[offset] ^ 0x8000);
-                     const int16 sample_right = (visdata3[offset + 1] ^ 0x8000);
+                     if(apu_options.stereo) {
+                        // Determine sample position.
+                        const unsigned offset = ((visualizationSamples - (step * 2)) - 1);
 
-                     // Normalize samples.
-                     real sample_left_f = (sample_left / 16384.0);
-                     sample_left_f = fixf(sample_left_f, -1.0, 1.0);
+                        // Fetch and convert samples to signed format.
+                        const int16 sample_left = (visdata[offset] ^ 0x8000);
+                        const int16 sample_right = (visdata[offset + 1] ^ 0x8000);
 
-                     real sample_right_f = (sample_right / 16384.0);
-                     sample_right_f = fixf(sample_right_f, -1.0, 1.0);
+                        // Scale samples and clip.
+                        real sample_left_f = (sample_left / 16384.0);
+                        sample_left_f = fixf(sample_left_f, -1.0, 1.0);
 
-                     // Draw bars.
-                     int power = (int)ROUND(max_height * sample_left_f);
-                     vline(video_buffer, draw_x, y_base, (y_base + power), 1 + 0x2A & (colorMask));
+                        real sample_right_f = (sample_right / 16384.0);
+                        sample_right_f = fixf(sample_right_f, -1.0, 1.0);
 
-                     power = (int)ROUND(max_height * sample_right_f);
-                     vline(video_buffer, draw_x, (y_base + y_offset), ((y_base + y_offset) + power), 1 + (0x16 & colorMask));
+                        // Save for later.
+                        stereo_steps_left[step] = sample_left_f;
+                        stereo_steps_right[step] = sample_right_f;
+                     }
+                     else {
+                        // Determine sample position.
+                        const unsigned offset = ((visualizationSamples - step) - 1);
+
+                        // Fetch and convert sample to signed format.
+                        const int16 sample = (visdata[offset] ^ 0x8000);
+
+                        // Scale sample and clip.
+                        real sample_f = (sample / 16384.0);
+                        sample_f = fixf(sample_f, -1.0, 1.0);
+
+                        // Save for later.
+                        steps[step] = sample_f;
+                     }
                   }
+
+                  // Destroy it.
+                  delete[] visdata;
                }
 
-               // Draw boxes.
-               rect(video_buffer, x, y, max_x, (y + (max_height * 2)), 1 + (0x30 & colorMask));
-               rect(video_buffer, x, (y + y_offset), max_x, ((y + y_offset) + (max_height * 2)), 1 + (0x30 & colorMask));
+               // Since this is the currently active visualization, use a fullbright display.
+               colorMask = 0xFF;
             }
             else {
-               const int x = 152;
-               const int max_x = (256 - 8); 
-
-               const int y = (8 + (12 * 7)); // Same line as track number.
-               const int max_height = 24;
-               const int y_base = (y + max_height);
-
-               if(currentVisualization == visualizationWaveform) {
-                  for(int draw_x = x; draw_x < max_x; draw_x++) {
-                     // Determine sample position.
-                     const unsigned offset = (((draw_x - x) * (max_x - x)) / visualizationSamples);
-
-                     // Fetch and convert sample to signed format.
-                     const int16 sample = (visdata3[offset] ^ 0x8000);
-
-                     // Normalize sample.
-                     real sample_f = (sample / 16384.0);
-                     sample_f = fixf(sample_f, -1.0, 1.0);
-
-                     // Draw bar.
-                     const int power = (int)ROUND(max_height * sample_f);
-                     vline(video_buffer, draw_x, y_base, (y_base + power), 1 + (0x2A & colorMask));
-                  }
-               }
-
-               // Draw box.
-               rect(video_buffer, x, y, max_x, (y + (max_height * 2)), 1 + (0x30 & colorMask));
+               // The display is inactive, darken it by ANDing all colors with $1D.
+               colorMask = 0x1D;
             }
 
-            // Destroy it.
-            delete[] visdata3;
+            const int y = (8 + (12 * 7)); // Same line as track number.
+            const int max_height = (apu_options.stereo ? 12 : 26);
+            const int y_base = (y + max_height);
+
+            // Vertical offset for the second box(stereo mode only).
+            const int box_spacing = 4;
+            const int y_offset = ((max_height * 2) + box_spacing);
+
+            // Draw box background(s).
+            if(apu_options.stereo) {
+               rectfill(video_buffer, x, y, max_x, (y + (max_height * 2)), 1 + (0x2D & colorMask));
+               rectfill(video_buffer, x, (y + y_offset), max_x, ((y + y_offset) + (max_height * 2)), 1 + (0x2D & colorMask));
+            }
+            else
+               rectfill(video_buffer, x, y, max_x, (y + (max_height * 2)), 1 + (0x2D & colorMask));
+
+            // Draw bars.
+            for(int draw_x = x; draw_x < max_x; draw_x++) {
+               const int step = (draw_x - x);
+
+               if(apu_options.stereo) {
+                  int power = (int)ROUND(max_height * stereo_steps_left[step]);
+                  vline(video_buffer, draw_x, y_base, (y_base + power), 1 + (0x2A & colorMask));
+
+                  power = (int)ROUND(max_height * stereo_steps_right[step]);
+                  vline(video_buffer, draw_x, (y_base + y_offset), ((y_base + y_offset) + power), 1 + (0x16 & colorMask));
+               }
+               else {
+                  const int power = (int)ROUND(max_height * steps[step]);
+                  vline(video_buffer, draw_x, y_base, (y_base + power), 1 + (0x2A & colorMask));
+               }
+            }
+
+            // Draw box border(s).
+            if(apu_options.stereo) {
+               rect(video_buffer, x, y, max_x, (y + (max_height * 2)), 1 + (0x3D & colorMask));
+               rect(video_buffer, x, (y + y_offset), max_x, ((y + y_offset) + (max_height * 2)), 1 + (0x3D & colorMask));
+            }
+            else
+               rect(video_buffer, x, y, max_x, (y + (max_height * 2)), 1 + (0x3D & colorMask));
          }
+         // End "Waveform "visualization.
 
          video_blit(screen);
       }
