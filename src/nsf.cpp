@@ -466,6 +466,7 @@ void nsf_main(void)
             int y = (8 + (12 * 13)); // Draw on same line as "Square 1" above.
             int bar_height = 8;
             int y_spacing = 12;
+            int height = 0; // Used for drawing "Use D-PAD to select" box(further down).
 
             for(int channel = first_channel; channel <= last_channel; channel++) {
                if((channel >= APU_VISDATA_MASTER_1) &&
@@ -493,6 +494,7 @@ void nsf_main(void)
                vline(video_buffer, (x + power), y, (y + bar_height), 1 + (0x3D & colorMask));
 
                y += y_spacing;
+               height += y_spacing;
             }
 
             // Draw labels.
@@ -502,6 +504,27 @@ void nsf_main(void)
             textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 16) + 2, 1 + (0x30 & colorMask), -1, "   Noise");
             textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 17) + 2, 1 + (0x30 & colorMask), -1, " Digital");
             textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 18) + 2, 1 + (0x30 & colorMask), -1, "  Master");
+
+            if(currentVisualization != visualizationPowerBars) {
+               // Draw "Use D-PAD to select" text.
+               const int center_x = (16 + ((max_x - 16) / 2));
+               const int center_y = (y - ((height + 4) / 2));
+
+               const int tex_width = text_length(small_font, "Use D-PAD to select");
+               const int tex_height = text_height(small_font);
+               const int tex_x = (center_x - (tex_width / 2));
+               const int tex_y = (center_y - (tex_height / 2));
+
+               const int box_width = (4 + tex_width + 4);
+               const int box_height = (4 + tex_height + 4);
+               const int box_x = (center_x - (box_width / 2));
+               const int box_y = (center_y - (box_height / 2));
+
+               rectfill(video_buffer, box_x, box_y, (box_x + box_width), (box_y + box_height), 1 + 0x1D);
+               rect(video_buffer, box_x, box_y, (box_x + box_width), (box_y + box_height), 1 + 0x2D);
+
+               textprintf_ex(video_buffer, small_font, tex_x, tex_y, 1 + 0x3D, -1, "Use D-PAD to select");
+            }
          }
          // End "Power Bars" visualization.
 
@@ -562,6 +585,27 @@ void nsf_main(void)
             }
 
             textprintf_ex(video_buffer, small_font, 152 + 3 + 3, 8 + (12 * 18) + 3, 1 + (0x30 & colorMask), -1, "2k   4k   6k   8k");
+
+            if(currentVisualization != visualizationFrequencySpectrum) {
+               // Draw "Use D-PAD to select" text.
+               const int center_x = (153 + 3 + 3 + (text_length(small_font, "2k   4k   6k   8k") / 2));
+               const int center_y = (y_start + ((max_height + 12) / 2));
+
+               const int tex_width = text_length(small_font, "Use D-PAD to select");
+               const int tex_height = text_height(small_font);
+               const int tex_x = (center_x - (tex_width / 2));
+               const int tex_y = (center_y - (tex_height / 2));
+
+               const int box_width = (4 + tex_width + 4);
+               const int box_height = (4 + tex_height + 4);
+               const int box_x = (center_x - (box_width / 2));
+               const int box_y = (center_y - (box_height / 2));
+
+               rectfill(video_buffer, box_x, box_y, (box_x + box_width), (box_y + box_height), 1 + 0x1D);
+               rect(video_buffer, box_x, box_y, (box_x + box_width), (box_y + box_height), 1 + 0x2D);
+
+               textprintf_ex(video_buffer, small_font, tex_x, tex_y, 1 + 0x3D, -1, "Use D-PAD to select");
+            }
          }
          // End "Frequency Spectrum" visualization.
 
@@ -601,10 +645,10 @@ void nsf_main(void)
                         const int16 sample_right = (visdata[offset + 1] ^ 0x8000);
 
                         // Scale samples and clip.
-                        real sample_left_f = (sample_left / 16384.0);
+                        real sample_left_f = (sample_left / 8192.0);
                         sample_left_f = fixf(sample_left_f, -1.0, 1.0);
 
-                        real sample_right_f = (sample_right / 16384.0);
+                        real sample_right_f = (sample_right / 8192.0);
                         sample_right_f = fixf(sample_right_f, -1.0, 1.0);
 
                         // Save for later.
@@ -642,6 +686,7 @@ void nsf_main(void)
             const int y = (8 + (12 * 7)); // Same line as track number.
             const int max_height = (apu_options.stereo ? 12 : 26);
             const int y_base = (y + max_height);
+            const int display_height = (26 * 2); // Height of display(for drawing the D-PAD text further below).
 
             // Vertical offset for the second box(stereo mode only).
             const int box_spacing = 4;
@@ -679,6 +724,27 @@ void nsf_main(void)
             }
             else
                rect(video_buffer, x, y, max_x, (y + (max_height * 2)), 1 + (0x3D & colorMask));
+
+            if(currentVisualization != visualizationWaveform) {
+               // Draw "Use D-PAD to select" text.
+               const int center_x = (x + ((max_x - x) / 2));
+               const int center_y = (y + (display_height / 2));
+
+               const int tex_width = text_length(small_font, "Use D-PAD to select");
+               const int tex_height = text_height(small_font);
+               const int tex_x = (center_x - (tex_width / 2));
+               const int tex_y = (center_y - (tex_height / 2));
+
+               const int box_width = (4 + tex_width + 4);
+               const int box_height = (4 + tex_height + 4);
+               const int box_x = (center_x - (box_width / 2));
+               const int box_y = (center_y - (box_height / 2));
+
+               rectfill(video_buffer, box_x, box_y, (box_x + box_width), (box_y + box_height), 1 + 0x1D);
+               rect(video_buffer, box_x, box_y, (box_x + box_width), (box_y + box_height), 1 + 0x2D);
+
+               textprintf_ex(video_buffer, small_font, tex_x, tex_y, 1 + 0x3D, -1, "Use D-PAD to select");
+            }
          }
          // End "Waveform "visualization.
 
