@@ -85,6 +85,14 @@ volatile int audio_fps = 0;
 static FILE* wavFile = null;
 static unsigned wavSize = 0;
 
+/* Visualization buffer.  This is an actual ring buffer (not a fake one like the audio buffer) into which all data from the
+   audio queue eventually passes when visualization is enabled. */
+static unsigned audioVisBufferSize = 0;
+static uint16* audioVisBuffer = null;
+static unsigned audioVisBufferOffset = 0;
+static unsigned audioVisBufferHead = 0;
+static unsigned audioVisBufferTail = 0;
+
 void audio_load_config(void)
 {
    DEBUG_PRINTF("audio_load_config()\n");
@@ -185,6 +193,9 @@ void audio_exit(void)
 
    if(wavFile)
       audio_close_wav();
+
+   if(audioVisBuffer)
+      audio_visclose();
 }
 
 void audio_update(void)
@@ -259,6 +270,26 @@ void audio_update(void)
             for(int channel = 0; channel < audio_channels; channel++) {
                // Fetch a sample from the queue.
                uint16 sample = audioQueue[readBase + channel];
+
+               if(audioVisBuffer) {
+                  // Buffer it for visualization.
+                  audioVisBuffer[audioVisBufferOffset] = sample;
+                  audioVisBufferOffset++;
+                  if(audioVisBufferOffset > audioVisBufferTail) { 
+                     // The buffer has filled up.
+                     if(audioVisBufferOffset > (audioVisBufferSize - 1))
+                        audioVisBufferOffset = 0;
+
+                     // Move head and tail, wrapping around if neccessary.
+                     audioVisBufferHead++;
+                     if(audioVisBufferHead > (audioVisBufferSize - 1))
+                        audioVisBufferHead = 0;
+
+                     audioVisBufferTail++;
+                     if(audioVisBufferTail > (audioVisBufferSize - 1))
+                        audioVisBufferTail = 0;
+                  }
+               }
 
                if(audio_signed_samples) {
                   // Convert to signed.
@@ -453,4 +484,43 @@ void audio_close_wav(void)
       // Clear counter.
       wavSize = 0;
    }
+}
+
+// --- Visualization support ---
+void audio_visopen(unsigned num_frames)
+{
+   // Attempts to open a visualization buffer (no error checking - use audio_get_visdata() for that instead).
+   audioVisBufferSize = (num_frames * audio_channels);
+   audioVisBuffer = new uint16[audioVisBufferSize];
+}
+
+void audio_visclose(void)
+{
+   if(audioVisBuffer) {
+      // Destroy visualization buffer.
+      delete[] audioVisBuffer;
+      audioVisBuffer = null;
+   }
+}
+
+UINT16* audio_get_visdata(void)
+{
+   // Gets visualization data from the visualization buffer.  Used by the NSF player, but might be used by the normal
+   // HUD later on.
+   // Remember to delete[] it when you're done with it!
+   
+   if(!audioVisBuffer) {
+      WARN_GENERIC();
+      return null;
+   }
+
+   UINT16* visdata = new UINT16[audioVisBufferSize];
+   if(!visdata) {
+      WARN_GENERIC();
+      return null;
+   }
+
+   memcpy(&visdata[0], &audioVisBuffer[0], (audioVisBufferSize * sizeof(uint16)));
+
+   return visdata;
 }
