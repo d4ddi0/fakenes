@@ -432,11 +432,11 @@ void nsf_main(void)
                      inputs[channel] = visdata[channel];
 
                      if(inputs[channel] > levels[channel])
-                        levels[channel] += (6.0 / frameBPM);
+                        levels[channel] += (4.0 / frameBPM);
                      else if(inputs[channel] < levels[channel])
-                        levels[channel] -= (6.0 / frameBPM);
+                        levels[channel] -= (4.0 / frameBPM);
 
-                     outputs[channel] = ((difference * levels[channel]) * 6.0);
+                     outputs[channel] = ((difference * levels[channel]) * 5.0);
                      outputs[channel] = fixf(outputs[channel], 0.0, 1.0);
 
                      if(outputs[channel] >= peaks[channel])
@@ -459,7 +459,7 @@ void nsf_main(void)
 
             // Draw channel VUs.
             int x = 64;
-            const int max_x = 128;
+            const int max_x = 132;
             const int bar_width = (max_x - x);
             const int x_spacing = 2;
 
@@ -546,7 +546,7 @@ void nsf_main(void)
                colorMask = 0x1D;
             }
 
-            const int x = 160;
+            const int x = 162;
             const int bar_width = 4;
             const int bar_spacing = (bar_width + 4);
 
@@ -561,7 +561,7 @@ void nsf_main(void)
                rectfill(video_buffer, (x + (bar_spacing * step)), y, ((x + (bar_spacing * step)) + bar_width), (y - height), 1 + (0x24 & colorMask));
             }
 
-            textprintf_ex(video_buffer, small_font, 152 + 3, 8 + (12 * 18) + 3, 1 + (0x30 & colorMask), -1, "2k   4k   6k   8k");
+            textprintf_ex(video_buffer, small_font, 152 + 3 + 3, 8 + (12 * 18) + 3, 1 + (0x30 & colorMask), -1, "2k   4k   6k   8k");
          }
          // End "Frequency Spectrum" visualization.
 
