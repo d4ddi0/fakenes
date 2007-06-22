@@ -7,6 +7,8 @@
    You must read and accept the license prior to use. */
 
 #include <allegro.h>
+#include <cmath>
+#include <cstdlib>
 #include <cstring>
 #include <vector>
 #include "apu.h"
@@ -58,6 +60,7 @@ enum {
 
 // Function prototypes(defined at bottom).
 static linear void play(int song);
+static real bandpass(uint16* buffer, unsigned size, real sampleRate, real cutoffLow, real cutoffHigh);
 
 // Opening/closing.
 BOOL nsf_open(const UCHAR* filename)
@@ -227,8 +230,8 @@ void nsf_main(void)
    cpu_context.PC.word = nsf.playAddress;
    playbackTimer += playbackPeriod;
 
-   // How many samples to use for visualization(per frame).  150 is good for most cases. */
-   const unsigned visualizationSamples = 150;
+   // How many samples to use for visualization(per frame). */
+   const unsigned visualizationSamples = (int)floor(audio_sample_rate / frameBPM);
 
    // Enable visualization.
    audio_visopen(visualizationSamples);
@@ -237,11 +240,11 @@ void nsf_main(void)
       1 = power bars (bottom left),
       2 = frequency spectrum (bottom right),
       3 = waveform (top right) */
-   int currentVisualization = 1;
    const int visualizationNone = 0;
    const int visualizationPowerBars = 1;
    const int visualizationFrequencySpectrum = 2;
    const int visualizationWaveform = 3;
+   int currentVisualization = visualizationPowerBars;
 
    // Install frame timer.
    LOCK_VARIABLE(nsfFrameTicks);
@@ -389,13 +392,10 @@ void nsf_main(void)
          textprintf_ex(video_buffer, small_font, 8 + 8, 8 + (12 * 5), 1 + 0x30, -1, (const char *)&nsf.copyright[0]);
 
          textprintf_ex(video_buffer, small_font, 8, 8 + (12 * 7), 1 + 0x30, -1, "Track %d of %d", currentSong, nsf.totalSongs);
-         textprintf_ex(video_buffer, small_font, 8, 8 + (12 * 8), 1 + 0x30, -1, "Press A for next track");
-         textprintf_ex(video_buffer, small_font, 8, 8 + (12 * 9), 1 + 0x30, -1, "Press B for previous track");
+         textprintf_ex(video_buffer, small_font, 8, 8 + (12 * 8) + 4, 1 + 0x30, -1, "Press A for next track");
+         textprintf_ex(video_buffer, small_font, 8, 8 + (12 * 9) + 4, 1 + 0x30, -1, "Press B for previous track");
 
          textprintf_ex(video_buffer, small_font, 8, 8 + (12 * 11), 1 + 0x30, -1, "Press SELECT to exit");
-
-         textprintf_ex(video_buffer, small_font, 160 + 8, 8 + (12 * 12), 1 + 0x30, -1, "FREQUENCIES");
-         textprintf_ex(video_buffer, small_font, 160,     8 + (12 * 18), 1 + 0x30, -1, "150Hz 1kHz 8kHz");
 
          REAL* visdata1 = apu_get_visdata();
          if(visdata1) {
@@ -445,10 +445,15 @@ void nsf_main(void)
 
                // Draw unlit bars.
                for(int dx = x; dx <= max_x; dx += x_spacing)
+                  vline(video_buffer, dx, y, (y + line_height), 1 + (0x1D & colorMask));
+
+               // Draw partially lit bars.
+               int power = (int)ROUND(max_x * peaks[channel]);
+               for(int dx = x; dx <= power; dx += x_spacing)
                   vline(video_buffer, dx, y, (y + line_height), 1 + (0x2D & colorMask));
 
                // Draw lit bars.
-               int power = (int)ROUND(max_x * outputs[channel]);
+               power = (int)ROUND(max_x * outputs[channel]);
                for(int dx = x; dx <= power; dx += x_spacing)
                   vline(video_buffer, dx, y, (y + line_height), 1 + (0x21 & colorMask));
 
@@ -460,19 +465,59 @@ void nsf_main(void)
             }
 
             // Draw labels.
-            textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 13), 1 + (0x30 & colorMask), -1, "Square 1");
-            textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 14), 1 + (0x30 & colorMask), -1, "Square 2");
-            textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 15), 1 + (0x30 & colorMask), -1, "Triangle");
-            textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 16), 1 + (0x30 & colorMask), -1, "   Noise");
-            textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 17), 1 + (0x30 & colorMask), -1, " Digital");
-            textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 18), 1 + (0x30 & colorMask), -1, "  Master");
+            textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 13) + 2, 1 + (0x30 & colorMask), -1, "Square 1");
+            textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 14) + 2, 1 + (0x30 & colorMask), -1, "Square 2");
+            textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 15) + 2, 1 + (0x30 & colorMask), -1, "Triangle");
+            textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 16) + 2, 1 + (0x30 & colorMask), -1, "   Noise");
+            textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 17) + 2, 1 + (0x30 & colorMask), -1, " Digital");
+            textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 18) + 2, 1 + (0x30 & colorMask), -1, "  Master");
 
             // Destroy it.
             delete[] visdata1;
          }
 
-         // TODO: Fix stupid variable naming due to conflicts up above.
+         // TODO: Fix variable names.
          UINT16* visdata3 = audio_get_visdata();
+         if(visdata3) {
+            static real levels[10]; // 10 steps(see below)
+
+            // If the display is inactive darken it by ANDing all color palette entries with $1D.
+            const uint8 colorMask = ((currentVisualization == visualizationFrequencySpectrum) ? 0xFF : 0x1D);
+
+            const int x = 160;
+            const int bar_width = 4;
+            const int bar_spacing = (bar_width + 4);
+
+            const int y_start = (8 + (12 * 13)) + 4; // Just below "Frequencies" line
+            const int y_end = (8 + (12 * 17)) + 8;
+            const int y = y_end;
+            const int max_height = (y_end - y_start);
+
+            if(currentVisualization == visualizationFrequencySpectrum) {
+               // 10 steps of 600Hz each, yielding 2kHz-8kHz
+               for(int step = 0; step < 10; step++) {
+                  real power = bandpass(&visdata3[0], visualizationSamples, audio_sample_rate, ((step + 2) * 600), (((step + 2) * 600) + 600));
+                  power = fabs(power);
+                  power *= 256.0;
+                  power = fixf(power, 0.0, 1.0);
+
+                  if(power > levels[step])
+                     levels[step] += (2.0 / frameBPM);
+                  else if(power < levels[step])
+                     levels[step] -= (2.0 / frameBPM);
+               }
+            }
+
+            for(int step = 0; step < 10; step++) {
+               // Draw bar.
+               const int height = (int)ROUND(max_height * levels[step]);
+               rectfill(video_buffer, (x + (bar_spacing * step)), y, ((x + (bar_spacing * step)) + bar_width), (y - height), 1 + (0x24 & colorMask));
+            }
+
+            textprintf_ex(video_buffer, small_font, 160 + 8, 8 + (12 * 12),     1 + (0x30 & colorMask), -1, "FREQUENCIES");
+            textprintf_ex(video_buffer, small_font, 152 + 3, 8 + (12 * 18) + 3, 1 + (0x30 & colorMask), -1, "2k   4k   6k   8k");
+         }
+
          if(visdata3) {
             // If the display is inactive darken it by ANDing all color palette entries with $1D.
             const uint8 colorMask = ((currentVisualization == visualizationWaveform) ? 0xFF : 0x1D);
@@ -690,3 +735,63 @@ static linear void play(int song)
    cpu_context.Jammed = FALSE;
 }
 
+static real bandpass(uint16* buffer, unsigned size, real sampleRate, real cutoffLow, real cutoffHigh)
+{
+   /* Helper function for the frequency spectrum visualizer.  When passed a buffer, the samples within it are analyzed and
+      a (crude) band pass filter performed on them using the specified cutoff frequencies.
+      The resulting power level (average value) is then returned.
+      The buffer is expected to consist of unsigned 16bit samples of a single channel.
+      TODO: Handle multiple channels gracefully. */
+
+   RT_ASSERT(buffer);
+
+   // Lowpass.
+   real timer = 0.0;
+   real period = (sampleRate / max(EPSILON, cutoffHigh));
+
+   int32 accumulator = 0;
+   int counter = 0;
+
+   for(unsigned offset = 0; offset < size; offset++) {
+      if(timer > 0.0) {
+         timer--;
+         if(timer > 0.0)
+            continue;
+      }
+
+      timer += period;
+
+      const int16 sample = (buffer[offset] ^ 0x8000);
+      accumulator += sample;
+      counter++;
+   }
+
+   accumulator /= counter;
+
+   // Highpass.
+   timer = 0.0;
+   period = (sampleRate / max(cutoffLow, EPSILON));
+
+   const int32 saved_accumulator = accumulator;
+   accumulator = 0;
+   counter = 0;
+
+   for(unsigned offset = 0; offset < size; offset++) {
+      if(timer > 0.0) {
+         timer--;
+         if(timer > 0.0)
+            continue;
+      }
+
+      timer += period;
+
+      const int16 sample = (buffer[offset] ^ 0x8000);
+      accumulator += sample;
+      counter++;
+   }
+
+   accumulator /= counter;
+   accumulator = (saved_accumulator - accumulator);
+
+   return (accumulator / 32768.0);
+}
