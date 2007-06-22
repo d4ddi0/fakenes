@@ -400,6 +400,7 @@ void nsf_main(void)
          // Begin "Power Bars" visualization.
          {
             static real inputs[APU_VISDATA_ENTRIES];
+            static real levels[APU_VISDATA_ENTRIES];
             static real outputs[APU_VISDATA_ENTRIES];
             static real peaks[APU_VISDATA_ENTRIES];
             static bool initialized = false;
@@ -407,6 +408,7 @@ void nsf_main(void)
             if(!initialized) {
                // Initialize data.
                memset(inputs, 0, sizeof(inputs));
+               memset(levels, 0, sizeof(levels));
                memset(outputs, 0, sizeof(outputs));
                memset(peaks, 0, sizeof(peaks));
                initialized = true;
@@ -429,7 +431,13 @@ void nsf_main(void)
                      const real difference = fabs(visdata[channel] - inputs[channel]);
                      inputs[channel] = visdata[channel];
 
-                     outputs[channel] = ((difference / 2.0) + 0.5);
+                     if(inputs[channel] > levels[channel])
+                        levels[channel] += (6.0 / frameBPM);
+                     else if(inputs[channel] < levels[channel])
+                        levels[channel] -= (6.0 / frameBPM);
+
+                     outputs[channel] = ((difference * levels[channel]) * 6.0);
+                     outputs[channel] = fixf(outputs[channel], 0.0, 1.0);
 
                      if(outputs[channel] >= peaks[channel])
                         peaks[channel] = outputs[channel];
@@ -452,36 +460,37 @@ void nsf_main(void)
             // Draw channel VUs.
             int x = 64;
             const int max_x = 128;
+            const int bar_width = (max_x - x);
             const int x_spacing = 2;
 
             int y = (8 + (12 * 13)); // Draw on same line as "Square 1" above.
-            int line_height = 8;
+            int bar_height = 8;
             int y_spacing = 12;
 
             for(int channel = first_channel; channel <= last_channel; channel++) {
                if((channel >= APU_VISDATA_MASTER_1) &&
                   apu_options.stereo) {
-                  line_height = 4;
+                  bar_height = 4;
                   y_spacing = 6;
                }
 
                // Draw unlit bars.
                for(int dx = x; dx <= max_x; dx += x_spacing)
-                  vline(video_buffer, dx, y, (y + line_height), 1 + (0x2D & colorMask));
+                  vline(video_buffer, dx, y, (y + bar_height), 1 + (0x2D & colorMask));
 
                // Draw partially lit bars.
-               int power = (int)ROUND(max_x * peaks[channel]);
-               for(int dx = x; dx <= power; dx += x_spacing)
-                  vline(video_buffer, dx, y, (y + line_height), 1 + (0x1C & colorMask));
+               int power = (int)ROUND(bar_width * peaks[channel]);
+               for(int dx = x; dx <= (x + power); dx += x_spacing)
+                  vline(video_buffer, dx, y, (y + bar_height), 1 + (0x1C & colorMask));
 
                // Draw lit bars.
-               power = (int)ROUND(max_x * outputs[channel]);
-               for(int dx = x; dx <= power; dx += x_spacing)
-                  vline(video_buffer, dx, y, (y + line_height), 1 + (0x2C & colorMask));
+               power = (int)ROUND(bar_width * outputs[channel]);
+               for(int dx = x; dx <= (x + power); dx += x_spacing)
+                  vline(video_buffer, dx, y, (y + bar_height), 1 + (0x2C & colorMask));
 
                // Draw peak.
-               power = (int)ROUND(max_x * peaks[channel]);
-               vline(video_buffer, power, y, (y + line_height), 1 + (0x3D & colorMask));
+               power = (int)ROUND(bar_width * peaks[channel]);
+               vline(video_buffer, (x + power), y, (y + bar_height), 1 + (0x3D & colorMask));
 
                y += y_spacing;
             }
