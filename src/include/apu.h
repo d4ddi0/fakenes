@@ -30,6 +30,7 @@ extern void apu_predict_irqs(cpu_time_t cycles);
 extern void apu_save_state(PACKFILE* file, int version);
 extern void apu_load_state(PACKFILE* file, int version);
 extern void apu_sync_update(void);
+extern REAL* apu_get_visdata(void);
 
 typedef struct apu_options_s {
    BOOL enabled;       /* Enable emulation */
@@ -65,6 +66,17 @@ enum {
    APU_EXSOUND_NONE = 0,
    APU_EXSOUND_MMC5,
    APU_EXSOUND_VRC6,
+};
+
+enum {
+   APU_VISDATA_SQUARE_1 = 0,
+   APU_VISDATA_SQUARE_2,
+   APU_VISDATA_TRIANGLE,
+   APU_VISDATA_NOISE,
+   APU_VISDATA_DMC,
+   APU_VISDATA_MASTER_1,
+   APU_VISDATA_MASTER_2,
+   APU_VISDATA_ENTRIES,
 };
 
 #ifdef __cplusplus

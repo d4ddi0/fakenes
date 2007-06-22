@@ -143,6 +143,8 @@ extern void ppu_write (UINT16, UINT8);
 
 extern void ppu_clear (void);
 
+extern void ppu_clear_palette (void);
+
 
 extern void ppu_vblank (void);
 

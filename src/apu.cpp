@@ -1603,6 +1603,28 @@ void apu_sync_update(void)
    process();
 }
 
+REAL* apu_get_visdata(void)
+{
+   // Gets visualization data from the APU.  Used by the NSF player, but might be used by the normal HUD later on.
+   // Remember to delete[] it when you're done with it!
+   REAL* visdata = new real[APU_VISDATA_ENTRIES];
+   if(!visdata) {
+      WARN_GENERIC();
+      return null;
+   }
+
+   visdata[APU_VISDATA_SQUARE_1] = (apu.square[0].output / 15.0);
+   visdata[APU_VISDATA_SQUARE_2] = (apu.square[1].output / 15.0);
+   visdata[APU_VISDATA_TRIANGLE] = (apu.triangle.output / 15.0);
+   visdata[APU_VISDATA_NOISE] = (apu.noise.output / 15.0);
+   visdata[APU_VISDATA_DMC] = (apu.dmc.output / 127.0);
+
+   visdata[APU_VISDATA_MASTER_1] = apu.mixer.inputs[0];
+   visdata[APU_VISDATA_MASTER_2] = apu.mixer.inputs[1];
+
+   return visdata;
+}
+
 // --- Internal functions. --- 
 static void process(void)
 {

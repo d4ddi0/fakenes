@@ -1071,6 +1071,11 @@ void ppu_clear (void)
     first_sprite_this_line = 0;
 }
 
+void ppu_clear_palette (void)
+{
+   /* Clears the palette - easier than writing to VRAM when the palette needs to be cleared from an external source. */
+   memset (&ppu_palette, 0, sizeof (ppu_palette));
+}
 
 void ppu_start_frame (void)
 {
