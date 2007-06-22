@@ -392,8 +392,8 @@ void nsf_main(void)
          textprintf_ex(video_buffer, small_font, 8 + 8, 8 + (12 * 5), 1 + 0x30, -1, (const char *)&nsf.copyright[0]);
 
          textprintf_ex(video_buffer, small_font, 8, 8 + (12 * 7), 1 + 0x30, -1, "Track %d of %d", currentSong, nsf.totalSongs);
-         textprintf_ex(video_buffer, small_font, 8, 8 + (12 * 8) + 4, 1 + 0x30, -1, "Press A for next track");
-         textprintf_ex(video_buffer, small_font, 8, 8 + (12 * 9) + 4, 1 + 0x30, -1, "Press B for previous track");
+         textprintf_ex(video_buffer, small_font, 8, 8 + (12 * 8) + 2, 1 + 0x30, -1, "Press A for next track");
+         textprintf_ex(video_buffer, small_font, 8, 8 + (12 * 9) + 2, 1 + 0x30, -1, "Press B for previous track");
 
          textprintf_ex(video_buffer, small_font, 8, 8 + (12 * 11), 1 + 0x30, -1, "Press SELECT to exit");
 
