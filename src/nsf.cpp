@@ -10,7 +10,6 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include <vector>
 #include "apu.h"
 #include "audio.h"
 #include "audio_int.h"
@@ -25,11 +24,18 @@
 #include "video.h"
 
 // TODO: Proper support for PAL/NTSC selection.
-// TODO: Lots of bankswitching stuff.
 // TODO: Support for expansion hardware.
+
+// Size and number of NSF banks in the $8000 - $FFFF area.
+static const unsigned NSFBankSize = 4096; // 4kiB
+static const int NSFBankCount = 8;
+
+// Maximum size of NSF data, including load offset.
+static const unsigned NSFDataSize = 32768; // 32kiB
 
 // Structure to hold information about our NSF state.
 typedef struct _NSF {
+   // All of these fields are loaded directly from the file.
    uint8 totalSongs;
    uint8 startingSong;
    uint16 loadAddress;
@@ -43,7 +49,11 @@ typedef struct _NSF {
    uint16 speedPAL;
    uint8 regionFlags;
    uint8 expansionFlags;
-   std::vector<uint8> code;
+
+   // Determined from the values of bankswitch[] above.   
+   bool bankswitched;
+   // Data to be mapped into banks, or directly into the 6502's address space in the case of non-bankswitched NSFs.
+   uint8 data[NSFDataSize];
 
 } NSF;
 
@@ -54,12 +64,13 @@ static NSF nsf;
    bit 1: if set, this is a dual PAL/NTSC tune
    bits 2-7: not used. they *must* be 0 */
 enum {
-   NSF_REGION_PAL  = (1 << 0),
-   NSF_REGION_DUAL = (1 << 1),
+   NSFRegionPAL  = (1 << 0),
+   NSFRegionDual = (1 << 1),
 };
 
 // Function prototypes(defined at bottom).
-static linear void play(int song);
+static void bankswitch(int bankIn, int bankOut);
+static void play(int song);
 static real bandpass(uint16* buffer, unsigned size, real sampleRate, real cutoffLow, real cutoffHigh);
 
 // Opening/closing.
@@ -102,6 +113,9 @@ BOOL nsf_open(const UCHAR* filename)
       return false;
    }
 
+   // Clear NSF data.
+   memset(&nsf, 0, sizeof(nsf));
+
    // 0006    1   BYTE    Total songs   (1=1 song, 2=2 songs, etc)
    nsf.totalSongs = pack_getc(file);
    bytesRead++;
@@ -137,6 +151,16 @@ BOOL nsf_open(const UCHAR* filename)
    pack_fread(nsf.bankswitch, sizeof(nsf.bankswitch), file);
    bytesRead += sizeof(nsf.bankswitch);
 
+   // Determine if tune is bankswitched.  Ugly, but it works.
+   nsf.bankswitched = ((nsf.bankswitch[0] != 0x00) ||
+                       (nsf.bankswitch[1] != 0x00) ||
+                       (nsf.bankswitch[2] != 0x00) ||
+                       (nsf.bankswitch[3] != 0x00) ||
+                       (nsf.bankswitch[4] != 0x00) ||
+                       (nsf.bankswitch[5] != 0x00) ||
+                       (nsf.bankswitch[6] != 0x00) ||
+                       (nsf.bankswitch[7] != 0x00));
+
    // 0078    2   WORD    (lo/hi) speed, in 1/1000000th sec ticks, PAL
    nsf.speedPAL = pack_igetw(file);
    bytesRead += 2;
@@ -155,8 +179,9 @@ BOOL nsf_open(const UCHAR* filename)
    bytesRead += sizeof(unused);
 
    // 0080    nnn ----    The music program/data follows
+   unsigned offset = (nsf.loadAddress & 0x0FFF); // $8000 -> $0000
    while(!pack_feof(file)) {
-      nsf.code.push_back(pack_getc(file));
+      nsf.data[offset++] = pack_getc(file);
       bytesRead++;
    }
 
@@ -165,30 +190,13 @@ BOOL nsf_open(const UCHAR* filename)
 
    log_printf("NSF: nsf_open(): Loaded %u bytes from '%s'.\n", bytesRead, filename);
 
-   // Determine if tune is bankswitched.  Ugly, but it works.
-   // TODO: Implement support for bankswitched NSFs.
-   if((nsf.bankswitch[0] != 0x00) ||
-      (nsf.bankswitch[1] != 0x00) ||
-      (nsf.bankswitch[2] != 0x00) ||
-      (nsf.bankswitch[3] != 0x00) ||
-      (nsf.bankswitch[4] != 0x00) ||
-      (nsf.bankswitch[5] != 0x00) ||
-      (nsf.bankswitch[6] != 0x00) ||
-      (nsf.bankswitch[7] != 0x00)) {
-      log_printf("NSF: nsf_open(): Bankswitched tunes are not yet supported.\n");
-      nsf_close();
-      return false;
-   }
-
    // Return success.
    return true;
 }
 
 void nsf_close(void)
 {
-   // Clear program data.
-   if(nsf.code.size() > 0)
-      nsf.code.clear();
+   // Do nothing.
 }
 
 // Main loop.
@@ -773,6 +781,11 @@ void nsf_main(void)
 }
 
 // Mapper interface.
+static int nsf_mapper_init(void);
+static void nsf_mapper_reset(void);
+static UINT8 nsf_mapper_read(UINT16 address);
+static void nsf_mapper_write(UINT16 address, UINT8 value);
+
 const MMC nsf_mapper =
 {
    10000, // Just set to some bogus number that will never be used.
@@ -783,23 +796,24 @@ const MMC nsf_mapper =
    NULL, NULL,
 };
 
-int nsf_mapper_init(void)
+static int nsf_mapper_init(void)
 {
-   // Load the data into the 6502's address space starting at the specified load address.
-   /* TODO: Loading this directly into the CPU ramspace is probably not a good idea, especially for bankswitched ROMs.
-      Better to allocate a block of memory here and install an overloading read handler for it. */
-   memcpy(&cpu_ram[nsf.loadAddress], &nsf.code[0], nsf.code.size());
-
-   // Nothing is mapped into the ROM space by default so we have to do it manually.
-   cpu_set_read_address_32k(0x8000, &cpu_ram[0x8000]);
+   if(nsf.bankswitched) {
+      // Install handler for bankswitching registers (actual initial bankswitching is done from nsf_mapper_reset()).
+      cpu_set_write_handler_2k(0x5800, nsf_mapper_write);
+   }
+   else {
+      // Map data directly into the CPU address space.
+      cpu_set_read_address_32k(0x8000, (UINT8*)&nsf.data[0]);
+   }
 
    // Return success.
    return 0;
 }
 
-void nsf_mapper_reset(void)
+static void nsf_mapper_reset(void)
 {
-   // TODO: PAL/NTSC selection stuff here (setting machine_type).
+   // TODO: PAL/NTSC selection stuff here (setting machine_type?).  Probably needs changes to the timing system to work.
 
    //  Clear all RAM at 0000h-07ffh.
    for(uint16 address = 0x0000; address <= 0x07FF; address++)
@@ -825,13 +839,58 @@ void nsf_mapper_reset(void)
    cpu_write(0x4015, 0x0F);
 
    // If this is a banked tune, load the bank values from the header into 5ff8-5fffh.
-   // TODO: Support bankswitched NSFs.
+   if(nsf.bankswitched) {
+      for(int bank = 0; bank < NSFBankCount; bank++)
+         bankswitch(bank, nsf.bankswitch[bank]);
+   }
+}
+
+static UINT8 nsf_mapper_read(UINT16 address)
+{
+   return 0x00;
+}
+
+static void nsf_mapper_write(UINT16 address, UINT8 value)
+{
+   switch(address) {
+      // NSF bankswitching.
+      case 0x5FF8:
+      case 0x5FF9:
+      case 0x5FFA:
+      case 0x5FFB:
+      case 0x5FFC:
+      case 0x5FFD:
+      case 0x5FFE:
+      case 0x5FFF: {
+         const int bank = (address - 0x5FF8);
+         bankswitch(bank, value);
+
+         break;
+      }
+      
+      default:
+         break;
+   }
 }
 
 // Helper functions.
-static linear void play(int song)
+static void bankswitch(int bankIn, int bankOut)
 {
-   // Supposedly we should reset before playing each tune, but I'm not sure about this.
+   /* Maps the 4kB bank number 'bankOut' into the address range associated with the 4kB bank number 'bankIn' (there are 8
+      total in the $8000-$FFFF range).  Banks are always mapped as read-only, since they occupy the ROM area. */
+
+   if(((bankIn < 0) || (bankIn > NSFBankCount)) ||
+      ((bankOut < 0) || (bankOut > NSFBankCount))) {
+      WARN_GENERIC();
+      return;
+   }
+
+   cpu_set_read_address_4k(0x8000 + (bankIn * NSFBankSize), (UINT8*)&nsf.data[bankOut * NSFBankSize]);
+}
+
+static void play(int song)
+{
+   // We need to reset before initializing each tune.
    nsf_mapper_reset();
 
    /* To initialize a tune, we set the accumulator to the song number(minus one), and the X register to the desired
@@ -898,7 +957,7 @@ static real bandpass(uint16* buffer, unsigned size, real sampleRate, real cutoff
 
    // Lowpass.
    real timer = 0.0;
-   real period = (sampleRate / max(EPSILON, cutoffHigh));
+   real period = (sampleRate / MAX(EPSILON, cutoffHigh));
 
    int32 accumulator = 0;
    int counter = 0;
@@ -921,7 +980,7 @@ static real bandpass(uint16* buffer, unsigned size, real sampleRate, real cutoff
 
    // Highpass.
    timer = 0.0;
-   period = (sampleRate / max(cutoffLow, EPSILON));
+   period = (sampleRate / MAX(cutoffLow, EPSILON));
 
    const int32 saved_accumulator = accumulator;
    accumulator = 0;

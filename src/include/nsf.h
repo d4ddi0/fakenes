@@ -22,9 +22,6 @@ extern void nsf_main(void);
 
 extern const MMC nsf_mapper;
 
-extern int nsf_mapper_init(void);
-extern void nsf_mapper_reset(void);
-
 #ifdef __cplusplus
 }
 #endif
