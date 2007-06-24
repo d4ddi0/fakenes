@@ -181,11 +181,15 @@ static void ppu_render_background (int line)
         cache_bank = tile_address >> 10;
         cache_index = ((tile_address & 0x3FF) / 2) + sub_y;
 
-        unsigned vram_block;
+        unsigned vrom_block;
         if(ppu_expansion_table) {
            const unsigned exram_block = ppu_expansion_table[bg_vram_address] & 0x3F;
-           vram_block = ((tile_address >> 10) & 3) + (exram_block << 2);
-           cache_tag = ppu_pattern_vram_cache_tag + ((vram_block << 10) / 2);
+           vrom_block = ((tile_address >> 10) & 3) + (exram_block << 2);
+           vrom_block = (vrom_block & 7) +
+              ROM_CHR_ROM_PAGE_LOOKUP [(vrom_block / 8) &
+              ROM_CHR_ROM_PAGE_OVERFLOW_MASK] * 8;
+
+           cache_tag = ( ROM_CHR_ROM_CACHE_TAG + ((vrom_block << 10) / 2) ) [cache_index];
         }
         else
            cache_tag = ppu_vram_block_background_cache_tag_address[cache_bank][cache_index];
@@ -195,7 +199,7 @@ static void ppu_render_background (int line)
         {
             if(ppu_expansion_table) {
                cache_address =
-                  ppu_pattern_vram_cache + ((vram_block << 10) / 2 * 8) +
+                  ROM_CHR_ROM_CACHE + ((vrom_block << 10) / 2 * 8) +
                   cache_index * 8;
 
                attribute = attribute_table[(ppu_expansion_table[bg_vram_address] >> 6) & 0x03];
