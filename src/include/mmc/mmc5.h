@@ -64,7 +64,7 @@ enum
 #define MMC5_EXRAM_CONTROL_MASK 0x03
 #define MMC5_EXRAM_CONTROL      (mmc5_5100[4] & MMC5_EXRAM_CONTROL_MASK) /* $5104 bits 0-2 */
 
-/* If the MMC5 ExRAM control register $5104 is not set to mode 0 or 1, attempting to map ExRAM to a nametable (via $5015)
+/* If the MMC5 ExRAM control register $5104 is not set to mode 0 or 1, attempting to map ExRAM to a nametable (via $5105)
    will fail, and reads from the nametable in question will return all 0s.
    Since we don't want to clear ExRAM(as reads/writes to it are still valid) we need an alternate block of memory that
    always stays empty, that we can map into the PPU instead when this type of 'rule violation' occurs.
@@ -480,7 +480,7 @@ static void mmc5_update_exram_control(void)
       }
    }
 
-   /* Update name tables, since the conditions for mapping ExRAM to name tables may've changed. */
+   /* Update nametables, since the conditions for mapping ExRAM to nametables may've changed. */
    for(index = 0; index < 4; index++)
       mmc5_update_name_table(index);
 }
@@ -1057,10 +1057,14 @@ static UINT8 mmc5_exram_read(UINT16 address)
          Mode 2 - Readable and writable 
          Mode 3 - Read-only */
     if((MMC5_EXRAM_CONTROL == MMC5_EXRAM_CONTROL_USE_AS_RAM) ||
-       (MMC5_EXRAM_CONTROL == MMC5_EXRAM_CONTROL_USE_AS_RAM_WP))
+       (MMC5_EXRAM_CONTROL == MMC5_EXRAM_CONTROL_USE_AS_RAM_WP)) {
+       /* Modes 2 and 3. */
        return mmc5_exram[address - 0x5C00];
-    else
+    }
+    else {
+       /* Modes 0 and 1. */
        return (address >> 8); /* meh */
+    }
 }
 
 static void mmc5_exram_write(UINT16 address, UINT8 value)
@@ -1128,7 +1132,7 @@ static int mmc5_init (void)
     int index;
 
     /* Clear this once and always leave it that way - see the comments for it's declaration. */
-    memset(mmc5_nxram, 0, sizeof(mmc5_nxram));
+    memset(mmc5_nxram, 0x00, sizeof(mmc5_nxram));
 
     if (mmc_pattern_vram_in_use)
     {
