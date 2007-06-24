@@ -818,9 +818,8 @@ static uint8 nsfMMC5MultiplierMultiplicand = 0x00;
 static uint8 nsfMMC5MultiplierMultiplier = 0x00;
 static uint16 nsfMMC5MultiplierProduct = 0x0000;
 
-/* Memory to emulate MMC5's ExRAM for limited audio/general purpose use.
-   NSF spec says this tops out at $5FF5, not $5FFF. */
-static uint8 nsfMMC5ExRAM[0x5FF5 - 0x5C00];
+/* Memory to emulate MMC5's ExRAM for limited audio/general purpose use. */
+static uint8 nsfMMC5ExRAM[0x5FFF - 0x5C00];
 
 static int nsf_mapper_init(void)
 {
@@ -912,7 +911,7 @@ static UINT8 nsf_mapper_read(UINT16 address)
          // MMC5 multiplier(upper 8 bits of result).
          return ((nsfMMC5MultiplierProduct & 0xFF00) >> 8);
       }
-      else if((address >= 0x5C00) && (address <= 0x5FF5)) {
+      else if((address >= 0x5C00) && (address <= 0x5FFF)) {
          // MMC5 ExRAM(read).
          return nsfMMC5ExRAM[address - 0x5C00];
       }
@@ -951,7 +950,7 @@ static void nsf_mapper_write(UINT16 address, UINT8 value)
 
          return; 
       }
-      else if((address >= 0x5C00) && (address <= 0x5FF5)) {
+      else if((address >= 0x5C00) && (address <= 0x5FFF)) {
          // MMC5 ExRAM(write).
          nsfMMC5ExRAM[address - 0x5C00] = value;
          return;
