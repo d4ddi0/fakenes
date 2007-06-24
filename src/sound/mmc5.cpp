@@ -31,6 +31,8 @@ static const uint8 square_duty_lut[4][8] = {
 
 void Square::reset(void)
 {
+   memset(regs, 0x00, sizeof(regs));
+
    timer = 0;
    period = 0;
    length = 0;
@@ -284,11 +286,11 @@ void Interface::write(uint16 address, uint8 value)
       }
 
       case 0x5015: {
-         square1.clamped = true_or_false(value & 0x01);
+         square1.clamped = !true_or_false(value & 0x01);
          if(square1.clamped)
             square1.length = 0;
 
-         square2.clamped = true_or_false(value & 0x02);
+         square2.clamped = !true_or_false(value & 0x02);
          if(square2.clamped)
             square2.length = 0;
 
