@@ -24,7 +24,6 @@
 #include "video.h"
 
 // TODO: Proper support for PAL/NTSC selection.
-// TODO: Support for expansion hardware.
 
 // Size and number of NSF banks in the $8000 - $FFFF area.
 static const unsigned NSFBankSize = 4096; // 4kiB
@@ -59,13 +58,30 @@ typedef struct _NSF {
 
 static NSF nsf;
 
-/* bit 0: if clear, this is an NTSC tune
-   bit 0: if set, this is a PAL tune
-   bit 1: if set, this is a dual PAL/NTSC tune
-   bits 2-7: not used. they *must* be 0 */
+/* Region flags:
+      bit 0: if clear, this is an NTSC tune
+      bit 0: if set, this is a PAL tune
+      bit 1: if set, this is a dual PAL/NTSC tune
+      bits 2-7: not used. they *must* be 0 */
 enum {
    NSFRegionPAL  = (1 << 0),
    NSFRegionDual = (1 << 1),
+};
+
+/* Expansion flags:
+      bit 0: if set, this song uses VRCVI
+      bit 1: if set, this song uses VRCVII
+      bit 2: if set, this song uses FDS Sound
+      bit 3: if set, this song uses MMC5 audio
+      bit 4: if set, this song uses Namco 106
+      bit 5: if set, this song uses Sunsoft FME-07 */
+enum {
+   NSFExpansionVRC6 = (1 << 0),
+   NSFExpansionVRC7 = (1 << 1),
+   NSFExpansionFDS  = (1 << 2),
+   NSFExpansionMMC5 = (1 << 3),
+   NSFExpansionN106 = (1 << 4),
+   NSFExpansionFME7 = (1 << 5),
 };
 
 // Function prototypes(defined at bottom).
@@ -807,6 +823,15 @@ static int nsf_mapper_init(void)
       cpu_set_read_address_32k(0x8000, (UINT8*)&nsf.data[0]);
    }
 
+   // Set up ExSound, if applicable.
+   // TODO: Support for multiple ExSound chips simultaneously?  Would require modifications to the APU...
+   if(nsf.expansionFlags & NSFExpansionMMC5)
+      apu_set_exsound(APU_EXSOUND_MMC5);
+   else if(nsf.expansionFlags & NSFExpansionVRC6)
+      apu_set_exsound(APU_EXSOUND_VRC6);
+   else
+      apu_set_exsound(APU_EXSOUND_NONE);
+
    // Return success.
    return 0;
 }
@@ -838,6 +863,8 @@ static void nsf_mapper_reset(void)
    // Annotation: Huh?  I think he means to do this...
    cpu_write(0x4015, 0x0F);
 
+   // TODO: Reset ExSound here?
+
    // If this is a banked tune, load the bank values from the header into 5ff8-5fffh.
    if(nsf.bankswitched) {
       for(int bank = 0; bank < NSFBankCount; bank++)
@@ -852,24 +879,29 @@ static UINT8 nsf_mapper_read(UINT16 address)
 
 static void nsf_mapper_write(UINT16 address, UINT8 value)
 {
-   switch(address) {
+   if((address >= 0x5FF8) && (address <= 0x5FFF)) {
       // NSF bankswitching.
-      case 0x5FF8:
-      case 0x5FF9:
-      case 0x5FFA:
-      case 0x5FFB:
-      case 0x5FFC:
-      case 0x5FFD:
-      case 0x5FFE:
-      case 0x5FFF: {
-         const int bank = (address - 0x5FF8);
-         bankswitch(bank, value);
+      const int bank = (address - 0x5FF8);
+      bankswitch(bank, value);
+      return;
+   }
 
-         break;
+   if(nsf.expansionFlags & NSFExpansionMMC5) {
+      if((address >= 0x5000) && (address <= 0x5015)) {
+         // MMC5 audio.
+         apu_write(address, value);
+         return;
       }
-      
-      default:
-         break;
+   }
+
+   if(nsf.expansionFlags & NSFExpansionVRC6) {
+      if(((address >= 0x9000) && (address <= 0x9001)) ||
+         ((address >= 0xA000) && (address <= 0xA002)) ||
+         ((address >= 0xB000) && (address <= 0xB002))) {
+         // VRC6 audio.
+         apu_write(address, value);
+         return;
+      }
    }
 }
 
