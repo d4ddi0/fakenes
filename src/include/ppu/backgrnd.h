@@ -178,21 +178,35 @@ static void ppu_render_background (int line)
             }
         }
 
-
         cache_bank = tile_address >> 10;
         cache_index = ((tile_address & 0x3FF) / 2) + sub_y;
 
-        cache_tag = ppu_vram_block_background_cache_tag_address [cache_bank]
-            [cache_index];
+        unsigned vram_block;
+        if(ppu_expansion_table) {
+           const unsigned exram_block = ppu_expansion_table[bg_vram_address] & 0x3F;
+           vram_block = ((tile_address >> 10) & 3) + (exram_block << 2);
+           cache_tag = ppu_pattern_vram_cache_tag + ((vram_block << 10) / 2);
+        }
+        else
+           cache_tag = ppu_vram_block_background_cache_tag_address[cache_bank][cache_index];
 
         if (cache_tag)
         /* some non-transparent pixels */
         {
-            cache_address =
-                ppu_vram_block_background_cache_address [cache_bank] +
-                cache_index * 8;
+            if(ppu_expansion_table) {
+               cache_address =
+                  ppu_pattern_vram_cache + ((vram_block << 10) / 2 * 8) +
+                  cache_index * 8;
 
-            attribute = attribute_table [attribute_byte & 3];
+               attribute = attribute_table[(ppu_expansion_table[bg_vram_address] >> 6) & 0x03];
+            }
+            else {
+               cache_address =
+                  ppu_vram_block_background_cache_address [cache_bank] +
+                  cache_index * 8;
+
+               attribute = attribute_table[attribute_byte & 0x03];
+            }
 
             if (x > 1)
             {
