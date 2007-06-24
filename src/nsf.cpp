@@ -886,6 +886,9 @@ static void nsf_mapper_reset(void)
    // Annotation: Huh?  I think he means to do this...
    cpu_write(0x4015, 0x0F);
 
+   // Reset ExSound.
+   apu_reset_exsound();
+
    // If this is a banked tune, load the bank values from the header into 5ff8-5fffh.
    if(nsf.bankswitched) {
       for(int bank = 0; bank < NSFBankCount; bank++)

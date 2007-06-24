@@ -1095,11 +1095,16 @@ void apu_reset(void)
    apu.sequence_step = sequence_step;
 
    // Reset ExSound.
-   if(exsound)
-      exsound->reset();
+   apu_reset_exsound();
 
    // Initialize everything else.
    apu_update();
+}
+
+void apu_reset_exsound(void)
+{
+   if(exsound)
+      exsound->reset();
 }
 
 void apu_update(void)

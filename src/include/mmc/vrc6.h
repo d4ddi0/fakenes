@@ -379,6 +379,9 @@ static void vrc6_reset (void)
 
    vrc6_prediction_timestamp = 0;
    vrc6_prediction_cycles = 0;
+
+   /* Reset ExSound. */
+   apu_reset_exsound();
 }
 
 static int vrc6_base_init (void)

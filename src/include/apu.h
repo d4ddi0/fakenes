@@ -22,6 +22,7 @@ extern void apu_save_config(void);
 extern int apu_init(void);
 extern void apu_exit(void);
 extern void apu_reset(void);
+extern void apu_reset_exsound(void);
 extern void apu_update(void);
 extern void apu_set_exsound(ENUM type);
 extern UINT8 apu_read(UINT16 address);

@@ -1124,6 +1124,9 @@ static void mmc5_reset (void)
 
     mmc5_multiply_needs_update = TRUE;
     mmc5_disable_irqs = TRUE;
+
+
+    apu_reset_exsound ();
 }
 
 
