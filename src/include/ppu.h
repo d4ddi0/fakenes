@@ -187,6 +187,8 @@ extern void ppu_set_name_table_address_rom (int, UINT8 *);
 
 extern void ppu_set_name_table_address_vrom (int, int);
 
+extern void ppu_set_expansion_table_address (UINT8 *);
+
 
 enum
 {

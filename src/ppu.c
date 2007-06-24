@@ -77,6 +77,10 @@ static UINT8 ppu_name_table_vram [4 * 1024];
 static UINT8 *name_tables_read [4];
 static UINT8 *name_tables_write [4];
 
+/* Table containing expanded name/attribute data.  Used for MMC5. */
+/* Use ppu_set_expansion_table_address(block) to set this, or ppu_set_expansion_table_address(NULL) to clear. */
+/* The format should be identical to that used by MMC5. */
+static UINT8 *ppu_expansion_table = NULL;
 
 static UINT8 ppu_palette [32];
 
@@ -98,7 +102,7 @@ static int ppu_mirroring;
     (bitmap -> line [y] [x] = color)
 
 #define PPU_GETPIXEL(bitmap, x, y) \
-    (bitmap -> line [y] [x])
+    (bitmap -> line [y] [x])Nametable
 
 
 static int vram_address = 0;
@@ -448,6 +452,11 @@ void ppu_set_name_table_address_vrom (int table, int vrom_block)
     ppu_set_name_table_address_rom (table, ROM_CHR_ROM + (vrom_block << 10));
 }
 
+void ppu_set_expansion_table_address (UINT8 *address)
+{
+   ppu_expansion_table = address;
+}
+
 void ppu_set_mirroring_one_screen (void)
 {
     ppu_set_name_table_address (0, one_screen_base_address);
@@ -572,6 +581,9 @@ void ppu_reset (void)
     address_write = FALSE;
 
     buffered_vram_read = 0;
+
+
+    ppu_set_expansion_table_address (NULL);
 
 
     ppu_set_mirroring(ppu_mirroring);

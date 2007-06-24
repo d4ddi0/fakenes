@@ -64,6 +64,18 @@ enum
 #define MMC5_EXRAM_CONTROL_MASK 0x03
 #define MMC5_EXRAM_CONTROL      (mmc5_5100[4] & MMC5_EXRAM_CONTROL_MASK) /* $5104 bits 0-2 */
 
+/* If the MMC5 ExRAM control register $5104 is not set to mode 0 or 1, attempting to map ExRAM to a nametable (via $5015)
+   will fail, and reads from the nametable in question will return all 0s.
+   Since we don't want to clear ExRAM(as reads/writes to it are still valid) we need an alternate block of memory that
+   always stays empty, that we can map into the PPU instead when this type of 'rule violation' occurs.
+   I lovingly call this NXRAM, which is short for "No ExRAM". */
+static UINT8 mmc5_nxram[1 << 10];
+
+/* Define a little macro to tell if mapping ExRAM as a nametable is valid. */
+#define MMC5_EXRAM_CAN_MAP_AS_NAMETABLE \
+   ((MMC5_EXRAM_CONTROL == MMC5_EXRAM_CONTROL_USE_AS_NAMETABLE) || \
+    (MMC5_EXRAM_CONTROL == MMC5_EXRAM_CONTROL_USE_AS_EXTENDED))
+
 /* passed size in kbytes, defaults to 8k on invalid values */
 static void mmc5_set_wram_size (int size)
 {
@@ -427,7 +439,11 @@ static void mmc5_update_name_table(int table)
             break;
                         
         case 2: /* EXRAM */
-            ppu_set_name_table_address (table, mmc5_exram);
+            if(MMC5_EXRAM_CAN_MAP_AS_NAMETABLE)
+               ppu_set_name_table_address (table, mmc5_exram);
+            else
+               ppu_set_name_table_address (table, mmc5_nxram);
+
             break;
                         
         case 3: /* filled, special */
@@ -437,6 +453,36 @@ static void mmc5_update_name_table(int table)
             break;
 
     }
+}
+
+static void mmc5_update_exram_control(void)
+{
+   int index;
+
+   switch(MMC5_EXRAM_CONTROL) {
+      case MMC5_EXRAM_CONTROL_USE_AS_NAMETABLE:
+      case MMC5_EXRAM_CONTROL_USE_AS_RAM:
+      case MMC5_EXRAM_CONTROL_USE_AS_RAM_WP: {
+         /* Do not use extended name/attribute data. */
+         ppu_set_expansion_table_address(NULL);
+         break;
+      }
+
+      case MMC5_EXRAM_CONTROL_USE_AS_EXTENDED: {
+         /* Use extended name/attribute data. */
+         ppu_set_expansion_table_address(mmc5_exram);
+         break;
+      }
+
+      default: {
+         WARN_GENERIC();
+         break;
+      }
+   }
+
+   /* Update name tables, since the conditions for mapping ExRAM to name tables may've changed. */
+   for(index = 0; index < 4; index++)
+      mmc5_update_name_table(index);
 }
 
 
@@ -671,6 +717,7 @@ static void mmc5_write (UINT16 address, UINT8 value)
             /* EXRAM/split mode control ??? */
 
             mmc5_5100[4] = value;
+            mmc5_update_exram_control();
 
             break;
 
@@ -1080,6 +1127,9 @@ static int mmc5_init (void)
 {
     int index;
 
+    /* Clear this once and always leave it that way - see the comments for it's declaration. */
+    memset(mmc5_nxram, 0, sizeof(mmc5_nxram));
+
     if (mmc_pattern_vram_in_use)
     {
         /* No VROM is present. */
@@ -1173,6 +1223,7 @@ static void mmc5_load_state (PACKFILE * file, int version)
 
     /* Restore registers */
     pack_fread (mmc5_5100, 0x2C, file);
+    mmc5_update_exram_control();
     pack_fread (mmc5_5200, 7, file);
     background_patterns_last_mapped = pack_getc (file);
 

@@ -177,8 +177,8 @@ static void ppu_render_background (int line)
                 mmc_check_latches(tile_address);
             }
         }
-   
-    
+
+
         cache_bank = tile_address >> 10;
         cache_index = ((tile_address & 0x3FF) / 2) + sub_y;
 
