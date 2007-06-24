@@ -812,6 +812,11 @@ const MMC nsf_mapper =
    NULL, NULL,
 };
 
+// Mapper data for MMC5.
+static uint8 nsfMMC5MultiplierMultiplicand = 0x00;
+static uint8 nsfMMC5MultiplierMultiplier = 0x00;
+static uint16 nsfMMC5MultiplierProduct = 0x0000;
+
 static int nsf_mapper_init(void)
 {
    if(nsf.bankswitched) {
@@ -825,12 +830,26 @@ static int nsf_mapper_init(void)
 
    // Set up ExSound, if applicable.
    // TODO: Support for multiple ExSound chips simultaneously?  Would require modifications to the APU...
-   if(nsf.expansionFlags & NSFExpansionMMC5)
+   if(nsf.expansionFlags & NSFExpansionMMC5) {
       apu_set_exsound(APU_EXSOUND_MMC5);
-   else if(nsf.expansionFlags & NSFExpansionVRC6)
+
+      // Map in MMC5 audio and multiplier registers.
+      cpu_set_read_handler_2k(0x5000, nsf_mapper_read);
+      cpu_set_write_handler_2k(0x5000, nsf_mapper_write);
+   }
+   else if(nsf.expansionFlags & NSFExpansionVRC6) {
       apu_set_exsound(APU_EXSOUND_VRC6);
+
+      // Map in VRC6 audio registers.
+      cpu_set_write_handler_2k(0x9000, nsf_mapper_write);
+      cpu_set_write_handler_2k(0xA000, nsf_mapper_write);
+      cpu_set_write_handler_2k(0xB000, nsf_mapper_write);
+   }
    else
       apu_set_exsound(APU_EXSOUND_NONE);
+
+   // Initialize everything else.
+   nsf_mapper_reset();
 
    // Return success.
    return 0;
@@ -863,17 +882,31 @@ static void nsf_mapper_reset(void)
    // Annotation: Huh?  I think he means to do this...
    cpu_write(0x4015, 0x0F);
 
-   // TODO: Reset ExSound here?
-
    // If this is a banked tune, load the bank values from the header into 5ff8-5fffh.
    if(nsf.bankswitched) {
       for(int bank = 0; bank < NSFBankCount; bank++)
          bankswitch(bank, nsf.bankswitch[bank]);
    }
+
+   // Clear mapper data.
+   nsfMMC5MultiplierMultiplicand = 0x00;
+   nsfMMC5MultiplierMultiplier = 0x00;
+   nsfMMC5MultiplierProduct = 0x0000;
 }
 
 static UINT8 nsf_mapper_read(UINT16 address)
 {
+   if(nsf.expansionFlags & NSFExpansionMMC5) {
+      if(address == 0x5205) {
+         // MMC5 multiplier(lower 8 bits of result).
+         return (nsfMMC5MultiplierProduct & 0x00FF);
+      }
+      else if(address == 0x5206) {
+         // MMC5 multiplier(upper 8 bits of result).
+         return ((nsfMMC5MultiplierProduct & 0xFF00) >> 8);
+      }
+   }
+
    return 0x00;
 }
 
@@ -892,6 +925,23 @@ static void nsf_mapper_write(UINT16 address, UINT8 value)
          apu_write(address, value);
          return;
       }
+      else if(address == 0x5205) {
+         // MMC5 multiplier(8 bits multiplicand).
+         nsfMMC5MultiplierMultiplicand = value;
+         // Remember to cast everything to uint16 before the multiply otherwise we could get an overflow!
+         nsfMMC5MultiplierProduct = ((uint16)nsfMMC5MultiplierMultiplicand * (uint16)nsfMMC5MultiplierMultiplier);
+
+         return; 
+      }
+      else if(address == 0x5206) {
+         // MMC5 multiplier(8 bits multiplier);
+         nsfMMC5MultiplierMultiplier = value;
+         nsfMMC5MultiplierProduct = ((uint16)nsfMMC5MultiplierMultiplicand * (uint16)nsfMMC5MultiplierMultiplier);
+
+         return; 
+      }
+
+      // TODO: Support MMC5 ExRAM(both here and in the main emulation).
    }
 
    if(nsf.expansionFlags & NSFExpansionVRC6) {
