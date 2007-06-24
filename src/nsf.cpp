@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <vector>
 #include "apu.h"
 #include "audio.h"
 #include "audio_int.h"
@@ -817,6 +818,10 @@ static uint8 nsfMMC5MultiplierMultiplicand = 0x00;
 static uint8 nsfMMC5MultiplierMultiplier = 0x00;
 static uint16 nsfMMC5MultiplierProduct = 0x0000;
 
+/* Memory to emulate MMC5's ExRAM for limited audio/general purpose use.
+   NSF spec says this tops out at $5FF5, not $5FFF. */
+static uint8 nsfMMC5ExRAM[0x5FF5 - 0x5C00];
+
 static int nsf_mapper_init(void)
 {
    if(nsf.bankswitched) {
@@ -833,9 +838,9 @@ static int nsf_mapper_init(void)
    if(nsf.expansionFlags & NSFExpansionMMC5) {
       apu_set_exsound(APU_EXSOUND_MMC5);
 
-      // Map in MMC5 audio and multiplier registers.
-      cpu_set_read_handler_2k(0x5000, nsf_mapper_read);
-      cpu_set_write_handler_2k(0x5000, nsf_mapper_write);
+      // Map in MMC5 audio, multiplier, and ExRAM registers.
+      cpu_set_read_handler_4k(0x5000, nsf_mapper_read);
+      cpu_set_write_handler_4k(0x5000, nsf_mapper_write);
    }
    else if(nsf.expansionFlags & NSFExpansionVRC6) {
       apu_set_exsound(APU_EXSOUND_VRC6);
@@ -892,6 +897,8 @@ static void nsf_mapper_reset(void)
    nsfMMC5MultiplierMultiplicand = 0x00;
    nsfMMC5MultiplierMultiplier = 0x00;
    nsfMMC5MultiplierProduct = 0x0000;
+
+   memset(nsfMMC5ExRAM, 0, sizeof(nsfMMC5ExRAM));
 }
 
 static UINT8 nsf_mapper_read(UINT16 address)
@@ -904,6 +911,10 @@ static UINT8 nsf_mapper_read(UINT16 address)
       else if(address == 0x5206) {
          // MMC5 multiplier(upper 8 bits of result).
          return ((nsfMMC5MultiplierProduct & 0xFF00) >> 8);
+      }
+      else if((address >= 0x5C00) && (address <= 0x5FF5)) {
+         // MMC5 ExRAM(read).
+         return nsfMMC5ExRAM[address - 0x5C00];
       }
    }
 
@@ -940,8 +951,11 @@ static void nsf_mapper_write(UINT16 address, UINT8 value)
 
          return; 
       }
-
-      // TODO: Support MMC5 ExRAM(both here and in the main emulation).
+      else if((address >= 0x5C00) && (address <= 0x5FF5)) {
+         // MMC5 ExRAM(write).
+         nsfMMC5ExRAM[address - 0x5C00] = value;
+         return;
+      }
    }
 
    if(nsf.expansionFlags & NSFExpansionVRC6) {
