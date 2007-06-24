@@ -53,6 +53,16 @@ static UINT8 mmc5_wram_size;
 static INT8 mmc5_wram_lut[8];
 static INT8 background_patterns_last_mapped;
 
+enum
+{
+   MMC5_EXRAM_CONTROL_USE_AS_NAMETABLE = 0, /* Extra Nametable */
+   MMC5_EXRAM_CONTROL_USE_AS_EXTENDED  = 1, /* Extended attributes(may imply mode 0) */
+   MMC5_EXRAM_CONTROL_USE_AS_RAM       = 2, /* Ordinary RAM */
+   MMC5_EXRAM_CONTROL_USE_AS_RAM_WP    = 3, /* Ordinary RAM, write protect */
+};
+
+#define MMC5_EXRAM_CONTROL_MASK 0x03
+#define MMC5_EXRAM_CONTROL      (mmc5_5100[4] & MMC5_EXRAM_CONTROL_MASK) /* $5104 bits 0-2 */
 
 /* passed size in kbytes, defaults to 8k on invalid values */
 static void mmc5_set_wram_size (int size)
@@ -518,6 +528,26 @@ static int mmc5_irq_tick (int line)
 /* 5205/5206 = hardware 8x8=16 multiply */
 /*  result read from 5205/5206 (low/high) */
 
+/* randilyn's notes:
+      $5104 is ExRAM control ONLY(no as-of-yet documented split mode, despite the comments above):
+         0 - Use as extra nametable (possibly for split mode) 
+         1 - Use as extended attribute data OR an extra nametable 
+         2 - Use as ordinary RAM 
+         3 - Use as ordinary RAM, write protected
+
+      $5105 allows a nametable to be mapped to ExRAM, but only if the setting of $5104 allows it(mode 0 or 1, otherwise the
+         nametable in question will read as all 0s).
+         * In mode 1 it also has extended attribute data by using a custom memory format:
+            7  bit  0
+            ---- ----
+            AACC CCCC
+            |||| ||||
+            ||++-++++- Select 4 KB CHR bank to use with specified tile
+            ++-------- Select palette to use with specified tile
+         * I'm not entirely sure how this works yet.
+
+      $5C00 to $5FFF is ExRAM read/write(linearly mapped to ports).  Access permissions is controlled by the setting of
+        $5104, with modes 2 and 3 having no special role and simply acting as normal expansion RAM. */
 
 static UINT8 mmc5_read (UINT16 address)
 {
@@ -585,9 +615,12 @@ static void mmc5_write (UINT16 address, UINT8 value)
 
     if (address < 0x5100)
     {
+        /* MMC5 audio */
+
         apu_write (address, value);
         return;
     }
+
 
     switch (address)
     {
@@ -964,22 +997,50 @@ static void mmc5_write (UINT16 address, UINT8 value)
     }
 }
 
-
-static UINT8 mmc5_exram_read (UINT16 address)
+static UINT8 mmc5_exram_read(UINT16 address)
 {
-    if (address < 0x5C00) return 0;
+   /* We only need a lower bounds check here since this handler is directly mapped to a 2kiB block starting at $5800,
+      and thus will never recieve a read request beyond $5FFF. */
+   if(address < 0x5C00)
+      return 0;
 
-    return mmc5_exram[address - 0x5C00];
+    /* ExRAM read:
+         Mode 0/1 - Not readable (returns open bus), can only be written while the PPU is rendering (otherwise, 0 is
+            written) 
+         Mode 2 - Readable and writable 
+         Mode 3 - Read-only */
+    if((MMC5_EXRAM_CONTROL == MMC5_EXRAM_CONTROL_USE_AS_RAM) ||
+       (MMC5_EXRAM_CONTROL == MMC5_EXRAM_CONTROL_USE_AS_RAM_WP))
+       return mmc5_exram[address - 0x5C00];
+    else
+       return (address >> 8); /* meh */
 }
 
-
-static void mmc5_exram_write (UINT16 address, UINT8 value)
+static void mmc5_exram_write(UINT16 address, UINT8 value)
 {
-    if (address < 0x5C00) return;
+   if(address < 0x5C00)
+      return;
 
-    mmc5_exram[address - 0x5C00] = value;
+   /* EXRAM write:
+         Mode 0/1 - Not readable (returns open bus), can only be written while the PPU is rendering (otherwise, 0 is
+           written) 
+         Mode 2 - Readable and writable 
+         Mode 3 - Read-only */
+
+   if((MMC5_EXRAM_CONTROL == MMC5_EXRAM_CONTROL_USE_AS_NAMETABLE) ||
+      (MMC5_EXRAM_CONTROL == MMC5_EXRAM_CONTROL_USE_AS_EXTENDED)) {
+      /* Modes 0 and 1. */
+     const UINT16 write_address = (address - 0x5C00);
+     if (ppu_is_rendering)
+        mmc5_exram[write_address] = value;
+     else
+        mmc5_exram[write_address] = 0x00;
+   }
+   else if(MMC5_EXRAM_CONTROL == MMC5_EXRAM_CONTROL_USE_AS_RAM) {
+      /* Mode 2. */
+      mmc5_exram[address - 0x5C00] = value;
+    }
 }
-
 
 static void mmc5_reset (void)
 {
@@ -1090,7 +1151,7 @@ static void mmc5_save_state (PACKFILE * file, int version)
     pack_putc (mmc5_disable_irqs, file);
 
 
-    /* Restore WRAM */
+    /* Save WRAM */
     pack_putc (mmc5_wram_size, file);
     if (mmc5_wram_size)
     {
@@ -1098,7 +1159,7 @@ static void mmc5_save_state (PACKFILE * file, int version)
     }
 
 
-    /* Restore EXRAM */
+    /* Save EXRAM */
     pack_fwrite (mmc5_exram, (1 << 10), file);
 }
 

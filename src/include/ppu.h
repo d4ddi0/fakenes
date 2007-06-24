@@ -102,6 +102,8 @@ extern int ppu_scanline;
 
 extern int ppu_frame_last_line;
 
+extern BOOL ppu_is_rendering;
+
 
 extern int background_enabled;
 
@@ -162,9 +164,6 @@ extern void ppu_render_line (int);
 
 
 extern void ppu_start_frame (void);
-
-
-extern void ppu_start_render (void);
 
 extern void ppu_end_render (void);
 

@@ -28,6 +28,7 @@ int ppu_enable_background_layer = TRUE;
 
 int ppu_scanline = 0;
 int ppu_frame_last_line = 0;
+BOOL ppu_is_rendering = FALSE;
 
 int background_enabled = FALSE;
 int sprites_enabled = FALSE;
@@ -1080,6 +1081,7 @@ void ppu_clear_palette (void)
 void ppu_start_frame (void)
 {
     vram_address_start_new_frame();
+    ppu_is_rendering = TRUE;
 }
 
 
@@ -1161,6 +1163,7 @@ void ppu_vblank (void)
 void ppu_end_render (void)
 {
     ppu_vblank ();
+    ppu_is_rendering = FALSE;
 }
 
 
