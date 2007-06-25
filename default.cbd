@@ -67,15 +67,17 @@ DEP_DIR = "${OBJ_DIR}"
 
 # Source Code subdirectories.
 SRC_ETCDIR = etc
+SRC_RENDERERDIR = renderer
 SRC_SHAREDDIR = shared
 SRC_SOUNDDIR = sound
 
 # Create missing directories.
 do ifnopt clean
    ifnexist "${OBJ_DIR}" mkdir "${OBJ_DIR}"
-   ifnexist "${OBJ_DIR}/${SRC_ETCDIR}"    mkdir "${OBJ_DIR}/${SRC_ETCDIR}"
-   ifnexist "${OBJ_DIR}/${SRC_SHAREDDIR}" mkdir "${OBJ_DIR}/${SRC_SHAREDDIR}"
-   ifnexist "${OBJ_DIR}/${SRC_SOUNDDIR}"  mkdir "${OBJ_DIR}/${SRC_SOUNDDIR}"
+   ifnexist "${OBJ_DIR}/${SRC_ETCDIR}"      mkdir "${OBJ_DIR}/${SRC_ETCDIR}"
+   ifnexist "${OBJ_DIR}/${SRC_RENDERERDIR}" mkdir "${OBJ_DIR}/${SRC_RENDERERDIR}"
+   ifnexist "${OBJ_DIR}/${SRC_SHAREDDIR}"   mkdir "${OBJ_DIR}/${SRC_SHAREDDIR}"
+   ifnexist "${OBJ_DIR}/${SRC_SOUNDDIR}"    mkdir "${OBJ_DIR}/${SRC_SOUNDDIR}"
 done
 
 # File list stubs (we will append to these later).
@@ -273,7 +275,8 @@ SRCFILES += 'net.c '
 SRCFILES += 'netplay.c '
 SRCFILES += 'nsf.cpp '
 SRCFILES += 'platform.c '
-SRCFILES += 'ppu.c '
+SRCFILES += 'ppu.cpp '
+SRCFILES += "${SRC_RENDERERDIR}/background.cpp "
 SRCFILES += 'rewind.c '
 SRCFILES += 'rom.c '
 SRCFILES += 'save.c '
@@ -312,6 +315,7 @@ exit 0
 rm     ${CLEANFILES}
 rmobj  ${SRCFILES}
 rm     "${OBJ_DIR}/${SRC_ETCDIR}"
+rm     "${OBJ_DIR}/${SRC_RENDERERDIR}"
 rm     "${OBJ_DIR}/${SRC_SHAREDDIR}"
 rm     "${OBJ_DIR}/${SRC_SOUNDDIR}"
 rm     "${OBJ_DIR}"

@@ -1,24 +1,29 @@
 /* FakeNES - A free, portable, Open Source NES emulator.
 
-   ppu.c: Implementation of the PPU emulation.
+   ppu.cpp: Implementation of the PPU emulation.
 
    Copyright (c) 2001-2006, FakeNES Team.
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
  
 #include <allegro.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "common.h"
 #include "cpu.h"
 #include "mmc.h"
 #include "ppu.h"
+#include "ppu_int.h"
 #include "rom.h"
+#include "renderer/renderer.hpp"
+#include "renderer/background.hpp"
 #include "shared/crc32.h"
 #include "timing.h"
 #include "types.h"
 #include "video.h"
+
+static void do_spr_ram_dma(UINT8 page);
 
 UINT8 ppu_register_2000 = 0;
 UINT8 ppu_register_2001 = 0;
@@ -35,112 +40,73 @@ int sprites_enabled = FALSE;
 
 UINT8 * one_screen_base_address = 0;
 
-/* delay for sprite 0 collision detection in PPU clocks */
-/* should be <= SCANLINE_CLOCKS - 256 */
-#define DOTS_HBLANK_BEFORE_RENDER 0
-
-
-/* start of NES palette in 256-color palette */
-#define PALETTE_ADJUST 1
-
-
 /* VRAM and sprite RAM. */
+UINT8* ppu_vram_block_read_address [8];
+UINT8* ppu_vram_block_background_cache_address [8];
+UINT8* ppu_vram_block_background_cache_tag_address [8];
+UINT8* ppu_vram_block_sprite_cache_address [8];
+UINT8* ppu_vram_block_sprite_cache_tag_address [8];
+UINT8* ppu_vram_block_write_address [8];
 
-static UINT8 * ppu_vram_block_read_address [8];
-static UINT8 * ppu_vram_block_background_cache_address [8];
-static UINT8 * ppu_vram_block_background_cache_tag_address [8];
-static UINT8 * ppu_vram_block_sprite_cache_address [8];
-static UINT8 * ppu_vram_block_sprite_cache_tag_address [8];
-static UINT8 * ppu_vram_block_write_address [8];
+UINT32 ppu_vram_block[PPU_VRAM_BLOCK_SIZE];
 
-/*
- vram block identifiers
-  0-7 = pattern VRAM
-  8+  = pattern VROM
-*/
-#define FIRST_VROM_BLOCK 8
-static UINT32 ppu_vram_block [8];
+INT32 ppu_vram_dirty_set_begin[PPU_VRAM_DIRTY_SET_BEGIN_SIZE];
+INT32 ppu_vram_dirty_set_end[PPU_VRAM_DIRTY_SET_END_SIZE];
+INT8 ppu_vram_cache_needs_update;
 
-static INT32 ppu_vram_dirty_set_begin [8];
-static INT32 ppu_vram_dirty_set_end [8];
-static INT8 ppu_vram_cache_needs_update;
+UINT8 ppu_vram_dummy_write[PPU_VRAM_DUMMY_WRITE_SIZE];
 
+UINT8 ppu_pattern_vram[PPU_PATTERN_VRAM_SIZE];
+UINT8 ppu_pattern_vram_cache[PPU_PATTERN_VRAM_CACHE_SIZE];
+UINT8 ppu_pattern_vram_cache_tag[PPU_PATTERN_VRAM_CACHE_TAG_SIZE];
 
-static UINT8 ppu_vram_dummy_write [1024];
-
-static UINT8 ppu_pattern_vram [8 * 1024];
-static UINT8 ppu_pattern_vram_cache [8 * 1024 / 2 * 8];
-static UINT8 ppu_pattern_vram_cache_tag [8 * 1024 / 2];
-
-
-static UINT8 ppu_name_table_vram [4 * 1024];
-static UINT8 *name_tables_read [4];
-static UINT8 *name_tables_write [4];
+UINT8 ppu_name_table_vram[PPU_NAME_TABLE_VRAM_SIZE];
+UINT8* name_tables_read[PPU_NAME_TABLES_READ_SIZE];
+UINT8* name_tables_write[PPU_NAME_TABLES_WRITE_SIZE];
 
 /* Table containing expanded name/attribute data.  Used for MMC5. */
 /* Use ppu_set_expansion_table_address(block) to set this, or ppu_set_expansion_table_address(NULL) to clear. */
 /* The format should be identical to that used by MMC5. */
-static UINT8 *ppu_expansion_table = NULL;
+UINT8 *ppu_expansion_table = NULL;
 
-static UINT8 ppu_palette [32];
+UINT8 ppu_palette[PPU_PALETTE_SIZE];
 
+UINT8 ppu_spr_ram[PPU_SPR_RAM_SIZE];
 
-static UINT8 ppu_spr_ram [256];
+int ppu_mirroring;
 
-#define ppu_background_palette ppu_palette
-#define ppu_sprite_palette (ppu_palette + 16)
+int vram_address = 0;
+UINT8 buffered_vram_read = 0;
 
-static void do_spr_ram_dma(UINT8 page);
+int address_write = 0;
+int address_temp = 0;
+int x_offset = 0;
+int address_increment = 1;
 
-static int ppu_mirroring;
+UINT8 spr_ram_address = 0;
+int sprite_height = 8;
 
+int want_vblank_nmi = FALSE;
 
-#define PPU_GET_LINE_ADDRESS(bitmap, y) \
-    (bitmap -> line [y])
+int vblank_occurred = FALSE;
 
-#define PPU_PUTPIXEL(bitmap, x, y, color) \
-    (bitmap -> line [y] [x] = color)
+UINT8 hit_first_sprite = 0;
+cpu_time_t first_sprite_this_line = 0;
 
-#define PPU_GETPIXEL(bitmap, x, y) \
-    (bitmap -> line [y] [x])Nametable
-
-
-static int vram_address = 0;
-static UINT8 buffered_vram_read = 0;
-
-static int address_write = 0;
-static int address_temp = 0;
-static int x_offset = 0;
-static int address_increment = 1;
-
-
-static UINT8 spr_ram_address = 0;
-static int sprite_height = 8;
-
-
-static int want_vblank_nmi = FALSE;
-
-static int vblank_occurred = FALSE;
-
-static UINT8 hit_first_sprite = 0;
-static cpu_time_t first_sprite_this_line = 0;
-
-static int background_tileset = 0;
-static int sprite_tileset = 0;
+int background_tileset = 0;
+int sprite_tileset = 0;
 
 #ifdef ALLEGRO_I386
-static UINT32 attribute_table [4];
+UINT32 attribute_table[ATTRIBUTE_TABLE_SIZE];
 #else
-static UINT8 attribute_table [4];
+UINT8 attribute_table[ATTRIBUTE_TABLE_SIZE];
 #endif
 
-static INT8 background_pixels [8 + 256 + 8];
+INT8 background_pixels[BACKGROUND_PIXELS_SIZE];
 
-static int palette_mask = 0x3f;
+int palette_mask = 0x3f;
 
 #include "ppu/tiles.h"
-
-#include "ppu/backgrnd.h"
 #include "ppu/sprites.h"
 
 static INLINE UINT8 vram_read (UINT16 address)
@@ -231,11 +197,11 @@ UINT8 * ppu_get_chr_rom_pages (ROM *rom)
 
 
     /* 8k CHR ROM page size */
-    rom -> chr_rom = malloc (num_pages * 0x2000);
+    rom -> chr_rom = (UINT8*)malloc (num_pages * 0x2000);
 
     /* 2-bit planar tiles converted to 8-bit chunky */
-    rom -> chr_rom_cache = malloc ((num_pages * 0x2000) / 2 * 8);
-    rom -> chr_rom_cache_tag = malloc ((num_pages * 0x2000) / 2);
+    rom -> chr_rom_cache = (UINT8*)malloc ((num_pages * 0x2000) / 2 * 8);
+    rom -> chr_rom_cache_tag = (UINT8*)malloc ((num_pages * 0x2000) / 2);
 
     if (rom -> chr_rom == 0 || rom -> chr_rom_cache == 0 ||
      rom -> chr_rom_cache_tag == 0)
@@ -1134,7 +1100,8 @@ void ppu_render_line (int line)
 
     if (PPU_BACKGROUND_ENABLED)
     {
-        ppu_render_background (line);
+        //ppu_render_background (line);
+        rendererRenderBackgroundLine(line);
     }
 
     if (PPU_SPRITES_ENABLED)

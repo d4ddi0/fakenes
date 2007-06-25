@@ -80,16 +80,18 @@ static void null_load_state (PACKFILE *, int);
 #include "mmc/ffe_f3.h"
 
 
+static const MMC *current_mmc = NULL;
+
 #define MMC_FIRST_LIST_ITEM(id)     \
-    if (mmc_ ##id.number == rom -> mapper_number)       \
-        rom -> current_mmc = &mmc_ ##id
+    if (mmc_ ##id.number == mapper_number)       \
+        current_mmc = &mmc_ ##id
 
 #define MMC_NEXT_LIST_ITEM(id)      \
-    else if (mmc_ ##id.number == rom -> mapper_number)  \
-        rom -> current_mmc = &mmc_ ##id
+    else if (mmc_ ##id.number == mapper_number)  \
+        current_mmc = &mmc_ ##id
 
 #define MMC_LAST_LIST_ITEM()        \
-    else rom -> current_mmc = NIL
+    else current_mmc = NIL
 
 
 static int none_init (void);
@@ -158,7 +160,7 @@ static void null_load_state (PACKFILE * file, int version)
 }
 
 
-void mmc_request (ROM * rom)
+void mmc_request (int mapper_number)
 {
     MMC_FIRST_LIST_ITEM (none);     /* No mapper. */
 
@@ -207,11 +209,11 @@ void mmc_request (ROM * rom)
     MMC_LAST_LIST_ITEM ();          /* Unsupported mapper. */
 }
 
-void mmc_force (ROM *rom, const MMC *mmc)
+void mmc_force (const MMC *mmc)
 {
    /* Like mmc_request(), but forces a mapper without requiring a mapper number. */
 
-   rom -> current_mmc = mmc;
+   current_mmc = mmc;
 }
 
 int mmc_init (void)
@@ -266,7 +268,7 @@ int mmc_init (void)
     apu_set_exsound (APU_EXSOUND_NONE);
 
 
-    if (ROM_CURRENT_MMC == NIL)
+    if (current_mmc == NIL)
     {
         return (1);
     }
@@ -274,29 +276,29 @@ int mmc_init (void)
 
     if (! gui_is_active)
     {
-        printf ("Using memory mapper #%u (%s) (%d PRG, %d CHR).\n\n", ROM_MAPPER_NUMBER,
-            ROM_CURRENT_MMC -> name, ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
+        printf ("Using memory mapper #%u (%s) (%d PRG, %d CHR).\n\n", current_mmc -> number,
+            current_mmc -> name, ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
     }
 
 
-    return (ROM_CURRENT_MMC -> init ());
+    return (current_mmc -> init ());
 }
 
 
 void mmc_reset (void)
 {
-    ROM_CURRENT_MMC -> reset ();
+    current_mmc -> reset ();
 }
 
 
 void mmc_save_state (PACKFILE * file, int version)
 {
-    if (ROM_CURRENT_MMC -> save_state)
+    if (current_mmc -> save_state)
     {
-        pack_fwrite (ROM_CURRENT_MMC -> id, 8, file);
+        pack_fwrite (current_mmc -> id, 8, file);
 
 
-        ROM_CURRENT_MMC -> save_state (file, version);
+        current_mmc -> save_state (file, version);
     }
 }
 
@@ -306,11 +308,11 @@ void mmc_load_state (PACKFILE * file, int version)
     UINT8 signature [8];
 
 
-    if (ROM_CURRENT_MMC -> load_state)
+    if (current_mmc -> load_state)
     {
         pack_fread (signature, 8, file);
 
 
-        ROM_CURRENT_MMC -> load_state (file, version);
+        current_mmc -> load_state (file, version);
     }
 }

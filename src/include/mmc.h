@@ -10,7 +10,7 @@
 #define MMC_H_INCLUDED
 #include <allegro.h>
 #include "common.h"
-#include "rom.h"
+#include "cpu.h"
 #include "types.h"
 #ifdef __cplusplus
 extern "C" {
@@ -30,8 +30,8 @@ typedef struct _MMC
 
 extern int mmc_init (void);
 extern void mmc_reset (void);
-extern void mmc_request (ROM *);
-extern void mmc_force (ROM *, const MMC *);
+extern void mmc_request (int);
+extern void mmc_force (const MMC *);
 extern int (*mmc_hblank_start) (int);
 extern int (*mmc_scanline_start) (int);
 extern int (*mmc_scanline_end) (int);

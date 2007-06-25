@@ -932,7 +932,7 @@ static INLINE int load_file (const UCHAR *filename)
          rom_is_loaded = TRUE;
          memset(&global_rom, 0, sizeof(global_rom));
          /* Mapper #0 = NONE. */
-         mmc_force (&global_rom, &nsf_mapper);
+         mmc_force (&nsf_mapper);
 
          /* Initialize machine. */
          machine_init ();

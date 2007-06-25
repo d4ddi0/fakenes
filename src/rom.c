@@ -181,7 +181,7 @@ int load_ines_rom (PACKFILE *file, ROM *rom)
    rom->mapper_number = ((rom->control_byte_2 & 0xf0) | ((rom->control_byte_1 & 0xf0) >> 4));
 
    /* Set mapper. */
-   mmc_request (rom);
+   mmc_request (rom->mapper_number);
 
    /* Load trainer. */
    if ((rom->control_byte_1 & ROM_CTRL_TRAINER))

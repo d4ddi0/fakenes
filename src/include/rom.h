@@ -13,19 +13,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-typedef struct _ROM ROM;
-
-/* We include 'mmc.h' (after the declaration of 'ROM') here instead of above
-   to avoid a mutual-inclusion conflict. */
-#include "mmc.h"
-
-extern ROM global_rom;
-extern BOOL rom_is_loaded;
-    
-struct _ROM
+   
+typedef struct _ROM
 {
-   const MMC *current_mmc;             /* Memory mapping controller. */
    UINT8 *trainer;                     /* Pointer to trainer data. */
    UINT8 *prg_rom;                     /* Pointer to PRG-ROM data. */
    UINT8 *chr_rom;                     /* Pointer to CHR-ROM data. */
@@ -45,7 +35,8 @@ struct _ROM
    UINT8 prg_rom_page_lookup[256];     /* ?? */
    BOOL sram_flag;                     /* If Save RAM/SRAM is present. */
    USTRING filename;                   /* Full Unicode filename. */
-};
+
+} ROM;
 
 typedef struct _INES_HEADER
 {
@@ -62,6 +53,9 @@ extern int load_rom (const UCHAR*, ROM *);
 extern int load_rom_from_zip (const UCHAR*, ROM *);
 extern void free_rom (const ROM *);
 
+extern ROM global_rom;
+extern BOOL rom_is_loaded;
+
 #define ROM_TRAINER_SIZE      512
 
 /* Control byte flags. */
@@ -74,7 +68,6 @@ extern void free_rom (const ROM *);
 #define ROM_PRG_ROM_PAGES              global_rom.prg_rom_pages
 #define ROM_CHR_ROM_PAGES              global_rom.chr_rom_pages
 #define ROM_MAPPER_NUMBER              global_rom.mapper_number
-#define ROM_CURRENT_MMC                global_rom.current_mmc
 #define ROM_PRG_ROM                    global_rom.prg_rom
 #define ROM_CHR_ROM                    global_rom.chr_rom
 #define ROM_CHR_ROM_CACHE              global_rom.chr_rom_cache
