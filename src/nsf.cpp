@@ -27,13 +27,9 @@
 
 // TODO: Proper support for PAL/NTSC selection.
 
-// Size and number of NSF banks in the $8000 - $FFFF area.
+// Size and number of NSF banks in the $8000 - $FFFF area.  This is also the size of NSF pages.
 static const unsigned NSFBankSize = 4096; // 4kiB
 static const int NSFBankCount = 8;
-
-// Maximum size of NSF data.
-// TODO: Expand this as needed(vector?).
-static const unsigned NSFDataSize = 65536; // 64kiB
 
 // Structure to hold information about our NSF state.
 typedef struct _NSF {
@@ -55,7 +51,7 @@ typedef struct _NSF {
    // Determined from the values of bankswitch[] above.   
    bool bankswitched;
    // Data to be mapped into banks, or directly into the 6502's address space in the case of non-bankswitched NSFs.
-   uint8 data[NSFDataSize];
+   std::vector<uint8> data;
 
 } NSF;
 
@@ -204,10 +200,28 @@ BOOL nsf_open(const UCHAR* filename)
    bytesRead += sizeof(unused);
 
    // 0080    nnn ----    The music program/data follows
-   unsigned offset = (nsf.loadAddress & 0x0FFF); // $8000 -> $0000
+
+   // Start with a single page of data.
+   int pages = 1;
+   nsf.data.resize(pages * NSFBankSize);
+
+   // Calculate the load offset for the first page.
+   unsigned offset = nsf.loadAddress & 0x0FFF; // $8000 -> $0000
+
+   // Load the data.
+   int counter = 0;
    while(!pack_feof(file)) {
       nsf.data[offset++] = pack_getc(file);
       bytesRead++;
+
+      counter++;
+      if(counter >= NSFBankSize) {
+         counter = 0;
+
+         // Start a new page, extending and padding the vector as needed.
+         pages++;
+         nsf.data.resize(pages * NSFBankSize);
+      }
    }
 
    // Close file.
@@ -221,6 +235,9 @@ BOOL nsf_open(const UCHAR* filename)
 
 void nsf_close(void)
 {
+   if(nsf.data.size() > 0)
+      nsf.data.clear();
+
    if(nsfProgram.size() > 0)
       nsfProgram.clear();
 }
