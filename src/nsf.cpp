@@ -31,8 +31,9 @@
 static const unsigned NSFBankSize = 4096; // 4kiB
 static const int NSFBankCount = 8;
 
-// Maximum size of NSF data, including load offset.
-static const unsigned NSFDataSize = 32768; // 32kiB
+// Maximum size of NSF data.
+// TODO: Expand this as needed(vector?).
+static const unsigned NSFDataSize = 65536; // 64kiB
 
 // Structure to hold information about our NSF state.
 typedef struct _NSF {
@@ -87,7 +88,7 @@ enum {
 };
 
 // Function prototypes(defined at bottom).
-static void bankswitch(int bankIn, int bankOut);
+static void bankswitch(int bank, int page);
 static void play(int song);
 static real bandpass(uint16* buffer, unsigned size, real sampleRate, int channels, real cutoffLow, real cutoffHigh);
 
@@ -1039,18 +1040,19 @@ static void nsf_mapper_write(UINT16 address, UINT8 value)
 }
 
 // Helper functions.
-static void bankswitch(int bankIn, int bankOut)
+static void bankswitch(int bank, int page)
 {
-   /* Maps the 4kB bank number 'bankOut' into the address range associated with the 4kB bank number 'bankIn' (there are 8
-      total in the $8000-$FFFF range).  Banks are always mapped as read-only, since they occupy the ROM area. */
+   /* Maps the 4kiB bank number 'bank' into the address range associated with the 4kiB page number 'page' (there are 8
+      banks in the $8000-$FFFF range).  Banks are always mapped as read-only, since they occupy the ROM area. */
 
-   if(((bankIn < 0) || (bankIn > NSFBankCount)) ||
-      ((bankOut < 0) || (bankOut > NSFBankCount))) {
+   // The NSF bankswitching registers are 8 bits wide, so I'm assuming a maximum of 255 pages.
+   if(((bank < 0) || (bank > NSFBankCount)) ||
+      ((page < 0) || (page > 255))) {
       WARN_GENERIC();
       return;
    }
 
-   cpu_set_read_address_4k(0x8000 + (bankIn * NSFBankSize), (UINT8*)&nsf.data[bankOut * NSFBankSize]);
+   cpu_set_read_address_4k(0x8000 + (bank * NSFBankSize), (UINT8*)&nsf.data[page * NSFBankSize]);
 }
 
 static void play(int song)
