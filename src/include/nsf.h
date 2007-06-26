@@ -1,6 +1,6 @@
 /* FakeNES - A free, portable, Open Source NES emulator.
 
-   nsf.h: Declarations for the NSF player back-end.
+   nsf.h: Declarations for the NSF player.
 
    Copyright (c) 2001-2007, FakeNES Team.
    This is free software.  See 'LICENSE' for details.
@@ -14,7 +14,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 extern BOOL nsf_open(const UCHAR* filename);
 extern void nsf_close(void);
