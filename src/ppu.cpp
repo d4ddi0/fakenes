@@ -38,7 +38,7 @@ BOOL ppu_is_rendering = FALSE;
 int background_enabled = FALSE;
 int sprites_enabled = FALSE;
 
-UINT8 * one_screen_base_address = 0;
+UINT8* one_screen_base_address = NULL;
 
 /* VRAM and sprite RAM. */
 /* Note that array sizes are defined in ppu_int.h. */
@@ -639,553 +639,414 @@ static UINT8 last_ppu_write_value;
 
 UINT8 ppu_read (UINT16 address)
 {
-    int data = 0;
+   /* Handle register mirroring. */
+   switch(address & 7) {
+      case 0x2000 & 7:
+      case 0x2001 & 7:
+      case 0x2003 & 7:
+      case 0x2005 & 7:
+      case 0x2006 & 7:
+         return last_ppu_write_value;
 
+      case 0x2002 & 7: {
+         /* PPU status register. */
 
-    if (address == 0x4014)
-    {
-        return (0);
-    }
+         UINT8 data = 0x00;
 
+         if(vblank_occurred) {
+            data |= PPU_VBLANK_FLAG_BIT;
+            vblank_occurred = FALSE;
+         }
 
-    /* Handle register mirroring. */
+         if(PPU_SPRITES_ENABLED && (ppu_scanline <= LAST_DISPLAYED_LINE)) {
+            if (sprite_list_needs_recache)
+               recache_sprite_list();
 
-    switch (address & 7)
-    {
-        case 0x2000 & 7:
-        case 0x2001 & 7:
-        case 0x2003 & 7:
-        case 0x2005 & 7:
-        case 0x2006 & 7:
-            return last_ppu_write_value;
+            data |= sprite_overflow_on_line[ppu_scanline];
+         }
 
-        case 0x2002 & 7:
+         if(!hit_first_sprite && first_sprite_this_line) {
+            if(cpu_get_cycles_line() >= first_sprite_this_line)
+               hit_first_sprite = PPU_SPRITE_0_COLLISION_BIT;
+         }
 
-            /* PPU status register. */
+         data |= hit_first_sprite;
 
-            if (vblank_occurred)
-            {
-                data |= PPU_VBLANK_FLAG_BIT;
-                vblank_occurred = FALSE;
-            }
+         address_write = FALSE;
 
-            if (PPU_SPRITES_ENABLED && (ppu_scanline <= LAST_DISPLAYED_LINE))
-            {
-                if (sprite_list_needs_recache)
-                {
-                    recache_sprite_list ();
-                }
+         return (data | (last_ppu_write_value & 0x1F));
+      }
 
-                data |= sprite_overflow_on_line [ppu_scanline];
-            }
+      case 0x2004 & 7: {
+         /* Sprite RAM I/O. */
+         return ppu_spr_ram [spr_ram_address];
+      }
 
-            if (!hit_first_sprite && first_sprite_this_line)
-            {
-                if (cpu_get_cycles_line () >= first_sprite_this_line)
-                    hit_first_sprite = PPU_SPRITE_0_COLLISION_BIT;
-            }
+      case 0x2007 & 7: {
+         /* VRAM Read I/O. */
+        return ppu_vram_read();
+      }
 
-            data |= hit_first_sprite;
+      default:
+         break;
+   }
 
+   return 0x00;
+}
 
+void ppu_write(UINT16 address, UINT8 value)
+{
+   if(address == 0x4014) {
+      /* Sprite RAM DMA. */
+      do_spr_ram_dma(value);
+      return;
+   }
+
+   last_ppu_write_value = value;
+
+   /* Handle register mirroring. */
+   switch(address & 7) {
+      case 0x2000 & 7: {
+         /* Control register #1. */
+         ppu_register_2000 = value;
+
+         int new_sprite_height = (value & PPU_SPRITE_SIZE_BIT) ? 16 : 8;
+
+         if(sprite_height != new_sprite_height) {
+            sprite_height = new_sprite_height;
+            sprite_list_needs_recache = TRUE;
+         }
+
+         want_vblank_nmi = value & PPU_VBLANK_NMI_FLAG_BIT;
+
+         address_increment = (value & PPU_ADDRESS_INCREMENT_BIT) ? 32 : 1;
+
+         background_tileset =
+            (value & PPU_BACKGROUND_TILESET_BIT) ? 0x1000 : 0x0000;
+         sprite_tileset =
+            (value & PPU_SPRITE_TILESET_BIT) ? 0x1000 : 0x0000;
+
+         address_temp = (address_temp & ~(3 << 10)) | ((value & 3) << 10);
+
+         break;
+      }
+
+      case 0x2001 & 7: {
+         /* Control register #2. */
+         ppu_register_2001 = value;
+         break;
+      }
+
+      case 0x2003 & 7: {
+         /* Sprite RAM address. */
+         spr_ram_address = value;
+         break;
+      }
+
+      case 0x2004 & 7: {
+         /* Sprite RAM I/O. */
+         if(ppu_spr_ram[spr_ram_address] != value) {
+            ppu_spr_ram[spr_ram_address] = value;
+            sprite_list_needs_recache = TRUE;
+         }
+
+         spr_ram_address++;
+
+         break;
+      }
+
+      case 0x2005 & 7: {
+         /* Horizontal / Vertical offset. */
+         if(!address_write) {
+            /* Horizontal offset. */
+           address_write = TRUE;
+
+           address_temp = (address_temp & ~0x1F) | ((value >> 3) & 0x1F);
+           x_offset = value & 7;
+        }
+        else  {
+           /* Vertical offset. */
+           address_write = FALSE;
+
+           address_temp =
+              (address_temp & ~(0x1F << 5)) | (((value >> 3) & 0x1F) << 5);
+           address_temp =
+              (address_temp & ~(7 << 12)) | ((value & 7) << 12);
+         }
+ 
+        break;
+     }
+
+     case 0x2006 & 7: {
+        /* VRAM address. */
+        if(!address_write) {
+           address_write = TRUE;
+           address_temp = (address_temp & 0xFF) | ((value & 0x3F) << 8);
+         }
+         else {
             address_write = FALSE;
 
+            address_temp = (address_temp & ~0xFF) | value;
+            vram_address = address_temp;
+         }
 
-            return (data | (last_ppu_write_value & 0x1F));
+         break;
+      }
 
+      case 0x2007 & 7: {
+         /* VRAM Write I/O. */
+         ppu_vram_write(value);
+         break;
+      }
 
-            break;
-
-
-        case 0x2004 & 7:
-
-            /* Sprite RAM I/O. */
-
-            return ppu_spr_ram [spr_ram_address];
-
-
-            break;
-
-
-        case 0x2007 & 7:
-
-            /* VRAM Read I/O. */
-
-            return ppu_vram_read();
-
-
-            break;
-
-
-        default:
-
-
-            break;
-    }
-
-    return (0);
+      default:
+         break;
+   }
 }
-
-
-void ppu_write (UINT16 address, UINT8 value)
-{
-
-    if (address == 0x4014)
-    {
-        /* Sprite RAM DMA. */
-
-        do_spr_ram_dma (value);
-
-        return;
-    }
-
-
-    /* Handle register mirroring. */
-
-    last_ppu_write_value = value;
-
-    switch (address & 7)
-    {
-        case 0x2000 & 7:
-
-            /* Control register #1. */
-
-            ppu_register_2000 = value;
-
-            {
-                int new_sprite_height =
-                 ((value & PPU_SPRITE_SIZE_BIT) ? 16 : 8);
-
-                if (sprite_height != new_sprite_height)
-                {
-                    sprite_height = new_sprite_height;
-                    sprite_list_needs_recache = TRUE;
-                }
-            }
-
-
-            want_vblank_nmi = (value & PPU_VBLANK_NMI_FLAG_BIT);
-
-            address_increment =
-                ((value & PPU_ADDRESS_INCREMENT_BIT) ? 32 : 1);
-
-
-            background_tileset =
-                ((value & PPU_BACKGROUND_TILESET_BIT) ? 0x1000 : 0x0000);
-
-            sprite_tileset =
-                ((value & PPU_SPRITE_TILESET_BIT) ? 0x1000 : 0x0000);
-
-
-            address_temp = (address_temp & ~(3 << 10)) | ((value & 3) << 10);
-
-            break;
-
-
-        case 0x2001 & 7:
-
-            /* Control register #2. */
-
-            ppu_register_2001 = value;
-
-            break;
-
-
-        case 0x2003 & 7:
-
-            /* Sprite RAM address. */
-
-            spr_ram_address = value;
-
-
-            break;
-
-
-        case 0x2004 & 7:
-
-            /* Sprite RAM I/O. */
-
-            if (ppu_spr_ram [spr_ram_address] != value)
-            {
-                ppu_spr_ram [spr_ram_address] = value;
-                sprite_list_needs_recache = TRUE;
-            }
-            spr_ram_address++;
-
-
-            break;
-
-
-        case 0x2005 & 7:
-
-            /* Horizontal / Vertical offset. */
-
-            if (! address_write)
-            {
-                /* Horizontal offset. */
-
-                address_write = TRUE;
-
-                address_temp = (address_temp & ~0x1F) | ((value >> 3) & 0x1F);
-                x_offset = value & 7;
-
-            }
-            else
-            {
-                /* Vertical offset. */
-
-                address_write = FALSE;
-
-                address_temp = (address_temp & ~(0x1F << 5)) | (((value >> 3) & 0x1F) << 5);
-                address_temp = (address_temp & ~(7 << 12)) | ((value & 7) << 12);
-
-            }
-
-            break;
-
-        case 0x2006 & 7:
-
-            /* VRAM address. */
-
-            if (! address_write)
-            {
-                address_write = TRUE;
-
-                address_temp = (address_temp & 0xFF) | ((value & 0x3F) << 8);
-
-            }
-            else
-            {
-                address_write = FALSE;
-
-                address_temp = (address_temp & ~0xFF) | value;
-
-                vram_address = address_temp;
-            }
-
-
-            break;
-
-
-        case 0x2007 & 7:
-
-            /* VRAM Write I/O. */
-
-            ppu_vram_write(value);
-
-
-            break;
-
-
-
-        default:
-
-
-            break;
-    }
-}
-
 
 static void do_spr_ram_dma(UINT8 page)
 {
     /* Sprite RAM DMA. */
+   unsigned address = page * 0x100;
 
-    int index;
-    unsigned address = page * 0x100;
+   cpu_consume_cycles(2);
 
-    cpu_consume_cycles(2);
+   for(int index = 0; index < 256; index++) {
+      int value = cpu_read(address + index);
 
-    for (index = 0; index < 256; index ++)
-    {
-        int value = cpu_read (address + index);
+      cpu_consume_cycles(2);
 
-        cpu_consume_cycles(2);
+      if(ppu_spr_ram[spr_ram_address] != value) {
+         ppu_spr_ram[spr_ram_address] = value;
+         sprite_list_needs_recache = TRUE;
+      }
 
-        if (ppu_spr_ram [spr_ram_address] != value)
-        {
-            ppu_spr_ram [spr_ram_address] = value;
-            sprite_list_needs_recache = TRUE;
-        }
-
-        spr_ram_address++;
-    }
+      spr_ram_address++;
+   }
 }
-
 
 static void vram_address_start_new_frame(void)
 {
-    if (PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED)
-    {
-        vram_address = address_temp;
-    }
+   if (PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED)
+      vram_address = address_temp;
 }
-
 
 void ppu_start_line(void)
 {
-    if (PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED)
-    {
-        vram_address = (vram_address & (~0x1F & ~(1 << 10)))
-         | (address_temp & (0x1F | (1 << 10)));
-    }
+   if (PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED) {
+      vram_address = (vram_address & (~0x1F & ~(1 << 10))) |
+         (address_temp & (0x1F | (1 << 10)));
+   }
 
-    if (first_sprite_this_line)
-    {
-        hit_first_sprite = PPU_SPRITE_0_COLLISION_BIT;
-        first_sprite_this_line = 0;
-    }
+   if(first_sprite_this_line) {
+      hit_first_sprite = PPU_SPRITE_0_COLLISION_BIT;
+      first_sprite_this_line = 0;
+   }
 }
 
 void ppu_end_line(void)
 {
-    if (PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED)
-    {
-        vram_address += 0x1000;
+   if(PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED) {
+      vram_address += 0x1000;
 
-        if ((vram_address & (7 << 12)) == 0)
-        {
-            vram_address += 32;
+      if((vram_address & (7 << 12)) == 0) {
+         vram_address += 32;
 
-            switch (vram_address & (0x1F << 5))
-            {
-             case 0:
-
-                vram_address -= (1 << 10);
-
-                break;
-
-             case (30 << 5):
-
-                vram_address = (vram_address - (30 << 5)) ^ (1 << 11);
-
-                break;
+         switch(vram_address & (0x1F << 5)) {
+            case 0: {
+               vram_address -= (1 << 10);
+               break;
             }
-        }
-    }
+
+            case (30 << 5): {
+               vram_address = (vram_address - (30 << 5)) ^ (1 << 11);
+               break;
+            }
+         }
+      }
+   }
 }
 
-
-void ppu_clear (void)
+void ppu_clear(void)
 {
-    int index;
+   vblank_occurred = FALSE;
 
-    vblank_occurred = FALSE;
-
-    hit_first_sprite = 0;
-    first_sprite_this_line = 0;
+   hit_first_sprite = 0;
+   first_sprite_this_line = 0;
 }
 
-void ppu_clear_palette (void)
+void ppu_clear_palette(void)
 {
-   /* Clears the palette - easier than writing to VRAM when the palette needs to be cleared from an external source. */
-   memset (&ppu_palette, 0, sizeof (ppu_palette));
+   /* Clears the palette - easier than writing to VRAM when the palette needs
+      to be cleared from an external source. */
+   memset(&ppu_palette, 0, sizeof(ppu_palette));
 }
 
-void ppu_start_frame (void)
+void ppu_start_frame(void)
 {
-    vram_address_start_new_frame();
-    ppu_is_rendering = TRUE;
+   vram_address_start_new_frame();
+   ppu_is_rendering = TRUE;
 }
 
-
-void ppu_render_line (int line)
+void ppu_render_line(int line)
 {
-    int i;
+   int i;
 
-    if (ppu_register_2001 & PPU_MONOCHROME_DISPLAY_BIT)
-    {
-        palette_mask = 0x30;
-    }
-    else
-    {
-        palette_mask = 0x3f;
-    }
+   if(ppu_register_2001 & PPU_MONOCHROME_DISPLAY_BIT)
+      palette_mask = 0x30;
+   else
+      palette_mask = 0x3f;
 
-    if (!PPU_BACKGROUND_ENABLED)
-    {
-        memset (PPU_GET_LINE_ADDRESS (video_buffer, line),
-            ((ppu_background_palette [0] & palette_mask) + PALETTE_ADJUST), 256);
-    }
+   if(!PPU_BACKGROUND_ENABLED) {
+      memset(PPU_GET_LINE_ADDRESS(video_buffer, line),
+         (ppu_background_palette[0] & palette_mask) + PALETTE_ADJUST, 256);
+   }
 
-    if (!PPU_BACKGROUND_ENABLED && !PPU_SPRITES_ENABLED)
-    {
-        return;
-    }
+   if(!PPU_BACKGROUND_ENABLED && !PPU_SPRITES_ENABLED)
+      return;
 
-    if (!PPU_BACKGROUND_ENABLED && PPU_SPRITES_ENABLED)
-    {
-        /* used for sprite pixel allocation and collision detection */
-        memset (background_pixels + 8, 0, 256);
-    }
+   if(!PPU_BACKGROUND_ENABLED && PPU_SPRITES_ENABLED) {
+      /* used for sprite pixel allocation and collision detection */
+      memset (background_pixels + 8, 0, 256);
+   }
 
-    if (ppu_vram_cache_needs_update)
-    {
-        recache_vram_sets ();
-    }
+   if(ppu_vram_cache_needs_update)
+       recache_vram_sets();
 
-    if (PPU_BACKGROUND_ENABLED)
-    {
-        //ppu_render_background (line);
-        rendererRenderBackgroundLine(line);
-    }
+   if(PPU_BACKGROUND_ENABLED) {
+      //ppu_render_background (line);
+      rendererRenderBackgroundLine(line);
+   }
 
-    if (PPU_SPRITES_ENABLED)
-    {
-        ppu_render_sprites (line);
-    }
+   if (PPU_SPRITES_ENABLED)
+      ppu_render_sprites (line);
 }
 
-void ppu_stub_render_line (int line)
+void ppu_stub_render_line(int line)
 {
-    int first_y, last_y;
+   int first_y, last_y;
 
-    /* draw lines for sprite 0 collision emulation */
+   /* draw lines for sprite 0 collision emulation */
 
-    /* if sprites or background are disabled, */
-    /* sprite 0 can't collide with background */
-    if (!PPU_BACKGROUND_ENABLED || !PPU_SPRITES_ENABLED) return;
+   /* if sprites or background are disabled, */
+   /* sprite 0 can't collide with background */
+   if(!PPU_BACKGROUND_ENABLED || !PPU_SPRITES_ENABLED)
+      return;
 
-    /* if sprite 0 already collided, nothing to detect */
-    if (hit_first_sprite) return;
+   /* if sprite 0 already collided, nothing to detect */
+   if(hit_first_sprite)
+      return;
 
-    first_y = ppu_spr_ram [0] + 1;
-    last_y = first_y + sprite_height - 1;
+   first_y = ppu_spr_ram[0] + 1;
+   last_y = first_y + sprite_height - 1;
 
-    /* if sprite 0 not on this line, nothing to detect */
-    if (line < first_y || line > last_y) return;
-
-    ppu_render_line (line);
+   /* if sprite 0 not on this line, nothing to detect */
+   if((line < first_y) || (line > last_y))
+      return;
+ 
+   ppu_render_line(line);
 }
 
-
-void ppu_vblank (void)
+void ppu_vblank(void)
 {
-    vblank_occurred = TRUE;
+   vblank_occurred = TRUE;
 }
 
-
-void ppu_end_render (void)
+void ppu_end_render(void)
 {
-    ppu_vblank ();
-    ppu_is_rendering = FALSE;
+   ppu_vblank();
+   ppu_is_rendering = FALSE;
 }
 
-
-void ppu_vblank_nmi (void)
+void ppu_vblank_nmi(void)
 {
-    if (want_vblank_nmi)
-    {
-        cpu_interrupt (CPU_INTERRUPT_NMI);
-    }
+   if(want_vblank_nmi)
+      cpu_interrupt(CPU_INTERRUPT_NMI);
 }
 
-
-void ppu_save_state (PACKFILE * file, int version)
+void ppu_save_state(PACKFILE* file, int version)
 {
-    pack_putc(ppu_register_2000, file);
-    pack_putc(ppu_register_2001, file);
+   pack_putc(ppu_register_2000, file);
+   pack_putc(ppu_register_2001, file);
 
+   pack_putc(ppu_mirroring, file);
 
-    pack_putc(ppu_mirroring, file);
+   pack_putc(spr_ram_address, file);
+ 
+   pack_iputw(vram_address, file);
+   pack_putc(buffered_vram_read, file);
 
+   pack_putc(address_write, file);
+   pack_iputw(address_temp, file);
+   pack_putc(x_offset, file);
 
-    pack_putc(spr_ram_address, file);
+   pack_putc(vblank_occurred ? 1 : 0, file);
 
+   pack_putc(hit_first_sprite, file);
+   pack_iputl(first_sprite_this_line, file);
 
-    pack_iputw(vram_address, file);
-    pack_putc(buffered_vram_read, file);
+   pack_putc(mmc_get_name_table_count(), file);
+   pack_putc(mmc_uses_pattern_vram(), file);
 
-    pack_putc(address_write, file);
-    pack_iputw(address_temp, file);
-    pack_putc(x_offset, file);
+   /* save palette RAM */
+   pack_fwrite(ppu_palette, PPU_PALETTE_SIZE, file);
 
-    pack_putc(vblank_occurred, file);
+   /* save sprite RAM */
+   pack_fwrite(ppu_spr_ram, PPU_SPR_RAM_SIZE, file);
 
-    pack_putc(hit_first_sprite, file);
-    pack_iputl(first_sprite_this_line, file);
+   /* mmc_get_name_table_count() MUST be <= 4 */
+   /* values of 2 and 4 are expected */
+   if(mmc_get_name_table_count()) {
+      pack_fwrite(ppu_name_table_vram, 1024 * mmc_get_name_table_count(),
+         file);
+   }
 
-
-    pack_putc(mmc_get_name_table_count(), file);
-    pack_putc(mmc_uses_pattern_vram(), file);
-
-
-    /* save palette RAM */
-    pack_fwrite(ppu_palette, 32, file);
-
-
-    /* save sprite RAM */
-    pack_fwrite(ppu_spr_ram, 256, file);
-
-    /* mmc_get_name_table_count() MUST be <= 4 */
-    /* values of 2 and 4 are expected */
-    if (mmc_get_name_table_count())
-    {
-     pack_fwrite(ppu_name_table_vram, 1024 * mmc_get_name_table_count(),
-      file);
-    }
-
-    if (mmc_uses_pattern_vram())
-    {
-     pack_fwrite(ppu_pattern_vram, 8192, file);
-    }
+   if(mmc_uses_pattern_vram())
+      pack_fwrite(ppu_pattern_vram, PPU_PATTERN_VRAM_SIZE, file);
 }
 
-
-void ppu_load_state (PACKFILE * file, int version)
+void ppu_load_state(PACKFILE* file, int version)
 {
-    int state_name_table_count, state_contains_pattern_vram;
+   ppu_register_2000 = pack_getc(file);
+   ppu_write (0x2000, ppu_register_2000);
 
+   ppu_register_2001 = pack_getc(file);
+   ppu_write (0x2001, ppu_register_2001);
 
-    ppu_register_2000 = pack_getc(file);
-    ppu_write (0x2000, ppu_register_2000);
+   ppu_mirroring = pack_getc(file);
+   ppu_set_mirroring(ppu_mirroring);
 
-    ppu_register_2001 = pack_getc(file);
-    ppu_write (0x2001, ppu_register_2001);
+   spr_ram_address = pack_getc(file);
+   sprite_list_needs_recache = TRUE;
 
+   vram_address = pack_igetw(file);
+   buffered_vram_read = pack_getc(file);
 
-    ppu_mirroring = pack_getc(file);
-    ppu_set_mirroring(ppu_mirroring);
+   address_write = pack_getc(file);
+   address_temp = pack_igetw(file);
+   x_offset = pack_getc(file);
 
+   vblank_occurred = TRUE_OR_FALSE(pack_getc(file));
 
-    spr_ram_address = pack_getc(file);
-    sprite_list_needs_recache = TRUE;
+   hit_first_sprite = pack_getc(file);
+   first_sprite_this_line = pack_igetl(file);
 
+   const int state_name_table_count = pack_getc(file);
+   const int state_contains_pattern_vram = pack_getc(file);
 
-    vram_address = pack_igetw(file);
-    buffered_vram_read = pack_getc(file);
+   /* load palette RAM */
+   pack_fread(ppu_palette, PPU_PALETTE_SIZE, file);
 
-    address_write = pack_getc(file);
-    address_temp = pack_igetw(file);
-    x_offset = pack_getc(file);
+   /* load sprite RAM */
+   pack_fread(ppu_spr_ram, PPU_SPR_RAM_SIZE, file);
 
-    vblank_occurred = pack_getc(file);
+   /* state_name_table_count MUST be <= 4 */
+   /* values of 2 and 4 are expected */
+   if(state_name_table_count)
+      pack_fread(ppu_name_table_vram, 1024 * state_name_table_count, file);
 
-    hit_first_sprite = pack_getc(file);
-    first_sprite_this_line = pack_igetl(file);
-
-
-    state_name_table_count = pack_getc(file);
-    state_contains_pattern_vram = pack_getc(file);
-
-
-    /* load palette RAM */
-    pack_fread(ppu_palette, 32, file);
-
-
-    /* load sprite RAM */
-    pack_fread(ppu_spr_ram, 256, file);
-
-    /* state_name_table_count MUST be <= 4 */
-    /* values of 2 and 4 are expected */
-    if (state_name_table_count)
-    {
-     pack_fread(ppu_name_table_vram, 1024 * state_name_table_count,
-      file);
-    }
-
-    if (state_contains_pattern_vram)
-    {
-     pack_fread(ppu_pattern_vram, 8192, file);
-     ppu_cache_all_vram ();
-    }
+   if(state_contains_pattern_vram) {
+      pack_fread(ppu_pattern_vram, PPU_PATTERN_VRAM_SIZE, file);
+      ppu_cache_all_vram();
+   }
 }
