@@ -106,9 +106,9 @@ void rendererRenderBackgroundLine(int line)
          tileAddress = ((tileName * BytesPerTile) + background_tileset);
 
          // give the mapper a chance to do banking or other related tasks prior to accessing the CHR data
-         if (mmc_check_latches) {
+         if(mmc_check_latches) {
             // Note: This is currently rigged for MMC2/4 ONLY.
-            if ((tileName >= 0xFD) && (tileName <= 0xFE))
+            if((tileName >= 0xFD) && (tileName <= 0xFE))
                mmc_check_latches(tileAddress);
          }
 

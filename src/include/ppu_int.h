@@ -87,7 +87,7 @@ extern int ppu_mirroring;
 #define PPU_PUTPIXEL(bitmap, x, y, color) (bitmap->line[y][x] = color)
 #define PPU_GETPIXEL(bitmap, x, y)        (bitmap->line[y][x])
 
-extern int vram_address;
+extern unsigned vram_address;
 extern UINT8 buffered_vram_read;
 
 extern int address_write;
@@ -98,15 +98,15 @@ extern int address_increment;
 extern UINT8 spr_ram_address;
 extern int sprite_height;
 
-extern int want_vblank_nmi;
+extern BOOL want_vblank_nmi;
 
-extern int vblank_occurred;
+extern BOOL vblank_occurred;
 
 extern UINT8 hit_first_sprite;
 extern cpu_time_t first_sprite_this_line;
 
-extern int background_tileset;
-extern int sprite_tileset;
+extern UINT16 background_tileset;
+extern UINT16 sprite_tileset;
 
 #define ATTRIBUTE_TABLE_SIZE 4
 #ifdef ALLEGRO_I386
@@ -118,7 +118,7 @@ extern UINT8 attribute_table[ATTRIBUTE_TABLE_SIZE];
 #define BACKGROUND_PIXELS_SIZE 8 + 256 + 8
 extern INT8 background_pixels[BACKGROUND_PIXELS_SIZE];
 
-extern int palette_mask;
+extern UINT8 palette_mask;
 
 #ifdef __cplusplus
 }

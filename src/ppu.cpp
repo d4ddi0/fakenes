@@ -2,7 +2,7 @@
 
    ppu.cpp: Implementation of the PPU emulation.
 
-   Copyright (c) 2001-2006, FakeNES Team.
+   Copyright (c) 2001-2007, FakeNES Team.
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
  
@@ -23,7 +23,7 @@
 #include "types.h"
 #include "video.h"
 
-static void do_spr_ram_dma(UINT8 page);
+static void do_spr_ram_dma(uint8 page);
 
 UINT8 ppu_register_2000 = 0;
 UINT8 ppu_register_2001 = 0;
@@ -41,12 +41,13 @@ int sprites_enabled = FALSE;
 UINT8 * one_screen_base_address = 0;
 
 /* VRAM and sprite RAM. */
-UINT8* ppu_vram_block_read_address [8];
-UINT8* ppu_vram_block_background_cache_address [8];
-UINT8* ppu_vram_block_background_cache_tag_address [8];
-UINT8* ppu_vram_block_sprite_cache_address [8];
-UINT8* ppu_vram_block_sprite_cache_tag_address [8];
-UINT8* ppu_vram_block_write_address [8];
+/* Note that array sizes are defined in ppu_int.h. */
+UINT8* ppu_vram_block_read_address[PPU_VRAM_BLOCK_READ_ADDRESS_SIZE];
+UINT8* ppu_vram_block_background_cache_address[PPU_VRAM_BLOCK_BACKGROUND_CACHE_ADDRESS_SIZE];
+UINT8* ppu_vram_block_background_cache_tag_address[PPU_VRAM_BLOCK_BACKGROUND_CACHE_TAG_ADDRESS_SIZE];
+UINT8* ppu_vram_block_sprite_cache_address[PPU_VRAM_BLOCK_SPRITE_CACHE_ADDRESS_SIZE];
+UINT8* ppu_vram_block_sprite_cache_tag_address[PPU_VRAM_BLOCK_SPRITE_CACHE_TAG_ADDRESS_SIZE];
+UINT8* ppu_vram_block_write_address[PPU_VRAM_BLOCK_WRITE_ADDRESS_SIZE];
 
 UINT32 ppu_vram_block[PPU_VRAM_BLOCK_SIZE];
 
@@ -75,7 +76,7 @@ UINT8 ppu_spr_ram[PPU_SPR_RAM_SIZE];
 
 int ppu_mirroring;
 
-int vram_address = 0;
+unsigned vram_address = 0;
 UINT8 buffered_vram_read = 0;
 
 int address_write = 0;
@@ -86,15 +87,15 @@ int address_increment = 1;
 UINT8 spr_ram_address = 0;
 int sprite_height = 8;
 
-int want_vblank_nmi = FALSE;
+BOOL want_vblank_nmi = FALSE;
 
-int vblank_occurred = FALSE;
+BOOL vblank_occurred = FALSE;
 
 UINT8 hit_first_sprite = 0;
 cpu_time_t first_sprite_this_line = 0;
 
-int background_tileset = 0;
-int sprite_tileset = 0;
+UINT16 background_tileset = 0;
+UINT16 sprite_tileset = 0;
 
 #ifdef ALLEGRO_I386
 UINT32 attribute_table[ATTRIBUTE_TABLE_SIZE];
@@ -104,81 +105,70 @@ UINT8 attribute_table[ATTRIBUTE_TABLE_SIZE];
 
 INT8 background_pixels[BACKGROUND_PIXELS_SIZE];
 
-int palette_mask = 0x3f;
+UINT8 palette_mask = 0x3f;
 
 #include "ppu/tiles.h"
 #include "ppu/sprites.h"
 
-static INLINE UINT8 vram_read (UINT16 address)
+static UINT8 vram_read(UINT16 address)
 {
-    if (address < 0x2000)
-    {
-        return ppu_vram_block_read_address [address >> 10] [address & 0x3FF];
-    }
-    else
-    {
-        return name_tables_read[(address >> 10) & 3]
-            [address & 0x3FF];
-    }
+   if(address < 0x2000)
+      return ppu_vram_block_read_address[address >> 10][address & 0x3FF];
+   else
+      return name_tables_read[(address >> 10) & 0x03][address & 0x3FF];
 }
 
-
-void ppu_free_chr_rom (ROM *rom)
+void ppu_free_chr_rom(ROM *rom)
 {
-    if (rom -> chr_rom)
-    {
-        free (rom -> chr_rom);
-        rom -> chr_rom = NULL;
-    }
+   RT_ASSERT(rom);
 
-    if (rom -> chr_rom_cache)
-    {
-        free (rom -> chr_rom_cache);
-        rom -> chr_rom_cache = NULL;
-    }
+   if(rom->chr_rom) {
+      free(rom->chr_rom);
+      rom->chr_rom = NULL;
+   }
 
-    if (rom -> chr_rom_cache_tag)
-    {
-        free (rom -> chr_rom_cache_tag);
-        rom -> chr_rom_cache_tag = NULL;
-    }
+   if(rom->chr_rom_cache) {
+      free(rom->chr_rom_cache);
+      rom->chr_rom_cache = NULL;
+   }
+
+   if(rom->chr_rom_cache_tag) {
+      free(rom->chr_rom_cache_tag);
+      rom->chr_rom_cache_tag = NULL;
+   }
 }
 
-
-UINT8 * ppu_get_chr_rom_pages (ROM *rom)
+UINT8* ppu_get_chr_rom_pages(ROM *rom)
 {
-    int num_pages = rom -> chr_rom_pages;
-    int copycount, missing, count, next, pages_mirror_size;
+   RT_ASSERT(rom);
 
-    /* Compute a mask used to wrap invalid CHR ROM page numbers.
-     *  As CHR ROM uses a 8k page size, this mask is based
-     *  on a 8k page size.
-     */
-    if (((num_pages * 2 - 1) & (num_pages - 1)) == (num_pages - 1))
-    /* compute mask for even power of two */
-    {
-        pages_mirror_size = num_pages;
-    }
-    else
-    /* compute mask */
-    {
-        int i;
+   int num_pages = rom -> chr_rom_pages;
+   int copycount, missing, count, next, pages_mirror_size;
 
-        /* compute the smallest even power of 2 greater than
-           CHR ROM page count, and use that to compute the mask */
-        for (i = 0; (num_pages >> i) > 0; i++);
+   /* Compute a mask used to wrap invalid CHR ROM page numbers.
+    *  As CHR ROM uses a 8k page size, this mask is based
+    *  on a 8k page size.
+    */
+   if(((num_pages * 2 - 1) & (num_pages - 1)) == (num_pages - 1)) {
+      /* compute mask for even power of two */
+      pages_mirror_size = num_pages;
+   }
+   else {
+      /* compute mask */
+      int i;
 
-        pages_mirror_size = (1 << i);
-    }
+      /* compute the smallest even power of 2 greater than
+         CHR ROM page count, and use that to compute the mask */
+      for (i = 0; (num_pages >> i) > 0; i++);
 
-    rom -> chr_rom_page_overflow_mask = pages_mirror_size - 1;
+      pages_mirror_size = (1 << i);
+   }
 
+   rom->chr_rom_page_overflow_mask = pages_mirror_size - 1;
 
-    /* identify-map all the present pages */
-    for (copycount = 0; copycount < num_pages; copycount++)
-    {
-        rom -> chr_rom_page_lookup [copycount] = copycount;
-    }
+   /* identify-map all the present pages */
+   for(copycount = 0; copycount < num_pages; copycount++)
+      rom->chr_rom_page_lookup[copycount] = copycount;
 
 
     /* mirror-map all the not-present pages */
@@ -210,9 +200,9 @@ UINT8 * ppu_get_chr_rom_pages (ROM *rom)
         if (rom -> chr_rom_cache) free (rom -> chr_rom_cache);
         if (rom -> chr_rom_cache_tag) free (rom -> chr_rom_cache_tag);
 
-        rom -> chr_rom = NIL;
-        rom -> chr_rom_cache = NIL;
-        rom -> chr_rom_cache_tag = NIL;
+        rom -> chr_rom = NULL;
+        rom -> chr_rom_cache = NULL;
+        rom -> chr_rom_cache_tag = NULL;
     }
     else
     {
@@ -223,491 +213,426 @@ UINT8 * ppu_get_chr_rom_pages (ROM *rom)
     return rom -> chr_rom;
 }
 
-
-void ppu_set_ram_1k_pattern_vram_block (UINT16 block_address, int vram_block)
+void ppu_set_ram_1k_pattern_vram_block(UINT16 block_address, int vram_block)
 {
-    ppu_vram_block [block_address >> 10] = vram_block;
+   ppu_vram_block [block_address >> 10] = vram_block;
 
-    ppu_vram_block_read_address [block_address >> 10] =
-        ppu_pattern_vram + (vram_block << 10);
-    ppu_vram_block_write_address [block_address >> 10] =
-        ppu_pattern_vram + (vram_block << 10);
+   ppu_vram_block_read_address [block_address >> 10] =
+      ppu_pattern_vram + (vram_block << 10);
+   ppu_vram_block_write_address [block_address >> 10] =
+     ppu_pattern_vram + (vram_block << 10);
 
-    ppu_vram_block_background_cache_address [block_address >> 10] =
-    ppu_vram_block_sprite_cache_address [block_address >> 10] =
-        ppu_pattern_vram_cache + ((vram_block << 10) / 2 * 8);
+   ppu_vram_block_background_cache_address [block_address >> 10] =
+   ppu_vram_block_sprite_cache_address [block_address >> 10] =
+      ppu_pattern_vram_cache + ((vram_block << 10) / 2 * 8);
 
-    ppu_vram_block_background_cache_tag_address [block_address >> 10] =
-    ppu_vram_block_sprite_cache_tag_address [block_address >> 10] =
-        ppu_pattern_vram_cache_tag + ((vram_block << 10) / 2);
+   ppu_vram_block_background_cache_tag_address [block_address >> 10] =
+   ppu_vram_block_sprite_cache_tag_address [block_address >> 10] =
+      ppu_pattern_vram_cache_tag + ((vram_block << 10) / 2);
 }
 
-
-void ppu_set_ram_1k_pattern_vrom_block (UINT16 block_address, int vrom_block)
+void ppu_set_ram_1k_pattern_vrom_block(UINT16 block_address, int vrom_block)
 {
-    vrom_block = (vrom_block & 7) + ROM_CHR_ROM_PAGE_LOOKUP
-        [(vrom_block / 8) & ROM_CHR_ROM_PAGE_OVERFLOW_MASK] * 8;
+   vrom_block = (vrom_block & 7) + ROM_CHR_ROM_PAGE_LOOKUP
+      [(vrom_block / 8) & ROM_CHR_ROM_PAGE_OVERFLOW_MASK] * 8;
 
+   ppu_vram_block [block_address >> 10] =
+      FIRST_VROM_BLOCK + vrom_block;
 
-    ppu_vram_block [block_address >> 10] =
-        FIRST_VROM_BLOCK + vrom_block;
+   ppu_vram_block_read_address [block_address >> 10] =
+      ROM_CHR_ROM + (vrom_block << 10);
+   ppu_vram_block_write_address [block_address >> 10] =
+      ppu_vram_dummy_write;
 
-    ppu_vram_block_read_address [block_address >> 10] =
-        ROM_CHR_ROM + (vrom_block << 10);
-    ppu_vram_block_write_address [block_address >> 10] =
-        ppu_vram_dummy_write;
+   ppu_vram_block_background_cache_address [block_address >> 10] =
+   ppu_vram_block_sprite_cache_address [block_address >> 10] =
+      ROM_CHR_ROM_CACHE + ((vrom_block << 10) / 2 * 8);
 
-    ppu_vram_block_background_cache_address [block_address >> 10] =
-    ppu_vram_block_sprite_cache_address [block_address >> 10] =
-        ROM_CHR_ROM_CACHE + ((vrom_block << 10) / 2 * 8);
-
-    ppu_vram_block_background_cache_tag_address [block_address >> 10] =
-    ppu_vram_block_sprite_cache_tag_address [block_address >> 10] =
-        ROM_CHR_ROM_CACHE_TAG + ((vrom_block << 10) / 2);
+   ppu_vram_block_background_cache_tag_address [block_address >> 10] =
+   ppu_vram_block_sprite_cache_tag_address [block_address >> 10] =
+      ROM_CHR_ROM_CACHE_TAG + ((vrom_block << 10) / 2);
 }
 
-
-void ppu_set_ram_1k_pattern_vrom_block_ex (UINT16 block_address,
+void ppu_set_ram_1k_pattern_vrom_block_ex(UINT16 block_address,
  int vrom_block, int map_type)
 {
-    vrom_block = (vrom_block & 7) + ROM_CHR_ROM_PAGE_LOOKUP
-        [(vrom_block / 8) & ROM_CHR_ROM_PAGE_OVERFLOW_MASK] * 8;
+   vrom_block = (vrom_block & 7) + ROM_CHR_ROM_PAGE_LOOKUP
+      [(vrom_block / 8) & ROM_CHR_ROM_PAGE_OVERFLOW_MASK] * 8;
 
-    if (map_type & PPU_MAP_RAM)
-    {
-        ppu_vram_block [block_address >> 10] =
-            FIRST_VROM_BLOCK + vrom_block;
+   if(map_type & PPU_MAP_RAM) {
+      ppu_vram_block [block_address >> 10] =
+         FIRST_VROM_BLOCK + vrom_block;
 
-        ppu_vram_block_read_address [block_address >> 10] =
-            ROM_CHR_ROM + (vrom_block << 10);
-        ppu_vram_block_write_address [block_address >> 10] =
-            ppu_vram_dummy_write;
-    }
+      ppu_vram_block_read_address [block_address >> 10] =
+         ROM_CHR_ROM + (vrom_block << 10);
+      ppu_vram_block_write_address [block_address >> 10] =
+         ppu_vram_dummy_write;
+   }
 
-    if (map_type & PPU_MAP_BACKGROUND)
-    {
-        ppu_vram_block_background_cache_address [block_address >> 10] =
-            ROM_CHR_ROM_CACHE + ((vrom_block << 10) / 2 * 8);
+   if(map_type & PPU_MAP_BACKGROUND) {
+      ppu_vram_block_background_cache_address [block_address >> 10] =
+         ROM_CHR_ROM_CACHE + ((vrom_block << 10) / 2 * 8);
 
-        ppu_vram_block_background_cache_tag_address [block_address >> 10] =
-            ROM_CHR_ROM_CACHE_TAG + ((vrom_block << 10) / 2);
-    }
+      ppu_vram_block_background_cache_tag_address [block_address >> 10] =
+         ROM_CHR_ROM_CACHE_TAG + ((vrom_block << 10) / 2);
+   }
 
-    if (map_type & PPU_MAP_SPRITES)
-    {
-        ppu_vram_block_sprite_cache_address [block_address >> 10] =
-            ROM_CHR_ROM_CACHE + ((vrom_block << 10) / 2 * 8);
+   if(map_type & PPU_MAP_SPRITES) {
+      ppu_vram_block_sprite_cache_address [block_address >> 10] =
+         ROM_CHR_ROM_CACHE + ((vrom_block << 10) / 2 * 8);
 
-        ppu_vram_block_sprite_cache_tag_address [block_address >> 10] =
-            ROM_CHR_ROM_CACHE_TAG + ((vrom_block << 10) / 2);
-    }
+      ppu_vram_block_sprite_cache_tag_address [block_address >> 10] =
+         ROM_CHR_ROM_CACHE_TAG + ((vrom_block << 10) / 2);
+   }
 }
 
-
-void ppu_set_ram_8k_pattern_vram (void)
+void ppu_set_ram_8k_pattern_vram(void)
 {
-    ppu_set_ram_1k_pattern_vram_block (0x0000, 0);
-    ppu_set_ram_1k_pattern_vram_block (0x0400, 1);
-    ppu_set_ram_1k_pattern_vram_block (0x0800, 2);
-    ppu_set_ram_1k_pattern_vram_block (0x0C00, 3);
-    ppu_set_ram_1k_pattern_vram_block (0x1000, 4);
-    ppu_set_ram_1k_pattern_vram_block (0x1400, 5);
-    ppu_set_ram_1k_pattern_vram_block (0x1800, 6);
-    ppu_set_ram_1k_pattern_vram_block (0x1C00, 7);
+   ppu_set_ram_1k_pattern_vram_block(0x0000, 0);
+   ppu_set_ram_1k_pattern_vram_block(0x0400, 1);
+   ppu_set_ram_1k_pattern_vram_block(0x0800, 2);
+   ppu_set_ram_1k_pattern_vram_block(0x0C00, 3);
+   ppu_set_ram_1k_pattern_vram_block(0x1000, 4);
+   ppu_set_ram_1k_pattern_vram_block(0x1400, 5);
+   ppu_set_ram_1k_pattern_vram_block(0x1800, 6);
+   ppu_set_ram_1k_pattern_vram_block(0x1C00, 7);
 }
 
-
-int ppu_init (void)
+int ppu_init(void)
 {
-    int i;
+   int i;
 
-    /* compute CRC32 for CHR ROM */
-    if (global_rom.chr_rom_pages > 0)
-    {
-       global_rom.chr_rom_crc32 = make_crc32 (global_rom.chr_rom,
-           (global_rom.chr_rom_pages * 0x2000));
-    }
+   /* compute CRC32 for CHR ROM */
+   if(global_rom.chr_rom_pages > 0) {
+      global_rom.chr_rom_crc32 = make_crc32 (global_rom.chr_rom,
+        (global_rom.chr_rom_pages * 0x2000));
+   }
 
-    /* calculate the attribute lookup table */
-    for (i = 0; i < 4; i++)
-    {
+   /* calculate the attribute lookup table */
+   for (i = 0; i < 4; i++) {
 #ifdef ALLEGRO_I386
-        UINT32 attribute = (i << 2) | 3;
+      UINT32 attribute = (i << 2) | 3;
 
-        attribute |= (attribute << 8) | (attribute << 16) |
-            (attribute << 24);
+      attribute |= (attribute << 8) | (attribute << 16) |
+         (attribute << 24);
 
-        attribute_table [i] = attribute;
+      attribute_table [i] = attribute;
 #else
-        attribute_table [i] = (i << 2) | 3;
+      attribute_table [i] = (i << 2) | 3;
 #endif
-    }
+   }
 
-    ppu_cache_init ();
-    ppu_cache_chr_rom_pages ();
+   ppu_cache_init();
+   ppu_cache_chr_rom_pages();
 
-    ppu_reset ();
+   ppu_reset();
 
-
-    return (0);
+   return 0;
 }
-
 
 void ppu_exit (void)
 {
-    FILE * dump_file;
-
+   FILE* dump_file;
 
 #ifdef DEBUG
+   dump_file = fopen("ppudump.ram", "wb");
+   if(dump_file) {
+      fwrite(ppu_name_table_vram, 1, sizeof(ppu_name_table_vram), dump_file);
+      fwrite(ppu_pattern_vram, 1, sizeof(ppu_pattern_vram), dump_file);
+      fclose(dump_file);
+   }
 
-    dump_file = fopen ("ppudump.ram", "wb");
-
-
-    if (dump_file)
-    {
-        fwrite (ppu_name_table_vram, 1, sizeof (ppu_name_table_vram),
-            dump_file);
-        fwrite (ppu_pattern_vram, 1, sizeof (ppu_pattern_vram), dump_file);
-
-        fclose (dump_file);
-    }
-
-
-    dump_file = fopen ("ppudump.spr", "wb");
-
-
-    if (dump_file)
-    {
-        fwrite (ppu_spr_ram, 1, sizeof (ppu_spr_ram), dump_file);
-
-        fclose (dump_file);
-    }
-
+   dump_file = fopen("ppudump.spr", "wb");
+   if(dump_file) {
+      fwrite(ppu_spr_ram, 1, sizeof(ppu_spr_ram), dump_file);
+      fclose (dump_file);
+   }
 #endif
 }
 
-
-int ppu_get_mirroring (void)
+int ppu_get_mirroring(void)
 {
- return ppu_mirroring;
+   return ppu_mirroring;
 }
 
-void ppu_set_name_table_internal (int table, int select)
+void ppu_set_name_table_internal(int table, int select)
 {
-    ppu_set_name_table_address (table, ppu_name_table_vram + (select << 10));
+   ppu_set_name_table_address(table, ppu_name_table_vram + (select << 10));
 }
 
-
-void ppu_set_name_table_address (int table, UINT8 *address)
+void ppu_set_name_table_address(int table, UINT8* address)
 {
-    name_tables_read[table] = address;
-    name_tables_write[table] = address;
+   name_tables_read[table] = address;
+   name_tables_write[table] = address;
 }
 
-void ppu_set_name_table_address_rom (int table, UINT8 *address)
+void ppu_set_name_table_address_rom (int table, UINT8* address)
 {
-    name_tables_read[table] = address;
-    name_tables_write[table] = ppu_vram_dummy_write;
+   name_tables_read[table] = address;
+   name_tables_write[table] = ppu_vram_dummy_write;
 }
 
-void ppu_set_name_table_address_vrom (int table, int vrom_block)
+void ppu_set_name_table_address_vrom(int table, int vrom_block)
 {
-    vrom_block = (vrom_block & 7) + ROM_CHR_ROM_PAGE_LOOKUP
-        [(vrom_block / 8) & ROM_CHR_ROM_PAGE_OVERFLOW_MASK] * 8;
+   vrom_block = (vrom_block & 7) + ROM_CHR_ROM_PAGE_LOOKUP
+      [(vrom_block / 8) & ROM_CHR_ROM_PAGE_OVERFLOW_MASK] * 8;
 
-    ppu_set_name_table_address_rom (table, ROM_CHR_ROM + (vrom_block << 10));
+   ppu_set_name_table_address_rom (table, ROM_CHR_ROM + (vrom_block << 10));
 }
 
-void ppu_set_expansion_table_address (UINT8 *address)
+void ppu_set_expansion_table_address(UINT8* address)
 {
    ppu_expansion_table = address;
 }
 
-void ppu_set_mirroring_one_screen (void)
+void ppu_set_mirroring_one_screen(void)
 {
-    ppu_set_name_table_address (0, one_screen_base_address);
-    ppu_set_name_table_address (1, one_screen_base_address);
-    ppu_set_name_table_address (2, one_screen_base_address);
-    ppu_set_name_table_address (3, one_screen_base_address);
+    ppu_set_name_table_address(0, one_screen_base_address);
+    ppu_set_name_table_address(1, one_screen_base_address);
+    ppu_set_name_table_address(2, one_screen_base_address);
+    ppu_set_name_table_address(3, one_screen_base_address);
 }
 
-void ppu_set_mirroring (int mirroring)
+void ppu_set_mirroring(int mirroring)
 {
-    ppu_mirroring = mirroring;
+   ppu_mirroring = mirroring;
 
-    switch (ppu_mirroring)
-    {
-     case MIRRORING_ONE_SCREEN:
-        ppu_set_mirroring_one_screen();
+   switch(ppu_mirroring) {
+      case MIRRORING_ONE_SCREEN: {
+         ppu_set_mirroring_one_screen();
+         break;
+      }
 
-        break;
+      case MIRRORING_ONE_SCREEN_2000: {
+         one_screen_base_address = ppu_name_table_vram;
+         ppu_set_mirroring_one_screen();
 
-     case MIRRORING_ONE_SCREEN_2000:
-        one_screen_base_address = ppu_name_table_vram;
-        ppu_set_mirroring_one_screen();
+         break;
+      }
 
-        break;
+      case MIRRORING_ONE_SCREEN_2400: {
+         one_screen_base_address = ppu_name_table_vram + 0x400;
+         ppu_set_mirroring_one_screen();
 
-     case MIRRORING_ONE_SCREEN_2400:
-        one_screen_base_address = ppu_name_table_vram + 0x400;
-        ppu_set_mirroring_one_screen();
+         break;
+      }
 
-        break;
+      case MIRRORING_ONE_SCREEN_2800: {
+         one_screen_base_address = ppu_name_table_vram + 0x800;
+         ppu_set_mirroring_one_screen();
 
-     case MIRRORING_ONE_SCREEN_2800:
-        one_screen_base_address = ppu_name_table_vram + 0x800;
-        ppu_set_mirroring_one_screen();
+         break;
+      }
 
-        break;
+      case MIRRORING_ONE_SCREEN_2C00: {
+         one_screen_base_address = ppu_name_table_vram + 0xC00;
+         ppu_set_mirroring_one_screen();
 
-     case MIRRORING_ONE_SCREEN_2C00:
-        one_screen_base_address = ppu_name_table_vram + 0xC00;
-        ppu_set_mirroring_one_screen();
+         break;
+      }
 
-        break;
+      case MIRRORING_VERTICAL: {
+         ppu_set_name_table_internal(0, 0);
+         ppu_set_name_table_internal(1, 1);
+         ppu_set_name_table_internal(2, 0);
+         ppu_set_name_table_internal(3, 1);
 
-     case MIRRORING_VERTICAL:
-        ppu_set_name_table_internal (0, 0);
-        ppu_set_name_table_internal (1, 1);
-        ppu_set_name_table_internal (2, 0);
-        ppu_set_name_table_internal (3, 1);
+         break;
+      }
 
-        break;
+      case MIRRORING_HORIZONTAL: {
+         ppu_set_name_table_internal(0, 0);
+         ppu_set_name_table_internal(1, 0);
+         ppu_set_name_table_internal(2, 1);
+         ppu_set_name_table_internal(3, 1);
 
-     case MIRRORING_HORIZONTAL:
-        ppu_set_name_table_internal (0, 0);
-        ppu_set_name_table_internal (1, 0);
-        ppu_set_name_table_internal (2, 1);
-        ppu_set_name_table_internal (3, 1);
+         break;
+      }
 
-        break;
+      case MIRRORING_FOUR_SCREEN: {
+         ppu_set_name_table_internal(0, 0);
+         ppu_set_name_table_internal(1, 1);
+         ppu_set_name_table_internal(2, 2);
+         ppu_set_name_table_internal(3, 3);
 
-     case MIRRORING_FOUR_SCREEN:
-        ppu_set_name_table_internal (0, 0);
-        ppu_set_name_table_internal (1, 1);
-        ppu_set_name_table_internal (2, 2);
-        ppu_set_name_table_internal (3, 3);
+         break;
+      }
 
-        break;
-    }
-
+      default: {
+         WARN_GENERIC();
+         break;
+      }
+   }
 }
 
-
-void ppu_invert_mirroring (void)   /* '/' key. */
+void ppu_invert_mirroring(void)   /* '/' key. */
 {
-    switch (ppu_mirroring)
-    {
-        case MIRRORING_HORIZONTAL:
+   switch(ppu_mirroring) {
+      case MIRRORING_HORIZONTAL: {
+         ppu_set_mirroring(MIRRORING_VERTICAL);
+         break;
+      }
 
-            ppu_set_mirroring (MIRRORING_VERTICAL);
-
-
-            break;
-
-
-        case MIRRORING_VERTICAL:
-
-            ppu_set_mirroring (MIRRORING_HORIZONTAL);
-
-
-            break;
-    }
+      case MIRRORING_VERTICAL: {
+         ppu_set_mirroring(MIRRORING_HORIZONTAL);
+         break;
+      }
+   }
 }
 
-void ppu_reset (void)
+void ppu_reset(void)
 {
-    int i;
+   int i;
 
-    memset (ppu_pattern_vram, NIL, sizeof (ppu_pattern_vram));
-    memset (ppu_name_table_vram, NIL, sizeof (ppu_name_table_vram));
-    memset (ppu_spr_ram, NIL, sizeof (ppu_spr_ram));
+   memset(ppu_pattern_vram, NULL, sizeof(ppu_pattern_vram));
+   memset(ppu_name_table_vram, NULL, sizeof(ppu_name_table_vram));
+   memset(ppu_spr_ram, NULL, sizeof(ppu_spr_ram));
 
+   ppu_cache_all_vram();
 
-    ppu_cache_all_vram ();
+   ppu_write(0x2000, 0x00);
 
+   ppu_write(0x2001,
+      PPU_BACKGROUND_SHOW_LEFT_EDGE_BIT |
+      PPU_SPRITES_SHOW_LEFT_EDGE_BIT |
+      PPU_BACKGROUND_ENABLE_BIT | PPU_SPRITES_ENABLE_BIT);
 
-    ppu_write (0x2000, 0);
+   spr_ram_address = 0;
+   sprite_list_needs_recache = TRUE;
 
-    ppu_write (0x2001,
-     PPU_BACKGROUND_SHOW_LEFT_EDGE_BIT |
-     PPU_SPRITES_SHOW_LEFT_EDGE_BIT |
-     PPU_BACKGROUND_ENABLE_BIT | PPU_SPRITES_ENABLE_BIT);
+   vram_address = 0;
+   address_temp = 0;
 
+   x_offset = 0;
 
-    spr_ram_address = 0;
-    sprite_list_needs_recache = TRUE;
+   address_write = FALSE;
 
+   buffered_vram_read = 0;
 
-    vram_address = 0;
-    address_temp = 0;
+   ppu_set_expansion_table_address(NULL);
 
-    x_offset = 0;
-
-    address_write = FALSE;
-
-    buffered_vram_read = 0;
-
-
-    ppu_set_expansion_table_address (NULL);
-
-
-    ppu_set_mirroring(ppu_mirroring);
-
-    ppu_clear ();
+   ppu_set_mirroring(ppu_mirroring);
+ 
+   ppu_clear();
 }
 
-
-UINT8 ppu_vram_read()
+UINT8 ppu_vram_read(void)
 {
-    UINT16 address = vram_address & 0x3FFF;
-    UINT8 temp = buffered_vram_read;
+   UINT16 address = vram_address & 0x3FFF;
+   UINT8 temp = buffered_vram_read;
 
-    /* VRAM Read I/O. */
+   /* VRAM Read I/O. */
+   if(address >= 0x2000) {
+      if (address >= 0x3F00) {
+         /* palettes */
+         if((address & 0x03) == 0)
+            temp = ppu_palette[0] & palette_mask;
+         else
+            temp = ppu_palette[address & 0x1F] & palette_mask;
+      }
+      else {
+         /* name tables */
+         buffered_vram_read = name_tables_read[(address >> 10) & 3]
+            [address & 0x3FF];
+      }
+   }
+   else {
+      /* pattern tables */
+  
+      /* If the mapper's behavior is affected by PPU bus activity, *
+       *  it will need to install a handler in the function        *
+       *  pointer mmc_check_latches.                               */
 
-    if (address >= 0x2000)
-    {
-        if (address >= 0x3F00)
-        /* palettes */
-        {
-            if ((address & 0x03) == 0)
-            {
-                temp = ppu_palette [0] & palette_mask;
-            }
-            else
-            {
-                temp = ppu_palette [address & 0x1F] & palette_mask;
-            }
-        }
-        else
-        /* name tables */
-        {
-            buffered_vram_read = name_tables_read[(address >> 10) & 3]
-             [address & 0x3FF];
-        }
-    }
-    else
-    /* pattern tables */
-    {
-        /* If the mapper's behavior is affected by PPU bus activity, *
-         *  it will need to install a handler in the function        *
-         *  pointer mmc_check_latches.                               */
+      /* This code is currently configured to report accesses to   *
+       *  0FD0-0FEF and 1FD0-1FEF only, for MMC2 and MMC4.         */
 
-        /* This code is currently configured to report accesses to   *
-         *  0FD0-0FEF and 1FD0-1FEF only, for MMC2 and MMC4.         */
+      /* If a mapper needs to watch other PPU address ranges,      *
+       *  this code will need to be changed.                       */
+      if(mmc_check_latches) {
+         if(((address & 0xFFF) >= 0xFD0) &&
+            ((address & 0xFFF) <= 0xFEF))
+            mmc_check_latches(address);
+      }
 
-        /* If a mapper needs to watch other PPU address ranges,      *
-         *  this code will need to be changed.                       */
-        if (mmc_check_latches)
-        {
-            if ((address & 0xFFF) >= 0xFD0 && (address & 0xFFF) <= 0xFEF)
-            {
-                mmc_check_latches(address);
-            }
-        }
+      buffered_vram_read =
+         ppu_vram_block_read_address[address >> 10][address & 0x3FF];
+   }
 
-        buffered_vram_read =
-            ppu_vram_block_read_address [address >> 10] [address & 0x3FF];
-    }
+   vram_address += address_increment;
 
-    vram_address += address_increment;
-
-
-    return (temp);
-
+   return temp;
 }
-
 
 void ppu_vram_write(UINT8 value)
 {
-    UINT16 address = vram_address & 0x3FFF;
+   UINT16 address = vram_address & 0x3FFF;
 
-    /* VRAM Write I/O. */
+   /* VRAM Write I/O. */
+   if(address >= 0x2000) {
+      if(address >= 0x3F00) {
+         /* palettes */
+         if((address & 0x03) == 0) {
+            ppu_background_palette[(address & 0x0F)] = value;
+            ppu_sprite_palette[(address & 0x0F)] = value;
+         }
+         else
+            ppu_palette[address & 0x1F] = value;
+      }
+      else {
+         /* name tables */
+         name_tables_write[(address >> 10) & 3][address & 0x3FF] = value;
+      }
+   }
+   else {
+      /* pattern tables */
+      int vram_block;
 
-    if (address >= 0x2000)
-    {
-        if (address >= 0x3F00)
-        /* palettes */
-        {
-            if ((address & 0x03) == 0)
-            {
-                ppu_background_palette [(address & 0x0F)] = value;
-                ppu_sprite_palette [(address & 0x0F)] = value;
-            }
-            else
-            {
-                ppu_palette [address & 0x1F] = value;
-            }
-        }
-        else
-        /* name tables */
-        {
-            name_tables_write[(address >> 10) & 3]
-             [address & 0x3FF] = value;
-        }
-    }
-    else
-    /* pattern tables */
-    {
-        int vram_block;
+      if(mmc_check_latches) {
+         if(((address & 0xFFF) >= 0xFD0) &&
+            ((address & 0xFFF) <= 0xFEF))
+            mmc_check_latches(address);
+      }
 
-        if (mmc_check_latches)
-        {
-            if ((address & 0xFFF) >= 0xFD0 && (address & 0xFFF) <= 0xFEF)
-            {
-                mmc_check_latches(address);
-            }
-        }
+      vram_block = ppu_vram_block[address >> 10];
 
-        vram_block = ppu_vram_block [address >> 10];
+      if(vram_block < FIRST_VROM_BLOCK) {
+         /* if block is writable (VRAM) */
+         int this_tile;
 
-        if (vram_block < FIRST_VROM_BLOCK)
-        /* if block is writable (VRAM) */
-        {
-            int this_tile;
-
-            if (ppu_vram_block_write_address [address >> 10]
-                [address & 0x3FF] != value)
+         if(ppu_vram_block_write_address[address >> 10]
+            [address & 0x3FF] != value) {
             /* VRAM changed, track for cache update */
-            {
-                ppu_vram_block_write_address [address >> 10]
-                    [address & 0x3FF] = value;
+            ppu_vram_block_write_address[address >> 10]
+               [address & 0x3FF] = value;
 
-                this_tile = (address & 0x3FF) / 16;
+            this_tile = (address & 0x3FF) / 16;
 
-                if (ppu_vram_dirty_set_end [vram_block] != this_tile)
-                {
-                    if (ppu_vram_dirty_set_end [vram_block] == this_tile - 1)
-                    {
-                        ppu_vram_dirty_set_end [vram_block] ++;
-                    }
-                    else
-                    {
-                        if (vram_set_needs_recache(vram_block))
-                        {
-                            recache_vram_set (vram_block);
-                        }
+            if(ppu_vram_dirty_set_end[vram_block] != this_tile) {
+               if(ppu_vram_dirty_set_end[vram_block] == this_tile - 1)
+                  ppu_vram_dirty_set_end[vram_block] ++;
+               else {
+                  if(vram_set_needs_recache(vram_block))
+                     recache_vram_set(vram_block);
 
-                        ppu_vram_dirty_set_begin [vram_block] =
-                            ppu_vram_dirty_set_end [vram_block] = this_tile;
+                  ppu_vram_dirty_set_begin[vram_block] =
+                     ppu_vram_dirty_set_end[vram_block] = this_tile;
 
-                        ppu_vram_cache_needs_update = TRUE;
-                    }
-                }
+                  ppu_vram_cache_needs_update = TRUE;
+               }
             }
-        }
-    }
+         }
+      }
+   }
 
-    vram_address += address_increment;
-
+   vram_address += address_increment;
 }
 
-UINT8 ppu_get_background_color (void)
+UINT8 ppu_get_background_color(void)
 {
    /* Returns the current PPU background color - for drawing overscan for e.g NTSC */
    /* In the future, this should be rendered by the PPU itself into a special kind of buffer. */
    /* Returned as an index into the 256 color palette */
-   return (ppu_palette[0] & palette_mask) + 1;
+   return (ppu_palette[0] & palette_mask) + PALETTE_ADJUST;
 }
 
 static UINT8 last_ppu_write_value;
