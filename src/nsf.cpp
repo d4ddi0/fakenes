@@ -87,6 +87,12 @@ enum {
    NSFExpansionFME7 = (1 << 5),
 };
 
+// Our little NES program to handle calling the init and play routines(cleared by nsf_close()).
+static std::vector<uint8> nsfProgram;
+
+// The current song #, this should only be set by play().
+static int nsfCurrentSong = 0;
+
 // Function prototypes(defined at bottom).
 static void bankswitch(int bank, int page);
 static void play(int song);
@@ -215,7 +221,8 @@ BOOL nsf_open(const UCHAR* filename)
 
 void nsf_close(void)
 {
-   // Do nothing.
+   if(nsfProgram.size() > 0)
+      nsfProgram.clear();
 }
 
 // --- NSF player main loop. ---
@@ -289,12 +296,8 @@ void nsf_main(void)
    const real playbackBPM = (1000000.0 / ((machine_type == MACHINE_TYPE_PAL) ? nsf.speedPAL : nsf.speedNTSC));
    const real playbackPeriod = (scanlineBPM / playbackBPM);
 
-   // Jump to the starting song.
-   int currentSong = nsf.startingSong;
-   play(currentSong);
-
-   // Queue first playback cycle.
-   cpu_context.PC.word = nsf.playAddress;
+   // Jump to the starting song and queue the first playback cycle.
+   play(nsf.startingSong);
    playbackTimer += playbackPeriod;
 
    // How many samples to use for visualization(per frame). */
@@ -329,18 +332,16 @@ void nsf_main(void)
             bool buttonAX = input_get_button_state(INPUT_PLAYER_1, INPUT_BUTTON_A);
             if(buttonAX &&
                (buttonAX != buttonA)) {
-               currentSong--;
-               if(currentSong < 1)
-                  currentSong = 1;
+               int nextSong = nsfCurrentSong - 1;
+               if(nextSong < 1)
+                  nextSong = 1;
 
-               play(currentSong);
+               // Jump to the next song and queue the first playback cycle.
+               play(nextSong);
+               playbackTimer = playbackPeriod;
 
                // Clear frame timer.
                nsfFrameTicks -= nsfFrameTicks;
-
-               // Queue first playback cycle.
-               cpu_context.PC.word = nsf.playAddress;
-               playbackTimer = playbackPeriod;
             }
 
             buttonA = buttonAX;
@@ -348,18 +349,16 @@ void nsf_main(void)
             bool buttonBX = input_get_button_state(INPUT_PLAYER_1, INPUT_BUTTON_B);
             if(buttonBX &&
                (buttonBX != buttonB)) {
-               currentSong++;
-               if(currentSong > nsf.totalSongs)
-                  currentSong = nsf.totalSongs;
+               int nextSong = nsfCurrentSong + 1;
+               if(nextSong > nsf.totalSongs)
+                  nextSong = nsf.totalSongs;
 
-               play(currentSong);
+               // Jump to the next song and queue the first playback cycle.
+               play(nextSong);
+               playbackTimer = playbackPeriod;
 
                // Clear frame timer.
                nsfFrameTicks -= nsfFrameTicks;
-
-               // Queue first playback cycle.
-               cpu_context.PC.word = nsf.playAddress;
-               playbackTimer = playbackPeriod;
             }
 
             buttonB = buttonBX;
@@ -373,13 +372,12 @@ void nsf_main(void)
                if(playbackTimer <= 0.0) {
                   playbackTimer += playbackPeriod;
 
-                  // Jump to play routine.
-                  cpu_context.PC.word = nsf.playAddress;
+                  // Just send a playback pulse to the current song.
+                  play(nsfCurrentSong);
                }
 
                apu_predict_irqs(SCANLINE_CLOCKS);
                cpu_execute(SCANLINE_CLOCKS);
-
             }
 
             // I hope that only updating once per frame is ok.  main() does it once per scanline.
@@ -417,7 +415,7 @@ void nsf_main(void)
          textprintf_ex(video_buffer, small_font, 8,     8 + (12 * 4), textColor, -1, "COPYRIGHT:");
          textprintf_ex(video_buffer, small_font, 8 + 8, 8 + (12 * 5), textColor, -1, (const char *)&nsf.copyright[0]);
 
-         textprintf_ex(video_buffer, small_font, 8, 8 + (12 * 7), textColor, -1, "Track %d of %d", currentSong,
+         textprintf_ex(video_buffer, small_font, 8, 8 + (12 * 7), textColor, -1, "Track %d of %d", nsfCurrentSong,
             nsf.totalSongs);
          textprintf_ex(video_buffer, small_font, 8, 8 + (12 * 8) + 2, textColor, -1, "Press A for next track");
          textprintf_ex(video_buffer, small_font, 8, 8 + (12 * 9) + 2, textColor, -1, "Press B for previous track");
@@ -1057,59 +1055,105 @@ static void bankswitch(int bank, int page)
 
 static void play(int song)
 {
-   // We need to reset before initializing each tune.
-   nsf_mapper_reset();
+   if(song != nsfCurrentSong) {
+      // The requested song is different from our current song - start a new song.
 
-   /* To initialize a tune, we set the accumulator to the song number(minus one), and the X register to the desired
-      region (0=NTSC, 1=PAL), and then jump to the init address.
-      However, because the initialization routine returns with an RTS, we cannot simply call it in an emulator, because
-      it will return to nothing and the CPU will begin executing code off in la-la land.
-      This is further complicated by the fact that we have no way of knowing how long the routine will last, and thus we do
-      not know how many cycles to execute, and just taking a guess is bad for compatibility.
-      We can solve both problems by writing a small 6502 program and uploading it to RAM somewhere that jumps to the
-      init address for us, and then jams the CPU upon return.
-      The jamming keeps the CPU from executing any more code, and also allows us to monitor the jammed flag to know when
-      the initialization routine has finished executing.
-      Since we're already writing the program, we'll go ahead and have it set up the other registers for us as well.  This
-      minimizes the amount of direct modifications we have to make to the CPU context, which is a good thing. */
+      // We need to reset before initializing each tune.
+      nsf_mapper_reset();
 
-   const uint8 loadA = (song - 1);
-   const uint8 loadX = ((machine_type == MACHINE_TYPE_PAL) ? 1 : 0);
-   const uint8 jumpLow = (nsf.initAddress & 0x00FF);
-   const uint8 jumpHigh = ((nsf.initAddress & 0xFF00) >> 8);
+      /* To initialize a tune, we set the accumulator to the song number(minus one), and the X register to the desired
+         region (0=NTSC, 1=PAL), and then jump to the init address.
+         However, because the initialization routine returns with an RTS, we cannot simply call it in an emulator, because
+         it will return to nothing and the CPU will begin executing code off in la-la land.
+         This is further complicated by the fact that we have no way of knowing how long the routine will last, and thus we
+         do not know how many cycles to execute, and just taking a guess is bad for compatibility.
+         We can solve both problems by writing a small 6502 program and uploading it to RAM somewhere that jumps to the
+         init address for us, and then jams the CPU upon return.
+         The jamming keeps the CPU from executing any more code, and also allows us to monitor the jammed flag to know when
+         the initialization routine has finished executing.
+         Since we're already writing the program, we'll go ahead and have it set up the other registers for us as well.
+         This minimizes the amount of direct modifications we have to make to the CPU context, which is a good thing. */
 
-   std::vector<uint8> program;
+      // Clear our program area.
+      if(nsfProgram.size() > 0)
+         nsfProgram.resize(0);
 
-   // LDA #$II
-   program.push_back(0xA9);
-   program.push_back(loadA);
-   // LDX #$II
-   program.push_back(0xA2);
-   program.push_back(loadX);
-   // JSR $AAAA
-   program.push_back(0x20);
-   program.push_back(jumpLow);
-   program.push_back(jumpHigh);
-   // JAM (Note that only the $F2 variation of this opcode is supported by our current CPU emulation.)
-   program.push_back(0xF2);
-   // Fill the rest with NOPs, just in case.
-   while(program.size() < 2048)
-      program.push_back(0xEA);
+      // LDA #$II
+      const uint8 loadA = song - 1;
+      nsfProgram.push_back(0xA9);
+      nsfProgram.push_back(loadA);
 
-   // We'll upload the entire thing to a 2 kB page starting at $1000 and ending at $17FF, which should be unused.
-   cpu_set_read_address_2k(0x1000, &program[0]);
+      // LDX #$II
+      const uint8 loadX = (machine_type == MACHINE_TYPE_PAL) ? 1 : 0;
+      nsfProgram.push_back(0xA2);
+      nsfProgram.push_back(loadX);
+
+      // JSR $AAAA
+      uint8 jumpLow = nsf.initAddress & 0x00FF;
+      uint8 jumpHigh = (nsf.initAddress & 0xFF00) >> 8;
+
+      nsfProgram.push_back(0x20);
+      nsfProgram.push_back(jumpLow);
+      nsfProgram.push_back(jumpHigh);
+
+      // JAM (Note that only the $F2 variation of this opcode is supported by our current CPU emulation.)
+      nsfProgram.push_back(0xF2);
+
+      // Fill the rest with NOPs, just in case.
+      while(nsfProgram.size() < 2048)
+         nsfProgram.push_back(0xEA);
+
+      // We'll upload the entire thing to a 2 kB page starting at $1000 and ending at $17FF, which should be unused.
+      cpu_set_read_address_2k(0x1000, &nsfProgram[0]);
+
+      // Set the program counter to the address of our program.
+      cpu_context.PC.word = 0x1000;
+
+      // Execute until the initialization routine finishes and RTSes to the JAM opcode.
+      while(!cpu_context.Jammed) {
+         apu_predict_irqs(100);
+         cpu_execute(100);
+      }
+
+      // Unjam the CPU now that we're done.
+      cpu_context.Jammed = FALSE;
+
+      // Note for the playback routine...
+
+      // Clear our program area.
+      if(nsfProgram.size() > 0)
+         nsfProgram.resize(0);
+
+      // JSR $AAAA
+      jumpLow = nsf.playAddress & 0x00FF;
+      jumpHigh = (nsf.playAddress & 0xFF00) >> 8;
+
+      nsfProgram.push_back(0x20);
+      nsfProgram.push_back(jumpLow);
+      nsfProgram.push_back(jumpHigh);
+
+      // JMP $AAAA - Repeatedly jumps to itself to harmlessly idle the CPU once the JSR has finished.
+      const uint16 jumpAddress = 0x1000 + nsfProgram.size(); // hehe
+      jumpLow = jumpAddress & 0x00FF;
+      jumpHigh = (jumpAddress & 0xFF00) >> 8;
+
+      nsfProgram.push_back(0x4C);
+      nsfProgram.push_back(jumpLow);
+      nsfProgram.push_back(jumpHigh);
+
+      // Fill the rest with NOPs, just in case.
+      while(nsfProgram.size() < 2048)
+         nsfProgram.push_back(0xEA);
+
+      // Upload to $1000 - $17FF.
+      cpu_set_read_address_2k(0x1000, &nsfProgram[0]);
+
+      // Update song counter.
+      nsfCurrentSong = song;
+   }
 
    // Set the program counter to the address of our program.
    cpu_context.PC.word = 0x1000;
-
-   // Execute until the initialization routine finishes and RTSes to the JAM opcode.
-   while(!cpu_context.Jammed) {
-      apu_predict_irqs(100);
-      cpu_execute(100);
-   }
-
-   // Unjam the CPU now that we're done.
-   cpu_context.Jammed = FALSE;
 }
 
 static real bandpass(uint16* buffer, unsigned size, real sampleRate, int channels, real cutoffLow, real cutoffHigh)
