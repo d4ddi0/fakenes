@@ -344,6 +344,7 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(options_gui_theme_menu_stainless_steel, (last_theme == &stainless_steel_theme));
    TOGGLE_MENU_ITEM(options_gui_theme_menu_zero_4,          (last_theme == &zero_4_theme));
    TOGGLE_MENU_ITEM(options_gui_theme_menu_panta,           (last_theme == &panta_theme));
+   TOGGLE_MENU_ITEM(options_gui_theme_menu_fireflower,      (last_theme == &fireflower_theme));
    TOGGLE_MENU_ITEM(options_gui_theme_menu_xodiac,          (last_theme == &xodiac_theme));
    TOGGLE_MENU_ITEM(options_gui_theme_menu_monochrome,      (last_theme == &monochrome_theme));
    TOGGLE_MENU_ITEM(options_gui_theme_menu_essence,         (last_theme == &essence_theme));
@@ -3352,6 +3353,7 @@ OPTIONS_GUI_THEME_MENU_HANDLER(classic)
 OPTIONS_GUI_THEME_MENU_HANDLER(stainless_steel)
 OPTIONS_GUI_THEME_MENU_HANDLER(zero_4)
 OPTIONS_GUI_THEME_MENU_HANDLER(panta)
+OPTIONS_GUI_THEME_MENU_HANDLER(fireflower)
 OPTIONS_GUI_THEME_MENU_HANDLER(xodiac)
 OPTIONS_GUI_THEME_MENU_HANDLER(monochrome)
 OPTIONS_GUI_THEME_MENU_HANDLER(essence)

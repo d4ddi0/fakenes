@@ -875,6 +875,7 @@ DEFINE_MENU_CALLBACK(options_gui_theme_menu_classic);
 DEFINE_MENU_CALLBACK(options_gui_theme_menu_stainless_steel);
 DEFINE_MENU_CALLBACK(options_gui_theme_menu_zero_4);
 DEFINE_MENU_CALLBACK(options_gui_theme_menu_panta);
+DEFINE_MENU_CALLBACK(options_gui_theme_menu_fireflower);
 DEFINE_MENU_CALLBACK(options_gui_theme_menu_xodiac);
 DEFINE_MENU_CALLBACK(options_gui_theme_menu_monochrome);
 DEFINE_MENU_CALLBACK(options_gui_theme_menu_essence);
@@ -890,11 +891,12 @@ static const MENU options_gui_theme_menu_base[] =
    { "  &4: Panta",           options_gui_theme_menu_panta,           NULL, 0, NULL },
    MENU_SPLITTER,
    { "Color Themes",          NULL,                                   NULL, 0, NULL },
-   { "  &5: Xodiac",          options_gui_theme_menu_xodiac,          NULL, 0, NULL },
-   { "  &6: Monochrome",      options_gui_theme_menu_monochrome,      NULL, 0, NULL },
-   { "  &7: Essence",         options_gui_theme_menu_essence,         NULL, 0, NULL },
-   { "  &8: Voodoo",          options_gui_theme_menu_voodoo,          NULL, 0, NULL },
-   { "  &9: Hugs and Kisses", options_gui_theme_menu_hugs_and_kisses, NULL, 0, NULL },
+   { "  &5: Fireflower",      options_gui_theme_menu_fireflower,      NULL, 0, NULL },
+   { "  &6: Xodiac",          options_gui_theme_menu_xodiac,          NULL, 0, NULL },
+   { "  &7: Monochrome",      options_gui_theme_menu_monochrome,      NULL, 0, NULL },
+   { "  &8: Essence",         options_gui_theme_menu_essence,         NULL, 0, NULL },
+   { "  &9: Voodoo",          options_gui_theme_menu_voodoo,          NULL, 0, NULL },
+   { " 1&0: Hugs and Kisses", options_gui_theme_menu_hugs_and_kisses, NULL, 0, NULL },
    MENU_ENDCAP
 };
 

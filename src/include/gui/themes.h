@@ -7,6 +7,7 @@ enum
    GUI_THEME_PANTA,
 
    /* Generic themes. */
+   GUI_THEME_FIREFLOWER,
    GUI_THEME_XODIAC,
    GUI_THEME_MONOCHROME,
    GUI_THEME_ESSENCE,
@@ -121,6 +122,21 @@ static INLINE void set_panta_theme (void)
 #define set_default_theme()   set_panta_theme ()
 
 /* Generic themes. */
+static const GUI_THEME fireflower_theme =
+{
+   { 0,     0,     0,    0 },  /* Gradients start. */
+   { 0.67f, 0.33f, 0,    0 },  /* Gradients end. */
+   { 0,     0,     0,    0 },  /* Background. */
+   { 0,     0,     0,    0 },  /* Fill. */
+   { 0.33f, 0.17f, 0,    0 },  /* Menu bar. */
+   { 0.8,   0.6f,  0,    0 },  /* Borders. */
+   { 0.8f,  0.6f,  0.4f, 0 },  /* Text. */
+   { 0.25f, 0,     0,    0 },  /* Light shadows. */
+   { 0,     0,     0,    0 },  /* Shadows. */
+   { 0.67f, 0.67f, 0,    0 },  /* Selected. */
+   { 0.4f,  0.3f,  0,    0 },  /* Disabled. */
+   { 1.0f,  0.4f,  0,    0 }   /* Errors. */
+};
 
 static const GUI_THEME xodiac_theme =
 {
@@ -212,6 +228,7 @@ static const GUI_THEME hugs_and_kisses_theme =
       gui_set_theme (& name##_theme );  \
    }
 
+GENERIC_THEME_SETTER(fireflower,      GUI_THEME_FIREFLOWER)
 GENERIC_THEME_SETTER(xodiac,          GUI_THEME_XODIAC)
 GENERIC_THEME_SETTER(monochrome,      GUI_THEME_MONOCHROME)
 GENERIC_THEME_SETTER(essence,         GUI_THEME_ESSENCE)
@@ -237,6 +254,7 @@ static INLINE void set_theme (void)
       THEME_SWITCH(GUI_THEME_STAINLESS_STEEL, stainless_steel)
       THEME_SWITCH(GUI_THEME_ZERO_4,          zero_4)
       THEME_SWITCH(GUI_THEME_PANTA,           panta)
+      THEME_SWITCH(GUI_THEME_FIREFLOWER,      fireflower)
       THEME_SWITCH(GUI_THEME_XODIAC,          xodiac)
       THEME_SWITCH(GUI_THEME_MONOCHROME,      monochrome)
       THEME_SWITCH(GUI_THEME_ESSENCE,         essence)
