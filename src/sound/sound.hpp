@@ -12,31 +12,32 @@
 
 namespace Sound {
 
+// These are just templates - they do nothing unless you derive from them and replace their virtual members.
 class Channel {
 public:
-   Channel(void);
-   virtual ~Channel(void);
+   Channel(void) { }
+   virtual ~Channel(void) { }
 
-   virtual void reset(void);
-   virtual uint8 read(uint16 address);
-   virtual void write(uint16 address, uint8 value);
-   virtual void process(cpu_time_t cycles);
-   virtual void save(PACKFILE* file, int version);
-   virtual void load(PACKFILE* file, int version);
+   virtual void reset(void) { }
+   virtual uint8 read(uint16 address) { return 0x00; }
+   virtual void write(uint16 address, uint8 value) { }
+   virtual void process(cpu_time_t cycles) { }
+   virtual void save(PACKFILE* file, int version) { }
+   virtual void load(PACKFILE* file, int version) { }
 };
 
 class Interface {
 public:
-   Interface(void);
-   virtual ~Interface(void);
+   Interface(void) { };
+   virtual ~Interface(void) { }
 
-   virtual void reset(void);
-   virtual uint8 read(uint16 address);
-   virtual void write(uint16 address, uint8 value);
-   virtual void process(cpu_time_t cycles);
-   virtual void save(PACKFILE* file, int version);
-   virtual void load(PACKFILE* file, int version);
-   virtual void mix(real input);
+   virtual void reset(void) { }
+   virtual uint8 read(uint16 address) { return 0x00; }
+   virtual void write(uint16 address, uint8 value) { }
+   virtual void process(cpu_time_t cycles) { }
+   virtual void save(PACKFILE* file, int version) { }
+   virtual void load(PACKFILE* file, int version) { }
+   virtual void mix(real input) { output = input; }
          
    real output;
 };
