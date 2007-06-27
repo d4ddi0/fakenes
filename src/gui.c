@@ -1206,9 +1206,9 @@ static int main_menu_open (void)
    locked = get_config_int ("gui", "lock_paths", FALSE);
 
 #ifdef USE_ZLIB
-   result = gui_file_select ("Open", "Supported file types (*.NES, *.GZ, *.ZIP, *.NSF)", path, sizeof(path), "*.nes;*.gz;*.zip;*.nsf");
+   result = gui_file_select ("Open", "Supported file types (*.NES, *.GZ, *.ZIP, *.NSF)", path, sizeof(path), "*.nes;*.gz;*.zip;*.nsf;*.NES;*.GZ;*.ZIP;*.NSF");
 #else
-   result = gui_file_select ("Open", "Supported file types (*.NES, *.NSF)", path, sizeof(path), "*.nes;*.nsf");
+   result = gui_file_select ("Open", "Supported file types (*.NES, *.NSF)", path, sizeof(path), "*.nes;*.nsf;*.NES;*.NSF");
 #endif
 
    if (!locked)
