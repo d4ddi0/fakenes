@@ -1079,7 +1079,7 @@ void apu_reset(void)
    apu.noise.shift16 = 1;
 
   // Clear registers.
-   for(uint16 address = 0x4000; address <= 0x4015; address++)
+   for(uint16 address = 0x4000; address <= 0x4017; address++)
       apu_write(address, 0x00);
 
    // Restore frame sequencer state.
