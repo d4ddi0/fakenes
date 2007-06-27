@@ -1075,11 +1075,11 @@ void apu_reset(void)
    apu.square[0].sweep.increment = false;
    apu.square[1].sweep.increment = true;
 
-   /* On power-up, the shift register is loaded with the value 1. */
+   // On power-up, the shift register is loaded with the value 1.
    apu.noise.shift16 = 1;
 
-   // Clear all registers.
-   for (uint16 address = 0x4000; address <= 0x4017; address++)
+  // Clear registers.
+   for(uint16 address = 0x4000; address <= 0x4015; address++)
       apu_write(address, 0x00);
 
    // Restore frame sequencer state.

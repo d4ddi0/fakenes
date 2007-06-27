@@ -220,7 +220,6 @@ int mmc_init (void)
 {
     int index;
 
-
     for (index = 0x8000; index < (64 << 10); index += (8 << 10))
     {
         cpu_set_write_address_8k (index, dummy_write);
@@ -244,7 +243,6 @@ int mmc_init (void)
         (global_rom.control_byte_1 & ROM_CTRL_FOUR_SCREEN) ? 4 : 2;
 
     mmc_pattern_vram_in_use = (ROM_CHR_ROM_PAGES == 0);
-
 
     if (mmc_pattern_vram_in_use)
     {
@@ -271,11 +269,8 @@ int mmc_init (void)
     }
 
 
-    if (! gui_is_active)
-    {
-        printf ("Using memory mapper #%u (%s) (%d PRG, %d CHR).\n\n", current_mmc -> number,
+    log_printf ("Using memory mapper #%u (%s) (%d PRG, %d CHR).\n\n", current_mmc -> number,
             current_mmc -> name, ROM_PRG_ROM_PAGES, ROM_CHR_ROM_PAGES);
-    }
 
 
     return (current_mmc -> init ());

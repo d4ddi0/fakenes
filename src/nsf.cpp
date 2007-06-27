@@ -886,8 +886,7 @@ static void nsf_mapper_reset(void);
 static UINT8 nsf_mapper_read(UINT16 address);
 static void nsf_mapper_write(UINT16 address, UINT8 value);
 
-const MMC nsf_mapper =
-{
+const MMC nsf_mapper = {
    10000, // Just set to some bogus number that will never be used.
    (const UINT8*)"NSF",
    nsf_mapper_init,
@@ -944,6 +943,9 @@ static void nsf_mapper_reset(void)
 {
    // TODO: PAL/NTSC selection stuff here (setting machine_type?).  Probably needs changes to the timing system to work.
 
+   // Reset APU.  We have to do this to synchronize it with the CPU or Bad Things(TM) happen.
+   apu_reset();
+
    //  Clear all RAM at 0000h-07ffh.
    for(uint16 address = 0x0000; address <= 0x07FF; address++)
       cpu_write(address, 0x00);
@@ -954,18 +956,18 @@ static void nsf_mapper_reset(void)
 
    // Init the sound registers by writing 00h to 04000-0400Fh,
    for(uint16 address = 0x4000; address <= 0x400F; address++)
-      cpu_write(address, 0x00);
+      apu_write(address, 0x00);
 
    // 10h to 4010h,
-   cpu_write(0x4010, 0x10);
+   apu_write(0x4010, 0x10);
 
    // and 00h to 4011h-4013h.
    for(uint16 address = 0x4011; address <= 0x4013; address++)
-      cpu_write(address, 0x00);
+      apu_write(address, 0x00);
   
    // Set volume register 04015h to 00fh.
    // Annotation: Huh?  I think he means to do this...
-   cpu_write(0x4015, 0x0F);
+   apu_write(0x4015, 0x0F);
 
    // Reset ExSound.
    if(nsf.expansionFlags & NSFExpansionMMC5)
@@ -1045,7 +1047,7 @@ static void nsf_mapper_write(UINT16 address, UINT8 value)
    }
 
    if(nsf.expansionFlags & NSFExpansionVRC6) {
-      if(((address >= 0x9000) && (address <= 0x9001)) ||
+      if(((address >= 0x9000) && (address <= 0x9002)) ||
          ((address >= 0xA000) && (address <= 0xA002)) ||
          ((address >= 0xB000) && (address <= 0xB002))) {
          // VRC6 audio.
