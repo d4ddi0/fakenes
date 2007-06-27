@@ -381,7 +381,7 @@ static void vrc6_reset (void)
    vrc6_prediction_cycles = 0;
 
    /* Reset ExSound. */
-   apu_reset_exsound();
+   apu_reset_exsound(APU_EXSOUND_VRC6);
 }
 
 static int vrc6_base_init (void)
@@ -395,7 +395,7 @@ static int vrc6_base_init (void)
    mmc_predict_irqs = vrc6_predict_irqs;
 
    /* Select ExSound chip. */
-   apu_set_exsound (APU_EXSOUND_VRC6);
+   apu_enable_exsound (APU_EXSOUND_VRC6);
 
    /* Set initial mappings and reset variables. */
    vrc6_reset ();

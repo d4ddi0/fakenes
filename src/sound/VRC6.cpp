@@ -1,15 +1,14 @@
 /* FakeNES - A free, portable, Open Source NES emulator.
 
-   Copyright (c) 2001-2006, FakeNES Team.
+   Copyright (c) 2001-2007, FakeNES Team.
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use.
 
-   vrc6.cpp: VRC6 sound hardware emulation by randilyn. */
+   VRC6.cpp: VRC6 sound hardware emulation by randilyn. */
 
-#include "../include/common.h"
-#include "sound.hpp"
-#include "vrc6.hpp"
-             
+#include "Common.hpp"
+#include "VRC6.hpp"
+
 namespace Sound {
 namespace VRC6 {
 
@@ -92,7 +91,7 @@ void Square::process(cpu_time_t cycles)
       step = 0;
 }
 
-void Square::save(PACKFILE* file, int version)
+void Square::save(PACKFILE* file, int version) const
 {
    RT_ASSERT(file);
 
@@ -190,9 +189,9 @@ void Saw::process(cpu_time_t cycles)
 
    volume += rate;
    output = (volume >> 3);
-}            
+}
 
-void Saw::save(PACKFILE* file, int version)
+void Saw::save(PACKFILE* file, int version) const
 {
    RT_ASSERT(file);
 
@@ -258,16 +257,12 @@ void Interface::write(uint16 address, uint8 value)
 
 void Interface::process(cpu_time_t cycles)
 {
-   if(apu_options.enable_extra_1)
-      square1.process(cycles);
-   if(apu_options.enable_extra_2)
-      square2.process(cycles);
-
-   if(apu_options.enable_extra_3)
-      saw.process(cycles);
+   square1.process(cycles);
+   square2.process(cycles);
+   saw.process(cycles);
 }
 
-void Interface::save(PACKFILE* file, int version)
+void Interface::save(PACKFILE* file, int version) const
 {
    RT_ASSERT(file);
 

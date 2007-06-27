@@ -1126,7 +1126,7 @@ static void mmc5_reset (void)
     mmc5_disable_irqs = TRUE;
 
 
-    apu_reset_exsound ();
+    apu_reset_exsound (APU_EXSOUND_MMC5);
 }
 
 
@@ -1183,7 +1183,7 @@ static int mmc5_init (void)
 
     /* Select ExSound chip. */
 
-    apu_set_exsound (APU_EXSOUND_MMC5);
+    apu_enable_exsound (APU_EXSOUND_MMC5);
 
 
     mmc5_reset ();

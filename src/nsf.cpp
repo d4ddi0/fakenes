@@ -916,24 +916,22 @@ static int nsf_mapper_init(void)
    }
 
    // Set up ExSound, if applicable.
-   // TODO: Support for multiple ExSound chips simultaneously?  Would require modifications to the APU...
    if(nsf.expansionFlags & NSFExpansionMMC5) {
-      apu_set_exsound(APU_EXSOUND_MMC5);
+      apu_enable_exsound(APU_EXSOUND_MMC5);
 
       // Map in MMC5 audio, multiplier, and ExRAM registers.
       cpu_set_read_handler_4k(0x5000, nsf_mapper_read);
       cpu_set_write_handler_4k(0x5000, nsf_mapper_write);
    }
-   else if(nsf.expansionFlags & NSFExpansionVRC6) {
-      apu_set_exsound(APU_EXSOUND_VRC6);
+   
+   if(nsf.expansionFlags & NSFExpansionVRC6) {
+      apu_enable_exsound(APU_EXSOUND_VRC6);
 
       // Map in VRC6 audio registers.
       cpu_set_write_handler_2k(0x9000, nsf_mapper_write);
       cpu_set_write_handler_2k(0xA000, nsf_mapper_write);
       cpu_set_write_handler_2k(0xB000, nsf_mapper_write);
    }
-   else
-      apu_set_exsound(APU_EXSOUND_NONE);
 
    // Initialize everything else.
    nsf_mapper_reset();
@@ -970,7 +968,10 @@ static void nsf_mapper_reset(void)
    cpu_write(0x4015, 0x0F);
 
    // Reset ExSound.
-   apu_reset_exsound();
+   if(nsf.expansionFlags & NSFExpansionMMC5)
+      apu_reset_exsound(APU_EXSOUND_MMC5);
+   if(nsf.expansionFlags & NSFExpansionVRC6)
+      apu_reset_exsound(APU_EXSOUND_VRC6);
 
    // If this is a banked tune, load the bank values from the header into 5ff8-5fffh.
    if(nsf.bankswitched) {

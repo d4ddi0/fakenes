@@ -22,9 +22,10 @@ extern void apu_save_config(void);
 extern int apu_init(void);
 extern void apu_exit(void);
 extern void apu_reset(void);
-extern void apu_reset_exsound(void);
+extern void apu_reset_exsound(ENUM exsound_id);
 extern void apu_update(void);
-extern void apu_set_exsound(ENUM type);
+extern void apu_clear_exsound(void);
+extern void apu_enable_exsound(ENUM exsound_id);
 extern UINT8 apu_read(UINT16 address);
 extern void apu_write(UINT16 address, UINT8 value);
 extern void apu_predict_irqs(cpu_time_t cycles);
@@ -64,7 +65,6 @@ enum {
 };
 
 enum {
-   APU_EXSOUND_NONE = 0,
    APU_EXSOUND_MMC5,
    APU_EXSOUND_VRC6,
 };

@@ -1,14 +1,12 @@
 /* FakeNES - A free, portable, Open Source NES emulator.
 
-   Copyright (c) 2001-2006, FakeNES Team.
+   Copyright (c) 2001-2007, FakeNES Team.
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
 
-#ifndef _SOUND__SOUND_HPP
-#define _SOUND__SOUND_HPP
-#include "../include/common.h"
-#include "../include/apu.h"
-#include "../include/cpu.h"
+#ifndef _SOUND__SOUNDINTERNALS_HPP
+#define _SOUND__SOUNDINTERNALS_HPP
+#include "Common.hpp"
 
 namespace Sound {
 
@@ -19,10 +17,10 @@ public:
    virtual ~Channel(void) { }
 
    virtual void reset(void) { }
-   virtual uint8 read(uint16 address) { return 0x00; }
+   virtual uint8 read(uint16 address) const { return 0x00; }
    virtual void write(uint16 address, uint8 value) { }
    virtual void process(cpu_time_t cycles) { }
-   virtual void save(PACKFILE* file, int version) { }
+   virtual void save(PACKFILE* file, int version) const { }
    virtual void load(PACKFILE* file, int version) { }
 };
 
@@ -32,16 +30,16 @@ public:
    virtual ~Interface(void) { }
 
    virtual void reset(void) { }
-   virtual uint8 read(uint16 address) { return 0x00; }
+   virtual uint8 read(uint16 address) const { return 0x00; }
    virtual void write(uint16 address, uint8 value) { }
    virtual void process(cpu_time_t cycles) { }
-   virtual void save(PACKFILE* file, int version) { }
+   virtual void save(PACKFILE* file, int version) const { }
    virtual void load(PACKFILE* file, int version) { }
    virtual void mix(real input) { output = input; }
-         
+
    real output;
 };
 
 } //namespace Sound
 
-#endif //!_SOUND__SOUND_HPP
+#endif //!_SOUND__SOUNDINTERNALS_HPP

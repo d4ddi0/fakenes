@@ -25,9 +25,9 @@
 #include "timing.h"
 #include "types.h"
 
-#include "sound/sound.hpp"
-#include "sound/mmc5.hpp"
-#include "sound/vrc6.hpp"
+#include "sound/Sourcer.hpp"
+#include "sound/MMC5.hpp"
+#include "sound/VRC6.hpp"
 
 // Global options.
 apu_options_t apu_options = {
@@ -69,10 +69,10 @@ static const real apu_agc_gain_ceiling = 2.0;
 // Static APU context.
 static APU apu;
 
-// ExSound contexts.
-static Sound::Interface* exsound = null;
-static Sound::MMC5::Interface MMC5;
-static Sound::VRC6::Interface VRC6;
+// External/Expansion Sound (ExSound) support.
+static Sound::Sourcer::Interface apu_exsound_sourcer;
+static Sound::MMC5::Interface apu_exsound_mmc5;
+static Sound::VRC6::Interface apu_exsound_vrc6;
 
 // Internal function prototypes (defined at bottom).
 static void process(void);
@@ -801,19 +801,12 @@ static linear void apu_load_dmc(APUDMC& chan, PACKFILE* file, int version)
 
 static void apu_update_channels(FLAGS update_flags)
 {
-   if(apu_options.enable_square_1)
-      apu_update_square(apu.square[0], update_flags);
-   if(apu_options.enable_square_2)
-      apu_update_square(apu.square[1], update_flags);
+   apu_update_square(apu.square[0], update_flags);
+   apu_update_square(apu.square[1], update_flags);
 
-   if(apu_options.enable_triangle)
-      apu_update_triangle(apu.triangle, update_flags);
-
-   if(apu_options.enable_noise)
-      apu_update_noise(apu.noise, update_flags);
-
-   if(apu_options.enable_dmc &&
-      (update_flags & UPDATE_OUTPUT))
+   apu_update_triangle(apu.triangle, update_flags);
+   apu_update_noise(apu.noise, update_flags);
+   if(update_flags & UPDATE_OUTPUT)
       apu_update_dmc(apu.dmc);
 }
 
@@ -1022,9 +1015,6 @@ void apu_load_config(void)
       square_table[n] = 95.52 / (8128.0 / n + 100);
    for(int n = 0; n < 203; n++)
       tnd_table[n] = 163.67 / (24329.0 / n + 100);
-
-   // Disable ExSound.
-   apu_set_exsound(APU_EXSOUND_NONE);
 }
 
 void apu_save_config(void)
@@ -1064,7 +1054,8 @@ int apu_init(void)
 
 void apu_exit(void)
 {
-   // Do nothing.
+   // Clear ExSound state.  Only do this here or else init/reset conflicts could occur.
+   apu_clear_exsound();
 }
 
 void apu_reset(void)
@@ -1094,17 +1085,30 @@ void apu_reset(void)
    apu.sequence_counter = sequence_counter;
    apu.sequence_step = sequence_step;
 
-   // Reset ExSound.
-   apu_reset_exsound();
-
    // Initialize everything else.
    apu_update();
 }
 
-void apu_reset_exsound(void)
+void apu_reset_exsound(ENUM exsound_id)
 {
-   if(exsound)
-      exsound->reset();
+   /* Resets a specific ExSound source.   Because ExSound sources are not actually part of the APU itself, they should
+      *never* be reset by an APU reset, only by their associated mapper hardware. */
+   switch(exsound_id) {
+      case APU_EXSOUND_MMC5: {
+         apu_exsound_mmc5.reset();
+         break;
+      }
+
+      case APU_EXSOUND_VRC6: {
+         apu_exsound_vrc6.reset();
+         break;
+      }
+
+      default: {
+         WARN_GENERIC();
+         break;
+      }
+   }
 }
 
 void apu_update(void)
@@ -1132,31 +1136,32 @@ void apu_update(void)
    apu.mixer.max_samples = ((timing_get_frequency() / CYCLE_LENGTH) / frequency);
 }
 
-void apu_set_exsound(ENUM type)
+void apu_clear_exsound(void)
 {
-   switch(type) {
-      case APU_EXSOUND_NONE: {
-         exsound = null;
-         break;
-      }
+   // Detaches all ExSound sources.
+   apu_exsound_sourcer.clearSources();
+}
 
+void apu_enable_exsound(ENUM exsound_id)
+{
+   /* Enables emulation and mixing for a specific ExSound source.  Once enabled, it cannot be disabled except by calling
+      apu_exit() (which clears the ExSound state) or apu_clear_exsound() (which does the same). */
+   switch(exsound_id) {
       case APU_EXSOUND_MMC5: {
-         exsound = &MMC5;
+         apu_exsound_sourcer.attachSource(&apu_exsound_mmc5);
          break;
       }
 
       case APU_EXSOUND_VRC6: {
-         exsound = &VRC6;
+         apu_exsound_sourcer.attachSource(&apu_exsound_vrc6);
          break;
       }
 
-      default:
+      default: {
          WARN_GENERIC();
+         break;
+      }
    }
-
-   // Reset it just in case.
-   if(exsound)
-      exsound->reset();
 }
 
 UINT8 apu_read(UINT16 address)
@@ -1210,8 +1215,10 @@ UINT8 apu_read(UINT16 address)
          break;
    }
 
-   if(exsound)
-      value |= exsound->read(address);
+   if(apu_exsound_sourcer.getSources() > 0) {
+      // Read from ExSound.
+      value |= apu_exsound_sourcer.read(address);
+   }
 
    return value;
 }
@@ -1526,8 +1533,8 @@ void apu_write(UINT16 address, UINT8 value)
          break;
    }
 
-   if(exsound)
-      exsound->write(address, value);
+   // Write to ExSound.
+   apu_exsound_sourcer.write(address, value);
 }
 
 void apu_predict_irqs(cpu_time_t cycles)
@@ -1572,8 +1579,7 @@ void apu_save_state(PACKFILE* file, int version)
    apu_save_dmc(apu.dmc, file, version);
 
    // ExSound
-   if(exsound)
-      exsound->save(file, version);
+   apu_exsound_sourcer.save(file, version);
 }
 
 void apu_load_state(PACKFILE* file, int version)
@@ -1597,8 +1603,7 @@ void apu_load_state(PACKFILE* file, int version)
    apu_load_noise(apu.noise, file, version);
    apu_load_dmc(apu.dmc, file, version);
 
-   if(exsound)
-      exsound->load(file, version);
+   apu_exsound_sourcer.load(file, version);
 }
 
 void apu_sync_update(void)
@@ -1667,8 +1672,7 @@ static void process(void)
                apu_update_channels(UPDATE_OUTPUT);
 
                // Update ExSound.
-               if(exsound)
-                  exsound->process(apu.timer_delta);
+               apu_exsound_sourcer.process(apu.timer_delta);
 
                if(audio_options.enable_output) {
                   // Mix outputs together.
@@ -1705,8 +1709,7 @@ static void process(void)
             apu_update_channels(UPDATE_OUTPUT);
 
             // Update ExSound.
-            if(exsound)
-               exsound->process(apu.timer_delta);
+            apu_exsound_sourcer.process(apu.timer_delta);
 
             if(audio_options.enable_output) {
                // Simulate accumulation.
@@ -1746,8 +1749,7 @@ static void process(void)
             apu_update_channels(UPDATE_OUTPUT);
 
             // Update ExSound.
-            if(exsound)
-               exsound->process(apu.timer_delta);
+            apu_exsound_sourcer.process(apu.timer_delta);
 
             if(audio_options.enable_output) {
                // Mix outputs together.
@@ -1803,23 +1805,32 @@ static void process(void)
 
 static void mix(void)
 {
-   static const APUSquare& square1  = apu.square[0];
-   static const APUSquare& square2  = apu.square[1];
+   static const APUSquare& square1 = apu.square[0];
+   static const APUSquare& square2 = apu.square[1];
    static const APUTriangle& triangle = apu.triangle;
    static const APUNoise& noise = apu.noise;
    static const APUDMC& dmc = apu.dmc;
 
-   const real square_out = square_table[square1.output + square2.output];
-   const real tnd_out = tnd_table[3 * triangle.output + 2 * noise.output + dmc.output];
+   // This probably isn't the best way to do this, but...
+   const uint8 square1_volume = apu_options.enable_square_1 ? square1.output : 0;
+   const uint8 square2_volume = apu_options.enable_square_2 ? square2.output : 0;
+
+   const real square_out = square_table[square1_volume + square2_volume];
+
+   const uint8 triangle_volume = apu_options.enable_triangle ? triangle.output : 0;
+   const uint8 noise_volume = apu_options.enable_noise ? noise.output : 0;
+   const uint8 dmc_volume = apu_options.enable_dmc ? dmc.output : 0;
+
+   const real tnd_out = tnd_table[3 * triangle_volume + 2 * noise_volume + dmc_volume];
 
    switch(apu.mixer.channels) {
       case 1: {
          // Mono output.
          real total = (square_out + tnd_out);   // 0...1
 
-         if(exsound) {
-            exsound->mix(total);
-            total = exsound->output;
+         if(apu_exsound_sourcer.getSources() > 0) {
+            apu_exsound_sourcer.mix(total);
+            total = apu_exsound_sourcer.output;
          }
 
          apu.mixer.inputs[0] = total;
@@ -1839,16 +1850,16 @@ static void mix(void)
             rightInput = 1;
          }
 
-         if(exsound) {
+         if(apu_exsound_sourcer.getSources() > 0) {
             /* In the case of cartridges with extra sound capabilities, we have to force the Famicom's sound to mono so
                that it is suitable for passing through the cartridge mixer.  While this is not the ideal solution(since it
                effectively disables stereo sound output for these games), it is the most accurate. */
             const real total = (square_out + tnd_out);   // 0...1
 
-            exsound->mix(total);
+            apu_exsound_sourcer.mix(total);
 
-            apu.mixer.inputs[leftInput] = exsound->output;
-            apu.mixer.inputs[rightInput] = exsound->output;
+            apu.mixer.inputs[leftInput] = apu_exsound_sourcer.output;
+            apu.mixer.inputs[rightInput] = apu_exsound_sourcer.output;
          }
          else {
             // Normalise output without damaging the relative volume levels.

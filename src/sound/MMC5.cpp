@@ -1,15 +1,14 @@
 /* FakeNES - A free, portable, Open Source NES emulator.
 
-   Copyright (c) 2001-2006, FakeNES Team.
+   Copyright (c) 2001-2007, FakeNES Team.
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use.
 
-   mmc5.cpp: MMC5 sound hardware emulation by randilyn. */
+   MMC5.cpp: MMC5 sound hardware emulation by randilyn. */
 
-#include "../include/common.h"
-#include "sound.hpp"
-#include "mmc5.hpp"
-             
+#include "Common.hpp"
+#include "MMC5.hpp"
+
 namespace Sound {
 namespace MMC5 {
 
@@ -129,7 +128,7 @@ void Square::process(cpu_time_t cycles)
       step = 0;
 }
 
-void Square::save(PACKFILE* file, int version)
+void Square::save(PACKFILE* file, int version) const
 {
    RT_ASSERT(file);
 
@@ -214,7 +213,7 @@ void PCM::write(uint16 address, uint8 value)
    }
 }
 
-void PCM::save(PACKFILE* file, int version)
+void PCM::save(PACKFILE* file, int version) const
 {
    RT_ASSERT(file);
 
@@ -240,7 +239,7 @@ void Interface::reset(void)
    output = 0;
 }
 
-uint8 Interface::read(uint16 address)
+uint8 Interface::read(uint16 address) const
 {
    uint8 value = 0x00;
 
@@ -314,30 +313,24 @@ void Interface::process(cpu_time_t cycles)
       else
          timer += 7457;
 
-      if(apu_options.enable_extra_1)
-         square1.update_240hz();
-      if(apu_options.enable_extra_2)
-         square2.update_240hz();
+      square1.update_240hz();
+      square2.update_240hz();
 
       if(flip) {
          flip = false;
 
-         if(apu_options.enable_extra_1)
-            square1.update_120hz();
-         if(apu_options.enable_extra_2)
-            square2.update_120hz();
+         square1.update_120hz();
+         square2.update_120hz();
       }
       else
          flip = true;
    }
 
-   if(apu_options.enable_extra_1)
-      square1.process(cycles);
-   if(apu_options.enable_extra_2)
-      square2.process(cycles);
+   square1.process(cycles);
+   square2.process(cycles);
 }
 
-void Interface::save(PACKFILE* file, int version)
+void Interface::save(PACKFILE* file, int version) const
 {
    RT_ASSERT(file);
 

@@ -265,9 +265,6 @@ int mmc_init (void)
     }
 
 
-    apu_set_exsound (APU_EXSOUND_NONE);
-
-
     if (current_mmc == NIL)
     {
         return (1);
