@@ -209,7 +209,7 @@ BOOL nsf_open(const UCHAR* filename)
    unsigned offset = nsf.loadAddress & 0x0FFF; // $8000 -> $0000
 
    // Load the data.
-   int counter = 0;
+   int counter = offset;
    while(!pack_feof(file)) {
       nsf.data[offset++] = pack_getc(file);
       bytesRead++;
