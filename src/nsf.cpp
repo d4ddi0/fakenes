@@ -209,7 +209,7 @@ BOOL nsf_open(const UCHAR* filename)
    unsigned offset = nsf.loadAddress & 0x0FFF; // $8000 -> $0000
 
    // Load the data.
-   int counter = offset;
+   unsigned counter = offset;
    while(!pack_feof(file)) {
       nsf.data[offset++] = pack_getc(file);
       bytesRead++;
@@ -306,7 +306,7 @@ void nsf_main(void)
 
    // Determine how many scanlines to a frame.
    const real scanlinesPerFrame = ((machine_type == MACHINE_TYPE_PAL) ? TOTAL_LINES_PAL : TOTAL_LINES_NTSC);
-   const real scanlineBPM = (scanlinesPerFrame *  nsfFrameBPM);
+   const real scanlineBPM = (scanlinesPerFrame * nsfFrameBPM);
 
    // Determine how often to update the playback timer, in scanline counts.
    real playbackTimer = 0.0;
@@ -1237,7 +1237,7 @@ static real bandpass(uint16* buffer, unsigned size, real sampleRate, int channel
    }
 
    accumulator = (int32)Round((real)accumulator / counter);
-   accumulator = (saved_accumulator - accumulator);
+   accumulator = saved_accumulator - accumulator;
 
-   return (accumulator / 32768.0);
+   return accumulator / 32768.0;
 }
