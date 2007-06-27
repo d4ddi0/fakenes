@@ -585,17 +585,17 @@ static linear void nsfPowerLevelsVisualizationDraw(void)
          vline(video_buffer, dx, y, (y + bar_height), (0x2D & colorMask) + PALETTE_ADJUST);
 
       // Draw partially lit bars.
-      int power = (int)ROUND(bar_width * peak);
+      int power = Round(bar_width * peak);
       for(int dx = x; dx <= (x + power); dx += x_spacing)
          vline(video_buffer, dx, y, (y + bar_height), (0x1C & colorMask) + PALETTE_ADJUST);
 
       // Draw lit bars.
-      power = (int)ROUND(bar_width * output);
+      power = Round(bar_width * output);
       for(int dx = x; dx <= (x + power); dx += x_spacing)
          vline(video_buffer, dx, y, (y + bar_height), (0x2C & colorMask) + PALETTE_ADJUST);
 
       // Draw peak.
-      power = (int)ROUND(bar_width * peak);
+      power = Round(bar_width * peak);
       vline(video_buffer, (x + power), y, (y + bar_height), (0x3D & colorMask) + PALETTE_ADJUST);
 
       y += y_spacing;
@@ -703,7 +703,7 @@ static linear void nsfFrequenciesVisualizationDraw(void)
       const real& output = nsfFrequenciesVisualizationOutputs[step];
 
       // Draw bar.
-      const int height = (int)ROUND(max_height * output);
+      const int height = Round(max_height * output);
       rectfill(video_buffer, (x + (bar_spacing * step)), y, ((x + (bar_spacing * step)) + bar_width), (y - height),
          (0x24 & colorMask) + PALETTE_ADJUST);
    }
@@ -832,17 +832,17 @@ static linear void nsfWaveformVisualizationDraw(void)
          const real& outputLeft = nsfWaveformVisualizationStereoOutputsLeft[step];
          const real& outputRight = nsfWaveformVisualizationStereoOutputsRight[step];
 
-         int power = (int)ROUND(max_height * outputLeft);
+         int power = Round(max_height * outputLeft);
          vline(video_buffer, draw_x, y_base, (y_base + power), (0x2A & colorMask) + PALETTE_ADJUST);
 
-         power = (int)ROUND(max_height * outputRight);
+         power = Round(max_height * outputRight);
          vline(video_buffer, draw_x, (y_base + y_offset), ((y_base + y_offset) + power),
             (0x16 & colorMask) + PALETTE_ADJUST);
       }
       else {
          const real& output = nsfWaveformVisualizationOutputs[step];
 
-         const int power = (int)ROUND(max_height * output);
+         const int power = Round(max_height * output);
          vline(video_buffer, draw_x, y_base, (y_base + power), (0x2A & colorMask) + PALETTE_ADJUST);
       }
    }
@@ -1185,7 +1185,7 @@ static real bandpass(uint16* buffer, unsigned size, real sampleRate, int channel
 
    // Lowpass.
    real timer = 0.0;
-   real period = sampleRate / MAX(EPSILON, cutoffHigh);
+   real period = sampleRate / Maximum(Epsilon, cutoffHigh);
 
    int32 accumulator = 0;
    int counter = 0;
@@ -1203,15 +1203,15 @@ static real bandpass(uint16* buffer, unsigned size, real sampleRate, int channel
       for(int channel = 0; channel < channels; channel++)
          sample += (int16)(buffer[(offset * channels) + channel] ^ 0x8000);
 
-      accumulator += (int16)ROUND((real)sample / channels);
+      accumulator += (int16)Round((real)sample / channels);
       counter++;
    }
 
-   accumulator = (int32)ROUND((real)accumulator / counter);
+   accumulator = (int32)Round((real)accumulator / counter);
 
    // Highpass.
    timer = 0.0;
-   period = sampleRate / MAX(cutoffLow, EPSILON);
+   period = sampleRate / Maximum(Epsilon, cutoffLow);
 
    const int32 saved_accumulator = accumulator;
    accumulator = 0;
@@ -1230,11 +1230,11 @@ static real bandpass(uint16* buffer, unsigned size, real sampleRate, int channel
       for(int channel = 0; channel < channels; channel++)
          sample += (int16)(buffer[(offset * channels) + channel] ^ 0x8000);
 
-      accumulator += (int16)ROUND((real)sample / channels);
+      accumulator += (int16)Round((real)sample / channels);
       counter++;
    }
 
-   accumulator = (int32)ROUND((real)accumulator / counter);
+   accumulator = (int32)Round((real)accumulator / counter);
    accumulator = (saved_accumulator - accumulator);
 
    return (accumulator / 32768.0);

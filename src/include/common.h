@@ -2,7 +2,7 @@
 
    common.h: Global common definitions.
 
-   Copyright (c) 2001-2006, FakeNES Team.
+   Copyright (c) 2001-2007, FakeNES Team.
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
 
@@ -16,42 +16,51 @@ extern "C" {
 #endif
 
 #undef TRUE
-#define TRUE   1
 #undef FALSE
-#define FALSE  0
+#define TRUE  1
+#define FALSE 0
 
-#define TRUE_OR_FALSE(x)   ((x) ? TRUE : FALSE)
+#define TRUE_OR_FALSE(x) ((x) ? TRUE : FALSE)
 
 #undef NULL
-#define NULL   0
+#define NULL 0
 
-#define ROUND(x)  ((x) + 0.5)
+#define BOOLEAN(x) ((x) ? TRUE : FALSE)
+#define BINARY(x)  ((x) ? 1 : 0)
+
+/* Note that the C version of this macro does not cast to integer. */
+#define ROUND(x) ((x) + 0.5)
 
 #ifndef M_PI
-#define M_PI      3.14159265358979323846
+#define M_PI 3.14159265358979323846
 #endif
 
 /* <+KittyCat> $ grep EPSILON include/3dobject.h
    <+KittyCat> #define EPSILON (1.0f/1024.0f)
    */
-#define EPSILON   (1.0 / 1024.0)
+#define EPSILON (1.0 / 1024.0)
+
+#define MAX3(a, b, c) (MAX((a), MAX((b), (c))))
 
 #ifdef __cplusplus
 /* Cleaner lowercase versions for use in 'pure' C++ code. */
-#define true   TRUE
-#define false  FALSE
+#define true  (TRUE)
+#define false (FALSE)
 
-#define min(x,y)   MIN((x),(y))
-#define max(x,y)   MAX((x),(y))
+#define null (NULL)
 
-#define true_or_false(x)   ((x) ? true : false)
+#define inline INLINE
+#define linear INLINE // for functions that are called only once
 
-#define null   NULL
+#define Boolean(x) (BOOLEAN((x)))
+#define Binary(x)  (BINARY((x)))
 
-#define inline    INLINE
-#define linear    INLINE   // for functions that are called only once
+#define Round(x) ((int)ROUND((x)))
 
-#define epsilon   EPSILON
+#define Epsilon (EPSILON)
+
+#define Minimum(x, y) (MIN((x),(y)))
+#define Maximum(x, y) (MAX((x),(y)))
 #endif /* __cplusplus */
 
 /* Macro to compare 2 REALs. */
@@ -61,29 +70,27 @@ extern "C" {
 /* TODO: Remove all references to NIL and correct compiler warnings. */
 #define NIL    0
 
-static INLINE int fix (int value, int base, int limit)
+static INLINE int fix(int value, int base, int limit)
 {
-   if (value < base)
+   if(value < base)
       value = base;
-   if (value > limit)
+   if(value > limit)
       value = limit;
 
-   return (value);
+   return value;
 }
 
-static INLINE REAL fixf (REAL value, REAL base, REAL limit)
+static INLINE REAL fixf(REAL value, REAL base, REAL limit)
 {
-   if (value < base)
+   if(value < base)
       value = base;
-   if (value > limit)
+   if(value > limit)
       value = limit;
 
-   return (value);
+   return value;
 }
-
-#define MAX3(a, b, c)   (MAX((a), MAX((b), (c))))
-      
+     
 #ifdef __cplusplus
 }
-#endif   /* __cplusplus */
-#endif   /* !COMMON_H_INCLUDED */
+#endif /* __cplusplus */
+#endif /* !COMMON_H_INCLUDED */

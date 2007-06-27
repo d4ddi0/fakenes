@@ -12,6 +12,7 @@
 #include <string.h>
 #include "common.h"
 #include "cpu.h"
+#include "mmc.h"
 #include "ppu.h"
 #include "rom.h"
 #include "shared/bufferfile.h"

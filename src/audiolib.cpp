@@ -49,7 +49,7 @@ int audiolib_init(void)
             log_printf("AUDIOLIB: audiolib_init(): Initialization of audio driver failed for AUDIO_SUBSYSTEM_ALLEGRO.");
             log_printf("AUDIOLIB: audiolib_init(): audiolibDriver->initialize() error code %d.", result);
             audiolib_exit();
-            return (8 + result);
+            return 8 + result;
          }
 
          break;
@@ -69,7 +69,7 @@ int audiolib_init(void)
             log_printf("AUDIOLIB: audiolib_init(): Initialization of audio driver failed for AUDIO_SUBSYSTEM_OPENAL.");
             log_printf("AUDIOLIB: audiolib_init(): audiolibDriver->initialize() error code %d.", result);
             audiolib_exit();
-            return (8 + result);
+            return 8 + result;
          }
 
          break;
@@ -228,13 +228,13 @@ int AudiolibAllegroDriver::initialize(void)
               "AUDIOLIB: AudiolibAllegroDriver::initialize():    Sample format: %s %d-bit\n"
               "AUDIOLIB: AudiolibAllegroDriver::initialize():    Buffer length: %dms (%s)\n"
               "\n",
-              ((audio_channels == 2) ? "Stereo" : "Mono"),
+              (audio_channels == 2) ? "Stereo" : "Mono",
               audio_sample_rate,
-              ((audio_options.sample_rate_hint == -1) ? "Autodetect" : "Forced"),
-              (audio_signed_samples ? "Signed" : "Unsigned"),
+              (audio_options.sample_rate_hint == -1) ? "Autodetect" : "Forced",
+              audio_signed_samples ? "Signed" : "Unsigned",
               audio_sample_bits,
               audio_buffer_length_ms,
-              ((audio_options.buffer_length_ms_hint == -1) ? "Autodetect" : "Forced"));
+              (audio_options.buffer_length_ms_hint == -1) ? "Autodetect" : "Forced");
 
    // Return success.
    return 0;
@@ -258,7 +258,7 @@ int AudiolibAllegroDriver::openStream(void)
 
    // Create stream.
    stream = play_audio_stream(audio_buffer_size_frames,
-      audio_sample_bits, (audio_channels == 2), audio_sample_rate, 255, 128);
+      audio_sample_bits, audio_channels == 2, audio_sample_rate, 255, 128);
    if(!stream) {
       log_printf("AUDIOLIB: AudiolibAllegroDriver::openStream(): Creation of audio stream failed.");
       log_printf("AUDIOLIB: AudiolibAllegroDriver::openStream(): Allegro says: %s.", allegro_error);
@@ -396,13 +396,13 @@ int AudiolibOpenALDriver::initialize(void)
               "AUDIOLIB: AudiolibOpenALDriver::initialize():    Sample format: %s %d-bit\n"
               "AUDIOLIB: AudiolibOpenALDriver::initialize():    Buffer length: %dms (%s)\n"
               "\n",
-              ((audio_channels == 2) ? "Stereo" : "Mono"),
+              (audio_channels == 2) ? "Stereo" : "Mono",
               audio_sample_rate,
-              ((audio_options.sample_rate_hint == -1) ? "Autodetect" : "Forced"),
-              (audio_signed_samples ? "Signed" : "Unsigned"),
+              (audio_options.sample_rate_hint == -1) ? "Autodetect" : "Forced",
+              audio_signed_samples ? "Signed" : "Unsigned",
               audio_sample_bits,
               audio_buffer_length_ms,
-              ((audio_options.buffer_length_ms_hint == -1) ? "Autodetect" : "Forced"));
+              (audio_options.buffer_length_ms_hint == -1) ? "Autodetect" : "Forced");
 
    // Return success.
    return 0;

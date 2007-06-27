@@ -2,7 +2,7 @@
 
    config.c: Wrapper around configuration handlers.
 
-   Copyright (c) 2001-2006, FakeNES Team.
+   Copyright (c) 2001-2007, FakeNES Team.
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
 
@@ -66,4 +66,21 @@ void save_config(void)
    video_save_config();
 
    flush_config_file();
+}
+
+// Helpers for saving and loading boolean variables in a standard way
+BOOL get_config_bool(const char* section, const char* name, BOOL default_value)
+{
+   RT_ASSERT(section);
+   RT_ASSERT(name);
+
+   return BOOLEAN(get_config_int(section, name, BINARY(default_value)));
+}
+
+void set_config_bool(const char* section, const char* name, BOOL value)
+{
+   RT_ASSERT(section);
+   RT_ASSERT(name);
+
+   set_config_int(section, name, BINARY(value));
 }

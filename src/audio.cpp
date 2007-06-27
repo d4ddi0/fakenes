@@ -15,6 +15,7 @@
 #include "audio_int.h"
 #include "audiolib.h"
 #include "common.h"
+#include "config.h"
 #include "debug.h"
 #include "gui.h"
 #include "timing.h"
@@ -97,20 +98,20 @@ void audio_load_config(void)
 {
    DEBUG_PRINTF("audio_load_config()\n");
 
-   audio_options.enable_output         = true_or_false(get_config_int("audio", "enable_output", audio_options.enable_output));
-   audio_options.subsystem             = get_config_int("audio", "subsystem",        audio_options.subsystem);
-   audio_options.sample_rate_hint      = get_config_int("audio", "sample_rate",      audio_options.sample_rate_hint);
-   audio_options.buffer_length_ms_hint = get_config_int("audio", "buffer_length_ms", audio_options.buffer_length_ms_hint);
+   audio_options.enable_output         = get_config_bool("audio", "enable_output",    audio_options.enable_output);
+   audio_options.subsystem             = get_config_int ("audio", "subsystem",        audio_options.subsystem);
+   audio_options.sample_rate_hint      = get_config_int ("audio", "sample_rate",      audio_options.sample_rate_hint);
+   audio_options.buffer_length_ms_hint = get_config_int ("audio", "buffer_length_ms", audio_options.buffer_length_ms_hint);
 }
 
 void audio_save_config(void)
 {
    DEBUG_PRINTF("audio_save_config()\n");
 
-   set_config_int("audio", "enable_output",    (audio_options.enable_output ? 1 : 0));
-   set_config_int("audio", "subsystem",        audio_options.subsystem);
-   set_config_int("audio", "sample_rate",      audio_options.sample_rate_hint);
-   set_config_int("audio", "buffer_length_ms", audio_options.buffer_length_ms_hint);
+   set_config_bool("audio", "enable_output",    audio_options.enable_output);
+   set_config_int ("audio", "subsystem",        audio_options.subsystem);
+   set_config_int ("audio", "sample_rate",      audio_options.sample_rate_hint);
+   set_config_int ("audio", "buffer_length_ms", audio_options.buffer_length_ms_hint);
 }
 
 int audio_init(void)
@@ -123,7 +124,7 @@ int audio_init(void)
    }
 
    // Determine number of channels.
-   audio_channels = (apu_options.stereo ? 2 : 1);
+   audio_channels = apu_options.stereo ? 2 : 1;
 
    // Initialize audio library.
    int result = audiolib_init();
@@ -140,13 +141,13 @@ int audio_init(void)
            "Try again in a few minutes. :)");
 
       audio_exit();
-      return (8 + result);
+      return 8 + result;
    }
 
    // Determine buffer sizes.
-   audio_buffer_size_frames = (unsigned)ROUND((audio_sample_rate / 1000.0) * audio_buffer_length_ms);
-   audio_buffer_size_samples = (audio_buffer_size_frames * audio_channels);
-   audio_buffer_size_bytes = (audio_buffer_size_samples * (audio_sample_bits / 8));
+   audio_buffer_size_frames = (unsigned)Round((audio_sample_rate / 1000.0) * audio_buffer_length_ms);
+   audio_buffer_size_samples = audio_buffer_size_frames * audio_channels;
+   audio_buffer_size_bytes = audio_buffer_size_samples * (audio_sample_bits / 8);
  
    // Allocate buffer.
    audioBuffer = malloc(audio_buffer_size_bytes);
@@ -164,7 +165,7 @@ int audio_init(void)
    if(result != 0) {
       WARN("Call to audiolib_open_stream() failed");
       audio_exit();
-      return (16 + result);
+      return 16 + result;
    }
 
    // Return success.
@@ -231,16 +232,16 @@ void audio_update(void)
             This is functionally identical to using an actual ring buffer, though not nearly as efficient. */
 
          // Determine how many frames are available in the queue.
-         const unsigned queuedFrames = (audioQueue.size() / audio_channels);
+         const unsigned queuedFrames = audioQueue.size() / audio_channels;
          if(queuedFrames > 0) {
             // Determine how many frames we want to make room for.
-            const unsigned framesToAdd = min(queuedFrames, audio_buffer_size_frames);
+            const unsigned framesToAdd = Minimum(queuedFrames, audio_buffer_size_frames);
             // Make room for the frames in the buffer.
-            const unsigned framesToMove = (audioBufferedFrames - framesToAdd);
+            const unsigned framesToMove = audioBufferedFrames - framesToAdd;
             if(framesToMove > 0) {
-               const unsigned copyBase = (((audioBufferedFrames - framesToMove) * audio_channels) * (audio_sample_bits / 8));
-               const unsigned samplesToMove = (framesToMove * audio_channels);
-               const unsigned bytesToMove = (samplesToMove * (audio_sample_bits / 8));
+               const unsigned copyBase = ((audioBufferedFrames - framesToMove) * audio_channels) * (audio_sample_bits / 8);
+               const unsigned samplesToMove = framesToMove * audio_channels;
+               const unsigned bytesToMove = samplesToMove * (audio_sample_bits / 8);
 
                uint8* buffer = (uint8*)audioBuffer;
                memcpy(&buffer[0], &buffer[copyBase], bytesToMove);
@@ -253,19 +254,19 @@ void audio_update(void)
 
    if(audioBufferedFrames < audio_buffer_size_frames) {
       // Determine how many frames are available in the queue.
-      const unsigned queuedFrames = (audioQueue.size() / audio_channels);
+      const unsigned queuedFrames = audioQueue.size() / audio_channels;
       if(queuedFrames > 0) {
          // Determine how many frames are available in the buffer.
-         const unsigned bufferableFrames = (audio_buffer_size_frames - audioBufferedFrames);
+         const unsigned bufferableFrames = audio_buffer_size_frames - audioBufferedFrames;
          // Determine the number of frames to copy to the buffer.
-         const unsigned framesToCopy = min(queuedFrames, bufferableFrames);
+         const unsigned framesToCopy = Minimum(queuedFrames, bufferableFrames);
 
          // Copy frames to the buffer.
          for(unsigned frame = 0; frame < framesToCopy; frame++) {
             // Read/write base addresses (read from queue, write to buffer).
-            const unsigned readBase = (frame * audio_channels);
+            const unsigned readBase = frame * audio_channels;
             // audioBufferedFrames changes within the loop(see below), so all we have to do is use it as a write pointer.
-            const unsigned writeBase = (audioBufferedFrames * audio_channels);
+            const unsigned writeBase = audioBufferedFrames * audio_channels;
 
             for(int channel = 0; channel < audio_channels; channel++) {
                // Fetch a sample from the queue.
@@ -298,7 +299,7 @@ void audio_update(void)
 
                /* Determine our write offset for the buffer (this remains constant regardless of the value of sample_bits
                   since we cast the buffer to an appropriately sized data type). */
-               const unsigned writeOffset = (writeBase + channel);
+               const unsigned writeOffset = writeBase + channel;
 
                // Write our sample to the buffer.
                switch(audio_sample_bits) {
@@ -332,8 +333,8 @@ void audio_update(void)
                            sample ^= 0x8000;
                         }
 
-                        putc((sample & 0xFF), wavFile);
-                        putc(((sample & 0xFF00) >> 8), wavFile);
+                        putc(sample & 0xFF, wavFile);
+                        putc((sample & 0xFF00) >> 8, wavFile);
 
                         wavSize += 2;
                      }
@@ -351,11 +352,11 @@ void audio_update(void)
          }
 
          // Determine how many samples we copied.
-         const unsigned samplesCopied = (framesToCopy * audio_channels);
-         const unsigned samplesRemaining = (audioQueue.size() - samplesCopied);
+         const unsigned samplesCopied = framesToCopy * audio_channels;
+         const unsigned samplesRemaining = audioQueue.size() - samplesCopied;
          /* Removed copied samples from the queue.
             Thanks KittyCat! =^-^= */
-         memcpy(&audioQueue[0], &audioQueue[samplesCopied], (sizeof(uint16) * samplesRemaining));
+         memcpy(&audioQueue[0], &audioQueue[samplesCopied], sizeof(uint16) * samplesRemaining);
          audioQueue.resize(samplesRemaining);
       }
    }
@@ -458,24 +459,24 @@ void audio_close_wav(void)
 
       WAVRIFFTypeChunk riff;
       riff.chunkID = WAV_ID('R','I','F','F');
-      riff.chunkSize = ((WAV_HEADER_SIZE + wavSize) - 8);
+      riff.chunkSize = (WAV_HEADER_SIZE + wavSize) - 8;
       riff.riffType = WAV_ID('W','A','V','E');
       fwrite(&riff, sizeof(riff), 1, wavFile);
 
       WAVFormatChunk fmt;
       fmt.chunkID = WAV_ID('f','m','t',' ');
-      fmt.chunkSize = (sizeof(fmt) - 8);
+      fmt.chunkSize = sizeof(fmt) - 8;
       fmt.formatTag = 1; // No compression.
       fmt.channels = audio_channels;
       fmt.samplesPerSec = audio_sample_rate;
-      fmt.avgBytesPerSec = ((audio_sample_rate * audio_channels) * (audio_sample_bits / 8));
-      fmt.blockAlign = (audio_channels * (audio_sample_bits / 8));
+      fmt.avgBytesPerSec = (audio_sample_rate * audio_channels) * (audio_sample_bits / 8);
+      fmt.blockAlign = audio_channels * (audio_sample_bits / 8);
       fmt.bitsPerSample = audio_sample_bits;
       fwrite(&fmt,  sizeof(fmt),  1, wavFile);
       
       WAVDataChunk data;
       data.chunkID = WAV_ID('d','a','t','a');
-      data.chunkSize = ((sizeof(data) + wavSize) - 8);
+      data.chunkSize = (sizeof(data) + wavSize) - 8;
       fwrite(&data, sizeof(data), 1, wavFile);
 
       // Close file.
@@ -490,7 +491,7 @@ void audio_close_wav(void)
 void audio_visopen(unsigned num_frames)
 {
    // Attempts to open a visualization buffer (no error checking - use audio_get_visdata() for that instead).
-   audioVisBufferSize = (num_frames * audio_channels);
+   audioVisBufferSize = num_frames * audio_channels;
    audioVisBuffer = new uint16[audioVisBufferSize];
 }
 
@@ -520,7 +521,7 @@ UINT16* audio_get_visdata(void)
       return null;
    }
 
-   memcpy(&visdata[0], &audioVisBuffer[0], (audioVisBufferSize * sizeof(uint16)));
+   memcpy(&visdata[0], &audioVisBuffer[0], audioVisBufferSize * sizeof(uint16));
 
    return visdata;
 }

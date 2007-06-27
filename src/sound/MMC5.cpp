@@ -59,13 +59,13 @@ void Square::write(uint16 address, uint8 value)
       case 0x5004: {
          regs[0] = value;
 
-         volume = (value & 0x0F);
-         halt = true_or_false(value & 0x20);
-         duty = (value >> 6);
+         volume = value & 0x0F;
+         halt = Boolean(value & 0x20);
+         duty = value >> 6;
 
-         envelope.period = ((value & 0x0F) + 1);
-         envelope.fixed = true_or_false(value & 0x10);
-         envelope.fixed_volume = (value & 0x0F);
+         envelope.period = (value & 0x0F) + 1;
+         envelope.fixed = Boolean(value & 0x10);
+         envelope.fixed_volume = value & 0x0F;
 
          break;        
       }
@@ -91,10 +91,10 @@ void Square::write(uint16 address, uint8 value)
          regs[3] = value;
 
          period &= ~0x700;
-         period |= ((value & 0x07) << 8);
+         period |= (value & 0x07) << 8;
 
          if(!clamped)
-            length = length_lut[(value >> 3)];
+            length = length_lut[value >> 3];
 
          // Reset envelope generator.
          envelope.reset = true;
@@ -117,10 +117,10 @@ void Square::process(cpu_time_t cycles)
          return;
    }
 
-   timer += ((period + 2) << 1);
+   timer += (period + 2) << 1;
 
    if(length > 0)
-      output = (volume & square_duty_lut[duty][step]);
+      output = volume & square_duty_lut[duty][step];
    else
       output = 0;
 
@@ -142,7 +142,7 @@ void Square::save(PACKFILE* file, int version) const
    pack_putc(output, file);
 
    pack_putc(envelope.timer, file);
-   pack_putc((envelope.reset ? 1 : 0), file);
+   pack_putc(Binary(envelope.reset), file);
    pack_putc(envelope.counter, file);
 }
 
@@ -160,7 +160,7 @@ void Square::load(PACKFILE* file, int version)
    output = pack_getc(file);
 
    envelope.timer = pack_getc(file);
-   envelope.reset = true_or_false(pack_getc(file));
+   envelope.reset = Boolean(pack_getc(file));
    envelope.counter = pack_getc(file);
 }
 
@@ -186,13 +186,13 @@ void Square::update_240hz(void)
    }
 
    envelope.timer += envelope.period;
-                      
+
    if(envelope.counter > 0)
       envelope.counter--;
    else if(halt)
       envelope.counter = 0xF;
 
-   volume = (envelope.fixed ? envelope.fixed_volume : envelope.counter);
+   volume = envelope.fixed ? envelope.fixed_volume : envelope.counter;
 }
 
 void PCM::reset (void)
@@ -285,11 +285,11 @@ void Interface::write(uint16 address, uint8 value)
       }
 
       case 0x5015: {
-         square1.clamped = !true_or_false(value & 0x01);
+         square1.clamped = Boolean(~value & 0x01);
          if(square1.clamped)
             square1.length = 0;
 
-         square2.clamped = !true_or_false(value & 0x02);
+         square2.clamped = Boolean(~value & 0x02);
          if(square2.clamped)
             square2.length = 0;
 
@@ -335,7 +335,7 @@ void Interface::save(PACKFILE* file, int version) const
    RT_ASSERT(file);
 
    pack_iputl(timer, file);
-   pack_putc((flip ? 1 : 0), file);
+   pack_putc(Binary(flip), file);
 
    square1.save(file, version);
    square2.save(file, version);
@@ -347,7 +347,7 @@ void Interface::load(PACKFILE* file, int version)
    RT_ASSERT(file);
 
    timer = pack_igetl(file);
-   flip = true_or_false(pack_getc(file));
+   flip = Boolean(pack_getc(file));
 
    square1.load(file, version);
    square2.load(file, version);
@@ -374,11 +374,11 @@ void Interface::mix(real input)
    if(apu_options.enable_extra_3)
       pcm_out += pcm.output;
 
-   uint16 total = ((squares_out << 3) + pcm_out);
+   uint16 total = (squares_out << 3) + pcm_out;
 
    // ((15+15)*8)+255 = 495
-   const real constantTotal = (total / 495.0);
-   output = ((input + constantTotal) / 2.0);
+   const real constantTotal = total / 495.0;
+   output = (input + constantTotal) / 2.0;
 }
 
 } //namespace MMC5

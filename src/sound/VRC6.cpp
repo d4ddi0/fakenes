@@ -32,9 +32,9 @@ void Square::write(uint16 address, uint8 value)
       case 0xA000: {
          regs[0] = value;
 
-         volume = (value & 0x0F);
-         duty = ((value >> 4) & 0x07);
-         force = true_or_false(value & 0x80);
+         volume = value & 0x0F;
+         duty = (value >> 4) & 0x07;
+         force = Boolean(value & 0x80);
 
          if(force)
             output = volume;
@@ -56,12 +56,12 @@ void Square::write(uint16 address, uint8 value)
       case 0xA002: {
          regs[2] = value;
 
-         enabled = true_or_false(value & 0x80);
+         enabled = Boolean(value & 0x80);
          if(!enabled)
             output = 0;
 
          period &= ~0xF00;
-         period |= ((value & 0x0F) << 8);
+         period |= (value & 0x0F) << 8;
 
          break;
       }
@@ -79,7 +79,7 @@ void Square::process(cpu_time_t cycles)
          return;
    }
 
-   timer += (period + 1);
+   timer += period + 1;
 
    if(enabled &&
       (force || (step <= duty)))
@@ -133,7 +133,7 @@ void Saw::write(uint16 address, uint8 value)
       case 0xB000: {
          regs[0] = value;
 
-         rate = (value & 0x3F);
+         rate = value & 0x3F;
          break;
       }
 
@@ -149,12 +149,12 @@ void Saw::write(uint16 address, uint8 value)
       case 0xB002: {
          regs[2] = value;
 
-         enabled = true_or_false(value & 0x80);
+         enabled = Boolean(value & 0x80);
          if(!enabled)
             output = 0;
 
          period &= ~0xF00;
-         period |= ((value & 0x0F) << 8);
+         period |= (value & 0x0F) << 8;
 
          break;
       }
@@ -172,7 +172,7 @@ void Saw::process(cpu_time_t cycles)
          return;
    }
 
-   timer += ((period + 1) << 1);
+   timer += (period + 1) << 1;
 
    if(step == 6) {
       step = 0;
@@ -188,7 +188,7 @@ void Saw::process(cpu_time_t cycles)
    }
 
    volume += rate;
-   output = (volume >> 3);
+   output = volume >> 3;
 }
 
 void Saw::save(PACKFILE* file, int version) const
@@ -295,8 +295,8 @@ void Interface::mix(real input)
    /* I'm going to assume that the VRC6's mixer consists merely of adders along with a 6 bit DAC.
       This would make the maximum capacity of the VRC6's mixer 6 bits, with the values 0-61 being consumed by the above 
       accumulations and the rest (values 62-63) being consumed by headroom. */
-   const real constantTotal = (total / 63.0);
-   output = ((input + constantTotal) / 2.0);
+   const real constantTotal = total / 63.0;
+   output = (input + constantTotal) / 2.0;
 }
 
 } //namespace VRC6

@@ -2,7 +2,7 @@
 
    config.h: Declarations for configuration wrapper.
 
-   Copyright (c) 2001-2006, FakeNES Team.
+   Copyright (c) 2001-2007, FakeNES Team.
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
 
@@ -13,11 +13,13 @@
 extern "C" {
 #endif
 
-void load_config (void);
-void save_config (void);
+extern void load_config (void);
+extern void save_config (void);
+extern BOOL get_config_bool(const char* section, const char* name, BOOL default_value);
+extern void set_config_bool(const char* section, const char* name, BOOL value);
 
 #ifdef __cplusplus
 }
 #endif
-#endif   /* !CONFIG_H_INCLUDED */
+#endif /* !CONFIG_H_INCLUDED */
 
