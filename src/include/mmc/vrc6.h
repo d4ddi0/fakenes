@@ -49,6 +49,8 @@ static UINT8 vrc6_chr_bank[8];
 
 /* ~1.79MHz(~1.66MHz for PAL) clock derived directly from the CPU. */
 static cpu_time_t vrc6_clock_counter = 0;
+/* Buffer to hold unused clocks so we don't lose cycles. */
+static cpu_rtime_t vrc6_clock_buffer = 0;
 
 /* When in scanline mode ('M' bit clear), a prescaler divides the passing CPU cycles by 114, 114, then 113 (and repeats
    that order). This approximates 113+2/3 CPU cycles, which is one NTSC scanline */
@@ -112,13 +114,15 @@ static void vrc6_process (void)
    /* Call this before accessing the state of the mapper - before reads,
       writes, and state-sensetive emulation. */
 
-   const cpu_time_t elapsed_cycles = cpu_get_elapsed_cycles(&vrc6_clock_counter);
-   if(elapsed_cycles == 0)
+   const cpu_rtime_t elapsed_cycles = cpu_get_elapsed_cycles(&vrc6_clock_counter) + vrc6_clock_buffer;
+   if(elapsed_cycles <= 0)
       return;
 
-   /* Convert from master clock to CPU clock, since that is what the VRC6 scanline simulator is based on. */
-   const cpu_time_t elapsed_cpu_cycles = elapsed_cycles / CPU_CLOCK_DIVIDER;
-   if(elapsed_cpu_cycles == 0)
+   /* Scale from master clock to APU and buffer the remainder to avoid possibly losing cycles. */
+   const cpu_rtime_t elapsed_cpu_cycles = elapsed_cycles / CPU_CLOCK_DIVIDER;
+   vrc6_clock_buffer += elapsed_cycles - (elapsed_cpu_cycles * CPU_CLOCK_DIVIDER);
+
+   if(elapsed_cpu_cycles <= 0)
       return;
 
    /* *Don't* allow IRQs here, or it'll conflict with prediction. */
@@ -160,7 +164,8 @@ static void vrc6_predict_irq(cpu_time_t cycles)
 
    /* Save parameters for re-prediction if a mid-scanline change occurs. */
    vrc6_prediction_timestamp = cpu_get_cycles ();
-   vrc6_prediction_cycles = cycles;
+   /* We'll actually emulate for a little bit longer than requested, since it doesn't hurt to do so. */
+   vrc6_prediction_cycles = cycles + CPU_CLOCK_MULTIPLIER;
 
    const cpu_time_t cpu_cycles = cycles /  CPU_CLOCK_DIVIDER;
    if (cpu_cycles == 0)
@@ -453,6 +458,7 @@ static void vrc6_save_state (PACKFILE *file, int version)
 
    /* Save internal clock. */
    pack_iputl (vrc6_clock_counter, file);
+   pack_iputl (vrc6_clock_buffer,  file);
 
    /* Save IRQ status. */
    pack_putc (vrc6_irq_timer,             file);
@@ -484,6 +490,7 @@ static void vrc6_load_state (PACKFILE *file, int version)
 
    /* Restore internal clock. */
    vrc6_clock_counter = pack_igetl (file);
+   vrc6_clock_buffer  = pack_igetl (file);
 
    /* Restore IRQ status. */
    vrc6_irq_timer   = pack_getc (file);

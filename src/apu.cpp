@@ -1508,7 +1508,8 @@ void apu_predict_irqs(cpu_time_t cycles)
 
    // Save parameters for re-prediction if a mid-scanline change occurs.
    apu.prediction_timestamp = cpu_get_cycles();
-   apu.prediction_cycles = cycles;
+   // We'll actually emulate a little bit longer than requested, since it doesn't hurt to do so.
+   apu.prediction_cycles = cycles + APU_CLOCK_MULTIPLIER;
 
    // Convert from master clock to APU clock.
    const cpu_time_t apu_cycles = cycles / APU_CLOCK_DIVIDER;
@@ -1560,6 +1561,7 @@ void apu_save_state(PACKFILE* file, int version)
 
    // Processing timestamp
    pack_iputl(apu.clock_counter, file);
+   pack_iputl(apu.clock_buffer, file);
 
    // IRQ prediction
    pack_iputl(apu.prediction_timestamp, file);
@@ -1588,6 +1590,7 @@ void apu_load_state(PACKFILE* file, int version)
    RT_ASSERT(file);
 
    apu.clock_counter = pack_igetl(file);
+   apu.clock_buffer = pack_igetl(file);
 
    apu.prediction_timestamp = pack_igetl(file);
    apu.prediction_cycles = pack_igetl(file);
@@ -1645,17 +1648,24 @@ static void process(void)
    }
 
    // Calculate the delta period.
-   const cpu_time_t elapsed_cycles = cpu_get_elapsed_cycles(&apu.clock_counter) / APU_CLOCK_DIVIDER;
-   if(elapsed_cycles == 0) {
+   const cpu_rtime_t elapsed_cycles = cpu_get_elapsed_cycles(&apu.clock_counter) + apu.clock_buffer;
+   if(elapsed_cycles <= 0) {
       // Nothing to do. 
       return;
    }
+
+   // Scale from master clock to APU and buffer the remainder to avoid possibly losing cycles.
+   const cpu_rtime_t elapsed_apu_cycles = elapsed_cycles / APU_CLOCK_DIVIDER;
+   apu.clock_buffer += elapsed_cycles - (elapsed_apu_cycles * APU_CLOCK_DIVIDER);
+
+   if(elapsed_apu_cycles <= 0)
+      return;
 
    switch(apu_options.emulation) {
       case APU_EMULATION_FAST: {
          // -- Faster, inaccurate version of the mixer.
 
-         for(cpu_time_t count = 0; count < elapsed_cycles; count++) {
+         for(cpu_time_t count = 0; count < elapsed_apu_cycles; count++) {
             // Buffer a cycle.
             apu.mixer.delta_cycles++;
 
@@ -1703,7 +1713,7 @@ static void process(void)
          // Since we'll be emulating every cycle, we'll use a timer delta of 1.
          apu.timer_delta = 1;
 
-         for(cpu_time_t count = 0; count < elapsed_cycles; count++) {
+         for(cpu_time_t count = 0; count < elapsed_apu_cycles; count++) {
             // Update the frame sequencer.
             apu_update_frame_sequencer();
             // ~1.79MHz update driven independantly of the frame sequencer.
@@ -1743,7 +1753,7 @@ static void process(void)
          // Since we'll be emulating every cycle, we'll use a timer delta of 1.
          apu.timer_delta = 1;
 
-         for(cpu_time_t count = 0; count < elapsed_cycles; count++) {
+         for(cpu_time_t count = 0; count < elapsed_apu_cycles; count++) {
             // Update the frame sequencer.
             apu_update_frame_sequencer();
             // Update outputs.

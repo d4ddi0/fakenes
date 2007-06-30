@@ -105,7 +105,7 @@ extern void cpu_start_new_scanline (void);
 
 extern cpu_time_t cpu_get_cycles_line (void);
 extern cpu_time_t cpu_get_cycles (void);
-extern cpu_time_t cpu_get_elapsed_cycles (cpu_time_t *timestamp);
+extern cpu_rtime_t cpu_get_elapsed_cycles (cpu_time_t *timestamp);
 
 extern void cpu_save_state (PACKFILE *, int);
 extern void cpu_load_state (PACKFILE *, int);
