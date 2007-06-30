@@ -8,8 +8,7 @@ Distributed under the Clarified Artistic License.
 
 codes.h: CPU opcode emulation macros.
 
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
+Copyright (c) 2001-2007, FakeNES Team.
 
 This is free software.  See 'LICENSE' for details.
 You must read and accept the license prior to use.

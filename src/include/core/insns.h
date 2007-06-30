@@ -8,8 +8,7 @@ Distributed under the Clarified Artistic License.
 
 insns.h: CPU instructions emulation macros.
 
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
+Copyright (c) 2001-2007, FakeNES Team.
 
 This is free software.  See 'LICENSE' for details.
 You must read and accept the license prior to use.
@@ -26,12 +25,12 @@ specific behavior, for the Ricoh RP2A03G CPU.
     PC.word += 2; \
     if (condition) \
     { \
-        R->Cycles += CYCLE_LENGTH; \
+        R->Cycles += 1 * CPU_CLOCK_MULTIPLIER; \
         PC.bytes.low += data; \
         if ((data & 0x80) ? (PC.bytes.low >= data) : (PC.bytes.low < data)) \
         { \
             Fetch(PC.word); \
-            R->Cycles += CYCLE_LENGTH; \
+            R->Cycles += 1 * CPU_CLOCK_MULTIPLIER; \
             if (data & 0x80) PC.word -= 0x100; \
             else PC.word += 0x100; \
         } \

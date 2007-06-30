@@ -363,6 +363,24 @@ void cpu_queue_interrupt (int type, cpu_time_t time)
    }
 }
 
+void cpu_unqueue_interrupt (int type)
+{
+   switch (type)
+   {
+      case CPU_INTERRUPT_IRQ_SINGLE_SHOT:
+      case CPU_INTERRUPT_NMI:
+         break;
+
+      default:
+      {
+         FN2A03_Unqueue_Interrupt (&cpu_context, FN2A03_INT_IRQ_SOURCE((type -
+            CPU_INTERRUPT_IRQ_SOURCE(0))));
+
+         break;
+      }
+   }
+}
+
 static cpu_time_t scanline_start_cycle = 0;
 
 void cpu_start_new_scanline (void)
@@ -372,7 +390,8 @@ void cpu_start_new_scanline (void)
 
 cpu_time_t cpu_get_cycles_line (void)
 {
-   return ((cpu_context.Cycles - scanline_start_cycle));
+   /* TODO: Do away with this sprite #0 hack when the PPU becomes cycle-aware. */
+   return (cpu_context.Cycles - scanline_start_cycle);
 }
 
 cpu_time_t cpu_get_cycles (void)

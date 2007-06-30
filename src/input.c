@@ -873,7 +873,7 @@ void input_process (void)
       {
          static int frames = 0;
 
-         if (++frames == ROUND(input_autosave_interval * timing_get_speed ()))
+         if (++frames == ROUND(input_autosave_interval * timing_get_frame_rate ()))
          {
             /* Simulate keypress. */
             gui_handle_keypress (0, KEY_F3);
@@ -1113,7 +1113,7 @@ void input_process (void)
 
       /* Set frame counter. */
    
-      speed = timing_get_speed ();
+      speed = timing_get_frame_rate ();
    
       turbo_frames = ROUND((speed / (speed * turbo_rate)));
    }
@@ -1191,7 +1191,7 @@ void input_handle_keypress (int c, int scancode)
          if (!(input_mode & INPUT_MODE_REPLAY_PLAY))
             input_mode |= INPUT_MODE_PLAY;
 
-         wait_frames = ROUND(timing_get_speed () / 2.0f);
+         wait_frames = ROUND(timing_get_frame_rate () / 2.0f);
 
          return;                 
       }

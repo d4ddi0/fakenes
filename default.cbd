@@ -285,8 +285,9 @@ SRCFILES += "${SRC_SHAREDDIR}/crc32.cpp "
 SRCFILES += "${SRC_SOUNDDIR}/MMC5.cpp "
 SRCFILES += "${SRC_SOUNDDIR}/Sourcer.cpp "
 SRCFILES += "${SRC_SOUNDDIR}/VRC6.cpp "
+SRCFILES += 'timing.c '
 SRCFILES += 'video.c '
-                              
+
 # --
 
 ifopt clean goto clean

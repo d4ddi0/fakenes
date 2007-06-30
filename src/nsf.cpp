@@ -302,10 +302,10 @@ void nsf_main(void)
    timing_update_mode();
 
    // Calculate beats per second (BPM) for the frame timer.
-   nsfFrameBPM = timing_get_speed();
+   nsfFrameBPM = timing_get_frame_rate();
 
    // Determine how many scanlines to a frame.
-   const real scanlinesPerFrame = ((machine_type == MACHINE_TYPE_PAL) ? TOTAL_LINES_PAL : TOTAL_LINES_NTSC);
+   const real scanlinesPerFrame = ((machine_type == MACHINE_TYPE_PAL) ? PPU_TOTAL_LINES_PAL : PPU_TOTAL_LINES_NTSC);
    const real scanlineBPM = (scanlinesPerFrame * nsfFrameBPM);
 
    // Determine how often to update the playback timer, in scanline counts.

@@ -47,100 +47,64 @@ static BOOL vrc6_swap_address_pins = FALSE;
 static UINT8 vrc6_prg_bank[2];
 static UINT8 vrc6_chr_bank[8];
 
-/* Internal ~1.79MHz clock (scaled to ~5.37MHz for efficiency). */
+/* ~1.79MHz(~1.66MHz for PAL) clock derived directly from the CPU. */
 static cpu_time_t vrc6_clock_counter = 0;
 
-/* How often the IRQ counter gets clocked in CYCLE MODE. */
-#define VRC6_IRQ_CYCLE_LENGTH    CYCLE_LENGTH                  /* 1*3 */
-/* How often the IRQ counter gets clocked in SCANLINE MODE. */
-#define VRC6_IRQ_SCANLINE_LENGTH SCANLINE_LENGTH               /* 341 */
+/* When in scanline mode ('M' bit clear), a prescaler divides the passing CPU cycles by 114, 114, then 113 (and repeats
+   that order). This approximates 113+2/3 CPU cycles, which is one NTSC scanline */
+static const UINT8 vrc6_irq_lut[3] = { 114, 114, 113 };
+#define VRC6_IRQ_SEQUENCER_STEPS 3
 
-#define VRC6_IRQ_FREQUENCY \
-   ((vrc6_irq_reg & 0x04) ? VRC6_IRQ_CYCLE_LENGTH : VRC6_IRQ_SCANLINE_LENGTH)
+static UINT8 vrc6_irq_timer = 0;
+static UINT8 vrc6_irq_step  = 0;
 
-static UINT16 vrc6_irq_timer   = 0;
-static UINT8  vrc6_irq_counter = 0x00;
-static UINT8  vrc6_irq_latch   = 0x00;
-static UINT8  vrc6_irq_reg     = 0x00;
-static BOOL   vrc6_enable_irqs = FALSE;
+static UINT8 vrc6_irq_counter = 0x00;
+static UINT8 vrc6_irq_latch   = 0x00;
+static UINT8 vrc6_irq_reg     = 0x00;
+static BOOL  vrc6_enable_irqs = FALSE;
 
 /* IRQ prediction. */
 static cpu_time_t vrc6_prediction_timestamp = 0;
 static cpu_time_t vrc6_prediction_cycles = 0;
 
-static void vrc6_update_irq_counter (cpu_time_t cycles, BOOL allow_irq)
+static void vrc6_update_irq_counter(cpu_time_t cycles, BOOL allow_irq)
 {
-   /* Slave function used by both emulation and prediction(simulation). */
+   /* allow_irq setting:
+         TRUE  - prediction mode, allows queue of IRQs
+         FALSE - emulation mode, does not allow queueing of IRQs */
 
-   cpu_time_t count, offset;
+   cpu_time_t offset;
 
-   if (!vrc6_enable_irqs)
+   if(!vrc6_enable_irqs)
       return;
 
-   /* Speed hack.  Shouldn't hurt accuracy. =) */
-   cycles /= CYCLE_LENGTH;
-
-   /* Cache it for efficiency. */
-   count = VRC6_IRQ_FREQUENCY;
-
-   for (offset = 0; offset < cycles; offset++)
-   {
-      vrc6_irq_timer += CYCLE_LENGTH;
-      if (vrc6_irq_timer >= count)
-      {
-         vrc6_irq_timer -= count;
-   
-         if (vrc6_irq_counter == 0xFF)
-         {
-            vrc6_irq_counter = vrc6_irq_latch;
-
-            if (allow_irq)
-               cpu_queue_interrupt (CPU_INTERRUPT_IRQ_MMC, (vrc6_prediction_timestamp + offset));
-         }
-         else
-            vrc6_irq_counter++;
+   for(offset = 0; offset < cycles; offset++) {
+      if(vrc6_irq_timer > 0) {
+         vrc6_irq_timer--;
+         if(vrc6_irq_timer > 0)
+            continue;
       }
+
+      if(vrc6_irq_reg & 0x04) {
+         /* Cycle mode. */
+         vrc6_irq_timer += 1;
+      }
+      else {
+         /* Scanline mode. */
+         vrc6_irq_timer += vrc6_irq_lut[vrc6_irq_step++];
+         if(vrc6_irq_step > (VRC6_IRQ_SEQUENCER_STEPS - 1))
+            vrc6_irq_step = 0;
+      }
+
+      if(vrc6_irq_counter == 0xFF) {
+         vrc6_irq_counter = vrc6_irq_latch;
+
+         if (allow_irq)
+            cpu_queue_interrupt(CPU_INTERRUPT_IRQ_MMC, vrc6_prediction_timestamp + (offset * CPU_CLOCK_MULTIPLIER));
+      }
+      else
+         vrc6_irq_counter++;
    }
-}
-
-static void vrc6_predict_irq (cpu_time_t cycles)
-{
-   UINT16 saved_irq_timer;
-   UINT8 saved_irq_counter;
-
-   if (!vrc6_enable_irqs)
-      return;
-
-   /* Save vars since we're just simulating. */
-   saved_irq_timer = vrc6_irq_timer;
-   saved_irq_counter = vrc6_irq_counter;
-
-   /* Remember to allow IRQs here. */
-   /* Just go through the motions... */
-   vrc6_update_irq_counter (cycles, TRUE);
-
-   /* Restore saved vars. */
-   vrc6_irq_timer = saved_irq_timer;
-   vrc6_irq_counter = saved_irq_counter;
-}
-
-static void vrc6_repredict_irq (void)
-{
-   /* This needs to be called whenver a possible mid-scanline change to the
-      IRQ parameters occurs (to update prediction). */
-
-   cpu_time_t cycles, cycles_remaining;
-
-   cycles = cpu_get_cycles ();
-
-   cycles_remaining = (cycles - vrc6_prediction_timestamp);
-   if (cycles_remaining <= 0)
-      return;
-
-   if (cycles_remaining > vrc6_prediction_cycles)
-      cycles_remaining = vrc6_prediction_cycles;
-
-   vrc6_predict_irq (cycles_remaining);
 }
 
 static void vrc6_process (void)
@@ -148,28 +112,87 @@ static void vrc6_process (void)
    /* Call this before accessing the state of the mapper - before reads,
       writes, and state-sensetive emulation. */
 
-   const cpu_time_t elapsed_cycles = cpu_get_elapsed_cycles (&vrc6_clock_counter);
-   if (elapsed_cycles == 0)
+   const cpu_time_t elapsed_cycles = cpu_get_elapsed_cycles(&vrc6_clock_counter);
+   if(elapsed_cycles == 0)
+      return;
+
+   /* Convert from master clock to CPU clock, since that is what the VRC6 scanline simulator is based on. */
+   const cpu_time_t elapsed_cpu_cycles = elapsed_cycles / CPU_CLOCK_DIVIDER;
+   if(elapsed_cpu_cycles == 0)
       return;
 
    /* *Don't* allow IRQs here, or it'll conflict with prediction. */
-   vrc6_update_irq_counter (elapsed_cycles, FALSE);
+   vrc6_update_irq_counter(elapsed_cpu_cycles, FALSE);
 }
 
-static void vrc6_predict_irqs (cpu_time_t cycles)
+static void vrc6_predict_irq_slave(cpu_time_t cycles)
 {
-   /* Wrapper for vrc6_predict_irq() that is exposed to the MMC interfce,
-      thus must take care of a few specific things. */
+   /* Slave function used by IRQ prediction. */
+
+   UINT8 saved_irq_timer, saved_irq_step;
+   UINT8 saved_irq_counter;
+
+   /* Clear any pending IRQs, just in case. */
+   cpu_unqueue_interrupt(CPU_INTERRUPT_IRQ_MMC);
+
+   if (!vrc6_enable_irqs)
+      return;
+
+   /* Save vars since we're just simulating. */
+   saved_irq_timer = vrc6_irq_timer;
+   saved_irq_step = vrc6_irq_step;
+   saved_irq_counter = vrc6_irq_counter;
+
+   /* Remember to allow IRQs here. */
+   /* Just go through the motions... */
+   vrc6_update_irq_counter(cycles, TRUE);
+
+   /* Restore saved vars. */
+   vrc6_irq_timer = saved_irq_timer;
+   vrc6_irq_step = saved_irq_step;
+   vrc6_irq_counter = saved_irq_counter;
+}
+
+static void vrc6_predict_irq(cpu_time_t cycles)
+{
+   /* Sync state. */
+   vrc6_process ();
 
    /* Save parameters for re-prediction if a mid-scanline change occurs. */
    vrc6_prediction_timestamp = cpu_get_cycles ();
    vrc6_prediction_cycles = cycles;
 
-   /* Sync state. */
-   vrc6_process ();
+   const cpu_time_t cpu_cycles = cycles /  CPU_CLOCK_DIVIDER;
+   if (cpu_cycles == 0)
+      return;
 
-   vrc6_predict_irq (cycles);
+   vrc6_predict_irq_slave(cpu_cycles);
 }
+
+static void vrc6_repredict_irq (void)
+{
+   /* This needs to be called whenver a possible mid-scanline change to the
+      IRQ parameters occurs (to update prediction). */
+
+   cpu_time_t cycles;
+   cpu_rtime_t cycles_remaining;
+
+   cycles = cpu_get_cycles ();
+
+   cycles_remaining = (signed)cycles - (signed)vrc6_prediction_timestamp;
+   if(cycles_remaining <= 0)
+      return;
+
+   if(cycles_remaining > vrc6_prediction_cycles)
+      cycles_remaining = vrc6_prediction_cycles;
+
+   const cpu_rtime_t cpu_cycles_remaining = cycles_remaining / CPU_CLOCK_DIVIDER;
+   if(cpu_cycles_remaining <= 0)
+      return;
+
+   vrc6_predict_irq_slave(cpu_cycles_remaining);
+}
+
 
 static void vrc6_update_prg_bank (int bank)
 {
@@ -392,7 +415,7 @@ static int vrc6_base_init (void)
    cpu_set_write_handler_32k (0x8000, vrc6_write);
 
    /* Install IRQ predicter. */
-   mmc_predict_irqs = vrc6_predict_irqs;
+   mmc_predict_irqs = vrc6_predict_irq;
 
    /* Select ExSound chip. */
    apu_enable_exsound (APU_EXSOUND_VRC6);
@@ -432,11 +455,12 @@ static void vrc6_save_state (PACKFILE *file, int version)
    pack_iputl (vrc6_clock_counter, file);
 
    /* Save IRQ status. */
-   pack_iputw (vrc6_irq_timer,             file);
-   pack_putc  (vrc6_irq_counter,           file);
-   pack_putc  (vrc6_irq_latch,             file);
-   pack_putc  (vrc6_irq_reg,               file);        
-   pack_putc  ((vrc6_enable_irqs ? 1 : 0), file);
+   pack_putc (vrc6_irq_timer,             file);
+   pack_putc (vrc6_irq_step,              file);
+   pack_putc (vrc6_irq_counter,           file);
+   pack_putc (vrc6_irq_latch,             file);
+   pack_putc (vrc6_irq_reg,               file);        
+   pack_putc ((vrc6_enable_irqs ? 1 : 0), file);
 
    pack_iputl (vrc6_prediction_timestamp, file);
    pack_iputl (vrc6_prediction_cycles,    file);
@@ -462,10 +486,11 @@ static void vrc6_load_state (PACKFILE *file, int version)
    vrc6_clock_counter = pack_igetl (file);
 
    /* Restore IRQ status. */
-   vrc6_irq_timer   = pack_igetw (file);
-   vrc6_irq_counter = pack_getc  (file);
-   vrc6_irq_latch   = pack_getc  (file);
-   vrc6_irq_reg     = pack_getc  (file);
+   vrc6_irq_timer   = pack_getc (file);
+   vrc6_irq_step    = pack_getc (file);
+   vrc6_irq_counter = pack_getc (file);
+   vrc6_irq_latch   = pack_getc (file);
+   vrc6_irq_reg     = pack_getc (file);
    vrc6_enable_irqs = TRUE_OR_FALSE(pack_getc (file));
 
    vrc6_prediction_timestamp = pack_igetl (file);

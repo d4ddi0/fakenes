@@ -6,16 +6,16 @@
 
 
 static INT8 sprite_list_needs_recache;
-static UINT8 sprites_on_line [LAST_DISPLAYED_LINE + 1] [8];
-static UINT8 sprite_count_on_line [LAST_DISPLAYED_LINE + 1];
-static INT8 sprite_overflow_on_line [LAST_DISPLAYED_LINE + 1];
+static UINT8 sprites_on_line [PPU_LAST_DISPLAYED_LINE + 1] [8];
+static UINT8 sprite_count_on_line [PPU_LAST_DISPLAYED_LINE + 1];
+static INT8 sprite_overflow_on_line [PPU_LAST_DISPLAYED_LINE + 1];
 
 
 static void recache_sprite_list (void)
 {
     int line, sprite;
 
-    for (line = 0; line <= LAST_DISPLAYED_LINE; line++)
+    for (line = 0; line <= PPU_LAST_DISPLAYED_LINE; line++)
     {
         sprite_overflow_on_line [line] = 0;
         sprite_count_on_line [line] = 0;

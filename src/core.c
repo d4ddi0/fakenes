@@ -74,17 +74,25 @@ FILE *ops_dmp;
 */
 void FN2A03_Init(void)
 {
-  int i;
-
   /* Initialize the instruction cycle count table. */
-  for (i = 0; i < 256; i++)
-  {
-      Cycles[i] = BaseCycles[i] * CYCLE_LENGTH;
-  }
+  FN2A03_Rebuild_Cycle_Table();
 
 #ifdef BINARY_DUMP
   ops_dmp = fopen("ops.dmp", "wb");
 #endif
+}
+
+/* FN2A03_Rebuild_Cycle_Table()
+   Rebuilds the clock cycle lookup table if the external timing changes(e.g NTSC to PAL).
+*/
+void FN2A03_Rebuild_Cycle_Table(void)
+{
+  int i;
+
+  for (i = 0; i < 256; i++)
+  {
+      Cycles[i] = BaseCycles[i] * CPU_CLOCK_MULTIPLIER;
+  }
 }
 
 /*
@@ -213,6 +221,18 @@ void FN2A03_Queue_Interrupt(FN2A03 *R,UINT8 Type,cpu_time_t Time)
     }
 }
 
+/* FN2A03_Unqueue_Interrupt()
+   Removes a previously scheduled interrupt. */
+void FN2A03_Unqueue_Interrupt(FN2A03 *R,UINT8 Type)
+{
+    if (Type >= FN2A03_INT_IRQ_SOURCE(0) &&
+        Type <= FN2A03_INT_IRQ_SOURCE(FN2A03_INT_IRQ_SOURCE_MAX))
+    {
+        const int Index = (Type - FN2A03_INT_IRQ_BASE);
+        R->IRequestQ &= ~(1 << Index);
+    }
+}
+
 /*
  FN2A03_Interrupt()
 
@@ -241,7 +261,7 @@ void FN2A03_Interrupt(FN2A03 *R,UINT8 Type)
     {
         UINT8 P;
 
-        R->Cycles += 7 * CYCLE_LENGTH;
+        R->Cycles += 7 * CPU_CLOCK_MULTIPLIER;
         Push16(R->PC);
         P = Pack_Flags() & ~B_FLAG;
         Push(P);

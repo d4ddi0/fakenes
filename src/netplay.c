@@ -121,7 +121,7 @@ void netplay_process (void)
    
       /* 5 times per second should be plenty... maybe TOO much. */
       /* I guess this probably won't work so well in the GUI... oh well. */
-      wait_frames = ROUND(timing_get_speed () / 5.0);
+      wait_frames = ROUND(timing_get_frame_rate () / 5.0);
    }
 
    /* Check for incoming packets. */

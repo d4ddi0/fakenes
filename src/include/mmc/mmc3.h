@@ -58,7 +58,7 @@ static UINT8 mmc3_sram_enable;
 static int mmc3_irq_tick (int line)
 {
     if (
-        (((line >= FIRST_DISPLAYED_LINE) && (line <= LAST_DISPLAYED_LINE)) ||
+        (((line >= PPU_FIRST_DISPLAYED_LINE) && (line <= PPU_LAST_DISPLAYED_LINE)) ||
             (line == ppu_frame_last_line)) &&
         (PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED))
     {

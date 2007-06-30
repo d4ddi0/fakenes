@@ -658,7 +658,7 @@ UINT8 ppu_read (UINT16 address)
             vblank_occurred = FALSE;
          }
 
-         if(PPU_SPRITES_ENABLED && (ppu_scanline <= LAST_DISPLAYED_LINE)) {
+         if(PPU_SPRITES_ENABLED && (ppu_scanline <= PPU_LAST_DISPLAYED_LINE)) {
             if (sprite_list_needs_recache)
                recache_sprite_list();
 
@@ -666,7 +666,9 @@ UINT8 ppu_read (UINT16 address)
          }
 
          if(!hit_first_sprite && first_sprite_this_line) {
-            if(cpu_get_cycles_line() >= first_sprite_this_line)
+            const cpu_time_t cycles = cpu_get_cycles_line() / PPU_CLOCK_DIVIDER;
+
+            if(cycles >= first_sprite_this_line)
                hit_first_sprite = PPU_SPRITE_0_COLLISION_BIT;
          }
 
@@ -809,12 +811,14 @@ static void do_spr_ram_dma(UINT8 page)
     /* Sprite RAM DMA. */
    unsigned address = page * 0x100;
 
-   cpu_consume_cycles(2);
+   /* Steal 2 CPU cycles. */
+   cpu_burn(2 * CPU_CLOCK_MULTIPLIER);
 
    for(int index = 0; index < 256; index++) {
       int value = cpu_read(address + index);
 
-      cpu_consume_cycles(2);
+      /* Steal 2 CPU cycles. */
+      cpu_burn(2 * CPU_CLOCK_MULTIPLIER);
 
       if(ppu_spr_ram[spr_ram_address] != value) {
          ppu_spr_ram[spr_ram_address] = value;

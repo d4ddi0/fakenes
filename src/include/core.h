@@ -2,7 +2,7 @@
 
    core.h: Declarations for the RP2A03G CPU emulation.
 
-   Copyright (c) 2001-2006, FakeNES Team.
+   Copyright (c) 2001-2007, FakeNES Team.
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use.
 
@@ -13,14 +13,13 @@
 #ifndef CORE_H_INCLUDED
 #define CORE_H_INCLUDED
 #include "common.h"
+#include "timing.h"
 #include "types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
                                /* Compilation options:       */
-#define CYCLE_LENGTH 3         /* Number of cycles that one  */
-                               /* CPU cycle uses.            */
 /* #define ALT_DEBUG */        /* Compile debugging version  */
 /* #define LSB_FIRST */        /* Compile for low-endian CPU */
 
@@ -105,6 +104,11 @@ typedef struct
 */
 void FN2A03_Init(void);
 
+/* FN2A03_Rebuild_Cycle_Table()
+   Rebuilds the clock cycle lookup table if the external timing changes(e.g NTSC to PAL).
+*/
+void FN2A03_Rebuild_Cycle_Table(void);
+
 /*
  FN2A03_Reset()
 
@@ -135,6 +139,10 @@ void FN2A03_Clear_Interrupt(FN2A03 *R,UINT8 Type);
    Schedules an automatic IRQ-only interrupt to take place at 'Time'. */
 void FN2A03_Queue_Interrupt(FN2A03 *R,UINT8 Type,cpu_time_t Time);
 
+/* FN2A03_Unqueue_Interrupt()
+   Unschedules a previously queued interrupt. */
+void FN2A03_Unqueue_Interrupt(FN2A03 *R,UINT8 Type);
+
 /*
  FN2A03_Interrupt()
 
@@ -162,9 +170,9 @@ void FN2A03_Run(FN2A03 *R);
   This function will steal the requested count of clock cycles
  from the CPU.
 */
-static INLINE void FN2A03_consume_cycles (FN2A03 *R, int cycles)
+static INLINE void FN2A03_consume_cycles (FN2A03 *R, cpu_time_t cycles)
 {
-    R->Cycles += cycles * CYCLE_LENGTH;
+    R->Cycles += cycles;
 }
 
 /*

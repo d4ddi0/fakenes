@@ -127,7 +127,7 @@ void resume_timing (void)
    timer_ticks_1_hz = SECS_TO_TIMER(1);
 
    /* Determine how often our throttle timer will execute, in timer ticks. */
-   timer_ticks = ROUND((REAL)timer_ticks_1_hz / timing_get_speed ());
+   timer_ticks = ROUND((REAL)timer_ticks_1_hz / timing_get_frame_rate ());
 
    /* Install timers. */
    install_int_ex (fps_timer,      timer_ticks_1_hz);
@@ -312,7 +312,7 @@ int main (int argc, char *argv[])
             {
                /* Enter fast forward mode. */
                timing_fast_forward = TRUE;
-               timing_update_speed ();
+               timing_update_timing ();
             }
          }
          else
@@ -321,7 +321,7 @@ int main (int argc, char *argv[])
             {
                /* Exit fast forward mode. */
                timing_fast_forward = FALSE;
-               timing_update_speed ();
+               timing_update_timing ();
             }
          }
 
@@ -436,14 +436,14 @@ int main (int argc, char *argv[])
          {
             case MACHINE_TYPE_PAL:
             {
-               ppu_frame_last_line = (TOTAL_LINES_PAL - 1);
+               ppu_frame_last_line = (PPU_TOTAL_LINES_PAL - 1);
 
                break;
             }
 
             case MACHINE_TYPE_NTSC:
             {
-               ppu_frame_last_line = (TOTAL_LINES_NTSC - 1);
+               ppu_frame_last_line = (PPU_TOTAL_LINES_NTSC - 1);
 
                break;
             }
@@ -477,8 +477,8 @@ int main (int argc, char *argv[])
                if (mmc_scanline_start)
                   cpu_interrupt (mmc_scanline_start (ppu_scanline));
 
-               if ((ppu_scanline >= FIRST_DISPLAYED_LINE) &&
-                   (ppu_scanline <= LAST_DISPLAYED_LINE))
+               if ((ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) &&
+                   (ppu_scanline <= PPU_LAST_DISPLAYED_LINE))
                {
                   ppu_start_line ();
 
@@ -494,13 +494,13 @@ int main (int argc, char *argv[])
 
                   cpu_execute (RENDER_CLOCKS);
               }
-               else if (ppu_scanline == FIRST_VBLANK_LINE)
+               else if (ppu_scanline == PPU_FIRST_VBLANK_LINE)
                {
                    ppu_end_render ();
 
                    cpu_execute (RENDER_CLOCKS);
                }
-               else if (ppu_scanline == (FIRST_VBLANK_LINE + 1))
+               else if (ppu_scanline == (PPU_FIRST_VBLANK_LINE + 1))
                {
                    ppu_vblank_nmi ();
 
@@ -520,8 +520,8 @@ int main (int argc, char *argv[])
                if (mmc_hblank_start)
                   cpu_interrupt (mmc_hblank_start (ppu_scanline));
 
-               if ((ppu_scanline >= FIRST_DISPLAYED_LINE) &&
-                   (ppu_scanline <= LAST_DISPLAYED_LINE))
+               if ((ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) &&
+                   (ppu_scanline <= PPU_LAST_DISPLAYED_LINE))
                {
                   cpu_execute (HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP);
 
@@ -567,8 +567,8 @@ int main (int argc, char *argv[])
                if (mmc_scanline_start)
                   cpu_interrupt (mmc_scanline_start (ppu_scanline));
 
-               if ((ppu_scanline >= FIRST_DISPLAYED_LINE) &&
-                   (ppu_scanline <= LAST_DISPLAYED_LINE))
+               if ((ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) &&
+                   (ppu_scanline <= PPU_LAST_DISPLAYED_LINE))
                {
                   ppu_start_line ();
 
@@ -589,13 +589,13 @@ int main (int argc, char *argv[])
 
                   cpu_execute (RENDER_CLOCKS);
                }
-               else if (ppu_scanline == FIRST_VBLANK_LINE)
+               else if (ppu_scanline == PPU_FIRST_VBLANK_LINE)
                {
                   ppu_vblank ();
 
                   cpu_execute (RENDER_CLOCKS);
                }
-               else if (ppu_scanline == (FIRST_VBLANK_LINE + 1))
+               else if (ppu_scanline == (PPU_FIRST_VBLANK_LINE + 1))
                {
                   ppu_vblank_nmi ();
 
@@ -615,8 +615,8 @@ int main (int argc, char *argv[])
                if (mmc_hblank_start)
                   cpu_interrupt (mmc_hblank_start (ppu_scanline));
 
-               if ((ppu_scanline >= FIRST_DISPLAYED_LINE) &&
-                   (ppu_scanline <= LAST_DISPLAYED_LINE))
+               if ((ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) &&
+                   (ppu_scanline <= PPU_LAST_DISPLAYED_LINE))
                {
                   cpu_execute (HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP);
 

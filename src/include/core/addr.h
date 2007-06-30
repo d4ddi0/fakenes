@@ -8,8 +8,7 @@ Distributed under the Clarified Artistic License.
 
 addr.h: CPU addressing mode emulation macros.
 
-Copyright (c) 2001-2006, Randy McDowell.
-Copyright (c) 2001-2006, Charles Bilyue'.
+Copyright (c) 2001-2007, FakeNES Team.
 
 This is free software.  See 'LICENSE' for details.
 You must read and accept the license prior to use.
@@ -85,7 +84,7 @@ behavior, for the Ricoh RP2A03G CPU.
     Rg=Read(address.word); \
     if (address.bytes.low < Index) \
     { \
-        R->Cycles += CYCLE_LENGTH; \
+        R->Cycles += 1 * CPU_CLOCK_MULTIPLIER; \
         address.word += 0x100; \
         Rg = Read(address.word); \
     }

@@ -77,6 +77,7 @@ extern void cpu_reset (void);
 extern void cpu_interrupt (int type);
 extern void cpu_clear_interrupt (int type);
 extern void cpu_queue_interrupt (int type, cpu_time_t time);
+extern void cpu_unqueue_interrupt (int type);
 
 extern UINT16 *cpu_active_pc;
 

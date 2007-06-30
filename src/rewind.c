@@ -301,7 +301,7 @@ BOOL rewind_save_snapshot (void)
 
    /* Set frame counter. */
 
-   speed = timing_get_speed ();
+   speed = timing_get_frame_rate ();
 
    wait_frames = ROUND((speed / (speed * frame_rate)));
 
@@ -421,7 +421,7 @@ BOOL rewind_load_snapshot (void)
 
    /* Set frame counter. */
 
-   speed = timing_get_speed ();
+   speed = timing_get_frame_rate ();
 
    wait_frames = ROUND((speed / (speed * frame_rate)));
 

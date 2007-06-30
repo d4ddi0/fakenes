@@ -783,7 +783,7 @@ void gui_handle_keypress (int c, int scancode)
          /* Toggle half speed mode. */
 
          timing_half_speed = !timing_half_speed;
-         timing_update_speed ();
+         timing_update_timing ();
 
          break;
       }
@@ -1847,7 +1847,7 @@ static int machine_region_menu_pal (void)
 static int machine_speed_up_down_menu_50_percent (void)
 {
    timing_speed_multiplier = 0.5;
-   timing_update_speed ();
+   timing_update_timing ();
 
    update_menus ();
 
@@ -1859,7 +1859,7 @@ static int machine_speed_up_down_menu_50_percent (void)
 static int machine_speed_up_down_menu_100_percent (void)
 {
    timing_speed_multiplier = 1.0;
-   timing_update_speed ();
+   timing_update_timing ();
 
    update_menus ();
 
@@ -1871,7 +1871,7 @@ static int machine_speed_up_down_menu_100_percent (void)
 static int machine_speed_up_down_menu_200_percent (void)
 {
    timing_speed_multiplier = 2.0;
-   timing_update_speed ();
+   timing_update_timing ();
 
    update_menus ();
 
@@ -1889,7 +1889,7 @@ static int machine_speed_up_down_menu_custom (void)
    if (get_float_input ("Custom", &value, "percent"))
    {
       timing_speed_multiplier = (value / 100.0);
-      timing_update_speed ();
+      timing_update_timing ();
 
       update_menus ();
 
@@ -2010,7 +2010,7 @@ static int machine_menu_power_cycle (void)
 static int machine_menu_timing_smoothest (void)
 {
    machine_timing = MACHINE_TIMING_SMOOTH;
-   timing_update_speed ();
+   timing_update_timing ();
    update_menus ();
 
    message_local ("Machine timing mode set to smoothest.");
@@ -2021,7 +2021,7 @@ static int machine_menu_timing_smoothest (void)
 static int machine_menu_timing_most_accurate (void)
 {
    machine_timing = MACHINE_TIMING_ACCURATE;
-   timing_update_speed ();
+   timing_update_timing ();
    update_menus ();
 
    message_local ("Machine timing mode set to most accurate.");

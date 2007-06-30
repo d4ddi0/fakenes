@@ -318,14 +318,14 @@ static INLINE void cpu_write (UINT16 address, UINT8 value)
    FN2A03_Write (address, value);
 }
 
-static INLINE void cpu_execute (int cycles)
+static INLINE void cpu_execute (cpu_time_t cycles)
 {
    cpu_context.ICount += cycles;
 
    FN2A03_Run (&cpu_context);
 }
 
-static INLINE void cpu_consume_cycles (int cycles)
+static INLINE void cpu_burn (cpu_time_t cycles)
 {
    FN2A03_consume_cycles (&cpu_context, cycles);
 }
