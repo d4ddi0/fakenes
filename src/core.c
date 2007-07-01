@@ -211,7 +211,15 @@ void FN2A03_Clear_Interrupt(FN2A03 *R,UINT8 Type)
 /* FN2A03_Queue_Interrupt()
    Schedules an automatic IRQ-only interrupt to take place at 'Time'. */
 void FN2A03_Queue_Interrupt(FN2A03 *R,UINT8 Type,cpu_time_t Time)
-{            
+{
+    /* Support for queueable NMIs. */
+    if (Type == FN2A03_INT_NMI)
+    {
+       R->NMITime = Time;
+       R->NMIPending = 1;
+       return;
+    }
+
     if (Type >= FN2A03_INT_IRQ_SOURCE(0) &&
         Type <= FN2A03_INT_IRQ_SOURCE(FN2A03_INT_IRQ_SOURCE_MAX))
     {
@@ -225,6 +233,12 @@ void FN2A03_Queue_Interrupt(FN2A03 *R,UINT8 Type,cpu_time_t Time)
    Removes a previously scheduled interrupt. */
 void FN2A03_Unqueue_Interrupt(FN2A03 *R,UINT8 Type)
 {
+    if (Type == FN2A03_INT_NMI)
+    {
+       R->NMIPending = 0;
+       return;
+    }
+
     if (Type >= FN2A03_INT_IRQ_SOURCE(0) &&
         Type <= FN2A03_INT_IRQ_SOURCE(FN2A03_INT_IRQ_SOURCE_MAX))
     {
@@ -339,6 +353,18 @@ void FN2A03_Run(FN2A03 *R)
         PAIR address, result;
         UINT8 zero_page_address, data;
 #include "core/codes.h"
+      }
+
+      /* Check for a pending NMI. */
+      if (R->NMIPending &&
+          (R->NMITime <= R->Cycles))
+      {
+         //log_printf ("CPU: NMI unqueued at %u cycles (optimal was %u cycles).\n", R->Cycles, R->NMITime);
+         R->NMIPending = 0;
+
+         R->PC.word = PC.word;
+         FN2A03_Interrupt (R, FN2A03_INT_NMI);
+         PC.word = R->PC.word;
       }
 
       /* Check for queued interrupt requests. */

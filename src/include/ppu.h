@@ -10,6 +10,7 @@
 #define PPU_H_INCLUDED
 #include <allegro.h>
 #include "common.h"
+#include "cpu.h"
 #include "rom.h"
 #include "types.h"
 #ifdef __cplusplus
@@ -67,7 +68,6 @@ extern int ppu_enable_sprite_layer_a;
 extern int ppu_enable_sprite_layer_b;
 extern int ppu_enable_background_layer;
 
-extern int ppu_scanline;
 extern int ppu_frame_last_line;
 extern BOOL ppu_is_rendering;
 
@@ -92,20 +92,12 @@ extern void ppu_reset (void);
 extern UINT8 ppu_read (UINT16);
 extern void ppu_write (UINT16, UINT8);
 
-extern void ppu_clear (void);
 extern void ppu_clear_palette (void);
 
-extern void ppu_vblank (void);
-extern void ppu_vblank_nmi (void);
-
-extern void ppu_start_line (void);
-extern void ppu_end_line (void);
-
-extern void ppu_stub_render_line (int);
-extern void ppu_render_line (int);
-
-extern void ppu_start_frame (void);
-extern void ppu_end_render (void);
+extern void ppu_sync_update(void);
+extern void ppu_disable_rendering(void);
+extern void ppu_enable_rendering(void);
+extern void ppu_predict_nmi(cpu_time_t cycles);
 
 extern void ppu_set_mirroring_one_screen (void);
 extern int ppu_get_mirroring (void);

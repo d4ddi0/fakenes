@@ -155,12 +155,12 @@ static void vrc6_predict_irq_slave(cpu_time_t cycles)
 static void vrc6_predict_irq(cpu_time_t cycles)
 {
    /* Sync state. */
-   vrc6_process ();
+   vrc6_process();
 
    /* Save parameters for re-prediction if a mid-scanline change occurs. */
    vrc6_prediction_timestamp = cpu_get_cycles();
    /* We'll actually emulate for a little bit longer than requested, since it doesn't hurt to do so. */
-   vrc6_prediction_cycles = cycles + CPU_CLOCK_MULTIPLIER;
+   vrc6_prediction_cycles = cycles + (1 * CPU_CLOCK_MULTIPLIER);
 
    const cpu_time_t cpu_cycles = cycles /  CPU_CLOCK_DIVIDER;
    if(cpu_cycles == 0)
@@ -176,6 +176,9 @@ static void vrc6_repredict_irq(void)
 
    cpu_time_t cycles;
    cpu_rtime_t cycles_remaining;
+
+   /* Sync state. */
+   vrc6_process();
 
    cycles = cpu_get_cycles();
 
@@ -438,6 +441,9 @@ static int vrc6v_init (void)
 static void vrc6_save_state(PACKFILE* file, int version)
 {
    RT_ASSERT(file);
+
+   /* Sync state. */
+   vrc6_process();
 
    /* Save banking. */
    pack_fwrite(vrc6_prg_bank, VRC6_PRG_BANKS, file);

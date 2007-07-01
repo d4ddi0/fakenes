@@ -432,211 +432,45 @@ int main (int argc, char *argv[])
 
          input_process ();
 
-         switch (machine_type)
-         {
-            case MACHINE_TYPE_PAL:
-            {
-               ppu_frame_last_line = (PPU_TOTAL_LINES_PAL - 1);
-
-               break;
-            }
-
-            case MACHINE_TYPE_NTSC:
-            {
-               ppu_frame_last_line = (PPU_TOTAL_LINES_NTSC - 1);
-
-               break;
-            }
-
-            default:
-               WARN_GENERIC ();
-         }
-
-         if (redraw_flag)
-         {
+         if(redraw_flag) {
             /* Perform a full render. */
 
             rendered_frames++;
             actual_fps_count++;
 
-            ppu_start_frame ();
-
-            if (input_enable_zapper)
-               input_update_zapper_offsets ();
-
-            for (ppu_scanline = 0; ppu_scanline <= ppu_frame_last_line;
-               ppu_scanline++)
-            {
-               cpu_start_new_scanline ();
-
-               apu_predict_irqs (SCANLINE_CLOCKS);
-
-               if (mmc_predict_irqs)
-                  mmc_predict_irqs (SCANLINE_CLOCKS);
-
-               if (mmc_scanline_start)
-                  cpu_interrupt (mmc_scanline_start (ppu_scanline));
-
-               if ((ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) &&
-                   (ppu_scanline <= PPU_LAST_DISPLAYED_LINE))
-               {
-                  ppu_start_line ();
-
-                  ppu_render_line (ppu_scanline);
-
-                  /* handle zapper emulation */
-                  if (input_enable_zapper &&
-                      (input_zapper_y_offset == ppu_scanline) &&
-                      input_zapper_on_screen)
-                  {
-                     input_update_zapper ();
-                  }
-
-                  cpu_execute (RENDER_CLOCKS);
-              }
-               else if (ppu_scanline == PPU_FIRST_VBLANK_LINE)
-               {
-                   ppu_end_render ();
-
-                   cpu_execute (RENDER_CLOCKS);
-               }
-               else if (ppu_scanline == (PPU_FIRST_VBLANK_LINE + 1))
-               {
-                   ppu_vblank_nmi ();
-
-                   cpu_execute (RENDER_CLOCKS);
-               }
-               else if (ppu_scanline == ppu_frame_last_line)
-               {
-                  ppu_clear ();
-
-                  cpu_execute (RENDER_CLOCKS);
-               }
-               else
-               {
-                  cpu_execute (RENDER_CLOCKS);
-               }
-
-               if (mmc_hblank_start)
-                  cpu_interrupt (mmc_hblank_start (ppu_scanline));
-
-               if ((ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) &&
-                   (ppu_scanline <= PPU_LAST_DISPLAYED_LINE))
-               {
-                  cpu_execute (HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP);
-
-                  ppu_end_line ();
-
-                  cpu_execute ((HBLANK_CLOCKS -
-                     HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP));
-               }
-               else
-               {
-                  cpu_execute (HBLANK_CLOCKS);
-               }
-
-               if (mmc_scanline_end)
-                  cpu_interrupt (mmc_scanline_end (ppu_scanline));
-
-               /* Audio updates every scanline should be more than often enough. */
-               apu_sync_update ();
-               audio_update ();
-            }
-
-            video_blit (screen);
+            ppu_enable_rendering();
          }
+         else {
+            ppu_disable_rendering();
+         }
+
+         int line, total_lines;
+         if(machine_type == MACHINE_TYPE_NTSC)
+            total_lines = PPU_TOTAL_LINES_NTSC;
          else
-         {
-            /* Perform a partial render. */
+            total_lines = PPU_TOTAL_LINES_PAL;
 
-            ppu_start_frame ();
+         for(line = 0; line < total_lines; line++) {
+            apu_predict_irqs(SCANLINE_CLOCKS);
 
-            if (input_enable_zapper)
-               input_update_zapper_offsets ();
+            if(mmc_predict_irqs)
+               mmc_predict_irqs(SCANLINE_CLOCKS);
 
-            for (ppu_scanline = 0; ppu_scanline <= ppu_frame_last_line;
-               ppu_scanline++)
-            {
-               cpu_start_new_scanline ();
+            ppu_predict_nmi(SCANLINE_CLOCKS);
 
-               apu_predict_irqs (SCANLINE_CLOCKS);
+            cpu_execute(SCANLINE_CLOCKS);
 
-               if (mmc_predict_irqs)
-                  mmc_predict_irqs (SCANLINE_CLOCKS);
+            /* Audio updates every scanline should be more than often enough. */
+            apu_sync_update();
+            audio_update();
 
-               if (mmc_scanline_start)
-                  cpu_interrupt (mmc_scanline_start (ppu_scanline));
-
-               if ((ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) &&
-                   (ppu_scanline <= PPU_LAST_DISPLAYED_LINE))
-               {
-                  ppu_start_line ();
-
-                  /* draw lines for zapper emulation */
-                  
-                  if (input_enable_zapper &&
-                      (input_zapper_y_offset == ppu_scanline) &&
-                      input_zapper_on_screen)
-                  {
-                     ppu_render_line (ppu_scanline);
-
-                     input_update_zapper ();
-                  }
-                  else
-                  {
-                     ppu_stub_render_line (ppu_scanline);
-                  }
-
-                  cpu_execute (RENDER_CLOCKS);
-               }
-               else if (ppu_scanline == PPU_FIRST_VBLANK_LINE)
-               {
-                  ppu_vblank ();
-
-                  cpu_execute (RENDER_CLOCKS);
-               }
-               else if (ppu_scanline == (PPU_FIRST_VBLANK_LINE + 1))
-               {
-                  ppu_vblank_nmi ();
-
-                  cpu_execute (RENDER_CLOCKS);
-               }
-               else if (ppu_scanline == ppu_frame_last_line)
-               {
-                  ppu_clear ();
-
-                  cpu_execute (RENDER_CLOCKS);
-               }
-               else
-               {
-                  cpu_execute (RENDER_CLOCKS);
-               }
-
-               if (mmc_hblank_start)
-                  cpu_interrupt (mmc_hblank_start (ppu_scanline));
-
-               if ((ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) &&
-                   (ppu_scanline <= PPU_LAST_DISPLAYED_LINE))
-               {
-                  cpu_execute (HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP);
-
-                  ppu_end_line ();
-
-                  cpu_execute ((HBLANK_CLOCKS -
-                     HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP));
-               }
-               else
-               {
-                  cpu_execute (HBLANK_CLOCKS);
-               }
-
-               if (mmc_scanline_end)
-                  cpu_interrupt (mmc_scanline_end (ppu_scanline));
-
-               apu_sync_update ();
-               audio_update ();
-            }
+            /* We don't *have* to do this here, but it helps "smooth" the performance load instead of just having heavy
+               bursts of execution at the end of a frame if nothing exciting happens during the frame. */
+            ppu_sync_update();
          }
+
+         ppu_sync_update();
+         video_blit(screen);
 
          if ((frames_to_execute != -1) &&
              (frames_to_execute > 0))

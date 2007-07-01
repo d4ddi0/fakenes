@@ -350,8 +350,13 @@ void cpu_queue_interrupt (int type, cpu_time_t time)
    switch (type)
    {
       case CPU_INTERRUPT_IRQ_SINGLE_SHOT:
-      case CPU_INTERRUPT_NMI:
          break;
+
+      case CPU_INTERRUPT_NMI:
+      {
+         FN2A03_Queue_Interrupt (&cpu_context, FN2A03_INT_NMI, time);
+         break;
+      }
 
       default:
       {
@@ -368,8 +373,13 @@ void cpu_unqueue_interrupt (int type)
    switch (type)
    {
       case CPU_INTERRUPT_IRQ_SINGLE_SHOT:
-      case CPU_INTERRUPT_NMI:
          break;
+
+      case CPU_INTERRUPT_NMI:
+      {
+         FN2A03_Unqueue_Interrupt (&cpu_context, FN2A03_INT_NMI);
+         break;
+      }
 
       default:
       {
@@ -379,19 +389,6 @@ void cpu_unqueue_interrupt (int type)
          break;
       }
    }
-}
-
-static cpu_time_t scanline_start_cycle = 0;
-
-void cpu_start_new_scanline (void)
-{
-   scanline_start_cycle = cpu_context.ICount;
-}
-
-cpu_time_t cpu_get_cycles_line (void)
-{
-   /* TODO: Do away with this sprite #0 hack when the PPU becomes cycle-aware. */
-   return (cpu_context.Cycles - scanline_start_cycle);
 }
 
 cpu_time_t cpu_get_cycles (void)
@@ -441,6 +438,9 @@ void cpu_save_state (PACKFILE *file, int version)
 
    pack_iputl (cpu_context.IRequestQ, file);
 
+   pack_iputl (cpu_context.NMITime, file);
+   pack_putc (cpu_context.NMIPending, file);
+
    /* Save execution state. */
    pack_putc (cpu_context.Jammed, file);
 
@@ -482,6 +482,9 @@ void cpu_load_state (PACKFILE *file, int version)
       cpu_context.IRQTable[index] = pack_igetl (file);
 
    cpu_context.IRequestQ = pack_igetl (file);
+
+   cpu_context.NMITime = pack_igetl (file);
+   cpu_context.NMIPending = pack_getc (file);
 
    /* Restore execution state. */
    cpu_context.Jammed = pack_getc (file);

@@ -90,6 +90,8 @@ typedef struct
                       /*  bit reserved for a different source */
   cpu_time_t IRQTable[FN2A03_INT_IRQ_SOURCES];
   UINT32 IRequestQ;   /* Queued interrupt request sources    */
+  cpu_time_t NMITime; /* CPU time to fire queued NMI         */
+  UINT8 NMIPending;   /* Whether or not an NMI is queued     */
   UINT16 Trap;        /* Set Trap to address to trace from   */
   UINT8 AfterCLI;     /* Private, don't touch                */
   UINT8 TrapBadOps;   /* Set to 1 to warn of illegal opcodes */

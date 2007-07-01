@@ -12,6 +12,7 @@
 #include <cstring>
 #include "common.h"
 #include "cpu.h"
+#include "input.h"
 #include "mmc.h"
 #include "ppu.h"
 #include "ppu_int.h"
@@ -24,6 +25,21 @@
 #include "video.h"
 
 static void do_spr_ram_dma(uint8 page);
+static void process(void);
+
+static cpu_time_t ppu_clock_counter = 0;
+static cpu_rtime_t ppu_clock_buffer = 0;
+
+static int16 ppu_scanline_timer = 0;
+static int16 ppu_scanline = 0;
+
+/* IRQ prediction. */
+static cpu_time_t ppu_prediction_timestamp = 0;
+static cpu_time_t ppu_prediction_cycles = 0;
+
+static void ppu_repredict_nmi(void);
+
+static bool ppu_rendering_enabled = true;
 
 UINT8 ppu_register_2000 = 0;
 UINT8 ppu_register_2001 = 0;
@@ -31,7 +47,6 @@ int ppu_enable_sprite_layer_a = TRUE;
 int ppu_enable_sprite_layer_b = TRUE;
 int ppu_enable_background_layer = TRUE;
 
-int ppu_scanline = 0;
 int ppu_frame_last_line = 0;
 BOOL ppu_is_rendering = FALSE;
 
@@ -215,6 +230,9 @@ UINT8* ppu_get_chr_rom_pages(ROM *rom)
 
 void ppu_set_ram_1k_pattern_vram_block(UINT16 block_address, int vram_block)
 {
+   // Sync state;
+   process ();
+
    ppu_vram_block [block_address >> 10] = vram_block;
 
    ppu_vram_block_read_address [block_address >> 10] =
@@ -233,6 +251,9 @@ void ppu_set_ram_1k_pattern_vram_block(UINT16 block_address, int vram_block)
 
 void ppu_set_ram_1k_pattern_vrom_block(UINT16 block_address, int vrom_block)
 {
+   // Sync state;
+   process ();
+
    vrom_block = (vrom_block & 7) + ROM_CHR_ROM_PAGE_LOOKUP
       [(vrom_block / 8) & ROM_CHR_ROM_PAGE_OVERFLOW_MASK] * 8;
 
@@ -256,6 +277,9 @@ void ppu_set_ram_1k_pattern_vrom_block(UINT16 block_address, int vrom_block)
 void ppu_set_ram_1k_pattern_vrom_block_ex(UINT16 block_address,
  int vrom_block, int map_type)
 {
+   // Sync state;
+   process ();
+
    vrom_block = (vrom_block & 7) + ROM_CHR_ROM_PAGE_LOOKUP
       [(vrom_block / 8) & ROM_CHR_ROM_PAGE_OVERFLOW_MASK] * 8;
 
@@ -288,6 +312,9 @@ void ppu_set_ram_1k_pattern_vrom_block_ex(UINT16 block_address,
 
 void ppu_set_ram_8k_pattern_vram(void)
 {
+   // Sync state;
+   process ();
+
    ppu_set_ram_1k_pattern_vram_block(0x0000, 0);
    ppu_set_ram_1k_pattern_vram_block(0x0400, 1);
    ppu_set_ram_1k_pattern_vram_block(0x0800, 2);
@@ -352,28 +379,43 @@ void ppu_exit (void)
 
 int ppu_get_mirroring(void)
 {
+   // Sync state;
+   process ();
+ 
    return ppu_mirroring;
 }
 
 void ppu_set_name_table_internal(int table, int select)
 {
+   // Sync state;
+   process ();
+
    ppu_set_name_table_address(table, ppu_name_table_vram + (select << 10));
 }
 
 void ppu_set_name_table_address(int table, UINT8* address)
 {
+   // Sync state;
+   process ();
+
    name_tables_read[table] = address;
    name_tables_write[table] = address;
 }
 
 void ppu_set_name_table_address_rom (int table, UINT8* address)
 {
+   // Sync state;
+   process ();
+
    name_tables_read[table] = address;
    name_tables_write[table] = ppu_vram_dummy_write;
 }
 
 void ppu_set_name_table_address_vrom(int table, int vrom_block)
 {
+   // Sync state;
+   process ();
+
    vrom_block = (vrom_block & 7) + ROM_CHR_ROM_PAGE_LOOKUP
       [(vrom_block / 8) & ROM_CHR_ROM_PAGE_OVERFLOW_MASK] * 8;
 
@@ -382,11 +424,17 @@ void ppu_set_name_table_address_vrom(int table, int vrom_block)
 
 void ppu_set_expansion_table_address(UINT8* address)
 {
+   // Sync state;
+   process ();
+
    ppu_expansion_table = address;
 }
 
 void ppu_set_mirroring_one_screen(void)
 {
+   // Sync state;
+   process ();
+
     ppu_set_name_table_address(0, one_screen_base_address);
     ppu_set_name_table_address(1, one_screen_base_address);
     ppu_set_name_table_address(2, one_screen_base_address);
@@ -395,6 +443,9 @@ void ppu_set_mirroring_one_screen(void)
 
 void ppu_set_mirroring(int mirroring)
 {
+   // Sync state;
+   process ();
+
    ppu_mirroring = mirroring;
 
    switch(ppu_mirroring) {
@@ -467,6 +518,9 @@ void ppu_set_mirroring(int mirroring)
 
 void ppu_invert_mirroring(void)   /* '/' key. */
 {
+   // Sync state;
+   process ();
+
    switch(ppu_mirroring) {
       case MIRRORING_HORIZONTAL: {
          ppu_set_mirroring(MIRRORING_VERTICAL);
@@ -480,43 +534,7 @@ void ppu_invert_mirroring(void)   /* '/' key. */
    }
 }
 
-void ppu_reset(void)
-{
-   int i;
-
-   memset(ppu_pattern_vram, NULL, sizeof(ppu_pattern_vram));
-   memset(ppu_name_table_vram, NULL, sizeof(ppu_name_table_vram));
-   memset(ppu_spr_ram, NULL, sizeof(ppu_spr_ram));
-
-   ppu_cache_all_vram();
-
-   ppu_write(0x2000, 0x00);
-
-   ppu_write(0x2001,
-      PPU_BACKGROUND_SHOW_LEFT_EDGE_BIT |
-      PPU_SPRITES_SHOW_LEFT_EDGE_BIT |
-      PPU_BACKGROUND_ENABLE_BIT | PPU_SPRITES_ENABLE_BIT);
-
-   spr_ram_address = 0;
-   sprite_list_needs_recache = TRUE;
-
-   vram_address = 0;
-   address_temp = 0;
-
-   x_offset = 0;
-
-   address_write = FALSE;
-
-   buffered_vram_read = 0;
-
-   ppu_set_expansion_table_address(NULL);
-
-   ppu_set_mirroring(ppu_mirroring);
- 
-   ppu_clear();
-}
-
-UINT8 ppu_vram_read(void)
+static UINT8 ppu_vram_read(void)
 {
    UINT16 address = vram_address & 0x3FFF;
    UINT8 temp = buffered_vram_read;
@@ -563,7 +581,7 @@ UINT8 ppu_vram_read(void)
    return temp;
 }
 
-void ppu_vram_write(UINT8 value)
+static void ppu_vram_write(UINT8 value)
 {
    UINT16 address = vram_address & 0x3FFF;
 
@@ -639,6 +657,9 @@ static UINT8 last_ppu_write_value;
 
 UINT8 ppu_read (UINT16 address)
 {
+   // Sync state;
+   process ();
+
    /* Handle register mirroring. */
    switch(address & 7) {
       case 0x2000 & 7:
@@ -663,13 +684,6 @@ UINT8 ppu_read (UINT16 address)
                recache_sprite_list();
 
             data |= sprite_overflow_on_line[ppu_scanline];
-         }
-
-         if(!hit_first_sprite && first_sprite_this_line) {
-            const cpu_time_t cycles = cpu_get_cycles_line() / PPU_CLOCK_DIVIDER;
-
-            if(cycles >= first_sprite_this_line)
-               hit_first_sprite = PPU_SPRITE_0_COLLISION_BIT;
          }
 
          data |= hit_first_sprite;
@@ -698,6 +712,9 @@ UINT8 ppu_read (UINT16 address)
 
 void ppu_write(UINT16 address, UINT8 value)
 {
+   // Sync state;
+   process ();
+
    if(address == 0x4014) {
       /* Sprite RAM DMA. */
       do_spr_ram_dma(value);
@@ -729,6 +746,8 @@ void ppu_write(UINT16 address, UINT8 value)
             (value & PPU_SPRITE_TILESET_BIT) ? 0x1000 : 0x0000;
 
          address_temp = (address_temp & ~(3 << 10)) | ((value & 3) << 10);
+
+         ppu_repredict_nmi();
 
          break;
       }
@@ -835,64 +854,62 @@ static void vram_address_start_new_frame(void)
       vram_address = address_temp;
 }
 
-void ppu_start_line(void)
+void ppu_reset(void)
 {
-   if (PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED) {
-      vram_address = (vram_address & (~0x1F & ~(1 << 10))) |
-         (address_temp & (0x1F | (1 << 10)));
-   }
+   int i;
 
-   if(first_sprite_this_line) {
-      hit_first_sprite = PPU_SPRITE_0_COLLISION_BIT;
-      first_sprite_this_line = 0;
-   }
-}
+   // clear the clock counter and the buffer
+   ppu_clock_counter = 0;
+   ppu_clock_buffer = 0;
 
-void ppu_end_line(void)
-{
-   if(PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED) {
-      vram_address += 0x1000;
+   // queue a scanline cycle and reset the scanline counter
+   ppu_scanline_timer = PPU_SCANLINE_CLOCKS;
+   ppu_scanline = 0;
 
-      if((vram_address & (7 << 12)) == 0) {
-         vram_address += 32;
+   ppu_prediction_timestamp = 0;
+   ppu_prediction_cycles = 0;
 
-         switch(vram_address & (0x1F << 5)) {
-            case 0: {
-               vram_address -= (1 << 10);
-               break;
-            }
+   // enable rendering
+   ppu_rendering_enabled = true;
 
-            case (30 << 5): {
-               vram_address = (vram_address - (30 << 5)) ^ (1 << 11);
-               break;
-            }
-         }
-      }
-   }
-}
 
-void ppu_clear(void)
-{
    vblank_occurred = FALSE;
 
    hit_first_sprite = 0;
    first_sprite_this_line = 0;
+
+
+   memset(ppu_pattern_vram, NULL, sizeof(ppu_pattern_vram));
+   memset(ppu_name_table_vram, NULL, sizeof(ppu_name_table_vram));
+   memset(ppu_spr_ram, NULL, sizeof(ppu_spr_ram));
+
+   ppu_cache_all_vram();
+
+   ppu_write(0x2000, 0x00);
+
+   ppu_write(0x2001,
+      PPU_BACKGROUND_SHOW_LEFT_EDGE_BIT |
+      PPU_SPRITES_SHOW_LEFT_EDGE_BIT |
+      PPU_BACKGROUND_ENABLE_BIT | PPU_SPRITES_ENABLE_BIT);
+
+   spr_ram_address = 0;
+   sprite_list_needs_recache = TRUE;
+
+   vram_address = 0;
+   address_temp = 0;
+
+   x_offset = 0;
+
+   address_write = FALSE;
+
+   buffered_vram_read = 0;
+
+   ppu_set_expansion_table_address(NULL);
+
+   ppu_set_mirroring(ppu_mirroring);
 }
 
-void ppu_clear_palette(void)
-{
-   /* Clears the palette - easier than writing to VRAM when the palette needs
-      to be cleared from an external source. */
-   memset(&ppu_palette, 0, sizeof(ppu_palette));
-}
-
-void ppu_start_frame(void)
-{
-   vram_address_start_new_frame();
-   ppu_is_rendering = TRUE;
-}
-
-void ppu_render_line(int line)
+static void ppu_render_line(int line)
 {
    int i;
 
@@ -926,7 +943,7 @@ void ppu_render_line(int line)
       ppu_render_sprites (line);
 }
 
-void ppu_stub_render_line(int line)
+static void ppu_stub_render_line(int line)
 {
    int first_y, last_y;
 
@@ -951,25 +968,45 @@ void ppu_stub_render_line(int line)
    ppu_render_line(line);
 }
 
-void ppu_vblank(void)
+void ppu_sync_update(void)
 {
-   vblank_occurred = TRUE;
+   // Sync state.
+   process();
 }
 
-void ppu_end_render(void)
+void ppu_disable_rendering(void)
 {
-   ppu_vblank();
-   ppu_is_rendering = FALSE;
+   ppu_rendering_enabled = false;
 }
 
-void ppu_vblank_nmi(void)
+void ppu_enable_rendering(void)
 {
-   if(want_vblank_nmi)
-      cpu_interrupt(CPU_INTERRUPT_NMI);
+   ppu_rendering_enabled = true;
+}
+
+void ppu_clear_palette(void)
+{
+   /* Clears the palette - easier than writing to VRAM when the palette needs
+      to be cleared from an external source. */
+   memset(&ppu_palette, 0, sizeof(ppu_palette));
 }
 
 void ppu_save_state(PACKFILE* file, int version)
 {
+   // Sync state;
+   process ();
+
+   pack_iputl(ppu_clock_counter, file);
+   pack_iputl(ppu_clock_buffer, file);
+
+   pack_iputw(ppu_scanline_timer, file);
+   pack_iputw(ppu_scanline, file);
+
+   pack_iputl(ppu_prediction_timestamp, file);
+   pack_iputl(ppu_prediction_cycles, file);
+
+   // --
+
    pack_putc(ppu_register_2000, file);
    pack_putc(ppu_register_2001, file);
 
@@ -1011,6 +1048,17 @@ void ppu_save_state(PACKFILE* file, int version)
 
 void ppu_load_state(PACKFILE* file, int version)
 {
+   ppu_clock_counter = pack_igetl(file);
+   ppu_clock_buffer = pack_igetl(file);
+
+   ppu_scanline_timer = pack_igetw(file);
+   ppu_scanline = pack_igetw(file);
+
+   ppu_prediction_timestamp = pack_igetl(file);
+   ppu_prediction_cycles = pack_igetl(file);
+
+   // --
+
    ppu_register_2000 = pack_getc(file);
    ppu_write (0x2000, ppu_register_2000);
 
@@ -1052,5 +1100,236 @@ void ppu_load_state(PACKFILE* file, int version)
    if(state_contains_pattern_vram) {
       pack_fread(ppu_pattern_vram, PPU_PATTERN_VRAM_SIZE, file);
       ppu_cache_all_vram();
+   }
+}
+
+// Internal functions follow.
+static void predict_nmi_slave(cpu_time_t cycles)
+{
+   // Clear pending interrupt just in case.
+   cpu_unqueue_interrupt(CPU_INTERRUPT_NMI);
+
+   // NMIs only occur if the flag is set.
+   if(!want_vblank_nmi)
+      return;
+
+   if(machine_type == MACHINE_TYPE_NTSC)
+      ppu_frame_last_line = PPU_TOTAL_LINES_NTSC - 1;
+   else
+      ppu_frame_last_line = PPU_TOTAL_LINES_PAL - 1;
+
+   // Save variables since we just want to simulate.
+   const int16 saved_scanline_timer = ppu_scanline_timer;
+   const int16 saved_scanline = ppu_scanline;
+
+   for(cpu_time_t offset = 0; offset < cycles; offset++) {
+      // Get current scanline clock cycle (starting at 1).
+      const cpu_time_t cycle = (PPU_SCANLINE_CLOCKS - ppu_scanline_timer) + 1;
+
+      // VBlank NMI occurs on the 1st cycle of the line after the VBlank flag is set.
+      if((cycle == 1) &&
+         (ppu_scanline == (PPU_FIRST_VBLANK_LINE + 1)))
+         cpu_queue_interrupt(CPU_INTERRUPT_NMI, ppu_prediction_timestamp + (offset * PPU_CLOCK_MULTIPLIER));
+
+      if(ppu_scanline_timer > 0)
+         ppu_scanline_timer--;
+      if(ppu_scanline_timer <= 0) {
+         ppu_scanline_timer += PPU_SCANLINE_CLOCKS;
+
+         // move on to next scanline
+         ppu_scanline++;
+         if(ppu_scanline > ppu_frame_last_line)
+            ppu_scanline = 0;
+      }
+   }
+
+   // Restore variables.
+   ppu_scanline_timer = saved_scanline_timer;
+   ppu_scanline = saved_scanline;
+}
+
+void ppu_predict_nmi(cpu_time_t cycles)
+{
+   // Sync state.
+   process();
+
+   // Save parameters for re-prediction if a mid-scanline change occurs.
+   ppu_prediction_timestamp = cpu_get_cycles();
+   // We'll actually emulate a little bit longer than requested, since it doesn't hurt to do so.
+   ppu_prediction_cycles = cycles + (1 * PPU_CLOCK_MULTIPLIER);
+
+   // Convert from master clock to APU clock.
+   const cpu_time_t ppu_cycles = cycles / PPU_CLOCK_DIVIDER;
+   if(ppu_cycles == 0)
+      return;
+
+   predict_nmi_slave(ppu_cycles);
+}
+
+static void ppu_repredict_nmi(void)
+{
+   // Sync state.
+   process();
+
+   const cpu_time_t cycles = cpu_get_cycles();
+
+   // Determine how many cycles are left to simulate for this execution cycle.
+   cpu_rtime_t cycles_remaining = (signed)cycles - (signed)ppu_prediction_timestamp;
+   if(cycles_remaining <= 0)
+      return;
+
+   // Cap the number of cycles to simulate at the amount given in the last prediction request.
+   if(cycles_remaining > ppu_prediction_cycles)
+      cycles_remaining = ppu_prediction_cycles;
+
+   // Convert from master clock to PPU clock.
+   const cpu_rtime_t ppu_cycles_remaining = cycles_remaining / PPU_CLOCK_DIVIDER;
+   if(ppu_cycles_remaining <= 0)
+      return;
+
+   predict_nmi_slave(ppu_cycles_remaining);
+}
+
+static void process(void)
+{
+   // Calculate the delta period.
+   const cpu_rtime_t elapsed_cycles = cpu_get_elapsed_cycles(&ppu_clock_counter) + ppu_clock_buffer;
+   if(elapsed_cycles <= 0) {
+      // Nothing to do. 
+      return;
+   }
+
+   // Scale from master clock to PPU and buffer the remainder to avoid possibly losing cycles.
+   const cpu_rtime_t elapsed_ppu_cycles = elapsed_cycles / PPU_CLOCK_DIVIDER;
+   ppu_clock_buffer += elapsed_cycles - (elapsed_ppu_cycles * PPU_CLOCK_DIVIDER);
+
+   if(elapsed_ppu_cycles <= 0)
+      return;
+
+   if(machine_type == MACHINE_TYPE_NTSC)
+      ppu_frame_last_line = PPU_TOTAL_LINES_NTSC - 1;
+   else
+      ppu_frame_last_line = PPU_TOTAL_LINES_PAL - 1;
+
+   for(cpu_time_t count = 0; count < elapsed_ppu_cycles; count++) {
+      // Get current scanline clock cycle (starting at 1).
+      const cpu_time_t cycle = (PPU_SCANLINE_CLOCKS - ppu_scanline_timer) + 1;
+
+      // Scanline start.
+      if(cycle == 1) {
+         if(ppu_scanline == 0) {
+            // start a new frame
+            vram_address_start_new_frame();
+            ppu_is_rendering = TRUE;
+ 
+            if(input_enable_zapper)
+               input_update_zapper_offsets();
+         }
+
+         // call start scanline interrupt for MMC
+         if(mmc_scanline_start)
+            cpu_interrupt(mmc_scanline_start (ppu_scanline));
+
+         if((ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) &&
+            (ppu_scanline <= PPU_LAST_DISPLAYED_LINE)) {
+            // start new scanline
+            if (PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED) {
+               vram_address = (vram_address & (~0x1F & ~(1 << 10))) |
+                  (address_temp & (0x1F | (1 << 10)));
+            }
+
+            if(first_sprite_this_line) {
+               hit_first_sprite = PPU_SPRITE_0_COLLISION_BIT;
+               first_sprite_this_line = 0;
+            }
+
+            // render current line(this will get the boot when pixel rendering is enabled)
+            if(input_enable_zapper &&
+               (input_zapper_y_offset == ppu_scanline) &&
+               input_zapper_on_screen) {
+               // draw lines for zapper emulation
+               ppu_render_line(ppu_scanline);
+               // handle zapper emulation
+               input_update_zapper();
+            }
+            else {
+               // allow frameskip
+               if(ppu_rendering_enabled)
+                  ppu_render_line(ppu_scanline);
+               else
+                  ppu_stub_render_line(ppu_scanline);
+            }
+         }
+         else if(ppu_scanline == PPU_FIRST_VBLANK_LINE) {
+            // vblank / end render
+            vblank_occurred = TRUE;
+            ppu_is_rendering = FALSE;
+         }
+         else if(ppu_scanline == (PPU_FIRST_VBLANK_LINE + 1)) {
+            // VBlank NMI
+            // This is now handled by ppu_predict_nmi() instead.
+            // if(want_vblank_nmi)
+            //   cpu_interrupt(CPU_INTERRUPT_NMI);
+         }
+         else if(ppu_scanline == ppu_frame_last_line) {
+            // Clear VBlank, sprite #0 hit counters
+            vblank_occurred = FALSE;
+
+            hit_first_sprite = 0;
+            first_sprite_this_line = 0;
+         }
+      }
+
+      // sprite #0 hit detection
+      if(!hit_first_sprite && first_sprite_this_line) {
+         // remember we need to bias this by 1 since it starts at 0
+         if(cycle >= (first_sprite_this_line + 1))
+            hit_first_sprite = PPU_SPRITE_0_COLLISION_BIT;
+      }
+
+      // HBlank start.
+      if(cycle == (PPU_RENDER_CLOCKS + 1)) {
+          // call hblank start interrupt for MMC
+          if(mmc_hblank_start)
+              cpu_interrupt(mmc_hblank_start(ppu_scanline));
+      }
+
+      // Mid-HBlank VRAM address fixup.
+      if(cycle == (PPU_RENDER_CLOCKS + PPU_HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP + 1)) {
+         if(PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED) {
+            vram_address += 0x1000;
+
+            if((vram_address & (7 << 12)) == 0) {
+               vram_address += 32;
+
+               switch(vram_address & (0x1F << 5)) {
+                  case 0: {
+                     vram_address -= (1 << 10);
+                     break;
+                  }
+
+                  case (30 << 5): {
+                     vram_address = (vram_address - (30 << 5)) ^ (1 << 11);
+                     break;
+                  }
+               }
+            }
+         }
+      }
+
+      if(ppu_scanline_timer > 0)
+         ppu_scanline_timer--;
+      if(ppu_scanline_timer <= 0) {
+         ppu_scanline_timer += PPU_SCANLINE_CLOCKS;
+
+         // call end scanline interrupt for MMC
+         if(mmc_scanline_end)
+            cpu_interrupt(mmc_scanline_end(ppu_scanline));
+
+         // move on to next scanline
+         ppu_scanline++;
+         if(ppu_scanline > ppu_frame_last_line)
+            ppu_scanline = 0;
+      }
    }
 }

@@ -101,9 +101,6 @@ extern void  (*cpu_block_2k_write_handler[CPU_MAX_BLOCKS]) (UINT16, UINT8);
 extern UINT8 cpu_read_direct_safeguard (UINT16);
 extern void cpu_write_direct_safeguard (UINT16, UINT8);
 
-extern void cpu_start_new_scanline (void);
-
-extern cpu_time_t cpu_get_cycles_line (void);
 extern cpu_time_t cpu_get_cycles (void);
 extern cpu_rtime_t cpu_get_elapsed_cycles (cpu_time_t *timestamp);
 
