@@ -7,8 +7,8 @@
 static int vrc6_init(void);
 static int vrc6v_init(void);
 static void vrc6_reset(void);
-static void vrc6_save_state(PACKFILE *, int);
-static void vrc6_load_state(PACKFILE *, int);
+static void vrc6_save_state(PACKFILE*, int);
+static void vrc6_load_state(PACKFILE*, int);
 
 static const MMC mmc_vrc6 = {
    24,
@@ -53,11 +53,11 @@ static const UINT8 vrc6_irq_lut[3] = { 114, 114, 113 };
 #define VRC6_IRQ_SEQUENCER_STEPS 3
 
 static UINT8 vrc6_irq_timer = 0;
-static UINT8 vrc6_irq_step  = 0;
+static UINT8 vrc6_irq_step = 0;
 
 static UINT8 vrc6_irq_counter = 0x00;
-static UINT8 vrc6_irq_latch   = 0x00;
-static UINT8 vrc6_irq_reg     = 0x00;
+static UINT8 vrc6_irq_latch = 0x00;
+static UINT8 vrc6_irq_reg = 0x00;
 static BOOL  vrc6_enable_irqs = FALSE;
 
 /* IRQ prediction. */
@@ -382,14 +382,15 @@ static void vrc6_reset(void)
 
    /* Reset internal clock. */
    vrc6_clock_counter = 0;
-   vrc6_clock_buffer  = 0;
+   vrc6_clock_buffer = 0;
 
    /* Reset IRQ variables. */
-   vrc6_irq_timer   = 0;
-   vrc6_irq_step    = 0;
+   vrc6_irq_timer  = 0;
+   vrc6_irq_step = 0;
+
    vrc6_irq_counter = 0x00;
-   vrc6_irq_latch   = 0x00;
-   vrc6_irq_reg     = 0x00;
+   vrc6_irq_latch = 0x00;
+   vrc6_irq_reg = 0x00;
    vrc6_enable_irqs = FALSE;
 
    /* Reset IRQ prediction. */
@@ -434,7 +435,7 @@ static int vrc6v_init (void)
    return vrc6_base_init();
 }
 
-static void vrc6_save_state(PACKFILE *file, int version)
+static void vrc6_save_state(PACKFILE* file, int version)
 {
    RT_ASSERT(file);
 
@@ -444,21 +445,22 @@ static void vrc6_save_state(PACKFILE *file, int version)
 
    /* Save internal clock. */
    pack_iputl(vrc6_clock_counter, file);
-   pack_iputl(vrc6_clock_buffer,  file);
+   pack_iputl(vrc6_clock_buffer, file);
 
    /* Save IRQ status. */
-   pack_putc(vrc6_irq_timer,           file);
-   pack_putc(vrc6_irq_step,            file);
-   pack_putc(vrc6_irq_counter,         file);
-   pack_putc(vrc6_irq_latch,           file);
-   pack_putc(vrc6_irq_reg,             file);        
+   pack_putc(vrc6_irq_timer, file);
+   pack_putc(vrc6_irq_step, file);
+   pack_putc(vrc6_irq_counter, file);
+   pack_putc(vrc6_irq_latch, file);
+   pack_putc(vrc6_irq_reg, file);        
    pack_putc(BINARY(vrc6_enable_irqs), file);
 
+   /* Save IRQ prediction. */
    pack_iputl(vrc6_prediction_timestamp, file);
-   pack_iputl(vrc6_prediction_cycles,    file);
+   pack_iputl(vrc6_prediction_cycles, file);
 }
 
-static void vrc6_load_state(PACKFILE *file, int version)
+static void vrc6_load_state(PACKFILE* file, int version)
 {
    int index;
 
@@ -475,16 +477,17 @@ static void vrc6_load_state(PACKFILE *file, int version)
 
    /* Restore internal clock. */
    vrc6_clock_counter = pack_igetl(file);
-   vrc6_clock_buffer  = pack_igetl(file);
+   vrc6_clock_buffer = pack_igetl(file);
 
    /* Restore IRQ status. */
-   vrc6_irq_timer   = pack_getc(file);
-   vrc6_irq_step    = pack_getc(file);
+   vrc6_irq_timer = pack_getc(file);
+   vrc6_irq_step = pack_getc(file);
    vrc6_irq_counter = pack_getc(file);
-   vrc6_irq_latch   = pack_getc(file);
-   vrc6_irq_reg     = pack_getc(file);
+   vrc6_irq_latch = pack_getc(file);
+   vrc6_irq_reg = pack_getc(file);
    vrc6_enable_irqs = BOOLEAN(pack_getc(file));
 
+   /* Load IRQ prediction. */
    vrc6_prediction_timestamp = pack_igetl(file);
-   vrc6_prediction_cycles    = pack_igetl(file);
+   vrc6_prediction_cycles = pack_igetl(file);
 }
