@@ -51,7 +51,8 @@ enum
    INPUT_MODE_REPLAY        = (1 << 1),
    INPUT_MODE_REPLAY_RECORD = (1 << 2),
    INPUT_MODE_REPLAY_PLAY   = (1 << 3),
-   INPUT_MODE_CHAT          = (1 << 4)
+   INPUT_MODE_CHAT          = (1 << 4),
+   INPUT_MODE_NSF           = (1 << 5),
 };
 
 enum

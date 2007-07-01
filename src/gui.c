@@ -959,6 +959,9 @@ static INLINE int load_file (const UCHAR *filename)
          /* Botch. */
          rom_is_loaded = FALSE;
 
+         /* Clear filename. */
+         set_window_title ("FakeNES");
+
          return (D_REDRAW);
       }
    }
@@ -1037,6 +1040,10 @@ static INLINE void close_file (void)
    free_rom (&global_rom);
    rom_is_loaded = FALSE;
 
+   /* Reset window title. */
+   set_window_title ("FakeNES");
+
+   /* Update menus. */
    update_menus ();
 }
 

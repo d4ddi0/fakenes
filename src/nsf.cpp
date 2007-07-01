@@ -291,6 +291,9 @@ static linear void nsfPowerLevelsVisualizationDraw(void);
 static linear void nsfFrequenciesVisualizationDraw(void);
 static linear void nsfWaveformVisualizationDraw(void);
 
+// Button states array, used to detect flip-flops.  This must be synchronized with the input system on every reset.
+static bool nsfButtonStates[INPUT_BUTTONS];
+
 void nsf_main(void)
 {
    /* To keep everything in sync, we have to clock the playback timer via the scanline timer, which is in turn clocked by
@@ -300,6 +303,14 @@ void nsf_main(void)
    const ENUM saved_timing_mode = timing_mode;
    timing_mode = TIMING_MODE_DIRECT;
    timing_update_mode();
+
+   // Synchronize our cached button states with the input system.
+   for(int index = 0; index < INPUT_BUTTONS; index++) 
+      nsfButtonStates[index] = input_get_button_state(INPUT_PLAYER_1, index);
+
+   /* Force the input mode to NSF.  This helps keep anything input-related that the user left enabled(such as periodic
+      state saving) from getting in the way of the NSF player. */
+   input_mode = INPUT_MODE_NSF;
 
    // Calculate beats per second (BPM) for the frame timer.
    nsfFrameBPM = timing_get_frame_rate();
@@ -315,7 +326,7 @@ void nsf_main(void)
 
    // Jump to the starting song and queue the first playback cycle.
    play(nsf.startingSong);
-   playbackTimer += playbackPeriod;
+   playbackTimer = playbackPeriod;
 
    // How many samples to use for visualization(per frame). */
    nsfVisualizationSamples = (int)floor(audio_sample_rate / nsfFrameBPM);
@@ -333,9 +344,8 @@ void nsf_main(void)
    LOCK_FUNCTION(nsfFrameTimer);
    install_int_ex(nsfFrameTimer, BPS_TO_TIMER(nsfFrameBPM));
 
-   bool buttonA = false, buttonB = false, buttonSelect = false;
-
-   while(!buttonSelect && !key[KEY_ESC]) {
+   bool selectPressed = false;
+   while(!selectPressed && !key[KEY_ESC]) {
       int cached_nsfFrameTicks = nsfFrameTicks;
       nsfFrameTicks -= cached_nsfFrameTicks;
 
@@ -346,9 +356,9 @@ void nsf_main(void)
             // Checking our inputs only once per frame should be enough without introducing additional overhead.
             input_process();
 
-            bool buttonAX = input_get_button_state(INPUT_PLAYER_1, INPUT_BUTTON_A);
-            if(buttonAX &&
-               (buttonAX != buttonA)) {
+            bool buttonA = input_get_button_state(INPUT_PLAYER_1, INPUT_BUTTON_A);
+            if(buttonA &&
+               (buttonA != nsfButtonStates[INPUT_BUTTON_A])) {
                int nextSong = nsfCurrentSong - 1;
                if(nextSong < 1)
                   nextSong = 1;
@@ -361,11 +371,11 @@ void nsf_main(void)
                nsfFrameTicks -= nsfFrameTicks;
             }
 
-            buttonA = buttonAX;
+            nsfButtonStates[INPUT_BUTTON_A] = buttonA;
 
-            bool buttonBX = input_get_button_state(INPUT_PLAYER_1, INPUT_BUTTON_B);
-            if(buttonBX &&
-               (buttonBX != buttonB)) {
+            bool buttonB = input_get_button_state(INPUT_PLAYER_1, INPUT_BUTTON_B);
+            if(buttonB &&
+               (buttonB != nsfButtonStates[INPUT_BUTTON_B])) {
                int nextSong = nsfCurrentSong + 1;
                if(nextSong > nsf.totalSongs)
                   nextSong = nsf.totalSongs;
@@ -378,10 +388,14 @@ void nsf_main(void)
                nsfFrameTicks -= nsfFrameTicks;
             }
 
-            buttonB = buttonBX;
+            nsfButtonStates[INPUT_BUTTON_B] = buttonB;
 
-            // Since this button can only be pressed once there's no sense in detecting state changes.
-            buttonSelect = input_get_button_state(INPUT_PLAYER_1, INPUT_BUTTON_SELECT);
+            bool buttonSelect = input_get_button_state(INPUT_PLAYER_1, INPUT_BUTTON_SELECT);
+            if(buttonSelect &&
+               (buttonSelect != nsfButtonStates[INPUT_BUTTON_SELECT]))
+               selectPressed = true;
+
+            nsfButtonStates[INPUT_BUTTON_SELECT] = buttonSelect;
 
             for(int scanline = 0; scanline < scanlinesPerFrame; scanline++) {
                if(playbackTimer > 0.0)
@@ -943,50 +957,18 @@ static void nsf_mapper_reset(void)
 {
    // TODO: PAL/NTSC selection stuff here (setting machine_type?).  Probably needs changes to the timing system to work.
 
-   // Reset APU.  We have to do this to synchronize it with the CPU or Bad Things(TM) happen.
-   apu_reset();
-
-   //  Clear all RAM at 0000h-07ffh.
-   for(uint16 address = 0x0000; address <= 0x07FF; address++)
-      cpu_write(address, 0x00);
-
-   // Clear all RAM at 6000h-7fffh.
-   for(uint16 address = 0x6000; address <= 0x7FFF; address++)
-      cpu_write(address, 0x00);
-
-   // Init the sound registers by writing 00h to 04000-0400Fh,
-   for(uint16 address = 0x4000; address <= 0x400F; address++)
-      apu_write(address, 0x00);
-
-   // 10h to 4010h,
-   apu_write(0x4010, 0x10);
-
-   // and 00h to 4011h-4013h.
-   for(uint16 address = 0x4011; address <= 0x4013; address++)
-      apu_write(address, 0x00);
-  
-   // Set volume register 04015h to 00fh.
-   // Annotation: Huh?  I think he means to do this...
-   apu_write(0x4015, 0x0F);
-
-   // Reset ExSound.
-   if(nsf.expansionFlags & NSFExpansionMMC5)
-      apu_reset_exsound(APU_EXSOUND_MMC5);
-   if(nsf.expansionFlags & NSFExpansionVRC6)
-      apu_reset_exsound(APU_EXSOUND_VRC6);
-
-   // If this is a banked tune, load the bank values from the header into 5ff8-5fffh.
-   if(nsf.bankswitched) {
-      for(int bank = 0; bank < NSFBankCount; bank++)
-         bankswitch(bank, nsf.bankswitch[bank]);
-   }
-
    // Clear mapper data.
    nsfMMC5MultiplierMultiplicand = 0x00;
    nsfMMC5MultiplierMultiplier = 0x00;
    nsfMMC5MultiplierProduct = 0x0000;
 
    memset(nsfMMC5ExRAM, 0, sizeof(nsfMMC5ExRAM));
+
+   // Reset ExSound.
+   if(nsf.expansionFlags & NSFExpansionMMC5)
+      apu_reset_exsound(APU_EXSOUND_MMC5);
+   if(nsf.expansionFlags & NSFExpansionVRC6)
+      apu_reset_exsound(APU_EXSOUND_VRC6);
 }
 
 static UINT8 nsf_mapper_read(UINT16 address)
@@ -1079,7 +1061,46 @@ static void play(int song)
       // The requested song is different from our current song - start a new song.
 
       // We need to reset before initializing each tune.
-      nsf_mapper_reset();
+      // Note that a call to machine_reset() also implies a call to nsf_mapper_reset(), so we only have to do the former.
+      machine_reset();
+
+      // Since machine_reset() calls input_reset(), we need to resynchronize our cached input states.
+      for(int index = 0; index < INPUT_BUTTONS; index++) 
+         nsfButtonStates[index] = input_get_button_state(INPUT_PLAYER_1, index);
+
+      // Another reset-related issue: input_reset() resets the input mode, so we want to force it back to NSF.
+      input_mode = INPUT_MODE_NSF;
+
+      // All annoying reset issues aside, now we're good to play NSFs again...
+
+      //  Clear all RAM at 0000h-07ffh.
+      for(uint16 address = 0x0000; address <= 0x07FF; address++)
+         cpu_write(address, 0x00);
+
+      // Clear all RAM at 6000h-7fffh.
+      for(uint16 address = 0x6000; address <= 0x7FFF; address++)
+         cpu_write(address, 0x00);
+
+      // Init the sound registers by writing 00h to 04000-0400Fh,
+      for(uint16 address = 0x4000; address <= 0x400F; address++)
+         apu_write(address, 0x00);
+
+      // 10h to 4010h,
+      apu_write(0x4010, 0x10);
+
+      // and 00h to 4011h-4013h.
+      for(uint16 address = 0x4011; address <= 0x4013; address++)
+         apu_write(address, 0x00);
+  
+      // Set volume register 04015h to 00fh.
+      // Annotation: Huh?  I think he means to do this...
+      apu_write(0x4015, 0x0F);
+
+      // If this is a banked tune, load the bank values from the header into 5ff8-5fffh.
+      if(nsf.bankswitched) {
+         for(int bank = 0; bank < NSFBankCount; bank++)
+            bankswitch(bank, nsf.bankswitch[bank]);
+      }
 
       /* To initialize a tune, we set the accumulator to the song number(minus one), and the X register to the desired
          region (0=NTSC, 1=PAL), and then jump to the init address.

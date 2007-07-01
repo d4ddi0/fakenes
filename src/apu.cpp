@@ -862,8 +862,11 @@ static void apu_update_frame_sequencer(void)
          break;
       }
 
-      default:
+      default: {
+         printf("Step: %d\n", apu.sequence_step);
          WARN_GENERIC();
+         break;
+      }
    }
 
    /* check to see if we should generate an irq
@@ -1041,7 +1044,7 @@ void apu_reset(void)
    // On power-up, the shift register is loaded with the value 1.
    apu.noise.shift16 = 1;
 
-  // Clear registers.
+   // Clear registers.
    for(uint16 address = 0x4000; address <= 0x4017; address++)
       apu_write(address, 0x00);
 
@@ -1889,8 +1892,11 @@ static void mix(void)
          break;
       }
 
-      default:
+      default: {
+         printf("Channels: %d\n", apu.mixer.channels);
          WARN_GENERIC();
+         break;
+      }
    }
 }
 

@@ -864,7 +864,8 @@ void input_process (void)
 {
    int player;
 
-   if (!(input_mode & INPUT_MODE_REPLAY_RECORD))
+   if ((!(input_mode & INPUT_MODE_REPLAY_RECORD)) &&
+       (!(input_mode & INPUT_MODE_NSF)))
    {
       /* Timed autosave code.  Only executes when a replay isn't currently
          recording, but is allowed to execute while a replay is playing. */
@@ -884,7 +885,8 @@ void input_process (void)
       }
    }
 
-   if (input_mode & INPUT_MODE_REPLAY_PLAY)
+   if ((input_mode & INPUT_MODE_REPLAY_PLAY) &&
+       (!(input_mode & INPUT_MODE_NSF)))
    {
        /* Replay playback code.  Reads data from the replay file and feeds
           it directly into the player button states. */
@@ -910,7 +912,8 @@ void input_process (void)
       }
    }
 
-   if (!(input_mode & INPUT_MODE_PLAY))
+   if ((!(input_mode & INPUT_MODE_PLAY)) &&
+       (!(input_mode & INPUT_MODE_NSF)))
    {
       /* The remaining code should only execute in the normal gameplay
          mode - bail out. */
