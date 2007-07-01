@@ -988,7 +988,7 @@ void apu_save_config(void)
 {
    // Save configuration.
    set_config_bool ("apu", "enabled",         apu_options.enabled);
-   set_config_bool ("apu", "emulation",       apu_options.emulation);
+   set_config_int  ("apu", "emulation",       apu_options.emulation);
    set_config_bool ("apu", "stereo",          apu_options.stereo);
    set_config_bool ("apu", "swap_channels",   apu_options.swap_channels);
    set_config_float("apu", "volume",          apu_options.volume);
