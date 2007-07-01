@@ -160,7 +160,7 @@ static void vrc6_predict_irq(cpu_time_t cycles)
    /* Save parameters for re-prediction if a mid-scanline change occurs. */
    vrc6_prediction_timestamp = cpu_get_cycles();
    /* We'll actually emulate for a little bit longer than requested, since it doesn't hurt to do so. */
-   vrc6_prediction_cycles = cycles + (1 * CPU_CLOCK_MULTIPLIER);
+   vrc6_prediction_cycles = cycles + PREDICTION_BUFFER_CYCLES + (1 * CPU_CLOCK_MULTIPLIER);
 
    const cpu_time_t cpu_cycles = cycles /  CPU_CLOCK_DIVIDER;
    if(cpu_cycles == 0)

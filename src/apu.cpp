@@ -1509,7 +1509,7 @@ void apu_predict_irqs(cpu_time_t cycles)
    // Save parameters for re-prediction if a mid-scanline change occurs.
    apu.prediction_timestamp = cpu_get_cycles();
    // We'll actually emulate a little bit longer than requested, since it doesn't hurt to do so.
-   apu.prediction_cycles = cycles + (1 * APU_CLOCK_MULTIPLIER);
+   apu.prediction_cycles = cycles + PREDICTION_BUFFER_CYCLES + (1 * APU_CLOCK_MULTIPLIER);
 
    // Convert from master clock to APU clock.
    const cpu_time_t apu_cycles = cycles / APU_CLOCK_DIVIDER;

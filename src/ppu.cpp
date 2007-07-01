@@ -1156,7 +1156,7 @@ void ppu_predict_nmi(cpu_time_t cycles)
    // Save parameters for re-prediction if a mid-scanline change occurs.
    ppu_prediction_timestamp = cpu_get_cycles();
    // We'll actually emulate a little bit longer than requested, since it doesn't hurt to do so.
-   ppu_prediction_cycles = cycles + (1 * PPU_CLOCK_MULTIPLIER);
+   ppu_prediction_cycles = cycles + PREDICTION_BUFFER_CYCLES + (1 * PPU_CLOCK_MULTIPLIER);
 
    // Convert from master clock to APU clock.
    const cpu_time_t ppu_cycles = cycles / PPU_CLOCK_DIVIDER;

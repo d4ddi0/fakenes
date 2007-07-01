@@ -58,6 +58,12 @@ extern "C" {
 #define HBLANK_CLOCKS   (PPU_HBLANK_CLOCKS   * PPU_CLOCK_MULTIPLIER)
 #define HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP (PPU_HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP * PPU_CLOCK_MULTIPLIER)
 
+/* Lookahead buffering for the IRQ and NMI predictors, since even a bus cycle CPU will always execute more than requested
+   (due to using master clock cycles for external timing and CPU clock cycles for the start/stop state machine), and it's
+   much, much worse with opcode-based CPU emulations. */
+/* 8 = maximum cycle length of a 6502 opcode. */
+#define PREDICTION_BUFFER_CYCLES (8 * CPU_CLOCK_MULTIPLIER)
+
 extern ENUM machine_region;
 extern ENUM machine_type;
 extern ENUM machine_timing;
