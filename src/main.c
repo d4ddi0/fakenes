@@ -460,17 +460,9 @@ int main (int argc, char *argv[])
 
             cpu_execute(SCANLINE_CLOCKS);
 
-            /* Audio updates every scanline should be more than often enough. */
             apu_sync_update();
-            audio_update();
-
-            /* We don't *have* to do this here, but it helps "smooth" the performance load instead of just having heavy
-               bursts of execution at the end of a frame if nothing exciting happens during the frame. */
             ppu_sync_update();
          }
-
-         ppu_sync_update();
-         video_blit(screen);
 
          if ((frames_to_execute != -1) &&
              (frames_to_execute > 0))

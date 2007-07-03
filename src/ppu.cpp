@@ -1221,7 +1221,7 @@ static void process(void)
             // start a new frame
             vram_address_start_new_frame();
             ppu_is_rendering = TRUE;
- 
+
             if(input_enable_zapper)
                input_update_zapper_offsets();
          }
@@ -1236,11 +1236,6 @@ static void process(void)
             if (PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED) {
                vram_address = (vram_address & (~0x1F & ~(1 << 10))) |
                   (address_temp & (0x1F | (1 << 10)));
-            }
-
-            if(first_sprite_this_line) {
-               hit_first_sprite = PPU_SPRITE_0_COLLISION_BIT;
-               first_sprite_this_line = 0;
             }
 
             // render current line(this will get the boot when pixel rendering is enabled)
@@ -1282,8 +1277,7 @@ static void process(void)
 
       // sprite #0 hit detection
       if(!hit_first_sprite && first_sprite_this_line) {
-         // remember we need to bias this by 1 since it starts at 0
-         if(cycle >= (first_sprite_this_line + 1))
+         if(cycle >= first_sprite_this_line)
             hit_first_sprite = PPU_SPRITE_0_COLLISION_BIT;
       }
 
@@ -1328,8 +1322,12 @@ static void process(void)
 
          // move on to next scanline
          ppu_scanline++;
-         if(ppu_scanline > ppu_frame_last_line)
+         if(ppu_scanline > ppu_frame_last_line) {
             ppu_scanline = 0;
+
+            // current frame has ended
+            video_blit(screen);
+         }
       }
    }
 }

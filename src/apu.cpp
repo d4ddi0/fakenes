@@ -1615,9 +1615,10 @@ void apu_load_state(PACKFILE* file, int version)
 
 void apu_sync_update(void)
 {
-   /* All this function does is force all the pending cycles to be emulated and the respective samples to be produced.  This
-      is usually called just before an audio update cycle, at the end of each scanline. */
+   // Sync state.
    process();
+
+   audio_update();
 }
 
 REAL* apu_get_visdata(void)
