@@ -35,10 +35,10 @@
 
 // Audio options.  Usually these work more as strong suggestions rather than hard requirements.
 audio_options_t audio_options = {
-   TRUE,                    // Enable output
-   AUDIO_SUBSYSTEM_ALLEGRO, // Subsystem
-   -1,                      // Prefered sample rate (Autodetect)
-   -1,                      // Prefered buffer length(ms) (Autodetect)
+   TRUE,                      // Enable output
+   AUDIO_SUBSYSTEM_AUTOMATIC, // Subsystem
+   -1,                        // Prefered sample rate (Autodetect)
+   -1,                        // Prefered buffer length(ms) (Autodetect)
 };
 
 // Number of channels.  This usually comes from the APU options.  Read-only outside of the audio system.

@@ -380,6 +380,8 @@ static const MENU audio_output_buffer_menu_base[] =
    MENU_ENDCAP
 };                                             
 
+DEFINE_MENU_CALLBACK(audio_output_menu_subsystem_automatic);
+DEFINE_MENU_CALLBACK(audio_output_menu_subsystem_safe);
 DEFINE_MENU_CALLBACK(audio_output_menu_subsystem_allegro);
 DEFINE_MENU_CALLBACK(audio_output_menu_subsystem_openal);
 DEFINE_MENU_CALLBACK(audio_output_menu_sampling_rate_automatic);
@@ -394,7 +396,9 @@ DEFINE_MENU_CALLBACK(audio_output_menu_mixing_stereo_inverted);
 static const MENU audio_output_menu_base[] =
 {
    { "Subsystem",            NULL,                                      NULL,                                  0, NULL },
-   { "  &Allegro",           audio_output_menu_subsystem_allegro,       NULL,                                  0, NULL },
+   { "  &Automatic",         audio_output_menu_subsystem_automatic,     NULL,                                  0, NULL },
+   { "  &Safe",              audio_output_menu_subsystem_safe,          NULL,                                  0, NULL },
+   { "  A&llegro",           audio_output_menu_subsystem_allegro,       NULL,                                  0, NULL },
    { "  &OpenAL",            audio_output_menu_subsystem_openal,        NULL,                                  0, NULL },
    MENU_SPLITTER,          
    { "Sampling Rate",        NULL,                                      NULL,                                  0, NULL },
@@ -408,7 +412,7 @@ static const MENU audio_output_menu_base[] =
    MENU_SPLITTER,
    { "Mixing",               NULL,                                      NULL,                                  0, NULL },
    { "  &Mono",              audio_output_menu_mixing_mono,             NULL,                                  0, NULL },
-   { "  &Stereo",            audio_output_menu_mixing_stereo,           NULL,                                  0, NULL },
+   { "  S&tereo",            audio_output_menu_mixing_stereo,           NULL,                                  0, NULL },
    { "  Stereo (&Inverted)", audio_output_menu_mixing_stereo_inverted,  NULL,                                  0, NULL },
    MENU_SPLITTER,
    { "&Buffer",              NULL,                                      IMPORT_MENU(audio_output_buffer_menu), 0, NULL },

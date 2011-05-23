@@ -36,6 +36,11 @@ int audiolib_init(void)
    }
    
    switch(audio_options.subsystem) {
+
+#ifndef USE_OPENAL
+      case AUDIO_SUBSYSTEM_AUTOMATIC:
+#endif
+      case AUDIO_SUBSYSTEM_SAFE:
       case AUDIO_SUBSYSTEM_ALLEGRO: {
          audiolibDriver = new AudiolibAllegroDriver;
          if(!audiolibDriver) {
@@ -56,6 +61,7 @@ int audiolib_init(void)
       }
 
 #ifdef USE_OPENAL
+      case AUDIO_SUBSYSTEM_AUTOMATIC:	// Prefer OpenAL when auto
       case AUDIO_SUBSYSTEM_OPENAL: {
          audiolibDriver = new AudiolibOpenALDriver;
          if(!audiolibDriver) {
@@ -69,7 +75,11 @@ int audiolib_init(void)
             log_printf("AUDIOLIB: audiolib_init(): Initialization of audio driver failed for AUDIO_SUBSYSTEM_OPENAL.");
             log_printf("AUDIOLIB: audiolib_init(): audiolibDriver->initialize() error code %d.", result);
             audiolib_exit();
-            return 8 + result;
+
+            // Fall back to safe-mode
+            log_printf("AUDIOLIB: audiolib_init(): Falling back to safe-mode driver.");
+            audio_options.subsystem = AUDIO_SUBSYSTEM_SAFE;
+            return audiolib_init();
          }
 
          break;

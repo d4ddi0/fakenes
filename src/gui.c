@@ -185,8 +185,10 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(audio_channels_menu_extra_2,  apu_options.enable_extra_2);
    TOGGLE_MENU_ITEM(audio_channels_menu_extra_3,  apu_options.enable_extra_3);
 
-   TOGGLE_MENU_ITEM(audio_output_menu_subsystem_allegro, (audio_options.subsystem == AUDIO_SUBSYSTEM_ALLEGRO));
-   TOGGLE_MENU_ITEM(audio_output_menu_subsystem_openal,  (audio_options.subsystem == AUDIO_SUBSYSTEM_OPENAL));
+   TOGGLE_MENU_ITEM(audio_output_menu_subsystem_automatic, (audio_options.subsystem == AUDIO_SUBSYSTEM_AUTOMATIC));
+   TOGGLE_MENU_ITEM(audio_output_menu_subsystem_safe,      (audio_options.subsystem == AUDIO_SUBSYSTEM_SAFE));
+   TOGGLE_MENU_ITEM(audio_output_menu_subsystem_allegro,   (audio_options.subsystem == AUDIO_SUBSYSTEM_ALLEGRO));
+   TOGGLE_MENU_ITEM(audio_output_menu_subsystem_openal,    (audio_options.subsystem == AUDIO_SUBSYSTEM_OPENAL));
 
    TOGGLE_MENU_ITEM(audio_output_menu_sampling_rate_automatic, (audio_options.sample_rate_hint == -1));
    TOGGLE_MENU_ITEM(audio_output_menu_sampling_rate_22050_hz,  (audio_options.sample_rate_hint == 22050));
@@ -2171,6 +2173,30 @@ static int audio_channels_menu_disable_all (void)
 
    message_local ("All APU channels disabled.");
 
+   return (D_O_K);
+}
+
+static int audio_output_menu_subsystem_automatic (void)
+{
+   audio_options.subsystem = AUDIO_SUBSYSTEM_AUTOMATIC;
+   
+   cycle_audio ();
+   update_menus ();
+
+   message_local ("Audio subsystem set to Automatic.");
+   
+   return (D_O_K);
+}
+
+static int audio_output_menu_subsystem_safe (void)
+{
+   audio_options.subsystem = AUDIO_SUBSYSTEM_SAFE;
+   
+   cycle_audio ();
+   update_menus ();
+
+   message_local ("Audio subsystem set to Safe.");
+   
    return (D_O_K);
 }
 
