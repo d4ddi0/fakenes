@@ -7,6 +7,7 @@
    You must read and accept the license prior to use. */
 
 #include <allegro.h>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <vector>

@@ -23,7 +23,8 @@ CFLAGS += ' -DUSE_OPENAL'
 # --
 
 do ifplat unix
-   LDFLAGS += ' `openal-config --libs`'
+   CFLAGS += ' `pkg-config --cflags openal`'
+   LDFLAGS += ' `pkg-config --libs openal`'
 else
    LDFLAGS += ' -lOpenAL32'
 done

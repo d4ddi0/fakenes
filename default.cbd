@@ -105,6 +105,9 @@ ifplat unix CFLAGS += ' -DPOSIX'
 # Version tagging.
 ifopt --tag CFLAGS += " -DVERSION_TAG=\\\"$('getoptval' --tag)\\\""
 
+# Miscellaneous
+LDFLAGS += " -lm"
+
 # --
 
 STDOUT_LOG="${BUILD_DIR}/stdout.log"
