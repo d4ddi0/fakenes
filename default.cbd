@@ -291,6 +291,10 @@ SRCFILES += "${SRC_SOUNDDIR}/VRC6.cpp "
 SRCFILES += 'timing.c '
 SRCFILES += 'video.c '
 
+do ifplat unix
+    SRCFILES += 'icon.c '
+done
+
 # --
 
 ifopt clean goto clean
