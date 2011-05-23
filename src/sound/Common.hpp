@@ -13,4 +13,9 @@
 #include "../include/cpu.h"
 #include "SoundInternals.hpp"
 
+// Curse you, Windows!
+#ifdef ALLEGRO_WINDOWS
+#undef interface
+#endif
+
 #endif //!_SOUND_COMMON_HPP
