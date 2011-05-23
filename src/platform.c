@@ -167,7 +167,7 @@ int platform_init (void)
 
     if (confdir)
     {
-        const UINT8 conffile_base [] = "/config";
+        const UINT8 conffile_base [] = "/fakenes.cfg";
 
 
         UINT8 * conffile = malloc (strlen (confdir) + sizeof (conffile_base));
