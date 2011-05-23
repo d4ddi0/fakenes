@@ -91,7 +91,7 @@ int platform_init (void)
 
                 strcat (logfile, logdir);
 
-                strcat (logfile, "/messages");
+                strcat (logfile, "/messages.log");
             }
         }
         else
