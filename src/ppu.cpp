@@ -536,6 +536,8 @@ void ppu_invert_mirroring(void)   /* '/' key. */
 
 static UINT8 ppu_vram_read(void)
 {
+	// no syncing necessary here, its done by ppu_read/write()
+
    UINT16 address = vram_address & 0x3FFF;
    UINT8 temp = buffered_vram_read;
 
@@ -583,6 +585,8 @@ static UINT8 ppu_vram_read(void)
 
 static void ppu_vram_write(UINT8 value)
 {
+	// no syncing necessary here, its done by ppu_read/write()
+
    UINT16 address = vram_address & 0x3FFF;
 
    /* VRAM Write I/O. */
@@ -647,6 +651,9 @@ static void ppu_vram_write(UINT8 value)
 
 UINT8 ppu_get_background_color(void)
 {
+   // Sync state;
+   process ();
+
    /* Returns the current PPU background color - for drawing overscan for e.g NTSC */
    /* In the future, this should be rendered by the PPU itself into a special kind of buffer. */
    /* Returned as an index into the 256 color palette */
