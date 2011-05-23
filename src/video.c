@@ -396,7 +396,7 @@ int video_init (void)
 
    /* Set up fonts. */
 
-   small_font = DATA_TO_FONT(SMALL_FONT);
+   small_font = DATA_TO_FONT(GUI_FONT_SMALL);
 
    font_file = get_config_string ("gui", "font", "");
 
@@ -415,7 +415,7 @@ int video_init (void)
          if((SCREEN_W < 512) || (SCREEN_H < 448))
             font = small_font;
          else
-            font = DATA_TO_FONT(SMALL_FONT_CLEAN);
+            font = DATA_TO_FONT(GUI_FONT_MEDIUM);
 
          using_custom_font = FALSE;
       }
@@ -427,7 +427,7 @@ int video_init (void)
       if((SCREEN_W < 512) || (SCREEN_H < 448))
          font = small_font;
       else
-         font = DATA_TO_FONT (SMALL_FONT_CLEAN);
+         font = DATA_TO_FONT (GUI_FONT_MEDIUM);
 
       using_custom_font = FALSE;
    }

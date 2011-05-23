@@ -838,7 +838,7 @@ static INLINE int show_dialog (DIALOG *dialog, int focus)
       }
    }
 
-   dialog[0].dp3 = DATA_TO_FONT(LARGE_FONT);
+   dialog[0].dp3 = DATA_TO_FONT(GUI_FONT_LARGE);
 
    while (dialog[index].d1 != SL_FRAME_END)
    {

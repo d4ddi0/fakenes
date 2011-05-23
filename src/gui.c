@@ -1107,7 +1107,7 @@ static int open_lobby (void)
 
    /* Set up dialog objects. */
 
-   obj_frame->dp3 = DATA_TO_FONT(LARGE_FONT);
+   obj_frame->dp3 = DATA_TO_FONT(GUI_FONT_LARGE);
 
    obj_chat->bg = makecol (0, 0, 0);
    obj_chat->fg = makecol (240, 240, 240);
