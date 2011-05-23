@@ -359,7 +359,7 @@ static INLINE void update_menus (void)
 
 void gui_load_config (void)
 {
-   gui_theme_id = get_config_int ("gui", "theme",       GUI_THEME_PANTA);
+   gui_theme_id = get_config_int ("gui", "theme",       GUI_THEME_FIREFLOWER);
    lock_recent  = get_config_int ("gui", "lock_recent", FALSE);
 }
 
