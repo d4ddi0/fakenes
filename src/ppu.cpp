@@ -954,6 +954,8 @@ void ppu_save_state(PACKFILE* file, int version)
    pack_putc(ppu__sprite_collision ? 1 : 0, file);
    pack_putc(ppu__sprite_overflow ? 1 : 0, file);
 
+   Renderer_Save(file, version);
+
    pack_putc(mmc_get_name_table_count(), file);
    pack_putc(mmc_uses_pattern_vram(), file);
 
@@ -1009,6 +1011,8 @@ void ppu_load_state(PACKFILE* file, int version)
 
    ppu__sprite_collision = TRUE_OR_FALSE(pack_getc(file));
    ppu__sprite_overflow = TRUE_OR_FALSE(pack_getc(file));
+
+   Renderer_Load(file, version);
 
    const int state_name_table_count = pack_getc(file);
    const int state_contains_pattern_vram = pack_getc(file);

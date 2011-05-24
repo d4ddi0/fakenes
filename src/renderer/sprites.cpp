@@ -27,6 +27,9 @@ const unsigned PriorityMask = 0x20;
 
 } // namespace anonymous
 
+void SpriteInit() {
+}
+
 void SpriteLine() {
 }
 

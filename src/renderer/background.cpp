@@ -67,12 +67,21 @@ void Step()
    }
 }
 
+void Clear() {
+   render.background.tile = 0;
+   render.background.pixel = 0;
+}
+
 } // namespace anonymous
+
+void BackgroundInit()
+{
+   Clear();
+}
 
 void BackgroundLine()
 {
-   render.background.tile = 0;
-   render.background.pixel = 0;
+   Clear();
 }
 
 void BackgroundPixel()

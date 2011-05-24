@@ -8,7 +8,9 @@
 
 #ifndef _RENDERER__RENDERER_HPP
 #define _RENDERER__RENDERER_HPP
+#include <allegro.h>
 #include "../include/common.h"
+#include "../include/types.h"
 
 // Start of the NES palette in the global 256-color palette.
 #define PALETTE_ADJUST 1
@@ -25,7 +27,7 @@ extern const int DisplayHeight;
 
 typedef struct _RenderBackgroundContext {
    // Current tile and subtile positions.
-   int tile, pixel;
+   uint8 tile, pixel; // Saved to file
 
 } RenderBackgroundContext;
 
@@ -35,7 +37,7 @@ typedef struct _RenderSpriteContext {
 
 typedef struct _RenderContext {
    uint8* buffer;
-   int line, pixel;
+   uint8 line, pixel; // Saved to file
 
    RenderBackgroundContext background;
    RenderSpriteContext sprite;
@@ -50,5 +52,7 @@ extern void Renderer_Initialize();
 extern void Renderer_Frame();
 extern void Renderer_Line(int line);
 extern void Renderer_Pixel();
+extern void Renderer_Load(PACKFILE* file, const int version);
+extern void Renderer_Save(PACKFILE* file, const int version);
 
 #endif //!_RENDERER__RENDERER_HPP

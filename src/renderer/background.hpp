@@ -13,6 +13,7 @@
 
 namespace Renderer {
 
+extern void BackgroundInit();
 extern void BackgroundLine();
 extern void BackgroundPixel();
 extern void BackgroundPixelStub();

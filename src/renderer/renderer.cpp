@@ -6,6 +6,7 @@
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
 
+#include <allegro.h>
 #include <cstring>
 #include <cstdlib>
 #include "../include/common.h"
@@ -38,6 +39,9 @@ void Renderer_Initialize() {
    render.buffer = NULL;
    render.line = 0;
    render.pixel = 0;
+
+   BackgroundInit();
+   SpriteInit();
 }
 
 void Renderer_Frame() {
@@ -48,6 +52,7 @@ void Renderer_Line(int line) {
    render.line = line;
    render.pixel = 0;
 
+   // TODO: Move this to a per-pixel basis.
    memset(render.buffer, (ppu_background_palette[0] & palette_mask) + PALETTE_ADJUST, DisplayWidth);
    memset(background_pixels + (1 * TileWidth), 0, DisplayWidth);
 
@@ -56,6 +61,13 @@ void Renderer_Line(int line) {
 }
 
 void Renderer_Pixel() {
+   if(!render.buffer) {
+      /* After loading a state, the render buffer is null and must be reloaded, and
+         all previously rendered pixels are lost. This can causes momentary, but harmless
+         flicker when first loading a save state. */
+      render.buffer = PPU_GET_LINE_ADDRESS(video_buffer, render.line);
+   }
+
    if(PPU_ENABLED) {
       /* This is set if frame skipping is enabled, and rendering has not been forced
          (i.e for sprite #0 hitscan or lightgun emulation) */
@@ -77,4 +89,24 @@ void Renderer_Pixel() {
    }
 
    render.pixel++;
+}
+
+void Renderer_Load(PACKFILE* file, const int version) {
+   RT_ASSERT(file);
+
+   pack_putc(render.line, file);
+   pack_putc(render.pixel, file);
+
+   pack_putc(render.background.tile, file);
+   pack_putc(render.background.pixel, file);
+}
+
+void Renderer_Save(PACKFILE* file, const int version) {
+   RT_ASSERT(file);
+
+   render.line = pack_getc(file);
+   render.pixel = pack_getc(file);
+
+   render.background.tile = pack_getc(file);
+   render.background.pixel = pack_getc(file);
 }

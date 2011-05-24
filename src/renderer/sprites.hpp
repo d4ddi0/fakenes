@@ -13,6 +13,7 @@
 
 namespace Renderer {
 
+extern void SpriteInit();
 extern void SpriteLine();
 extern void SpritePixel();
 extern void SpritePixelStub();
