@@ -42,6 +42,7 @@ typedef struct apu_options_s {
    REAL volume;        /* Global volume */
 
    /* Filters. */
+   BOOL logarithmic;   /* Logarithmic mapping */
    BOOL normalize;     /* Normalize output */
 
    /* Channels. */

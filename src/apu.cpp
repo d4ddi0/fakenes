@@ -39,6 +39,7 @@ apu_options_t apu_options = {
    1.0,                    // Global volume
 
    // Enable filters:
+   FALSE, // Use logarithmic mapping (slow, improves volume)
    FALSE, // Normalize output
 
    // Enable channels:
@@ -966,6 +967,7 @@ void apu_load_config(void)
    apu_options.swap_channels   = get_config_bool ("apu", "swap_channels",   apu_options.swap_channels);
    apu_options.volume          = get_config_float("apu", "volume",          apu_options.volume);
 
+   apu_options.logarithmic     = get_config_bool ("apu", "logarithmic",     apu_options.logarithmic);
    apu_options.normalize       = get_config_bool ("apu", "normalize",       apu_options.normalize);
 
    apu_options.enable_square_1 = get_config_bool ("apu", "enable_square_1", apu_options.enable_square_1);
@@ -993,6 +995,7 @@ void apu_save_config(void)
    set_config_bool ("apu", "swap_channels",   apu_options.swap_channels);
    set_config_float("apu", "volume",          apu_options.volume);
 
+   set_config_bool ("apu", "logarithmic",     apu_options.logarithmic);
    set_config_bool ("apu", "normalize",       apu_options.normalize);
 
    set_config_bool ("apu", "enable_square_1", apu_options.enable_square_1);
@@ -1943,6 +1946,18 @@ static void filter(real& sample, APULPFilter* lpEnv, APUDCFilter* dcEnv)
 
 static void amplify(real& sample)
 {
+   if(apu_options.logarithmic) {
+      bool negative = false;
+      if(sample < 0.0) {
+         negative = true;
+         sample = fabs(sample);
+      }
+
+      sample = log(1.0 + sample) / log(2.0);
+      if(negative)
+         sample = 0.0 - sample;
+   }
+
    if(apu_options.normalize) {
       // Normalizer.
       static real gain = 0.0;
