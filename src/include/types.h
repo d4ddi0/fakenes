@@ -48,6 +48,22 @@ typedef signed char   fakenes_int8_t;
 #  error No 32-bit type could be found.
 #endif
 
+#ifdef C99_TYPES
+   typedef uint64_t       fakenes_uint64_t;
+   typedef int64_t        fakenes_int64_t;
+#elif SIZEOF_INT == 8
+   typedef unsigned int  fakenes_uint64_t;
+   typedef signed int    fakenes_int64_t;
+#elif SIZEOF_LONG == 8
+   typedef unsigned long  fakenes_uint64_t;
+   typedef signed long    fakenes_int64_t;
+#elif SIZEOF_LONG_LONG == 8
+   typedef unsigned long long fakenes_uint64_t;
+   typedef signed long long   fakenes_int64_t;
+#else
+#  error No 64-bit type could be found.
+#endif
+
 typedef int             fakenes_enum_t;   /* Enumeration index. */
 typedef unsigned        fakenes_flags_t;  /* Flags. */
 typedef double          fakenes_real_t;   /* Real number. */

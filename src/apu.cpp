@@ -1539,8 +1539,8 @@ static void apu_repredict_irqs(unsigned predictionFlags)
    const cpu_time_t cycles = cpu_get_cycles();
 
    // Determine how many cycles are left to simulate for this execution cycle.
-   cpu_rtime_t cycles_remaining = (signed)cycles - (signed)apu.prediction_timestamp;
-   if(cycles_remaining <= 0)
+   cpu_rtime_t cycles_remaining = (cpu_rtime_t)cycles - (cpu_rtime_t)apu.prediction_timestamp;
+   if(cycles_remaining == 0)
       return;
 
    // Cap the number of cycles to simulate at the amount given in the last prediction request.
@@ -1548,8 +1548,8 @@ static void apu_repredict_irqs(unsigned predictionFlags)
       cycles_remaining = apu.prediction_cycles;
 
    // Convert from master clock to APU clock.
-   const cpu_rtime_t apu_cycles_remaining = cycles_remaining / APU_CLOCK_DIVIDER;
-   if(apu_cycles_remaining <= 0)
+   const cpu_time_t apu_cycles_remaining = cycles_remaining / APU_CLOCK_DIVIDER;
+   if(apu_cycles_remaining == 0)
       return;
 
    if(predictionFlags & APU_PREDICT_IRQ_DMC)
@@ -1655,17 +1655,17 @@ static void process(void)
    }
 
    // Calculate the delta period.
-   const cpu_rtime_t elapsed_cycles = cpu_get_elapsed_cycles(&apu.clock_counter) + apu.clock_buffer;
-   if(elapsed_cycles <= 0) {
+   const cpu_time_t elapsed_cycles = cpu_get_elapsed_cycles(&apu.clock_counter) + apu.clock_buffer;
+   if(elapsed_cycles == 0) { // Always > 0 if apu.clock_buffer > 0
       // Nothing to do. 
       return;
    }
 
    // Scale from master clock to APU and buffer the remainder to avoid possibly losing cycles.
-   const cpu_rtime_t elapsed_apu_cycles = elapsed_cycles / APU_CLOCK_DIVIDER;
-   apu.clock_buffer += elapsed_cycles - (elapsed_apu_cycles * APU_CLOCK_DIVIDER);
+   const cpu_time_t elapsed_apu_cycles = elapsed_cycles / APU_CLOCK_DIVIDER;
+   apu.clock_buffer = elapsed_cycles - (elapsed_apu_cycles * APU_CLOCK_DIVIDER);
 
-   if(elapsed_apu_cycles <= 0)
+   if(elapsed_apu_cycles == 0)
       return;
 
    switch(apu_options.emulation) {

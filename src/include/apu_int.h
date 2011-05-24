@@ -134,7 +134,7 @@ public:
    // Timestamp of the last call to process().
    cpu_time_t clock_counter;
    // Buffer to hold unused clocks to avoid losing cycles.
-   cpu_rtime_t clock_buffer;
+   cpu_time_t clock_buffer;
 
    // IRQ prediction.
    cpu_time_t prediction_timestamp;

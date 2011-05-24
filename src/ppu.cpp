@@ -28,7 +28,7 @@ static void do_spr_ram_dma(uint8 page);
 static void process(void);
 
 static cpu_time_t ppu_clock_counter = 0;
-static cpu_rtime_t ppu_clock_buffer = 0;
+static cpu_time_t ppu_clock_buffer = 0;
 
 static int16 ppu_scanline_timer = 0;
 static int16 ppu_scanline = 0;
@@ -41,6 +41,7 @@ static void ppu_repredict_nmi(void);
 
 BOOL ppu__rendering_enabled = TRUE;
 BOOL ppu__force_rendering = FALSE;
+static BOOL ppu_cache_rendering_enabled = TRUE;
 
 UINT8 ppu_register_2000 = 0;
 UINT8 ppu_register_2001 = 0;
@@ -859,6 +860,7 @@ void ppu_reset(void)
    // enable rendering
    ppu__rendering_enabled = TRUE;
    ppu__force_rendering = FALSE;
+   ppu_cache_rendering_enabled = TRUE;
 
    ppu__sprite_collision = FALSE;
    ppu__sprite_overflow = FALSE;
@@ -902,12 +904,12 @@ void ppu_sync_update(void)
 
 void ppu_disable_rendering(void)
 {
-   ppu__rendering_enabled = FALSE;
+   ppu_cache_rendering_enabled = FALSE;
 }
 
 void ppu_enable_rendering(void)
 {
-   ppu__rendering_enabled = TRUE;
+   ppu_cache_rendering_enabled = TRUE;
 }
 
 void ppu_clear_palette(void)
@@ -1099,7 +1101,7 @@ static void ppu_repredict_nmi(void)
    const cpu_time_t cycles = cpu_get_cycles();
 
    // Determine how many cycles are left to simulate for this execution cycle.
-   cpu_rtime_t cycles_remaining = (signed)cycles - (signed)ppu_prediction_timestamp;
+   cpu_time_t cycles_remaining = (cpu_rtime_t)cycles - (cpu_rtime_t)ppu_prediction_timestamp;
    if(cycles_remaining <= 0)
       return;
 
@@ -1108,8 +1110,8 @@ static void ppu_repredict_nmi(void)
       cycles_remaining = ppu_prediction_cycles;
 
    // Convert from master clock to PPU clock.
-   const cpu_rtime_t ppu_cycles_remaining = cycles_remaining / PPU_CLOCK_DIVIDER;
-   if(ppu_cycles_remaining <= 0)
+   const cpu_time_t ppu_cycles_remaining = cycles_remaining / PPU_CLOCK_DIVIDER;
+   if(ppu_cycles_remaining == 0)
       return;
 
    predict_nmi_slave(ppu_cycles_remaining);
@@ -1118,17 +1120,17 @@ static void ppu_repredict_nmi(void)
 static void process(void)
 {
    // Calculate the delta period.
-   const cpu_rtime_t elapsed_cycles = cpu_get_elapsed_cycles(&ppu_clock_counter) + ppu_clock_buffer;
-   if(elapsed_cycles <= 0) {
+   const cpu_time_t elapsed_cycles = cpu_get_elapsed_cycles(&ppu_clock_counter) + ppu_clock_buffer;
+   if(elapsed_cycles <= 0) { // Always > 0 when ppu_clock_buffer > 0
       // Nothing to do. 
       return;
    }
 
    // Scale from master clock to PPU and buffer the remainder to avoid possibly losing cycles.
-   const cpu_rtime_t elapsed_ppu_cycles = elapsed_cycles / PPU_CLOCK_DIVIDER;
-   ppu_clock_buffer += elapsed_cycles - (elapsed_ppu_cycles * PPU_CLOCK_DIVIDER);
+   const cpu_time_t elapsed_ppu_cycles = elapsed_cycles / PPU_CLOCK_DIVIDER;
+   ppu_clock_buffer = elapsed_cycles - (elapsed_ppu_cycles * PPU_CLOCK_DIVIDER);
 
-   if(elapsed_ppu_cycles <= 0)
+   if(elapsed_ppu_cycles == 0)
       return;
 
    if(machine_type == MACHINE_TYPE_NTSC)
@@ -1140,7 +1142,8 @@ static void process(void)
       // Get current scanline clock cycle (starting at 1).
       const cpu_time_t cycle = (PPU_SCANLINE_CLOCKS - ppu_scanline_timer) + 1;
 
-      // TODO: Check if this needs to go somewhere else?
+      /* Not entirely sure how the cache system works, so for now we'll call this every cycle
+         just to make sure, even if that ends up being a little slow. */
       if(ppu_vram_cache_needs_update)
          recache_vram_sets();
 
@@ -1154,6 +1157,7 @@ static void process(void)
             Renderer_Frame();
             ppu_is_rendering = TRUE;
 
+            // clear sprite #0 collision flag
             ppu__sprite_collision = FALSE;
          }
 
@@ -1170,6 +1174,7 @@ static void process(void)
 
             Renderer_Line(ppu_scanline);
 
+            // clear sprite overflow flag
             ppu__sprite_overflow = FALSE;
          }
          else if(ppu_scanline == PPU_FIRST_VBLANK_LINE) {
@@ -1177,7 +1182,7 @@ static void process(void)
             vblank_occurred = TRUE;
             ppu_is_rendering = FALSE;
 
-            // TODO: Is this really needed?
+            // Not sure if this is really needed, but it doesn't hurt.
             ppu__sprite_overflow = FALSE;
          }
          else if(ppu_scanline == (PPU_FIRST_VBLANK_LINE + 1)) {
@@ -1198,6 +1203,7 @@ static void process(void)
             (ppu_scanline <= PPU_LAST_DISPLAYED_LINE))
 #if 0
             // TODO: Sprite #0 hit test support here on skipped frames
+            // TODO: Find out what is wrong with Zapper hitscan code and fix it (crashes)
             if(input_enable_zapper)
                input_update_zapper_offsets();
 
@@ -1261,8 +1267,14 @@ static void process(void)
          if(ppu_scanline > ppu_frame_last_line) {
             ppu_scanline = 0;
 
-            // current frame has ended
-            video_blit(screen);
+            /* Current frame has ended, but we only have to draw the buffer to the screen
+               if rendering had been enabled (i.e this was not a skipped frame). */
+            if(ppu__rendering_enabled)
+               video_blit(screen);
+
+            // This is the only time its safe to enable/disable rendering directly
+            if(ppu__rendering_enabled != ppu_cache_rendering_enabled)
+               ppu__rendering_enabled = ppu_cache_rendering_enabled;
          }
       }
    }

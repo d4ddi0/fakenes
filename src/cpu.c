@@ -396,15 +396,17 @@ cpu_time_t cpu_get_cycles (void)
    return (cpu_context.Cycles);
 }
 
-cpu_rtime_t cpu_get_elapsed_cycles(cpu_time_t *timestamp)
+cpu_time_t cpu_get_elapsed_cycles(cpu_time_t *timestamp)
 {
    cpu_rtime_t elapsed_cycles;
 
    //RT_ASSERT(timestamp);
 
-   elapsed_cycles = (signed)cpu_context.Cycles - (signed)*timestamp;
+   elapsed_cycles = (cpu_rtime_t)cpu_context.Cycles - (cpu_rtime_t)*timestamp;
    *timestamp = cpu_context.Cycles;
 
+   /* This is safe to return as a cpu_time_t, as it is always >= 0,
+      assuming something hasn't screwed up. */
    return elapsed_cycles;
 }
 

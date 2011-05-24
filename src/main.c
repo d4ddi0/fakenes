@@ -432,9 +432,13 @@ int main (int argc, char *argv[])
 
          input_process ();
 
+         /* Enable/disable PPU rendering for frame skipping. This only affects visual output
+            (i.e buffer writes), not emulation. This is a cached setting so it might not
+            take effect immediately, but on the next PPU frame. */
          if(redraw_flag) {
             /* Perform a full render. */
 
+            // TODO: The PPU should manage these counters now.
             rendered_frames++;
             actual_fps_count++;
 

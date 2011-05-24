@@ -102,7 +102,7 @@ extern UINT8 cpu_read_direct_safeguard (UINT16);
 extern void cpu_write_direct_safeguard (UINT16, UINT8);
 
 extern cpu_time_t cpu_get_cycles (void);
-extern cpu_rtime_t cpu_get_elapsed_cycles (cpu_time_t *timestamp);
+extern cpu_time_t cpu_get_elapsed_cycles (cpu_time_t *timestamp);
 
 extern void cpu_save_state (PACKFILE *, int);
 extern void cpu_load_state (PACKFILE *, int);

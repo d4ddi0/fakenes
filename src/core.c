@@ -309,7 +309,7 @@ void FN2A03_Run(FN2A03 *R)
     PAIR PC;
     PC.word=R->PC.word;
 
-    while ((cpu_rtime_t)(R->ICount - R->Cycles) > 0)
+    while (((cpu_rtime_t)R->ICount - (cpu_rtime_t)R->Cycles) > 0)
     {
       UINT8 opcode, cycles;
 
