@@ -35,8 +35,8 @@ static BOOL allegro_gl_installed = FALSE;
 
 #endif   /* USE_ALLEGROGL */
 
-int video_buffer_width = 640;
-int video_buffer_height = 480;
+int video_buffer_width = -1; // Auto
+int video_buffer_height = -1;
 
 static BITMAP *page_buffer = NULL;
 static BITMAP *screen_buffer = NULL;
