@@ -28,6 +28,11 @@
 #include "types.h"
 #include "video.h"
 
+// Fun stuff.
+#ifdef ALLEGRO_WINDOWS
+#undef DEFAULT_PALETTE
+#endif
+
 #ifdef USE_ALLEGROGL
 
 /* Botch. */
