@@ -102,11 +102,14 @@ extern BOOL want_vblank_nmi;
 
 extern BOOL vblank_occurred;
 
-extern UINT8 hit_first_sprite;
-extern cpu_time_t first_sprite_this_line;
-
 extern UINT16 background_tileset;
 extern UINT16 sprite_tileset;
+
+extern BOOL ppu__rendering_enabled;
+extern BOOL ppu__force_rendering;
+
+extern BOOL ppu__sprite_collision;
+extern BOOL ppu__sprite_overflow;
 
 #define ATTRIBUTE_TABLE_SIZE 4
 #ifdef ALLEGRO_I386

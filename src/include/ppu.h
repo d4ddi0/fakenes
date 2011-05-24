@@ -43,9 +43,10 @@ extern "C" {
 
 #define PPU_BACKGROUND_ENABLED  \
     (ppu_register_2001 & PPU_BACKGROUND_ENABLE_BIT)
-
 #define PPU_SPRITES_ENABLED     \
     (ppu_register_2001 & PPU_SPRITES_ENABLE_BIT)
+#define PPU_ENABLED \
+    (PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED)
 
 #define PPU_BACKGROUND_CLIP_ENABLED     \
     (! (ppu_register_2001 & PPU_BACKGROUND_SHOW_LEFT_EDGE_BIT))
@@ -64,15 +65,14 @@ extern "C" {
 
 extern UINT8 ppu_register_2000;
 extern UINT8 ppu_register_2001;
-extern int ppu_enable_sprite_layer_a;
-extern int ppu_enable_sprite_layer_b;
-extern int ppu_enable_background_layer;
+extern BOOL ppu_enable_sprite_layer_a;
+extern BOOL ppu_enable_sprite_layer_b;
+extern BOOL ppu_enable_background_layer;
 
 extern int ppu_frame_last_line;
 extern BOOL ppu_is_rendering;
-
-extern int background_enabled;
-extern int sprites_enabled;
+extern BOOL background_enabled;
+extern BOOL sprites_enabled;
 
 extern UINT8 * one_screen_base_address;
 

@@ -39,19 +39,21 @@ static cpu_time_t ppu_prediction_cycles = 0;
 
 static void ppu_repredict_nmi(void);
 
-static bool ppu_rendering_enabled = true;
+BOOL ppu__rendering_enabled = TRUE;
+BOOL ppu__force_rendering = FALSE;
 
 UINT8 ppu_register_2000 = 0;
 UINT8 ppu_register_2001 = 0;
-int ppu_enable_sprite_layer_a = TRUE;
-int ppu_enable_sprite_layer_b = TRUE;
-int ppu_enable_background_layer = TRUE;
+BOOL ppu_enable_sprite_layer_a = TRUE;
+BOOL ppu_enable_sprite_layer_b = TRUE;
+BOOL ppu_enable_background_layer = TRUE;
 
 int ppu_frame_last_line = 0;
 BOOL ppu_is_rendering = FALSE;
-
-int background_enabled = FALSE;
-int sprites_enabled = FALSE;
+BOOL background_enabled = FALSE;
+BOOL sprites_enabled = FALSE;
+BOOL ppu__sprite_collision = FALSE;
+BOOL ppu__sprite_overflow = FALSE;
 
 UINT8* one_screen_base_address = NULL;
 
@@ -106,9 +108,6 @@ BOOL want_vblank_nmi = FALSE;
 
 BOOL vblank_occurred = FALSE;
 
-UINT8 hit_first_sprite = 0;
-cpu_time_t first_sprite_this_line = 0;
-
 UINT16 background_tileset = 0;
 UINT16 sprite_tileset = 0;
 
@@ -123,7 +122,6 @@ INT8 background_pixels[BACKGROUND_PIXELS_SIZE];
 UINT8 palette_mask = 0x3f;
 
 #include "ppu/tiles.h"
-#include "ppu/sprites.h"
 
 static UINT8 vram_read(UINT16 address)
 {
@@ -354,6 +352,8 @@ int ppu_init(void)
 
    ppu_reset();
 
+   Renderer_Initialize();
+
    return 0;
 }
 
@@ -536,8 +536,7 @@ void ppu_invert_mirroring(void)   /* '/' key. */
 
 static UINT8 ppu_vram_read(void)
 {
-	// no syncing necessary here, its done by ppu_read/write()
-
+   // no syncing necessary here, its done by ppu_read/write()
    UINT16 address = vram_address & 0x3FFF;
    UINT8 temp = buffered_vram_read;
 
@@ -585,8 +584,7 @@ static UINT8 ppu_vram_read(void)
 
 static void ppu_vram_write(UINT8 value)
 {
-	// no syncing necessary here, its done by ppu_read/write()
-
+   // no syncing necessary here, its done by ppu_read/write()
    UINT16 address = vram_address & 0x3FFF;
 
    /* VRAM Write I/O. */
@@ -686,14 +684,10 @@ UINT8 ppu_read (UINT16 address)
             vblank_occurred = FALSE;
          }
 
-         if(PPU_SPRITES_ENABLED && (ppu_scanline <= PPU_LAST_DISPLAYED_LINE)) {
-            if (sprite_list_needs_recache)
-               recache_sprite_list();
-
-            data |= sprite_overflow_on_line[ppu_scanline];
-         }
-
-         data |= hit_first_sprite;
+         if(ppu__sprite_collision)
+            data |= PPU_SPRITE_0_COLLISION_BIT;
+         if(ppu__sprite_overflow)
+            data |= PPU_SPRITE_OVERFLOW_BIT;
 
          address_write = FALSE;
 
@@ -736,12 +730,7 @@ void ppu_write(UINT16 address, UINT8 value)
          /* Control register #1. */
          ppu_register_2000 = value;
 
-         int new_sprite_height = (value & PPU_SPRITE_SIZE_BIT) ? 16 : 8;
-
-         if(sprite_height != new_sprite_height) {
-            sprite_height = new_sprite_height;
-            sprite_list_needs_recache = TRUE;
-         }
+         sprite_height = (value & PPU_SPRITE_SIZE_BIT) ? 16 : 8;
 
          want_vblank_nmi = value & PPU_VBLANK_NMI_FLAG_BIT;
 
@@ -762,6 +751,11 @@ void ppu_write(UINT16 address, UINT8 value)
       case 0x2001 & 7: {
          /* Control register #2. */
          ppu_register_2001 = value;
+         if(ppu_register_2001 & PPU_MONOCHROME_DISPLAY_BIT)
+            palette_mask = 0x30;
+         else
+            palette_mask = 0x3f;
+
          break;
       }
 
@@ -773,11 +767,7 @@ void ppu_write(UINT16 address, UINT8 value)
 
       case 0x2004 & 7: {
          /* Sprite RAM I/O. */
-         if(ppu_spr_ram[spr_ram_address] != value) {
-            ppu_spr_ram[spr_ram_address] = value;
-            sprite_list_needs_recache = TRUE;
-         }
-
+         ppu_spr_ram[spr_ram_address] = value;
          spr_ram_address++;
 
          break;
@@ -846,19 +836,9 @@ static void do_spr_ram_dma(UINT8 page)
       /* Steal 2 CPU cycles. */
       cpu_burn(2 * CPU_CLOCK_MULTIPLIER);
 
-      if(ppu_spr_ram[spr_ram_address] != value) {
-         ppu_spr_ram[spr_ram_address] = value;
-         sprite_list_needs_recache = TRUE;
-      }
-
+      ppu_spr_ram[spr_ram_address] = value;
       spr_ram_address++;
    }
-}
-
-static void vram_address_start_new_frame(void)
-{
-   if (PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED)
-      vram_address = address_temp;
 }
 
 void ppu_reset(void)
@@ -877,14 +857,13 @@ void ppu_reset(void)
    ppu_prediction_cycles = 0;
 
    // enable rendering
-   ppu_rendering_enabled = true;
+   ppu__rendering_enabled = TRUE;
+   ppu__force_rendering = FALSE;
 
+   ppu__sprite_collision = FALSE;
+   ppu__sprite_overflow = FALSE;
 
    vblank_occurred = FALSE;
-
-   hit_first_sprite = 0;
-   first_sprite_this_line = 0;
-
 
    memset(ppu_pattern_vram, NULL, sizeof(ppu_pattern_vram));
    memset(ppu_name_table_vram, NULL, sizeof(ppu_name_table_vram));
@@ -900,7 +879,6 @@ void ppu_reset(void)
       PPU_BACKGROUND_ENABLE_BIT | PPU_SPRITES_ENABLE_BIT);
 
    spr_ram_address = 0;
-   sprite_list_needs_recache = TRUE;
 
    vram_address = 0;
    address_temp = 0;
@@ -916,65 +894,6 @@ void ppu_reset(void)
    ppu_set_mirroring(ppu_mirroring);
 }
 
-static void ppu_render_line(int line)
-{
-   int i;
-
-   if(ppu_register_2001 & PPU_MONOCHROME_DISPLAY_BIT)
-      palette_mask = 0x30;
-   else
-      palette_mask = 0x3f;
-
-   if(!PPU_BACKGROUND_ENABLED) {
-      memset(PPU_GET_LINE_ADDRESS(video_buffer, line),
-         (ppu_background_palette[0] & palette_mask) + PALETTE_ADJUST, 256);
-   }
-
-   if(!PPU_BACKGROUND_ENABLED && !PPU_SPRITES_ENABLED)
-      return;
-
-   if(!PPU_BACKGROUND_ENABLED && PPU_SPRITES_ENABLED) {
-      /* used for sprite pixel allocation and collision detection */
-      memset (background_pixels + 8, 0, 256);
-   }
-
-   if(ppu_vram_cache_needs_update)
-       recache_vram_sets();
-
-   if(PPU_BACKGROUND_ENABLED) {
-      //ppu_render_background (line);
-      rendererRenderBackgroundLine(line);
-   }
-
-   if (PPU_SPRITES_ENABLED)
-      ppu_render_sprites (line);
-}
-
-static void ppu_stub_render_line(int line)
-{
-   int first_y, last_y;
-
-   /* draw lines for sprite 0 collision emulation */
-
-   /* if sprites or background are disabled, */
-   /* sprite 0 can't collide with background */
-   if(!PPU_BACKGROUND_ENABLED || !PPU_SPRITES_ENABLED)
-      return;
-
-   /* if sprite 0 already collided, nothing to detect */
-   if(hit_first_sprite)
-      return;
-
-   first_y = ppu_spr_ram[0] + 1;
-   last_y = first_y + sprite_height - 1;
-
-   /* if sprite 0 not on this line, nothing to detect */
-   if((line < first_y) || (line > last_y))
-      return;
- 
-   ppu_render_line(line);
-}
-
 void ppu_sync_update(void)
 {
    // Sync state.
@@ -983,12 +902,12 @@ void ppu_sync_update(void)
 
 void ppu_disable_rendering(void)
 {
-   ppu_rendering_enabled = false;
+   ppu__rendering_enabled = FALSE;
 }
 
 void ppu_enable_rendering(void)
 {
-   ppu_rendering_enabled = true;
+   ppu__rendering_enabled = TRUE;
 }
 
 void ppu_clear_palette(void)
@@ -1030,8 +949,8 @@ void ppu_save_state(PACKFILE* file, int version)
 
    pack_putc(vblank_occurred ? 1 : 0, file);
 
-   pack_putc(hit_first_sprite, file);
-   pack_iputl(first_sprite_this_line, file);
+   pack_putc(ppu__sprite_collision ? 1 : 0, file);
+   pack_putc(ppu__sprite_overflow ? 1 : 0, file);
 
    pack_putc(mmc_get_name_table_count(), file);
    pack_putc(mmc_uses_pattern_vram(), file);
@@ -1076,7 +995,6 @@ void ppu_load_state(PACKFILE* file, int version)
    ppu_set_mirroring(ppu_mirroring);
 
    spr_ram_address = pack_getc(file);
-   sprite_list_needs_recache = TRUE;
 
    vram_address = pack_igetw(file);
    buffered_vram_read = pack_getc(file);
@@ -1087,8 +1005,8 @@ void ppu_load_state(PACKFILE* file, int version)
 
    vblank_occurred = TRUE_OR_FALSE(pack_getc(file));
 
-   hit_first_sprite = pack_getc(file);
-   first_sprite_this_line = pack_igetl(file);
+   ppu__sprite_collision = TRUE_OR_FALSE(pack_getc(file));
+   ppu__sprite_overflow = TRUE_OR_FALSE(pack_getc(file));
 
    const int state_name_table_count = pack_getc(file);
    const int state_contains_pattern_vram = pack_getc(file);
@@ -1222,15 +1140,21 @@ static void process(void)
       // Get current scanline clock cycle (starting at 1).
       const cpu_time_t cycle = (PPU_SCANLINE_CLOCKS - ppu_scanline_timer) + 1;
 
+      // TODO: Check if this needs to go somewhere else?
+      if(ppu_vram_cache_needs_update)
+         recache_vram_sets();
+
       // Scanline start.
       if(cycle == 1) {
          if(ppu_scanline == 0) {
             // start a new frame
-            vram_address_start_new_frame();
+            if(PPU_ENABLED)
+               vram_address = address_temp;
+
+            Renderer_Frame();
             ppu_is_rendering = TRUE;
 
-            if(input_enable_zapper)
-               input_update_zapper_offsets();
+            ppu__sprite_collision = FALSE;
          }
 
          // call start scanline interrupt for MMC
@@ -1240,32 +1164,21 @@ static void process(void)
          if((ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) &&
             (ppu_scanline <= PPU_LAST_DISPLAYED_LINE)) {
             // start new scanline
-            if (PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED) {
+            if(PPU_ENABLED)
                vram_address = (vram_address & (~0x1F & ~(1 << 10))) |
                   (address_temp & (0x1F | (1 << 10)));
-            }
 
-            // render current line(this will get the boot when pixel rendering is enabled)
-            if(input_enable_zapper &&
-               (input_zapper_y_offset == ppu_scanline) &&
-               input_zapper_on_screen) {
-               // draw lines for zapper emulation
-               ppu_render_line(ppu_scanline);
-               // handle zapper emulation
-               input_update_zapper();
-            }
-            else {
-               // allow frameskip
-               if(ppu_rendering_enabled)
-                  ppu_render_line(ppu_scanline);
-               else
-                  ppu_stub_render_line(ppu_scanline);
-            }
+            Renderer_Line(ppu_scanline);
+
+            ppu__sprite_overflow = FALSE;
          }
          else if(ppu_scanline == PPU_FIRST_VBLANK_LINE) {
             // vblank / end render
             vblank_occurred = TRUE;
             ppu_is_rendering = FALSE;
+
+            // TODO: Is this really needed?
+            ppu__sprite_overflow = FALSE;
          }
          else if(ppu_scanline == (PPU_FIRST_VBLANK_LINE + 1)) {
             // VBlank NMI
@@ -1274,45 +1187,61 @@ static void process(void)
             //   cpu_interrupt(CPU_INTERRUPT_NMI);
          }
          else if(ppu_scanline == ppu_frame_last_line) {
-            // Clear VBlank, sprite #0 hit counters
+            // Clear VBlank flag
             vblank_occurred = FALSE;
-
-            hit_first_sprite = 0;
-            first_sprite_this_line = 0;
          }
       }
 
-      // sprite #0 hit detection
-      if(!hit_first_sprite && first_sprite_this_line) {
-         if(cycle >= first_sprite_this_line)
-            hit_first_sprite = PPU_SPRITE_0_COLLISION_BIT;
-      }
+      // The PPU renders one pixel per clock for the first 256 clock cycles
+      if(cycle <= PPU_RENDER_CLOCKS) {
+         if((ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) &&
+            (ppu_scanline <= PPU_LAST_DISPLAYED_LINE))
+#if 0
+            // TODO: Sprite #0 hit test support here on skipped frames
+            if(input_enable_zapper)
+               input_update_zapper_offsets();
 
+            // We always need to perform rendering when performing the light gun hit-test
+            bool hitscan = false;
+            if(input_enable_zapper && input_zapper_on_screen &&
+               (input_zapper_y_offset == ppu_scanline) &&
+               (input_zapper_x_offset == Renderer::render.pixel)) {
+               hitscan = true;
+               ppu__force_rendering = TRUE;
+            }
+
+            Renderer_Pixel();
+
+            if(hitscan)
+               input_update_zapper();
+
+            if(ppu__force_rendering)
+               ppu__force_rendering = FALSE;
+#endif
+
+            Renderer_Pixel();
+      }
       // HBlank start.
-      if(cycle == (PPU_RENDER_CLOCKS + 1)) {
+      else if(cycle == (PPU_RENDER_CLOCKS + 1)) {
           // call hblank start interrupt for MMC
           if(mmc_hblank_start)
               cpu_interrupt(mmc_hblank_start(ppu_scanline));
       }
-
       // Mid-HBlank VRAM address fixup.
-      if(cycle == (PPU_RENDER_CLOCKS + PPU_HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP + 1)) {
-         if(PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED) {
+      else if(cycle == (PPU_RENDER_CLOCKS + PPU_HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP + 1)) {
+         if(PPU_ENABLED) {
             vram_address += 0x1000;
 
             if((vram_address & (7 << 12)) == 0) {
                vram_address += 32;
 
                switch(vram_address & (0x1F << 5)) {
-                  case 0: {
+                  case 0:
                      vram_address -= (1 << 10);
                      break;
-                  }
-
-                  case (30 << 5): {
+                  case (30 << 5):
                      vram_address = (vram_address - (30 << 5)) ^ (1 << 11);
                      break;
-                  }
                }
             }
          }
