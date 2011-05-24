@@ -46,8 +46,11 @@ extern "C" {
 #define PPU_FIRST_VBLANK_LINE     240                                       /* Line on which VBlank starts */
 #define PPU_FRAME_CLOCKS_NTSC     (PPU_SCANLINE_CLOCKS * PPU_TOTAL_LINES_NTSC)
 #define PPU_FRAME_CLOCKS_PAL      (PPU_SCANLINE_CLOCKS * PPU_TOTAL_LINES_PAL)
-#define PPU_FRAME_RATE_NTSC       ((MASTER_CLOCK_NTSC / PPU_CLOCK_DIVIDER_NTSC) / PPU_FRAME_CLOCKS_NTSC) /* ~60 Hz */
-#define PPU_FRAME_RATE_PAL        ((MASTER_CLOCK_PAL  / PPU_CLOCK_DIVIDER_PAL)  / PPU_FRAME_CLOCKS_PAL)  /* ~50 Hz */
+
+/* These macros generate floating-point values containing the ideal frame rate (in Hz).
+   Very important: Don't remove the (REAL) cast or it will produce an integer result. */
+#define PPU_FRAME_RATE_NTSC       ((MASTER_CLOCK_NTSC / (REAL)PPU_CLOCK_DIVIDER_NTSC) / PPU_FRAME_CLOCKS_NTSC) /* ~60 Hz */
+#define PPU_FRAME_RATE_PAL        ((MASTER_CLOCK_PAL  / (REAL)PPU_CLOCK_DIVIDER_PAL)  / PPU_FRAME_CLOCKS_PAL)  /* ~50 Hz */
 
 /* Values suitable to passing to cpu_execute(), cpu_consume_cycles(), apu_predict_irqs(), etc. */
 /* Uses master clock cycles. */
@@ -89,23 +92,23 @@ extern void suspend_timing (void);
 extern void resume_timing (void);
 
 enum {
-   MACHINE_REGION_AUTOMATIC,
+   MACHINE_REGION_AUTOMATIC = -1,
    MACHINE_REGION_NTSC,
    MACHINE_REGION_PAL,
 };
 
 enum {
-   MACHINE_TYPE_NTSC,
+   MACHINE_TYPE_NTSC = 0,
    MACHINE_TYPE_PAL,
 };
 
 enum {
+   MACHINE_TIMING_ACCURATE = 0,
    MACHINE_TIMING_SMOOTH,
-   MACHINE_TIMING_ACCURATE,
 };
 
 enum {
-   CPU_USAGE_PASSIVE,
+   CPU_USAGE_PASSIVE = 0,
    CPU_USAGE_NORMAL,
    CPU_USAGE_AGGRESSIVE,
 };
