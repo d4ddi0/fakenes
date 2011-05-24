@@ -25,6 +25,10 @@ typedef struct _MMC
    const UINT8 *id;
    void (*save_state) (PACKFILE *, int);
    void (*load_state) (PACKFILE *, int);
+   void (*save_state_prg) (PACKFILE *, int);
+   void (*load_state_prg) (PACKFILE *, int);
+   void (*save_state_chr) (PACKFILE *, int);
+   void (*load_state_chr) (PACKFILE *, int);
 
 } MMC;
 
@@ -41,6 +45,10 @@ extern int mmc_get_name_table_count (void);
 extern int mmc_uses_pattern_vram (void);
 extern void mmc_save_state (PACKFILE *, int);
 extern void mmc_load_state (PACKFILE *, int);
+extern void mmc_save_state_prg (PACKFILE *, int);
+extern void mmc_load_state_prg (PACKFILE *, int);
+extern void mmc_save_state_chr (PACKFILE *, int);
+extern void mmc_load_state_chr (PACKFILE *, int);
 
 #ifdef __cplusplus
 }

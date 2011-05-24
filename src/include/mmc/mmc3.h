@@ -11,7 +11,8 @@ static const MMC mmc_mmc3 = {
    "MMC3",
    mmc3_init, mmc3_reset,
    "MMC3\0\0\0\0",
-   mmc3_save_state, mmc3_load_state
+   mmc3_save_state, mmc3_load_state,
+   NULL, NULL, NULL, NULL
 };
 
 static int mmc3_command = 0;

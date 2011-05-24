@@ -30,7 +30,9 @@ static const MMC mmc_bandai =
 
     "BANDAI\0\0",
 
-    bandai_save_state, bandai_load_state
+    bandai_save_state, bandai_load_state,
+
+    NULL, NULL, NULL, NULL
 };
 
 

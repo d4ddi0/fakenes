@@ -13,7 +13,8 @@ static const MMC mmc_nina =
    34, "NINA-001",
    nina_init, nina_reset,
    "NINA\0\0\0\0",
-   nina_save_state, nina_load_state
+   nina_save_state, nina_load_state,
+   NULL, NULL, NULL, NULL
 };
 
 static UINT8 nina_prg_bank;

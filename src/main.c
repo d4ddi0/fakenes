@@ -382,7 +382,7 @@ int main (int argc, char *argv[])
                         processing, somehow. */
    
                      /* TODO: Is one update per frame enough for the new audio system?  Not that it's going to perform
-                        very wellduring rewinding anyway. :b */
+                        very well during rewinding anyway. */
                      apu_sync_update ();
                      audio_update ();
    
@@ -578,14 +578,6 @@ int machine_init (void)
       return (2);
    }
 
-   if (mmc_init () != 0)
-   {
-      WARN("mmc_init() failed (unsupported mapper?)");
- 
-      free_rom (&global_rom);
-      return (3);
-   }
-
    if (ppu_init () != 0)
    {
       WARN("Failed to initialize the PPU core");
@@ -594,6 +586,14 @@ int machine_init (void)
       return (4);
    }
  
+   if (mmc_init () != 0)
+   {
+      WARN("mmc_init() failed (unsupported mapper?)");
+ 
+      free_rom (&global_rom);
+      return (3);
+   }
+
    if (apu_init () != 0)
    {
       WARN("Failed to initialize the APU core");
@@ -632,9 +632,9 @@ void machine_exit (void)
 
    apu_exit ();
 
-   ppu_exit ();
-
    // mmc_exit ();
+
+   ppu_exit ();
 
    cpu_exit ();
 
@@ -646,9 +646,9 @@ void machine_reset (void)
 {
    cpu_reset ();
 
-   mmc_reset ();
-
    ppu_reset ();
+
+   mmc_reset ();
 
    apu_reset ();
 

@@ -13,7 +13,8 @@ static const MMC mmc_cnrom =
    3, "CNROM",
    cnrom_init, cnrom_reset,
    "CNROM\0\0\0",
-   cnrom_save_state, cnrom_load_state
+   cnrom_save_state, cnrom_load_state,
+   NULL, NULL, NULL, NULL
 };
 
 static UINT8 cnrom_last_write = 0;

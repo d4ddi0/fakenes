@@ -24,7 +24,7 @@ DAT2C_FLAGS = ''
 # --
 
 do ifplat unix
-   ifopt debug   AC_PARAMS = 'debug '
+#   ifopt debug   AC_PARAMS = 'debug '
    ifopt profile AC_PARAMS = 'profile '
 
    CFLAGS += " `allegro-config --cflags ${AC_PARAMS}`"

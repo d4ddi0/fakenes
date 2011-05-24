@@ -13,7 +13,8 @@ static const MMC mmc_gnrom =
    66, "GNROM",
    gnrom_init, gnrom_reset,
    "GNROM\0\0\0",
-   gnrom_save_state, gnrom_load_state
+   gnrom_save_state, gnrom_load_state,
+   NULL, NULL, NULL, NULL
 };
 
 static UINT8 gnrom_last_write = 0;

@@ -28,7 +28,7 @@
 #define UNUSED_SLOT_TEXT   "Empty"
 
 /* FNSS version supported/created. */
-#define FNSS_VERSION 0x201
+#define FNSS_VERSION 0x300
 
 static INLINE BOOL fnss_save_chunk (PACKFILE *file, int version, const char
    *id, void (*save_state) (PACKFILE *, int))
@@ -141,12 +141,16 @@ static INLINE BOOL fnss_save (PACKFILE *file, const UCHAR *title)
    
    /* Write CPU chunk. */
    fnss_save_chunk (file, version, "CPU\0", cpu_save_state);
+   /* Write MMC chunk for CPU. */
+   fnss_save_chunk (file, version, "MMCP\0", mmc_save_state_prg);
+  
+   /* Write PPU chunk. */
+   fnss_save_chunk (file, version, "PPU\0", ppu_save_state);
+   /* Write MMC chunk for PPU. */
+   fnss_save_chunk (file, version, "MMCC\0", mmc_save_state_chr);
 
    /* Write MMC chunk. */
    fnss_save_chunk (file, version, "MMC\0", mmc_save_state);
-   
-   /* Write PPU chunk. */
-   fnss_save_chunk (file, version, "PPU\0", ppu_save_state);
    
    /* Write APU chunk. */
    fnss_save_chunk (file, version, "APU\0", apu_save_state);
@@ -187,9 +191,9 @@ static INLINE BOOL fnss_load (PACKFILE *file)
 
    /* Verify version number. */
 
-   if (version < 0x200)
+   if (version < 0x210)
    {
-      /* Only save states of version 2.xx are supported. */
+      /* Only save states of version 2.10+ are supported. */
       return (FALSE);
    }
 
@@ -224,16 +228,25 @@ static INLINE BOOL fnss_load (PACKFILE *file)
    /* Keep these in order!
 
       Version 1.00 had a broken chunk order that might've caused problems
-      in the chunk-based code, but completely broke the raw code. */
+      in the chunk-based code, but completely broke the raw code.
+
+      Version 2.00 had a broken chunk order that broke the new per-pixel
+      PPU renderer, as the CPU and MMC controller were reset before the PPU.
+      In the new version, portions of the MMC are reset separately depending
+      on which internal hardware has been initialized. */
 
    /* Load CPU chunk. */
    fnss_load_chunk (file, version, "CPU\0", cpu_load_state);
-
-   /* Load MMC chunk. */
-   fnss_load_chunk (file, version, "MMC\0", mmc_load_state);
+   /* Load MMC chunk for CPU. */
+   fnss_load_chunk (file, version, "MMCP\0", mmc_load_state_prg);
 
    /* Load PPU chunk. */
    fnss_load_chunk (file, version, "PPU\0", ppu_load_state);
+   /* Load MMC chunk for PPU. */
+   fnss_load_chunk (file, version, "MMCC\0", mmc_load_state_chr);
+
+   /* Load MMC chunk. */
+   fnss_load_chunk (file, version, "MMC\0", mmc_load_state);
 
    /* Load APU chunk. */
    fnss_load_chunk (file, version, "APU\0", apu_load_state);
@@ -259,12 +272,16 @@ static INLINE BOOL fnss_save_raw (PACKFILE *file)
 
    /* Dump CPU state. */
    cpu_save_state (file, version);
-
-   /* Dump MMC state. */
-   mmc_save_state (file, version);
+   /* Dump MMC state for CPU. */
+   mmc_save_state_prg (file, version);
 
    /* Dump PPU state. */
    ppu_save_state (file, version);
+   /* Dump MMC state for PPU. */
+   mmc_save_state_chr (file, version);
+
+   /* Dump MMC state. */
+   mmc_save_state (file, version);
 
    /* Dump APU state. */
    apu_save_state (file, version);
@@ -292,12 +309,16 @@ static INLINE BOOL fnss_load_raw (PACKFILE *file)
 
    /* Restore CPU state. */
    cpu_load_state (file, version);
-
-   /* Restore MMC state. */
-   mmc_load_state (file, version);
+   /* Restore MMC state for CPU. */
+   mmc_load_state_prg (file, version);
 
    /* Restore PPU state. */
    ppu_load_state (file, version);
+   /* Restore MMC state for PPU. */
+   mmc_load_state_chr (file, version);
+
+   /* Restore MMC state. */
+   mmc_load_state (file, version);
 
    /* Restore APU state. */
    apu_load_state (file, version);

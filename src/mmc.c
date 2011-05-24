@@ -282,7 +282,6 @@ void mmc_reset (void)
     current_mmc -> reset ();
 }
 
-
 void mmc_save_state (PACKFILE * file, int version)
 {
     if (current_mmc -> save_state)
@@ -306,5 +305,57 @@ void mmc_load_state (PACKFILE * file, int version)
 
 
         current_mmc -> load_state (file, version);
+    }
+}
+
+void mmc_save_state_prg (PACKFILE * file, int version)
+{
+    if (current_mmc -> save_state_prg)
+    {
+        pack_fwrite (current_mmc -> id, 8, file);
+
+
+        current_mmc -> save_state_prg (file, version);
+    }
+}
+
+
+void mmc_load_state_prg (PACKFILE * file, int version)
+{
+    UINT8 signature [8];
+
+
+    if (current_mmc -> load_state_prg)
+    {
+        pack_fread (signature, 8, file);
+
+
+        current_mmc -> load_state_prg (file, version);
+    }
+}
+
+void mmc_save_state_chr (PACKFILE * file, int version)
+{
+    if (current_mmc -> save_state_chr)
+    {
+        pack_fwrite (current_mmc -> id, 8, file);
+
+
+        current_mmc -> save_state_chr (file, version);
+    }
+}
+
+
+void mmc_load_state_chr (PACKFILE * file, int version)
+{
+    UINT8 signature [8];
+
+
+    if (current_mmc -> load_state_chr)
+    {
+        pack_fread (signature, 8, file);
+
+
+        current_mmc -> load_state_chr (file, version);
     }
 }

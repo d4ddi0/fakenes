@@ -27,7 +27,10 @@ static const MMC mmc_ffe_f3 =
 
     "FFE_F3\0\0",
 
-    ffe_f3_save_state, ffe_f3_load_state
+    ffe_f3_save_state, ffe_f3_load_state,
+
+
+    NULL, NULL, NULL, NULL
 };
 
 

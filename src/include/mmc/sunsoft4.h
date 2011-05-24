@@ -11,7 +11,8 @@ static const MMC mmc_sunsoft4 =
    68, "Sunsoft mapper #4",
    sunsoft4_init, sunsoft4_reset,
    "SUNSOFT4",
-   sunsoft4_save_state, sunsoft4_load_state
+   sunsoft4_save_state, sunsoft4_load_state,
+   NULL, NULL, NULL, NULL
 };
 
 static UINT8 sunsoft4_name_table_banks[2];

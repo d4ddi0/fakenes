@@ -24,7 +24,10 @@ static const MMC mmc_mmc1 =
 
     "MMC1\0\0\0\0",
 
-    mmc1_save_state, mmc1_load_state
+    mmc1_save_state, mmc1_load_state,
+
+
+    NULL, NULL, NULL, NULL
 };
 
 

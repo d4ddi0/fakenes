@@ -13,7 +13,8 @@ static const MMC mmc_unrom =
    2, "UNROM",
    unrom_init, unrom_reset,
    "UNROM\0\0\0",
-   unrom_save_state, unrom_load_state
+   unrom_save_state, unrom_load_state,
+   NULL, NULL, NULL, NULL
 };
 
 static UINT8 unrom_last_write = 0;

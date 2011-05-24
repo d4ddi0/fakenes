@@ -25,7 +25,7 @@
 #include "video.h"
 
 static void do_spr_ram_dma(uint8 page);
-static void process(void);
+static void synchronize(void);
 
 static cpu_time_t ppu_clock_counter = 0;
 static cpu_time_t ppu_clock_buffer = 0;
@@ -229,8 +229,7 @@ UINT8* ppu_get_chr_rom_pages(ROM *rom)
 
 void ppu_set_ram_1k_pattern_vram_block(UINT16 block_address, int vram_block)
 {
-   // Sync state;
-   process ();
+   synchronize();
 
    ppu_vram_block [block_address >> 10] = vram_block;
 
@@ -250,8 +249,7 @@ void ppu_set_ram_1k_pattern_vram_block(UINT16 block_address, int vram_block)
 
 void ppu_set_ram_1k_pattern_vrom_block(UINT16 block_address, int vrom_block)
 {
-   // Sync state;
-   process ();
+   synchronize();
 
    vrom_block = (vrom_block & 7) + ROM_CHR_ROM_PAGE_LOOKUP
       [(vrom_block / 8) & ROM_CHR_ROM_PAGE_OVERFLOW_MASK] * 8;
@@ -276,8 +274,7 @@ void ppu_set_ram_1k_pattern_vrom_block(UINT16 block_address, int vrom_block)
 void ppu_set_ram_1k_pattern_vrom_block_ex(UINT16 block_address,
  int vrom_block, int map_type)
 {
-   // Sync state;
-   process ();
+   synchronize();
 
    vrom_block = (vrom_block & 7) + ROM_CHR_ROM_PAGE_LOOKUP
       [(vrom_block / 8) & ROM_CHR_ROM_PAGE_OVERFLOW_MASK] * 8;
@@ -311,8 +308,7 @@ void ppu_set_ram_1k_pattern_vrom_block_ex(UINT16 block_address,
 
 void ppu_set_ram_8k_pattern_vram(void)
 {
-   // Sync state;
-   process ();
+   synchronize();
 
    ppu_set_ram_1k_pattern_vram_block(0x0000, 0);
    ppu_set_ram_1k_pattern_vram_block(0x0400, 1);
@@ -380,24 +376,21 @@ void ppu_exit (void)
 
 int ppu_get_mirroring(void)
 {
-   // Sync state;
-   process ();
+   synchronize();
  
    return ppu_mirroring;
 }
 
 void ppu_set_name_table_internal(int table, int select)
 {
-   // Sync state;
-   process ();
+   synchronize();
 
    ppu_set_name_table_address(table, ppu_name_table_vram + (select << 10));
 }
 
 void ppu_set_name_table_address(int table, UINT8* address)
 {
-   // Sync state;
-   process ();
+   synchronize();
 
    name_tables_read[table] = address;
    name_tables_write[table] = address;
@@ -405,8 +398,7 @@ void ppu_set_name_table_address(int table, UINT8* address)
 
 void ppu_set_name_table_address_rom (int table, UINT8* address)
 {
-   // Sync state;
-   process ();
+   synchronize();
 
    name_tables_read[table] = address;
    name_tables_write[table] = ppu_vram_dummy_write;
@@ -414,8 +406,7 @@ void ppu_set_name_table_address_rom (int table, UINT8* address)
 
 void ppu_set_name_table_address_vrom(int table, int vrom_block)
 {
-   // Sync state;
-   process ();
+   synchronize();
 
    vrom_block = (vrom_block & 7) + ROM_CHR_ROM_PAGE_LOOKUP
       [(vrom_block / 8) & ROM_CHR_ROM_PAGE_OVERFLOW_MASK] * 8;
@@ -425,16 +416,14 @@ void ppu_set_name_table_address_vrom(int table, int vrom_block)
 
 void ppu_set_expansion_table_address(UINT8* address)
 {
-   // Sync state;
-   process ();
+   synchronize();
 
    ppu_expansion_table = address;
 }
 
 void ppu_set_mirroring_one_screen(void)
 {
-   // Sync state;
-   process ();
+   synchronize();
 
     ppu_set_name_table_address(0, one_screen_base_address);
     ppu_set_name_table_address(1, one_screen_base_address);
@@ -444,8 +433,7 @@ void ppu_set_mirroring_one_screen(void)
 
 void ppu_set_mirroring(int mirroring)
 {
-   // Sync state;
-   process ();
+   synchronize();
 
    ppu_mirroring = mirroring;
 
@@ -519,8 +507,7 @@ void ppu_set_mirroring(int mirroring)
 
 void ppu_invert_mirroring(void)   /* '/' key. */
 {
-   // Sync state;
-   process ();
+   synchronize();
 
    switch(ppu_mirroring) {
       case MIRRORING_HORIZONTAL: {
@@ -650,8 +637,7 @@ static void ppu_vram_write(UINT8 value)
 
 UINT8 ppu_get_background_color(void)
 {
-   // Sync state;
-   process ();
+   synchronize();
 
    /* Returns the current PPU background color - for drawing overscan for e.g NTSC */
    /* In the future, this should be rendered by the PPU itself into a special kind of buffer. */
@@ -663,8 +649,7 @@ static UINT8 last_ppu_write_value;
 
 UINT8 ppu_read (UINT16 address)
 {
-   // Sync state;
-   process ();
+   synchronize();
 
    /* Handle register mirroring. */
    switch(address & 7) {
@@ -714,8 +699,7 @@ UINT8 ppu_read (UINT16 address)
 
 void ppu_write(UINT16 address, UINT8 value)
 {
-   // Sync state;
-   process ();
+   synchronize();
 
    if(address == 0x4014) {
       /* Sprite RAM DMA. */
@@ -854,6 +838,7 @@ void ppu_reset(void)
    ppu_scanline_timer = PPU_SCANLINE_CLOCKS;
    ppu_scanline = 0;
 
+   // clear prediction vectors
    ppu_prediction_timestamp = 0;
    ppu_prediction_cycles = 0;
 
@@ -862,9 +847,11 @@ void ppu_reset(void)
    ppu__force_rendering = FALSE;
    ppu_cache_rendering_enabled = TRUE;
 
+   // clear sprite collision and overflow flags
    ppu__sprite_collision = FALSE;
    ppu__sprite_overflow = FALSE;
 
+   // clear vblank flag
    vblank_occurred = FALSE;
 
    memset(ppu_pattern_vram, NULL, sizeof(ppu_pattern_vram));
@@ -898,8 +885,7 @@ void ppu_reset(void)
 
 void ppu_sync_update(void)
 {
-   // Sync state.
-   process();
+   synchronize();
 }
 
 void ppu_disable_rendering(void)
@@ -921,8 +907,7 @@ void ppu_clear_palette(void)
 
 void ppu_save_state(PACKFILE* file, int version)
 {
-   // Sync state;
-   process ();
+   synchronize();
 
    pack_iputl(ppu_clock_counter, file);
    pack_iputl(ppu_clock_buffer, file);
@@ -1081,8 +1066,7 @@ static void predict_nmi_slave(cpu_time_t cycles)
 
 void ppu_predict_nmi(cpu_time_t cycles)
 {
-   // Sync state.
-   process();
+   synchronize();
 
    // Save parameters for re-prediction if a mid-scanline change occurs.
    ppu_prediction_timestamp = cpu_get_cycles();
@@ -1099,8 +1083,7 @@ void ppu_predict_nmi(cpu_time_t cycles)
 
 static void ppu_repredict_nmi(void)
 {
-   // Sync state.
-   process();
+   synchronize();
 
    const cpu_time_t cycles = cpu_get_cycles();
 
@@ -1121,7 +1104,7 @@ static void ppu_repredict_nmi(void)
    predict_nmi_slave(ppu_cycles_remaining);
 }
 
-static void process(void)
+static void synchronize(void)
 {
    // Calculate the delta period.
    const cpu_time_t elapsed_cycles = cpu_get_elapsed_cycles(&ppu_clock_counter) + ppu_clock_buffer;

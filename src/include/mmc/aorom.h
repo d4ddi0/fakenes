@@ -13,7 +13,8 @@ static const MMC mmc_aorom =
    7, "AOROM",
    aorom_init, aorom_reset,
    "AOROM\0\0\0",
-   aorom_save_state, aorom_load_state
+   aorom_save_state, aorom_load_state,
+   NULL, NULL, NULL, NULL
 };
 
 static UINT8 aorom_last_write = 0;
