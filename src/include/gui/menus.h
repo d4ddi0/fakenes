@@ -403,11 +403,9 @@ static const MENU audio_output_menu_base[] =
    MENU_SPLITTER,          
    { "Sampling Rate",        NULL,                                      NULL,                                  0, NULL },
    { "  A&utomatic",         audio_output_menu_sampling_rate_automatic, NULL,                                  0, NULL },
-   { "  ",                   NULL,                                      NULL,                                  0, NULL },
    { "  &1: 22050 Hz",       audio_output_menu_sampling_rate_22050_hz,  NULL,                                  0, NULL },
    { "  &2: 44100 Hz",       audio_output_menu_sampling_rate_44100_hz,  NULL,                                  0, NULL },
    { "  &3: 48000 Hz",       audio_output_menu_sampling_rate_48000_hz,  NULL,                                  0, NULL },
-   { "  ",                   NULL,                                      NULL,                                  0, NULL },
    { "  &Custom...",         audio_output_menu_sampling_rate_custom,    NULL,                                  0, NULL },
    MENU_SPLITTER,
    { "Mixing",               NULL,                                      NULL,                                  0, NULL },
@@ -441,7 +439,7 @@ DEFINE_MENU_CALLBACK(audio_menu_volume_reset);
 DEFINE_MENU_CALLBACK(audio_menu_volume_auto_normalize);
 
 /* Slot in which the "current volume" text is to placed. */
-#define AUDIO_MENU_VOLUME_TEXT   12
+#define AUDIO_MENU_VOLUME_TEXT   11
 
 static const MENU audio_menu_base[] =
 {
@@ -452,7 +450,6 @@ static const MENU audio_menu_base[] =
    { "  &Fast",           audio_menu_emulation_fast,         NULL,                             0, NULL },
    { "  &Accurate",       audio_menu_emulation_accurate,     NULL,                             0, NULL },
    { "  &High Quality",   audio_menu_emulation_high_quality, NULL,                             0, NULL },
-   { "  ",                NULL,                              NULL,                             0, NULL },
    { "  &Channels",       NULL,                              IMPORT_MENU(audio_channels_menu), 0, NULL },
    MENU_SPLITTER,                                                                       
    { "Out&put",           NULL,                              IMPORT_MENU(audio_output_menu),   0, NULL },
@@ -461,10 +458,8 @@ static const MENU audio_menu_base[] =
    { "insert text here",  NULL,                              NULL,                             0, NULL },
    { "  &Increase (+)",   audio_menu_volume_increase,        NULL,                             0, NULL },
    { "  &Decrease (-)",   audio_menu_volume_decrease,        NULL,                             0, NULL },
-   { "  ",                NULL,                              NULL,                             0, NULL },
    { "  Cu&stom...",      audio_menu_volume_custom,          NULL,                             0, NULL },
    { "  Rese&t",          audio_menu_volume_reset,           NULL,                             0, NULL },
-   { "  ",                NULL,                              NULL,                             0, NULL },
    { "  Auto &Normalize", audio_menu_volume_auto_normalize,  NULL,                             0, NULL },
    MENU_SPLITTER,                                                       
    { "&Record",           NULL,                              IMPORT_MENU(audio_record_menu),   0, NULL },

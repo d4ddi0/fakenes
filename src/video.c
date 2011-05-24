@@ -386,8 +386,8 @@ int video_init (void)
    else
    {
       /* Set default palette. */
-      video_set_palette    (DATA_TO_RGB(MODERN_NTSC_PALETTE));
-      video_set_palette_id (DATA_INDEX(MODERN_NTSC_PALETTE));
+      video_set_palette    (DATA_TO_RGB(DEFAULT_PALETTE));
+      video_set_palette_id (DATA_INDEX(DEFAULT_PALETTE));
    }
 
    /* Set up filters. */
