@@ -37,6 +37,7 @@ typedef struct _RenderSpriteContext {
    uint8 lowShift, highShift;
    uint8 latch;
    uint8 counter;
+   BOOL dead;
 
 } RenderSpriteContext;
 

@@ -15,6 +15,12 @@
 #include "renderer.hpp"
 #include "sprites.hpp"
 
+// TODO: MMC latches support
+// TODO: Fix up background transparency
+// TODO: Fix up clipping/priority relationship
+// TODO: Merge locked/clipped functionality
+// TODO: Implement sprite #0 hit scan
+
 namespace Renderer {
 
 namespace {
@@ -50,20 +56,22 @@ const int FetchCycleLast       = FetchCycleFirst      + 63;	// 64 clocks
 const int PipelineCycleFirst   = FetchCycleLast       + 1;
 const int PipelineCycleLast    = PipelineCycleFirst   + 20;	// 21 clocks
 
-// TODO: Double check these
-const unsigned OAM_Bank = 1 << 1;
+const unsigned OAM_Bank = 1 << 0;
+const unsigned OAM_Tile = 0xFF & ~OAM_Bank;
 
-const unsigned Attribute_HFlip    = 1 << 7;
-const unsigned Attribute_VFlip    = 1 << 6;
+const unsigned Attribute_Palette  = 0x03;
 const unsigned Attribute_Priority = 1 << 5;
+const unsigned Attribute_HFlip    = 1 << 6;
+const unsigned Attribute_VFlip    = 1 << 7;
 
 void ClearSprites() {
     for(int i = 0; i < SpritesPerLine; i++) {
        RenderSpriteContext& sprite = render.sprites[i];
-       sprite.lowShift = 0;
-       sprite.highShift = 0;
-       sprite.latch = 0;
+       sprite.lowShift = 0x00;
+       sprite.highShift = 0x00;
+       sprite.latch = 0x00;
        sprite.counter = 0;
+       sprite.dead = TRUE;
     }
 
     render.spriteCount = 0;
@@ -101,20 +109,68 @@ void SpriteLine() {
 }
 
 void SpritePixel() {
+    // Whether or not pixel buffer can be written (for sprite priority).
+    bool locked = false;
+
     for(int i = 0; i < render.spriteCount; i++) {
        RenderSpriteContext& sprite = render.sprites[i];
+
+       if(sprite.dead)
+           continue;
 
        if(sprite.counter > 0)
           sprite.counter--;
        if(sprite.counter > 0)
           continue;
 
-       uint8 pixel = (sprite.lowShift & 0x01) | ((sprite.highShift & 0x01) << 1);
-       if(pixel != 0)
-          render.buffer[render.pixel] = pixel;
+       bool clipping = false;
+       if((render.pixel <= 7) && PPU_SPRITES_CLIP_ENABLED)
+          clipping = true;
 
-       sprite.lowShift >>= 1;
-       sprite.highShift >>= 1;
+       uint8 pixel = 0;
+       if(sprite.latch & Attribute_HFlip) {
+          if(!clipping)
+             pixel = (sprite.lowShift & 0x01) | ((sprite.highShift & 0x01) << 1);
+
+          sprite.lowShift >>= 1;
+          sprite.highShift >>= 1;
+       }
+       else {
+          if(!clipping)
+             pixel = ((sprite.lowShift & 0x80) >> 7) | ((sprite.highShift & 0x80) >> 6);
+
+          sprite.lowShift <<= 1;
+          sprite.highShift <<= 1;
+       }
+
+       if((sprite.lowShift == 0x00) && (sprite.highShift == 0x00))
+          sprite.dead = TRUE;
+
+       if(locked)
+          // We can't draw any more pixels right now
+          continue;
+
+       // Don't draw transparent or clipped pixels.
+       if(pixel == 0)
+          continue;
+
+       if(sprite.latch & Attribute_Priority) {
+          /* This is a back-priority sprite, so we should only plot pixels
+             in areas where the background was transparent. */
+          const uint8 background = ppu__background_pixels[render.pixel];
+          if(background != 0)
+             continue;
+       }
+
+       // Remap pixel according to the palette.
+       const int palette = sprite.latch & Attribute_Palette;
+       pixel = PPU__SPRITE_PALETTE(palette, pixel);
+
+       render.buffer[render.pixel] = pixel;
+
+       /* Note that the PPU only renders a single sprite per pixel, which allows sprite priority
+          to work properly. So we need to flag when a pixel has been drawn. */
+       locked = true;
     }
 }
 
@@ -375,11 +431,13 @@ void SpriteClock() {
 
          /* We don't need to bother with sprites that aren't active. They get loaded with a transparent
             bitmap instead, although we never even try to render them for performance sake. */
-         //if(index < render.evaluation.count) {
-         if(1) {
+         if(index < render.evaluation.count) {
             const int type = ((position - (index * 8)) / 2) + 1; // 1-4
 
             RenderSpriteContext& sprite = render.sprites[index];
+
+            // Mark sprite as active.
+            sprite.dead = FALSE;
 
             /* The exact time when the attribute byte and X position are loaded into the
                latch and counter (respectively) is unknown, however we have a perfectly
@@ -397,6 +455,7 @@ void SpriteClock() {
                      while still keeping it aligned to the proper clock cycles (for now).  */
 
                   const int tile = SPRITE_TILE_INDEX(SECONDARY_OAM, index);
+                  const int y = SPRITE_Y_POSITION(SECONDARY_OAM, index);
 
                   unsigned address;
                   if(ppu__sprite_height == 8)
@@ -404,18 +463,20 @@ void SpriteClock() {
                      address = (tile * BytesPerTile) + ppu__sprite_tileset;
                   else {
                      // Render 8x16 sprites.
+                     unsigned bank = 0x0000;
                      if(tile & OAM_Bank)
-                        // Use bank starting at $1000
-                        address = ((tile - 1) * BytesPerTile) + 0x1000;
-                     else
-                        // Use bank starting at $0000
-                        address = tile * BytesPerTile;
+                        bank = 0x1000;
+
+                     address = ((tile & OAM_Tile) * BytesPerTile) + bank;
                   }
 
-                  const int y = SPRITE_Y_POSITION(SECONDARY_OAM, index);
                   /* Each line of the plane data for the tile bitmap is a single byte, so this is
                      simply used as a byte offset. */
-                  const int row = line - y;
+                  int row;
+                  if(sprite.latch & Attribute_VFlip)
+                     row = (y + ppu__sprite_height) - line;
+                  else
+                     row = line - y;
 
                   /* The PPU manages memory using 1 kB pages, so we first have to find the proper page,
                      then calculate the offset of the bytes containing the data for the two separate
@@ -423,8 +484,6 @@ void SpriteClock() {
                   const unsigned page = address >> 10;
                   const uint8 *data = ppu_vram_block_read_address[page];
                   const unsigned offset = address - (page << 10);
-
-                  // TODO: MMC latches support
 
                   if(type == 3)
                      // Tile bitmap A

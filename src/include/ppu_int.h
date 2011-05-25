@@ -127,8 +127,8 @@ extern UINT8 ppu__palette_mask;
 
 #define PPU__BACKGROUND_PALETTE(index) \
    ((ppu_background_palette[(index)] & ppu__palette_mask) + PPU__PALETTE_ADJUST)
-#define PPU__SPRITE_PALETTE(index) \
-   ((ppu_sprite_palette[(index)] & ppu__palette_mask) + PPU__PALETTE_ADJUST)
+#define PPU__SPRITE_PALETTE(index,subindex) \
+   ((ppu_sprite_palette[((index) * 4) + (subindex)] & ppu__palette_mask) + PPU__PALETTE_ADJUST)
 
 #ifdef __cplusplus
 }
