@@ -6,14 +6,11 @@
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
 
-#include <cstring>
-#include <cstdlib>
 #include "../include/common.h"
 #include "../include/mmc.h"
 #include "../include/ppu.h"
 #include "../include/ppu_int.h"
 #include "../include/types.h"
-#include "../include/video.h"
 #include "background.hpp"
 #include "renderer.hpp"
 

@@ -16,22 +16,18 @@
 extern "C" {
 #endif
 
-/* delay for sprite 0 collision detection in PPU clocks */
-/* should be <= SCANLINE_CLOCKS - 256 */
-#define DOTS_HBLANK_BEFORE_RENDER 0
-
 /* VRAM and sprite RAM. */
 #define PPU_VRAM_BLOCK_READ_ADDRESS_SIZE 8
 #define PPU_VRAM_BLOCK_BACKGROUND_CACHE_ADDRESS_SIZE 8
 #define PPU_VRAM_BLOCK_BACKGROUND_CACHE_TAG_ADDRESS_SIZE 8
-#define PPU_VRAM_BLOCK_SPRITE_CACHE_ADDRESS_SIZE 8
-#define PPU_VRAM_BLOCK_SPRITE_CACHE_TAG_ADDRESS_SIZE 8
+//#define PPU_VRAM_BLOCK_SPRITE_CACHE_ADDRESS_SIZE 8
+//#define PPU_VRAM_BLOCK_SPRITE_CACHE_TAG_ADDRESS_SIZE 8
 #define PPU_VRAM_BLOCK_WRITE_ADDRESS_SIZE 8
 extern UINT8* ppu_vram_block_read_address[PPU_VRAM_BLOCK_READ_ADDRESS_SIZE];
 extern UINT8* ppu_vram_block_background_cache_address[PPU_VRAM_BLOCK_BACKGROUND_CACHE_ADDRESS_SIZE];
 extern UINT8* ppu_vram_block_background_cache_tag_address[PPU_VRAM_BLOCK_BACKGROUND_CACHE_TAG_ADDRESS_SIZE];
-extern UINT8* ppu_vram_block_sprite_cache_address[PPU_VRAM_BLOCK_SPRITE_CACHE_ADDRESS_SIZE];
-extern UINT8* ppu_vram_block_sprite_cache_tag_address[PPU_VRAM_BLOCK_SPRITE_CACHE_TAG_ADDRESS_SIZE];
+//extern UINT8* ppu_vram_block_sprite_cache_address[PPU_VRAM_BLOCK_SPRITE_CACHE_ADDRESS_SIZE];
+//extern UINT8* ppu_vram_block_sprite_cache_tag_address[PPU_VRAM_BLOCK_SPRITE_CACHE_TAG_ADDRESS_SIZE];
 extern UINT8* ppu_vram_block_write_address[PPU_VRAM_BLOCK_WRITE_ADDRESS_SIZE];
 
 /*
@@ -94,14 +90,14 @@ extern int x_offset;
 extern int address_increment;
 
 extern UINT8 spr_ram_address;
-extern int sprite_height;
+extern int ppu__sprite_height;
 
 extern BOOL want_vblank_nmi;
 
 extern BOOL vblank_occurred;
 
 extern UINT16 background_tileset;
-extern UINT16 sprite_tileset;
+extern UINT16 ppu__sprite_tileset;
 
 extern BOOL ppu__rendering_enabled;
 extern BOOL ppu__force_rendering;

@@ -64,8 +64,8 @@ UINT8* one_screen_base_address = NULL;
 UINT8* ppu_vram_block_read_address[PPU_VRAM_BLOCK_READ_ADDRESS_SIZE];
 UINT8* ppu_vram_block_background_cache_address[PPU_VRAM_BLOCK_BACKGROUND_CACHE_ADDRESS_SIZE];
 UINT8* ppu_vram_block_background_cache_tag_address[PPU_VRAM_BLOCK_BACKGROUND_CACHE_TAG_ADDRESS_SIZE];
-UINT8* ppu_vram_block_sprite_cache_address[PPU_VRAM_BLOCK_SPRITE_CACHE_ADDRESS_SIZE];
-UINT8* ppu_vram_block_sprite_cache_tag_address[PPU_VRAM_BLOCK_SPRITE_CACHE_TAG_ADDRESS_SIZE];
+//UINT8* ppu_vram_block_sprite_cache_address[PPU_VRAM_BLOCK_SPRITE_CACHE_ADDRESS_SIZE];
+//UINT8* ppu_vram_block_sprite_cache_tag_address[PPU_VRAM_BLOCK_SPRITE_CACHE_TAG_ADDRESS_SIZE];
 UINT8* ppu_vram_block_write_address[PPU_VRAM_BLOCK_WRITE_ADDRESS_SIZE];
 
 UINT32 ppu_vram_block[PPU_VRAM_BLOCK_SIZE];
@@ -103,14 +103,14 @@ int x_offset = 0;
 int address_increment = 1;
 
 UINT8 spr_ram_address = 0;
-int sprite_height = 8;
+int ppu__sprite_height = 8;
 
 BOOL want_vblank_nmi = FALSE;
 
 BOOL vblank_occurred = FALSE;
 
 UINT16 background_tileset = 0;
-UINT16 sprite_tileset = 0;
+UINT16 ppu__sprite_tileset = 0;
 
 #ifdef ALLEGRO_I386
 UINT32 attribute_table[ATTRIBUTE_TABLE_SIZE];
@@ -239,12 +239,14 @@ void ppu_set_ram_1k_pattern_vram_block(UINT16 block_address, int vram_block)
      ppu_pattern_vram + (vram_block << 10);
 
    ppu_vram_block_background_cache_address [block_address >> 10] =
-   ppu_vram_block_sprite_cache_address [block_address >> 10] =
       ppu_pattern_vram_cache + ((vram_block << 10) / 2 * 8);
+   //ppu_vram_block_sprite_cache_address [block_address >> 10] =
+   //   ppu_pattern_vram_cache + ((vram_block << 10) / 2 * 8);
 
    ppu_vram_block_background_cache_tag_address [block_address >> 10] =
-   ppu_vram_block_sprite_cache_tag_address [block_address >> 10] =
       ppu_pattern_vram_cache_tag + ((vram_block << 10) / 2);
+   //ppu_vram_block_sprite_cache_tag_address [block_address >> 10] =
+   //   ppu_pattern_vram_cache_tag + ((vram_block << 10) / 2);
 }
 
 void ppu_set_ram_1k_pattern_vrom_block(UINT16 block_address, int vrom_block)
@@ -263,12 +265,14 @@ void ppu_set_ram_1k_pattern_vrom_block(UINT16 block_address, int vrom_block)
       ppu_vram_dummy_write;
 
    ppu_vram_block_background_cache_address [block_address >> 10] =
-   ppu_vram_block_sprite_cache_address [block_address >> 10] =
       ROM_CHR_ROM_CACHE + ((vrom_block << 10) / 2 * 8);
+   //ppu_vram_block_sprite_cache_address [block_address >> 10] =
+   //   ROM_CHR_ROM_CACHE + ((vrom_block << 10) / 2 * 8);
 
    ppu_vram_block_background_cache_tag_address [block_address >> 10] =
-   ppu_vram_block_sprite_cache_tag_address [block_address >> 10] =
       ROM_CHR_ROM_CACHE_TAG + ((vrom_block << 10) / 2);
+   //ppu_vram_block_sprite_cache_tag_address [block_address >> 10] =
+   //   ROM_CHR_ROM_CACHE_TAG + ((vrom_block << 10) / 2);
 }
 
 void ppu_set_ram_1k_pattern_vrom_block_ex(UINT16 block_address,
@@ -297,13 +301,13 @@ void ppu_set_ram_1k_pattern_vrom_block_ex(UINT16 block_address,
          ROM_CHR_ROM_CACHE_TAG + ((vrom_block << 10) / 2);
    }
 
-   if(map_type & PPU_MAP_SPRITES) {
-      ppu_vram_block_sprite_cache_address [block_address >> 10] =
-         ROM_CHR_ROM_CACHE + ((vrom_block << 10) / 2 * 8);
-
-      ppu_vram_block_sprite_cache_tag_address [block_address >> 10] =
-         ROM_CHR_ROM_CACHE_TAG + ((vrom_block << 10) / 2);
-   }
+   //if(map_type & PPU_MAP_SPRITES) {
+   //   ppu_vram_block_sprite_cache_address [block_address >> 10] =
+   //      ROM_CHR_ROM_CACHE + ((vrom_block << 10) / 2 * 8);
+   //
+   //   ppu_vram_block_sprite_cache_tag_address [block_address >> 10] =
+   //      ROM_CHR_ROM_CACHE_TAG + ((vrom_block << 10) / 2);
+   //}
 }
 
 void ppu_set_ram_8k_pattern_vram(void)
@@ -724,7 +728,7 @@ void ppu_write(UINT16 address, UINT8 value)
          /* Control register #1. */
          ppu_register_2000 = value;
 
-         sprite_height = (value & PPU_SPRITE_SIZE_BIT) ? 16 : 8;
+         ppu__sprite_height = (value & PPU_SPRITE_SIZE_BIT) ? 16 : 8;
 
          want_vblank_nmi = value & PPU_VBLANK_NMI_FLAG_BIT;
 
@@ -732,7 +736,7 @@ void ppu_write(UINT16 address, UINT8 value)
 
          background_tileset =
             (value & PPU_BACKGROUND_TILESET_BIT) ? 0x1000 : 0x0000;
-         sprite_tileset =
+         ppu__sprite_tileset =
             (value & PPU_SPRITE_TILESET_BIT) ? 0x1000 : 0x0000;
 
          address_temp = (address_temp & ~(3 << 10)) | ((value & 3) << 10);

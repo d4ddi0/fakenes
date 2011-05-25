@@ -14,8 +14,11 @@
 
 namespace Renderer {
 
-// This has to be here, rather than in a file, due to compiler limitations.
+// These have to be here, rather than in a file, due to compiler limitations.
 static const int SpritesPerLine = 8;
+
+static const int BytesPerSprite = 4;
+static const unsigned SecondaryOAMSize = BytesPerSprite * SpritesPerLine;
 
 extern const int TileWidth;
 extern const int TileHeight;
@@ -26,7 +29,7 @@ extern const int DisplayHeight;
 
 typedef struct _RenderBackgroundContext {
    // Current tile and subtile positions.
-   uint8 tile, pixel; // Saved to file
+   uint8 tile, pixel;
 
 } RenderBackgroundContext;
 
@@ -37,13 +40,25 @@ typedef struct _RenderSpriteContext {
 
 } RenderSpriteContext;
 
+typedef struct _RenderEvaluationContext {
+   uint8 state, substate;
+   uint8 count;
+   uint8 n, m;
+   BOOL locked;
+   uint8 data;
+
+} RenderEvaluationContext;
+
 typedef struct _RenderContext {
    uint8* buffer;
-   uint8 line, pixel; // Saved to file
-   uint16 clock; // Saved to file
+   uint8 line, pixel;
+   uint16 clock;
 
    RenderBackgroundContext background;
    RenderSpriteContext sprites[SpritesPerLine];
+   RenderEvaluationContext evaluation;
+
+   uint8 secondaryOAM[SecondaryOAMSize];
 
 } RenderContext;
 
