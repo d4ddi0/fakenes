@@ -6,7 +6,6 @@
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
 
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "../include/common.h"

@@ -1647,8 +1647,16 @@ REAL* apu_get_visdata(void)
 }
 
 // --- Internal functions. --- 
+
+/* If re-entry occurs (a function called by process() calls a function which in turn calls
+   process() again), it can be very bad, so we set this flag to help warn about it. */
+static bool processing = false;
+
 static void process(void)
 {
+   if(processing)
+      printf("WARNING: process() called when it is already running\n");
+
    if(!apu_options.enabled) {
       // APU emulation is disabled - skip processing.
       return;
@@ -1667,6 +1675,9 @@ static void process(void)
 
    if(elapsed_apu_cycles == 0)
       return;
+
+   // Begin unbreakable code section.
+   processing = true;
 
    switch(apu_options.emulation) {
       case APU_EMULATION_FAST: {
@@ -1819,6 +1830,9 @@ static void process(void)
       default:
          WARN_GENERIC();
    }
+
+   // End unbreakable code section.
+   processing = false;
 }
 
 static void mix(void)

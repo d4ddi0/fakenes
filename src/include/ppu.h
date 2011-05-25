@@ -97,9 +97,9 @@ extern void ppu_disable_rendering(void);
 extern void ppu_enable_rendering(void);
 extern void ppu_predict_nmi(cpu_time_t cycles);
 
-extern void ppu_set_mirroring_one_screen (void);
 extern int ppu_get_mirroring (void);
-extern void ppu_set_mirroring (int);
+extern void ppu_set_mirroring (ENUM);
+extern void ppu_set_default_mirroring (ENUM);
 extern void ppu_invert_mirroring (void);
 
 extern BOOL ppu_is_rendering (void);
@@ -112,11 +112,13 @@ extern void ppu_set_expansion_table_address (UINT8 *);
 
 enum
 {
-    MIRRORING_HORIZONTAL, MIRRORING_VERTICAL,
-    MIRRORING_FOUR_SCREEN,
+    MIRRORING_HORIZONTAL = 0,
+    MIRRORING_VERTICAL,
     MIRRORING_ONE_SCREEN,
     MIRRORING_ONE_SCREEN_2000, MIRRORING_ONE_SCREEN_2400,
-    MIRRORING_ONE_SCREEN_2800, MIRRORING_ONE_SCREEN_2C00
+    MIRRORING_ONE_SCREEN_2800, MIRRORING_ONE_SCREEN_2C00,
+    MIRRORING_FOUR_SCREEN,
+    MIRRORING_DEFAULT = MIRRORING_HORIZONTAL
 };
 
 extern void ppu_save_state (PACKFILE *, int);

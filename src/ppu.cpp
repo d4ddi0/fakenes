@@ -40,7 +40,12 @@ static cpu_time_t ppu_prediction_cycles = 0;
 static void ppu_repredict_nmi(void);
 
 static bool ppu_odd_frame = false;
-static int ppu_mirroring;
+
+/* As ROMs get loaded before the PPU is initialized, they need to call ppu_set_default_mirroring()
+   instead of ppu_set_mirroring(). A default is preserved across resets, and does not take effect
+   immediately, thus risks no bugs from trying to execute cycles too early. */
+static ENUM ppu_default_mirroring = MIRRORING_DEFAULT;
+static ENUM ppu_mirroring = ppu_default_mirroring;
 
 BOOL ppu__rendering_enabled = TRUE;
 BOOL ppu__force_rendering = FALSE;
@@ -433,10 +438,8 @@ void ppu_set_expansion_table_address(UINT8* address)
    ppu_expansion_table = address;
 }
 
-void ppu_set_mirroring_one_screen(void)
+static void ppu_set_mirroring_one_screen(void)
 {
-   synchronize();
-
     ppu_set_name_table_address(0, one_screen_base_address);
     ppu_set_name_table_address(1, one_screen_base_address);
     ppu_set_name_table_address(2, one_screen_base_address);
@@ -444,13 +447,34 @@ void ppu_set_mirroring_one_screen(void)
 }
 
 // This is the only place where ppu_mirroring may change.
-void ppu_set_mirroring(int mirroring)
+void ppu_set_mirroring(ENUM mirroring)
 {
    synchronize();
 
    ppu_mirroring = mirroring;
 
-   switch(ppu_mirroring) {
+   switch(mirroring) {
+      case MIRRORING_HORIZONTAL: {
+         /* 0 0
+            1 1 */
+         ppu_set_name_table_internal(0, 0);
+         ppu_set_name_table_internal(1, 0);
+         ppu_set_name_table_internal(2, 1);
+         ppu_set_name_table_internal(3, 1);
+
+         break;
+      }
+
+      case MIRRORING_VERTICAL: {
+         /* 0 1
+            0 1 */
+         ppu_set_name_table_internal(0, 0);
+         ppu_set_name_table_internal(1, 1);
+         ppu_set_name_table_internal(2, 0);
+         ppu_set_name_table_internal(3, 1);
+         break;
+      }
+
       case MIRRORING_ONE_SCREEN: {
          ppu_set_mirroring_one_screen();
          break;
@@ -484,25 +508,9 @@ void ppu_set_mirroring(int mirroring)
          break;
       }
 
-      case MIRRORING_VERTICAL: {
-         ppu_set_name_table_internal(0, 0);
-         ppu_set_name_table_internal(1, 1);
-         ppu_set_name_table_internal(2, 0);
-         ppu_set_name_table_internal(3, 1);
-
-         break;
-      }
-
-      case MIRRORING_HORIZONTAL: {
-         ppu_set_name_table_internal(0, 0);
-         ppu_set_name_table_internal(1, 0);
-         ppu_set_name_table_internal(2, 1);
-         ppu_set_name_table_internal(3, 1);
-
-         break;
-      }
-
       case MIRRORING_FOUR_SCREEN: {
+         /* 0 1
+            2 3 */
          ppu_set_name_table_internal(0, 0);
          ppu_set_name_table_internal(1, 1);
          ppu_set_name_table_internal(2, 2);
@@ -516,6 +524,11 @@ void ppu_set_mirroring(int mirroring)
          break;
       }
    }
+}
+
+void ppu_set_default_mirroring(ENUM mirroring)
+{
+   ppu_default_mirroring = mirroring;
 }
 
 void ppu_invert_mirroring(void)   /* '/' key. */
@@ -896,7 +909,7 @@ void ppu_reset(void)
 
    ppu_set_expansion_table_address(NULL);
 
-   ppu_set_mirroring(ppu_mirroring);
+   ppu_set_mirroring(ppu_default_mirroring);
 }
 
 void ppu_sync_update(void)
@@ -1251,8 +1264,14 @@ static void end_frame() {
       ppu__rendering_enabled = ppu_cache_rendering_enabled;
 }
 
+// Just a simple flag to help detect re-entry, which is bad.
+static bool processing = false;
+
 static void synchronize()
 {
+   if(processing)
+      printf("WARNING: synchronize() called while already processing\n");
+
    // Calculate the delta period.
    const cpu_time_t elapsed_cycles = cpu_get_elapsed_cycles(&ppu_clock_counter) + ppu_clock_buffer;
    if(elapsed_cycles <= 0) { // Always > 0 when ppu_clock_buffer > 0
@@ -1266,6 +1285,9 @@ static void synchronize()
 
    if(elapsed_ppu_cycles == 0)
       return;
+
+   // Start unbreakable code section.
+   processing = true;
 
    for(cpu_time_t count = 0; count < elapsed_ppu_cycles; count++) {
       // Get current scanline clock cycle (starting at 1).
@@ -1332,4 +1354,7 @@ static void synchronize()
          }
       }
    }
+
+   // End unbreakable code section.
+   processing = false;
 }
