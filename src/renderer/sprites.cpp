@@ -50,9 +50,6 @@ void SpriteInit() {
    Clear();
 }
 
-void SpriteFrame() {
-}
-
 void SpriteLine() {
 #if 0
     for(int i = 0; i < SpritesPerLine; i++) {
@@ -133,6 +130,7 @@ void SpritePixelSkip() {
 }
 
 void SpriteClock() {
+//   if(clock == 1)
 }
 
 } // namespace Renderer

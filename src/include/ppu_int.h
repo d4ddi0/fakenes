@@ -116,10 +116,23 @@ extern UINT32 attribute_table[ATTRIBUTE_TABLE_SIZE];
 extern UINT8 attribute_table[ATTRIBUTE_TABLE_SIZE];
 #endif
 
-#define BACKGROUND_PIXELS_SIZE 8 + 256 + 8
-extern INT8 background_pixels[BACKGROUND_PIXELS_SIZE];
+#define PPU__BACKGROUND_PIXELS_SIZE 256
+extern UINT8 ppu__background_pixels[PPU__BACKGROUND_PIXELS_SIZE];
 
-extern UINT8 palette_mask;
+#define PPU__GET_BACKGROUND_PIXEL(pixel) \
+   (ppu__background_pixels[(pixel)])
+#define PPU__PUT_BACKGROUND_PIXEL(pixel,color) \
+   (ppu__background_pixels[(pixel)] = (color))
+
+extern UINT8 ppu__palette_mask;
+
+/* NES color indexes start at position 1 in the global palette. */
+#define PPU__PALETTE_ADJUST 1
+
+#define PPU__BACKGROUND_PALETTE(index) \
+   ((ppu_background_palette[(index)] & ppu__palette_mask) + PPU__PALETTE_ADJUST)
+#define PPU__SPRITE_PALETTE(index) \
+   ((ppu_sprite_palette[(index)] & ppu__palette_mask) + PPU__PALETTE_ADJUST)
 
 #ifdef __cplusplus
 }

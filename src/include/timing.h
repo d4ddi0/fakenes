@@ -35,10 +35,11 @@ extern "C" {
 #define CPU_CLOCK_MULTIPLIER      CPU_CLOCK_DIVIDER
 #define PPU_CLOCK_MULTIPLIER      PPU_CLOCK_DIVIDER
 
+/* Note: All exact clock times start at 1. */
 #define PPU_RENDER_CLOCKS         256                                       /* PPU clocks per scanline(rendering portion) */
 #define PPU_HBLANK_START          (PPU_RENDER_CLOCKS + 1)                   /* Time of HBlank start. */
 #define PPU_HBLANK_CLOCKS         85                                        /* PPU clocks per scanline(HBlank portion) */
-#define PPU_HBLANK_PREFETCH       320                                       /* When PPU fetches data for the next line */
+#define PPU_HBLANK_PREFETCH       321                                       /* When PPU fetches data for the next line */
 #define PPU_SCANLINE_CLOCKS       (PPU_RENDER_CLOCKS + PPU_HBLANK_CLOCKS)   /* PPU clocks per scanline */
 #define PPU_FIRST_LINE            -1                                        /* First line emulated */
 #define PPU_LAST_LINE_NTSC        260                                       /* Last line emulated, NTSC. */             
@@ -46,7 +47,7 @@ extern "C" {
 #define PPU_FIRST_DISPLAYED_LINE  0                                         /* First line rendered */
 #define PPU_LAST_DISPLAYED_LINE   239                                       /* Last line rendered */
 #define PPU_CLOCK_SKIP_LINE       20                                        /* Line at which the PPU skips a clock */
-#define PPU_CLOCK_SKIP_CYCLE      328                                       /* Cycle at which the PPU skips a clock */
+#define PPU_CLOCK_SKIP_CYCLE      329                                       /* Cycle at which the PPU skips a clock */
 #define PPU_IDLE_LINE             240                                       /* Line on which the PPU only idles */
 #define PPU_FIRST_VBLANK_LINE     241                                       /* Line on which VBlank starts */
 #define PPU_TOTAL_LINES_NTSC      ((PPU_LAST_LINE_NTSC - PPU_FIRST_LINE) + 1)  /* Total lines processed per frame, NTSC */

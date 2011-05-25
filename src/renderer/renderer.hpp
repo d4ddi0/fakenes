@@ -12,9 +12,6 @@
 #include "../include/common.h"
 #include "../include/types.h"
 
-// Start of the NES palette in the global 256-color palette.
-#define PALETTE_ADJUST 1
-
 namespace Renderer {
 
 // This has to be here, rather than in a file, due to compiler limitations.

@@ -7,7 +7,6 @@
    You must read and accept the license prior to use. */
 
 #include <cstring>
-#include <cstdio>
 #include <cstdlib>
 #include "../include/common.h"
 #include "../include/mmc.h"
@@ -32,6 +31,11 @@ const unsigned AttributeMask = 0x03;
 // Shifts and mask for extended attributes in MMC5 ExRAM.
 const int ExpansionAttributeShifts = 6;
 const unsigned ExpansionAttributeMask = 0x03;
+
+void Clear() {
+   render.background.tile = 0;
+   render.background.pixel = 0;
+}
 
 void UpdatePPU( int nametable, const int scrollTileYOffset, unsigned vramAddressBG )
 {
@@ -65,11 +69,6 @@ void Step()
       current.tile++;
       current.pixel = 0;
    }
-}
-
-void Clear() {
-   render.background.tile = 0;
-   render.background.pixel = 0;
 }
 
 } // namespace anonymous
@@ -163,41 +162,58 @@ void BackgroundPixel()
    }
 
    // finally, plot our pixel
+   bool transparent = true;
+   uint8 color = 0;
+
    if(cacheTag) {
-      // non-transparent tile
-      const uint8 color = cacheAddress[scrollTileXOffset] & attribute;
+      // Non-transparent tile.
+      color = cacheAddress[scrollTileXOffset] & attribute;
       if(color != 0) {
-         // non-transparent pixel
-         background_pixels[(1 * TileWidth) + render.pixel] = color;
- 
-         /* Only plot the pixel if:
-               - Visibility of the background layer is enabled
-               - The first columm is being rendered AND clipping is disabled OR
-               - The second or higher column is being rendered */
-         if(ppu_enable_background_layer &&
-            ((render.background.tile > 0) || (!PPU_BACKGROUND_CLIP_ENABLED)))
-            render.buffer[render.pixel] = (ppu_background_palette[color] & palette_mask) + PALETTE_ADJUST;
+         // Non-transparent pixel.
+         if((render.background.tile > 0) || !PPU_BACKGROUND_CLIP_ENABLED)
+            // Non-clipped pixel.
+            transparent = false;
       }
    }
 
-   // Update internal registers and advance to the next pixel
+   if(transparent) {
+      PPU__PUT_BACKGROUND_PIXEL(render.pixel, 0);
+      render.buffer[render.pixel] = PPU__BACKGROUND_PALETTE(0);
+   }
+   else {
+      PPU__PUT_BACKGROUND_PIXEL(render.pixel, color);
+      render.buffer[render.pixel] = ppu_enable_background_layer ?
+         PPU__BACKGROUND_PALETTE(color) : PPU__BACKGROUND_PALETTE(0);
+   }
+
+   // Update internal registers
    UpdatePPU( nametable, scrollTileYOffset, vramAddressBG );
+
+   // Move on to the next pixel
    Step();
 }
 
+// Frame-skipping variant of BackgroundPixel()
 void BackgroundPixelStub() {
+
    // Emulate a bare subset of the full pipeline.
    const int nametable = (vram_address >> 10) & 0x03;
    const int scrollTileYOffset = (vram_address >> 12) & 0x07;
    const unsigned vramAddressBG = vram_address & 0x3FF;
 
    UpdatePPU( nametable, scrollTileYOffset, vramAddressBG );
+
+   /* As nothing is being rendered, produce a transparent pixel. The video
+      buffer is not updated this time, as we are frame-skipping. */
+   PPU__PUT_BACKGROUND_PIXEL(render.pixel, 0);
+
+   // Move on to the next pixel
    Step();
 }
 
+/* PPU sleep mode - just do minimal processing, do not draw any pixels
+   or affect any registers. */
 void BackgroundPixelSkip() {
-   /* PPU sleep mode - just do minimal processing, do not draw any
-      pixels or affect any registers */
    Step();
 }
 

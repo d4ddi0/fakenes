@@ -118,9 +118,9 @@ UINT32 attribute_table[ATTRIBUTE_TABLE_SIZE];
 UINT8 attribute_table[ATTRIBUTE_TABLE_SIZE];
 #endif
 
-INT8 background_pixels[BACKGROUND_PIXELS_SIZE];
+UINT8 ppu__background_pixels[PPU__BACKGROUND_PIXELS_SIZE];
 
-UINT8 palette_mask = 0x3f;
+UINT8 ppu__palette_mask = 0x3f;
 
 #include "ppu/tiles.h"
 
@@ -542,9 +542,9 @@ static UINT8 ppu_vram_read(void)
       if (address >= 0x3F00) {
          /* palettes */
          if((address & 0x03) == 0)
-            temp = ppu_palette[0] & palette_mask;
+            temp = ppu_palette[0] & ppu__palette_mask;
          else
-            temp = ppu_palette[address & 0x1F] & palette_mask;
+            temp = ppu_palette[address & 0x1F] & ppu__palette_mask;
       }
       else {
          /* name tables */
@@ -651,7 +651,7 @@ UINT8 ppu_get_background_color(void)
    /* Returns the current PPU background color - for drawing overscan for e.g NTSC */
    /* In the future, this should be rendered by the PPU itself into a special kind of buffer. */
    /* Returned as an index into the 256 color palette */
-   return (ppu_palette[0] & palette_mask) + PALETTE_ADJUST;
+   return PPU__BACKGROUND_PALETTE(0);
 }
 
 static UINT8 last_ppu_write_value;
@@ -746,9 +746,9 @@ void ppu_write(UINT16 address, UINT8 value)
          /* Control register #2. */
          ppu_register_2001 = value;
          if(ppu_register_2001 & PPU_MONOCHROME_DISPLAY_BIT)
-            palette_mask = 0x30;
+            ppu__palette_mask = 0x30;
          else
-            palette_mask = 0x3f;
+            ppu__palette_mask = 0x3f;
 
          break;
       }
@@ -1140,6 +1140,9 @@ static void ppu_repredict_nmi(void)
 #endif
 
 static void start_frame() {
+   if(PPU_ENABLED)
+      vram_address = address_temp;
+
    // Clear VBlank flag
    vblank_occurred = FALSE;
 
@@ -1153,10 +1156,6 @@ static void start_scanline()
 {
    if((ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) &&
       (ppu_scanline <= PPU_LAST_DISPLAYED_LINE)) {
-
-      if((ppu_scanline == PPU_FIRST_DISPLAYED_LINE) &&
-         PPU_ENABLED)
-         vram_address = address_temp;
 
       // clear sprite #0 overflow flag
       ppu__sprite_overflow = FALSE;
@@ -1185,31 +1184,31 @@ static void start_scanline()
 /* This is only called for scanlines -1 to 239, as the PPU is idle during other lines
    (excepting what is handled by start_scanline(), of course). */
 static void start_scanline_cycle(const cpu_time_t cycle) {
+
+   /* Generate a clcok for the renderer. This handle sthings like background and sprite
+      timing, pretty much everything that doesn't involve drawing a pixel. */
    Renderer_Clock();
 
-   // Continue for visible lines only
-   if(ppu_scanline < PPU_FIRST_DISPLAYED_LINE)
-      return;
-
    // The PPU renders one pixel per clock for the first 256 clock cycles
-   if(cycle <= PPU_RENDER_CLOCKS) {
+   if((cycle <= PPU_RENDER_CLOCKS) &&
+      (ppu_scanline >= PPU_FIRST_DISPLAYED_LINE))
       Renderer_Pixel();
-   }
+
    // HBlank start.
-   else if((cycle == PPU_HBLANK_START) &&
-           mmc_hblank_start) {
+   if((cycle == PPU_HBLANK_START) &&
+      mmc_hblank_start) {
 
       // call hblank start interrupt for MMC
       cpu_interrupt(mmc_hblank_start(ppu_scanline));
    }
+
    /* Mid-HBlank VRAM address fixup.
 
       This is actually when the PPU begins fetching data for the first two tiles of the
       next line (as the PPU start fetching from tile 3 at the beginning of each line),
       but unfortunately we don't emulate PPU background timing yet. */
-
-   else if((cycle == PPU_HBLANK_PREFETCH) &&
-           PPU_ENABLED) {
+   if((cycle == PPU_HBLANK_PREFETCH) &&
+      PPU_ENABLED) {
 
       vram_address += 0x1000;
 
