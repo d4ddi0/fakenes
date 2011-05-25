@@ -6,6 +6,7 @@
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
 
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "../include/common.h"
@@ -29,13 +30,13 @@ const int Sprite_TileIndex  = 1;
 const int Sprite_Attributes = 2;
 const int Sprite_XPosition  = 3;
 
-#define SPRITE_DATA(oam, index, data) \
-   ( (oam)[((index) * BytesPerSprite) + (data)] )
+#define SPRITE_DATA(_oam, _index, _data) \
+   ( (_oam)[((_index) * BytesPerSprite) + (_data)] )
 
-#define SPRITE_X_POSITION(oam, index) ( SPRITE_DATA((oam), (index), Sprite_XPosition) )
-#define SPRITE_Y_POSITION(oam, index) ( SPRITE_DATA((oam), (index), Sprite_YPosition) )
-#define SPRITE_TILE_INDEX(oam, index) ( SPRITE_DATA((oam), (index), Sprite_TileIndex) )
-#define SPRITE_ATTRIBUTES(oam, index)  ( SPRITE_DATA((oam), (index), Sprite_Attributes) )
+#define SPRITE_X_POSITION(_oam, _index) ( SPRITE_DATA((_oam), (_index), Sprite_XPosition) )
+#define SPRITE_Y_POSITION(_oam, _index) ( SPRITE_DATA((_oam), (_index), Sprite_YPosition) )
+#define SPRITE_TILE_INDEX(_oam, _index) ( SPRITE_DATA((_oam), (_index), Sprite_TileIndex) )
+#define SPRITE_ATTRIBUTES(_oam, _index) ( SPRITE_DATA((_oam), (_index), Sprite_Attributes) )
 
 #define PRIMARY_OAM     ( ppu_spr_ram )
 #define SECONDARY_OAM	( render.secondaryOAM )
@@ -65,6 +66,8 @@ void ClearSprites() {
        sprite.latch = 0;
        sprite.counter = 0;
     }
+
+    render.spriteCount = 0;
 }
 
 void ClearEvaluation() {
@@ -94,11 +97,12 @@ void SpriteInit() {
 }
 
 void SpriteLine() {
-   ClearSprites();
+   // Copy evaluation count to spriteCount, as it will be overwritten
+   render.spriteCount = render.evaluation.count;
 }
 
 void SpritePixel() {
-    for(int i = 0; i < SpritesPerLine; i++) {
+    for(int i = 0; i < render.spriteCount; i++) {
        RenderSpriteContext& sprite = render.sprites[i];
 
        if(sprite.counter > 0)
@@ -107,7 +111,8 @@ void SpritePixel() {
           continue;
 
        uint8 pixel = (sprite.lowShift & 0x01) | ((sprite.highShift & 0x01) << 1);
-       render.buffer[render.pixel] = pixel;
+       if(pixel != 0)
+          render.buffer[render.pixel] = pixel;
 
        sprite.lowShift >>= 1;
        sprite.highShift >>= 1;
@@ -125,17 +130,17 @@ void SpritePixelSkip() {
 #define STATE3_LOOP	state3_loop
 #define END_LOOP	end_loop
 
-#define READ_HELPER(value) { \
+#define READ_HELPER(_value) { \
    if(!cycle_is_even) \
       goto END_LOOP; \
-   e.data = (value); \
+   e.data = (_value); \
 }
 
-#define WRITE_HELPER(value) { \
+#define WRITE_HELPER(_value) { \
    if(!cycle_is_odd) \
       goto END_LOOP; \
    if(!e.locked) \
-      (value) = e.data; \
+      (_value) = e.data; \
 }
 
 #define CONTINUE_1 { \
@@ -148,8 +153,9 @@ void SpritePixelSkip() {
    goto STATE3_LOOP; \
 }
 
-#define JUMP(state) { \
-   e.substate = (state); \
+#define JUMP(_state) { \
+   e.state = (_state); \
+   e.substate = 1; \
    goto MAIN_LOOP; \
 }
 
@@ -164,13 +170,13 @@ void SpriteClock() {
       // FIXME: Is this really correct?
       return;
 
-   const int line = render.line + 1;
-   const int cycle = render.clock;
-
-   /* Kind of ugly, but it works. Note that emulation starts on an odd cycle (1),
+  /* Kind of ugly, but it works. Note that emulation starts on an odd cycle (1),
       and most writes take place on even cycles (2, 4, 6, etc.). */
+   const int cycle = render.clock;
    const bool cycle_is_even = (cycle % 2) == 0;
    const bool cycle_is_odd = !cycle_is_even;
+
+   const int line = render.line + 1;
 
    if(cycle <= ClearCycleLast) {
       /* Cycles 0-63: Secondary OAM (32-byte buffer for current sprites on scanline) is initialized to $FF -
@@ -358,68 +364,78 @@ void SpriteClock() {
          3. Tile bitmap A
          4. Tile bitmap B (+8 bytes from tile bitmap A) */
 
+      if(cycle == FetchCycleFirst)
+         // We're already in HBlank, so it's safe to clear data here
+         ClearSprites();
+
       /* As each fetch takes 2 cycles to complete, we only care about even cycles,
          emulation-wise, at least. */
       if(cycle_is_even) {
-         const int position = cycle - FetchCycleFirst;		// 0-63
-         const int index = position / 8;			// 0-7
-         const int type = ((position - (index * 8)) / 2) + 1;	// 1-4
+         const int position = cycle - FetchCycleFirst;	// 0-63
+         const int index = position / 8;		// 0-7
 
-         RenderSpriteContext& sprite = render.sprites[index];
+         /* We don't need to bother with sprites that aren't active. They get loaded with a transparent
+            bitmap instead, although we never even try to render them for performance sake. */
+         //if(index < render.evaluation.count) {
+         if(1) {
+            const int type = ((position - (index * 8)) / 2) + 1; // 1-4
 
-         /* The exact time when the attribute byte and X position are loaded into the
-            latch and counter (respectively) is unknown, however we have a perfectly
-            good oppertunity to do it here with the tile data, so we will. */
-         switch(type) {
-            case 1:	// Garbage
-               // Load latch and counter
-               sprite.latch = SPRITE_ATTRIBUTES(SECONDARY_OAM, index);
-               sprite.counter = SPRITE_X_POSITION(SECONDARY_OAM, index);
-               break;
+            RenderSpriteContext& sprite = render.sprites[index];
 
-            case 3:	// Tile bitmap A
-            case 4: {	// Tile bitmap B
-               /* It's inefficient to execute all of this twice, but there isn't really any other way
-                  while still keeping it aligned to the proper clock cycles (for now).  */
+            /* The exact time when the attribute byte and X position are loaded into the
+               latch and counter (respectively) is unknown, however we have a perfectly
+               good oppertunity to do it here with the tile data, so we will. */
+            switch(type) {
+               case 1:		// Garbage
+                  // Load latch and counter
+                  sprite.latch = SPRITE_ATTRIBUTES(SECONDARY_OAM, index);
+                  sprite.counter = SPRITE_X_POSITION(SECONDARY_OAM, index);
+                  break;
 
-               const int tile = SPRITE_TILE_INDEX(SECONDARY_OAM, index);
+               case 3:		// Tile bitmap A
+               case 4: {	// Tile bitmap B
+                  /* It's inefficient to execute all of this twice, but there isn't really any other way
+                     while still keeping it aligned to the proper clock cycles (for now).  */
 
-               unsigned address;
-               if(ppu__sprite_height == 8)
-                  // Render 8x8 sprites.
-                  address = (tile * BytesPerTile) + ppu__sprite_tileset;
-               else {
-                  // Render 8x16 sprites.
-                  if(tile & OAM_Bank)
-                     // Use bank starting at $1000
-                     address = ((tile - 1) * BytesPerTile) + 0x1000;
+                  const int tile = SPRITE_TILE_INDEX(SECONDARY_OAM, index);
+
+                  unsigned address;
+                  if(ppu__sprite_height == 8)
+                     // Render 8x8 sprites.
+                     address = (tile * BytesPerTile) + ppu__sprite_tileset;
+                  else {
+                     // Render 8x16 sprites.
+                     if(tile & OAM_Bank)
+                        // Use bank starting at $1000
+                        address = ((tile - 1) * BytesPerTile) + 0x1000;
+                     else
+                        // Use bank starting at $0000
+                        address = tile * BytesPerTile;
+                  }
+
+                  const int y = SPRITE_Y_POSITION(SECONDARY_OAM, index);
+                  /* Each line of the plane data for the tile bitmap is a single byte, so this is
+                     simply used as a byte offset. */
+                  const int row = line - y;
+
+                  /* The PPU manages memory using 1 kB pages, so we first have to find the proper page,
+                     then calculate the offset of the bytes containing the data for the two separate
+                     planes for this line of the tile bitmap. */
+                  const unsigned page = address >> 10;
+                  const uint8 *data = ppu_vram_block_read_address[page];
+                  const unsigned offset = address - (page << 10);
+
+                  // TODO: MMC latches support
+
+                  if(type == 3)
+                     // Tile bitmap A
+                     sprite.lowShift = data[offset + row];
                   else
-                     // Use bank starting at $0000
-                     address = tile * BytesPerTile;
+                     // Tile bitmap B
+                     sprite.highShift = data[offset + (BytesPerTile / 2) + row];
+
+                  break;
                }
-
-               const int y = SPRITE_Y_POSITION(SECONDARY_OAM, index);
-               /* Each line of the plane data for the tile bitmap is a single byte, so this is
-                  simply used as a byte offset. */
-               const int row = line - y;
-
-               /* The PPU manages memory using 1 kB pages, so we first have to find the proper page,
-                  then calculate the offset of the bytes containing the data for the two separate
-                  planes for this line of the tile bitmap. */
-               const unsigned page = address >> 10;
-               const uint8 *data = ppu_vram_block_read_address[page];
-               const unsigned offset = address - (page << 10);
-
-               // TODO: MMC latches support
-
-               if(type == 3)
-                  // Tile bitmap A
-                  sprite.lowShift = data[offset + row];
-               else
-                  // Tile bitmap B
-                  sprite.highShift = data[offset + (BytesPerTile / 2) + row];
-
-               break;
             }
          }
       }

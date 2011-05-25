@@ -61,12 +61,12 @@ void Renderer_Line(int line) {
    render.clock = 1;
 
    BackgroundLine();
+   SpriteLine();
 }
 
 /* Like Render_Line(), this is called only for visible lines, for the first 256
    clock cycles which equate to a single pixel each. */
 void Renderer_Pixel() {
-
    /* After loading a state, the render buffer is null and must be reloaded, and
       all previously rendered pixels are lost. This can causes momentary, but harmless
       flicker when first loading a save state. */

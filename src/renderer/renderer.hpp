@@ -51,14 +51,16 @@ typedef struct _RenderEvaluationContext {
 
 typedef struct _RenderContext {
    uint8* buffer;
-   uint8 line, pixel;
+   int16 line;
+   uint8 pixel;
    uint16 clock;
+
+   uint8 secondaryOAM[SecondaryOAMSize];
+   uint8 spriteCount;
 
    RenderBackgroundContext background;
    RenderSpriteContext sprites[SpritesPerLine];
    RenderEvaluationContext evaluation;
-
-   uint8 secondaryOAM[SecondaryOAMSize];
 
 } RenderContext;
 
