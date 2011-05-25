@@ -81,8 +81,6 @@ extern UINT8 ppu_spr_ram[PPU_SPR_RAM_SIZE];
 #define ppu_background_palette ppu_palette
 #define ppu_sprite_palette (ppu_palette + 16)
 
-extern int ppu_mirroring;
-
 #define PPU_GET_LINE_ADDRESS(bitmap, y)   (bitmap->line[y])
 #define PPU_PUTPIXEL(bitmap, x, y, color) (bitmap->line[y][x] = color)
 #define PPU_GETPIXEL(bitmap, x, y)        (bitmap->line[y][x])

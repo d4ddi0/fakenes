@@ -1085,7 +1085,7 @@ static void mmc5_exram_write(UINT16 address, UINT8 value)
       (MMC5_EXRAM_CONTROL == MMC5_EXRAM_CONTROL_USE_AS_EXTENDED)) {
       /* Modes 0 and 1. */
      const UINT16 write_address = (address - 0x5C00);
-     if (ppu_is_rendering)
+     if (ppu_is_rendering())
         mmc5_exram[write_address] = value;
      else
         mmc5_exram[write_address] = 0x00;

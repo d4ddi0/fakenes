@@ -69,8 +69,6 @@ extern BOOL ppu_enable_sprite_layer_a;
 extern BOOL ppu_enable_sprite_layer_b;
 extern BOOL ppu_enable_background_layer;
 
-extern int ppu_frame_last_line;
-extern BOOL ppu_is_rendering;
 extern BOOL background_enabled;
 extern BOOL sprites_enabled;
 
@@ -103,6 +101,8 @@ extern void ppu_set_mirroring_one_screen (void);
 extern int ppu_get_mirroring (void);
 extern void ppu_set_mirroring (int);
 extern void ppu_invert_mirroring (void);
+
+extern BOOL ppu_is_rendering (void);
 
 extern void ppu_set_name_table_internal (int, int);
 extern void ppu_set_name_table_address (int, UINT8 *);

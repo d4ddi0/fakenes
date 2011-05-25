@@ -35,29 +35,41 @@ extern "C" {
 #define CPU_CLOCK_MULTIPLIER      CPU_CLOCK_DIVIDER
 #define PPU_CLOCK_MULTIPLIER      PPU_CLOCK_DIVIDER
 
-#define PPU_SCANLINE_CLOCKS       341                                       /* PPU clocks per scanline */
 #define PPU_RENDER_CLOCKS         256                                       /* PPU clocks per scanline(rendering portion) */
-#define PPU_HBLANK_CLOCKS         (PPU_SCANLINE_CLOCKS - PPU_RENDER_CLOCKS) /* PPU clocks per scanline(HBlank portion) */
-#define PPU_HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP (320 - 256)
-#define PPU_TOTAL_LINES_NTSC      262                                       /* Total lines processed per frame, NTSC */
-#define PPU_TOTAL_LINES_PAL       312                                       /* Total kines proccesed per frame, PAL */
+#define PPU_HBLANK_START          (PPU_RENDER_CLOCKS + 1)                   /* Time of HBlank start. */
+#define PPU_HBLANK_CLOCKS         85                                        /* PPU clocks per scanline(HBlank portion) */
+#define PPU_HBLANK_PREFETCH       320                                       /* When PPU fetches data for the next line */
+#define PPU_SCANLINE_CLOCKS       (PPU_RENDER_CLOCKS + PPU_HBLANK_CLOCKS)   /* PPU clocks per scanline */
+#define PPU_FIRST_LINE            -1                                        /* First line emulated */
+#define PPU_LAST_LINE_NTSC        260                                       /* Last line emulated, NTSC. */             
+#define PPU_LAST_LINE_PAL         310                                       /* Last line emulated, PAL. */
 #define PPU_FIRST_DISPLAYED_LINE  0                                         /* First line rendered */
 #define PPU_LAST_DISPLAYED_LINE   239                                       /* Last line rendered */
-#define PPU_FIRST_VBLANK_LINE     240                                       /* Line on which VBlank starts */
-#define PPU_FRAME_CLOCKS_NTSC     (PPU_SCANLINE_CLOCKS * PPU_TOTAL_LINES_NTSC)
-#define PPU_FRAME_CLOCKS_PAL      (PPU_SCANLINE_CLOCKS * PPU_TOTAL_LINES_PAL)
+#define PPU_CLOCK_SKIP_LINE       20                                        /* Line at which the PPU skips a clock */
+#define PPU_CLOCK_SKIP_CYCLE      328                                       /* Cycle at which the PPU skips a clock */
+#define PPU_IDLE_LINE             240                                       /* Line on which the PPU only idles */
+#define PPU_FIRST_VBLANK_LINE     241                                       /* Line on which VBlank starts */
+#define PPU_TOTAL_LINES_NTSC      ((PPU_LAST_LINE_NTSC - PPU_FIRST_LINE) + 1)  /* Total lines processed per frame, NTSC */
+#define PPU_TOTAL_LINES_PAL       ((PPU_LAST_LINE_PAL - PPU_FIRST_LINE) + 1)   /* Total lines proccesed per frame, PAL */
+#define PPU_FRAME_CLOCKS_NTSC     (PPU_SCANLINE_CLOCKS * PPU_TOTAL_LINES_NTSC) /* May be +/- 1 due to skipped cycle */
+#define PPU_FRAME_CLOCKS_PAL      (PPU_SCANLINE_CLOCKS * PPU_TOTAL_LINES_PAL)  /* ... */
 
 /* These macros generate floating-point values containing the ideal frame rate (in Hz).
    Very important: Don't remove the (REAL) cast or it will produce an integer result. */
-#define PPU_FRAME_RATE_NTSC       ((MASTER_CLOCK_NTSC / (REAL)PPU_CLOCK_DIVIDER_NTSC) / PPU_FRAME_CLOCKS_NTSC) /* ~60 Hz */
-#define PPU_FRAME_RATE_PAL        ((MASTER_CLOCK_PAL  / (REAL)PPU_CLOCK_DIVIDER_PAL)  / PPU_FRAME_CLOCKS_PAL)  /* ~50 Hz */
+#define PPU_FRAME_RATE_NTSC ((MASTER_CLOCK_NTSC / (REAL)PPU_CLOCK_DIVIDER_NTSC) / PPU_FRAME_CLOCKS_NTSC) /* ~60 Hz */
+#define PPU_FRAME_RATE_PAL  ((MASTER_CLOCK_PAL  / (REAL)PPU_CLOCK_DIVIDER_PAL)  / PPU_FRAME_CLOCKS_PAL)  /* ~50 Hz */
+
+/* Machine dependant timings. */
+#define PPU_LAST_LINE    ((machine_type == MACHINE_TYPE_NTSC) ? PPU_LAST_LINE_NTSC    : PPU_LAST_LINE_PAL)
+#define PPU_TOTAL_LINES  ((machine_type == MACHINE_TYPE_NTSC) ? PPU_TOTAL_LINES_NTSC  : PPU_TOTAL_LINES_PAL)
+#define PPU_FRAME_CLOCKS ((machine_type == MACHINE_TYPE_NTSC) ? PPU_FRAME_CLOCKS_NTSC : PPU_FRAME_CLOCKS_PAL)
+#define PPU_FRAME_RATE   ((machine_type == MACHINE_TYPE_NTSC) ? PPU_FRAME_RATE_NTSC   : PPU_FRAME_RATE_PAL)
 
 /* Values suitable to passing to cpu_execute(), cpu_consume_cycles(), apu_predict_irqs(), etc. */
 /* Uses master clock cycles. */
 #define SCANLINE_CLOCKS (PPU_SCANLINE_CLOCKS * PPU_CLOCK_MULTIPLIER)
 #define RENDER_CLOCKS   (PPU_RENDER_CLOCKS   * PPU_CLOCK_MULTIPLIER)
 #define HBLANK_CLOCKS   (PPU_HBLANK_CLOCKS   * PPU_CLOCK_MULTIPLIER)
-#define HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP (PPU_HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP * PPU_CLOCK_MULTIPLIER)
 
 /* Lookahead buffering for the IRQ and NMI predictors, since the CPU will
    always execute more than requested. */

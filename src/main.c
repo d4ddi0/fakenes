@@ -449,10 +449,7 @@ int main (int argc, char *argv[])
          }
 
          int line, total_lines;
-         if(machine_type == MACHINE_TYPE_NTSC)
-            total_lines = PPU_TOTAL_LINES_NTSC;
-         else
-            total_lines = PPU_TOTAL_LINES_PAL;
+         total_lines = PPU_TOTAL_LINES; // Cache it
 
          for(line = 0; line < total_lines; line++) {
             apu_predict_irqs(SCANLINE_CLOCKS);

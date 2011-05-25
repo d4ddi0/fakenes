@@ -39,6 +39,9 @@ static cpu_time_t ppu_prediction_cycles = 0;
 
 static void ppu_repredict_nmi(void);
 
+static bool ppu_odd_frame = false;
+static int ppu_mirroring;
+
 BOOL ppu__rendering_enabled = TRUE;
 BOOL ppu__force_rendering = FALSE;
 static BOOL ppu_cache_rendering_enabled = TRUE;
@@ -49,8 +52,6 @@ BOOL ppu_enable_sprite_layer_a = TRUE;
 BOOL ppu_enable_sprite_layer_b = TRUE;
 BOOL ppu_enable_background_layer = TRUE;
 
-int ppu_frame_last_line = 0;
-BOOL ppu_is_rendering = FALSE;
 BOOL background_enabled = FALSE;
 BOOL sprites_enabled = FALSE;
 BOOL ppu__sprite_collision = FALSE;
@@ -92,7 +93,6 @@ UINT8 ppu_palette[PPU_PALETTE_SIZE];
 
 UINT8 ppu_spr_ram[PPU_SPR_RAM_SIZE];
 
-int ppu_mirroring;
 
 unsigned vram_address = 0;
 UINT8 buffered_vram_read = 0;
@@ -381,6 +381,14 @@ int ppu_get_mirroring(void)
    return ppu_mirroring;
 }
 
+BOOL ppu_is_rendering(void) {
+   if((ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) &&
+      (ppu_scanline <= PPU_LAST_DISPLAYED_LINE))
+      return TRUE;
+   else
+      return FALSE;
+}
+
 void ppu_set_name_table_internal(int table, int select)
 {
    synchronize();
@@ -431,6 +439,7 @@ void ppu_set_mirroring_one_screen(void)
     ppu_set_name_table_address(3, one_screen_base_address);
 }
 
+// This is the only place where ppu_mirroring may change.
 void ppu_set_mirroring(int mirroring)
 {
    synchronize();
@@ -836,7 +845,7 @@ void ppu_reset(void)
 
    // queue a scanline cycle and reset the scanline counter
    ppu_scanline_timer = PPU_SCANLINE_CLOCKS;
-   ppu_scanline = 0;
+   ppu_scanline = PPU_FIRST_LINE;
 
    // clear prediction vectors
    ppu_prediction_timestamp = 0;
@@ -850,6 +859,9 @@ void ppu_reset(void)
    // clear sprite collision and overflow flags
    ppu__sprite_collision = FALSE;
    ppu__sprite_overflow = FALSE;
+
+   // start on an even frame
+   ppu_odd_frame = false;
 
    // clear vblank flag
    vblank_occurred = FALSE;
@@ -934,6 +946,8 @@ void ppu_save_state(PACKFILE* file, int version)
    pack_iputw(address_temp, file);
    pack_putc(x_offset, file);
 
+   pack_putc(ppu_odd_frame ? 1 : 0, file);
+
    pack_putc(vblank_occurred ? 1 : 0, file);
 
    pack_putc(ppu__sprite_collision ? 1 : 0, file);
@@ -992,6 +1006,8 @@ void ppu_load_state(PACKFILE* file, int version)
    address_temp = pack_igetw(file);
    x_offset = pack_getc(file);
 
+   ppu_odd_frame = TRUE_OR_FALSE(pack_getc(file));
+
    vblank_occurred = TRUE_OR_FALSE(pack_getc(file));
 
    ppu__sprite_collision = TRUE_OR_FALSE(pack_getc(file));
@@ -1029,11 +1045,6 @@ static void predict_nmi_slave(cpu_time_t cycles)
    if(!want_vblank_nmi)
       return;
 
-   if(machine_type == MACHINE_TYPE_NTSC)
-      ppu_frame_last_line = PPU_TOTAL_LINES_NTSC - 1;
-   else
-      ppu_frame_last_line = PPU_TOTAL_LINES_PAL - 1;
-
    // Save variables since we just want to simulate.
    const int16 saved_scanline_timer = ppu_scanline_timer;
    const int16 saved_scanline = ppu_scanline;
@@ -1044,7 +1055,7 @@ static void predict_nmi_slave(cpu_time_t cycles)
 
       // VBlank NMI occurs on the 1st cycle of the line after the VBlank flag is set.
       if((cycle == 1) &&
-         (ppu_scanline == (PPU_FIRST_VBLANK_LINE + 1)))
+         (ppu_scanline == PPU_FIRST_VBLANK_LINE))
          cpu_queue_interrupt(CPU_INTERRUPT_NMI, ppu_prediction_timestamp + (offset * PPU_CLOCK_MULTIPLIER));
 
       if(ppu_scanline_timer > 0)
@@ -1054,8 +1065,8 @@ static void predict_nmi_slave(cpu_time_t cycles)
 
          // move on to next scanline
          ppu_scanline++;
-         if(ppu_scanline > ppu_frame_last_line)
-            ppu_scanline = 0;
+         if(ppu_scanline > PPU_LAST_LINE)
+            ppu_scanline = PPU_FIRST_LINE;
       }
    }
 
@@ -1120,11 +1131,6 @@ static void synchronize(void)
    if(elapsed_ppu_cycles == 0)
       return;
 
-   if(machine_type == MACHINE_TYPE_NTSC)
-      ppu_frame_last_line = PPU_TOTAL_LINES_NTSC - 1;
-   else
-      ppu_frame_last_line = PPU_TOTAL_LINES_PAL - 1;
-
    for(cpu_time_t count = 0; count < elapsed_ppu_cycles; count++) {
       // Get current scanline clock cycle (starting at 1).
       const cpu_time_t cycle = (PPU_SCANLINE_CLOCKS - ppu_scanline_timer) + 1;
@@ -1136,58 +1142,94 @@ static void synchronize(void)
 
       // Scanline start.
       if(cycle == 1) {
-         if(ppu_scanline == 0) {
+
+         if(ppu_scanline == PPU_FIRST_LINE) {
             // start a new frame
             if(PPU_ENABLED)
                vram_address = address_temp;
 
-            Renderer_Frame();
-            ppu_is_rendering = TRUE;
+            // Clear VBlank flag
+            vblank_occurred = FALSE;
 
             // clear sprite #0 collision flag
             ppu__sprite_collision = FALSE;
+
+            Renderer_Frame();
          }
+         else if((ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) &&
+                 (ppu_scanline <= PPU_LAST_DISPLAYED_LINE)) {
 
-         // call start scanline interrupt for MMC
-         if(mmc_scanline_start)
-            cpu_interrupt(mmc_scanline_start (ppu_scanline));
-
-         if((ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) &&
-            (ppu_scanline <= PPU_LAST_DISPLAYED_LINE)) {
-            // start new scanline
-            if(PPU_ENABLED)
-               vram_address = (vram_address & (~0x1F & ~(1 << 10))) |
-                  (address_temp & (0x1F | (1 << 10)));
+            // clear sprite #0 overflow flag
+            ppu__sprite_overflow = FALSE;
 
             Renderer_Line(ppu_scanline);
-
-            // clear sprite overflow flag
+         }
+         else if(ppu_scanline == PPU_IDLE_LINE) {
+            // clear sprite #0 overflow flag from the last line
             ppu__sprite_overflow = FALSE;
          }
          else if(ppu_scanline == PPU_FIRST_VBLANK_LINE) {
-            // vblank / end render
+            // vblank
             vblank_occurred = TRUE;
-            ppu_is_rendering = FALSE;
 
-            // Not sure if this is really needed, but it doesn't hurt.
-            ppu__sprite_overflow = FALSE;
-         }
-         else if(ppu_scanline == (PPU_FIRST_VBLANK_LINE + 1)) {
             // VBlank NMI
             // This is now handled by ppu_predict_nmi() instead.
             // if(want_vblank_nmi)
             //   cpu_interrupt(CPU_INTERRUPT_NMI);
          }
-         else if(ppu_scanline == ppu_frame_last_line) {
-            // Clear VBlank flag
-            vblank_occurred = FALSE;
+
+         // call start scanline interrupt for MMC
+         if(mmc_scanline_start)
+            cpu_interrupt(mmc_scanline_start(ppu_scanline));
+      }
+
+      // Renderered lines (-1 to 239)
+      if((ppu_scanline >= PPU_FIRST_LINE) &&
+         (ppu_scanline <= PPU_LAST_DISPLAYED_LINE)) {
+
+         Renderer_Clock();
+
+         // Visible lines
+         if(ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) {
+
+            // The PPU renders one pixel per clock for the first 256 clock cycles
+            if(cycle <= PPU_RENDER_CLOCKS) {
+               Renderer_Pixel();
+            }
+            // HBlank start.
+            else if((cycle == PPU_HBLANK_START) &&
+                    mmc_hblank_start) {
+
+               // call hblank start interrupt for MMC
+              cpu_interrupt(mmc_hblank_start(ppu_scanline));
+            }
+            /* Mid-HBlank VRAM address fixup.
+
+               This is actually when the PPU begins fetching data for the first two tiles of the
+               next line (as the PPU start fetching from tile 3 at the beginning of each line),
+               but unfortunately we don't emulate PPU background timing yet. */
+
+            else if((cycle == PPU_HBLANK_PREFETCH) &&
+                    PPU_ENABLED) {
+
+               vram_address += 0x1000;
+
+               if((vram_address & (7 << 12)) == 0) {
+                  vram_address += 32;
+
+                  switch(vram_address & (0x1F << 5)) {
+                     case 0:
+                        vram_address -= (1 << 10);
+                        break;
+                    case (30 << 5):
+                        vram_address = (vram_address - (30 << 5)) ^ (1 << 11);
+                        break;
+                  }
+               }
+            }
          }
       }
 
-      // The PPU renders one pixel per clock for the first 256 clock cycles
-      if(cycle <= PPU_RENDER_CLOCKS) {
-         if((ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) &&
-            (ppu_scanline <= PPU_LAST_DISPLAYED_LINE))
 #if 0
             // TODO: Sprite #0 hit test support here on skipped frames
             // TODO: Find out what is wrong with Zapper hitscan code and fix it (crashes)
@@ -1212,37 +1254,30 @@ static void synchronize(void)
                ppu__force_rendering = FALSE;
 #endif
 
-            Renderer_Pixel();
-      }
-      // HBlank start.
-      else if(cycle == (PPU_RENDER_CLOCKS + 1)) {
-          // call hblank start interrupt for MMC
-          if(mmc_hblank_start)
-              cpu_interrupt(mmc_hblank_start(ppu_scanline));
-      }
-      // Mid-HBlank VRAM address fixup.
-      else if(cycle == (PPU_RENDER_CLOCKS + PPU_HBLANK_CLOCKS_BEFORE_VRAM_ADDRESS_FIXUP + 1)) {
-         if(PPU_ENABLED) {
-            vram_address += 0x1000;
+      if((ppu_scanline == PPU_CLOCK_SKIP_LINE) && (cycle == PPU_CLOCK_SKIP_CYCLE) &&
+          ppu_odd_frame && PPU_BACKGROUND_ENABLED) {
+         /* From nesdev wiki:
 
-            if((vram_address & (7 << 12)) == 0) {
-               vram_address += 32;
+            The PPU has an even/odd flag that is toggled every frame,
+            regardless of whether the BG is enabled or disabled.
 
-               switch(vram_address & (0x1F << 5)) {
-                  case 0:
-                     vram_address -= (1 << 10);
-                     break;
-                  case (30 << 5):
-                     vram_address = (vram_address - (30 << 5)) ^ (1 << 11);
-                     break;
-               }
-            }
-         }
+            With BG disabled, each PPU frame is 341*262=89342 PPU clocks long.
+            There is no skipped clock every other frame.
+
+            With BG enabled, each odd PPU frame is one PPU clock shorter than
+            normal. I've timed this to occur around PPU clock 328 on
+            scanline 20, but haven't written a test ROM for it yet. */
+
+         /* Steal a clock from the scanline timer and move it to the clock
+            buffer for the next frame */
+         ppu_scanline_timer--;
+         ppu_clock_buffer++;
       }
 
       if(ppu_scanline_timer > 0)
          ppu_scanline_timer--;
       if(ppu_scanline_timer <= 0) {
+         // end of scanline
          ppu_scanline_timer += PPU_SCANLINE_CLOCKS;
 
          // call end scanline interrupt for MMC
@@ -1251,8 +1286,11 @@ static void synchronize(void)
 
          // move on to next scanline
          ppu_scanline++;
-         if(ppu_scanline > ppu_frame_last_line) {
-            ppu_scanline = 0;
+         if(ppu_scanline > PPU_LAST_LINE) {
+            ppu_scanline = PPU_FIRST_LINE;
+
+            // Toggle even/odd frame flag
+            ppu_odd_frame = !ppu_odd_frame;
 
             /* Current frame has ended, but we only have to draw the buffer to the screen
                if rendering had been enabled (i.e this was not a skipped frame). */

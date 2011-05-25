@@ -17,6 +17,9 @@
 
 namespace Renderer {
 
+// This has to be here, rather than in a file, due to compiler limitations.
+static const int SpritesPerLine = 8;
+
 extern const int TileWidth;
 extern const int TileHeight;
 
@@ -32,6 +35,9 @@ typedef struct _RenderBackgroundContext {
 } RenderBackgroundContext;
 
 typedef struct _RenderSpriteContext {
+   uint8 lowShift, highShift;
+   uint8 latch;
+   uint8 counter;
 
 } RenderSpriteContext;
 
@@ -40,7 +46,7 @@ typedef struct _RenderContext {
    uint8 line, pixel; // Saved to file
 
    RenderBackgroundContext background;
-   RenderSpriteContext sprite;
+   RenderSpriteContext sprites[SpritesPerLine];
 
 } RenderContext;
 
@@ -52,6 +58,7 @@ extern void Renderer_Initialize();
 extern void Renderer_Frame();
 extern void Renderer_Line(int line);
 extern void Renderer_Pixel();
+extern void Renderer_Clock();
 extern void Renderer_Load(PACKFILE* file, const int version);
 extern void Renderer_Save(PACKFILE* file, const int version);
 

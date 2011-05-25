@@ -40,7 +40,7 @@ static UINT8 mmc3_sram_enable;
 static int mmc3_irq_tick(int line)
 {
    if((((line >= PPU_FIRST_DISPLAYED_LINE) && (line <= PPU_LAST_DISPLAYED_LINE)) ||
-          (line == ppu_frame_last_line)) &&
+          (line == PPU_LAST_LINE)) &&
       (PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED)) {
         mmc3_counter_latched = TRUE;
 

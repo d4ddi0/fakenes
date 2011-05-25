@@ -14,10 +14,12 @@
 namespace Renderer {
 
 extern void SpriteInit();
+extern void SpriteFrame();
 extern void SpriteLine();
 extern void SpritePixel();
 extern void SpritePixelStub();
 extern void SpritePixelSkip();
+extern void SpriteClock();
 
 } // namespace Renderer
 

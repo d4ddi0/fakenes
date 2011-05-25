@@ -37,11 +37,7 @@ REAL timing_get_timing_scale(void)
 
 REAL timing_get_frame_rate(void)
 {
-   REAL rate;
-   if(machine_type == MACHINE_TYPE_NTSC)
-      rate = PPU_FRAME_RATE_NTSC;
-   else
-      rate = PPU_FRAME_RATE_PAL;
+   REAL rate = PPU_FRAME_RATE;
 
    /* Modifications are only allowed in the INDIRECT timing mode. */
    if(timing_mode == TIMING_MODE_INDIRECT) {
@@ -63,10 +59,8 @@ REAL timing_get_frequency(void)
       but the one that we're actually emulating at.  TIMING_SMOOTH affects this.
 
       Do NOT use this function for anything emulation related, use it to affect output only please. */
-   if(machine_type == MACHINE_TYPE_NTSC)
-      return (timing_get_frame_rate() * PPU_FRAME_CLOCKS_NTSC) * PPU_CLOCK_DIVIDER_NTSC;
-   else
-      return (timing_get_frame_rate() * PPU_FRAME_CLOCKS_PAL) * PPU_CLOCK_DIVIDER_PAL;
+
+   return (timing_get_frame_rate() * PPU_FRAME_CLOCKS) * PPU_CLOCK_DIVIDER;
 }
 
 void timing_update_timing(void)
