@@ -25,7 +25,6 @@ extern const int TileHeight;
 
 extern const int DisplayWidth;
 extern const int DisplayWidthTiles;
-extern const int DisplayWidthTilesBuffered;
 extern const int DisplayHeight;
 
 typedef struct _RenderBackgroundContext {
@@ -44,6 +43,7 @@ typedef struct _RenderSpriteContext {
 typedef struct _RenderContext {
    uint8* buffer;
    uint8 line, pixel; // Saved to file
+   uint16 clock; // Saved to file
 
    RenderBackgroundContext background;
    RenderSpriteContext sprites[SpritesPerLine];

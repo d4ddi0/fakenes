@@ -26,7 +26,6 @@ const int TileHeight = 8;
 
 const int DisplayWidth = 256;
 const int DisplayWidthTiles = (DisplayWidth / TileWidth);
-const int DisplayWidthTilesBuffered = DisplayWidthTiles + 1;
 const int DisplayHeight = 240;
 
 RenderContext render;
@@ -35,6 +34,7 @@ void Clear() {
    render.buffer = NULL;
    render.line = PPU_FIRST_LINE;
    render.pixel = 0;
+   render.clock = 1; // Always starts from 1
 }
 
 } // namespace Renderer
@@ -60,9 +60,11 @@ void Renderer_Frame() {
 /* This only gets called from PPU_FIRST_VISIBLE_LINE to PPU_LAST_VISIBLE_LINE.
    In other words, only for visible lines. */
 void Renderer_Line(int line) {
-   Clear();
+   render.buffer = PPU_GET_LINE_ADDRESS(video_buffer, render.line);
 
-   render.buffer = PPU_GET_LINE_ADDRESS(video_buffer, line);
+   render.line = line;
+   render.pixel = 0;
+   render.clock = 1;
 
    // TODO: Move this to a per-pixel basis.
    memset(render.buffer, (ppu_background_palette[0] & palette_mask) + PALETTE_ADJUST, DisplayWidth);
@@ -111,6 +113,8 @@ void Renderer_Pixel() {
 void Renderer_Clock() {
    if(PPU_SPRITES_ENABLED)
       SpriteClock();
+
+   render.clock++;
 }
 
 void Renderer_Load(PACKFILE* file, const int version) {
@@ -118,6 +122,7 @@ void Renderer_Load(PACKFILE* file, const int version) {
 
    pack_putc(render.line, file);
    pack_putc(render.pixel, file);
+   pack_iputw(render.clock, file);
 
    pack_putc(render.background.tile, file);
    pack_putc(render.background.pixel, file);
@@ -128,6 +133,7 @@ void Renderer_Save(PACKFILE* file, const int version) {
 
    render.line = pack_getc(file);
    render.pixel = pack_getc(file);
+   render.clock = pack_igetw(file);
 
    render.background.tile = pack_getc(file);
    render.background.pixel = pack_getc(file);

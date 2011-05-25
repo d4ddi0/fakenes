@@ -1115,7 +1115,140 @@ static void ppu_repredict_nmi(void)
    predict_nmi_slave(ppu_cycles_remaining);
 }
 
-static void synchronize(void)
+#if 0
+            // TODO: Sprite #0 hit test support here on skipped frames
+            // TODO: Find out what is wrong with Zapper hitscan code and fix it (crashes)
+            if(input_enable_zapper)
+               input_update_zapper_offsets();
+
+            // We always need to perform rendering when performing the light gun hit-test
+            bool hitscan = false;
+            if(input_enable_zapper && input_zapper_on_screen &&
+               (input_zapper_y_offset == ppu_scanline) &&
+               (input_zapper_x_offset == Renderer::render.pixel)) {
+               hitscan = true;
+               ppu__force_rendering = TRUE;
+            }
+
+            Renderer_Pixel();
+
+            if(hitscan)
+               input_update_zapper();
+
+            if(ppu__force_rendering)
+               ppu__force_rendering = FALSE;
+#endif
+
+static void start_frame() {
+   // Clear VBlank flag
+   vblank_occurred = FALSE;
+
+   // clear sprite #0 collision flag
+   ppu__sprite_collision = FALSE;
+
+   Renderer_Frame();
+}
+
+static void start_scanline() 
+{
+   if((ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) &&
+      (ppu_scanline <= PPU_LAST_DISPLAYED_LINE)) {
+
+      if((ppu_scanline == PPU_FIRST_DISPLAYED_LINE) &&
+         PPU_ENABLED)
+         vram_address = address_temp;
+
+      // clear sprite #0 overflow flag
+      ppu__sprite_overflow = FALSE;
+
+      Renderer_Line(ppu_scanline);
+   }
+   else if(ppu_scanline == PPU_IDLE_LINE) {
+      // clear sprite #0 overflow flag from the last line
+      ppu__sprite_overflow = FALSE;
+   }
+   else if(ppu_scanline == PPU_FIRST_VBLANK_LINE) {
+      // vblank
+      vblank_occurred = TRUE;
+
+      // VBlank NMI
+      // This is now handled by ppu_predict_nmi() instead.
+      // if(want_vblank_nmi)
+      //   cpu_interrupt(CPU_INTERRUPT_NMI);
+   }
+
+   // call start scanline interrupt for MMC
+   if(mmc_scanline_start)
+      cpu_interrupt(mmc_scanline_start(ppu_scanline));
+}
+
+/* This is only called for scanlines -1 to 239, as the PPU is idle during other lines
+   (excepting what is handled by start_scanline(), of course). */
+static void start_scanline_cycle(const cpu_time_t cycle) {
+   Renderer_Clock();
+
+   // Continue for visible lines only
+   if(ppu_scanline < PPU_FIRST_DISPLAYED_LINE)
+      return;
+
+   // The PPU renders one pixel per clock for the first 256 clock cycles
+   if(cycle <= PPU_RENDER_CLOCKS) {
+      Renderer_Pixel();
+   }
+   // HBlank start.
+   else if((cycle == PPU_HBLANK_START) &&
+           mmc_hblank_start) {
+
+      // call hblank start interrupt for MMC
+      cpu_interrupt(mmc_hblank_start(ppu_scanline));
+   }
+   /* Mid-HBlank VRAM address fixup.
+
+      This is actually when the PPU begins fetching data for the first two tiles of the
+      next line (as the PPU start fetching from tile 3 at the beginning of each line),
+      but unfortunately we don't emulate PPU background timing yet. */
+
+   else if((cycle == PPU_HBLANK_PREFETCH) &&
+           PPU_ENABLED) {
+
+      vram_address += 0x1000;
+
+      if((vram_address & (7 << 12)) == 0) {
+         vram_address += 32;
+
+         switch(vram_address & (0x1F << 5)) {
+            case 0:
+               vram_address -= (1 << 10);
+               break;
+           case (30 << 5):
+               vram_address = (vram_address - (30 << 5)) ^ (1 << 11);
+               break;
+         }
+      }
+   }
+}
+
+static void end_scanline() {
+   // call end scanline interrupt for MMC
+   if(mmc_scanline_end)
+      cpu_interrupt(mmc_scanline_end(ppu_scanline));
+}
+
+static void end_frame() {
+   // Toggle even/odd frame flag
+   ppu_odd_frame = !ppu_odd_frame;
+
+   /* Current frame has ended, but we only have to draw the buffer to the screen
+      if rendering had been enabled (i.e this was not a skipped frame). */
+   if(ppu__rendering_enabled)
+      video_blit(screen);
+
+   // This is the only time its safe to enable/disable rendering directly
+   if(ppu__rendering_enabled != ppu_cache_rendering_enabled)
+      ppu__rendering_enabled = ppu_cache_rendering_enabled;
+}
+
+static void synchronize()
 {
    // Calculate the delta period.
    const cpu_time_t elapsed_cycles = cpu_get_elapsed_cycles(&ppu_clock_counter) + ppu_clock_buffer;
@@ -1143,116 +1276,18 @@ static void synchronize(void)
       // Scanline start.
       if(cycle == 1) {
 
-         if(ppu_scanline == PPU_FIRST_LINE) {
+         if(ppu_scanline == PPU_FIRST_LINE)
             // start a new frame
-            if(PPU_ENABLED)
-               vram_address = address_temp;
+            start_frame();
 
-            // Clear VBlank flag
-            vblank_occurred = FALSE;
-
-            // clear sprite #0 collision flag
-            ppu__sprite_collision = FALSE;
-
-            Renderer_Frame();
-         }
-         else if((ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) &&
-                 (ppu_scanline <= PPU_LAST_DISPLAYED_LINE)) {
-
-            // clear sprite #0 overflow flag
-            ppu__sprite_overflow = FALSE;
-
-            Renderer_Line(ppu_scanline);
-         }
-         else if(ppu_scanline == PPU_IDLE_LINE) {
-            // clear sprite #0 overflow flag from the last line
-            ppu__sprite_overflow = FALSE;
-         }
-         else if(ppu_scanline == PPU_FIRST_VBLANK_LINE) {
-            // vblank
-            vblank_occurred = TRUE;
-
-            // VBlank NMI
-            // This is now handled by ppu_predict_nmi() instead.
-            // if(want_vblank_nmi)
-            //   cpu_interrupt(CPU_INTERRUPT_NMI);
-         }
-
-         // call start scanline interrupt for MMC
-         if(mmc_scanline_start)
-            cpu_interrupt(mmc_scanline_start(ppu_scanline));
+         // call handler
+         start_scanline();
       }
 
       // Renderered lines (-1 to 239)
       if((ppu_scanline >= PPU_FIRST_LINE) &&
-         (ppu_scanline <= PPU_LAST_DISPLAYED_LINE)) {
-
-         Renderer_Clock();
-
-         // Visible lines
-         if(ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) {
-
-            // The PPU renders one pixel per clock for the first 256 clock cycles
-            if(cycle <= PPU_RENDER_CLOCKS) {
-               Renderer_Pixel();
-            }
-            // HBlank start.
-            else if((cycle == PPU_HBLANK_START) &&
-                    mmc_hblank_start) {
-
-               // call hblank start interrupt for MMC
-              cpu_interrupt(mmc_hblank_start(ppu_scanline));
-            }
-            /* Mid-HBlank VRAM address fixup.
-
-               This is actually when the PPU begins fetching data for the first two tiles of the
-               next line (as the PPU start fetching from tile 3 at the beginning of each line),
-               but unfortunately we don't emulate PPU background timing yet. */
-
-            else if((cycle == PPU_HBLANK_PREFETCH) &&
-                    PPU_ENABLED) {
-
-               vram_address += 0x1000;
-
-               if((vram_address & (7 << 12)) == 0) {
-                  vram_address += 32;
-
-                  switch(vram_address & (0x1F << 5)) {
-                     case 0:
-                        vram_address -= (1 << 10);
-                        break;
-                    case (30 << 5):
-                        vram_address = (vram_address - (30 << 5)) ^ (1 << 11);
-                        break;
-                  }
-               }
-            }
-         }
-      }
-
-#if 0
-            // TODO: Sprite #0 hit test support here on skipped frames
-            // TODO: Find out what is wrong with Zapper hitscan code and fix it (crashes)
-            if(input_enable_zapper)
-               input_update_zapper_offsets();
-
-            // We always need to perform rendering when performing the light gun hit-test
-            bool hitscan = false;
-            if(input_enable_zapper && input_zapper_on_screen &&
-               (input_zapper_y_offset == ppu_scanline) &&
-               (input_zapper_x_offset == Renderer::render.pixel)) {
-               hitscan = true;
-               ppu__force_rendering = TRUE;
-            }
-
-            Renderer_Pixel();
-
-            if(hitscan)
-               input_update_zapper();
-
-            if(ppu__force_rendering)
-               ppu__force_rendering = FALSE;
-#endif
+         (ppu_scanline <= PPU_LAST_DISPLAYED_LINE))
+         start_scanline_cycle(cycle);
 
       if((ppu_scanline == PPU_CLOCK_SKIP_LINE) && (cycle == PPU_CLOCK_SKIP_CYCLE) &&
           ppu_odd_frame && PPU_BACKGROUND_ENABLED) {
@@ -1280,26 +1315,17 @@ static void synchronize(void)
          // end of scanline
          ppu_scanline_timer += PPU_SCANLINE_CLOCKS;
 
-         // call end scanline interrupt for MMC
-         if(mmc_scanline_end)
-            cpu_interrupt(mmc_scanline_end(ppu_scanline));
+         // call handler         
+         end_scanline();
 
          // move on to next scanline
          ppu_scanline++;
          if(ppu_scanline > PPU_LAST_LINE) {
+            // end of frame
             ppu_scanline = PPU_FIRST_LINE;
 
-            // Toggle even/odd frame flag
-            ppu_odd_frame = !ppu_odd_frame;
-
-            /* Current frame has ended, but we only have to draw the buffer to the screen
-               if rendering had been enabled (i.e this was not a skipped frame). */
-            if(ppu__rendering_enabled)
-               video_blit(screen);
-
-            // This is the only time its safe to enable/disable rendering directly
-            if(ppu__rendering_enabled != ppu_cache_rendering_enabled)
-               ppu__rendering_enabled = ppu_cache_rendering_enabled;
+            // call handler         
+            end_frame();
          }
       }
    }
