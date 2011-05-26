@@ -90,7 +90,7 @@ SRCFILES   = ''
 CPPFLAGS += " -I${DEP_DIR} -I${SRC_DIR} -I${SRC_DIR}/include -I${SUPPORT_DIR}"
 
 # Set default CFLAGS.
-CFLAGS ?= '-pipe -O3 -ffast-math -fomit-frame-pointer -s'
+CFLAGS ?= '-pipe -O3 -ffast-math -fomit-frame-pointer -finline-limit=10000 -s'
 
 # Overrides.
 ifopt debug   CFLAGS = "-O0 -g$('getoptval' --debug-level)"
