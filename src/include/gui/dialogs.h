@@ -9,7 +9,7 @@ DEFINE_DIALOG(main_dialog);
 DEFINE_DIALOG(main_replay_record_start_dialog);
 DEFINE_DIALOG(main_cheat_manager_add_dialog);
 DEFINE_DIALOG(main_cheat_manager_dialog);
-DEFINE_DIALOG(machine_save_state_save_dialog);
+DEFINE_DIALOG(system_save_state_save_dialog);
 DEFINE_DIALOG(video_color_dialog);
 DEFINE_DIALOG(input_configure_dialog);
 DEFINE_DIALOG(options_paths_dialog);
@@ -140,7 +140,7 @@ enum
 
 static const DIALOG main_dialog_base[] =
 {
-   { d_menu_proc, 16, 16, 0, 0, 0, 0, 0, 0, 0, 0, IMPORT_MENU(top_menu), NULL, NULL },
+   { d_menu_proc, 8, 8, 0, 0, 0, 0, 0, 0, 0, 0, IMPORT_MENU(top_menu), NULL, NULL },
    DIALOG_ENDCAP
 };
 
@@ -218,7 +218,7 @@ enum
    MAIN_CHEAT_MANAGER_DIALOG_SAVE_BUTTON
 };
 
-static const DIALOG machine_save_state_save_dialog_base[] =
+static const DIALOG system_save_state_save_dialog_base[] =
 {
    { sl_frame,    0,   0,  220, 89, 0, 0, 0,   0,      0, 0, NULL,      "Save State", NULL },
    { sl_x_button, 200, 4,  16,  12, 0, 0, 0,   D_EXIT, 0, 0, "X",       NULL,         NULL },
@@ -231,12 +231,12 @@ static const DIALOG machine_save_state_save_dialog_base[] =
 
 enum
 {
-   MACHINE_SAVE_STATE_SAVE_DIALOG_FRAME = 0,
-   MACHINE_SAVE_STATE_SAVE_DIALOG_CLOSE_BUTTON,
-   MACHINE_SAVE_STATE_SAVE_DIALOG_TITLE_LABEL,
-   MACHINE_SAVE_STATE_SAVE_DIALOG_TITLE,
-   MACHINE_SAVE_STATE_SAVE_DIALOG_OK_BUTTON,
-   MACHINE_SAVE_STATE_SAVE_DIALOG_CANCEL_BUTTON
+   SYSTEM_SAVE_STATE_SAVE_DIALOG_FRAME = 0,
+   SYSTEM_SAVE_STATE_SAVE_DIALOG_CLOSE_BUTTON,
+   SYSTEM_SAVE_STATE_SAVE_DIALOG_TITLE_LABEL,
+   SYSTEM_SAVE_STATE_SAVE_DIALOG_TITLE,
+   SYSTEM_SAVE_STATE_SAVE_DIALOG_OK_BUTTON,
+   SYSTEM_SAVE_STATE_SAVE_DIALOG_CANCEL_BUTTON
 };
 
 static const DIALOG video_color_dialog_base[] =
@@ -515,22 +515,22 @@ static const DIALOG help_keyboard_shortcuts_dialog_base[] =
 
 static const DIALOG help_fakenes_team_dialog_base[] =
 {
-   { sl_frame,    0,   0,   200, 134, 0, 0, 0, 0,      0, 0, NULL, "FakeNES Team",                   NULL },
-   { sl_x_button, 207, 4,   16,  12,  0, 0, 0, D_EXIT, 0, 0, "X",  NULL,                             NULL },
-   { sl_text,     4,   30,  0 ,  0,   0, 0, 0, 0,      0, 0, NULL, "Current Developers:",            NULL },
-   { sl_text,     20,  36,  0 ,  0,   0, 0, 0, 0,      0, 0, NULL, "Kaede, NishaKitty",              NULL },
-   { sl_text,     4,   46,  0 ,  0,   0, 0, 0, 0,      0, 0, NULL, "Past Developers:",               NULL },
-   { sl_text,     20,  52,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "randilyn, TRAC",                 NULL },
-   { sl_text,     4,   62,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "Contributors:",                  NULL },
-   { sl_text,     20,  68,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "amit, Astxist, ipher, KittyCat", NULL },
-   { sl_text,     20,  74,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "Lord_Nightmare, RobotBebop",     NULL },
-   { sl_text,     4,   84,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "Special Thanks To:",             NULL },
-   { sl_text,     20,  90,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "aprentice, kode54, loomsoft",    NULL },
-   { sl_text,     20,  96,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "Matthew Conte, Mexandrew",       NULL },
-   { sl_text,     20,  102, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "pagefault, piinyouri, rOss",     NULL },
-   { sl_text,     20,  108, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "sarencele, Takeda Toshiya",      NULL },
-   { sl_text,     20,  114, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "Yano Takashi, xodnizel",         NULL },
-   { sl_text,     4,   124, 0,   0,   0, 0, 0, 0,      0, 0, NULL, "... and many more!",             NULL },
+   { sl_frame,    0,   0,   157, 108, 0, 0, 0, 0,      0, 0, NULL, "FakeNES Team",                   NULL },
+   { sl_x_button, 0,   0,   16,  12,  0, 0, 0, D_EXIT, 0, 0, "x",  NULL,                             NULL },
+   { sl_text,     4,   4,   0 ,  0,   0, 0, 0, 0,      0, 0, NULL, "Current Developers:",            NULL },
+   { sl_text,     20,  10,  0 ,  0,   0, 0, 0, 0,      0, 0, NULL, "Kaede, NishaKitty",              NULL },
+   { sl_text,     4,   20,  0 ,  0,   0, 0, 0, 0,      0, 0, NULL, "Past Developers:",               NULL },
+   { sl_text,     20,  26,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "randilyn, TRAC",                 NULL },
+   { sl_text,     4,   36,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "Contributors:",                  NULL },
+   { sl_text,     20,  42,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "amit, Astxist, ipher, KittyCat", NULL },
+   { sl_text,     20,  48,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "Lord_Nightmare, RobotBebop",     NULL },
+   { sl_text,     4,   58,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "Special Thanks To:",             NULL },
+   { sl_text,     20,  64,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "aprentice, kode54, loomsoft",    NULL },
+   { sl_text,     20,  70,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "Matthew Conte, Mexandrew",       NULL },
+   { sl_text,     20,  76,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "pagefault, piinyouri, rOss",     NULL },
+   { sl_text,     20,  82,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "sarencele, Takeda Toshiya",      NULL },
+   { sl_text,     20,  88,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "Yano Takashi, xodnizel",         NULL },
+   { sl_text,     4,   98,  0,   0,   0, 0, 0, 0,      0, 0, NULL, "... and many more!",             NULL },
    DIALOG_FRAME_ENDCAP
 };
 
@@ -636,6 +636,7 @@ static INLINE DIALOG *load_dialog (const DIALOG *dialog)
    int size = 0;
    int index = 0;
    int width, height;
+   int title_height = 0, default_title_height = 0;
 
    RT_ASSERT(dialog);
 
@@ -668,42 +669,60 @@ static INLINE DIALOG *load_dialog (const DIALOG *dialog)
    while (new_dialog[index].proc)
    {
       DIALOG *object = &new_dialog[index];
+      // Width & height of reference font for normal text
+      const float reference_width = 4.0f;
+      const float reference_height = 5.0f;
+      // Height of reference font for title bar text
+      const float reference_title_height = 8.0f;
+
+      /* Calculate the default titlebar height. */
+      default_title_height = get_sl_frame_title_height() + reference_title_height;
 
       /* Import menu by reference. */
       if (object->proc == d_menu_proc)
          object->dp = *(MENU **)object->dp;
 
       /* Dialog to font scaling. */
-      if (font != small_font)
+      switch (index)
       {
-         switch (index)
+         case 0: /* sl_frame. */
          {
-            case 0: /* sl_frame. */
-            {
-               object->w = ROUND(((object->w / 5.0f) * width));
-               object->h = (ROUND(((object->h / 6.0f) * height)) - height);
+            /* Set the titlebar font. */
+            object->dp3 = video_get_font(VIDEO_FONT_LARGE);
 
-               break;
-            }
-         
-            case 1: /* sl_x_button. */
-            {
-               object->x = ROUND(((object->x / 5.0f) * width));
-     
-               break;
-            } 
+            /* Calculate the scaled titlebar height. */
+            title_height = get_sl_frame_title_height() + text_height(object->dp3);
+
+            object->w = ROUND(((object->w / reference_width) * width));
+            object->w += 2; /* borders */
+
+            object->h = ROUND(((object->h / reference_height) * height));
+            object->h += 1 + title_height; /* title_height already counts the top border */
+
+            break;
+         }
     
-            default:
-            {
-               object->x = ROUND(((object->x / 5.0f) * width));
-               object->y = (ROUND(((object->y / 6.0f) * height)) - height);
-               object->w = ROUND(((object->w / 5.0f) * width));
-               object->h = ROUND(((object->h / 6.0f) * height));
-    
-               break;
-            }
+         case 1: /* sl_x_button. */
+         {
+            object->x = ROUND(((object->x / reference_width) * width));
+            object->y = (ROUND(((object->y / reference_height) * height)) - height);
+            object->w = ROUND(((object->w / reference_width) * width));
+            object->h = ROUND(((object->h / reference_height) * height));
+
+            break;
          }
 
+         default:
+         {
+            object->x = ROUND(((object->x / reference_width) * width));
+            object->y = (ROUND(((object->y / reference_height) * height)) - height);
+            object->w = ROUND(((object->w / reference_width) * width));
+            object->h = ROUND(((object->h / reference_height) * height));
+
+            object->y += title_height;
+
+            break;
+         }
       }
 
       index++;
@@ -725,7 +744,7 @@ static INLINE void load_dialogs (void)
 {
    DIALOG_FROM_BASE(main_dialog);
    DIALOG_FROM_BASE(main_replay_record_start_dialog);
-   DIALOG_FROM_BASE(machine_save_state_save_dialog);
+   DIALOG_FROM_BASE(system_save_state_save_dialog);
    DIALOG_FROM_BASE(main_cheat_manager_add_dialog);
    DIALOG_FROM_BASE(main_cheat_manager_dialog);
    DIALOG_FROM_BASE(video_color_dialog);
@@ -743,7 +762,7 @@ static INLINE void unload_dialogs (void)
 {
    unload_dialog (main_dialog);
    unload_dialog (main_replay_record_start_dialog);
-   unload_dialog (machine_save_state_save_dialog);
+   unload_dialog (system_save_state_save_dialog);
    unload_dialog (main_cheat_manager_add_dialog);
    unload_dialog (main_cheat_manager_dialog);
    unload_dialog (video_color_dialog);
@@ -825,8 +844,6 @@ static INLINE int show_dialog (DIALOG *dialog, int focus)
          position_dialog (dialog, x, y);
       }
    }
-
-   dialog[0].dp3 = DATA_TO_FONT(GUI_FONT_LARGE);
 
    while (dialog[index].d1 != SL_FRAME_END)
    {

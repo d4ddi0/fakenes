@@ -124,18 +124,18 @@ static INLINE void set_panta_theme (void)
 /* Generic themes. */
 static const GUI_THEME fireflower_theme =
 {
-   { 0,     0,     0,     0 },  /* Gradients start. */
-   { 0.8f,  0.4f,  0,     0 },  /* Gradients end. */
-   { 0,     0,     0,     0 },  /* Background. */
-   { 0,     0,     0,     0 },  /* Fill. */
-   { 0.48f, 0.24f, 0,     0 },  /* Menu bar. */
-   { 1.0,   0.72f, 0,     0 },  /* Borders. */
-   { 1.0f,  0.72f, 0.48f, 0 },  /* Text. */
-   { 0.3f,  0,     0,     0 },  /* Light shadows. */
-   { 0,     0,     0,     0 },  /* Shadows. */
-   { 0.8f,  0.8f,  0,     0 },  /* Selected. */
-   { 0.48f, 0.36f, 0,     0 },  /* Disabled. */
-   { 1.0f,  0.4f,  0,     0 }   /* Errors. */
+   { 0.5f,  0.25f,   0,     0 },  /* Gradients start. */
+   { 0.25f, 0.0625f, 0,     0 },  /* Gradients end. */
+   { 0,     0,       0,     0 },  /* Background. */
+   { 0,     0,       0,     0 },  /* Fill. */
+   { 0.5f,  0.125f,  0,     0 },  /* Menu bar. */
+   { 1.0,   0.75f,   0,     0 },  /* Borders. */
+   { 1.0f,  1.0f,    0.5f,  0 },  /* Text. */
+   { 0.5f,  0.25f,   0,     0 },  /* Light shadows. */
+   { 0.25f, 0.125f,  0,     0 },  /* Shadows. */
+   { 1.0f,  0.5f,    0,     0 },  /* Selected. */
+   { 0.75f, 0.75f,   0.25f, 0 },  /* Disabled. */
+   { 1.0f,  0.4f,    0,     0 }   /* Errors. */
 };
 
 static const GUI_THEME xodiac_theme =

@@ -179,6 +179,16 @@ int sl_ctext (int message, DIALOG *dialog, int key)
 
 #define SL_FRAME_END    0xf0
 
+#define SL_FRAME_BORDER_SIZE	1
+#define SL_FRAME_PADDING_SIZE	4
+#define SL_FRAME_SHADOW_SIZE	4
+
+/* Helper function that returns the height of the titlebar, *without* text */
+static int get_sl_frame_title_height(void)
+{
+   return (SL_FRAME_BORDER_SIZE * 2) + (SL_FRAME_PADDING_SIZE * 2);
+}
+
 int sl_frame (int message, DIALOG *dialog, int key)
 {
    /*
@@ -199,6 +209,8 @@ int sl_frame (int message, DIALOG *dialog, int key)
          BITMAP *bmp;
          int x1, y1, x2, y2;
          int tx, ty; /* Text. */
+         int bs, pad, ss;
+         int line;
 
          /* Calculate box coordinates. */
          x1 = dialog->x;
@@ -206,15 +218,20 @@ int sl_frame (int message, DIALOG *dialog, int key)
          x2 = ((x1 + dialog->w) - 1);
          y2 = ((y1 + dialog->h) - 1);
 
+         /* Border size, padding, and shadow size. */
+         bs = SL_FRAME_BORDER_SIZE;
+         pad = SL_FRAME_PADDING_SIZE;
+         ss = SL_FRAME_SHADOW_SIZE;
+
          /* Calculate text coordinates. */
-         tx = (x1 + 6);
-         ty = (y1 + 6);
+         tx = (x1 + bs + pad);
+         ty = (y1 + bs + pad);
 
          /* Get drawing surface. */
          bmp = gui_get_screen ();
 
          /* Draw shadow. */
-         rect (bmp, (x1 + 1), (y1 + 1), (x2 + 1), (y2 + 1),
+         rect (bmp, (x1 + ss), (y1 + ss), (x2 + ss), (y2 + ss),
             GUI_SHADOW_COLOR);
 
          /* Draw filling. */
@@ -253,8 +270,8 @@ int sl_frame (int message, DIALOG *dialog, int key)
          push_font (dialog->dp3);
 
          /* Draw titlebar filling. */
-         rectfill (bmp, (x1 + 1), (y1 + 1), (x2 - 1), ((text_height (font) +
-            ty) + 4), GUI_FILL_COLOR);
+         rectfill (bmp, (x1 + bs), (y1 + bs), (x2 - bs), (ty + text_height (font) +
+            pad), GUI_FILL_COLOR);
 
          /* Draw text shadow. */
          textout_ex (bmp, font, dialog->dp2, (tx + 1), (ty + 1),
@@ -264,16 +281,8 @@ int sl_frame (int message, DIALOG *dialog, int key)
          textout_ex (bmp, font, dialog->dp2, tx, ty, GUI_TEXT_COLOR, -1);
 
          /* Draw separator. */
-         hline (bmp, (x1 + 1), ((text_height (font) + ty) + 4), (x2 - 1),
-            GUI_BORDER_COLOR);
-
-         /* Draw separator shadow. */
-         hline (bmp, ((x1 + 1) - 1), (((text_height (font) + ty) + 4) + 1),
-            ((x2 - 1) + 1), GUI_SHADOW_COLOR);
-
-         /* TODO: Find out what this is for. */
-         hline (bmp, ((x1 + 1) - 1), (((text_height (font) + ty) + 4) + 2),
-            ((x2 - 1) + 1), GUI_BORDER_COLOR);
+         for(line = 0; line < bs; line++)
+            hline (bmp, x1 + bs, ty + text_height(font) + pad + line, x2 - bs, GUI_BORDER_COLOR);
 
          /* Unselect font. */
          pop_font ();
@@ -302,10 +311,10 @@ int sl_frame (int message, DIALOG *dialog, int key)
          y2 = ((y1 + dialog->h) - 1);
 
          /* Calculate titlebar area. */
-         tbx1 = (x1 + 1);
-         tby1 = (y1 + 1);
-         tbx2 = (x2 - 1);
-         tby2 = ((y1 + (text_height (font) + 10)) - 1);
+         tbx1 = (x1 + SL_FRAME_BORDER_SIZE);
+         tby1 = (y1 + SL_FRAME_BORDER_SIZE);
+         tbx2 = (x2 - SL_FRAME_BORDER_SIZE);
+         tby2 = (y1 + get_sl_frame_title_height() + text_height (font));
 
          if (((mouse_x >= tbx1) && (mouse_x <= tbx2)) &&
              ((mouse_y >= tby1) && (mouse_y <= tby2)))
@@ -893,7 +902,7 @@ int sl_x_button (int message, DIALOG *dialog, int key)
    int result;
 
    /* Select font. */
-   push_font (small_font);
+   push_font (video_get_font(VIDEO_FONT_LEGACY));
 
    result = d_button_proc (message, dialog, key);
 

@@ -103,10 +103,10 @@ static INLINE void update_menus (void)
       DISABLE_MENU_ITEM(main_menu_cheat_manager);
       DISABLE_MENU_ITEM(main_menu_save_snapshot);
       DISABLE_MENU_ITEM(main_menu_advance_frame);
-      DISABLE_MENU_ITEM(machine_menu_reset);
-      DISABLE_MENU_ITEM(machine_menu_power_cycle);
-      DISABLE_SUBMENU(machine_save_state_menu);
-      DISABLE_SUBMENU(audio_record_menu);
+      DISABLE_SUBMENU(main_record_audio_menu);
+      DISABLE_MENU_ITEM(system_menu_reset);
+      DISABLE_MENU_ITEM(system_menu_power_cycle);
+      DISABLE_SUBMENU(system_save_state_menu);
       DISABLE_MENU_ITEM(video_layers_menu_flip_mirroring);
       DISABLE_MENU_ITEM(options_menu_reset_clock);
    }
@@ -123,49 +123,42 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(main_replay_select_menu_3, (replay_index == 3));
    TOGGLE_MENU_ITEM(main_replay_select_menu_4, (replay_index == 4));
 
-   TOGGLE_MENU_ITEM(machine_menu_show_status, video_display_status);
+   TOGGLE_MENU_ITEM(system_menu_show_status, video_display_status);
 
-   TOGGLE_MENU_ITEM(machine_menu_timing_smoothest,     (machine_timing == MACHINE_TIMING_SMOOTH));
-   TOGGLE_MENU_ITEM(machine_menu_timing_most_accurate, (machine_timing == MACHINE_TIMING_ACCURATE));
+   TOGGLE_MENU_ITEM(system_menu_timing_smoothest,     (machine_timing == MACHINE_TIMING_SMOOTH));
+   TOGGLE_MENU_ITEM(system_menu_timing_most_accurate, (machine_timing == MACHINE_TIMING_ACCURATE));
 
-   TOGGLE_MENU_ITEM(machine_save_state_select_menu_0, (save_state_index == 0));
-   TOGGLE_MENU_ITEM(machine_save_state_select_menu_1, (save_state_index == 1));
-   TOGGLE_MENU_ITEM(machine_save_state_select_menu_2, (save_state_index == 2));
-   TOGGLE_MENU_ITEM(machine_save_state_select_menu_3, (save_state_index == 3));
-   TOGGLE_MENU_ITEM(machine_save_state_select_menu_4, (save_state_index == 4));
-   TOGGLE_MENU_ITEM(machine_save_state_select_menu_5, (save_state_index == 5));
-   TOGGLE_MENU_ITEM(machine_save_state_select_menu_6, (save_state_index == 6));
-   TOGGLE_MENU_ITEM(machine_save_state_select_menu_7, (save_state_index == 7));
-   TOGGLE_MENU_ITEM(machine_save_state_select_menu_8, (save_state_index == 8));
-   TOGGLE_MENU_ITEM(machine_save_state_select_menu_9, (save_state_index == 9));
+   TOGGLE_MENU_ITEM(system_save_state_select_menu_0, (save_state_index == 0));
+   TOGGLE_MENU_ITEM(system_save_state_select_menu_1, (save_state_index == 1));
+   TOGGLE_MENU_ITEM(system_save_state_select_menu_2, (save_state_index == 2));
+   TOGGLE_MENU_ITEM(system_save_state_select_menu_3, (save_state_index == 3));
+   TOGGLE_MENU_ITEM(system_save_state_select_menu_4, (save_state_index == 4));
+   TOGGLE_MENU_ITEM(system_save_state_select_menu_5, (save_state_index == 5));
+   TOGGLE_MENU_ITEM(system_save_state_select_menu_6, (save_state_index == 6));
+   TOGGLE_MENU_ITEM(system_save_state_select_menu_7, (save_state_index == 7));
+   TOGGLE_MENU_ITEM(system_save_state_select_menu_8, (save_state_index == 8));
+   TOGGLE_MENU_ITEM(system_save_state_select_menu_9, (save_state_index == 9));
 
-   TOGGLE_MENU_ITEM(machine_save_state_autosave_menu_disabled,   (input_autosave_interval == 0));
-   TOGGLE_MENU_ITEM(machine_save_state_autosave_menu_10_seconds, (input_autosave_interval == 10));
-   TOGGLE_MENU_ITEM(machine_save_state_autosave_menu_30_seconds, (input_autosave_interval == 30));
-   TOGGLE_MENU_ITEM(machine_save_state_autosave_menu_60_seconds, (input_autosave_interval == 60));
+   TOGGLE_MENU_ITEM(system_save_state_autosave_menu_disabled,   (input_autosave_interval == 0));
+   TOGGLE_MENU_ITEM(system_save_state_autosave_menu_10_seconds, (input_autosave_interval == 10));
+   TOGGLE_MENU_ITEM(system_save_state_autosave_menu_30_seconds, (input_autosave_interval == 30));
+   TOGGLE_MENU_ITEM(system_save_state_autosave_menu_60_seconds, (input_autosave_interval == 60));
 
-   TOGGLE_MENU_ITEM(machine_region_menu_automatic, (machine_region == MACHINE_REGION_AUTOMATIC));
-   TOGGLE_MENU_ITEM(machine_region_menu_ntsc,      (machine_region == MACHINE_REGION_NTSC));
-   TOGGLE_MENU_ITEM(machine_region_menu_pal,       (machine_region == MACHINE_REGION_PAL));
+   TOGGLE_MENU_ITEM(system_region_menu_automatic, (machine_region == MACHINE_REGION_AUTOMATIC));
+   TOGGLE_MENU_ITEM(system_region_menu_ntsc,      (machine_region == MACHINE_REGION_NTSC));
+   TOGGLE_MENU_ITEM(system_region_menu_pal,       (machine_region == MACHINE_REGION_PAL));
 
-   TOGGLE_MENU_ITEM(machine_speed_up_down_menu_50_percent,  COMPARE_TWO_REALS(timing_speed_multiplier, 0.5));
-   TOGGLE_MENU_ITEM(machine_speed_up_down_menu_100_percent, COMPARE_TWO_REALS(timing_speed_multiplier, 1.0));
-   TOGGLE_MENU_ITEM(machine_speed_up_down_menu_200_percent, COMPARE_TWO_REALS(timing_speed_multiplier, 2.0));
+   TOGGLE_MENU_ITEM(system_speed_up_down_menu_50_percent,  COMPARE_TWO_REALS(timing_speed_multiplier, 0.5));
+   TOGGLE_MENU_ITEM(system_speed_up_down_menu_100_percent, COMPARE_TWO_REALS(timing_speed_multiplier, 1.0));
+   TOGGLE_MENU_ITEM(system_speed_up_down_menu_200_percent, COMPARE_TWO_REALS(timing_speed_multiplier, 2.0));
 
-   TOGGLE_MENU_ITEM(machine_menu_speed_cap, speed_cap);
+   TOGGLE_MENU_ITEM(system_menu_speed_cap, speed_cap);
 
-   TOGGLE_MENU_ITEM(machine_frame_skip_menu_automatic, (frame_skip == -1));
-   TOGGLE_MENU_ITEM(machine_frame_skip_menu_disabled,  (frame_skip == 0));
-   TOGGLE_MENU_ITEM(machine_frame_skip_menu_1_frames,  (frame_skip == 1));
-   TOGGLE_MENU_ITEM(machine_frame_skip_menu_2_frames,  (frame_skip == 2));
-   TOGGLE_MENU_ITEM(machine_frame_skip_menu_3_frames,  (frame_skip == 3));
-   TOGGLE_MENU_ITEM(machine_frame_skip_menu_4_frames,  (frame_skip == 4));
-   TOGGLE_MENU_ITEM(machine_frame_skip_menu_5_frames,  (frame_skip == 5));
-   TOGGLE_MENU_ITEM(machine_frame_skip_menu_6_frames,  (frame_skip == 6));
-   TOGGLE_MENU_ITEM(machine_frame_skip_menu_7_frames,  (frame_skip == 7));
-   TOGGLE_MENU_ITEM(machine_frame_skip_menu_8_frames,  (frame_skip == 8));
-   TOGGLE_MENU_ITEM(machine_frame_skip_menu_9_frames,  (frame_skip == 9));
-   TOGGLE_MENU_ITEM(machine_frame_skip_menu_10_frames, (frame_skip == 10));
+   TOGGLE_MENU_ITEM(system_frame_skip_menu_automatic,     (frame_skip == -1));
+   TOGGLE_MENU_ITEM(system_frame_skip_menu_disabled,      (frame_skip == 0));
+   TOGGLE_MENU_ITEM(system_frame_skip_menu_skip_1_frames, (frame_skip == 1));
+   TOGGLE_MENU_ITEM(system_frame_skip_menu_skip_2_frames, (frame_skip == 2));
+   TOGGLE_MENU_ITEM(system_frame_skip_menu_skip_3_frames, (frame_skip == 3));
 
    TOGGLE_MENU_ITEM(audio_menu_enable_apu,    apu_options.enabled);
    TOGGLE_MENU_ITEM(audio_menu_enable_output, audio_options.enable_output);
@@ -196,18 +189,19 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(audio_output_menu_sampling_rate_44100_hz,  (audio_options.sample_rate_hint == 44100));
    TOGGLE_MENU_ITEM(audio_output_menu_sampling_rate_48000_hz,  (audio_options.sample_rate_hint == 48000));
 
-   TOGGLE_MENU_ITEM(audio_output_menu_mixing_mono,            !apu_options.stereo);
-   TOGGLE_MENU_ITEM(audio_output_menu_mixing_stereo,          (apu_options.stereo && !apu_options.swap_channels)); TOGGLE_MENU_ITEM(audio_output_menu_mixing_stereo_inverted, (apu_options.stereo && apu_options.swap_channels)); 
+   TOGGLE_MENU_ITEM(audio_output_menu_mixing_mono,           !apu_options.stereo);
+   TOGGLE_MENU_ITEM(audio_output_menu_mixing_stereo,         (apu_options.stereo && !apu_options.swap_channels));
+   TOGGLE_MENU_ITEM(audio_output_menu_mixing_reverse_stereo, (apu_options.stereo && apu_options.swap_channels)); 
 
-   TOGGLE_MENU_ITEM(audio_output_buffer_menu_automatic, (audio_options.buffer_length_ms_hint == -1));
-   TOGGLE_MENU_ITEM(audio_output_buffer_menu_30ms,      (audio_options.buffer_length_ms_hint == 30));
-   TOGGLE_MENU_ITEM(audio_output_buffer_menu_50ms,      (audio_options.buffer_length_ms_hint == 50));
-   TOGGLE_MENU_ITEM(audio_output_buffer_menu_75ms,      (audio_options.buffer_length_ms_hint == 75));
-   TOGGLE_MENU_ITEM(audio_output_buffer_menu_100ms,     (audio_options.buffer_length_ms_hint == 100));
-   TOGGLE_MENU_ITEM(audio_output_buffer_menu_125ms,     (audio_options.buffer_length_ms_hint == 125));
-   TOGGLE_MENU_ITEM(audio_output_buffer_menu_150ms,     (audio_options.buffer_length_ms_hint == 150));
-   TOGGLE_MENU_ITEM(audio_output_buffer_menu_175ms,     (audio_options.buffer_length_ms_hint == 175));
-   TOGGLE_MENU_ITEM(audio_output_buffer_menu_200ms,     (audio_options.buffer_length_ms_hint == 200));
+   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_automatic, (audio_options.buffer_length_ms_hint == -1));
+   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_30ms,      (audio_options.buffer_length_ms_hint == 30));
+   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_50ms,      (audio_options.buffer_length_ms_hint == 50));
+   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_75ms,      (audio_options.buffer_length_ms_hint == 75));
+   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_100ms,     (audio_options.buffer_length_ms_hint == 100));
+   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_125ms,     (audio_options.buffer_length_ms_hint == 125));
+   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_150ms,     (audio_options.buffer_length_ms_hint == 150));
+   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_175ms,     (audio_options.buffer_length_ms_hint == 175));
+   TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_200ms,     (audio_options.buffer_length_ms_hint == 200));
 
 #ifdef ALLEGRO_DOS
 
@@ -288,13 +282,13 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(video_color_depth_menu_true_color_24_bit, (video_get_color_depth () == 24));
    TOGGLE_MENU_ITEM(video_color_depth_menu_true_color_32_bit, (video_get_color_depth () == 32));
 
-   TOGGLE_MENU_ITEM(video_buffer_menu_match_resolution, ((video_buffer_width == -1)  && (video_buffer_height == -1)));
-   TOGGLE_MENU_ITEM(video_buffer_menu_256_240,          ((video_buffer_width == 256) && (video_buffer_height == 240)));
-   TOGGLE_MENU_ITEM(video_buffer_menu_320_240,          ((video_buffer_width == 320) && (video_buffer_height == 240)));
-   TOGGLE_MENU_ITEM(video_buffer_menu_512_480,          ((video_buffer_width == 512) && (video_buffer_height == 480)));
-   TOGGLE_MENU_ITEM(video_buffer_menu_640_480,          ((video_buffer_width == 640) && (video_buffer_height == 480)));
-   TOGGLE_MENU_ITEM(video_buffer_menu_256_256,          ((video_buffer_width == 256) && (video_buffer_height == 256)));
-   TOGGLE_MENU_ITEM(video_buffer_menu_512_512,          ((video_buffer_width == 512) && (video_buffer_height == 512)));
+   TOGGLE_MENU_ITEM(video_buffer_size_menu_match_resolution, ((video_buffer_width == -1)  && (video_buffer_height == -1)));
+   TOGGLE_MENU_ITEM(video_buffer_size_menu_256_240,          ((video_buffer_width == 256) && (video_buffer_height == 240)));
+   TOGGLE_MENU_ITEM(video_buffer_size_menu_320_240,          ((video_buffer_width == 320) && (video_buffer_height == 240)));
+   TOGGLE_MENU_ITEM(video_buffer_size_menu_512_480,          ((video_buffer_width == 512) && (video_buffer_height == 480)));
+   TOGGLE_MENU_ITEM(video_buffer_size_menu_640_480,          ((video_buffer_width == 640) && (video_buffer_height == 480)));
+   TOGGLE_MENU_ITEM(video_buffer_size_menu_256_256,          ((video_buffer_width == 256) && (video_buffer_height == 256)));
+   TOGGLE_MENU_ITEM(video_buffer_size_menu_512_512,          ((video_buffer_width == 512) && (video_buffer_height == 512)));
 
    TOGGLE_MENU_ITEM(video_blitter_menu_automatic,          (video_get_blitter () == VIDEO_BLITTER_AUTOMATIC));
    TOGGLE_MENU_ITEM(video_blitter_menu_normal,             (video_get_blitter () == VIDEO_BLITTER_NORMAL));
@@ -331,11 +325,11 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(video_palette_menu_ega_mode_2,     (video_get_palette_id () == DATA_INDEX(EGA_PALETTE_2)));
    TOGGLE_MENU_ITEM(video_palette_menu_custom,         (video_get_palette_id () == -1));
 
-   TOGGLE_MENU_ITEM(video_layers_menu_sprites_a,                 ppu_enable_sprite_layer_a);
-   TOGGLE_MENU_ITEM(video_layers_menu_sprites_b,                 ppu_enable_sprite_layer_b);
-   TOGGLE_MENU_ITEM(video_layers_menu_background,                ppu_enable_background_layer);
-   TOGGLE_MENU_ITEM(video_layers_menu_hide_horizontal_scrolling, (video_edge_clipping & VIDEO_EDGE_CLIPPING_HORIZONTAL));
-   TOGGLE_MENU_ITEM(video_layers_menu_hide_vertical_scrolling,   (video_edge_clipping & VIDEO_EDGE_CLIPPING_VERTICAL));
+   TOGGLE_MENU_ITEM(video_layers_menu_show_low_sprites,    ppu_enable_sprite_layer_a);
+   TOGGLE_MENU_ITEM(video_layers_menu_show_high_sprites,   ppu_enable_sprite_layer_b);
+   TOGGLE_MENU_ITEM(video_layers_menu_show_background,     ppu_enable_background_layer);
+   TOGGLE_MENU_ITEM(video_layers_menu_horizontal_overscan, (video_edge_clipping & VIDEO_EDGE_CLIPPING_HORIZONTAL));
+   TOGGLE_MENU_ITEM(video_layers_menu_vertical_overscan,   (video_edge_clipping & VIDEO_EDGE_CLIPPING_VERTICAL));
 
    TOGGLE_MENU_ITEM(input_menu_enable_zapper, input_enable_zapper);
 
@@ -387,6 +381,9 @@ void gui_save_config (void)
 int gui_init (void)
 {
    int index;
+
+   /* Set up default font. */
+   font = video_get_font(VIDEO_FONT_MEDIUM);
 
    /* Set up replacement objects. */
    gui_menu_draw_menu = sl_draw_menu;
@@ -716,7 +713,7 @@ void gui_handle_keypress (int c, int scancode)
       case KEY_F2:
       {
          /* Toggle status display. */
-         machine_menu_show_status ();
+         system_menu_show_status ();
 
          break;
       }
@@ -724,7 +721,7 @@ void gui_handle_keypress (int c, int scancode)
       case KEY_F3:
       {
          /* Quick save state. */
-         machine_save_state_menu_quick_save ();
+         system_save_state_menu_quick_save ();
 
          /* See if the save succeeded. */
          if (check_save_state (-1))
@@ -740,7 +737,7 @@ void gui_handle_keypress (int c, int scancode)
          /* Quick load state. */
 
          if (!(input_mode & INPUT_MODE_REPLAY))
-            machine_save_state_menu_quick_load ();
+            system_save_state_menu_quick_load ();
 
          break;
       }
@@ -748,7 +745,7 @@ void gui_handle_keypress (int c, int scancode)
       case KEY_F5:
       {
          /* Save state. */
-         machine_save_state_menu_save ();
+         system_save_state_menu_save ();
 
          break;
       }
@@ -758,7 +755,7 @@ void gui_handle_keypress (int c, int scancode)
          /* Load state. */
 
          if (!(input_mode & INPUT_MODE_REPLAY))
-            machine_save_state_menu_restore ();
+            system_save_state_menu_restore ();
 
          break;
       }
@@ -767,8 +764,8 @@ void gui_handle_keypress (int c, int scancode)
       {
          /* Toggle sprites. */
 
-         video_layers_menu_sprites_a ();
-         video_layers_menu_sprites_b ();
+         video_layers_menu_show_low_sprites ();
+         video_layers_menu_show_high_sprites ();
 
          break;
       }
@@ -776,7 +773,7 @@ void gui_handle_keypress (int c, int scancode)
       case KEY_F8:
       {
          /* Toggle background. */
-         video_layers_menu_background ();
+         video_layers_menu_show_background ();
 
          break;
       }
@@ -798,9 +795,9 @@ void gui_handle_keypress (int c, int scancode)
          if (!(input_mode & INPUT_MODE_REPLAY_PLAY))
          {
             if (input_mode & INPUT_MODE_REPLAY_RECORD)
-               main_replay_record_menu_stop ();
+               main_replay_menu_record_stop ();
             else
-               main_replay_record_menu_start ();
+               main_replay_menu_record_start ();
 
             break;
          }
@@ -851,7 +848,7 @@ void gui_handle_keypress (int c, int scancode)
 
 void gui_stop_replay (void)
 {
-   main_replay_play_menu_stop ();
+   main_replay_menu_play_stop ();
 }
 
 void gui_set_theme (const GUI_THEME *theme)
@@ -991,7 +988,7 @@ static INLINE int load_file (const UCHAR *filename)
       memcpy (&global_rom, &rom, sizeof (ROM));
 
       /* Update save state titles. */
-      machine_save_state_menu_select ();
+      system_save_state_menu_select ();
       /* Update replay titles. */
       main_replay_menu_select ();
 
@@ -1009,10 +1006,10 @@ static INLINE int load_file (const UCHAR *filename)
       ENABLE_MENU_ITEM(main_menu_cheat_manager);
       ENABLE_MENU_ITEM(main_menu_save_snapshot);
       ENABLE_MENU_ITEM(main_menu_advance_frame);
-      ENABLE_MENU_ITEM(machine_menu_reset);
-      ENABLE_MENU_ITEM(machine_menu_power_cycle);
-      ENABLE_SUBMENU(machine_save_state_menu);
-      ENABLE_SUBMENU(audio_record_menu);
+      ENABLE_SUBMENU(main_record_audio_menu);
+      ENABLE_MENU_ITEM(system_menu_reset);
+      ENABLE_MENU_ITEM(system_menu_power_cycle);
+      ENABLE_SUBMENU(system_save_state_menu);
       ENABLE_MENU_ITEM(video_layers_menu_flip_mirroring);
       ENABLE_MENU_ITEM(options_menu_reset_clock);
 
@@ -1109,8 +1106,6 @@ static int open_lobby (void)
    obj_ok      = &dialog[LOBBY_DIALOG_OK_BUTTON];
 
    /* Set up dialog objects. */
-
-   obj_frame->dp3 = DATA_TO_FONT(GUI_FONT_LARGE);
 
    obj_chat->bg = makecol (0, 0, 0);
    obj_chat->fg = makecol (240, 240, 240);
@@ -1409,7 +1404,7 @@ static int main_replay_menu_select (void)
    return (D_O_K);
 }
 
-static int main_replay_record_menu_start (void)
+static int main_replay_menu_record_start (void)
 {
    USTRING title;
 
@@ -1453,11 +1448,11 @@ static int main_replay_record_menu_start (void)
    DISABLE_MENU_ITEM(main_menu_open);
    DISABLE_SUBMENU(main_open_recent_menu);
    DISABLE_MENU_ITEM(main_menu_close);
-   DISABLE_MENU_ITEM(main_replay_record_menu_start);
-   ENABLE_MENU_ITEM(main_replay_record_menu_stop);
+   DISABLE_MENU_ITEM(main_replay_menu_record_start);
+   ENABLE_MENU_ITEM(main_replay_menu_record_stop);
+   DISABLE_MENU_ITEM(main_replay_menu_play_start);
    DISABLE_SUBMENU(main_replay_select_menu);
-   DISABLE_SUBMENU(main_replay_play_menu);
-   DISABLE_SUBMENU(machine_save_state_autosave_menu);
+   DISABLE_SUBMENU(system_save_state_autosave_menu);
    DISABLE_SUBMENU(netplay_menu);
 
    /* Enter replay recording mode. */
@@ -1472,7 +1467,7 @@ static int main_replay_record_menu_start (void)
    return (D_CLOSE);
 }
 
-static int main_replay_record_menu_stop (void)
+static int main_replay_menu_record_stop (void)
 {
    /* Close replay. */
    close_replay ();
@@ -1484,11 +1479,11 @@ static int main_replay_record_menu_stop (void)
    ENABLE_MENU_ITEM(main_menu_open);
    ENABLE_SUBMENU(main_open_recent_menu);
    ENABLE_MENU_ITEM(main_menu_close);
-   ENABLE_MENU_ITEM(main_replay_record_menu_start);
-   DISABLE_MENU_ITEM(main_replay_record_menu_stop);
+   ENABLE_MENU_ITEM(main_replay_menu_record_start);
+   DISABLE_MENU_ITEM(main_replay_menu_record_stop);
+   ENABLE_MENU_ITEM(main_replay_menu_play_start);
    ENABLE_SUBMENU(main_replay_select_menu);
-   ENABLE_SUBMENU(main_replay_play_menu);
-   ENABLE_SUBMENU(machine_save_state_autosave_menu);
+   ENABLE_SUBMENU(system_save_state_autosave_menu);
    ENABLE_SUBMENU(netplay_menu);
 
    message_local ("Replay recording session stopped.");
@@ -1496,7 +1491,7 @@ static int main_replay_record_menu_stop (void)
    return (D_O_K);
 }
 
-static int main_replay_play_menu_start (void)
+static int main_replay_menu_play_start (void)
 {
    if (!open_replay (replay_index, "r", NULL))
    {                       
@@ -1508,15 +1503,15 @@ static int main_replay_play_menu_start (void)
    DISABLE_MENU_ITEM(main_menu_open);
    DISABLE_SUBMENU(main_open_recent_menu);
    DISABLE_MENU_ITEM(main_menu_close);
-   DISABLE_MENU_ITEM(main_replay_play_menu_start);
-   ENABLE_MENU_ITEM(main_replay_play_menu_stop);
+   DISABLE_MENU_ITEM(main_replay_menu_play_start);
+   ENABLE_MENU_ITEM(main_replay_menu_play_stop);
+   DISABLE_MENU_ITEM(main_replay_menu_record_start);
    DISABLE_SUBMENU(main_replay_select_menu);
-   DISABLE_SUBMENU(main_replay_record_menu);
    DISABLE_MENU_ITEM(main_menu_cheat_manager);
-   DISABLE_MENU_ITEM(machine_menu_reset);
-   DISABLE_MENU_ITEM(machine_menu_power_cycle);
-   DISABLE_MENU_ITEM(machine_save_state_menu_quick_load);
-   DISABLE_MENU_ITEM(machine_save_state_menu_restore);
+   DISABLE_MENU_ITEM(system_menu_reset);
+   DISABLE_MENU_ITEM(system_menu_power_cycle);
+   DISABLE_MENU_ITEM(system_save_state_menu_quick_load);
+   DISABLE_MENU_ITEM(system_save_state_menu_restore);
    DISABLE_SUBMENU(netplay_menu);
 
    /* Enter replay playback mode. */
@@ -1529,7 +1524,7 @@ static int main_replay_play_menu_start (void)
    return (D_CLOSE);
 }
 
-static int main_replay_play_menu_stop (void)
+static int main_replay_menu_play_stop (void)
 {
    /* Close replay. */
    close_replay ();
@@ -1543,15 +1538,15 @@ static int main_replay_play_menu_stop (void)
    ENABLE_MENU_ITEM(main_menu_open);
    ENABLE_SUBMENU(main_open_recent_menu);
    ENABLE_MENU_ITEM(main_menu_close);
-   ENABLE_MENU_ITEM(main_replay_play_menu_start);
-   DISABLE_MENU_ITEM(main_replay_play_menu_stop);
+   ENABLE_MENU_ITEM(main_replay_menu_play_start);
+   DISABLE_MENU_ITEM(main_replay_menu_play_stop);
+   ENABLE_MENU_ITEM(main_replay_menu_record_start);
    ENABLE_SUBMENU(main_replay_select_menu);
-   ENABLE_SUBMENU(main_replay_record_menu);
    ENABLE_MENU_ITEM(main_menu_cheat_manager);
-   ENABLE_MENU_ITEM(machine_menu_reset);
-   ENABLE_MENU_ITEM(machine_menu_power_cycle);
-   ENABLE_MENU_ITEM(machine_save_state_menu_quick_load);
-   ENABLE_MENU_ITEM(machine_save_state_menu_restore);
+   ENABLE_MENU_ITEM(system_menu_reset);
+   ENABLE_MENU_ITEM(system_menu_power_cycle);
+   ENABLE_MENU_ITEM(system_save_state_menu_quick_load);
+   ENABLE_MENU_ITEM(system_save_state_menu_restore);
    ENABLE_SUBMENU(netplay_menu);
 
    if (gui_is_active)
@@ -1611,6 +1606,52 @@ static int main_menu_advance_frame (void)
    return (D_CLOSE);
 }
 
+static int main_record_audio_menu_start (void)
+{
+   int index;
+
+   for (index = 0; index < 999; index++)
+   {
+      USTRING filename;
+
+      uszprintf (filename, sizeof (filename), "%s_%03d.wav", get_filename
+         (global_rom.filename), index);
+
+      /* Merge it with our save path. */
+      get_save_path (filename, sizeof (filename));
+
+      if (exists (filename))
+         continue;
+
+      if (audio_open_wav (filename) == 0)
+      {
+         DISABLE_MENU_ITEM(main_record_audio_menu_start);
+         ENABLE_MENU_ITEM(main_record_audio_menu_stop);
+      }
+   
+      message_local ("Audio WAV recording started to %s.", filename);
+
+      return (D_O_K);
+   }
+   
+   gui_message (GUI_ERROR_COLOR, "Couldn't find a suitable sound "
+      "filename.");
+
+   return (D_O_K);
+}
+
+static int main_record_audio_menu_stop (void)
+{
+   audio_close_wav ();
+
+   ENABLE_MENU_ITEM(main_record_audio_menu_start);
+   DISABLE_MENU_ITEM(main_record_audio_menu_stop);
+
+   message_local ("Audio WAV recording stopped.");
+
+   return (D_O_K);
+}
+
 static int main_menu_save_configuration (void)
 {
    save_config ();
@@ -1648,7 +1689,7 @@ static int main_menu_exit (void)
 }
 
 #define SAVE_STATE_SELECT_MENU_HANDLER(index)   \
-   static int machine_save_state_select_menu_##index (void)   \
+   static int system_save_state_select_menu_##index (void)   \
    {  \
       save_state_index = index;  \
       update_menus ();  \
@@ -1669,7 +1710,7 @@ SAVE_STATE_SELECT_MENU_HANDLER(9);
 
 #undef SAVE_STATE_MENU_HANDLER
 
-static int machine_save_state_menu_quick_save (void)
+static int system_save_state_menu_quick_save (void)
 {
    if (!save_state (-1, "QUICKSAVE"))
    {
@@ -1681,7 +1722,7 @@ static int machine_save_state_menu_quick_save (void)
    return (D_CLOSE);
 }
 
-static int machine_save_state_menu_quick_load (void)
+static int system_save_state_menu_quick_load (void)
 {
    if (!load_state (-1))
    {
@@ -1693,7 +1734,7 @@ static int machine_save_state_menu_quick_load (void)
    return (D_CLOSE);
 }
 
-static int machine_save_state_menu_save (void)
+static int system_save_state_menu_save (void)
 {
    USTRING title;
    USTRING filename;
@@ -1711,15 +1752,15 @@ static int machine_save_state_menu_save (void)
 
       /* Allow user to customize title before save. */
 
-      dialog = machine_save_state_save_dialog;
+      dialog = system_save_state_save_dialog;
 
-      objtitle = &dialog[MACHINE_SAVE_STATE_SAVE_DIALOG_TITLE];
+      objtitle = &dialog[SYSTEM_SAVE_STATE_SAVE_DIALOG_TITLE];
 
       objtitle->d1 = NEW_SAVE_TITLE_SIZE;
       objtitle->dp = title;
 
       if (show_dialog (dialog, -1) !=
-         MACHINE_SAVE_STATE_SAVE_DIALOG_OK_BUTTON)
+         SYSTEM_SAVE_STATE_SAVE_DIALOG_OK_BUTTON)
       {
          /* Cancelled. */
          return (D_O_K);
@@ -1737,12 +1778,12 @@ static int machine_save_state_menu_save (void)
    message_local ("Machine state saved to slot %d.", save_state_index);
 
    /* Update save state titles. */
-   machine_save_state_menu_select ();
+   system_save_state_menu_select ();
 
    return (D_CLOSE);
 }
 
-static int machine_save_state_menu_restore (void)
+static int system_save_state_menu_restore (void)
 {
    if (!load_state (save_state_index))
    {
@@ -1756,7 +1797,7 @@ static int machine_save_state_menu_restore (void)
    return (D_CLOSE);
 }
 
-static int machine_save_state_menu_select (void)
+static int system_save_state_menu_select (void)
 {
    int index;
 
@@ -1775,41 +1816,41 @@ static int machine_save_state_menu_select (void)
       uszprintf (text, USTRING_SIZE, "&%d: %s", index, title);
 
       /* Update menu. */
-      machine_save_state_select_menu[index].text = text;
+      system_save_state_select_menu[index].text = text;
    }
 
    return (D_O_K);
 }
 
-static int machine_save_state_autosave_menu_disabled (void)
+static int system_save_state_autosave_menu_disabled (void)
 {
    set_autosave (0);
 
    return (D_O_K);
 }
 
-static int machine_save_state_autosave_menu_10_seconds (void)
+static int system_save_state_autosave_menu_10_seconds (void)
 {
    set_autosave (10);
 
    return (D_O_K);
 }
 
-static int machine_save_state_autosave_menu_30_seconds (void)
+static int system_save_state_autosave_menu_30_seconds (void)
 {
    set_autosave (30);
 
    return (D_O_K);
 }
 
-static int machine_save_state_autosave_menu_60_seconds (void)
+static int system_save_state_autosave_menu_60_seconds (void)
 {
    set_autosave (60);
 
    return (D_O_K);
 }
 
-static int machine_save_state_autosave_menu_custom (void)
+static int system_save_state_autosave_menu_custom (void)
 {
    int seconds;
 
@@ -1821,7 +1862,7 @@ static int machine_save_state_autosave_menu_custom (void)
    return (D_O_K);
 }
 
-static int machine_region_menu_automatic (void)
+static int system_region_menu_automatic (void)
 {
    machine_region = MACHINE_REGION_AUTOMATIC;
    timing_update_machine_type ();
@@ -1832,7 +1873,7 @@ static int machine_region_menu_automatic (void)
    return (D_O_K);
 }
 
-static int machine_region_menu_ntsc (void)
+static int system_region_menu_ntsc (void)
 {
    machine_region = MACHINE_REGION_NTSC;
    timing_update_machine_type ();
@@ -1843,7 +1884,7 @@ static int machine_region_menu_ntsc (void)
    return (D_O_K);
 }
 
-static int machine_region_menu_pal (void)
+static int system_region_menu_pal (void)
 {
    machine_region = MACHINE_REGION_PAL;
    timing_update_machine_type ();
@@ -1854,7 +1895,7 @@ static int machine_region_menu_pal (void)
    return (D_O_K);
 }
 
-static int machine_speed_up_down_menu_50_percent (void)
+static int system_speed_up_down_menu_50_percent (void)
 {
    timing_speed_multiplier = 0.5;
    timing_update_timing ();
@@ -1866,7 +1907,7 @@ static int machine_speed_up_down_menu_50_percent (void)
    return (D_O_K);
 }
 
-static int machine_speed_up_down_menu_100_percent (void)
+static int system_speed_up_down_menu_100_percent (void)
 {
    timing_speed_multiplier = 1.0;
    timing_update_timing ();
@@ -1878,7 +1919,7 @@ static int machine_speed_up_down_menu_100_percent (void)
    return (D_O_K);
 }
 
-static int machine_speed_up_down_menu_200_percent (void)
+static int system_speed_up_down_menu_200_percent (void)
 {
    timing_speed_multiplier = 2.0;
    timing_update_timing ();
@@ -1890,7 +1931,7 @@ static int machine_speed_up_down_menu_200_percent (void)
    return (D_O_K);
 }
 
-static int machine_speed_up_down_menu_custom (void)
+static int system_speed_up_down_menu_custom (void)
 {
    REAL value;
 
@@ -1909,7 +1950,7 @@ static int machine_speed_up_down_menu_custom (void)
    return (D_O_K);
 }
 
-static int machine_frame_skip_menu_automatic (void)
+static int system_frame_skip_menu_automatic (void)
 {
    frame_skip = -1;
    update_menus ();
@@ -1919,7 +1960,7 @@ static int machine_frame_skip_menu_automatic (void)
    return (D_O_K);
 }
 
-static int machine_frame_skip_menu_disabled (void)
+static int system_frame_skip_menu_disabled (void)
 {
    frame_skip = 0;
    update_menus ();
@@ -1930,7 +1971,7 @@ static int machine_frame_skip_menu_disabled (void)
 }
 
 #define FRAME_SKIP_MENU_HANDLER(frames)   \
-   static int machine_frame_skip_menu_##frames##_frames (void) \
+   static int system_frame_skip_menu_skip_##frames##_frames (void) \
    {  \
       frame_skip = frames; \
       update_menus ();  \
@@ -1941,17 +1982,10 @@ static int machine_frame_skip_menu_disabled (void)
 FRAME_SKIP_MENU_HANDLER(1)
 FRAME_SKIP_MENU_HANDLER(2)
 FRAME_SKIP_MENU_HANDLER(3)
-FRAME_SKIP_MENU_HANDLER(4)
-FRAME_SKIP_MENU_HANDLER(5)
-FRAME_SKIP_MENU_HANDLER(6)
-FRAME_SKIP_MENU_HANDLER(7)
-FRAME_SKIP_MENU_HANDLER(8)
-FRAME_SKIP_MENU_HANDLER(9)
-FRAME_SKIP_MENU_HANDLER(10)
 
 #undef FRAME_SKIP_MENU_HANDLER
 
-static int machine_frame_skip_menu_custom (void)
+static int system_frame_skip_menu_custom (void)
 {
    int frames;
 
@@ -1968,7 +2002,7 @@ static int machine_frame_skip_menu_custom (void)
    return (D_O_K);
 }
 
-static int machine_menu_show_status (void)
+static int system_menu_show_status (void)
 {
    video_display_status = (! video_display_status);
    update_menus ();
@@ -1976,7 +2010,7 @@ static int machine_menu_show_status (void)
    return (D_O_K);
 }
 
-static int machine_menu_reset (void)
+static int system_menu_reset (void)
 {
    /* Confirm reset. */
 
@@ -1996,7 +2030,7 @@ static int machine_menu_reset (void)
    }
 }
 
-static int machine_menu_power_cycle (void)
+static int system_menu_power_cycle (void)
 {
    /* Confirm power cycle. */
 
@@ -2017,7 +2051,7 @@ static int machine_menu_power_cycle (void)
    }
 }
 
-static int machine_menu_timing_smoothest (void)
+static int system_menu_timing_smoothest (void)
 {
    machine_timing = MACHINE_TIMING_SMOOTH;
    timing_update_timing ();
@@ -2028,7 +2062,7 @@ static int machine_menu_timing_smoothest (void)
    return (D_O_K);
 }
 
-static int machine_menu_timing_most_accurate (void)
+static int system_menu_timing_most_accurate (void)
 {
    machine_timing = MACHINE_TIMING_ACCURATE;
    timing_update_timing ();
@@ -2039,7 +2073,7 @@ static int machine_menu_timing_most_accurate (void)
    return (D_O_K);
 }
 
-static int machine_menu_speed_cap (void)
+static int system_menu_speed_cap (void)
 {
    speed_cap = !speed_cap;
    update_menus ();
@@ -2302,7 +2336,7 @@ static int audio_output_menu_mixing_stereo (void)
    return (D_O_K);
 }
 
-static int audio_output_menu_mixing_stereo_inverted (void)
+static int audio_output_menu_mixing_reverse_stereo (void)
 {
    apu_options.stereo = TRUE;
    apu_options.swap_channels = TRUE;
@@ -2315,8 +2349,8 @@ static int audio_output_menu_mixing_stereo_inverted (void)
    return (D_O_K);
 }
 
-#define AUDIO_OUTPUT_BUFFER_MENU_HANDLER(length_ms) \
-   static int audio_output_buffer_menu_##length_ms##ms (void) \
+#define AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(length_ms) \
+   static int audio_output_buffer_size_menu_##length_ms##ms (void) \
    { \
       audio_options.buffer_length_ms_hint = length_ms; \
       cycle_audio (); \
@@ -2325,18 +2359,18 @@ static int audio_output_menu_mixing_stereo_inverted (void)
       return (D_O_K); \
    }
                         
-AUDIO_OUTPUT_BUFFER_MENU_HANDLER(30)
-AUDIO_OUTPUT_BUFFER_MENU_HANDLER(50)
-AUDIO_OUTPUT_BUFFER_MENU_HANDLER(75)
-AUDIO_OUTPUT_BUFFER_MENU_HANDLER(100)
-AUDIO_OUTPUT_BUFFER_MENU_HANDLER(125)
-AUDIO_OUTPUT_BUFFER_MENU_HANDLER(150)
-AUDIO_OUTPUT_BUFFER_MENU_HANDLER(175)
-AUDIO_OUTPUT_BUFFER_MENU_HANDLER(200)
+AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(30)
+AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(50)
+AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(75)
+AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(100)
+AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(125)
+AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(150)
+AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(175)
+AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER(200)
 
-#undef AUDIO_OUTPUT_BUFFER_MENU_HANDLER
+#undef AUDIO_OUTPUT_BUFFER_SIZE_MENU_HANDLER
 
-static int audio_output_buffer_menu_automatic (void)
+static int audio_output_buffer_size_menu_automatic (void)
 {
    audio_options.buffer_length_ms_hint = -1;
 
@@ -2348,7 +2382,7 @@ static int audio_output_buffer_menu_automatic (void)
    return (D_O_K);
 }
 
-static int audio_output_buffer_menu_custom (void) 
+static int audio_output_buffer_size_menu_custom (void) 
 {
    int ms = audio_options.buffer_length_ms_hint;
    if (get_integer_input ("Custom", &ms, "ms"))
@@ -2442,52 +2476,6 @@ static int audio_menu_volume_logarithmic (void)
 
    message_local ("Audio logarithmic volume mapping %s.",
       get_enabled_text (apu_options.logarithmic)); 
-
-   return (D_O_K);
-}
-
-static int audio_record_menu_start (void)
-{
-   int index;
-
-   for (index = 0; index < 999; index++)
-   {
-      USTRING filename;
-
-      uszprintf (filename, sizeof (filename), "%s_%03d.wav", get_filename
-         (global_rom.filename), index);
-
-      /* Merge it with our save path. */
-      get_save_path (filename, sizeof (filename));
-
-      if (exists (filename))
-         continue;
-
-      if (audio_open_wav (filename) == 0)
-      {
-         DISABLE_MENU_ITEM(audio_record_menu_start);
-         ENABLE_MENU_ITEM(audio_record_menu_stop);
-      }
-   
-      message_local ("Audio WAV recording started to %s.", filename);
-
-      return (D_O_K);
-   }
-   
-   gui_message (GUI_ERROR_COLOR, "Couldn't find a suitable image "
-      "filename.");
-
-   return (D_O_K);
-}
-
-static int audio_record_menu_stop (void)
-{
-   audio_close_wav ();
-
-   ENABLE_MENU_ITEM(audio_record_menu_start);
-   DISABLE_MENU_ITEM(audio_record_menu_stop);
-
-   message_local ("Audio WAV recording stopped.");
 
    return (D_O_K);
 }
@@ -2767,7 +2755,7 @@ static int video_color_depth_menu_true_color_32_bit (void)
    return (D_CLOSE);
 }
 
-static int video_buffer_menu_match_resolution (void)
+static int video_buffer_size_menu_match_resolution (void)
 {
    video_buffer_width  =
    video_buffer_height = -1;
@@ -2779,8 +2767,8 @@ static int video_buffer_menu_match_resolution (void)
    return (D_O_K);
 }
 
-#define BUFFER_MENU_HANDLER(width, height)  \
-   static int video_buffer_menu_##width##_##height (void)   \
+#define VIDEO_BUFFER_SIZE_MENU_HANDLER(width, height)  \
+   static int video_buffer_size_menu_##width##_##height (void)   \
    {  \
       video_buffer_width = width;   \
       video_buffer_height = height; \
@@ -2790,16 +2778,16 @@ static int video_buffer_menu_match_resolution (void)
       return (D_O_K);   \
    }
 
-BUFFER_MENU_HANDLER(256, 240)
-BUFFER_MENU_HANDLER(320, 240)
-BUFFER_MENU_HANDLER(512, 480)
-BUFFER_MENU_HANDLER(640, 480)
-BUFFER_MENU_HANDLER(256, 256)
-BUFFER_MENU_HANDLER(512, 512)
+VIDEO_BUFFER_SIZE_MENU_HANDLER(256, 240)
+VIDEO_BUFFER_SIZE_MENU_HANDLER(320, 240)
+VIDEO_BUFFER_SIZE_MENU_HANDLER(512, 480)
+VIDEO_BUFFER_SIZE_MENU_HANDLER(640, 480)
+VIDEO_BUFFER_SIZE_MENU_HANDLER(256, 256)
+VIDEO_BUFFER_SIZE_MENU_HANDLER(512, 512)
 
-#undef BUFFER_MENU_HANDLER
+#undef VIDEO_BUFFER_SIZE_MENU_HANDLER
 
-static int video_buffer_menu_custom (void)
+static int video_buffer_size_menu_custom (void)
 {
    int width, height;
 
@@ -3081,7 +3069,7 @@ static int video_filters_menu_scanlines_100_percent (void)
    return (D_O_K);
 }
 
-static int video_layers_menu_sprites_a (void)
+static int video_layers_menu_show_low_sprites (void)
 {
    ppu_enable_sprite_layer_a = !ppu_enable_sprite_layer_a;
    update_menus ();
@@ -3092,7 +3080,7 @@ static int video_layers_menu_sprites_a (void)
    return (D_O_K);
 }
 
-static int video_layers_menu_sprites_b (void)
+static int video_layers_menu_show_high_sprites (void)
 {
    ppu_enable_sprite_layer_b = !ppu_enable_sprite_layer_b;
    update_menus ();
@@ -3104,7 +3092,7 @@ static int video_layers_menu_sprites_b (void)
 }
 
 
-static int video_layers_menu_background (void)
+static int video_layers_menu_show_background (void)
 {
    ppu_enable_background_layer = !ppu_enable_background_layer;
    update_menus ();
@@ -3115,7 +3103,7 @@ static int video_layers_menu_background (void)
    return (D_O_K);
 }
 
-static int video_layers_menu_hide_horizontal_scrolling (void)
+static int video_layers_menu_horizontal_overscan (void)
 {
    LIST clipping = video_edge_clipping;
 
@@ -3134,7 +3122,7 @@ static int video_layers_menu_hide_horizontal_scrolling (void)
    return (D_O_K);
 }
 
-static int video_layers_menu_hide_vertical_scrolling (void)
+static int video_layers_menu_vertical_overscan (void)
 {
    LIST clipping = video_edge_clipping;
 

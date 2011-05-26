@@ -41,6 +41,13 @@ enum
 #define VIDEO_FILTER_SCANLINES_MEDIUM   2
 #define VIDEO_FILTER_SCANLINES_HIGH     4
 
+enum {
+   VIDEO_FONT_SMALL = 0,
+   VIDEO_FONT_MEDIUM,
+   VIDEO_FONT_LARGE,
+   VIDEO_FONT_LEGACY,
+};
+
 extern int video_buffer_width;
 extern int video_buffer_height;
 
@@ -54,8 +61,6 @@ extern int video_driver;
    
 extern BITMAP *base_video_buffer;
 extern BITMAP *video_buffer;
-
-extern FONT *small_font;
 
 extern LIST video_edge_clipping;
 
@@ -89,6 +94,7 @@ extern int video_get_color_depth (void);
 extern void video_set_color_depth (int);
 extern void video_set_driver (int);
 extern BOOL video_is_opengl_mode (void);
+extern FONT* video_get_font(ENUM);
 extern void video_show_bitmap (BITMAP *, ENUM, BOOL);
 
 extern void video_message (const UCHAR *, ...);

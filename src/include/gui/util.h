@@ -52,10 +52,10 @@ static INLINE void draw_message (int color)
 
    bmp = gui_get_screen ();
 
-   x1 = 16;
-   y1 = (((bmp->h - 16) - text_height (font)) - 8);
-   x2 = (bmp->w - 16);
-   y2 = (bmp->h - 16);
+   x1 = 8;
+   y1 = (((bmp->h - 8) - text_height (font)) - 8);
+   x2 = (bmp->w - 8);
+   y2 = (bmp->h - 8);
 
    vline (bmp, (x2 + 1), (y1 + 1), (y2 + 1), GUI_SHADOW_COLOR);
    hline (bmp, (x1 + 1), (y2 + 1), (x2 + 1), GUI_SHADOW_COLOR);
@@ -64,9 +64,9 @@ static INLINE void draw_message (int color)
    rect (bmp, x1, y1, x2, y2, GUI_BORDER_COLOR);
 
    textout_centre_ex (bmp, font, message_buffer, (bmp->w / 2), ((bmp->h
-      - 19) - text_height (font)), 0, -1);
+      - 11) - text_height (font)), 0, -1);
    textout_centre_ex (bmp, font, message_buffer, ((bmp->w / 2) - 1),
-      (((bmp->h - 19) - text_height (font)) - 1), color, -1);
+      (((bmp->h - 11) - text_height (font)) - 1), color, -1);
 
    refresh ();
 }

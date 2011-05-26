@@ -89,6 +89,9 @@ static std::vector<uint8> nsfProgram;
 // The current song #, this should only be set by play().
 static int nsfCurrentSong = 0;
 
+// Legacy 5x6 font.
+static FONT* small_font = NULL;
+
 // Function prototypes(defined at bottom).
 static void bankswitch(int bank, int page);
 static void play(int song);
@@ -298,6 +301,9 @@ void nsf_main(void)
 {
    /* To keep everything in sync, we have to clock the playback timer via the scanline timer, which is in turn clocked by
       the frame master timer. */
+
+   // Load legacy font.
+   small_font = video_get_font(VIDEO_FONT_LEGACY);
 
    // Switch to direct timing mode so that speed modifiers and the like do not skew the NSF timing.
    const ENUM saved_timing_mode = timing_mode;

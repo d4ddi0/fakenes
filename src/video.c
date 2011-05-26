@@ -67,21 +67,34 @@ BOOL video_enable_vsync = FALSE;
 BOOL video_force_fullscreen = FALSE;
 int video_cached_color_depth = 0;   /* Read only. */
 
-#ifdef ALLEGRO_DOS
-/* We use autodetect under DOS because I think the safe driver defaults to like 320x200 or something which is too small
-   for the new GUI even with the smallest font. */
-int video_driver = GFX_AUTODETECT;
-#else
-/* Under Windowed operating systems, resolutions above or equal to 640x480 are always present and therefor we can go ahead
-   and use the safe driver for better compatibility without hampering the GUI at the same time. */
 int video_driver = GFX_SAFE;
-#endif
 
 BITMAP *base_video_buffer = NULL;
 BITMAP *video_buffer = NULL;
 static BITMAP *mouse_sprite_remove_buffer = NULL;
 
-FONT *small_font = NULL;
+enum {
+   // Fonts for low resolutions 
+   FONT_SMALL_LOW = 0,
+   FONT_MEDIUM_LOW,
+   FONT_LARGE_LOW,
+
+   // Fonts for high resolutions
+   FONT_SMALL_HIGH,
+   FONT_MEDIUM_HIGH,
+   FONT_LARGE_HIGH,
+
+   // Custom font
+   FONT_CUSTOM,
+
+   // Legacy font, used for the NSF player and other trinkets
+   FONT_LEGACY,
+
+   FONT_COUNT,
+};
+
+static FONT *fonts[FONT_COUNT];
+static BOOL fonts_loaded = FALSE;
 
 static int screen_width  = 640;
 static int screen_height = 480;
@@ -401,15 +414,24 @@ int video_init (void)
 
    /* Set up fonts. */
 
-   small_font = DATA_TO_FONT(GUI_FONT_SMALL);
+   fonts[FONT_SMALL_LOW]   = DATA_TO_FONT(GUI_FONT_SMALL_LOW);
+   fonts[FONT_SMALL_HIGH]  = DATA_TO_FONT(GUI_FONT_SMALL_HIGH);
+   fonts[FONT_MEDIUM_LOW]  = DATA_TO_FONT(GUI_FONT_MEDIUM_LOW);
+   fonts[FONT_MEDIUM_HIGH] = DATA_TO_FONT(GUI_FONT_MEDIUM_HIGH);
+   fonts[FONT_LARGE_LOW]   = DATA_TO_FONT(GUI_FONT_LARGE_LOW);
+   fonts[FONT_LARGE_HIGH]  = DATA_TO_FONT(GUI_FONT_LARGE_HIGH);
+
+   fonts[FONT_CUSTOM] = NULL;
+
+   fonts[FONT_LEGACY] = DATA_TO_FONT(GUI_FONT_SMALL_HIGH);
 
    font_file = get_config_string ("gui", "font", "");
 
    if ((strlen (font_file) > 1) && (exists (font_file)))
    {
-      font = load_font (font_file, NULL, NULL);
+      fonts[FONT_CUSTOM] = load_font (font_file, NULL, NULL);
 
-      if (font)
+      if (fonts[FONT_CUSTOM])
       {
          using_custom_font = TRUE;
       }
@@ -417,26 +439,12 @@ int video_init (void)
       {
          WARN("Font load failed");
 
-         if((SCREEN_W < 512) || (SCREEN_H < 448))
-            font = small_font;
-         else
-            font = DATA_TO_FONT(GUI_FONT_MEDIUM);
-
          using_custom_font = FALSE;
       }
    }
-   else
-   {
-      /* Reset just in case. */
-
-      if((SCREEN_W < 512) || (SCREEN_H < 448))
-         font = small_font;
-      else
-         font = DATA_TO_FONT (GUI_FONT_MEDIUM);
-
-      using_custom_font = FALSE;
-   }
       
+   fonts_loaded = TRUE;
+
    if (is_windowed_mode ())
    {
       set_display_switch_mode (SWITCH_BACKGROUND);
@@ -538,7 +546,8 @@ void video_exit (void)
    if (using_custom_font)
    {
       /* Destroy font. */
-      destroy_font (font);
+      destroy_font (fonts[FONT_CUSTOM]);
+      fonts[FONT_CUSTOM] = NULL;
       using_custom_font = FALSE;
    }
 
@@ -747,6 +756,7 @@ void video_blit (BITMAP *bitmap)
    if (video_edge_clipping)
    {
       int w, h, c;
+      int xc, yc;
 
       /* Calculate sizes. */
       w = (video_buffer->w - 1);
@@ -754,22 +764,26 @@ void video_blit (BITMAP *bitmap)
 
       c = ppu_get_background_color ();
 
+      /* Calculate amount. */
+      xc = video_buffer->w * 0.05;
+      yc = video_buffer->h * 0.05;
+
       if (video_edge_clipping & VIDEO_EDGE_CLIPPING_HORIZONTAL)
       {
          /* Left edge. */
-         rectfill (video_buffer, 0, 0, 8, h, c);
+         rectfill (video_buffer, 0, 0, xc, h, c);
    
          /* Right edge. */
-         rectfill (video_buffer, (w - 8), 0, w, h, c);
+         rectfill (video_buffer, (w - xc), 0, w, h, c);
       }
 
       if (video_edge_clipping & VIDEO_EDGE_CLIPPING_VERTICAL)
       {
          /* Top edge. */
-         rectfill (video_buffer, 0, 0, w, 8, c);
+         rectfill (video_buffer, 0, 0, w, yc, c);
                                           
          /* Bottom edge. */
-         rectfill (video_buffer, 0, (h - 8), w, h, c);
+         rectfill (video_buffer, 0, (h - yc), w, h, c);
       }
    }
 
@@ -801,7 +815,7 @@ void video_blit (BITMAP *bitmap)
    video_filter ();
 
    if (video_display_status && !gui_is_active)
-      display_status (status_buffer, small_font, VIDEO_COLOR_WHITE);
+      display_status (status_buffer, video_get_font(VIDEO_FONT_SMALL), VIDEO_COLOR_WHITE);
 
    if (((video_message_duration > 0) ||
         (input_mode & INPUT_MODE_CHAT)) && !gui_is_active)
@@ -1765,6 +1779,35 @@ void video_filter (void)
     }
 }
 
+
+FONT* video_get_font(ENUM font_name) {
+   if(!fonts_loaded)
+      return font;
+
+   if(using_custom_font)
+      return fonts[FONT_CUSTOM];
+
+   BOOL low = FALSE;
+   if((SCREEN_W < 512) || (SCREEN_H < 448))
+      low = TRUE;
+
+   switch(font_name) {
+      case VIDEO_FONT_SMALL:
+         return low ? fonts[FONT_SMALL_LOW] : fonts[FONT_SMALL_HIGH];
+
+      case VIDEO_FONT_MEDIUM:
+         return low ? fonts[FONT_MEDIUM_LOW] : fonts[FONT_MEDIUM_HIGH];
+
+      case VIDEO_FONT_LARGE:
+         return low ? fonts[FONT_LARGE_LOW] : fonts[FONT_LARGE_HIGH];
+
+      case VIDEO_FONT_LEGACY:
+         return fonts[FONT_LEGACY];
+
+      default:
+         WARN_GENERIC();
+   }
+}
 
 void video_message (const UCHAR *message, ...)
 {
