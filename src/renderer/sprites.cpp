@@ -102,8 +102,7 @@ void SpriteLogic(RenderSpriteContext& sprite) {
 
     if(sprite.counter > 0) {
        sprite.counter--;
-       if(sprite.counter > 0)
-          return;
+       return;
    }
 
     if(sprite.latch & Attribute_HFlip) {
@@ -162,8 +161,7 @@ void SpritePixel() {
           When it becomes zero, it has reached the current raster position. */
        if(sprite.counter > 0) {
           sprite.counter--;
-          if(sprite.counter > 0)
-             continue;
+          continue;
       }
 
        uint8 pixel = 0;
@@ -360,7 +358,11 @@ void SpriteClock() {
 
                /* 1a. If Y-coordinate is in range,
                       copy remaining bytes of sprite data (OAM[n][1] thru OAM[n][3]) into secondary OAM. */
-               if((line >= e.data) && (line <= (e.data + ppu__sprite_height)))
+
+               /* Note that adding ppu__sprite_height == 8 to a Y position of 0 would result in 8,
+                  which is wrong. The proper result would be 7, which requires a subtraction by one.
+                  We can avoid it by using a < rather than <= comparison. */
+               if((line >= e.data) && (line < (e.data + ppu__sprite_height)))
                   CONTINUE_1
                else
                   JUMP_2
@@ -436,7 +438,7 @@ void SpriteClock() {
                      evaluate OAM[n][m] as a Y-coordinate.  */
                const uint8 data = SPRITE_DATA(PRIMARY_OAM, e.n, e.m);
 
-               if((line >= data) && (line <= (data + ppu__sprite_height))) {
+               if((line >= data) && (line < (data + ppu__sprite_height))) {
                   /* 3a. If the value is in range,
                      set the sprite overflow flag in $2002 and ... (CONTINUED)  */
                   ppu__sprite_overflow = TRUE;
