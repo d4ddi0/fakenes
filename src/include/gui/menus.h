@@ -584,6 +584,7 @@ static const MENU video_driver_unix_menu_base[] =
 #endif   /* !ALLEGRO_UNIX */
 
 DEFINE_MENU_CALLBACK(video_driver_menu_automatic);
+DEFINE_MENU_CALLBACK(video_driver_menu_safe);
 
 #ifdef USE_ALLEGROGL
 
@@ -596,6 +597,7 @@ DEFINE_MENU_CALLBACK(video_driver_menu_opengl_win);
 static const MENU video_driver_menu_base[] =
 {
    { "&Automatic",   video_driver_menu_automatic,   NULL,                                   0, NULL },
+   { "&Safe",        video_driver_menu_safe,        NULL,                                   0, NULL },
    MENU_SPLITTER,
 
 #ifdef USE_ALLEGROGL

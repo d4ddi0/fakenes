@@ -2607,6 +2607,7 @@ static int video_menu_color (void)
    }
 
 DRIVER_MENU_HANDLER(automatic, GFX_AUTODETECT)
+DRIVER_MENU_HANDLER(safe,      GFX_SAFE)
 
 #ifdef ALLEGRO_DOS
 
