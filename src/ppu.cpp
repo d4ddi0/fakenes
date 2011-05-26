@@ -1132,29 +1132,6 @@ static void ppu_repredict_nmi(void)
    predict_nmi_slave(ppu_cycles_remaining);
 }
 
-#if 0
-            // TODO: Find out what is wrong with Zapper hitscan code and fix it (crashes)
-            if(input_enable_zapper)
-               input_update_zapper_offsets();
-
-            // We always need to perform rendering when performing the light gun hit-test
-            bool hitscan = false;
-            if(input_enable_zapper && input_zapper_on_screen &&
-               (input_zapper_y_offset == ppu_scanline) &&
-               (input_zapper_x_offset == Renderer::render.pixel)) {
-               hitscan = true;
-               ppu__force_rendering = TRUE;
-            }
-
-            Renderer_Pixel();
-
-            if(hitscan)
-               input_update_zapper();
-
-            if(ppu__force_rendering)
-               ppu__force_rendering = FALSE;
-#endif
-
 static void start_frame() {
    if(PPU_ENABLED)
       vram_address = address_temp;
@@ -1166,6 +1143,10 @@ static void start_frame() {
    ppu__sprite_collision = FALSE;
 
    Renderer_Frame();
+
+   // Grabbing the light gun position once per frame should be enough
+   if(input_enable_zapper)
+      input_update_zapper_offsets();
 }
 
 static void start_scanline() 
@@ -1176,7 +1157,21 @@ static void start_scanline()
       // clear sprite #0 overflow flag
       ppu__sprite_overflow = FALSE;
 
+      /* This needs to be called before the sprite #0 and light gun code below it,
+         otherwise the neccessary information might not be available yet. */
       Renderer_Line(ppu_scanline);
+
+      /* We need to force rendering when sprite #0 is present on the line.
+         This is kind of ugly, but it works. */
+      if(Renderer::render.sprites[0].index == 0)
+         ppu__force_rendering = TRUE;
+
+      /* Light gun hitscan detection works similarly. We could perform this check down to 
+         the exact pixel position of the light gun hitscan, but that just adds more
+         unneccessary overhead, so we'll just check it per-scanline. */
+       if(input_enable_zapper && input_zapper_on_screen &&
+          (input_zapper_y_offset == ppu_scanline))
+          ppu__force_rendering = TRUE;
    }
    else if(ppu_scanline == PPU_IDLE_LINE) {
       // clear sprite #0 overflow flag from the last line
@@ -1201,24 +1196,14 @@ static void start_scanline()
    (excepting what is handled by start_scanline(), of course). */
 static void start_scanline_cycle(const cpu_time_t cycle) {
 
-   /* Generate a clcok for the renderer. This handle sthings like background and sprite
+   /* Generate a clcok for the renderer. This handles things like background and sprite
       timing, pretty much everything that doesn't involve drawing a pixel. */
    Renderer_Clock();
 
    // The PPU renders one pixel per clock for the first 256 clock cycles
    if((cycle <= PPU_RENDER_CLOCKS) &&
-      (ppu_scanline >= PPU_FIRST_DISPLAYED_LINE)) {
-
-      /* We need to force rendering when sprite #0 is present on the line.
-         This is kind of ugly, but it works. */
-      if(Renderer::render.sprites[0].index == 0)
-         ppu__force_rendering = TRUE;
-
+      (ppu_scanline >= PPU_FIRST_DISPLAYED_LINE))
       Renderer_Pixel();
-
-      if(ppu__force_rendering)
-         ppu__force_rendering = FALSE;
-   }
 
    // HBlank start.
    if((cycle == PPU_HBLANK_START) &&
@@ -1254,6 +1239,17 @@ static void start_scanline_cycle(const cpu_time_t cycle) {
 }
 
 static void end_scanline() {
+   if((ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) &&
+      (ppu_scanline <= PPU_LAST_DISPLAYED_LINE)) {
+
+      if(ppu__force_rendering)
+         ppu__force_rendering = FALSE;
+
+      if(input_enable_zapper && input_zapper_on_screen &&
+         (input_zapper_y_offset == ppu_scanline))
+         input_update_zapper();
+   }
+
    // call end scanline interrupt for MMC
    if(mmc_scanline_end)
       cpu_interrupt(mmc_scanline_end(ppu_scanline));
