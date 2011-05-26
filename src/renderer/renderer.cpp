@@ -16,6 +16,11 @@
 #include "renderer.hpp"
 #include "sprites.hpp"
 
+#define INLINE_8EWR
+#define INLINE_P2EC
+#include "background.cpp"
+#include "sprites.cpp"
+
 namespace Renderer {
 
 const int TileWidth = 8;
@@ -41,8 +46,8 @@ using namespace Renderer;
 void Renderer_Initialize() {
    Clear();
 
-   BackgroundInit();
-   SpriteInit();
+   Background::Initialize();
+   Sprites::Initialize();
 }
 
 /* This gets called at the start of each frame, on PPU_FIRST_LINE, which
@@ -60,8 +65,8 @@ void Renderer_Line(int line) {
    render.pixel = 0;
    render.clock = 1;
 
-   BackgroundLine();
-   SpriteLine();
+   Background::Line();
+   Sprites::Line();
 }
 
 /* Like Render_Line(), this is called only for visible lines, for the first 256
@@ -79,9 +84,9 @@ void Renderer_Pixel() {
 
    if(PPU_BACKGROUND_ENABLED) {
       if(stubify)
-         BackgroundPixelStub();
+         Background::PixelStub();
       else
-         BackgroundPixel();
+         Background::Pixel();
    }
    else {
       // Clear framebuffer
@@ -89,17 +94,15 @@ void Renderer_Pixel() {
       render.buffer[render.pixel] = PPU__BACKGROUND_PALETTE(0);
 
       // Advance raster position without affecting anything else
-      BackgroundPixelSkip();
+      Background::PixelSkip();
    }
 
    if(PPU_SPRITES_ENABLED) {
       if(stubify)
-         SpritePixelStub();
+         Sprites::PixelStub();
       else
-         SpritePixel();
+         Sprites::Pixel();
    }
-   else
-      SpritePixelSkip();
 
    render.pixel++;
 }
@@ -109,7 +112,7 @@ void Renderer_Pixel() {
    does not trigger this function. */
 void Renderer_Clock() {
    if(PPU_SPRITES_ENABLED)
-      SpriteClock();
+      Sprites::Clock();
 
    render.clock++;
 }

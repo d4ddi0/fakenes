@@ -12,13 +12,15 @@
 #include "renderer.hpp"
 
 namespace Renderer {
+namespace Background {
 
-extern void BackgroundInit();
-extern void BackgroundLine();
-extern void BackgroundPixel();
-extern void BackgroundPixelStub();
-extern void BackgroundPixelSkip();
+extern void Initialize();
+extern void Line();
+extern void Pixel();
+extern void PixelStub();
+extern void PixelSkip();
 
+} // namespace Background
 } // namespace Renderer
 
 #endif //!_RENDERER__BACKGROUND_HPP

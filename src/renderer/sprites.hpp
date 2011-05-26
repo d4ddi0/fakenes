@@ -12,14 +12,15 @@
 #include "renderer.hpp"
 
 namespace Renderer {
+namespace Sprites {
 
-extern void SpriteInit();
-extern void SpriteLine();
-extern void SpritePixel();
-extern void SpritePixelStub();
-extern void SpritePixelSkip();
-extern void SpriteClock();
+extern void Initialize();
+extern void Line();
+extern void Pixel();
+extern void PixelStub();
+extern void Clock();
 
+} // namespace Sprites
 } // namespace Renderer
 
 #endif //!_RENDERER__SPRITES_HPP

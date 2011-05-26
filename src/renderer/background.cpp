@@ -15,6 +15,7 @@
 #include "renderer.hpp"
 
 namespace Renderer {
+namespace Background {
 
 namespace {
 
@@ -34,7 +35,7 @@ void Clear() {
    render.background.pixel = 0;
 }
 
-void UpdatePPU( int nametable, const int scrollTileYOffset, unsigned vramAddressBG )
+inline void UpdatePPU( int nametable, const int scrollTileYOffset, unsigned vramAddressBG )
 {
    // subtile(per pixel) scrolling
    x_offset++;
@@ -55,7 +56,7 @@ void UpdatePPU( int nametable, const int scrollTileYOffset, unsigned vramAddress
    vram_address = vramAddressBG + (nametable << 10) + (scrollTileYOffset << 12);
 }
 
-void Step()
+inline void Step()
 {
    RenderBackgroundContext& current = render.background;
 
@@ -70,17 +71,25 @@ void Step()
 
 } // namespace anonymous
 
-void BackgroundInit()
+// ----------------------------------------------------------------------
+// PUBLIC INTERFACE
+// ----------------------------------------------------------------------
+
+#if !defined(INLINE_8EWR)
+
+void Initialize()
 {
    Clear();
 }
 
-void BackgroundLine()
+void Line()
 {
    Clear();
 }
 
-void BackgroundPixel()
+#endif
+
+inline void Pixel()
 {
    /* VRAM address bit layout:
          -YYY VHyy yyyx xxxx
@@ -191,7 +200,7 @@ void BackgroundPixel()
 }
 
 // Frame-skipping variant of BackgroundPixel()
-void BackgroundPixelStub() {
+inline void PixelStub() {
 
    // Emulate a bare subset of the full pipeline.
    const int nametable = (vram_address >> 10) & 0x03;
@@ -210,8 +219,9 @@ void BackgroundPixelStub() {
 
 /* PPU sleep mode - just do minimal processing, do not draw any pixels
    or affect any registers. */
-void BackgroundPixelSkip() {
+inline void PixelSkip() {
    Step();
 }
 
+} // namespace Background
 } // namespace Renderer

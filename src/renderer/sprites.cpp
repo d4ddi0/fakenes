@@ -18,6 +18,7 @@
 // TODO: MMC latches support
 
 namespace Renderer {
+namespace Sprites {
 
 namespace {
 
@@ -60,7 +61,7 @@ const unsigned Attribute_Priority = 1 << 5;
 const unsigned Attribute_HFlip    = 1 << 6;
 const unsigned Attribute_VFlip    = 1 << 7;
 
-void ClearSprites() {
+inline void ClearSprites() {
     for(int i = 0; i < SpritesPerLine; i++) {
        RenderSpriteContext& sprite = render.sprites[i];
        sprite.index = 0;
@@ -74,7 +75,7 @@ void ClearSprites() {
     render.spriteCount = 0;
 }
 
-void ClearEvaluation() {
+inline void ClearEvaluation() {
    RenderEvaluationContext& e = render.evaluation;
 
    e.state = 1;
@@ -96,7 +97,7 @@ void Clear()
 
 /* This function just performs minimal logic for a sprite. It's used when frame skipping,
     or when the frame buffer has been locked for writes. */
-void SpriteLogic(RenderSpriteContext& sprite) {
+inline void Logic(RenderSpriteContext& sprite) {
     if(sprite.dead)
         return;
 
@@ -120,21 +121,29 @@ void SpriteLogic(RenderSpriteContext& sprite) {
 
 } // namespace anonymous
 
-void SpriteInit() {
+// ----------------------------------------------------------------------
+// PUBLIC INTERFACE
+// ----------------------------------------------------------------------
+
+#if !defined(INLINE_P2EC)
+
+void Initialize() {
    Clear();
 }
 
-void SpriteLine() {
+void Line() {
    // Copy evaluation count to spriteCount, as it will be overwritten
    render.spriteCount = render.evaluation.count;
 }
+
+#endif
 
 /* Every cycle, the 8 x-position counters for the sprites are decremented by one. For each sprite, if the counter is still nonzero, nothing else happens. If the counter is zero, the sprite becomes "active", and the respective pair of shift registers for the sprite is shifted once every cycle. This output accompanies the data in the sprite's latch, to form a pixel. The current pixel for each "active" sprite is checked (from highest to lowest priority), and the first non-transparent pixel moves on to a multiplexer, where it joins the BG pixel.
     * If the sprite has foreground priority, the sprite pixel is output.
     * If the sprite has background priority:
           * If the BG pixel is zero, the sprite pixel is output.
           * If the BG pixel is nonzero, the BG pixel is output. */
-void SpritePixel() {
+inline void Pixel() {
     // Check if we should clip sprites on the left side of the screen
     bool clipping = false;
     if((render.pixel <= 7) && PPU_SPRITES_CLIP_ENABLED)
@@ -146,7 +155,7 @@ void SpritePixel() {
     for(int i = 0; i < render.spriteCount; i++) {
        // If the framebuffer has been locked, we just do minimal processing.
        if(locked) {
-          SpriteLogic(render.sprites[i]);
+          Logic(render.sprites[i]);
           continue;
        }
 
@@ -247,12 +256,9 @@ void SpritePixel() {
     }
 }
 
-void SpritePixelStub() {
+inline void PixelStub() {
     for(int i = 0; i < render.spriteCount; i++)
-       SpriteLogic(render.sprites[i]);
-}
-
-void SpritePixelSkip() {
+       Logic(render.sprites[i]);
 }
 
 #define MAIN_LOOP	main_loop
@@ -294,7 +300,7 @@ void SpritePixelSkip() {
 #define JUMP_3	JUMP(3)
 #define JUMP_4	JUMP(4)
 
-void SpriteClock() {
+inline void Clock() {
    if(render.line == PPU_LAST_DISPLAYED_LINE)
       // No need to do anything here, as the next line cannot have sprites.
       // FIXME: Is this really correct?
@@ -598,4 +604,5 @@ void SpriteClock() {
    }
 }
 
+} // namespace Sprites
 } // namespace Renderer
