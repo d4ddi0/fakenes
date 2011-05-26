@@ -130,27 +130,87 @@ inline void Clock() {
 void Load(PACKFILE* file, const int version) {
    RT_ASSERT(file);
 
-   // Renderer
-   pack_putc(render.line, file);
-   pack_putc(render.pixel, file);
-   pack_iputw(render.clock, file);
+   // General
+   render.line = pack_igetw(file);
+   render.pixel = pack_getc(file);
+   render.clock = pack_igetw(file);
+
+   for(unsigned i = 0; i < SecondaryOAMSize; i++)
+      render.secondaryOAM[i] = pack_getc(file);
+
+   render.spriteCount = pack_getc(file);
 
    // Background
-   pack_putc(render.background.tile, file);
-   pack_putc(render.background.pixel, file);
+   RenderBackgroundContext& background = render.background;
+   background.tile = pack_getc(file);
+   background.pixel = pack_getc(file);
+
+   // Sprites
+   for(int i = 0; i < SpritesPerLine; i++) {
+      RenderSpriteContext& sprite = render.sprites[i];
+      sprite.index = pack_getc(file);
+      sprite.lowShift = pack_getc(file);
+      sprite.highShift = pack_getc(file);
+      sprite.latch = pack_getc(file);
+      sprite.counter = pack_getc(file);
+      sprite.dead = Boolean(pack_getc(file));
+   }
+
+   // Sprite evaluation
+   RenderEvaluationContext& e = render.evaluation;
+   for(int i = 0; i < SpritesPerLine; i++)
+      e.indices[i] = pack_getc(file);
+
+   e.state = pack_getc(file);
+   e.substate = pack_getc(file);
+   e.count = pack_getc(file);
+   e.n = pack_getc(file);
+   e.m = pack_getc(file);
+   e.locked = Boolean(pack_getc(file));
+   e.data = pack_getc(file);
 }
 
 void Save(PACKFILE* file, const int version) {
    RT_ASSERT(file);
 
-   // Renderer
-   render.line = pack_getc(file);
-   render.pixel = pack_getc(file);
-   render.clock = pack_igetw(file);
+   // General
+   pack_iputw(render.line, file);
+   pack_putc(render.pixel, file);
+   pack_iputw(render.clock, file);
+
+   for(unsigned i = 0; i < SecondaryOAMSize; i++)
+      pack_putc(render.secondaryOAM[i], file);
+
+   pack_putc(render.spriteCount, file);
 
    // Background
-   render.background.tile = pack_getc(file);
-   render.background.pixel = pack_getc(file);
+   const RenderBackgroundContext& background = render.background;
+   pack_putc(background.tile, file);
+   pack_putc(background.pixel, file);
+
+   // Sprites
+   for(int i = 0; i < SpritesPerLine; i++) {
+      const RenderSpriteContext& sprite = render.sprites[i];
+      pack_putc(sprite.index, file);
+      pack_putc(sprite.lowShift, file);
+      pack_putc(sprite.highShift, file);
+      pack_putc(sprite.latch, file);
+      pack_putc(sprite.counter, file);
+      pack_putc(Binary(sprite.dead), file);
+   }
+
+   // Sprite evaluation
+   const RenderEvaluationContext& e = render.evaluation;
+   for(int i = 0; i < SpritesPerLine; i++)
+      pack_putc(e.indices[i], file);
+
+   pack_putc(e.state, file);
+   pack_putc(e.substate, file);
+   pack_putc(e.count, file);
+   pack_putc(e.n, file);
+   pack_putc(e.m, file);
+   pack_putc(Binary(e.locked), file);
+   pack_putc(e.data, file);
 }
 
 #endif // !INLINE_MA6R

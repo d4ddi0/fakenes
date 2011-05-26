@@ -665,7 +665,9 @@ static void ppu_vram_write(UINT8 value)
 
 UINT8 ppu_get_background_color(void)
 {
-   synchronize();
+   /* Synchronization is disabled for now since this is called by lots of stuff that gets
+      called from synchronize() itself, and re-entry is a big no-no. */
+   //synchronize();
 
    /* Returns the current PPU background color - for drawing overscan for e.g NTSC */
    /* In the future, this should be rendered by the PPU itself into a special kind of buffer. */

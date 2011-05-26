@@ -63,6 +63,7 @@ typedef struct _RenderContext {
 
    RenderBackgroundContext background;
    RenderSpriteContext sprites[SpritesPerLine];
+
    RenderEvaluationContext evaluation;
 
 } RenderContext;
