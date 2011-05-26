@@ -16,10 +16,6 @@
 #include "sprites.hpp"
 
 // TODO: MMC latches support
-// TODO: Fix up background transparency
-// TODO: Fix up clipping/priority relationship
-// TODO: Merge locked/clipped functionality
-// TODO: Implement sprite #0 hit scan
 
 namespace Renderer {
 
@@ -67,6 +63,7 @@ const unsigned Attribute_VFlip    = 1 << 7;
 void ClearSprites() {
     for(int i = 0; i < SpritesPerLine; i++) {
        RenderSpriteContext& sprite = render.sprites[i];
+       sprite.index = 0;
        sprite.lowShift = 0x00;
        sprite.highShift = 0x00;
        sprite.latch = 0x00;
@@ -97,6 +94,31 @@ void Clear()
     memset(render.secondaryOAM, 0xFF, SecondaryOAMSize);
 }
 
+/* This function just performs minimal logic for a sprite. It's used when frame skipping,
+    or when the frame buffer has been locked for writes. */
+void SpriteLogic(RenderSpriteContext& sprite) {
+    if(sprite.dead)
+        return;
+
+    if(sprite.counter > 0) {
+       sprite.counter--;
+       if(sprite.counter > 0)
+          return;
+   }
+
+    if(sprite.latch & Attribute_HFlip) {
+       sprite.lowShift >>= 1;
+       sprite.highShift >>= 1;
+    }
+    else {
+       sprite.lowShift <<= 1;
+       sprite.highShift <<= 1;
+    }
+
+    if((sprite.lowShift + sprite.highShift) == 0x00)
+       sprite.dead = TRUE;
+}
+
 } // namespace anonymous
 
 void SpriteInit() {
@@ -123,6 +145,12 @@ void SpritePixel() {
     bool locked = false;
 
     for(int i = 0; i < render.spriteCount; i++) {
+       // If the framebuffer has been locked, we just do minimal processing.
+       if(locked) {
+          SpriteLogic(render.sprites[i]);
+          continue;
+       }
+
        RenderSpriteContext& sprite = render.sprites[i];
 
        /* Dead sprites are those with transparent bitmaps, which don't get rendered
@@ -140,18 +168,15 @@ void SpritePixel() {
 
        uint8 pixel = 0;
        if(sprite.latch & Attribute_HFlip) {
-          /* The pixel is formed of two bits taken from each shift register, giving a color range from 0-3.
-             This only needs to be computed if the framebuffer is not locked, otherwise it won't be used
-             so computing it would be a waste of time. */
-          if(!locked)
-             pixel = (sprite.lowShift & 0x01) | ((sprite.highShift & 0x01) << 1);
+          /* The pixel is formed of two bits taken from each shift register,
+             giving a possible color range from 0-3. */
+          pixel = (sprite.lowShift & 0x01) | ((sprite.highShift & 0x01) << 1);
 
           sprite.lowShift >>= 1;
           sprite.highShift >>= 1;
        }
        else {
-          if(!locked)
-             pixel = ((sprite.lowShift & 0x80) >> 7) | ((sprite.highShift & 0x80) >> 6);
+          pixel = ((sprite.lowShift & 0x80) >> 7) | ((sprite.highShift & 0x80) >> 6);
 
           /* Clock the shift registers, moving the next pixel up.
              Shifting to the left brings it closer to the raster position. */
@@ -163,10 +188,6 @@ void SpritePixel() {
           is to add the two bitmaps together, then check for non-zero (i.e some bits are set). */
        if((sprite.lowShift + sprite.highShift) == 0x00)
           sprite.dead = TRUE;
-
-       // If the framebuffer has been locked, there is no need to go any further.
-       if(locked)
-          continue;
 
        // Don't draw transparent pixels.
        if(pixel == 0)
@@ -182,6 +203,24 @@ void SpritePixel() {
        // All logic is done by this point, so it is safe to check for clipping
        if(clipping)
           continue;
+
+       /* Sprite #0 hit test:
+          When the raster gun meets a non-transparent sprite #0 pixel that is overlapping a
+          non-transparent background pixel, the sprite #0 hit flag is set. This does not occur if either
+          the background or sprites are disabled, or if clipping is enabled for either in the area.
+          This test is also not affected by background priority.
+
+          As our background rendering code automatically produces transparent (color #0) values in the
+          special background pixel buffer whenever the background is disabled or clipped, all we have
+          to do here is check for three conditions:
+             1) The current sprite is #0
+             2) The sprite is not transparent or clipped (already checked)
+             3) The background is opaque */
+       if((i == 0) && (sprite.index == 0) && // for sprite #0, i always == 0
+          !ppu__sprite_collision) {
+          if(ppu__background_pixels[render.pixel] != 0)
+             ppu__sprite_collision = TRUE;
+       }
 
        if(sprite.latch & Attribute_Priority) {
           /* This is a back-priority sprite, so we should only plot pixels
@@ -201,30 +240,8 @@ void SpritePixel() {
 }
 
 void SpritePixelStub() {
-    for(int i = 0; i < render.spriteCount; i++) {
-       RenderSpriteContext& sprite = render.sprites[i];
-
-       if(sprite.dead)
-           continue;
-
-       if(sprite.counter > 0) {
-          sprite.counter--;
-          if(sprite.counter > 0)
-             continue;
-      }
-
-       if(sprite.latch & Attribute_HFlip) {
-          sprite.lowShift >>= 1;
-          sprite.highShift >>= 1;
-       }
-       else {
-          sprite.lowShift <<= 1;
-          sprite.highShift <<= 1;
-       }
-
-       if((sprite.lowShift + sprite.highShift) == 0x00)
-          sprite.dead = TRUE;
-   }
+    for(int i = 0; i < render.spriteCount; i++)
+       SpriteLogic(render.sprites[i]);
 }
 
 void SpritePixelSkip() {
@@ -368,7 +385,9 @@ void SpriteClock() {
                WRITE_HELPER( SPRITE_X_POSITION(SECONDARY_OAM, e.count) );
 
                // Sprite copy complete.
+               e.indices[e.count] = e.n;
                e.count++;
+
                JUMP_2
             }
          }
@@ -484,23 +503,28 @@ void SpriteClock() {
          if(index < render.evaluation.count) {
             const int type = ((position - (index * 8)) / 2) + 1; // 1-4
 
+            // To make things a little cleaner, we'll get a direct reference.
             RenderSpriteContext& sprite = render.sprites[index];
 
-            // Mark sprite as active.
-            sprite.dead = FALSE;
+            /* We need to keep track of the original index (0-63) for sprite #0 hit detection.
+               This is filled in during sprite evaluation for each sprite. */
+            sprite.index = render.evaluation.indices[index];
 
             /* The exact time when the attribute byte and X position are loaded into the
                latch and counter (respectively) is unknown, however we have a perfectly
                good oppertunity to do it here with the tile data, so we will. */
             switch(type) {
-               case 1:		// Garbage
+               // Garbage
+               case 1:
                   // Load latch and counter
                   sprite.latch = SPRITE_ATTRIBUTES(SECONDARY_OAM, index);
                   sprite.counter = SPRITE_X_POSITION(SECONDARY_OAM, index);
                   break;
 
-               case 3:		// Tile bitmap A
-               case 4: {	// Tile bitmap B
+               // Tile bitmap A
+               case 3:	
+               // Tile bitmap B	
+               case 4: {
                   /* It's inefficient to execute all of this twice, but there isn't really any other way
                      while still keeping it aligned to the proper clock cycles (for now).  */
 
@@ -541,6 +565,11 @@ void SpriteClock() {
                   else
                      // Tile bitmap B
                      sprite.highShift = data[offset + (BytesPerTile / 2) + row];
+
+                  /* Mark sprite as active. This is only done when the sprite's bitmap is not
+                     transparent, otherwise it is ignored by the renderer. */
+                  if((sprite.lowShift + sprite.highShift) != 0x00)
+                     sprite.dead = FALSE;
 
                   break;
                }

@@ -34,6 +34,7 @@ typedef struct _RenderBackgroundContext {
 } RenderBackgroundContext;
 
 typedef struct _RenderSpriteContext {
+   uint8 index;
    uint8 lowShift, highShift;
    uint8 latch;
    uint8 counter;
@@ -42,6 +43,7 @@ typedef struct _RenderSpriteContext {
 } RenderSpriteContext;
 
 typedef struct _RenderEvaluationContext {
+   uint8 indices[SpritesPerLine];
    uint8 state, substate;
    uint8 count;
    uint8 n, m;

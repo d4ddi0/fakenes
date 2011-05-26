@@ -1133,7 +1133,6 @@ static void ppu_repredict_nmi(void)
 }
 
 #if 0
-            // TODO: Sprite #0 hit test support here on skipped frames
             // TODO: Find out what is wrong with Zapper hitscan code and fix it (crashes)
             if(input_enable_zapper)
                input_update_zapper_offsets();
@@ -1208,8 +1207,18 @@ static void start_scanline_cycle(const cpu_time_t cycle) {
 
    // The PPU renders one pixel per clock for the first 256 clock cycles
    if((cycle <= PPU_RENDER_CLOCKS) &&
-      (ppu_scanline >= PPU_FIRST_DISPLAYED_LINE))
+      (ppu_scanline >= PPU_FIRST_DISPLAYED_LINE)) {
+
+      /* We need to force rendering when sprite #0 is present on the line.
+         This is kind of ugly, but it works. */
+      if(Renderer::render.sprites[0].index == 0)
+         ppu__force_rendering = TRUE;
+
       Renderer_Pixel();
+
+      if(ppu__force_rendering)
+         ppu__force_rendering = FALSE;
+   }
 
    // HBlank start.
    if((cycle == PPU_HBLANK_START) &&
