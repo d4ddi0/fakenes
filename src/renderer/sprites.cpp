@@ -560,7 +560,7 @@ void SpriteClock() {
                      simply used as a byte offset. */
                   int row;
                   if(sprite.latch & Attribute_VFlip)
-                     row = (y + ppu__sprite_height) - line;
+                     row = (y + (ppu__sprite_height - 1)) - line;
                   else
                      row = line - y;
 
