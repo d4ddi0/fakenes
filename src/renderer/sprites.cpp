@@ -87,7 +87,7 @@ inline void ClearEvaluation() {
    e.data = 0x00;
 }
 
-void Clear()
+linear void Clear()
 {
     ClearSprites();
     ClearEvaluation();

@@ -69,14 +69,14 @@ typedef struct _RenderContext {
 
 extern RenderContext render;
 
-} // namespace Renderer
+extern void Initialize();
+extern void Frame();
+extern void Line(const int line);
+extern void Pixel();
+extern void Clock();
+extern void Load(PACKFILE* file, const int version);
+extern void Save(PACKFILE* file, const int version);
 
-extern void Renderer_Initialize();
-extern void Renderer_Frame();
-extern void Renderer_Line(int line);
-extern void Renderer_Pixel();
-extern void Renderer_Clock();
-extern void Renderer_Load(PACKFILE* file, const int version);
-extern void Renderer_Save(PACKFILE* file, const int version);
+} // namespace Renderer
 
 #endif //!_RENDERER__RENDERER_HPP

@@ -17,8 +17,6 @@
 extern "C" {
 #endif
 
-#define PPU_DISPLAY_LINES   240
-
 /* Register $2000. */
 #define PPU_VBLANK_NMI_FLAG_BIT     (1 << 7)
 #define PPU_PPU_SLAVE_BIT           (1 << 6)

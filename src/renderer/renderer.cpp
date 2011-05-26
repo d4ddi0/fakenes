@@ -23,14 +23,7 @@
 
 namespace Renderer {
 
-const int TileWidth = 8;
-const int TileHeight = 8;
-
-const int DisplayWidth = 256;
-const int DisplayWidthTiles = (DisplayWidth / TileWidth);
-const int DisplayHeight = 240;
-
-RenderContext render;
+namespace {
 
 void Clear() {
    render.buffer = NULL;
@@ -39,11 +32,24 @@ void Clear() {
    render.clock = 1; // Always starts from 1
 }
 
-} // namespace Renderer
+} // namespace anonymous
 
-using namespace Renderer;
+// ----------------------------------------------------------------------
+// PUBLIC INTERFACE
+// ----------------------------------------------------------------------
 
-void Renderer_Initialize() {
+#if !defined(INLINE_MA6R)
+
+const int TileWidth = 8;
+const int TileHeight = 8;
+
+const int DisplayWidth = PPU_RENDER_CLOCKS;		// 256
+const int DisplayWidthTiles = DisplayWidth / TileWidth;	// (256 / 8) = 32
+const int DisplayHeight = PPU_DISPLAY_LINES;		// 240
+
+RenderContext render;
+
+void Initialize() {
    Clear();
 
    Background::Initialize();
@@ -52,13 +58,13 @@ void Renderer_Initialize() {
 
 /* This gets called at the start of each frame, on PPU_FIRST_LINE, which
    is the dummy (non-visible) sprite evaluation line. */
-void Renderer_Frame() {
+void Frame() {
    Clear();
 }
 
 /* This only gets called from PPU_FIRST_VISIBLE_LINE to PPU_LAST_VISIBLE_LINE.
    In other words, only for visible lines. */
-void Renderer_Line(int line) {
+void Line(const int line) {
    render.buffer = PPU_GET_LINE_ADDRESS(video_buffer, line);
 
    render.line = line;
@@ -69,9 +75,11 @@ void Renderer_Line(int line) {
    Sprites::Line();
 }
 
+#endif // !INLINE_MA6R
+
 /* Like Render_Line(), this is called only for visible lines, for the first 256
    clock cycles which equate to a single pixel each. */
-void Renderer_Pixel() {
+inline void Pixel() {
    /* After loading a state, the render buffer is null and must be reloaded, and
       all previously rendered pixels are lost. This can causes momentary, but harmless
       flicker when first loading a save state. */
@@ -110,14 +118,16 @@ void Renderer_Pixel() {
 /* This is called for each clock cycle of every line, whether the PPU is within
    the rendering stage or not, except during vblank. The PPU idle line (240) also
    does not trigger this function. */
-void Renderer_Clock() {
+inline void Clock() {
    if(PPU_SPRITES_ENABLED)
       Sprites::Clock();
 
    render.clock++;
 }
 
-void Renderer_Load(PACKFILE* file, const int version) {
+#if !defined(INLINE_MA6R)
+
+void Load(PACKFILE* file, const int version) {
    RT_ASSERT(file);
 
    // Renderer
@@ -130,7 +140,7 @@ void Renderer_Load(PACKFILE* file, const int version) {
    pack_putc(render.background.pixel, file);
 }
 
-void Renderer_Save(PACKFILE* file, const int version) {
+void Save(PACKFILE* file, const int version) {
    RT_ASSERT(file);
 
    // Renderer
@@ -142,3 +152,7 @@ void Renderer_Save(PACKFILE* file, const int version) {
    render.background.tile = pack_getc(file);
    render.background.pixel = pack_getc(file);
 }
+
+#endif // !INLINE_MA6R
+
+} // namespace Renderer

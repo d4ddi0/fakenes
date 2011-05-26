@@ -18,11 +18,13 @@
 #include "ppu_int.h"
 #include "rom.h"
 #include "renderer/renderer.hpp"
-#include "renderer/background.hpp"
 #include "shared/crc32.h"
 #include "timing.h"
 #include "types.h"
 #include "video.h"
+
+#define INLINE_MA6R
+#include "renderer/renderer.cpp"
 
 static void do_spr_ram_dma(uint8 page);
 static void synchronize(void);
@@ -358,7 +360,7 @@ int ppu_init(void)
 
    ppu_reset();
 
-   Renderer_Initialize();
+   Renderer::Initialize();
 
    return 0;
 }
@@ -970,7 +972,7 @@ void ppu_save_state(PACKFILE* file, int version)
    pack_putc(ppu__sprite_collision ? 1 : 0, file);
    pack_putc(ppu__sprite_overflow ? 1 : 0, file);
 
-   Renderer_Save(file, version);
+   Renderer::Save(file, version);
 
    pack_putc(mmc_get_name_table_count(), file);
    pack_putc(mmc_uses_pattern_vram(), file);
@@ -1030,7 +1032,7 @@ void ppu_load_state(PACKFILE* file, int version)
    ppu__sprite_collision = TRUE_OR_FALSE(pack_getc(file));
    ppu__sprite_overflow = TRUE_OR_FALSE(pack_getc(file));
 
-   Renderer_Load(file, version);
+   Renderer::Load(file, version);
 
    const int state_name_table_count = pack_getc(file);
    const int state_contains_pattern_vram = pack_getc(file);
@@ -1132,7 +1134,9 @@ static void ppu_repredict_nmi(void)
    predict_nmi_slave(ppu_cycles_remaining);
 }
 
-static void start_frame() {
+// --------------------------------------------------------------------------------
+
+static linear void start_frame() {
    if(PPU_ENABLED)
       vram_address = address_temp;
 
@@ -1142,14 +1146,14 @@ static void start_frame() {
    // clear sprite #0 collision flag
    ppu__sprite_collision = FALSE;
 
-   Renderer_Frame();
+   Renderer::Frame();
 
    // Grabbing the light gun position once per frame should be enough
    if(input_enable_zapper)
       input_update_zapper_offsets();
 }
 
-static void start_scanline() 
+static linear void start_scanline() 
 {
    if((ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) &&
       (ppu_scanline <= PPU_LAST_DISPLAYED_LINE)) {
@@ -1159,7 +1163,7 @@ static void start_scanline()
 
       /* This needs to be called before the sprite #0 and light gun code below it,
          otherwise the neccessary information might not be available yet. */
-      Renderer_Line(ppu_scanline);
+      Renderer::Line(ppu_scanline);
 
       /* We need to force rendering when sprite #0 is present on the line.
          This is kind of ugly, but it works. */
@@ -1194,16 +1198,16 @@ static void start_scanline()
 
 /* This is only called for scanlines -1 to 239, as the PPU is idle during other lines
    (excepting what is handled by start_scanline(), of course). */
-static void start_scanline_cycle(const cpu_time_t cycle) {
+static linear void start_scanline_cycle(const cpu_time_t cycle) {
 
    /* Generate a clcok for the renderer. This handles things like background and sprite
       timing, pretty much everything that doesn't involve drawing a pixel. */
-   Renderer_Clock();
+   Renderer::Clock();
 
    // The PPU renders one pixel per clock for the first 256 clock cycles
    if((cycle <= PPU_RENDER_CLOCKS) &&
       (ppu_scanline >= PPU_FIRST_DISPLAYED_LINE))
-      Renderer_Pixel();
+      Renderer::Pixel();
 
    // HBlank start.
    if((cycle == PPU_HBLANK_START) &&
@@ -1238,7 +1242,7 @@ static void start_scanline_cycle(const cpu_time_t cycle) {
    }
 }
 
-static void end_scanline() {
+static linear void end_scanline() {
    if((ppu_scanline >= PPU_FIRST_DISPLAYED_LINE) &&
       (ppu_scanline <= PPU_LAST_DISPLAYED_LINE)) {
 
@@ -1255,7 +1259,7 @@ static void end_scanline() {
       cpu_interrupt(mmc_scanline_end(ppu_scanline));
 }
 
-static void end_frame() {
+static linear void end_frame() {
    // Toggle even/odd frame flag
    ppu_odd_frame = !ppu_odd_frame;
 
