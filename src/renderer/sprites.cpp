@@ -567,7 +567,14 @@ void SpriteClock() {
                      planes for this line of the tile bitmap. */
                   const unsigned page = address >> 10;
                   const uint8 *data = ppu_vram_block_read_address[page];
-                  const unsigned offset = address - (page << 10);
+                  unsigned offset = address - (page << 10);
+
+                  /* For 8x16 sprites, we may need to jump to the next tile.
+                     This occurs on row indices 8-15, which then become 0-7 after the offset. */
+                  if(row >= 8) {
+                     offset += BytesPerTile;
+                     row -= 8;
+                  }
 
                   if(type == 3)
                      // Tile bitmap A
