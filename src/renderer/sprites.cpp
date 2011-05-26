@@ -108,73 +108,123 @@ void SpriteLine() {
    render.spriteCount = render.evaluation.count;
 }
 
+/* Every cycle, the 8 x-position counters for the sprites are decremented by one. For each sprite, if the counter is still nonzero, nothing else happens. If the counter is zero, the sprite becomes "active", and the respective pair of shift registers for the sprite is shifted once every cycle. This output accompanies the data in the sprite's latch, to form a pixel. The current pixel for each "active" sprite is checked (from highest to lowest priority), and the first non-transparent pixel moves on to a multiplexer, where it joins the BG pixel.
+    * If the sprite has foreground priority, the sprite pixel is output.
+    * If the sprite has background priority:
+          * If the BG pixel is zero, the sprite pixel is output.
+          * If the BG pixel is nonzero, the BG pixel is output. */
 void SpritePixel() {
-    // Whether or not pixel buffer can be written (for sprite priority).
+    // Check if we should clip sprites on the left side of the screen
+    bool clipping = false;
+    if((render.pixel <= 7) && PPU_SPRITES_CLIP_ENABLED)
+       clipping = true;
+
+    // Whether or not pixel buffer can be written (for sprite priority). See below.
     bool locked = false;
 
     for(int i = 0; i < render.spriteCount; i++) {
        RenderSpriteContext& sprite = render.sprites[i];
 
+       /* Dead sprites are those with transparent bitmaps, which don't get rendered
+          Setting and checking a flag is faster than checking the bitmap. */
        if(sprite.dead)
            continue;
 
-       if(sprite.counter > 0)
+       /* Rather than repeatedly check the X coordinate of the sprite, we simply decrement it.
+          When it becomes zero, it has reached the current raster position. */
+       if(sprite.counter > 0) {
           sprite.counter--;
-       if(sprite.counter > 0)
-          continue;
-
-       bool clipping = false;
-       if((render.pixel <= 7) && PPU_SPRITES_CLIP_ENABLED)
-          clipping = true;
+          if(sprite.counter > 0)
+             continue;
+      }
 
        uint8 pixel = 0;
        if(sprite.latch & Attribute_HFlip) {
-          if(!clipping)
+          /* The pixel is formed of two bits taken from each shift register, giving a color range from 0-3.
+             This only needs to be computed if the framebuffer is not locked, otherwise it won't be used
+             so computing it would be a waste of time. */
+          if(!locked)
              pixel = (sprite.lowShift & 0x01) | ((sprite.highShift & 0x01) << 1);
 
           sprite.lowShift >>= 1;
           sprite.highShift >>= 1;
        }
        else {
-          if(!clipping)
+          if(!locked)
              pixel = ((sprite.lowShift & 0x80) >> 7) | ((sprite.highShift & 0x80) >> 6);
 
+          /* Clock the shift registers, moving the next pixel up.
+             Shifting to the left brings it closer to the raster position. */
           sprite.lowShift <<= 1;
           sprite.highShift <<= 1;
        }
 
-       if((sprite.lowShift == 0x00) && (sprite.highShift == 0x00))
+       /* When the sprite's bitmap becomes transparent, we mark it as dead. The easiest way to check this
+          is to add the two bitmaps together, then check for non-zero (i.e some bits are set). */
+       if((sprite.lowShift + sprite.highShift) == 0x00)
           sprite.dead = TRUE;
 
+       // If the framebuffer has been locked, there is no need to go any further.
        if(locked)
-          // We can't draw any more pixels right now
           continue;
 
-       // Don't draw transparent or clipped pixels.
+       // Don't draw transparent pixels.
        if(pixel == 0)
+          continue;
+
+       /* FRAMEBUFFER LOCKING:
+          Note that the PPU only renders a single sprite per pixel, even if it is back-priority and
+          "hidden" by the background. which allows sprite priority to work properly. So we need to set a
+          flag when a sprite has been rendered, to prevent further (lesser priority) sprites from being
+          rendered in the same position. This locks the framebuffer from further writes. */
+       locked = true;
+
+       // All logic is done by this point, so it is safe to check for clipping
+       if(clipping)
           continue;
 
        if(sprite.latch & Attribute_Priority) {
           /* This is a back-priority sprite, so we should only plot pixels
              in areas where the background was transparent. */
-          const uint8 background = ppu__background_pixels[render.pixel];
-          if(background != 0)
+          if(ppu__background_pixels[render.pixel] != 0)
              continue;
        }
 
-       // Remap pixel according to the palette.
-       const int palette = sprite.latch & Attribute_Palette;
-       pixel = PPU__SPRITE_PALETTE(palette, pixel);
-
-       render.buffer[render.pixel] = pixel;
-
-       /* Note that the PPU only renders a single sprite per pixel, which allows sprite priority
-          to work properly. So we need to flag when a pixel has been drawn. */
-       locked = true;
+       /* We can only plot pixels when:
+             1) Sprite clipping is disabled, or the current pixel position is 8 or higher
+             2) The sprite pixel is not transparent (color #0)
+             3) The background pixel is transparent (for back-priority sprites)
+             4) The frame buffer is not locked for writes */
+       const int colormap = sprite.latch & Attribute_Palette;
+       render.buffer[render.pixel] = PPU__SPRITE_PALETTE(colormap, pixel);
     }
 }
 
 void SpritePixelStub() {
+    for(int i = 0; i < render.spriteCount; i++) {
+       RenderSpriteContext& sprite = render.sprites[i];
+
+       if(sprite.dead)
+           continue;
+
+       if(sprite.counter > 0) {
+          sprite.counter--;
+          if(sprite.counter > 0)
+             continue;
+      }
+
+       if(sprite.latch & Attribute_HFlip) {
+          sprite.lowShift >>= 1;
+          sprite.highShift >>= 1;
+       }
+       else {
+          sprite.lowShift <<= 1;
+          sprite.highShift <<= 1;
+       }
+
+       if((sprite.lowShift + sprite.highShift) == 0x00)
+          sprite.dead = TRUE;
+   }
 }
 
 void SpritePixelSkip() {
