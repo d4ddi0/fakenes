@@ -227,13 +227,23 @@ void SpritePixel() {
              in areas where the background was transparent. */
           if(ppu__background_pixels[render.pixel] != 0)
              continue;
+
+          // We don't want to draw if the back-priority layer is disabled, either.
+          if(!ppu_enable_sprite_layer_a)
+             continue;
        }
+       else
+          /* Similarly, don't draw if the front-priority layer is disabled,
+             for front-priority sprites. */
+          if(!ppu_enable_sprite_layer_b)
+             continue;
 
        /* We can only plot pixels when:
              1) Sprite clipping is disabled, or the current pixel position is 8 or higher
              2) The sprite pixel is not transparent (color #0)
              3) The background pixel is transparent (for back-priority sprites)
-             4) The frame buffer is not locked for writes */
+             4) The frame buffer is not locked for writes
+             5) Drawing of the associated sprite layer is not disabled */
        const int colormap = sprite.latch & Attribute_Palette;
        render.buffer[render.pixel] = PPU__SPRITE_PALETTE(colormap, pixel);
     }
