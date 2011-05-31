@@ -228,9 +228,10 @@ int load_ines_rom (PACKFILE *file, ROM *rom)
 
    /* Set mirroring. */
    if ((rom->control_byte_1 & ROM_CTRL_FOUR_SCREEN))
-      ppu_set_default_mirroring (MIRRORING_FOUR_SCREEN);
+      ppu_set_default_mirroring (PPU_MIRRORING_FOUR_SCREEN);
    else
-      ppu_set_default_mirroring (((rom->control_byte_1 & ROM_CTRL_MIRRORING) ? MIRRORING_VERTICAL : MIRRORING_HORIZONTAL));
+      ppu_set_default_mirroring (((rom->control_byte_1 & ROM_CTRL_MIRRORING) ?
+         PPUMIRRORING_VERTICAL : PPU_MIRRORING_HORIZONTAL));
 
    /* Return success. */
    return (0);

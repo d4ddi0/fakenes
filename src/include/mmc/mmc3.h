@@ -1,10 +1,13 @@
 /* Mapper #4 (MMC3). */
 /* This mapper is fully supported. */
 
+/* MMC3 IRQ depends on PPU internal timing. */
+#include "ppu_int.h"
+
 static int mmc3_init(void);
 static void mmc3_reset(void);
-static void mmc3_save_state(PACKFILE*, int);
-static void mmc3_load_state(PACKFILE*, int);
+static void mmc3_save_state(PACKFILE*, const int);
+static void mmc3_load_state(PACKFILE*, const int);
 
 static const MMC mmc_mmc3 = {
    4,
@@ -37,11 +40,10 @@ static UINT8 mmc3_sram_enable;
 #define MMC3_PRG_ADDRESS_BIT 0x40
 #define MMC3_CHR_ADDRESS_BIT 0x80
 
-static int mmc3_irq_tick(int line)
+static int mmc3_irq_tick(const int line)
 {
    if((((line >= PPU_FIRST_DISPLAYED_LINE) && (line <= PPU_LAST_DISPLAYED_LINE)) ||
-          (line == PPU_LAST_LINE)) &&
-      (PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED)) {
+          (line == PPU_LAST_LINE)) && ppu__enabled) {
         mmc3_counter_latched = TRUE;
 
         if(mmc3_irq_counter--)
@@ -77,14 +79,14 @@ static void mmc3_ppu_bank_sort(void)
    if(ROM_CHR_ROM_PAGES == 0)
       return;
 
-   ppu_set_ram_1k_pattern_vrom_block(mmc3_chr_address << 10, mmc3_chr_bank[0] & ~1);
-   ppu_set_ram_1k_pattern_vrom_block((1 + mmc3_chr_address) << 10, mmc3_chr_bank[0] | 1);
-   ppu_set_ram_1k_pattern_vrom_block((2 + mmc3_chr_address) << 10, mmc3_chr_bank[1] & ~1);
-   ppu_set_ram_1k_pattern_vrom_block((3 + mmc3_chr_address) << 10, mmc3_chr_bank[1] | 1);
-   ppu_set_ram_1k_pattern_vrom_block((4 - mmc3_chr_address) << 10, mmc3_chr_bank[2]);
-   ppu_set_ram_1k_pattern_vrom_block((5 - mmc3_chr_address) << 10, mmc3_chr_bank[3]);
-   ppu_set_ram_1k_pattern_vrom_block((6 - mmc3_chr_address) << 10, mmc3_chr_bank[4]);
-   ppu_set_ram_1k_pattern_vrom_block((7 - mmc3_chr_address) << 10, mmc3_chr_bank[5]);
+   ppu_set_1k_pattern_table_vrom_page(mmc3_chr_address << 10, mmc3_chr_bank[0] & ~1);
+   ppu_set_1k_pattern_table_vrom_page((1 + mmc3_chr_address) << 10, mmc3_chr_bank[0] | 1);
+   ppu_set_1k_pattern_table_vrom_page((2 + mmc3_chr_address) << 10, mmc3_chr_bank[1] & ~1);
+   ppu_set_1k_pattern_table_vrom_page((3 + mmc3_chr_address) << 10, mmc3_chr_bank[1] | 1);
+   ppu_set_1k_pattern_table_vrom_page((4 - mmc3_chr_address) << 10, mmc3_chr_bank[2]);
+   ppu_set_1k_pattern_table_vrom_page((5 - mmc3_chr_address) << 10, mmc3_chr_bank[3]);
+   ppu_set_1k_pattern_table_vrom_page((6 - mmc3_chr_address) << 10, mmc3_chr_bank[4]);
+   ppu_set_1k_pattern_table_vrom_page((7 - mmc3_chr_address) << 10, mmc3_chr_bank[5]);
 }
 
 static void mmc3_write(UINT16 address, UINT8 value)
@@ -125,8 +127,8 @@ static void mmc3_write(UINT16 address, UINT8 value)
 
                if(ROM_CHR_ROM_PAGES > 0) {
                   scrap = (mmc3_command * 2) ^ mmc3_chr_address;
-                  ppu_set_ram_1k_pattern_vrom_block(scrap << 10, value & ~1);
-                  ppu_set_ram_1k_pattern_vrom_block(++scrap << 10, value | 1);
+                  ppu_set_1k_pattern_table_vrom_page(scrap << 10, value & ~1);
+                  ppu_set_1k_pattern_table_vrom_page(++scrap << 10, value | 1);
                }
 
                break;
@@ -141,7 +143,7 @@ static void mmc3_write(UINT16 address, UINT8 value)
 
                if(ROM_CHR_ROM_PAGES > 0) {
                   scrap = (mmc3_command + 2) ^ mmc3_chr_address;
-                  ppu_set_ram_1k_pattern_vrom_block(scrap << 10, value);
+                  ppu_set_1k_pattern_table_vrom_page(scrap << 10, value);
                }
 
                break;
@@ -175,7 +177,7 @@ static void mmc3_write(UINT16 address, UINT8 value)
       case 0xA000: {
          /* Mirroring select. */
          if(!(global_rom.control_byte_1 & ROM_CTRL_FOUR_SCREEN))
-            ppu_set_mirroring(((value & 0x01) ? MIRRORING_HORIZONTAL : MIRRORING_VERTICAL));
+            ppu_set_mirroring(((value & 0x01) ? PPU_MIRRORING_HORIZONTAL : PPU_MIRRORING_VERTICAL));
 
          break;
       }
@@ -278,8 +280,10 @@ static int mmc3_init(void)
    return 0;
 }
 
-static void mmc3_save_state(PACKFILE* file, int version)
+static void mmc3_save_state(PACKFILE* file, const int version)
 {
+   RT_ASSERT(file);
+
    pack_putc(mmc3_register_8000, file);
    pack_putc(mmc3_sram_enable, file);
 
@@ -293,8 +297,10 @@ static void mmc3_save_state(PACKFILE* file, int version)
    pack_fwrite(mmc3_chr_bank, MMC3_CHR_BANKS, file);
 }
 
-static void mmc3_load_state(PACKFILE* file, int version)
+static void mmc3_load_state(PACKFILE* file, const int version)
 {
+   RT_ASSERT(file);
+
    /* Restore address latches */
    mmc3_write(0x8000, pack_getc(file));
 

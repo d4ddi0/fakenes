@@ -22,7 +22,7 @@ namespace Sprites {
 
 namespace {
 
-const int SpriteCount = 64;
+const int SpriteCount = PPU__SPRITE_COUNT;
 
 // Data access.
 const int BytesPerTile = 16;
@@ -32,20 +32,20 @@ const int Sprite_TileIndex  = 1;
 const int Sprite_Attributes = 2;
 const int Sprite_XPosition  = 3;
 
-#define SPRITE_ADDRESS(_index, _offset) \
-   ( ((_index) * BytesPerSprite) + (_offset) )
-#define SPRITE_DATA(_oam, _index, _type) \
-   ( (_oam)[SPRITE_ADDRESS( (_index), (_type) )] )
+#define SPRITE_ADDRESS(_INDEX, _OFFSET) \
+   ( ((_INDEX) * BytesPerSprite) + (_OFFSET) )
+#define SPRITE_DATA(_OAM, _INDEX, _TYPE) \
+   ( (_OAM)[SPRITE_ADDRESS( (_INDEX), (_TYPE) )] )
 
-#define SPRITE_ADDRESS_Y_POSITION(_index)	( SPRITE_ADDRESS_DATA( (_index), Sprite_YPosition ) )
-#define SPRITE_ADDRESS_TILE_INDEX(_index)	( SPRITE_ADDRESS_DATA( (_index), Sprite_TileIndex ) )
-#define SPRITE_ADDRESS_ATTRIBUTES(_index)	( SPRITE_ADDRESS_DATA( (_index), Sprite_Attributes ) )
-#define SPRITE_ADDRESS_X_POSITION(_index)	( SPRITE_ADDRESS_DATA( (_index), Sprite_XPosition ) )
+#define SPRITE_ADDRESS_Y_POSITION(_INDEX)	( SPRITE_ADDRESS( (_INDEX), Sprite_YPosition ) )
+#define SPRITE_ADDRESS_TILE_INDEX(_INDEX)	( SPRITE_ADDRESS( (_INDEX), Sprite_TileIndex ) )
+#define SPRITE_ADDRESS_ATTRIBUTES(_INDEX)	( SPRITE_ADDRESS( (_INDEX), Sprite_Attributes ) )
+#define SPRITE_ADDRESS_X_POSITION(_INDEX)	( SPRITE_ADDRESS( (_INDEX), Sprite_XPosition ) )
 
-#define SPRITE_Y_POSITION(_oam, _index) ( SPRITE_DATA( (_oam), (_index), Sprite_YPosition ) )
-#define SPRITE_TILE_INDEX(_oam, _index) ( SPRITE_DATA( (_oam), (_index), Sprite_TileIndex ) )
-#define SPRITE_ATTRIBUTES(_oam, _index) ( SPRITE_DATA( (_oam), (_index), Sprite_Attributes ) )
-#define SPRITE_X_POSITION(_oam, _index) ( SPRITE_DATA( (_oam), (_index), Sprite_XPosition ) )
+#define SPRITE_Y_POSITION(_OAM, _INDEX) ( SPRITE_DATA( (_OAM), (_INDEX), Sprite_YPosition ) )
+#define SPRITE_TILE_INDEX(_OAM, _INDEX) ( SPRITE_DATA( (_OAM), (_INDEX), Sprite_TileIndex ) )
+#define SPRITE_ATTRIBUTES(_OAM, _INDEX) ( SPRITE_DATA( (_OAM), (_INDEX), Sprite_Attributes ) )
+#define SPRITE_X_POSITION(_OAM, _INDEX)	( SPRITE_DATA( (_OAM), (_INDEX), Sprite_XPosition ) )
 
 #define PRIMARY_OAM     ( ppu__sprite_vram )
 #define SECONDARY_OAM	( render.secondaryOAM )
@@ -275,18 +275,18 @@ inline void PixelStub() {
 
 /* Reading OAMDATA while the PPU is rendering will expose internal OAM accesses during sprite evaluation and loading;
    Micro Machines does this. */
-#define READ_HELPER(_value, _address) { \
+#define READ_HELPER(_VALUE, _ADDRESS) { \
    if(!cycle_is_even) \
       goto END_LOOP; \
-   ppu__oam_address = (_address); \
-   e.data = (_value); \
+   ppu__oam_address = (_ADDRESS); \
+   e.data = (_VALUE); \
 }
 
-#define WRITE_HELPER(_value) { \
+#define WRITE_HELPER(_VALUE) { \
    if(!cycle_is_odd) \
       goto END_LOOP; \
    if(!e.locked) \
-      (_value) = e.data; \
+      (_VALUE) = e.data; \
 }
 
 #define CONTINUE_1 { \
@@ -299,8 +299,8 @@ inline void PixelStub() {
    goto STATE3_LOOP; \
 }
 
-#define JUMP(_state) { \
-   e.state = (_state); \
+#define JUMP(_STATE) { \
+   e.state = (_STATE); \
    e.substate = 1; \
    goto MAIN_LOOP; \
 }
@@ -457,7 +457,7 @@ inline void Clock() {
                /* 3. Starting at m = 0,
                      evaluate OAM[n][m] as a Y-coordinate.  */
                READ_HELPER( SPRITE_DATA(PRIMARY_OAM, e.n, e.m),
-                            SPRITE_ADDRESS_DATA(e.n, e.m) );
+                            SPRITE_ADDRESS(e.n, e.m) );
 
                CONTINUE_3
             }
@@ -491,7 +491,7 @@ inline void Clock() {
             case 4:
             case 5: {
                READ_HELPER( SPRITE_DATA(PRIMARY_OAM, e.n, e.m),
-                            SPRITE_ADDRESS_DATA(e.n, e.m) );
+                            SPRITE_ADDRESS(e.n, e.m) );
 
                e.m++;
                /* Increment n when m overflows (from 0-3 -> 4) seems more correct than

@@ -92,7 +92,7 @@ inline void Pixel() {
  
    /* This is set if frame skipping is enabled, and rendering has not been forced
       (i.e for sprite #0 hitscan or lightgun emulation) */
-   const bool stubify = !ppu__rendering_enabled && !ppu__force_rendering;
+   const bool stubify = !ppu__enable_rendering && !ppu__force_rendering;
 
    if(ppu__enable_background) {
       if(stubify)
@@ -103,13 +103,13 @@ inline void Pixel() {
    else {
       // Clear framebuffer
       PPU__PUT_BACKGROUND_PIXEL(render.pixel, 0);
-      render.buffer[render.pixel] = PPU__BACKGROUND_PALETTE(0);
+      render.buffer[render.pixel] = PPU__BACKGROUND_PALETTE(0, 0);
 
       // Advance raster position without affecting anything else
       Background::PixelSkip();
    }
 
-   if(ppu__sprites_enabled) {
+   if(ppu__enable_sprites) {
       if(stubify)
          Sprites::PixelStub();
       else
@@ -123,7 +123,7 @@ inline void Pixel() {
    the rendering stage or not, except during vblank. The PPU idle line (240) also
    does not trigger this function. */
 inline void Clock() {
-   if(ppu__sprites_enabled)
+   if(ppu__enable_sprites)
       Sprites::Clock();
 
    render.clock++;

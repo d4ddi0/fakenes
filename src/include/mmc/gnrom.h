@@ -5,8 +5,8 @@
 
 static int gnrom_init (void);
 static void gnrom_reset (void);
-static void gnrom_save_state (PACKFILE *, int);
-static void gnrom_load_state (PACKFILE *, int);
+static void gnrom_save_state (PACKFILE *, const int);
+static void gnrom_load_state (PACKFILE *, const int);
 
 static const MMC mmc_gnrom =
 {
@@ -44,7 +44,7 @@ static void gnrom_write (UINT16 address, UINT8 value)
 
    /* Select requested 8k CHR-ROM page. */
    for (index = 0; index < 8; index++)
-      ppu_set_ram_1k_pattern_vrom_block ((index << 10), (chr_page + index));
+      ppu_set_1k_pattern_table_vrom_page ((index << 10), (chr_page + index));
 }
 
 static void gnrom_reset (void)
@@ -56,7 +56,7 @@ static void gnrom_reset (void)
 
    /* Select first 8k CHR-ROM page. */
    for (index = 0; index < 8; index++)
-      ppu_set_ram_1k_pattern_vrom_block ((index << 10), index);
+      ppu_set_1k_pattern_table_vrom_page ((index << 10), index);
 }
 
 static int gnrom_init (void)
@@ -78,14 +78,14 @@ static int gnrom_init (void)
    return (0);
 }
 
-static void gnrom_save_state (PACKFILE *file, int version)
+static void gnrom_save_state (PACKFILE *file, const int version)
 {
    RT_ASSERT(file);
 
    pack_putc (gnrom_last_write, file);
 }
 
-static void gnrom_load_state (PACKFILE *file, int version)
+static void gnrom_load_state (PACKFILE *file, const int version)
 {
    RT_ASSERT(file);
 

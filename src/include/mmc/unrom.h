@@ -5,8 +5,8 @@
 
 static int unrom_init (void);
 static void unrom_reset (void);
-static void unrom_save_state (PACKFILE *, int);
-static void unrom_load_state (PACKFILE *, int);
+static void unrom_save_state (PACKFILE *, const int);
+static void unrom_load_state (PACKFILE *, const int);
 
 static const MMC mmc_unrom =
 {
@@ -40,7 +40,7 @@ static void unrom_reset (void)
 static int unrom_init (void)
 {
    /* No VROM hardware. */
-   ppu_set_ram_8k_pattern_vram ();
+   ppu_set_8k_pattern_table_vram ();
    mmc_pattern_vram_in_use = TRUE;
 
    /* Install write handler. */
@@ -53,7 +53,7 @@ static int unrom_init (void)
    return (0);
 }
 
-static void unrom_save_state (PACKFILE *file, int version)
+static void unrom_save_state (PACKFILE *file, const int version)
 {
    RT_ASSERT(file);
 
@@ -61,7 +61,7 @@ static void unrom_save_state (PACKFILE *file, int version)
    pack_putc (unrom_last_write, file);
 }
 
-static void unrom_load_state (PACKFILE *file, int version)
+static void unrom_load_state (PACKFILE *file, const int version)
 {
    RT_ASSERT(file);
 

@@ -39,7 +39,6 @@ extern "C" {
 #define PPU_RENDER_CLOCKS         256                                       /* PPU clocks per scanline(rendering portion) */
 #define PPU_HBLANK_START          (PPU_RENDER_CLOCKS + 1)                   /* Time of HBlank start. */
 #define PPU_HBLANK_CLOCKS         85                                        /* PPU clocks per scanline(HBlank portion) */
-#define PPU_HBLANK_PREFETCH       321                                       /* When PPU fetches data for the next line */
 #define PPU_SCANLINE_CLOCKS       (PPU_RENDER_CLOCKS + PPU_HBLANK_CLOCKS)   /* PPU clocks per scanline */
 #define PPU_FIRST_LINE            -1                                        /* First line emulated */
 #define PPU_LAST_LINE_NTSC        260                                       /* Last line emulated, NTSC. */             

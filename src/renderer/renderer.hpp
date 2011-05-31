@@ -10,6 +10,8 @@
 #define _RENDERER__RENDERER_HPP
 #include <allegro.h>
 #include "../include/common.h"
+#include "../include/ppu.h"
+#include "../include/ppu_int.h"
 #include "../include/types.h"
 
 namespace Renderer {
@@ -17,7 +19,7 @@ namespace Renderer {
 // These have to be here, rather than in a file, due to compiler limitations.
 static const int SpritesPerLine = 8;
 
-static const int BytesPerSprite = 4;
+static const int BytesPerSprite = PPU__BYTES_PER_SPRITE;
 static const unsigned SecondaryOAMSize = BytesPerSprite * SpritesPerLine;
 
 extern const int TileWidth;

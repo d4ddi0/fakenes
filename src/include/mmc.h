@@ -19,36 +19,36 @@ extern "C" {
 typedef struct _MMC
 {
    int number;
-   const UINT8 *name;
+   const char *name;
    int (*init) (void);
    void (*reset) (void);
-   const UINT8 *id;
-   void (*save_state) (PACKFILE *, int);
-   void (*load_state) (PACKFILE *, int);
-   void (*save_state_prg) (PACKFILE *, int);
-   void (*load_state_prg) (PACKFILE *, int);
-   void (*save_state_chr) (PACKFILE *, int);
-   void (*load_state_chr) (PACKFILE *, int);
+   const char *id;
+   void (*save_state) (PACKFILE *, const int);
+   void (*load_state) (PACKFILE *, const int);
+   void (*save_state_prg) (PACKFILE *, const int);
+   void (*load_state_prg) (PACKFILE *, const int);
+   void (*save_state_chr) (PACKFILE *, const int);
+   void (*load_state_chr) (PACKFILE *, const int);
 
 } MMC;
 
 extern int mmc_init (void);
 extern void mmc_reset (void);
-extern void mmc_request (int);
+extern void mmc_request (const int);
 extern void mmc_force (const MMC *);
-extern int (*mmc_hblank_start) (int);
-extern int (*mmc_scanline_start) (int);
-extern int (*mmc_scanline_end) (int);
-extern void (*mmc_predict_irqs) (cpu_time_t cycles);
-extern void (*mmc_check_latches) (UINT16);
+extern int (*mmc_hblank_start) (const int);
+extern int (*mmc_scanline_start) (const int);
+extern int (*mmc_scanline_end) (const int);
+extern void (*mmc_predict_irqs) (const cpu_time_t cycles);
+extern void (*mmc_check_latches) (const UINT16);
 extern int mmc_get_name_table_count (void);
 extern int mmc_uses_pattern_vram (void);
-extern void mmc_save_state (PACKFILE *, int);
-extern void mmc_load_state (PACKFILE *, int);
-extern void mmc_save_state_prg (PACKFILE *, int);
-extern void mmc_load_state_prg (PACKFILE *, int);
-extern void mmc_save_state_chr (PACKFILE *, int);
-extern void mmc_load_state_chr (PACKFILE *, int);
+extern void mmc_save_state (PACKFILE *, const int);
+extern void mmc_load_state (PACKFILE *, const int);
+extern void mmc_save_state_prg (PACKFILE *, const int);
+extern void mmc_load_state_prg (PACKFILE *, const int);
+extern void mmc_save_state_chr (PACKFILE *, const int);
+extern void mmc_load_state_chr (PACKFILE *, const int);
 
 #ifdef __cplusplus
 }

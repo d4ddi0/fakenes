@@ -5,8 +5,8 @@
 
 static int aorom_init (void);
 static void aorom_reset (void);
-static void aorom_save_state (PACKFILE *, int);
-static void aorom_load_state (PACKFILE *, int);
+static void aorom_save_state (PACKFILE *, const int);
+static void aorom_load_state (PACKFILE *, const int);
 
 static const MMC mmc_aorom =
 {
@@ -28,7 +28,7 @@ static void aorom_write (UINT16 address, UINT8 value)
 
    /* Is this reversed? */
    ppu_set_mirroring (((value & AOROM_MIRRORING_BIT) ?
-      MIRRORING_ONE_SCREEN_2400 : MIRRORING_ONE_SCREEN_2000));
+      PPU_MIRRORING_ONE_SCREEN_2400 : PPU_MIRRORING_ONE_SCREEN_2000));
 
    /* Mask off upper 4 bits. */
    value &= 0x0f;
@@ -46,12 +46,12 @@ static void aorom_reset (void)
 static int aorom_init (void)
 {
    /* No VROM hardware. */
-   ppu_set_ram_8k_pattern_vram ();
+   ppu_set_8k_pattern_table_vram ();
    mmc_pattern_vram_in_use = TRUE;
 
    /* Set the default mirroring. */
    mmc_name_table_count = 2;
-   ppu_set_mirroring (MIRRORING_ONE_SCREEN_2000);
+   ppu_set_mirroring (PPU_MIRRORING_ONE_SCREEN_2000);
 
    /* Install write handler. */
    cpu_set_write_handler_32k (0x8000, aorom_write);
@@ -63,14 +63,14 @@ static int aorom_init (void)
    return (0);
 }
 
-static void aorom_save_state (PACKFILE *file, int version)
+static void aorom_save_state (PACKFILE *file, const int version)
 {
    RT_ASSERT(file);
 
    pack_putc (aorom_last_write, file);
 }
 
-static void aorom_load_state (PACKFILE *file, int version)
+static void aorom_load_state (PACKFILE *file, const int version)
 {
    RT_ASSERT(file);
 

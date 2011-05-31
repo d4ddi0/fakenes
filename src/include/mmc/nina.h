@@ -5,8 +5,8 @@
 
 static int nina_init (void);
 static void nina_reset (void);
-static void nina_save_state (PACKFILE *, int);
-static void nina_load_state (PACKFILE *, int);
+static void nina_save_state (PACKFILE *, const int);
+static void nina_load_state (PACKFILE *, const int);
 
 static const MMC mmc_nina =
 {
@@ -26,7 +26,7 @@ static void nina_update_prg_bank (void)
    cpu_set_read_address_32k_rom_block (0x8000, nina_prg_bank);
 }
 
-static void nina_update_chr_bank (int bank)
+static void nina_update_chr_bank (const int bank)
 {
    int page_base;
    int index;
@@ -43,7 +43,7 @@ static void nina_update_chr_bank (int bank)
    /* Set requested 4k CHR-ROM page. */
    for (index = 0; index < 4; index++)
    {
-      ppu_set_ram_1k_pattern_vrom_block (((bank << 12) + (index << 10)),
+      ppu_set_1k_pattern_table_vrom_page (((bank << 12) + (index << 10)),
          (page_base + index));
    }
 }
@@ -117,7 +117,7 @@ static int nina_init (void)
    return (0);
 }
 
-static void nina_save_state (PACKFILE *file, int version)
+static void nina_save_state (PACKFILE *file, const int version)
 {
    RT_ASSERT(file);
 
@@ -125,7 +125,7 @@ static void nina_save_state (PACKFILE *file, int version)
    pack_fwrite (nina_chr_bank, 2, file);
 }
 
-static void nina_load_state (PACKFILE *file, int version)
+static void nina_load_state (PACKFILE *file, const int version)
 {
    int index;
 

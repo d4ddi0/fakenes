@@ -908,11 +908,12 @@ static void nsf_mapper_write(UINT16 address, UINT8 value);
 
 const MMC nsf_mapper = {
    10000, // Just set to some bogus number that will never be used.
-   (const UINT8*)"NSF",
+   "NSF",
    nsf_mapper_init,
    nsf_mapper_reset,
-   (const UINT8*)"NSF\0\0\0\0\0",
+   "NSF\0\0\0\0\0",
    NULL, NULL,
+   NULL, NULL, NULL, NULL,
 };
 
 // Mapper data for MMC5.

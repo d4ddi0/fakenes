@@ -1,52 +1,33 @@
-
-
 /* Mapper #5 (MMC5). */
-
 /* This mapper is partially supported. */
 
+static int mmc5_init(void);
+static void mmc5_reset(void);
+static void mmc5_save_state(PACKFILE*, const int);
+static void mmc5_load_state(PACKFILE*, const int);
 
-static int mmc5_init (void);
-
-static void mmc5_reset (void);
-
-
-static void mmc5_save_state (PACKFILE *, int);
-
-static void mmc5_load_state (PACKFILE *, int);
-
-
-static const MMC mmc_mmc5 =
-{
-    5, "MMC5 + ExSound",
-
-    mmc5_init, mmc5_reset,
-
-
-    "MMC5\0\0\0\0",
-
-    mmc5_save_state, mmc5_load_state,
-
-
-    NULL, NULL, NULL, NULL
+static const MMC mmc_mmc5 = {
+   5, "MMC5 + ExSound",
+   mmc5_init, mmc5_reset,
+   "MMC5\0\0\0\0",
+   mmc5_save_state, mmc5_load_state,
+   NULL, NULL, NULL, NULL
 };
-
 
 #define MMC5_UPDATE_FILL_NAME       1
 #define MMC5_UPDATE_FILL_ATTRIBUTE  2
 
-
 /* 5102: xxxxxx10, 5103: xxxxxx01 to disable RAM write protect */
 #define MMC5_RAM_WRITE_PROHIBITED \
- ((mmc5_5100[2] & 3) + ((mmc5_5100[3] & 3) << 2) != 6)
+   ((mmc5_5100[2] & 3) + ((mmc5_5100[3] & 3) << 2) != 6)
 
 static INT8 mmc5_filled_name_table_needs_update;
 
-/*static*/ UINT8 mmc5_5100[0x2C];
+static UINT8 mmc5_5100[0x2C];
 static UINT8 mmc5_5200[7];
 
 static unsigned mmc5_multiply_result;
 static INT8 mmc5_multiply_needs_update;
-
 
 static UINT8 mmc5_wram[64 << 10];
 static UINT8 mmc5_exram[1 << 10];
@@ -56,15 +37,14 @@ static UINT8 mmc5_wram_size;
 static INT8 mmc5_wram_lut[8];
 static INT8 background_patterns_last_mapped;
 
-enum
-{
+enum {
    MMC5_EXRAM_CONTROL_USE_AS_NAMETABLE = 0, /* Extra Nametable */
    MMC5_EXRAM_CONTROL_USE_AS_EXTENDED  = 1, /* Extended attributes(may imply mode 0) */
    MMC5_EXRAM_CONTROL_USE_AS_RAM       = 2, /* Ordinary RAM */
    MMC5_EXRAM_CONTROL_USE_AS_RAM_WP    = 3, /* Ordinary RAM, write protect */
 };
 
-#define MMC5_EXRAM_CONTROL_MASK 0x03
+#define MMC5_EXRAM_CONTROL_MASK	0x03
 #define MMC5_EXRAM_CONTROL      (mmc5_5100[4] & MMC5_EXRAM_CONTROL_MASK) /* $5104 bits 0-2 */
 
 /* If the MMC5 ExRAM control register $5104 is not set to mode 0 or 1, attempting to map ExRAM to a nametable (via $5105)
@@ -80,106 +60,101 @@ static UINT8 mmc5_nxram[1 << 10];
     (MMC5_EXRAM_CONTROL == MMC5_EXRAM_CONTROL_USE_AS_EXTENDED))
 
 /* passed size in kbytes, defaults to 8k on invalid values */
-static void mmc5_set_wram_size (int size)
+static void mmc5_set_wram_size(const int size)
 {
- int i;
+   int i;
 
- mmc5_wram_size = size;
+   mmc5_wram_size = size;
 
- switch (size)
- {
-  case 64:
-   for (i = 0; i < 8; i++) mmc5_wram_lut [i] = i;
-   break;
+   switch(size) {
+      case 64:
+         for(i = 0; i < 8; i++)
+            mmc5_wram_lut[i] = i;
 
-  case 40:
-   for (i = 0; i < 4; i++) mmc5_wram_lut [i] = i;
-   for (i = 4; i < 8; i++) mmc5_wram_lut [i] = 4;
-   break;
+         break;
+ 
+      case 40:
+         for(i = 0; i < 4; i++)
+            mmc5_wram_lut[i] = i;
+         for(i = 4; i < 8; i++)
+            mmc5_wram_lut[i] = 4;
 
-  case 32:
-   for (i = 0; i < 4; i++) mmc5_wram_lut [i] = i;
-   for (i = 4; i < 8; i++) mmc5_wram_lut [i] = -1;
-   break;
+         break;
 
-  case 16:
-   for (i = 0; i < 4; i++) mmc5_wram_lut [i] = 0;
-   for (i = 4; i < 8; i++) mmc5_wram_lut [i] = 1;
-   break;
+      case 32:
+         for(i = 0; i < 4; i++)
+            mmc5_wram_lut[i] = i;
+         for(i = 4; i < 8; i++)
+            mmc5_wram_lut[i] = -1;
 
-  case 0:
-   for (i = 0; i < 8; i++) mmc5_wram_lut [i] = -1;
-   break;
+         break;
 
-  default: case 8:
-   for (i = 0; i < 4; i++) mmc5_wram_lut [i] = 0;
-   for (i = 4; i < 8; i++) mmc5_wram_lut [i] = -1;
- }
+      case 16:
+         for(i = 0; i < 4; i++)
+            mmc5_wram_lut[i] = 0;
+         for(i = 4; i < 8; i++)
+            mmc5_wram_lut[i] = 1;
+
+         break;
+
+      case 0:
+         for(i = 0; i < 8; i++)
+            mmc5_wram_lut[i] = -1;
+
+         break;
+
+      default:
+      case 8:
+         for(i = 0; i < 4; i++)
+            mmc5_wram_lut[i] = 0;
+         for(i = 4; i < 8; i++)
+            mmc5_wram_lut[i] = -1;
+
+         break;
+   }
 }
-
 
 /* 5106: value returned for all names in 'filled' name table */
 /* 5107: value returned for all attributes in 'filled' attribute table */
-static void mmc5_update_filled_name_table (void)
+static void mmc5_update_filled_name_table(void)
 {
 /*
     if (mmc5_filled_name_table_in_use)
  */
-    {
-        if (mmc5_filled_name_table_needs_update & MMC5_UPDATE_FILL_NAME)
-        {
-            /* name table = 32x30 tiles */
-            memset(mmc5_filled_name_table, mmc5_5100[6], (32 * 30));
-        }
+   {
+      if(mmc5_filled_name_table_needs_update & MMC5_UPDATE_FILL_NAME)
+         /* name table = 32x30 tiles */
+         memset(mmc5_filled_name_table, mmc5_5100[6], 32 * 30);
 
-        if (mmc5_filled_name_table_needs_update & MMC5_UPDATE_FILL_ATTRIBUTE)
-        {
-            UINT8 attribute;
+      if(mmc5_filled_name_table_needs_update & MMC5_UPDATE_FILL_ATTRIBUTE) {
+         UINT8 attribute;
 
-            /* attribute table = 16x16 tile-quads */
-            attribute = mmc5_5100[7] & 3;
-            attribute |= (attribute << 2) | (attribute << 4) | (attribute << 6);
-            memset(mmc5_filled_name_table + (32 * 30), attribute,
-                (32 * 32) / (2 * 2) / 4);
-        }
+         /* attribute table = 16x16 tile-quads */
+         attribute = mmc5_5100[7] & 3;
+         attribute |= (attribute << 2) | (attribute << 4) | (attribute << 6);
+         memset(mmc5_filled_name_table + (32 * 30), attribute, (32 * 32) / (2 * 2) / 4);
+      }
 
-        mmc5_filled_name_table_needs_update &=
-            ~(MMC5_UPDATE_FILL_NAME | MMC5_UPDATE_FILL_ATTRIBUTE);
-    }
+      mmc5_filled_name_table_needs_update &= ~(MMC5_UPDATE_FILL_NAME | MMC5_UPDATE_FILL_ATTRIBUTE);
+   }
 }
 
-
-static void mmc5_set_wram_banking_8k (UINT16 address, UINT8 bank)
+static void mmc5_set_wram_banking_8k(const UINT16 address, const UINT8 bank)
 {
-    int index;
+   int index;
 
-    if (mmc5_wram_lut[bank & 7] >= 0)
-    {
-        cpu_set_read_address_8k (address,
-            mmc5_wram + (mmc5_wram_lut[bank & 7] << 13));
-    }
-    else
-    {
-        for (index = 0; index < (8 << 10); index += (2 << 10))
-        {
-            cpu_set_read_address_2k (address + index, dummy_read);
-        }
-    }
+   if(mmc5_wram_lut[bank & 7] >= 0)
+      cpu_set_read_address_8k(address, mmc5_wram + (mmc5_wram_lut[bank & 7] << 13));
+   else
+      for(index = 0; index < (8 << 10); index += (2 << 10))
+         cpu_set_read_address_2k(address + index, dummy_read);
 
-    if (mmc5_wram_lut[bank & 7] >= 0 && !MMC5_RAM_WRITE_PROHIBITED)
-    {
-        cpu_set_write_address_8k (address,
-            mmc5_wram + (mmc5_wram_lut[bank & 7] << 13));
-    }
-    else
-    {
-        for (index = 0; index < (8 << 10); index += (2 << 10))
-        {
-            cpu_set_write_address_2k (address + index, dummy_write);
-        }
-    }
+   if(mmc5_wram_lut[bank & 7] >= 0 && !MMC5_RAM_WRITE_PROHIBITED)
+      cpu_set_write_address_8k(address, mmc5_wram + (mmc5_wram_lut[bank & 7] << 13));
+   else
+      for(index = 0; index < (8 << 10); index += (2 << 10))
+         cpu_set_write_address_2k(address + index, dummy_write);
 }
-
 
 /* 5100: xxxxxxPP PRG banking mode, 5114-5117 is used for bank select */
 /*  00: 32k 01: 16k 10: 16k/8k 11: 8k */
@@ -358,11 +333,11 @@ static void mmc5_update_chr_banking(void)
 {
     int index;
 
-    int sprites_map_type = PPU_MAP_SPRITES |
-        (!background_patterns_last_mapped ? PPU_MAP_RAM : 0);
+    int sprites_map_type = PPU_EXPAND_SPRITES |
+        (!background_patterns_last_mapped ? PPU_EXPAND_INTERNAL : 0);
 
-    int background_map_type = PPU_MAP_BACKGROUND |
-        (background_patterns_last_mapped ? PPU_MAP_RAM : 0);
+    int background_map_type = PPU_EXPAND_BACKGROUND |
+        (background_patterns_last_mapped ? PPU_EXPAND_INTERNAL : 0);
 
 
     switch (mmc5_5100[1] & 3)
@@ -371,10 +346,10 @@ static void mmc5_update_chr_banking(void)
 
         for (index = 0; index < 8; index++)
         {
-            ppu_set_ram_1k_pattern_vrom_block_ex (index << 10,
+            ppu_set_1k_pattern_table_vrom_page_expanded (index << 10,
                 mmc5_5100[0x27] + index, sprites_map_type);
 
-            ppu_set_ram_1k_pattern_vrom_block_ex (index << 10,
+            ppu_set_1k_pattern_table_vrom_page_expanded (index << 10,
                 mmc5_5100[0x2B] + index, background_map_type);
         }
 
@@ -385,11 +360,11 @@ static void mmc5_update_chr_banking(void)
 
         for (index = 0; index < 8; index++)
         {
-            ppu_set_ram_1k_pattern_vrom_block_ex (index << 10,
+            ppu_set_1k_pattern_table_vrom_page_expanded (index << 10,
                 mmc5_5100[0x23 + (index & 4)] + (index & 3),
                 sprites_map_type);
 
-            ppu_set_ram_1k_pattern_vrom_block_ex (index << 10,
+            ppu_set_1k_pattern_table_vrom_page_expanded (index << 10,
                 mmc5_5100[0x2B] + (index & 3), background_map_type);
         }
 
@@ -400,11 +375,11 @@ static void mmc5_update_chr_banking(void)
 
         for (index = 0; index < 8; index++)
         {
-            ppu_set_ram_1k_pattern_vrom_block_ex (index << 10,
+            ppu_set_1k_pattern_table_vrom_page_expanded (index << 10,
                 mmc5_5100[0x21 + (index & 6)] + (index & 1),
                 sprites_map_type);
 
-            ppu_set_ram_1k_pattern_vrom_block_ex (index << 10,
+            ppu_set_1k_pattern_table_vrom_page_expanded (index << 10,
                 mmc5_5100[0x29 + (index & 2)] + (index & 1),
                 background_map_type);
         }
@@ -416,10 +391,10 @@ static void mmc5_update_chr_banking(void)
 
         for (index = 0; index < 8; index++)
         {
-            ppu_set_ram_1k_pattern_vrom_block_ex (index << 10,
+            ppu_set_1k_pattern_table_vrom_page_expanded (index << 10,
                 mmc5_5100[0x20 + index], sprites_map_type);
 
-            ppu_set_ram_1k_pattern_vrom_block_ex (index << 10,
+            ppu_set_1k_pattern_table_vrom_page_expanded (index << 10,
                 mmc5_5100[0x28 + (index & 3)], background_map_type);
         }
 
@@ -434,11 +409,11 @@ static void mmc5_update_name_table(int table)
     switch ((mmc5_5100[5] >> (table * 2)) & 3)
     {
         case 0: /* PPU $2000 */
-            ppu_set_name_table_internal (table, 0);
+            ppu_set_1k_name_table_vram_page (table, 0);
             break;
                         
         case 1: /* PPU $2400 */
-            ppu_set_name_table_internal (table, 1);
+            ppu_set_1k_name_table_vram_page (table, 1);
             break;
                         
         case 2: /* EXRAM */
@@ -450,7 +425,7 @@ static void mmc5_update_name_table(int table)
             break;
                         
         case 3: /* filled, special */
-            ppu_set_name_table_address_rom (table,
+            ppu_set_name_table_address_read_only (table,
                 mmc5_filled_name_table);
 /*          mmc5_update_filled_name_table ();*/
             break;
@@ -1085,7 +1060,9 @@ static void mmc5_exram_write(UINT16 address, UINT8 value)
       (MMC5_EXRAM_CONTROL == MMC5_EXRAM_CONTROL_USE_AS_EXTENDED)) {
       /* Modes 0 and 1. */
      const UINT16 write_address = (address - 0x5C00);
-     if (ppu_is_rendering())
+     const ENUM status = ppu_get_status();
+     /* ExRAM writes are only valid while the PPU is rendering? */
+     if ((status == PPU_STATUS_RASTERIZING) || (status == PPU_STATUS_HBLANK))
         mmc5_exram[write_address] = value;
      else
         mmc5_exram[write_address] = 0x00;
@@ -1196,8 +1173,10 @@ static int mmc5_init (void)
 }
 
 
-static void mmc5_save_state (PACKFILE * file, int version)
+static void mmc5_save_state (PACKFILE * file, const int version)
 {
+    RT_ASSERT(file);
+
     /* Save registers */
     pack_fwrite (mmc5_5100, 0x2C, file);
     pack_fwrite (mmc5_5200, 7, file);
@@ -1224,9 +1203,11 @@ static void mmc5_save_state (PACKFILE * file, int version)
 }
 
 
-static void mmc5_load_state (PACKFILE * file, int version)
+static void mmc5_load_state (PACKFILE * file, const int version)
 {
     int index;
+
+    RT_ASSERT(file);
 
     UINT8 saved_wram_size;
 

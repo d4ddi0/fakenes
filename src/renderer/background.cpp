@@ -73,12 +73,12 @@ inline void Pixel()
 #if 0
    if(transparent) {
       PPU__PUT_BACKGROUND_PIXEL(render.pixel, 0);
-      render.buffer[render.pixel] = PPU__BACKGROUND_PALETTE(0);
+      render.buffer[render.pixel] = PPU__BACKGROUND_PALETTE(0, 0);
    }
    else {
       PPU__PUT_BACKGROUND_PIXEL(render.pixel, color);
       render.buffer[render.pixel] = ppu_enable_background_layer ?
-         PPU__BACKGROUND_PALETTE(color) : PPU__BACKGROUND_PALETTE(0);
+         PPU__BACKGROUND_PALETTE(color) : PPU__BACKGROUND_PALETTE(0, 0);
    }
 #endif
 

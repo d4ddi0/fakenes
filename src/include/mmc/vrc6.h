@@ -7,8 +7,8 @@
 static int vrc6_init(void);
 static int vrc6v_init(void);
 static void vrc6_reset(void);
-static void vrc6_save_state(PACKFILE*, int);
-static void vrc6_load_state(PACKFILE*, int);
+static void vrc6_save_state(PACKFILE*, const int);
+static void vrc6_load_state(PACKFILE*, const int);
 
 static const MMC mmc_vrc6 = {
    24,
@@ -24,14 +24,15 @@ static const MMC mmc_vrc6v = {
    "Konami VRC6V + ExSound",
    vrc6v_init,vrc6_reset,
    "VRC6V\0\0\0",
-   vrc6_save_state, vrc6_load_state
+   vrc6_save_state, vrc6_load_state,
+   NULL, NULL, NULL, NULL
 };
 
 static const ENUM vrc6_mirroring_table[] = {
-   MIRRORING_VERTICAL,
-   MIRRORING_HORIZONTAL,
-   MIRRORING_ONE_SCREEN_2000,
-   MIRRORING_ONE_SCREEN_2400
+   PPU_MIRRORING_VERTICAL,
+   PPU_MIRRORING_HORIZONTAL,
+   PPU_MIRRORING_ONE_SCREEN_2000,
+   PPU_MIRRORING_ONE_SCREEN_2400
 };
 
 static const UINT8 vrc6_mirroring_mask = 0x0C;
@@ -46,7 +47,7 @@ static UINT8 vrc6_chr_bank[VRC6_CHR_BANKS];
 /* ~1.79MHz(~1.66MHz for PAL) clock derived directly from the CPU. */
 static cpu_time_t vrc6_clock_counter = 0;
 /* Buffer to hold unused clocks so we don't lose cycles. */
-static cpu_rtime_t vrc6_clock_buffer = 0;
+static cpu_time_t vrc6_clock_buffer = 0;
 
 /* When in scanline mode ('M' bit clear), a prescaler divides the passing CPU cycles by 114, 114, then 113 (and repeats
    that order). This approximates 113+2/3 CPU cycles, which is one NTSC scanline */
@@ -65,18 +66,18 @@ static BOOL  vrc6_enable_irqs = FALSE;
 static cpu_time_t vrc6_prediction_timestamp = 0;
 static cpu_time_t vrc6_prediction_cycles = 0;
 
-static void vrc6_update_irq_counter(cpu_time_t cycles, BOOL allow_irq)
+static void vrc6_update_irq_counter(const cpu_time_t cycles, const BOOL allow_irq)
 {
    /* allow_irq setting:
          TRUE  - prediction mode, allows queue of IRQs
          FALSE - emulation mode, does not allow queueing of IRQs */
 
-   cpu_time_t offset;
+   cpu_time_t current;
 
    if(!vrc6_enable_irqs)
       return;
 
-   for(offset = 0; offset < cycles; offset++) {
+   for(current = 0; current < cycles; current++) {
       if(vrc6_irq_timer > 0) {
          vrc6_irq_timer--;
          if(vrc6_irq_timer > 0)
@@ -98,7 +99,7 @@ static void vrc6_update_irq_counter(cpu_time_t cycles, BOOL allow_irq)
          vrc6_irq_counter = vrc6_irq_latch;
 
          if (allow_irq)
-            cpu_queue_interrupt(CPU_INTERRUPT_IRQ_MMC, vrc6_prediction_timestamp + (offset * CPU_CLOCK_MULTIPLIER));
+            cpu_queue_interrupt(CPU_INTERRUPT_IRQ_MMC, vrc6_prediction_timestamp + (current * CPU_CLOCK_MULTIPLIER));
       }
       else
          vrc6_irq_counter++;
@@ -110,22 +111,22 @@ static void vrc6_process (void)
    /* Call this before accessing the state of the mapper - before reads,
       writes, and state-sensetive emulation. */
 
-   const cpu_rtime_t elapsed_cycles = cpu_get_elapsed_cycles(&vrc6_clock_counter) + vrc6_clock_buffer;
-   if(elapsed_cycles <= 0)
+   const cpu_time_t elapsed_cycles = cpu_get_elapsed_cycles(&vrc6_clock_counter) + vrc6_clock_buffer;
+   if(elapsed_cycles == 0)
       return;
 
    /* Scale from master clock to APU and buffer the remainder to avoid possibly losing cycles. */
-   const cpu_rtime_t elapsed_cpu_cycles = elapsed_cycles / CPU_CLOCK_DIVIDER;
+   const cpu_time_t elapsed_cpu_cycles = elapsed_cycles / CPU_CLOCK_DIVIDER;
    vrc6_clock_buffer += elapsed_cycles - (elapsed_cpu_cycles * CPU_CLOCK_DIVIDER);
 
-   if(elapsed_cpu_cycles <= 0)
+   if(elapsed_cpu_cycles == 0)
       return;
 
    /* *Don't* allow IRQs here, or it'll conflict with prediction. */
    vrc6_update_irq_counter(elapsed_cpu_cycles, FALSE);
 }
 
-static void vrc6_predict_irq_slave(cpu_time_t cycles)
+static void vrc6_predict_irq_slave(const cpu_time_t cycles)
 {
    /* Slave function used by IRQ prediction. */
 
@@ -153,7 +154,7 @@ static void vrc6_predict_irq_slave(cpu_time_t cycles)
    vrc6_irq_counter = saved_irq_counter;
 }
 
-static void vrc6_predict_irq(cpu_time_t cycles)
+static void vrc6_predict_irq(const cpu_time_t cycles)
 {
    /* Sync state. */
    vrc6_process();
@@ -163,7 +164,7 @@ static void vrc6_predict_irq(cpu_time_t cycles)
    /* We'll actually emulate for a little bit longer than requested, since it doesn't hurt to do so. */
    vrc6_prediction_cycles = cycles + PREDICTION_BUFFER_CYCLES + (1 * CPU_CLOCK_MULTIPLIER);
 
-   const cpu_time_t cpu_cycles = cycles /  CPU_CLOCK_DIVIDER;
+   const cpu_time_t cpu_cycles = vrc6_prediction_cycles /  CPU_CLOCK_DIVIDER;
    if(cpu_cycles == 0)
       return;
 
@@ -175,30 +176,28 @@ static void vrc6_repredict_irq(void)
    /* This needs to be called whenver a possible mid-scanline change to the
       IRQ parameters occurs (to update prediction). */
 
-   cpu_time_t cycles;
+   cpu_time_t timestamp;
+   cpu_time_t cycles_elapsed;
    cpu_rtime_t cycles_remaining;
 
    /* Sync state. */
    vrc6_process();
 
-   cycles = cpu_get_cycles();
+   timestamp = cpu_get_cycles();
 
-   cycles_remaining = (signed)cycles - (signed)vrc6_prediction_timestamp;
+   cycles_elapsed = (cpu_rtime_t)timestamp - (cpu_rtime_t)vrc6_prediction_timestamp;
+   cycles_remaining = (cpu_rtime_t)vrc6_prediction_timestamp - cycles_elapsed;
    if(cycles_remaining <= 0)
       return;
 
-   if(cycles_remaining > vrc6_prediction_cycles)
-      cycles_remaining = vrc6_prediction_cycles;
-
-   const cpu_rtime_t cpu_cycles_remaining = cycles_remaining / CPU_CLOCK_DIVIDER;
-   if(cpu_cycles_remaining <= 0)
+   const cpu_time_t cpu_cycles_remaining = cycles_remaining / CPU_CLOCK_DIVIDER;
+   if(cpu_cycles_remaining == 0)
       return;
 
    vrc6_predict_irq_slave(cpu_cycles_remaining);
 }
 
-
-static void vrc6_update_prg_bank(int bank)
+static void vrc6_update_prg_bank(const int bank)
 {
    switch(bank) {
       case 0: {
@@ -220,13 +219,13 @@ static void vrc6_update_prg_bank(int bank)
    }
 }
 
-static void vrc6_update_chr_bank(int bank)
+static void vrc6_update_chr_bank(const int bank)
 {
    if(ROM_CHR_ROM_PAGES <= 0)
       return;
 
    /* Set new VROM banking. */
-   ppu_set_ram_1k_pattern_vrom_block(bank << 10, vrc6_chr_bank[bank]);
+   ppu_set_1k_pattern_table_vrom_page(bank << 10, vrc6_chr_bank[bank]);
 }
 
 static void vrc6_write(UINT16 address, UINT8 value)
@@ -439,7 +438,7 @@ static int vrc6v_init (void)
    return vrc6_base_init();
 }
 
-static void vrc6_save_state(PACKFILE* file, int version)
+static void vrc6_save_state(PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -467,7 +466,7 @@ static void vrc6_save_state(PACKFILE* file, int version)
    pack_iputl(vrc6_prediction_cycles, file);
 }
 
-static void vrc6_load_state(PACKFILE* file, int version)
+static void vrc6_load_state(PACKFILE* file, const int version)
 {
    int index;
 

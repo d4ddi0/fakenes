@@ -1556,7 +1556,7 @@ static void apu_repredict_irqs(const unsigned predictionFlags)
    const cpu_time_t cycles_elapsed = (cpu_rtime_t)timestamp - (cpu_rtime_t)apu.prediction_timestamp;
 
    // Calculate how many cycles are left in the prediction buffer.
-   const cpu_rtime_t cycles_remaining = apu.prediction_cycles - cycles_elapsed;
+   const cpu_rtime_t cycles_remaining = (cpu_rtime_t)apu.prediction_cycles - cycles_elapsed;
    if(cycles_remaining <= 0)
       return;
 

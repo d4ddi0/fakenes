@@ -3,8 +3,8 @@
 
 static int sunsoft4_init (void);
 static void sunsoft4_reset (void);
-static void sunsoft4_save_state (PACKFILE *, int);
-static void sunsoft4_load_state (PACKFILE *, int);
+static void sunsoft4_save_state (PACKFILE *, const int);
+static void sunsoft4_load_state (PACKFILE *, const int);
 
 static const MMC mmc_sunsoft4 =
 {
@@ -31,14 +31,14 @@ static INLINE void sunsoft4_fixup_name_tables (void)
          /* Horizontal/vertical mirroring. */
 
          ppu_set_mirroring (((sunsoft4_name_table_control & 1) ?
-            MIRRORING_HORIZONTAL : MIRRORING_VERTICAL));
+            PPU_MIRRORING_HORIZONTAL : PPU_MIRRORING_VERTICAL));
       }
       else
       {
          /* One-screen mirroring. */
 
          ppu_set_mirroring (((sunsoft4_name_table_control & 1) ?
-            MIRRORING_ONE_SCREEN_2400 : MIRRORING_ONE_SCREEN_2000));
+            PPU_MIRRORING_ONE_SCREEN_2400 : PPU_MIRRORING_ONE_SCREEN_2000));
       }
    }
    else
@@ -53,26 +53,26 @@ static INLINE void sunsoft4_fixup_name_tables (void)
          {
             /* Vertical mirroring. */
 
-            ppu_set_name_table_address_vrom (0,
+            ppu_set_1k_name_table_vrom_page (0,
                (sunsoft4_name_table_banks[0] | 0x80));
-            ppu_set_name_table_address_vrom (1,
+            ppu_set_1k_name_table_vrom_page (1,
                (sunsoft4_name_table_banks[1] | 0x80));
-            ppu_set_name_table_address_vrom (2,
+            ppu_set_1k_name_table_vrom_page (2,
                (sunsoft4_name_table_banks[0] | 0x80));
-            ppu_set_name_table_address_vrom (3,
+            ppu_set_1k_name_table_vrom_page (3,
                (sunsoft4_name_table_banks[1] | 0x80));
          }
          else
          {
             /* Horizontal mirroring. */
 
-            ppu_set_name_table_address_vrom (0,
+            ppu_set_1k_name_table_vrom_page (0,
                (sunsoft4_name_table_banks[0] | 0x80));
-            ppu_set_name_table_address_vrom (1,
+            ppu_set_1k_name_table_vrom_page (1,
                (sunsoft4_name_table_banks[0] | 0x80));
-            ppu_set_name_table_address_vrom (2,
+            ppu_set_1k_name_table_vrom_page (2,
                (sunsoft4_name_table_banks[1] | 0x80));
-            ppu_set_name_table_address_vrom (3,
+            ppu_set_1k_name_table_vrom_page (3,
                (sunsoft4_name_table_banks[1] | 0x80));
          }
       }
@@ -85,10 +85,10 @@ static INLINE void sunsoft4_fixup_name_tables (void)
          value = (sunsoft4_name_table_banks[(sunsoft4_name_table_control &
             1)] | 0x80);
 
-         ppu_set_name_table_address_vrom (0, value);
-         ppu_set_name_table_address_vrom (1, value);
-         ppu_set_name_table_address_vrom (2, value);
-         ppu_set_name_table_address_vrom (3, value);
+         ppu_set_1k_name_table_vrom_page (0, value);
+         ppu_set_1k_name_table_vrom_page (1, value);
+         ppu_set_1k_name_table_vrom_page (2, value);
+         ppu_set_1k_name_table_vrom_page (3, value);
       }
    }
 }
@@ -99,7 +99,7 @@ static void sunsoft4_update_prg_bank (void)
    cpu_set_read_address_16k_rom_block (0x8000, sunsoft4_prg_bank);
 }
 
-static void sunsoft4_update_chr_bank (int bank)
+static void sunsoft4_update_chr_bank (const int bank)
 {
    int address, value;
 
@@ -111,8 +111,8 @@ static void sunsoft4_update_chr_bank (int bank)
 
    /* Select 2k page at PPU address. */
 
-   ppu_set_ram_1k_pattern_vrom_block (address, value);
-   ppu_set_ram_1k_pattern_vrom_block ((address + 0x400), (value + 1));
+   ppu_set_1k_pattern_table_vrom_page (address, value);
+   ppu_set_1k_pattern_table_vrom_page ((address + 0x400), (value + 1));
 }
 
 static void sunsoft4_write (UINT16 address, UINT8 value)
@@ -194,7 +194,7 @@ static int sunsoft4_init (void)
    sunsoft4_name_table_banks[1] = 0;
 
    sunsoft4_name_table_control = ((ppu_get_mirroring () ==
-      MIRRORING_VERTICAL) ? 0 : 1);
+      PPU_MIRRORING_VERTICAL) ? 0 : 1);
 
    /* Set initial pattern table mappings. */
    for (index = 0; index < 4; index++)
@@ -213,7 +213,7 @@ static int sunsoft4_init (void)
    return (0);
 }
 
-static void sunsoft4_save_state (PACKFILE *file, int version)
+static void sunsoft4_save_state (PACKFILE *file, const int version)
 {
    RT_ASSERT(file);
 
@@ -228,7 +228,7 @@ static void sunsoft4_save_state (PACKFILE *file, int version)
    pack_fwrite (sunsoft4_name_table_banks, 2, file);
 }
 
-static void sunsoft4_load_state (PACKFILE *file, int version)
+static void sunsoft4_load_state (PACKFILE *file, const int version)
 {
    int index;
 
