@@ -52,7 +52,7 @@ void Square::reset(void)
    output = 0;
 }
 
-void Square::write(uint16 address, uint8 value)
+void Square::write(const uint16 address, const uint8 value)
 {
    switch(address) {
       case 0x5000:
@@ -109,7 +109,7 @@ void Square::write(uint16 address, uint8 value)
    }
 }
 
-void Square::process(cpu_time_t cycles)
+void Square::process(const cpu_time_t cycles)
 {
    if (timer > 0) {
       timer -= cycles;
@@ -128,7 +128,7 @@ void Square::process(cpu_time_t cycles)
       step = 0;
 }
 
-void Square::save(PACKFILE* file, int version) const
+void Square::save(PACKFILE* file, const int version) const
 {
    RT_ASSERT(file);
 
@@ -146,7 +146,7 @@ void Square::save(PACKFILE* file, int version) const
    pack_putc(envelope.counter, file);
 }
 
-void Square::load(PACKFILE* file, int version)
+void Square::load(PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -200,7 +200,7 @@ void PCM::reset (void)
    output = 0;
 }
 
-void PCM::write(uint16 address, uint8 value)
+void PCM::write(const uint16 address, const uint8 value)
 {
    switch (address) {
       case 0x5011: {
@@ -213,14 +213,14 @@ void PCM::write(uint16 address, uint8 value)
    }
 }
 
-void PCM::save(PACKFILE* file, int version) const
+void PCM::save(PACKFILE* file, const int version) const
 {
    RT_ASSERT(file);
 
    pack_putc(output, file);
 }
 
-void PCM::load(PACKFILE* file, int version)
+void PCM::load(PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -239,7 +239,7 @@ void Interface::reset(void)
    output = 0;
 }
 
-uint8 Interface::read(uint16 address) const
+uint8 Interface::read(const uint16 address) const
 {
    uint8 value = 0x00;
 
@@ -260,7 +260,7 @@ uint8 Interface::read(uint16 address) const
    return value;
 }
 
-void Interface::write(uint16 address, uint8 value)
+void Interface::write(const uint16 address, const uint8 value)
 {
    switch(address) {
       case 0x5000:
@@ -301,7 +301,7 @@ void Interface::write(uint16 address, uint8 value)
    }
 }
 
-void Interface::process(cpu_time_t cycles)
+void Interface::process(const cpu_time_t cycles)
 {
    if(timer > 0)
       timer -= cycles;
@@ -330,7 +330,7 @@ void Interface::process(cpu_time_t cycles)
    square2.process(cycles);
 }
 
-void Interface::save(PACKFILE* file, int version) const
+void Interface::save(PACKFILE* file, const int version) const
 {
    RT_ASSERT(file);
 
@@ -342,7 +342,7 @@ void Interface::save(PACKFILE* file, int version) const
    pcm.save(file, version);
 }
 
-void Interface::load(PACKFILE* file, int version)
+void Interface::load(PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -354,7 +354,7 @@ void Interface::load(PACKFILE* file, int version)
    pcm.load(file, version);
 }
 
-void Interface::mix(real input)
+void Interface::mix(const real input)
 {
    /* Not much is known about MMC5 mixing but common sense will tell that the squares are probably mixed together and then
       passed to an 8 bit DAC, and the PCM control register is simply connected directly to the DAC.

@@ -107,7 +107,6 @@ static INLINE void update_menus (void)
       DISABLE_MENU_ITEM(system_menu_reset);
       DISABLE_MENU_ITEM(system_menu_power_cycle);
       DISABLE_SUBMENU(system_save_state_menu);
-      DISABLE_MENU_ITEM(video_layers_menu_flip_mirroring);
       DISABLE_MENU_ITEM(options_menu_reset_clock);
    }
 
@@ -325,9 +324,9 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(video_palette_menu_ega_mode_2,     (video_get_palette_id () == DATA_INDEX(EGA_PALETTE_2)));
    TOGGLE_MENU_ITEM(video_palette_menu_custom,         (video_get_palette_id () == -1));
 
-   TOGGLE_MENU_ITEM(video_layers_menu_show_low_sprites,    ppu_enable_sprite_layer_a);
-   TOGGLE_MENU_ITEM(video_layers_menu_show_high_sprites,   ppu_enable_sprite_layer_b);
-   TOGGLE_MENU_ITEM(video_layers_menu_show_background,     ppu_enable_background_layer);
+   TOGGLE_MENU_ITEM(video_layers_menu_show_back_sprites,   ppu_get_option(PPU_OPTION_ENABLE_SPRITE_BACK_LAYER));
+   TOGGLE_MENU_ITEM(video_layers_menu_show_front_sprites,  ppu_get_option(PPU_OPTION_ENABLE_SPRITE_FRONT_LAYER));
+   TOGGLE_MENU_ITEM(video_layers_menu_show_background,     ppu_get_option(PPU_OPTION_ENABLE_BACKGROUND_LAYER));
    TOGGLE_MENU_ITEM(video_layers_menu_horizontal_overscan, (video_edge_clipping & VIDEO_EDGE_CLIPPING_HORIZONTAL));
    TOGGLE_MENU_ITEM(video_layers_menu_vertical_overscan,   (video_edge_clipping & VIDEO_EDGE_CLIPPING_VERTICAL));
 
@@ -764,8 +763,8 @@ void gui_handle_keypress (int c, int scancode)
       {
          /* Toggle sprites. */
 
-         video_layers_menu_show_low_sprites ();
-         video_layers_menu_show_high_sprites ();
+         video_layers_menu_show_back_sprites ();
+         video_layers_menu_show_front_sprites ();
 
          break;
       }
@@ -1010,7 +1009,6 @@ static INLINE int load_file (const UCHAR *filename)
       ENABLE_MENU_ITEM(system_menu_reset);
       ENABLE_MENU_ITEM(system_menu_power_cycle);
       ENABLE_SUBMENU(system_save_state_menu);
-      ENABLE_MENU_ITEM(video_layers_menu_flip_mirroring);
       ENABLE_MENU_ITEM(options_menu_reset_clock);
 
       /* Update window title. */
@@ -3069,24 +3067,24 @@ static int video_filters_menu_scanlines_100_percent (void)
    return (D_O_K);
 }
 
-static int video_layers_menu_show_low_sprites (void)
+static int video_layers_menu_show_back_sprites (void)
 {
-   ppu_enable_sprite_layer_a = !ppu_enable_sprite_layer_a;
+   const BOOL setting = ppu_get_option(PPU_OPTION_ENABLE_SPRITE_BACK_LAYER);
+   ppu_set_option(PPU_OPTION_ENABLE_SPRITE_BACK_LAYER, !setting);
    update_menus ();
 
-   message_local ("Video sprites layer A %s.", get_enabled_text
-      (ppu_enable_sprite_layer_a));
+   message_local ("Video sprites layer A %s.", get_enabled_text(!setting));
 
    return (D_O_K);
 }
 
-static int video_layers_menu_show_high_sprites (void)
+static int video_layers_menu_show_front_sprites (void)
 {
-   ppu_enable_sprite_layer_b = !ppu_enable_sprite_layer_b;
+   const BOOL setting = ppu_get_option(PPU_OPTION_ENABLE_SPRITE_FRONT_LAYER);
+   ppu_set_option(PPU_OPTION_ENABLE_SPRITE_FRONT_LAYER, !setting);
    update_menus ();
 
-   message_local ("Video sprites layer B %s.", get_enabled_text
-      (ppu_enable_sprite_layer_b));
+   message_local ("Video sprites layer B %s.", get_enabled_text(!setting));
 
    return (D_O_K);
 }
@@ -3094,11 +3092,11 @@ static int video_layers_menu_show_high_sprites (void)
 
 static int video_layers_menu_show_background (void)
 {
-   ppu_enable_background_layer = !ppu_enable_background_layer;
+   const BOOL setting = ppu_get_option(PPU_OPTION_ENABLE_BACKGROUND_LAYER);
+   ppu_set_option(PPU_OPTION_ENABLE_BACKGROUND_LAYER, !setting);
    update_menus ();
 
-   message_local ("Video background layer %s.", get_enabled_text
-      (ppu_enable_background_layer));
+   message_local ("Video background layer %s.", get_enabled_text(!setting));
 
    return (D_O_K);
 }
@@ -3139,13 +3137,6 @@ static int video_layers_menu_vertical_overscan (void)
       (video_edge_clipping & VIDEO_EDGE_CLIPPING_VERTICAL));
 
    return (D_O_K);
-}
-
-static int video_layers_menu_flip_mirroring (void)
-{
-   ppu_invert_mirroring ();
-
-   return (D_CLOSE);
 }
 
 #define PALETTE_MENU_HANDLER(name, caption, id) \

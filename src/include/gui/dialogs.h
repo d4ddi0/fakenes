@@ -140,7 +140,7 @@ enum
 
 static const DIALOG main_dialog_base[] =
 {
-   { d_menu_proc, 8, 8, 0, 0, 0, 0, 0, 0, 0, 0, IMPORT_MENU(top_menu), NULL, NULL },
+   { d_menu_proc, 8, 8, 0, 0, 0,  0, 0, 0, 0, 0, IMPORT_MENU(top_menu), NULL, NULL },
    DIALOG_ENDCAP
 };
 

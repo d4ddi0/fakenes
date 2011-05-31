@@ -20,10 +20,10 @@ protected:
    friend class Interface;
 
    void reset(void);
-   void write(uint16 address, uint8 value);
-   void process(cpu_time_t cycles);
-   void save(PACKFILE* file, int version) const;
-   void load(PACKFILE* file, int version);
+   void write(const uint16 address, const uint8 value);
+   void process(const cpu_time_t cycles);
+   void save(PACKFILE* file, const int version) const;
+   void load(PACKFILE* file, const int version);
 
    uint8 output;  // save
 
@@ -45,10 +45,10 @@ protected:
    friend class Interface;
 
    void reset(void);
-   void write(uint16 address, uint8 value);
-   void process(cpu_time_t cycles);
-   void save(PACKFILE* file, int version) const;
-   void load(PACKFILE* file, int version);
+   void write(const uint16 address, const uint8 value);
+   void process(const cpu_time_t cycles);
+   void save(PACKFILE* file, const int version) const;
+   void load(PACKFILE* file, const int version);
 
    uint8 output;  // save
 
@@ -67,11 +67,11 @@ private:
 class Interface : public Sound::Interface {
 public:
    void reset(void);
-   void write(uint16 address, uint8 value);
-   void process(cpu_time_t cycles);
-   void save(PACKFILE* file, int version) const;
-   void load(PACKFILE* file, int version);
-   void mix(real input);
+   void write(const uint16 address, const uint8 value);
+   void process(const cpu_time_t cycles);
+   void save(PACKFILE* file, const int version) const;
+   void load(PACKFILE* file, const int version);
+   void mix(const real input);
 
 private:
    Square square1;

@@ -78,10 +78,10 @@ static Sound::VRC6::Interface apu_exsound_vrc6;
 
 // Internal function prototypes (defined at bottom).
 static void process(void);
-static void mix(void);
-static void filter(real& sample, APULPFilter *lpEnv, APUDCFilter* dcEnv);
-static void amplify(real& sample);
-static void enqueue(real& sample);
+static inline void mix(void);
+static inline void filter(real& sample, APULPFilter *lpEnv, APUDCFilter* dcEnv);
+static inline void amplify(real& sample);
+static inline void enqueue(real& sample);
 
 // Channel indices.
 enum {
@@ -184,12 +184,12 @@ enum {
 };
 
 // IRQ reprediction handler.
-static void apu_repredict_irqs(unsigned predictionFlags);
+static void apu_repredict_irqs(const unsigned predictionFlags);
 
 // --- Sound generators. ---
 
 // Envelope generator for squares and noise
-static void apu_envelope(APUChannel& chan, APUEnvelope& env)
+static inline void apu_envelope(APUChannel& chan, APUEnvelope& env)
 {
    /* When clocked by the frame sequencer, one of two actions occurs: if there was a
       write to the fourth channel register since the last clock, the counter is set
@@ -227,7 +227,7 @@ static void apu_envelope(APUChannel& chan, APUEnvelope& env)
    chan.volume = env.fixed ? env.fixed_volume : env.counter;
 }
 
-static void apu_save_envelope(APUEnvelope& env, PACKFILE* file, int version)
+static void apu_save_envelope(const APUEnvelope& env, PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -239,7 +239,7 @@ static void apu_save_envelope(APUEnvelope& env, PACKFILE* file, int version)
    pack_putc(Binary(env.dirty), file);
 }
 
-static void apu_load_envelope(APUEnvelope& env, PACKFILE* file, int version)
+static void apu_load_envelope(APUEnvelope& env, PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -295,7 +295,7 @@ static linear void apu_sweep(APUChannel& chan, APUSweep& sweep)
       chan.period = delta;
 }
 
-static void apu_save_sweep(APUSweep& env, PACKFILE* file, int version)
+static void apu_save_sweep(const APUSweep& env, PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -307,7 +307,7 @@ static void apu_save_sweep(APUSweep& env, PACKFILE* file, int version)
    pack_putc(Binary(env.dirty), file);
 }
 
-static void apu_load_sweep(APUSweep& env, PACKFILE* file, int version)
+static void apu_load_sweep(APUSweep& env, PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -320,13 +320,13 @@ static void apu_load_sweep(APUSweep& env, PACKFILE* file, int version)
 }
 
 // Length counter for squares, triangle, and noise
-static void apu_update_length_counter(APUWaveformChannel& chan)
+static inline void apu_update_length_counter(APUWaveformChannel& chan)
 {
    if((chan.length > 0) && !chan.looping)
       chan.length--;
 }
 
-static linear void apu_update_square(APUSquare& chan, FLAGS update_flags)
+static linear void apu_update_square(APUSquare& chan, const FLAGS update_flags)
 {
    if(update_flags & UPDATE_ENVELOPE)
       apu_envelope(chan, chan.envelope);
@@ -358,7 +358,7 @@ static linear void apu_update_square(APUSquare& chan, FLAGS update_flags)
    }
 }
 
-static linear void apu_save_square(APUSquare& chan, PACKFILE* file, int version)
+static linear void apu_save_square(const APUSquare& chan, PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -386,7 +386,7 @@ static linear void apu_save_square(APUSquare& chan, PACKFILE* file, int version)
    pack_putc(chan.duty_cycle, file);
 }
 
-static linear void apu_load_square(APUSquare& chan, PACKFILE* file, int version)
+static linear void apu_load_square(APUSquare& chan, PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -426,7 +426,7 @@ static linear void apu_update_linear_counter(APUTriangle& chan)
       chan.halt_counter = false;          
 }
 
-static linear void apu_update_triangle(APUTriangle& chan, FLAGS update_flags)
+static linear void apu_update_triangle(APUTriangle& chan, const FLAGS update_flags)
 {
    if(update_flags & UPDATE_LENGTH)
       apu_update_length_counter(chan);
@@ -463,7 +463,7 @@ static linear void apu_update_triangle(APUTriangle& chan, FLAGS update_flags)
    }
 }
 
-static linear void apu_save_triangle(APUTriangle& chan, PACKFILE* file, int version)
+static linear void apu_save_triangle(const APUTriangle& chan, PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -485,7 +485,7 @@ static linear void apu_save_triangle(APUTriangle& chan, PACKFILE* file, int vers
    pack_putc(chan.cached_linear_length, file);
 }
 
-static linear void apu_load_triangle(APUTriangle& chan, PACKFILE* file, int version)
+static linear void apu_load_triangle(APUTriangle& chan, PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -503,7 +503,7 @@ static linear void apu_load_triangle(APUTriangle& chan, PACKFILE* file, int vers
    chan.cached_linear_length = pack_getc(file);
 }
 
-static linear void apu_update_noise(APUNoise& chan, FLAGS update_flags)
+static linear void apu_update_noise(APUNoise& chan, const FLAGS update_flags)
 {
    if(update_flags & UPDATE_ENVELOPE)
       apu_envelope(chan, chan.envelope);
@@ -537,7 +537,7 @@ static linear void apu_update_noise(APUNoise& chan, FLAGS update_flags)
    }
 }
 
-static linear void apu_save_noise(APUNoise& chan, PACKFILE* file, int version)
+static linear void apu_save_noise(const APUNoise& chan, PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -563,7 +563,7 @@ static linear void apu_save_noise(APUNoise& chan, PACKFILE* file, int version)
    pack_iputw(chan.shift16, file);
 }
 
-static linear void apu_load_noise(APUNoise& chan, PACKFILE* file, int version)
+static linear void apu_load_noise(APUNoise& chan, PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -584,7 +584,7 @@ static linear void apu_load_noise(APUNoise& chan, PACKFILE* file, int version)
    chan.shift16 = pack_igetw(file);
 }
 
-static void apu_reload_dmc(APUDMC& chan)
+static inline void apu_reload_dmc(APUDMC& chan)
 {
    chan.address = chan.cached_address;
    chan.dma_length = chan.cached_dmalength;
@@ -686,7 +686,7 @@ static linear void apu_update_dmc(APUDMC& chan)
    chan.counter--;
 }
 
-static void apu_predict_dmc_irq(APUDMC& chan, cpu_time_t cycles)
+static void apu_predict_dmc_irq(APUDMC& chan, const cpu_time_t cycles)
 {
    // DMC IRQ predictor.  See apu_predict_frame_irq() for more information.
 
@@ -700,14 +700,15 @@ static void apu_predict_dmc_irq(APUDMC& chan, cpu_time_t cycles)
    // Save everything before processing.
    const APUDMC saved_chan = chan;
 
-   for(cpu_time_t offset = 0; offset < cycles; offset++) {
+   // Note that 'cycles' is the number of *APU* cycles to predict.
+   for(cpu_time_t current = 0; current < cycles; current++) {
       // Just go through the motions...
       if((chan.sample_bits == 0) && (chan.dma_length > 0)) {
          chan.sample_bits = 8;
 
          chan.dma_length--;
          if(chan.dma_length == 0)
-            cpu_queue_interrupt(CPU_INTERRUPT_IRQ_DMC, apu.prediction_timestamp + (offset * APU_CLOCK_MULTIPLIER));
+            cpu_queue_interrupt(CPU_INTERRUPT_IRQ_DMC, apu.prediction_timestamp + (current * APU_CLOCK_MULTIPLIER));
       }
 
       if(chan.counter == 0) {
@@ -732,7 +733,7 @@ static void apu_predict_dmc_irq(APUDMC& chan, cpu_time_t cycles)
    chan = saved_chan;
 }
 
-static linear void apu_save_dmc(APUDMC& chan, PACKFILE* file, int version)
+static linear void apu_save_dmc(const APUDMC& chan, PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -765,7 +766,7 @@ static linear void apu_save_dmc(APUDMC& chan, PACKFILE* file, int version)
    pack_putc(Binary(chan.irq_occurred), file);
 }
 
-static linear void apu_load_dmc(APUDMC& chan, PACKFILE* file, int version)
+static linear void apu_load_dmc(APUDMC& chan, PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -792,7 +793,7 @@ static linear void apu_load_dmc(APUDMC& chan, PACKFILE* file, int version)
    chan.irq_occurred = Boolean(pack_getc(file));
 }
 
-static void apu_update_channels(FLAGS update_flags)
+static inline void apu_update_channels(const FLAGS update_flags)
 {
    apu_update_square(apu.square[0], update_flags);
    apu_update_square(apu.square[1], update_flags);
@@ -803,7 +804,7 @@ static void apu_update_channels(FLAGS update_flags)
       apu_update_dmc(apu.dmc);
 }
 
-static void apu_reload_sequence_counter(void)
+static inline void apu_reload_sequence_counter(void)
 {
    const int mode = (apu.sequence_steps == 5) ? 1 : 0;
 
@@ -813,7 +814,7 @@ static void apu_reload_sequence_counter(void)
       apu.sequence_counter += frame_sequencer_period_lut_pal[mode][apu.sequence_step - 1];
 }
 
-static void apu_update_frame_sequencer(void)
+static inline void apu_update_frame_sequencer(void)
 {
    if(apu.sequence_counter > 0) {
       apu.sequence_counter -= apu.timer_delta;
@@ -909,7 +910,7 @@ static void apu_reset_frame_sequencer(void)
    }
 }
 
-static void apu_predict_frame_irq(cpu_time_t cycles)
+static void apu_predict_frame_irq(const cpu_time_t cycles)
 {
    /* This function predicts when the APU's frame IRQ will occur and queues
       it in the CPU core to trigger as close to that moment as possible.
@@ -932,7 +933,9 @@ static void apu_predict_frame_irq(cpu_time_t cycles)
    /* Now we simply simulate emulating the frame sequencer cycle-by-cycle
       (up to a minimum and maximum of 'cycles') keeping track of what
       virtual cycle we are on for calls to cpu_queue_interrupt(). */
-   for(cpu_time_t offset = 0; offset < cycles; offset++) {
+
+   // Note that cycles is the number of *APU* cycles to predict.
+   for(cpu_time_t current = 0; current < cycles; current++) {
       if(apu.sequence_counter > 0) {
          apu.sequence_counter--;
          if(apu.sequence_counter > 0)
@@ -943,7 +946,7 @@ static void apu_predict_frame_irq(cpu_time_t cycles)
 
       // check to see if we should generate an irq
       if(apu.sequence_step == 4)
-         cpu_queue_interrupt(CPU_INTERRUPT_IRQ_FRAME, apu.prediction_timestamp + (offset * APU_CLOCK_MULTIPLIER));
+         cpu_queue_interrupt(CPU_INTERRUPT_IRQ_FRAME, apu.prediction_timestamp + (current * APU_CLOCK_MULTIPLIER));
 
       if(++apu.sequence_step > apu.sequence_steps)
          apu.sequence_step = 1;
@@ -1010,6 +1013,9 @@ void apu_save_config(void)
 
 int apu_init(void)
 {
+   // Begin initialization sequence.
+   apu.initializing = 1;
+
    // Seems to be the default...
    apu.sequence_steps = 4;
 
@@ -1017,6 +1023,9 @@ int apu_init(void)
    apu_reset();
    // Reset frame sequencer.
    apu_reset_frame_sequencer();
+
+   // End initialization sequence.
+   apu.initializing--;
 
    // Return success.
    return 0;
@@ -1031,6 +1040,9 @@ void apu_exit(void)
 void apu_reset(void)
 {
    // -- Initializes/resets emulated sound hardware, creates waveforms/voices
+
+   // Begin initialization sequence.
+   apu.initializing++;
 
    /* Save frame sequencer state, since it is not cleared by a soft reset (a
       hard reset always implies a call to apu_init(), which clears it). */
@@ -1057,9 +1069,12 @@ void apu_reset(void)
 
    // Initialize everything else.
    apu_update();
+
+   // End initialization sequence.
+   apu.initializing--;
 }
 
-void apu_reset_exsound(ENUM exsound_id)
+void apu_reset_exsound(const ENUM exsound_id)
 {
    /* Resets a specific ExSound source.   Because ExSound sources are not actually part of the APU itself, they should
       *never* be reset by an APU reset, only by their associated mapper hardware. */
@@ -1112,7 +1127,7 @@ void apu_clear_exsound(void)
    apu_exsound_sourcer.clearSources();
 }
 
-void apu_enable_exsound(ENUM exsound_id)
+void apu_enable_exsound(const ENUM exsound_id)
 {
    /* Enables emulation and mixing for a specific ExSound source.  Once enabled, it cannot be disabled except by calling
       apu_exit() (which clears the ExSound state) or apu_clear_exsound() (which does the same). */
@@ -1134,7 +1149,7 @@ void apu_enable_exsound(ENUM exsound_id)
    }
 }
 
-UINT8 apu_read(UINT16 address)
+UINT8 apu_read(const UINT16 address)
 {
    uint8 value = 0x00;
 
@@ -1193,7 +1208,7 @@ UINT8 apu_read(UINT16 address)
    return value;
 }
 
-void apu_write(UINT16 address, UINT8 value)
+void apu_write(const UINT16 address, UINT8 value)
 {
    // Sync state.
    process();
@@ -1507,7 +1522,7 @@ void apu_write(UINT16 address, UINT8 value)
    apu_exsound_sourcer.write(address, value);
 }
 
-void apu_predict_irqs(cpu_time_t cycles)
+void apu_predict_irqs(const cpu_time_t cycles)
 {
    // Sync state.
    process();
@@ -1518,7 +1533,7 @@ void apu_predict_irqs(cpu_time_t cycles)
    apu.prediction_cycles = cycles + PREDICTION_BUFFER_CYCLES + (1 * APU_CLOCK_MULTIPLIER);
 
    // Convert from master clock to APU clock.
-   const cpu_time_t apu_cycles = cycles / APU_CLOCK_DIVIDER;
+   const cpu_time_t apu_cycles = apu.prediction_cycles / APU_CLOCK_DIVIDER;
    if(apu_cycles == 0)
       return;
 
@@ -1526,7 +1541,7 @@ void apu_predict_irqs(cpu_time_t cycles)
    apu_predict_frame_irq(apu_cycles);
 }
 
-static void apu_repredict_irqs(unsigned predictionFlags)
+static void apu_repredict_irqs(const unsigned predictionFlags)
 {
    /* Normally, the IRQ predictors are only called once per scanline.
 
@@ -1536,16 +1551,14 @@ static void apu_repredict_irqs(unsigned predictionFlags)
    // Sync state.
    process();
 
-   const cpu_time_t cycles = cpu_get_cycles();
+   // Determine how much time has elapsed since our initial prediction.
+   const cpu_time_t timestamp = cpu_get_cycles();
+   const cpu_time_t cycles_elapsed = (cpu_rtime_t)timestamp - (cpu_rtime_t)apu.prediction_timestamp;
 
-   // Determine how many cycles are left to simulate for this execution cycle.
-   cpu_rtime_t cycles_remaining = (cpu_rtime_t)cycles - (cpu_rtime_t)apu.prediction_timestamp;
-   if(cycles_remaining == 0)
+   // Calculate how many cycles are left in the prediction buffer.
+   const cpu_rtime_t cycles_remaining = apu.prediction_cycles - cycles_elapsed;
+   if(cycles_remaining <= 0)
       return;
-
-   // Cap the number of cycles to simulate at the amount given in the last prediction request.
-   if(cycles_remaining > apu.prediction_cycles)
-      cycles_remaining = apu.prediction_cycles;
 
    // Convert from master clock to APU clock.
    const cpu_time_t apu_cycles_remaining = cycles_remaining / APU_CLOCK_DIVIDER;
@@ -1558,7 +1571,7 @@ static void apu_repredict_irqs(unsigned predictionFlags)
       apu_predict_frame_irq(apu_cycles_remaining);
 }
 
-void apu_save_state(PACKFILE* file, int version)
+void apu_save_state(PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -1591,7 +1604,7 @@ void apu_save_state(PACKFILE* file, int version)
    apu_exsound_sourcer.save(file, version);
 }
 
-void apu_load_state(PACKFILE* file, int version)
+void apu_load_state(PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -1648,14 +1661,15 @@ REAL* apu_get_visdata(void)
 
 // --- Internal functions. --- 
 
-/* If re-entry occurs (a function called by process() calls a function which in turn calls
-   process() again), it can be very bad, so we set this flag to help warn about it. */
-static bool processing = false;
-
 static void process(void)
 {
-   if(processing)
+   if(apu.initializing)
+      // Don't do processing while the APU is still initializing.
+      return;
+   if(apu.processing) {
       printf("WARNING: process() called when it is already running\n");
+      return;
+   }
 
    if(!apu_options.enabled) {
       // APU emulation is disabled - skip processing.
@@ -1677,7 +1691,7 @@ static void process(void)
       return;
 
    // Begin unbreakable code section.
-   processing = true;
+   apu.processing = true;
 
    switch(apu_options.emulation) {
       case APU_EMULATION_FAST: {
@@ -1832,10 +1846,10 @@ static void process(void)
    }
 
    // End unbreakable code section.
-   processing = false;
+   apu.processing = false;
 }
 
-static void mix(void)
+static inline void mix(void)
 {
    static const APUSquare& square1 = apu.square[0];
    static const APUSquare& square2 = apu.square[1];
@@ -1918,7 +1932,7 @@ static void mix(void)
    }
 }
 
-static void filter(real& sample, APULPFilter* lpEnv, APUDCFilter* dcEnv)
+static inline void filter(real& sample, APULPFilter* lpEnv, APUDCFilter* dcEnv)
 {
    if(lpEnv) {
       // Low pass filter.
@@ -1958,7 +1972,7 @@ static void filter(real& sample, APULPFilter* lpEnv, APUDCFilter* dcEnv)
    }
 }
 
-static void amplify(real& sample)
+static inline void amplify(real& sample)
 {
    if(apu_options.logarithmic) {
       bool negative = false;
@@ -1997,7 +2011,7 @@ static void amplify(real& sample)
    sample *= apu_options.volume;
 }
 
-static void enqueue(real& sample)
+static inline void enqueue(real& sample)
 {
    audio_queue_sample(sample);
 }

@@ -7,6 +7,8 @@
    You must read and accept the license prior to use. */
 
 #include <allegro.h>
+#include <cstdlib>
+#include <cstring>
 #include "../include/common.h"
 #include "../include/ppu.h"
 #include "../include/ppu_int.h"
@@ -30,6 +32,8 @@ void Clear() {
    render.line = PPU_FIRST_LINE;
    render.pixel = 0;
    render.clock = 1; // Always starts from 1
+
+   render.spriteCount = 0;
 }
 
 } // namespace anonymous
@@ -65,7 +69,7 @@ void Frame() {
 /* This only gets called from PPU_FIRST_VISIBLE_LINE to PPU_LAST_VISIBLE_LINE.
    In other words, only for visible lines. */
 void Line(const int line) {
-   render.buffer = PPU_GET_LINE_ADDRESS(video_buffer, line);
+   render.buffer = PPU__GET_LINE_ADDRESS(video_buffer, line);
 
    render.line = line;
    render.pixel = 0;
@@ -83,14 +87,14 @@ inline void Pixel() {
    /* After loading a state, the render buffer is null and must be reloaded, and
       all previously rendered pixels are lost. This can causes momentary, but harmless
       flicker when first loading a save state. */
-   if(PPU_ENABLED && !render.buffer)
-      render.buffer = PPU_GET_LINE_ADDRESS(video_buffer, render.line);
+   if(ppu__enabled && !render.buffer)
+      render.buffer = PPU__GET_LINE_ADDRESS(video_buffer, render.line);
  
    /* This is set if frame skipping is enabled, and rendering has not been forced
       (i.e for sprite #0 hitscan or lightgun emulation) */
    const bool stubify = !ppu__rendering_enabled && !ppu__force_rendering;
 
-   if(PPU_BACKGROUND_ENABLED) {
+   if(ppu__enable_background) {
       if(stubify)
          Background::PixelStub();
       else
@@ -105,7 +109,7 @@ inline void Pixel() {
       Background::PixelSkip();
    }
 
-   if(PPU_SPRITES_ENABLED) {
+   if(ppu__sprites_enabled) {
       if(stubify)
          Sprites::PixelStub();
       else
@@ -119,7 +123,7 @@ inline void Pixel() {
    the rendering stage or not, except during vblank. The PPU idle line (240) also
    does not trigger this function. */
 inline void Clock() {
-   if(PPU_SPRITES_ENABLED)
+   if(ppu__sprites_enabled)
       Sprites::Clock();
 
    render.clock++;

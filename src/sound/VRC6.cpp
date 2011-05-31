@@ -25,7 +25,7 @@ void Square::reset(void)
    output = 0;
 }
 
-void Square::write(uint16 address, uint8 value)
+void Square::write(const uint16 address, const uint8 value)
 {
    switch(address) {
       case 0x9000:
@@ -71,7 +71,7 @@ void Square::write(uint16 address, uint8 value)
    }
 }
 
-void Square::process(cpu_time_t cycles)
+void Square::process(const cpu_time_t cycles)
 {
    if(timer > 0) {
       timer -= cycles;
@@ -91,7 +91,7 @@ void Square::process(cpu_time_t cycles)
       step = 0;
 }
 
-void Square::save(PACKFILE* file, int version) const
+void Square::save(PACKFILE* file, const int version) const
 {
    RT_ASSERT(file);
 
@@ -103,7 +103,7 @@ void Square::save(PACKFILE* file, int version) const
    pack_putc(output, file);
 }
 
-void Square::load(PACKFILE* file, int version)
+void Square::load(PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -127,7 +127,7 @@ void Saw::reset(void)
    output = 0;
 }
 
-void Saw::write(uint16 address, uint8 value)
+void Saw::write(const uint16 address, const uint8 value)
 {
    switch(address) {
       case 0xB000: {
@@ -164,7 +164,7 @@ void Saw::write(uint16 address, uint8 value)
    }
 }
 
-void Saw::process(cpu_time_t cycles)
+void Saw::process(const cpu_time_t cycles)
 {
    if(timer > 0) {
       timer -= cycles;
@@ -191,7 +191,7 @@ void Saw::process(cpu_time_t cycles)
    output = volume >> 3;
 }
 
-void Saw::save(PACKFILE* file, int version) const
+void Saw::save(PACKFILE* file, const int version) const
 {
    RT_ASSERT(file);
 
@@ -204,7 +204,7 @@ void Saw::save(PACKFILE* file, int version) const
    pack_putc(output, file);
 }
 
-void Saw::load(PACKFILE* file, int version)
+void Saw::load(PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -226,7 +226,7 @@ void Interface::reset(void)
    output = 0;
 }
 
-void Interface::write(uint16 address, uint8 value)
+void Interface::write(const uint16 address, const uint8 value)
 {
    switch(address) {
       case 0x9000:
@@ -255,14 +255,14 @@ void Interface::write(uint16 address, uint8 value)
    }
 }
 
-void Interface::process(cpu_time_t cycles)
+void Interface::process(const cpu_time_t cycles)
 {
    square1.process(cycles);
    square2.process(cycles);
    saw.process(cycles);
 }
 
-void Interface::save(PACKFILE* file, int version) const
+void Interface::save(PACKFILE* file, const int version) const
 {
    RT_ASSERT(file);
 
@@ -271,7 +271,7 @@ void Interface::save(PACKFILE* file, int version) const
    saw.save(file, version);
 }
 
-void Interface::load(PACKFILE* file, int version)
+void Interface::load(PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -280,7 +280,7 @@ void Interface::load(PACKFILE* file, int version)
    saw.load(file, version);
 }
 
-void Interface::mix(real input)
+void Interface::mix(const real input)
 {
    uint8 total = 0;
 

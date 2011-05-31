@@ -11,124 +11,67 @@
 #include <allegro.h>
 #include "common.h"
 #include "cpu.h"
+#include "timing.h"
 #include "types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* VRAM and sprite RAM. */
-#define PPU_VRAM_BLOCK_READ_ADDRESS_SIZE 8
-#define PPU_VRAM_BLOCK_BACKGROUND_CACHE_ADDRESS_SIZE 8
-#define PPU_VRAM_BLOCK_BACKGROUND_CACHE_TAG_ADDRESS_SIZE 8
-//#define PPU_VRAM_BLOCK_SPRITE_CACHE_ADDRESS_SIZE 8
-//#define PPU_VRAM_BLOCK_SPRITE_CACHE_TAG_ADDRESS_SIZE 8
-#define PPU_VRAM_BLOCK_WRITE_ADDRESS_SIZE 8
-extern UINT8* ppu_vram_block_read_address[PPU_VRAM_BLOCK_READ_ADDRESS_SIZE];
-extern UINT8* ppu_vram_block_background_cache_address[PPU_VRAM_BLOCK_BACKGROUND_CACHE_ADDRESS_SIZE];
-extern UINT8* ppu_vram_block_background_cache_tag_address[PPU_VRAM_BLOCK_BACKGROUND_CACHE_TAG_ADDRESS_SIZE];
-//extern UINT8* ppu_vram_block_sprite_cache_address[PPU_VRAM_BLOCK_SPRITE_CACHE_ADDRESS_SIZE];
-//extern UINT8* ppu_vram_block_sprite_cache_tag_address[PPU_VRAM_BLOCK_SPRITE_CACHE_TAG_ADDRESS_SIZE];
-extern UINT8* ppu_vram_block_write_address[PPU_VRAM_BLOCK_WRITE_ADDRESS_SIZE];
+/* This macro gets direct access to an Allegro memory bitmap. */
+#define PPU__GET_LINE_ADDRESS(_bitmap, _y) \
+   ( (_bitmap)->line[(_y)] )
 
-/*
- vram block identifiers
-  0-7 = pattern VRAM
-  8+  = pattern VROM
-*/
-#define FIRST_VROM_BLOCK 8
-
-#define PPU_VRAM_BLOCK_SIZE 8
-extern UINT32 ppu_vram_block[PPU_VRAM_BLOCK_SIZE];
-
-#define PPU_VRAM_DIRTY_SET_BEGIN_SIZE 8
-#define PPU_VRAM_DIRTY_SET_END_SIZE 8
-extern INT32 ppu_vram_dirty_set_begin[PPU_VRAM_DIRTY_SET_BEGIN_SIZE];
-extern INT32 ppu_vram_dirty_set_end[PPU_VRAM_DIRTY_SET_END_SIZE];
-extern INT8 ppu_vram_cache_needs_update;
-
-#define PPU_VRAM_DUMMY_WRITE_SIZE 1024
-extern UINT8 ppu_vram_dummy_write[PPU_VRAM_DUMMY_WRITE_SIZE];
-
-#define PPU_PATTERN_VRAM_SIZE 8 * 1024
-#define PPU_PATTERN_VRAM_CACHE_SIZE 8 * 1024 / 2 * 8
-#define PPU_PATTERN_VRAM_CACHE_TAG_SIZE 8 * 1024 / 2
-extern UINT8 ppu_pattern_vram[PPU_PATTERN_VRAM_SIZE];
-extern UINT8 ppu_pattern_vram_cache[PPU_PATTERN_VRAM_CACHE_SIZE];
-extern UINT8 ppu_pattern_vram_cache_tag[PPU_PATTERN_VRAM_CACHE_TAG_SIZE];
-
-#define PPU_NAME_TABLE_VRAM_SIZE 4 * 1024
-#define PPU_NAME_TABLES_READ_SIZE 4
-#define PPU_NAME_TABLES_WRITE_SIZE 4
-extern UINT8 ppu_name_table_vram[PPU_NAME_TABLE_VRAM_SIZE];
-extern UINT8* name_tables_read[PPU_NAME_TABLES_READ_SIZE];
-extern UINT8* name_tables_write[PPU_NAME_TABLES_WRITE_SIZE];
-
-/* Table containing expanded name/attribute data.  Used for MMC5. */
-/* Use ppu_set_expansion_table_address(block) to set this, or ppu_set_expansion_table_address(NULL) to clear. */
-/* The format should be identical to that used by MMC5. */
-extern UINT8* ppu_expansion_table;
-
-#define PPU_PALETTE_SIZE 32
-extern UINT8 ppu_palette[PPU_PALETTE_SIZE];
-
-#define PPU_SPR_RAM_SIZE 256
-extern UINT8 ppu_spr_ram[PPU_SPR_RAM_SIZE];
-
-#define ppu_background_palette ppu_palette
-#define ppu_sprite_palette (ppu_palette + 16)
-
-#define PPU_GET_LINE_ADDRESS(bitmap, y)   (bitmap->line[y])
-#define PPU_PUTPIXEL(bitmap, x, y, color) (bitmap->line[y][x] = color)
-#define PPU_GETPIXEL(bitmap, x, y)        (bitmap->line[y][x])
-
-extern unsigned vram_address;
-extern UINT8 buffered_vram_read;
-
-extern int address_write;
-extern int address_temp;
-extern int x_offset;
-extern int address_increment;
-
-extern UINT8 spr_ram_address;
-extern int ppu__sprite_height;
-
-extern BOOL want_vblank_nmi;
-
-extern BOOL vblank_occurred;
-
-extern UINT16 background_tileset;
-extern UINT16 ppu__sprite_tileset;
-
-extern BOOL ppu__rendering_enabled;
-extern BOOL ppu__force_rendering;
-
-extern BOOL ppu__sprite_collision;
-extern BOOL ppu__sprite_overflow;
-
-#define ATTRIBUTE_TABLE_SIZE 4
-#ifdef ALLEGRO_I386
-extern UINT32 attribute_table[ATTRIBUTE_TABLE_SIZE];
-#else
-extern UINT8 attribute_table[ATTRIBUTE_TABLE_SIZE];
-#endif
-
-#define PPU__BACKGROUND_PIXELS_SIZE 256
-extern UINT8 ppu__background_pixels[PPU__BACKGROUND_PIXELS_SIZE];
-
-#define PPU__GET_BACKGROUND_PIXEL(pixel) \
-   (ppu__background_pixels[(pixel)])
-#define PPU__PUT_BACKGROUND_PIXEL(pixel,color) \
-   (ppu__background_pixels[(pixel)] = (color))
-
-extern UINT8 ppu__palette_mask;
+/* These macros are used to get and set pixels in the background scanline buffer. */
+#define PPU__BACKGROUND_PIXELS_SIZE PPU_RENDER_CLOCKS /* 256 pixels. */
+#define PPU__GET_BACKGROUND_PIXEL(_pixel) \
+   ( ppu__background_pixels[(_pixel)] )
+#define PPU__PUT_BACKGROUND_PIXEL(_pixel, _color) \
+   ( ppu__background_pixels[(_pixel)] = (_color) )
 
 /* NES color indexes start at position 1 in the global palette. */
 #define PPU__PALETTE_ADJUST 1
+/* These macros map palette indices to NES color values. */
+#define PPU__BACKGROUND_PALETTE(_palette, _index) \
+   ( (ppu_background_palettes[(_palette)][(_index)] & ppu__palette_mask) + PPU__PALETTE_ADJUST )
+#define PPU__SPRITE_PALETTE(_palette, _index) \
+   ( (ppu_sprite_palettes[(_palette)][(_index)] & ppu__palette_mask) + PPU__PALETTE_ADJUST )
 
-#define PPU__BACKGROUND_PALETTE(index) \
-   ((ppu_background_palette[(index)] & ppu__palette_mask) + PPU__PALETTE_ADJUST)
-#define PPU__SPRITE_PALETTE(index,subindex) \
-   ((ppu_sprite_palette[((index) * 4) + (subindex)] & ppu__palette_mask) + PPU__PALETTE_ADJUST)
+extern UINT16 ppu__base_name_table_address;
+extern BOOL   ppu__generate_interrupts;
+extern UINT8  ppu__vram_address_increment;
+
+extern UINT16 ppu__background_tileset;
+extern BOOL   ppu__clip_background;
+extern BOOL   ppu__enable_background;
+
+extern BOOL   ppu__clip_sprites;
+extern BOOL   ppu__enable_sprites;
+extern BOOL   ppu__sprite_collision;
+extern UINT8  ppu__sprite_height;
+extern BOOL   ppu__sprite_overflow;
+extern UINT16 ppu__sprite_tileset;
+
+extern BOOL  ppu__intensify_reds;
+extern BOOL  ppu__intensify_greens;
+extern BOOL  ppu__intensify_blues;
+extern UINT8 ppu__palette_mask;
+
+extern BOOL   ppu__enabled;
+extern ENUM   ppu__default_mirroring;
+extern ENUM   ppu__mirroring;
+extern UINT8  ppu__oam_address;
+extern UINT8* ppu__one_screen_base_address;
+extern UINT8  ppu__scroll_x_position;
+extern UINT8  ppu__scroll_y_position;
+extern UINT16 ppu__vram_address;
+extern BOOL   ppu__vblank_started;
+
+extern UINT8 ppu__background_pixels[PPU__BACKGROUND_PIXELS_SIZE];
+extern BOOL  ppu__enable_background_layer;
+extern BOOL  ppu__enable_sprite_back_layer;
+extern BOOL  ppu__enable_sprite_front_layer;
+extern BOOL  ppu__force_rendering;
+extern BOOL  ppu__rendering_enabled;
 
 #ifdef __cplusplus
 }

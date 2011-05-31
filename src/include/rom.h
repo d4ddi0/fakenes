@@ -22,8 +22,6 @@ typedef struct _ROM
    UINT32 trainer_crc32;               /* Checksum for trainer. */
    UINT32 prg_rom_crc32;               /* Checksum for PRG-ROM. */
    UINT32 chr_rom_crc32;               /* Checksum for CHR-ROM. */
-   UINT8 *chr_rom_cache;               /* CHR-ROM cache buffer. */
-   UINT8 *chr_rom_cache_tag;           /* CHR-ROM cache tag buffer. */
    int prg_rom_pages;                  /* Number of PRG-ROM pages. */
    int chr_rom_pages;                  /* Nimber of CHR-ROM pages. */
    UINT8 control_byte_1;               /* Header control byte #1. */
@@ -70,8 +68,6 @@ extern BOOL rom_is_loaded;
 #define ROM_MAPPER_NUMBER              global_rom.mapper_number
 #define ROM_PRG_ROM                    global_rom.prg_rom
 #define ROM_CHR_ROM                    global_rom.chr_rom
-#define ROM_CHR_ROM_CACHE              global_rom.chr_rom_cache
-#define ROM_CHR_ROM_CACHE_TAG          global_rom.chr_rom_cache_tag
 #define ROM_PRG_ROM_PAGE_LOOKUP        global_rom.prg_rom_page_lookup
 #define ROM_PRG_ROM_PAGE_OVERFLOW_MASK global_rom.prg_rom_page_overflow_mask
 #define ROM_CHR_ROM_PAGE_LOOKUP        global_rom.chr_rom_page_lookup

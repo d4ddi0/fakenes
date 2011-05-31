@@ -442,11 +442,12 @@ int main (int argc, char *argv[])
             rendered_frames++;
             actual_fps_count++;
 
-            ppu_enable_rendering();
+            // Enable rendering.
+            ppu_set_option(PPU_OPTION_ENABLE_RENDERING, TRUE);
          }
-         else {
-            ppu_disable_rendering();
-         }
+         else
+            // Disable rendering.
+            ppu_set_option(PPU_OPTION_ENABLE_RENDERING, FALSE);
 
          int line, total_lines;
          total_lines = PPU_TOTAL_LINES; // Cache it

@@ -25,6 +25,8 @@ extern "C" {
 #undef NULL
 #define NULL 0
 
+#define LINEAR INLINE
+
 #define BOOLEAN(x) ((x) ? TRUE : FALSE)
 #define BINARY(x)  ((x) ? 1 : 0)
 
@@ -50,7 +52,7 @@ extern "C" {
 #define null (NULL)
 
 #define inline INLINE
-#define linear INLINE // for functions that are called only once
+#define linear LINEAR // for functions that are called only once
 
 #define Boolean(x) (BOOLEAN((x)))
 #define Binary(x)  (BINARY((x)))

@@ -131,6 +131,10 @@ typedef struct _APUDCFilter {
 
 class APU {
 public:
+   // State detection.
+   int initializing;
+   bool processing;
+
    // Timestamp of the last call to process().
    cpu_time_t clock_counter;
    // Buffer to hold unused clocks to avoid losing cycles.

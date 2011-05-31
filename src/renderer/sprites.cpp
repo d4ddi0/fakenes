@@ -15,7 +15,7 @@
 #include "renderer.hpp"
 #include "sprites.hpp"
 
-// TODO: MMC latches support
+// TODO: Add MMC2 & MMC4 latches support.
 
 namespace Renderer {
 namespace Sprites {
@@ -32,15 +32,22 @@ const int Sprite_TileIndex  = 1;
 const int Sprite_Attributes = 2;
 const int Sprite_XPosition  = 3;
 
-#define SPRITE_DATA(_oam, _index, _data) \
-   ( (_oam)[((_index) * BytesPerSprite) + (_data)] )
+#define SPRITE_ADDRESS(_index, _offset) \
+   ( ((_index) * BytesPerSprite) + (_offset) )
+#define SPRITE_DATA(_oam, _index, _type) \
+   ( (_oam)[SPRITE_ADDRESS( (_index), (_type) )] )
 
-#define SPRITE_X_POSITION(_oam, _index) ( SPRITE_DATA((_oam), (_index), Sprite_XPosition) )
-#define SPRITE_Y_POSITION(_oam, _index) ( SPRITE_DATA((_oam), (_index), Sprite_YPosition) )
-#define SPRITE_TILE_INDEX(_oam, _index) ( SPRITE_DATA((_oam), (_index), Sprite_TileIndex) )
-#define SPRITE_ATTRIBUTES(_oam, _index) ( SPRITE_DATA((_oam), (_index), Sprite_Attributes) )
+#define SPRITE_ADDRESS_Y_POSITION(_index)	( SPRITE_ADDRESS_DATA( (_index), Sprite_YPosition ) )
+#define SPRITE_ADDRESS_TILE_INDEX(_index)	( SPRITE_ADDRESS_DATA( (_index), Sprite_TileIndex ) )
+#define SPRITE_ADDRESS_ATTRIBUTES(_index)	( SPRITE_ADDRESS_DATA( (_index), Sprite_Attributes ) )
+#define SPRITE_ADDRESS_X_POSITION(_index)	( SPRITE_ADDRESS_DATA( (_index), Sprite_XPosition ) )
 
-#define PRIMARY_OAM     ( ppu_spr_ram )
+#define SPRITE_Y_POSITION(_oam, _index) ( SPRITE_DATA( (_oam), (_index), Sprite_YPosition ) )
+#define SPRITE_TILE_INDEX(_oam, _index) ( SPRITE_DATA( (_oam), (_index), Sprite_TileIndex ) )
+#define SPRITE_ATTRIBUTES(_oam, _index) ( SPRITE_DATA( (_oam), (_index), Sprite_Attributes ) )
+#define SPRITE_X_POSITION(_oam, _index) ( SPRITE_DATA( (_oam), (_index), Sprite_XPosition ) )
+
+#define PRIMARY_OAM     ( ppu__sprite_vram )
 #define SECONDARY_OAM	( render.secondaryOAM )
 
 // Evaluation timings.
@@ -146,7 +153,7 @@ void Line() {
 inline void Pixel() {
     // Check if we should clip sprites on the left side of the screen
     bool clipping = false;
-    if((render.pixel <= 7) && PPU_SPRITES_CLIP_ENABLED)
+    if((render.pixel <= 7) && ppu__clip_sprites)
        clipping = true;
 
     // Whether or not pixel buffer can be written (for sprite priority). See below.
@@ -236,13 +243,13 @@ inline void Pixel() {
              continue;
 
           // We don't want to draw if the back-priority layer is disabled, either.
-          if(!ppu_enable_sprite_layer_a)
+          if(!ppu__enable_sprite_back_layer)
              continue;
        }
        else
           /* Similarly, don't draw if the front-priority layer is disabled,
              for front-priority sprites. */
-          if(!ppu_enable_sprite_layer_b)
+          if(!ppu__enable_sprite_front_layer)
              continue;
 
        /* We can only plot pixels when:
@@ -266,9 +273,12 @@ inline void PixelStub() {
 #define STATE3_LOOP	state3_loop
 #define END_LOOP	end_loop
 
-#define READ_HELPER(_value) { \
+/* Reading OAMDATA while the PPU is rendering will expose internal OAM accesses during sprite evaluation and loading;
+   Micro Machines does this. */
+#define READ_HELPER(_value, _address) { \
    if(!cycle_is_even) \
       goto END_LOOP; \
+   ppu__oam_address = (_address); \
    e.data = (_value); \
 }
 
@@ -356,7 +366,8 @@ inline void Clock() {
          switch(e.substate) {
             // Y-Position
             case 1: {
-               READ_HELPER( SPRITE_Y_POSITION(PRIMARY_OAM, e.n) );
+               READ_HELPER( SPRITE_Y_POSITION(PRIMARY_OAM, e.n),
+                            SPRITE_ADDRESS_Y_POSITION(e.n) );
                CONTINUE_1
             }
             case 2: {
@@ -376,7 +387,8 @@ inline void Clock() {
 
             // Tile index
             case 3: {
-               READ_HELPER( SPRITE_TILE_INDEX(PRIMARY_OAM, e.n) );
+               READ_HELPER( SPRITE_TILE_INDEX(PRIMARY_OAM, e.n),
+                            SPRITE_ADDRESS_TILE_INDEX(e.n) );
                CONTINUE_1
             }
             case 4: {
@@ -386,7 +398,8 @@ inline void Clock() {
 
             // Attribute
             case 5: {
-               READ_HELPER( SPRITE_ATTRIBUTES(PRIMARY_OAM, e.n) );
+               READ_HELPER( SPRITE_ATTRIBUTES(PRIMARY_OAM, e.n),
+                            SPRITE_ADDRESS_ATTRIBUTES(e.n) );
                CONTINUE_1
             }
             case 6: {
@@ -396,7 +409,8 @@ inline void Clock() {
 
             // X-Position
             case 7: {
-               READ_HELPER( SPRITE_X_POSITION(PRIMARY_OAM, e.n) );
+               READ_HELPER( SPRITE_X_POSITION(PRIMARY_OAM, e.n),
+                            SPRITE_ADDRESS_X_POSITION(e.n) );
                CONTINUE_1
             }
             case 8: {
@@ -442,9 +456,14 @@ inline void Clock() {
 
                /* 3. Starting at m = 0,
                      evaluate OAM[n][m] as a Y-coordinate.  */
-               const uint8 data = SPRITE_DATA(PRIMARY_OAM, e.n, e.m);
+               READ_HELPER( SPRITE_DATA(PRIMARY_OAM, e.n, e.m),
+                            SPRITE_ADDRESS_DATA(e.n, e.m) );
 
-               if((line >= data) && (line < (data + ppu__sprite_height))) {
+               CONTINUE_3
+            }
+
+            case 2: {
+               if((line >= e.data) && (line < (e.data + ppu__sprite_height))) {
                   /* 3a. If the value is in range,
                      set the sprite overflow flag in $2002 and ... (CONTINUED)  */
                   ppu__sprite_overflow = TRUE;
@@ -468,10 +487,12 @@ inline void Clock() {
                    set the sprite overflow flag in $2002 and read the next 3 entries of OAM
                    (incrementing 'm' after each byte and incrementing 'n' when 'm' overflows);
                    if m = 3, increment n */
-            case 2:
             case 3:
-            case 4: {
-               READ_HELPER( SPRITE_DATA(PRIMARY_OAM, e.n, e.m) );
+            case 4:
+            case 5: {
+               READ_HELPER( SPRITE_DATA(PRIMARY_OAM, e.n, e.m),
+                            SPRITE_ADDRESS_DATA(e.n, e.m) );
+
                e.m++;
                /* Increment n when m overflows (from 0-3 -> 4) seems more correct than
                   incrementing n when m is equal to 3, despite the above. */
@@ -483,7 +504,7 @@ inline void Clock() {
                CONTINUE_3
             }
 
-            case 5:
+            case 6:
                JUMP_4
          }
       }

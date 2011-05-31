@@ -721,22 +721,19 @@ static const MENU video_filters_menu_base[] =
    MENU_ENDCAP
 };
 
-DEFINE_MENU_CALLBACK(video_layers_menu_show_low_sprites);
-DEFINE_MENU_CALLBACK(video_layers_menu_show_high_sprites);
+DEFINE_MENU_CALLBACK(video_layers_menu_show_back_sprites);
+DEFINE_MENU_CALLBACK(video_layers_menu_show_front_sprites);
 DEFINE_MENU_CALLBACK(video_layers_menu_show_background);
 DEFINE_MENU_CALLBACK(video_layers_menu_horizontal_overscan);
 DEFINE_MENU_CALLBACK(video_layers_menu_vertical_overscan);
-DEFINE_MENU_CALLBACK(video_layers_menu_flip_mirroring);
 
 static const MENU video_layers_menu_base[] =
 {
-   { "&Show Low Sprites    (F7)", video_layers_menu_show_low_sprites,    NULL, 0, NULL },
-   { "Show &High Sprites   (F7)", video_layers_menu_show_high_sprites,   NULL, 0, NULL },
+   { "&Show Back Sprites   (F7)", video_layers_menu_show_back_sprites,   NULL, 0, NULL },
+   { "Show &Front Sprites  (F7)", video_layers_menu_show_front_sprites,  NULL, 0, NULL },
    { "Show &Background     (F8)", video_layers_menu_show_background,     NULL, 0, NULL },
-   { "Horizontal &Overscan",      video_layers_menu_horizontal_overscan, NULL, 0, NULL },
+   { "&Horizontal Overscan",      video_layers_menu_horizontal_overscan, NULL, 0, NULL },
    { "&Vertical Overscan",        video_layers_menu_vertical_overscan,   NULL, 0, NULL },
-   MENU_SPLITTER,
-   { "&Flip Mirroring",           video_layers_menu_flip_mirroring,      NULL, 0, NULL },
    MENU_ENDCAP
 };
 

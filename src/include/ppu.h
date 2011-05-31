@@ -17,112 +17,49 @@
 extern "C" {
 #endif
 
-/* Register $2000. */
-#define PPU_VBLANK_NMI_FLAG_BIT     (1 << 7)
-#define PPU_PPU_SLAVE_BIT           (1 << 6)
-#define PPU_SPRITE_SIZE_BIT         (1 << 5)
-#define PPU_BACKGROUND_TILESET_BIT  (1 << 4)
-#define PPU_SPRITE_TILESET_BIT      (1 << 3)
-#define PPU_ADDRESS_INCREMENT_BIT   (1 << 2)
-
-#define PPU_NAME_TABLE_SELECT       (3 << 0)
-
-#define PPU_WANT_VBLANK_NMI     \
-    (ppu_register_2000 & PPU_VBLANK_NMI_FLAG_BIT)
-
-/* Register $2001. */
-#define PPU_COLOR_INTENSITY                 (7 << 5)
-
-#define PPU_SPRITES_ENABLE_BIT              (1 << 4)
-#define PPU_BACKGROUND_ENABLE_BIT           (1 << 3)
-#define PPU_SPRITES_SHOW_LEFT_EDGE_BIT      (1 << 2)
-#define PPU_BACKGROUND_SHOW_LEFT_EDGE_BIT   (1 << 1)
-#define PPU_MONOCHROME_DISPLAY_BIT          (1 << 0)
-
-#define PPU_BACKGROUND_ENABLED  \
-    (ppu_register_2001 & PPU_BACKGROUND_ENABLE_BIT)
-#define PPU_SPRITES_ENABLED     \
-    (ppu_register_2001 & PPU_SPRITES_ENABLE_BIT)
-#define PPU_ENABLED \
-    (PPU_BACKGROUND_ENABLED || PPU_SPRITES_ENABLED)
-
-#define PPU_BACKGROUND_CLIP_ENABLED     \
-    (! (ppu_register_2001 & PPU_BACKGROUND_SHOW_LEFT_EDGE_BIT))
-
-#define PPU_SPRITES_CLIP_ENABLED        \
-    (! (ppu_register_2001 & PPU_SPRITES_SHOW_LEFT_EDGE_BIT))
-
-/* Register $2002. */
-#define PPU_VBLANK_FLAG_BIT         (1 << 7)
-#define PPU_SPRITE_0_COLLISION_BIT  (1 << 6)
-#define PPU_SPRITE_OVERFLOW_BIT     (1 << 5)
-
-#define PPU_MAP_RAM         1
-#define PPU_MAP_BACKGROUND  2
-#define PPU_MAP_SPRITES     4
-
-extern UINT8 ppu_register_2000;
-extern UINT8 ppu_register_2001;
-extern BOOL ppu_enable_sprite_layer_a;
-extern BOOL ppu_enable_sprite_layer_b;
-extern BOOL ppu_enable_background_layer;
-
-extern BOOL background_enabled;
-extern BOOL sprites_enabled;
-
-extern UINT8 * one_screen_base_address;
-
-extern void ppu_free_chr_rom (ROM *);
-extern UINT8 * ppu_get_chr_rom_pages (ROM *);
-extern void ppu_cache_chr_rom_pages (void);
-
-extern void ppu_set_ram_1k_pattern_vram_block (UINT16, int);
-extern void ppu_set_ram_1k_pattern_vrom_block (UINT16, int);
-extern void ppu_set_ram_1k_pattern_vrom_block_ex (UINT16, int, int);
-extern void ppu_set_ram_8k_pattern_vram (void);
-
-extern int ppu_init (void);
-extern void ppu_exit (void);
-extern void ppu_reset (void);
-
-extern UINT8 ppu_read (UINT16);
-extern void ppu_write (UINT16, UINT8);
-
-extern void ppu_clear_palette (void);
-
-extern void ppu_sync_update(void);
-extern void ppu_disable_rendering(void);
-extern void ppu_enable_rendering(void);
-extern void ppu_predict_nmi(cpu_time_t cycles);
-
-extern int ppu_get_mirroring (void);
-extern void ppu_set_mirroring (ENUM);
-extern void ppu_set_default_mirroring (ENUM);
-extern void ppu_invert_mirroring (void);
-
-extern BOOL ppu_is_rendering (void);
-
-extern void ppu_set_name_table_internal (int, int);
-extern void ppu_set_name_table_address (int, UINT8 *);
-extern void ppu_set_name_table_address_rom (int, UINT8 *);
-extern void ppu_set_name_table_address_vrom (int, int);
-extern void ppu_set_expansion_table_address (UINT8 *);
-
-enum
-{
-    MIRRORING_HORIZONTAL = 0,
-    MIRRORING_VERTICAL,
-    MIRRORING_ONE_SCREEN,
-    MIRRORING_ONE_SCREEN_2000, MIRRORING_ONE_SCREEN_2400,
-    MIRRORING_ONE_SCREEN_2800, MIRRORING_ONE_SCREEN_2C00,
-    MIRRORING_FOUR_SCREEN,
-    MIRRORING_DEFAULT = MIRRORING_HORIZONTAL
+enum {
+   PPU_OPTION_ENABLE_RENDERING = 0,
+   PPU_OPTION_ENABLE_BACKGROUND_LAYER,
+   PPU_OPTION_ENABLE_SPRITE_BACK_LAYER,
+   PPU_OPTION_ENABLE_SPRITE_FRONT_LAYER
 };
 
-extern void ppu_save_state (PACKFILE *, int);
-extern void ppu_load_state (PACKFILE *, int);
+enum {
+   PPU_MIRRORING_HORIZONTAL = 0,
+   PPU_MIRRORING_VERTICAL,
+   PPU_MIRRORING_ONE_SCREEN,
+   PPU_MIRRORING_ONE_SCREEN_2000, MIRRORING_ONE_SCREEN_2400,
+   PPU_MIRRORING_ONE_SCREEN_2800, MIRRORING_ONE_SCREEN_2C00,
+   PPU_MIRRORING_FOUR_SCREEN
+};
 
-extern UINT8 ppu_get_background_color (void);
+extern int ppu_init(void);
+extern void ppu_exit(void);
+extern void ppu_reset(void);
+extern UINT8 ppu_read(const UINT16 address);
+extern void ppu_write(const UINT16 address, const UINT8 data);
+extern void ppu_predict_nmi(const cpu_time_t cycles);
+extern void ppu_sync_update(void);
+extern void ppu_set_option(const ENUM option, const BOOL value);
+extern BOOL ppu_get_option(const ENUM option);
+extern void ppu_save_state(PACKFILE* file, const int version);
+extern void ppu_load_state(PACKFILE* file, const int version);
+
+extern UINT8* ppu_get_chr_rom_pages(ROM *rom);
+extern void ppu_free_chr_rom(ROM *rom);
+extern ENUM ppu_get_mirroring(void);
+extern void ppu_set_mirroring(const ENUM mirroring);
+extern void ppu_set_default_mirroring(const ENUM mirroring);
+extern void ppu_set_name_table_address(const int table, UINT8* address);
+extern void ppu_set_name_table_address_read_only(const int table, UINT8* address);
+extern void ppu_set_1k_name_table_vram_page(const int table, const int page);
+extern void ppu_set_1k_name_table_vrom_page(const int table, int page);
+extern void ppu_set_1k_pattern_table_vram_page(const UINT16 address, int page);
+extern void ppu_set_1k_pattern_table_vrom_page(const UINT16 address, int page);
+extern void ppu_set_8k_pattern_table_vram(void);
+extern void ppu_set_expansion_table_address(const UINT8* address);
+extern UINT8 ppu_get_background_color(void);
+extern void ppu_clear_palette(void);
 
 #ifdef __cplusplus
 }
