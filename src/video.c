@@ -43,9 +43,12 @@ static BOOL allegro_gl_installed = FALSE;
 int video_buffer_width = -1; // Auto
 int video_buffer_height = -1;
 
-static BITMAP *page_buffer = NULL;
+#define MAX_PAGE_BUFFERS 2
+static BITMAP *page_buffers[MAX_PAGE_BUFFERS] = NULL;
 static BITMAP *screen_buffer = NULL;
 static BITMAP *status_buffer = NULL;
+
+static int current_page = 0;
 
 #define MAX_MESSAGES    10
 
@@ -342,23 +345,47 @@ int video_init (void)
    if (color_depth != 8)
       set_color_conversion ((COLORCONV_TOTAL | COLORCONV_KEEP_TRANS));
        
-   /* Create page buffer. */
+   /* Create page buffers. */
 
    if (video_enable_page_buffer)
    {
-      log_printf ("VIDEO: Creating page buffer.");
+      int index;
 
-      page_buffer = create_video_bitmap (SCREEN_W, SCREEN_H);
-      if (!page_buffer)
+      log_printf ("VIDEO: Creating %d page buffers.", MAX_PAGE_BUFFERS);
+
+      for(index = 0; index < MAX_PAGE_BUFFERS; index++)
       {
-         WARN("Failed to create page buffer");
-         video_enable_page_buffer = FALSE;
+         int subindex;
+
+         page_buffers[index] = create_video_bitmap (SCREEN_W, SCREEN_H);
+         if (!page_buffers[index])
+         {
+            /* Clean up */
+            for(subindex = 0; subindex < MAX_PAGE_BUFFERS; subindex++)
+            {
+               if(page_buffers[index]) {
+                  destroy_bitmap(page_buffers[index]);
+                  page_buffers[index] = NULL;
+               }
+            }
+
+            WARN("Failed to create page buffer #%d, falling back to double buffering", index);
+            video_enable_page_buffer = FALSE;
+         }
+      }
+
+      if (!(gfx_capabilities & GFX_CAN_TRIPLE_BUFFER))
+      {
+         /* Attempt to enable triple buffering */
+         enable_triple_buffer();
       }
    }
    else
    {
       page_buffer = NULL;
    }
+
+   current_page = 0;
 
    if (!preserve_video_buffer)
    {
@@ -600,12 +627,15 @@ void video_exit (void)
       screen_buffer = NULL;
    }
 
-   if (page_buffer)
+   for(index = 0; index < MAX_PAGE_BUFFERS; index++)
    {
-      log_printf ("VIDEO: Destroying page buffer.");
+      if (page_buffers[index])
+      {
+         log_printf ("VIDEO: Destroying page buffer #%d.", index);
 
-      destroy_bitmap (page_buffer);
-      page_buffer = NULL;
+         destroy_bitmap (page_buffers[index]);
+         page_buffers[index] = NULL;
+      }
    }
 
    log_printf ("VIDEO: Exiting graphics mode.");
@@ -832,16 +862,30 @@ void video_blit (BITMAP *bitmap)
 #endif   /* USE_ALLEGROGL */
 
    /* Send screen buffer to screen. */
+   BOOL allow_vsync = FALSE;
 
-   if (page_buffer && (bitmap == screen))
+   if (bitmap == screen)
    {
-      /* Reduce screen tearing by blitting to VRAM first, then doing a
-         VRAM to VRAM blit to the visible portion of the screen, since
-         such blits are much faster.  Of course, we could just do page
-         flipping, but this way we keep things simple and compatible. */
+      if (video_enable_page_buffer)
+      {
+         /* Reduce screen tearing by blitting to VRAM first, then doing a
+            page flip. */
 
-      /* Draw to page buffer first, then to screen (see above). */
-      dest = page_buffer;
+         /* Draw to page buffer first, then to screen (see above). */
+         dest = page_buffers[current_page];
+
+         current_page++;
+         if(current_page >= MAX_PAGE_BUFFERS)
+         {
+            current_page = 0;
+         } 
+      }
+      else
+      {
+         dest = bitmap;
+
+         allow_vsync = TRUE;
+      }
    }
    else
    {
@@ -851,7 +895,7 @@ void video_blit (BITMAP *bitmap)
 
    acquire_bitmap (dest);
 
-   if ((dest == screen) && video_enable_vsync)
+   if (video_enable_vsync && allow_vsync)
       vsync ();
 
    if ((screen_buffer->w != dest->w) || (screen_buffer->h != dest->h))
@@ -873,14 +917,17 @@ void video_blit (BITMAP *bitmap)
 
    if (dest != bitmap)
    {
-      acquire_bitmap (bitmap);
-
-      if ((bitmap == screen) && video_enable_vsync)
-         vsync ();
-
-      blit (dest, bitmap, 0, 0, 0, 0, dest->w, dest->h);
-
-      release_bitmap (bitmap);
+      /* Page buffering */
+      /* When possible, triple buffering is used. Otherwise, page flipping is used */
+      /* Note that calling vsync() isn't neccessary when using page flipping or triple buffering */
+      if (gfx_capabilities & GFX_CAN_TRIPLE_BUFFER)
+      {
+         request_video_bitmap(dest);
+      }
+      else
+      {
+         show_video_bitmap(dest);
+      }
    }
 
 #ifdef USE_ALLEGROGL
