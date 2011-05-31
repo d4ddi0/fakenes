@@ -594,9 +594,9 @@ inline void Clock() {
                   /* The PPU manages memory using 1 kB pages, so we first have to find the proper page,
                      then calculate the offset of the bytes containing the data for the two separate
                      planes for this line of the tile bitmap. */
-                  const unsigned page = address >> 10;
-                  const uint8 *data = ppu_vram_block_read_address[page];
-                  unsigned offset = address - (page << 10);
+                  const unsigned page = address / PPU__PATTERN_TABLE_PAGE_SIZE;
+                  const uint8 *data = ppu__sprite_pattern_tables_read[page];
+                  unsigned offset = address - (page * PPU__PATTERN_TABLE_PAGE_SIZE);
 
                   /* For 8x16 sprites, we may need to jump to the next tile.
                      This occurs on row indices 8-15, which then become 0-7 after the offset. */

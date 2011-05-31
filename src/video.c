@@ -44,7 +44,7 @@ int video_buffer_width = -1; // Auto
 int video_buffer_height = -1;
 
 #define MAX_PAGE_BUFFERS 2
-static BITMAP *page_buffers[MAX_PAGE_BUFFERS] = NULL;
+static BITMAP *page_buffers[MAX_PAGE_BUFFERS];
 static BITMAP *screen_buffer = NULL;
 static BITMAP *status_buffer = NULL;
 
@@ -369,7 +369,7 @@ int video_init (void)
                }
             }
 
-            WARN("Failed to create page buffer #%d, falling back to double buffering", index);
+            WARN("Failed to create page buffer, falling back to double buffering");
             video_enable_page_buffer = FALSE;
          }
       }
@@ -382,7 +382,12 @@ int video_init (void)
    }
    else
    {
-      page_buffer = NULL;
+      int index;
+
+      for(index = 0; index < MAX_PAGE_BUFFERS; index++)
+      {
+         page_buffers[index] = NULL;
+      }
    }
 
    current_page = 0;
@@ -558,6 +563,8 @@ int video_init_buffer (void)
 
 void video_exit (void)
 {
+   int index;
+
    log_printf ("VIDEO: Entering video_exit().");
 
    if (!is_windowed_mode ())
@@ -1854,6 +1861,9 @@ FONT* video_get_font(ENUM font_name) {
       default:
          WARN_GENERIC();
    }
+
+   /* Kill compile warning */
+   return fonts[FONT_LEGACY];
 }
 
 void video_message (const UCHAR *message, ...)

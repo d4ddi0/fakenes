@@ -49,7 +49,7 @@ typedef struct _INES_HEADER
 
 extern int load_rom (const UCHAR*, ROM *);
 extern int load_rom_from_zip (const UCHAR*, ROM *);
-extern void free_rom (const ROM *);
+extern void free_rom (ROM *);
 
 extern ROM global_rom;
 extern BOOL rom_is_loaded;

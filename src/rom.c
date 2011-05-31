@@ -231,7 +231,7 @@ int load_ines_rom (PACKFILE *file, ROM *rom)
       ppu_set_default_mirroring (PPU_MIRRORING_FOUR_SCREEN);
    else
       ppu_set_default_mirroring (((rom->control_byte_1 & ROM_CTRL_MIRRORING) ?
-         PPUMIRRORING_VERTICAL : PPU_MIRRORING_HORIZONTAL));
+         PPU_MIRRORING_VERTICAL : PPU_MIRRORING_HORIZONTAL));
 
    /* Return success. */
    return (0);
@@ -437,12 +437,14 @@ int load_rom_from_zip (const UCHAR *filename, ROM *rom)
 #endif
 }
 
-void free_rom (const ROM *rom)
+void free_rom (ROM *rom)
 {
    RT_ASSERT(rom);
 
-   if (rom->trainer)
+   if (rom->trainer) {
       free (rom->trainer);
+      rom->trainer = NULL;
+   }
 
    cpu_free_prg_rom (rom);
    ppu_free_chr_rom (rom);

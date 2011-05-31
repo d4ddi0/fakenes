@@ -51,26 +51,27 @@ extern BOOL   ppu__enable_background;
 /* Sprites. */
 extern BOOL   ppu__clip_sprites;
 extern BOOL   ppu__enable_sprites;
-extern BOOL   ppu__sprite_collision;
 extern UINT8  ppu__sprite_height;
-extern BOOL   ppu__sprite_overflow;
 extern UINT16 ppu__sprite_tileset;
-/* Colors. */
+/* Palettes and colors. */
 extern BOOL   ppu__intensify_reds;
 extern BOOL   ppu__intensify_greens;
 extern BOOL   ppu__intensify_blues;
 extern UINT8  ppu__palette_mask;
-/* Emulation. */
+/* Register-derived. */
 extern BOOL   ppu__enabled;
-extern ENUM   ppu__default_mirroring;
-extern ENUM   ppu__mirroring;
 extern UINT8  ppu__oam_address;
-extern UINT8* ppu__one_screen_base_address;
 extern UINT8  ppu__scroll_x_position;
 extern UINT8  ppu__scroll_y_position;
 extern UINT16 ppu__vram_address;
+/* Emulation only. */
+extern ENUM   ppu__default_mirroring;
+extern ENUM   ppu__mirroring;
+extern UINT8* ppu__one_screen_base_address;
+extern BOOL   ppu__sprite_collision;
+extern BOOL   ppu__sprite_overflow;
 extern BOOL   ppu__vblank_started;
-/* Rendering. */
+/* Rendering only. */
 extern UINT8  ppu__background_pixels[PPU__BACKGROUND_PIXELS_SIZE];
 extern BOOL   ppu__enable_background_layer;
 extern BOOL   ppu__enable_rendering;
@@ -116,12 +117,14 @@ extern PPU__ARRAY( UINT8*,       ppu__sprite_pattern_tables_write,     PPU__PATT
 /* **************************************
    ********** PALETTES AND OAM **********
    **************************************/
-/* Object counts. */
+/* Object counts and sizes. */
 #define PPU__BACKGROUND_PALETTE_COUNT	4
+#define PPU__BACKGROUND_PALETTE_OFFSET	0
 #define PPU__BYTES_PER_PALETTE		4
 #define PPU__BYTES_PER_SPRITE		4
 #define PPU__SPRITE_COUNT		64
 #define PPU__SPRITE_PALETTE_COUNT	4
+#define PPU__SPRITE_PALETTE_OFFSET	(PPU__BACKGROUND_PALETTE_COUNT * PPU__BYTES_PER_PALETTE)
 /* Array sizes. */
 #define PPU__BACKGROUND_PALETTES_SIZE	PPU__BACKGROUND_PALETTE_COUNT
 #define PPU__PALETTE_VRAM_SIZE		(PPU__BYTES_PER_PALETTE * (PPU__BACKGROUND_PALETTE_COUNT + PPU__SPRITE_PALETTE_COUNT))

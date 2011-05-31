@@ -59,7 +59,7 @@ static linear void StartOAMDMA(const uint8 page);
 
 // Mirroring, name tables and pattern tables.
 static void SetupMirroring();
-static void SetupSingleScreenMirroring();
+static void SetupSingleScreenMirroring(UINT8* address);
 static void UpdatePatternTables();
 
 // NMI prediction.
@@ -76,6 +76,7 @@ static linear void StartScanline();
 static linear void StartScanlineCycle(const cpu_time_t cycle);
 static linear void EndScanline();
 static linear void OAMDMA();
+static inline void LoadCachedSettings();
 
 /* Internal state:
       These variables store internal state information, particularly timing information.
@@ -90,9 +91,9 @@ cpu_time_t nmiPredictionCycles = 0;		// Amount of cycles in the prediction buffe
 cpu_time_t nmiPredictionTimestamp = 0;		// Last time NMI prediction was performed
 uint8      oamDMAByte = 0x00;			// Current sprite DMA transfer byte
 bool       oamDMAFlipFlop = false;		// Read a byte when false, write a byte when true
-uint8      oamDMAReadAddress = 0x00;		// Sprite DMA source address in system RAM
+uint16     oamDMAReadAddress = 0x000;		// Sprite DMA source address in system RAM
 uint8      oamDMATimer = 0;		        // Number of PPU cycles until the next read or write
-uint16     oamDMAWriteAddress = 0x100;		// Sprite DMA target address in OAM (disabled when >$FF)
+uint16     oamDMAWriteAddress = 0x000;		// Sprite DMA target address in OAM (disabled when >$FF)
 uint8      readBuffer = 0x00;                 	// Last buffered VRAM read
 int16      scanline = 0;			// The current scanline being processed
 int16      scanlineTimer = 0;			// Number of PPU cycles left on the current scanline
@@ -110,48 +111,44 @@ uint8      writeBuffer = 0x00;			// Last data byte written to a register
       Memory-Mapping Controller (MMC).  Always use public functions (when available) instead.
       If no associated function is available for a given option, do not ever access it.
       Lastly, publicly accessible but internal variables should include *two* underscores. */
-#define INITIAL_BACKGROUND_TILESET	0x0000
-#define INITIAL_BASE_NAME_TABLE_ADDRESS	0x2000
-#define INITIAL_MIRRORING		PPU_MIRRORING_HORIZONTAL
-#define INITIAL_PALETTE_MASK		0x3F
-#define INITIAL_SPRITE_HEIGHT		8
-#define INITIAL_SPRITE_TILESET		0x0000
 
 // General registers.
-UINT16 ppu__base_name_table_address = INITIAL_BASE_NAME_TABLE_ADDRESS; // Used for scrolling
+UINT16 ppu__base_name_table_address = 0x0000;	// Used for scrolling
 BOOL   ppu__generate_interrupts = FALSE;	// Generate NMIs at the start of VBlank
 UINT8  ppu__vram_address_increment = 0;		// Applied after each VRAM access
 
 // Background registers.
-UINT16 ppu__background_tileset = INITIAL_BACKGROUND_TILESET; // Base address for background tiles
+UINT16 ppu__background_tileset = 0x0000;	// Base address for background tiles
 BOOL   ppu__clip_background = FALSE;		// Hide background in the left 8 pixels of the screen
 BOOL   ppu__enable_background = FALSE;		// Enable emulation of the background-rendering pipeline
 
 // Sprite registers.
 BOOL   ppu__clip_sprites = FALSE;		// Hide sprites in the left 8 pixels of the screen
 BOOL   ppu__enable_sprites = FALSE;		// Enable emulation of the sprite-rendering pipeline
-BOOL   ppu__sprite_collision = FALSE;		// Sprite #0 collision flag
-UINT8  ppu__sprite_height = INITIAL_SPRITE_HEIGHT; // Sprite height, either 8 or 16 pixels
-BOOL   ppu__sprite_overflow = FALSE;		// More than eight sprites on a scanline
-UINT16 ppu__sprite_tileset = INITIAL_SPRITE_TILESET; // Base address for sprite tiles, only used in 8x8 mode
+UINT8  ppu__sprite_height = 0;			// Sprite height, either 8 or 16 pixels
+UINT16 ppu__sprite_tileset = 0x0000;		// Base address for sprite tiles, only used in 8x8 mode
 
-// Color registers.
+// Palette and color registers.
 BOOL  ppu__intensify_reds = FALSE;		// Darkens greens and blues
 BOOL  ppu__intensify_greens = FALSE;		// Darkens reds and blues
 BOOL  ppu__intensify_blues = FALSE;		// Darkens reds and greens
-UINT8 ppu__palette_mask = INITIAL_PALETTE_MASK;	// Controlled by monochrome mode flag in PPUSTATUS
+UINT8 ppu__palette_mask = 0x00;			// Controlled by monochrome mode flag in PPUSTATUS
 
-/* These variables are usually derived from registers, but are not directly associated with a
-   software-modifiable setting. Rather, they control logic indirectly. */
+/* These variables are derived from registers, but are not directly associated with a
+   software-modifiable setting. Register clears will still reset them. */
 BOOL   ppu__enabled = FALSE;			// Don't access VRAM when this is cleared
-ENUM   ppu__default_mirroring = INITIAL_MIRRORING; // Set by cartridge and loaded at reset
-BOOL   ppu__hblank_started = FALSE;		// Set when first HBlank cycle reached
-ENUM   ppu__mirroring = ppu__default_mirroring;	// Name table layout and mirroring
 UINT8  ppu__oam_address = 0;                    // Current read/write location in OAM
-UINT8* ppu__one_screen_base_address = NULL;	// Base address for one screen mirroring
 UINT8  ppu__scroll_x_position = 0;		// Background scrolling horizontal offset
 UINT8  ppu__scroll_y_position = 0;		// Background scrolling vertical offset
 UINT16 ppu__vram_address = 0;			// Current read/write location in VRAM
+
+/* These variables are used only by the emulation itself. They are not derived from registers in any way,
+   but rather external sources (e.g the cartridge) or the current state of events within the PPU. */
+ENUM   ppu__default_mirroring = 0;		// Set by cartridge and loaded at reset
+BOOL   ppu__hblank_started = FALSE;		// Set when first HBlank cycle reached
+ENUM   ppu__mirroring = 0;			// Name table layout and mirroring
+BOOL   ppu__sprite_collision = FALSE;		// Sprite #0 collision flag
+BOOL   ppu__sprite_overflow = FALSE;		// More than eight sprites on a scanline
 BOOL   ppu__vblank_started = FALSE;		// Set when first VBlank scanline reached
 
 // These variables are used exclusively by the renderer.
@@ -238,13 +235,11 @@ static const UINT16 base_name_table_address_lut[BASE_NAME_TABLE_ADDRESS_MAX + 1]
       corrupt the PPUs state, they are only reloaded at the end of each frame. All of these
       are set via ppu_set_option() and are mostly cosmetic. Cached options are never cleared
       across a reset or by a power cycle. */
-static bool cache_enable_background_layer = ppu__enable_background_layer;
-static bool cache_enable_sprite_back_layer = ppu__enable_sprite_back_layer;
-static bool cache_enable_sprite_front_layer = ppu__enable_sprite_front_layer;
-static bool cache_enable_rendering = ppu__enable_rendering;
+static bool cache_enable_background_layer = TRUE;
+static bool cache_enable_sprite_back_layer = TRUE;
+static bool cache_enable_sprite_front_layer = TRUE;
+static bool cache_enable_rendering = TRUE;
 
-// --------------------------------------------------------------------------------
-// MISCELLANEOUS:
 /* Since Synchronize() calls other functions such as MMC handlers, and those handlers in turn can
    access the PPU, a re-entry condition develops that could be problematic. In order to solve this,
    we want to avoid a synchronization attempt when one is already in progress. In these cases,
@@ -278,11 +273,57 @@ static bool cache_enable_rendering = ppu__enable_rendering;
 
 int ppu_init(void)
 {
+   using namespace PPUState;
+
    // Begin initialization sequence.
-   PPUState::initializing = 1;
+   initializing = 1;
+
+   // Clear internal state.
+   synchronizing = false;
+   timeWarp = false;
+
+   // Clear memory for name tables.
+   memset(ppu__name_table_dummy,                0, PPU__NAME_TABLE_DUMMY_SIZE);
+   memset(ppu__name_table_vram,                 0, PPU__NAME_TABLE_VRAM_SIZE);
+   memset(ppu__name_tables_read,                0, PPU__NAME_TABLES_READ_SIZE);
+   memset(ppu__name_tables_write,               0, PPU__NAME_TABLES_WRITE_SIZE);
+   // Clear memory for pattern tables.
+   memset(ppu__pattern_table_dummy,             0, PPU__PATTERN_TABLE_DUMMY_SIZE);
+   memset(ppu__pattern_table_vram,              0, PPU__PATTERN_TABLE_VRAM_SIZE);
+   memset(ppu__pattern_tables_read,             0, PPU__PATTERN_TABLES_READ_SIZE);
+   memset(ppu__pattern_tables_write,            0, PPU__PATTERN_TABLES_WRITE_SIZE);
+   memset(ppu__background_pattern_tables_read,  0, PPU__PATTERN_TABLES_READ_SIZE);
+   memset(ppu__background_pattern_tables_write, 0, PPU__PATTERN_TABLES_WRITE_SIZE);
+   memset(ppu__sprite_pattern_tables_read,      0, PPU__PATTERN_TABLES_READ_SIZE);
+   memset(ppu__sprite_pattern_tables_write,     0, PPU__PATTERN_TABLES_WRITE_SIZE);
+   // Clear memory for palettes.
+   memset(ppu__palette_vram,                    0, PPU__PALETTE_VRAM_SIZE);
+   memset(ppu__background_palettes,             0, PPU__BACKGROUND_PALETTES_SIZE);
+   memset(ppu__sprite_palettes,                 0, PPU__SPRITE_PALETTES_SIZE);
+   // Clear memory for sprites.
+   memset(ppu__sprite_vram,                     0, PPU__SPRITE_VRAM_SIZE);
+   // Clear memory for rendering.
+   memset(ppu__background_pixels,               0, PPU__BACKGROUND_PIXELS_SIZE);
+
+   // Initially disable the expansion table.
+   ppu_set_expansion_table_address(NULL);
+
+   // Set up palette lists.
+   for(int i = 0; i < PPU__BACKGROUND_PALETTE_COUNT; i++)
+      ppu__background_palettes[i] = ppu__palette_vram +
+         PPU__BACKGROUND_PALETTE_OFFSET + (i * PPU__BYTES_PER_PALETTE);
+   for(int i = 0; i < PPU__SPRITE_PALETTE_COUNT; i++)
+      ppu__sprite_palettes[i] = ppu__palette_vram +
+         PPU__SPRITE_PALETTE_OFFSET + (i * PPU__BYTES_PER_PALETTE);
+
+   // Initialize everything else.
+   ppu_reset();
+
+   // Load cached settings into their respective vars.
+   LoadCachedSettings();
 
    // End initialization sequence.
-   PPUState::initializing--;
+   initializing--;
 
    return 0;
 }
@@ -293,8 +334,58 @@ void ppu_exit(void)
 
 void ppu_reset(void)
 {
+   using namespace PPUState;
+
    // Begin initialization sequence.
-   PPUState::initializing++;
+   initializing++;
+
+   // Set up internal state.
+   clockCounter = 0;
+   clockBuffer = 0;
+   scanline = PPU_FIRST_LINE;
+   scanlineTimer = SCANLINE_CLOCKS;
+   isOddFrame = false;
+   nmiPredictionTimestamp = 0;
+   nmiPredictionCycles = 0;
+
+   readBuffer = 0x00;
+   writeBuffer = 0x00;
+   scrollFlipFlop = false;
+   vramAddressFlipFlop = false;
+
+   oamDMATimer = 0;
+   oamDMAReadAddress = 0x0000;
+   oamDMAWriteAddress = 0x00;
+   oamDMAByte = 0x00;
+   oamDMAFlipFlop = false;
+
+   vblankQuirkTime = 0;
+
+   // Initialize registers. This resets all register-derived internal variables.
+   ppu_write(0x2000, 0x00); // PPUCTRL
+   ppu_write(0x2001, 0x00); // PPUMASK
+   ppu_write(0x2003, 0x00); // OAMADDR
+   ppu_write(0x2005, 0x00); // PPUSCROLL
+   ppu_write(0x2005, 0x00); // Write x2
+   ppu_write(0x2006, 0x00); // PPUADDR
+   ppu_write(0x2006, 0x00); // Write x2
+
+   // Clear emulation state for HBlank and VBlank.
+   ppu__hblank_started = FALSE;
+   ppu__vblank_started = FALSE;
+   // Clear emulation state for sprites.
+   ppu__sprite_collision = FALSE;
+   ppu__sprite_overflow = FALSE;
+   // Clear emulation state for rendering.
+   ppu__force_rendering = FALSE;
+
+   // Set up mirroring (sets ppu__mirroring and our name tables).
+   ppu_set_mirroring(ppu__default_mirroring);
+   // Set up pattern tables.
+   ppu_set_8k_pattern_table_vram();
+
+   // Initialize renderer.
+   Renderer::Initialize();
 
    // End initialization sequence.
    PPUState::initializing--;
@@ -808,8 +899,6 @@ void ppu_set_8k_pattern_table_vram(void)
 
 void ppu_set_expansion_table_address(const UINT8* address)
 {
-   RT_ASSERT(address);
-
    SyncHelper();
    ppu__expansion_table = address;
 }
@@ -1020,32 +1109,18 @@ static void SetupMirroring()
       }
 
       case PPU_MIRRORING_ONE_SCREEN:
-         SetupSingleScreenMirroring();
+      case PPU_MIRRORING_ONE_SCREEN_2000:
+         SetupSingleScreenMirroring(ppu__name_table_vram);
          break;
-
-      case PPU_MIRRORING_ONE_SCREEN_2000: {
-         ppu__one_screen_base_address = ppu__name_table_vram;
-         SetupSingleScreenMirroring();
+      case PPU_MIRRORING_ONE_SCREEN_2400:
+         SetupSingleScreenMirroring(ppu__name_table_vram + 0x400);
          break;
-      }
-
-      case PPU_MIRRORING_ONE_SCREEN_2400: {
-         ppu__one_screen_base_address = ppu__name_table_vram + 0x400;
-         SetupSingleScreenMirroring();
+      case PPU_MIRRORING_ONE_SCREEN_2800:
+         SetupSingleScreenMirroring(ppu__name_table_vram + 0x800);
          break;
-      }
-
-      case PPU_MIRRORING_ONE_SCREEN_2800: {
-         ppu__one_screen_base_address = ppu__name_table_vram + 0x800;
-         SetupSingleScreenMirroring();
+      case PPU_MIRRORING_ONE_SCREEN_2C00:
+         SetupSingleScreenMirroring(ppu__name_table_vram + 0xC00);
          break;
-      }
-
-      case PPU_MIRRORING_ONE_SCREEN_2C00: {
-         ppu__one_screen_base_address = ppu__name_table_vram + 0xC00;
-         SetupSingleScreenMirroring();
-         break;
-      }
 
       case PPU_MIRRORING_FOUR_SCREEN: {
          /* 0 1
@@ -1064,12 +1139,12 @@ static void SetupMirroring()
    }
 }
 
-static void SetupSingleScreenMirroring()
+static void SetupSingleScreenMirroring(UINT8* address)
 {
-    ppu_set_name_table_address(0, ppu__one_screen_base_address);
-    ppu_set_name_table_address(1, ppu__one_screen_base_address);
-    ppu_set_name_table_address(2, ppu__one_screen_base_address);
-    ppu_set_name_table_address(3, ppu__one_screen_base_address);
+    ppu_set_name_table_address(0, address);
+    ppu_set_name_table_address(1, address);
+    ppu_set_name_table_address(2, address);
+    ppu_set_name_table_address(3, address);
 }
 
 static void UpdatePatternTables()
@@ -1158,8 +1233,6 @@ static inline bool ClockScanlineTimer(int16 &nextScanline)
    // Signal to the caller that the current scanline is still ongoing.
    return FALSE;
 }
-
-// --------------------------------------------------------------------------------
 
 static void Synchronize()
 {
@@ -1283,10 +1356,7 @@ static linear void EndFrame()
       video_blit(screen);
 
    // Now we can reload our cached options into the actual variables.
-   ppu__enable_background_layer = cache_enable_background_layer;
-   ppu__enable_sprite_back_layer = cache_enable_sprite_back_layer;
-   ppu__enable_sprite_front_layer = cache_enable_sprite_front_layer;
-   ppu__enable_rendering = cache_enable_rendering;
+   LoadCachedSettings();
 }
 
 static linear void StartScanline() 
@@ -1416,4 +1486,12 @@ static linear void OAMDMA()
 
    // A simple flip-flop is used to separate read and write cycles.
    oamDMAFlipFlop = !oamDMAFlipFlop;
+}
+
+static inline void LoadCachedSettings()
+{
+   ppu__enable_background_layer = cache_enable_background_layer;
+   ppu__enable_sprite_back_layer = cache_enable_sprite_back_layer;
+   ppu__enable_sprite_front_layer = cache_enable_sprite_front_layer;
+   ppu__enable_rendering = cache_enable_rendering;
 }

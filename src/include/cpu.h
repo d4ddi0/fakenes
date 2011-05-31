@@ -81,7 +81,7 @@ extern void cpu_unqueue_interrupt (int type);
 
 extern UINT16 *cpu_active_pc;
 
-extern void cpu_free_prg_rom (const ROM *);
+extern void cpu_free_prg_rom (ROM *);
 extern UINT8 *cpu_get_prg_rom_pages (ROM *);
 
 extern void cpu_enable_sram (void);

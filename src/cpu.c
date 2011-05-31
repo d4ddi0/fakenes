@@ -205,12 +205,14 @@ void cpu_exit (void)
    save_patches ();
 }
 
-void cpu_free_prg_rom (const ROM *rom)
+void cpu_free_prg_rom (ROM *rom)
 {
    RT_ASSERT(rom);
 
-   if (rom->prg_rom)
+   if (rom->prg_rom) {
       free (rom->prg_rom);
+      rom->prg_rom = NULL;
+   }
 }
 
 UINT8 *cpu_get_prg_rom_pages (ROM *rom)
