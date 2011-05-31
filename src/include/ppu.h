@@ -63,7 +63,6 @@ extern void ppu_set_option(const ENUM option, const BOOL value);
 extern BOOL ppu_get_option(const ENUM option);
 extern void ppu_save_state(PACKFILE* file, const int version);
 extern void ppu_load_state(PACKFILE* file, const int version);
-
 extern UINT8* ppu_get_chr_rom_pages(ROM *rom);
 extern void ppu_free_chr_rom(ROM *rom);
 extern ENUM ppu_get_mirroring(void);

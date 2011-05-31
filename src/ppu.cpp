@@ -38,11 +38,10 @@
      - When a variable won't be modified, make its value const, to improve optimization.
      - When calling functions, pass parameters as const whenever possible. */
 
-// TODO: Proper initialization and reset.
-// TODO: State saving support.
 // TODO: Add MMC2 & MMC4 latches support.
-
-// --------------------------------------------------------------------------------
+// TODO: State saving support.
+// TODO: Properly emulate PPU power-up and reset states.
+// TODO: Add 16-bit rendering support with color tinting.
 
 /* Internal functions:
       These are used exclusively by this file only. */
@@ -444,18 +443,21 @@ UINT8 ppu_read(const UINT16 address)
             ppu__vblank_started = FALSE;
          }
 
-         break;
+         /* Reading the status register will clear D7 mentioned above and also
+            the address latch used by PPUSCROLL and PPUADDR. */
+         PPUState::scrollFlipFlop = false;
+         PPUState::vramAddressFlipFlop = false;
+
+         return data;
       }
 
       // OAMDATA
       case 4:
          return OAMRead();
-         break;
 
       // PPUDATA
       case 7:
          return VRAMRead();
-         break;
    }
 
    return 0x00;
@@ -694,8 +696,6 @@ void ppu_load_state(PACKFILE* file, const int version)
 {
 }
 
-// --------------------------------------------------------------------------------
-
 UINT8* ppu_get_chr_rom_pages(ROM *rom)
 {
    RT_ASSERT(rom);
@@ -800,6 +800,7 @@ void ppu_set_1k_name_table_vram_page(const int table, const int page)
    RT_ASSERT(page >= 0);
 
    SyncHelper();
+
    ppu_set_name_table_address(table, ppu__name_table_vram + (page * PPU__NAME_TABLE_PAGE_SIZE));
 }
 
@@ -910,7 +911,7 @@ UINT8 ppu_get_background_color(void)
    /* Returns the current PPU background color - for drawing overscan e.g for NTSC.
       In the future, this should be rendered by the PPU itself into a special kind of buffer. 
       Returned as an index into the 256 color palette */
-   return PPU__BACKGROUND_PALETTE(0, 0);
+   return PPU__BACKGROUND_COLOR;
 }
 
 void ppu_clear_palette(void)

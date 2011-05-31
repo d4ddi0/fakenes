@@ -34,6 +34,10 @@ extern "C" {
 #define PPU__SPRITE_PALETTE(_PALETTE, _INDEX) \
    ( (ppu__sprite_palettes[(_PALETTE)][(_INDEX)] & ppu__palette_mask) + PPU__PALETTE_ADJUST )
 
+/* This is the color the screen is filled with when the PPU background rendering
+   is disabled, and the TV overscan around the image. */
+#define PPU__BACKGROUND_COLOR	( PPU__BACKGROUND_PALETTE(0, 0) )
+
 /* This macro helps us create a large number of arrays in a clean manner. */
 #define PPU__ARRAY(_TYPE, _NAME, _SIZE)	_TYPE _NAME[(_SIZE)]
 

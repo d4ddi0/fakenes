@@ -6,6 +6,7 @@
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
 
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "../include/common.h"
@@ -141,6 +142,7 @@ void Initialize() {
 void Line() {
    // Copy evaluation count to spriteCount, as it will be overwritten
    render.spriteCount = render.evaluation.count;
+   printf("Line #%d has %d sprites.\n", render.line, render.spriteCount);
 }
 
 #endif

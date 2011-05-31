@@ -103,7 +103,7 @@ inline void Pixel() {
    else {
       // Clear framebuffer
       PPU__PUT_BACKGROUND_PIXEL(render.pixel, 0);
-      render.buffer[render.pixel] = PPU__BACKGROUND_PALETTE(0, 0);
+      render.buffer[render.pixel] = PPU__BACKGROUND_COLOR;
 
       // Advance raster position without affecting anything else
       Background::PixelSkip();

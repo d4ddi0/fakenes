@@ -1042,7 +1042,7 @@ void apu_reset(void)
    // -- Initializes/resets emulated sound hardware, creates waveforms/voices
 
    // Begin initialization sequence.
-   apu.initializing++;
+   const int initializing = apu.initializing + 1;
 
    /* Save frame sequencer state, since it is not cleared by a soft reset (a
       hard reset always implies a call to apu_init(), which clears it). */
@@ -1051,6 +1051,8 @@ void apu_reset(void)
 
    // Clear context.
    memset(&apu, 0, sizeof(apu));
+   // Restore preserved initialization state.
+   apu.initializing = initializing;
 
    // set the stupid flag to tell difference between two squares
    apu.square[0].sweep.increment = false;
