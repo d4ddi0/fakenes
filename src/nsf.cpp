@@ -441,8 +441,7 @@ void nsf_main(void)
          }
 
          // Normally a game would initialize the PPU palette, but since we're not a game we have to clear it manually.
-         ppu_clear_palette();
-         clear_to_color(video_buffer, ppu_get_background_color());
+         clear_to_color(video_buffer, 1 + PPU__PALETTE_ADJUST);
 
          const uint8 textColor = 0x30 + PPU__PALETTE_ADJUST;
          textprintf_ex(video_buffer, small_font, 8,     8 + (12 * 0), textColor, -1, "TITLE:");

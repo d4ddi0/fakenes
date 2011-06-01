@@ -78,7 +78,6 @@ extern void ppu_set_1k_pattern_table_vrom_page_expanded(const UINT16 address, in
 extern void ppu_set_8k_pattern_table_vram(void);
 extern void ppu_set_expansion_table_address(const UINT8* address);
 extern UINT8 ppu_get_background_color(void);
-extern void ppu_clear_palette(void);
 
 #ifdef __cplusplus
 }

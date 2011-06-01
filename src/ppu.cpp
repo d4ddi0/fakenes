@@ -918,19 +918,12 @@ void ppu_set_expansion_table_address(const UINT8* address)
 
 UINT8 ppu_get_background_color(void)
 {
-   SyncHelper();
+   // Note: Don't synchronize from this function or it'll break things.
 
    /* Returns the current PPU background color - for drawing overscan e.g for NTSC.
       In the future, this should be rendered by the PPU itself into a special kind of buffer. 
       Returned as an index into the 256 color palette */
    return PPU__BACKGROUND_COLOR;
-}
-
-void ppu_clear_palette(void)
-{
-   /* Clears the palette - easier than writing to VRAM when the palette needs
-      to be cleared from an external source. */
-   memset(&ppu__palette_vram, 0, PPU__PALETTE_VRAM_SIZE);
 }
 
 // --------------------------------------------------------------------------------
