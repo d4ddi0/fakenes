@@ -33,17 +33,6 @@ const int Sprite_TileIndex  = 1;
 const int Sprite_Attributes = 2;
 const int Sprite_XPosition  = 3;
 
-#define SPRITE_DATA(_OAM, _INDEX, _TYPE) \
-   ( (_OAM)[((_INDEX) * BytesPerSprite) + (_TYPE)] )
-
-#define SPRITE_Y_POSITION(_OAM, _INDEX) ( SPRITE_DATA( (_OAM), (_INDEX), Sprite_YPosition ) )
-#define SPRITE_TILE_INDEX(_OAM, _INDEX) ( SPRITE_DATA( (_OAM), (_INDEX), Sprite_TileIndex ) )
-#define SPRITE_ATTRIBUTES(_OAM, _INDEX) ( SPRITE_DATA( (_OAM), (_INDEX), Sprite_Attributes ) )
-#define SPRITE_X_POSITION(_OAM, _INDEX)	( SPRITE_DATA( (_OAM), (_INDEX), Sprite_XPosition ) )
-
-#define PRIMARY_OAM     ( ppu__sprite_vram )
-#define SECONDARY_OAM	( render.secondaryOAM )
-
 // Evaluation timings.
 const int ClearCycleFirst      = 1;
 const int ClearCycleLast       = ClearCycleFirst      + 63;	// 64 clocks
@@ -118,6 +107,28 @@ inline void Logic(RenderSpriteContext& sprite) {
 
     if((sprite.lowShift + sprite.highShift) == 0x00)
        sprite.dead = TRUE;
+}
+
+inline uint8 ReadOAM(const int index, const unsigned offset)
+{
+   /* Read a byte from primary OAM, updating the OAM address accordingly. This step is neccessary
+      for games that detect OAM access during sprite evaluation, such as Micro Machines. */
+   ppu__oam_address = (index * BytesPerSprite) + offset;
+   return ppu__sprite_vram[ppu__oam_address];
+}
+
+inline uint8 ReadSOAM(const int index, const unsigned offset)
+{
+   // Reads a byte from secondary OAM.
+   const unsigned address = (index * BytesPerSprite) + offset;
+   return render.secondaryOAM[address];
+}
+
+inline void WriteSOAM(const int index, const unsigned offset, const uint8 data)
+{
+   // Writes a byte to secondary OAM.
+   const unsigned address = (index * BytesPerSprite) + offset;
+   render.secondaryOAM[address] = data;
 }
 
 } // namespace anonymous
@@ -252,8 +263,8 @@ inline void Pixel() {
              3) The background pixel is transparent (for back-priority sprites)
              4) The frame buffer is not locked for writes
              5) Drawing of the associated sprite layer is not disabled */
-       const int colormap = sprite.latch & Attribute_Palette;
-       render.buffer[render.pixel] = PPU__SPRITE_PALETTE(colormap, pixel);
+       const int palette = sprite.latch & Attribute_Palette;
+       render.buffer[render.pixel] = PPU__SPRITE_PALETTE(palette, pixel);
     }
 }
 
@@ -267,19 +278,17 @@ inline void PixelStub() {
 #define STATE3_LOOP	state3_loop
 #define END_LOOP	end_loop
 
-/* Reading OAMDATA while the PPU is rendering will expose internal OAM accesses during sprite evaluation and loading;
-   Micro Machines does this. */
-#define READ_HELPER(_VALUE) { \
+#define READ_HELPER(_INDEX, _OFFSET) { \
    if(!cycle_is_even) \
       goto END_LOOP; \
-   e.data = (_VALUE); \
+   e.data = ReadOAM((_INDEX), (_OFFSET)); \
 }
 
-#define WRITE_HELPER(_VALUE) { \
+#define WRITE_HELPER(_INDEX, _OFFSET) { \
    if(!cycle_is_odd) \
       goto END_LOOP; \
    if(!e.locked) \
-      (_VALUE) = e.data; \
+      WriteSOAM((_INDEX), (_OFFSET), e.data); \
 }
 
 #define CONTINUE_1 { \
@@ -323,7 +332,7 @@ inline void Clock() {
 
       // Note: Each byte takes 2 PPU cycles to clear.
       if(cycle_is_even)
-         SECONDARY_OAM[(cycle / 2) - 1] = 0xFF;
+         render.secondaryOAM[(cycle / 2) - 1] = 0xFF;
    }
    else if(cycle <= EvaluationCycleLast) {
       /* Cycles 64-255: Sprite evaluation
@@ -359,11 +368,11 @@ inline void Clock() {
          switch(e.substate) {
             // Y-Position
             case 1: {
-               READ_HELPER( SPRITE_Y_POSITION(PRIMARY_OAM, e.n) );
+               READ_HELPER(e.n, Sprite_YPosition);
                CONTINUE_1
             }
             case 2: {
-               WRITE_HELPER( SPRITE_Y_POSITION(SECONDARY_OAM, e.count) );
+               WRITE_HELPER(e.count, Sprite_YPosition);
 
                /* 1a. If Y-coordinate is in range,
                       copy remaining bytes of sprite data (OAM[n][1] thru OAM[n][3]) into secondary OAM. */
@@ -379,31 +388,31 @@ inline void Clock() {
 
             // Tile index
             case 3: {
-               READ_HELPER( SPRITE_TILE_INDEX(PRIMARY_OAM, e.n) );
+               READ_HELPER(e.n, Sprite_TileIndex);
                CONTINUE_1
             }
             case 4: {
-               WRITE_HELPER( SPRITE_TILE_INDEX(SECONDARY_OAM, e.count) );
+               WRITE_HELPER(e.count, Sprite_TileIndex);
                CONTINUE_1
             }
 
             // Attribute
             case 5: {
-               READ_HELPER( SPRITE_ATTRIBUTES(PRIMARY_OAM, e.n) );
+               READ_HELPER(e.n, Sprite_Attributes);
                CONTINUE_1
             }
             case 6: {
-               WRITE_HELPER( SPRITE_ATTRIBUTES(SECONDARY_OAM, e.count) );
+               WRITE_HELPER(e.count, Sprite_Attributes);
                CONTINUE_1
             }
 
             // X-Position
             case 7: {
-               READ_HELPER( SPRITE_X_POSITION(PRIMARY_OAM, e.n) );
+               READ_HELPER(e.n, Sprite_XPosition);
                CONTINUE_1
             }
             case 8: {
-               WRITE_HELPER( SPRITE_X_POSITION(SECONDARY_OAM, e.count) );
+               WRITE_HELPER(e.count, Sprite_XPosition);
 
                // Sprite copy complete.
                e.indices[e.count] = e.n;
@@ -445,7 +454,7 @@ inline void Clock() {
 
                /* 3. Starting at m = 0,
                      evaluate OAM[n][m] as a Y-coordinate.  */
-               READ_HELPER( SPRITE_DATA(PRIMARY_OAM, e.n, e.m) );
+               READ_HELPER(e.n, e.m);
                CONTINUE_3
             }
 
@@ -477,7 +486,7 @@ inline void Clock() {
             case 3:
             case 4:
             case 5: {
-               READ_HELPER( SPRITE_DATA(PRIMARY_OAM, e.n, e.m) );
+               READ_HELPER(e.n, e.m);
 
                e.m++;
                /* Increment n when m overflows (from 0-3 -> 4) seems more correct than
@@ -542,8 +551,8 @@ inline void Clock() {
                // Garbage
                case 1:
                   // Load latch and counter
-                  sprite.latch = SPRITE_ATTRIBUTES(SECONDARY_OAM, index);
-                  sprite.counter = SPRITE_X_POSITION(SECONDARY_OAM, index);
+                  sprite.latch = ReadSOAM(index, Sprite_Attributes);
+                  sprite.counter = ReadSOAM(index, Sprite_XPosition);
                   break;
 
                // Tile bitmap A
@@ -553,8 +562,8 @@ inline void Clock() {
                   /* It's inefficient to execute all of this twice, but there isn't really any other way
                      while still keeping it aligned to the proper clock cycles (for now).  */
 
-                  const int tile = SPRITE_TILE_INDEX(SECONDARY_OAM, index);
-                  const int y = SPRITE_Y_POSITION(SECONDARY_OAM, index);
+                  const int tile = ReadSOAM(index, Sprite_TileIndex);
+                  const int y = ReadSOAM(index, Sprite_YPosition);
 
                   unsigned address;
                   if(ppu__sprite_height == 8)

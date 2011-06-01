@@ -146,8 +146,6 @@ void Load(PACKFILE* file, const int version) {
 
    // Background
    RenderBackgroundContext& background = render.background;
-   background.tile = pack_getc(file);
-   background.pixel = pack_getc(file);
 
    // Sprites
    for(int i = 0; i < SpritesPerLine; i++) {
@@ -189,8 +187,6 @@ void Save(PACKFILE* file, const int version) {
 
    // Background
    const RenderBackgroundContext& background = render.background;
-   pack_putc(background.tile, file);
-   pack_putc(background.pixel, file);
 
    // Sprites
    for(int i = 0; i < SpritesPerLine; i++) {

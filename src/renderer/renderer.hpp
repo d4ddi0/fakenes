@@ -29,9 +29,15 @@ extern const int DisplayWidth;
 extern const int DisplayWidthTiles;
 extern const int DisplayHeight;
 
+typedef struct _BackgroundShifter {
+   uint16 bitmap;
+   uint8 attributes;
+
+} BackgroundShifter;
+
 typedef struct _RenderBackgroundContext {
-   // Current tile and subtile positions.
-   uint8 tile, pixel;
+   uint8 counter;
+   BackgroundShifter lowShift, highShift;
 
 } RenderBackgroundContext;
 

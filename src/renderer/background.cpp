@@ -14,6 +14,9 @@
 #include "background.hpp"
 #include "renderer.hpp"
 
+// TODO: MMC2 and MMC4 latches support.
+// TODO: State saving support.
+
 namespace Renderer {
 namespace Background {
 
@@ -31,21 +34,6 @@ const int ExpansionAttributeShifts = 6;
 const unsigned ExpansionAttributeMask = 0x03;
 
 void Clear() {
-   render.background.tile = 0;
-   render.background.pixel = 0;
-}
-
-inline void Step()
-{
-   RenderBackgroundContext& current = render.background;
-
-   // Proceed to the next pixel of the current tile.
-   current.pixel++;
-   if(current.pixel >= TileWidth) {
-      // Done with this tile, on to the next one.
-      current.tile++;
-      current.pixel = 0;
-   }
 }
 
 } // namespace anonymous
@@ -81,9 +69,6 @@ inline void Pixel()
          PPU__BACKGROUND_PALETTE(color) : PPU__BACKGROUND_PALETTE(0, 0);
    }
 #endif
-
-   // Move on to the next pixel
-   Step();
 }
 
 // Frame-skipping variant of BackgroundPixel()
@@ -94,15 +79,11 @@ inline void PixelStub()
       buffer is not updated this time, as we are frame-skipping. */
    PPU__PUT_BACKGROUND_PIXEL(render.pixel, 0);
 #endif
-
-   // Move on to the next pixel
-   Step();
 }
 
 /* PPU sleep mode - just do minimal processing, do not draw any pixels
    or affect any registers. */
 inline void PixelSkip() {
-   Step();
 }
 
 } // namespace Background

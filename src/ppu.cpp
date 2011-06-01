@@ -42,6 +42,7 @@
 // TODO: State saving support.
 // TODO: Properly emulate PPU power-up and reset states.
 // TODO: Add 16-bit rendering support with color tinting.
+// TODO: Proper overscan support.
 
 /* Internal functions:
       These are used exclusively by this file only. */
