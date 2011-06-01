@@ -402,7 +402,7 @@ cpu_time_t cpu_get_elapsed_cycles(cpu_time_t *timestamp)
 {
    cpu_rtime_t elapsed_cycles;
 
-   //RT_ASSERT(timestamp);
+   RT_ASSERT(timestamp);
 
    elapsed_cycles = (cpu_rtime_t)cpu_context.Cycles - (cpu_rtime_t)*timestamp;
    // printf("Cycles: %u\tTimestamp:%u\tElapsed cycles: %u\n", cpu_context.Cycles, *timestamp, elapsed_cycles);

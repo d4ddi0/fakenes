@@ -6,7 +6,6 @@
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
 
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "../include/common.h"
@@ -16,6 +15,7 @@
 #include "renderer.hpp"
 #include "sprites.hpp"
 
+// TODO: Updating OAM address during reads from primary OAM.
 // TODO: Add MMC2 & MMC4 latches support.
 
 namespace Renderer {
@@ -33,15 +33,8 @@ const int Sprite_TileIndex  = 1;
 const int Sprite_Attributes = 2;
 const int Sprite_XPosition  = 3;
 
-#define SPRITE_ADDRESS(_INDEX, _OFFSET) \
-   ( ((_INDEX) * BytesPerSprite) + (_OFFSET) )
 #define SPRITE_DATA(_OAM, _INDEX, _TYPE) \
-   ( (_OAM)[SPRITE_ADDRESS( (_INDEX), (_TYPE) )] )
-
-#define SPRITE_ADDRESS_Y_POSITION(_INDEX)	( SPRITE_ADDRESS( (_INDEX), Sprite_YPosition ) )
-#define SPRITE_ADDRESS_TILE_INDEX(_INDEX)	( SPRITE_ADDRESS( (_INDEX), Sprite_TileIndex ) )
-#define SPRITE_ADDRESS_ATTRIBUTES(_INDEX)	( SPRITE_ADDRESS( (_INDEX), Sprite_Attributes ) )
-#define SPRITE_ADDRESS_X_POSITION(_INDEX)	( SPRITE_ADDRESS( (_INDEX), Sprite_XPosition ) )
+   ( (_OAM)[((_INDEX) * BytesPerSprite) + (_TYPE)] )
 
 #define SPRITE_Y_POSITION(_OAM, _INDEX) ( SPRITE_DATA( (_OAM), (_INDEX), Sprite_YPosition ) )
 #define SPRITE_TILE_INDEX(_OAM, _INDEX) ( SPRITE_DATA( (_OAM), (_INDEX), Sprite_TileIndex ) )
@@ -142,7 +135,6 @@ void Initialize() {
 void Line() {
    // Copy evaluation count to spriteCount, as it will be overwritten
    render.spriteCount = render.evaluation.count;
-   printf("Line #%d has %d sprites.\n", render.line, render.spriteCount);
 }
 
 #endif
@@ -277,10 +269,9 @@ inline void PixelStub() {
 
 /* Reading OAMDATA while the PPU is rendering will expose internal OAM accesses during sprite evaluation and loading;
    Micro Machines does this. */
-#define READ_HELPER(_VALUE, _ADDRESS) { \
+#define READ_HELPER(_VALUE) { \
    if(!cycle_is_even) \
       goto END_LOOP; \
-   ppu__oam_address = (_ADDRESS); \
    e.data = (_VALUE); \
 }
 
@@ -368,8 +359,7 @@ inline void Clock() {
          switch(e.substate) {
             // Y-Position
             case 1: {
-               READ_HELPER( SPRITE_Y_POSITION(PRIMARY_OAM, e.n),
-                            SPRITE_ADDRESS_Y_POSITION(e.n) );
+               READ_HELPER( SPRITE_Y_POSITION(PRIMARY_OAM, e.n) );
                CONTINUE_1
             }
             case 2: {
@@ -389,8 +379,7 @@ inline void Clock() {
 
             // Tile index
             case 3: {
-               READ_HELPER( SPRITE_TILE_INDEX(PRIMARY_OAM, e.n),
-                            SPRITE_ADDRESS_TILE_INDEX(e.n) );
+               READ_HELPER( SPRITE_TILE_INDEX(PRIMARY_OAM, e.n) );
                CONTINUE_1
             }
             case 4: {
@@ -400,8 +389,7 @@ inline void Clock() {
 
             // Attribute
             case 5: {
-               READ_HELPER( SPRITE_ATTRIBUTES(PRIMARY_OAM, e.n),
-                            SPRITE_ADDRESS_ATTRIBUTES(e.n) );
+               READ_HELPER( SPRITE_ATTRIBUTES(PRIMARY_OAM, e.n) );
                CONTINUE_1
             }
             case 6: {
@@ -411,8 +399,7 @@ inline void Clock() {
 
             // X-Position
             case 7: {
-               READ_HELPER( SPRITE_X_POSITION(PRIMARY_OAM, e.n),
-                            SPRITE_ADDRESS_X_POSITION(e.n) );
+               READ_HELPER( SPRITE_X_POSITION(PRIMARY_OAM, e.n) );
                CONTINUE_1
             }
             case 8: {
@@ -458,9 +445,7 @@ inline void Clock() {
 
                /* 3. Starting at m = 0,
                      evaluate OAM[n][m] as a Y-coordinate.  */
-               READ_HELPER( SPRITE_DATA(PRIMARY_OAM, e.n, e.m),
-                            SPRITE_ADDRESS(e.n, e.m) );
-
+               READ_HELPER( SPRITE_DATA(PRIMARY_OAM, e.n, e.m) );
                CONTINUE_3
             }
 
@@ -492,8 +477,7 @@ inline void Clock() {
             case 3:
             case 4:
             case 5: {
-               READ_HELPER( SPRITE_DATA(PRIMARY_OAM, e.n, e.m),
-                            SPRITE_ADDRESS(e.n, e.m) );
+               READ_HELPER( SPRITE_DATA(PRIMARY_OAM, e.n, e.m) );
 
                e.m++;
                /* Increment n when m overflows (from 0-3 -> 4) seems more correct than

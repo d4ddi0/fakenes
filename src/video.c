@@ -333,8 +333,13 @@ int video_init (void)
       /* Enable OpenGL texturing. */
       glEnable (GL_TEXTURE_2D);
 
-      /* Disable page buffering, since it is pointless. */
-      video_enable_page_buffer = FALSE;
+      if( video_enable_page_buffer )
+      {
+         /* Page buffering is not supported nor needed in OpenGL mode */
+         log_printf("Page buffering is not supported in OpenGL mode - disabling.\n");
+
+         video_enable_page_buffer = FALSE;
+      }
 
       /* Disable VSync, since it crashes AllegroGL. */
       video_enable_vsync = FALSE;
@@ -363,9 +368,9 @@ int video_init (void)
             /* Clean up */
             for(subindex = 0; subindex < MAX_PAGE_BUFFERS; subindex++)
             {
-               if(page_buffers[index]) {
-                  destroy_bitmap(page_buffers[index]);
-                  page_buffers[index] = NULL;
+               if(page_buffers[subindex]) {
+                  destroy_bitmap(page_buffers[subindex]);
+                  page_buffers[subindex] = NULL;
                }
             }
 

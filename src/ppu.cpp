@@ -263,6 +263,7 @@ static bool cache_enable_rendering = TRUE;
 /* For sprite DMA transfers, this is the number of PPU cycles between each read or write.
    The first read will occur after 3 cycles (as DMA takes at least 1 CPU cycle to initialize), and
    the first write will occur after 3+3=6 cycles. See StartOAMDMA() for further details. */
+#define OAM_DMA_INITIAL_DELAY	3
 #define OAM_DMA_READ_CYCLES	3
 #define OAM_DMA_WRITE_CYCLES	3
 
@@ -329,6 +330,16 @@ int ppu_init(void)
 
 void ppu_exit(void)
 {
+#ifdef DEBUG
+   FILE* file = fopen("ppu_oam.bin", "wb");
+   if(file) {
+      for(unsigned i = 0; i < PPU__SPRITE_VRAM_SIZE; i++)
+         putc(ppu__sprite_vram[i], file);
+
+      fclose(file);
+      file = NULL;
+   }
+#endif
 }
 
 void ppu_reset(void)
@@ -512,6 +523,7 @@ void ppu_write(const UINT16 address, const UINT8 data)
          ppu__vram_address_increment = DATA_SWITCH( VRAM_ADDRESS_INCREMENT );
          ppu__sprite_tileset = DATA_SWITCH( SPRITE_PATTERN_TABLE_ADDRESS );
          ppu__background_tileset = DATA_SWITCH( BACKGROUND_PATTERN_TABLE_ADDRESS );
+         ppu__sprite_height = DATA_SWITCH( SPRITE_SIZE );
          ppu__generate_interrupts = DATA_FLAG( GENERATE_NMI );
 
          // If the state of bit 7 has changed, then we need to repredict the NMI.
@@ -1044,7 +1056,7 @@ static linear void StartOAMDMA(const uint8 page)
    oamDMAWriteAddress = ppu__oam_address;
    /* Make sure that we start with a read operation. We also delay the first read by one CPU cycle,
       as DMA always takes at least that long to initialize (see below). */
-   oamDMATimer = 3; // 3 PPU cycles = 1 CPU cycle
+   oamDMATimer = OAM_DMA_INITIAL_DELAY; // 3 PPU cycles = 1 CPU cycle
    oamDMAFlipFlop = false;
    oamDMAByte = 0x00;
 
@@ -1246,7 +1258,7 @@ static void Synchronize()
    if(time == 0)
       // Nothing to do.
       return;
-
+  
    // Set a simple flag to avoid re-entry, which is bad.
    PPUState::synchronizing = true;
 

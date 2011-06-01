@@ -93,7 +93,7 @@ CPPFLAGS += " -I${DEP_DIR} -I${SRC_DIR} -I${SRC_DIR}/include -I${SUPPORT_DIR}"
 CFLAGS ?= '-pipe -march=native -O3 -ffast-math -mfpmath=sse,387 -fomit-frame-pointer -finline-limit=10000 -s'
 
 # Overrides.
-ifopt debug   CFLAGS = "-O0 -g$('getoptval' --debug-level)"
+ifopt debug   CFLAGS = "-O0 -g$('getoptval' --debug-level) -DDEBUG"
 ifopt profile CFLAGS = '-O2 -pg'
 
 # Extensions.
