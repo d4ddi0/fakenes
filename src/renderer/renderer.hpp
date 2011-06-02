@@ -61,7 +61,7 @@ typedef struct _RenderBackgroundContext {
 } RenderBackgroundContext;
 
 typedef struct _RenderBackgroundEvaluation {
-   uint8 tile;
+   uint8 tile, row;
    uint8 name;
    uint8 attribute;
    uint8 pattern1, pattern2;

@@ -1463,7 +1463,7 @@ static linear void EndFrame()
 
 static linear void StartScanline() 
 {
-   // Rendered lines #-1-239
+   // Rendered lines, #-1-239
    if(ppu__enabled &&
       (PPUState::scanline <= PPU_LAST_DISPLAYED_LINE)) {
       /* scanline start (if background and sprites are enabled):

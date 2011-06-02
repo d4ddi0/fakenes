@@ -23,6 +23,8 @@
 #include "background.cpp"
 #include "sprites.cpp"
 
+// TODO: Emulate "rainbow palette" quirk.
+
 namespace Renderer {
 
 namespace {

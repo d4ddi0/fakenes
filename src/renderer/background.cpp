@@ -214,8 +214,9 @@ inline void Clock()
          * Tile bitmap A 
          * Tile bitmap B (+8 bytes from tile bitmap A) */
 
-      if(render.clock == PrefetchCycleFirst)
+      if(render.clock == PrefetchCycleFirst) {
          evaluation.tile = 0;
+       }
 
    // Check if we need to do any data fetching for this clock cycle.
    switch( FetchTable[render.clock] ) {
@@ -261,7 +262,7 @@ inline void Clock()
       // Name byte
       case 1: {
           const int name_table = (ppu__vram_address >> 10) & _00000011b;
-          const unsigned address = ppu__vram_address & 0x03FF; // 0-1023
+          unsigned address = ppu__vram_address & 0x03FF; // 0-1023
           const uint8 *data = ppu__name_tables_read[name_table];
           evaluation.name = data[address];
           break;
@@ -296,14 +297,9 @@ inline void Clock()
          const uint8 *data = ppu__background_pattern_tables_read[page];
          unsigned offset = address - (page * PPU__PATTERN_TABLE_PAGE_SIZE);
 
-static int tile_line = 0;
-         row = tile_line + row;
-                  if(row >= 8) {
-                     offset += BytesPerTile;
-                     row -= 8;
-                  }
+         // TODO: smooth Y scrolling
+         row = evaluation.row;
 
-         row = tile_line;
          if(type == 3) {
             evaluation.pattern1 = data[offset + row];
          }
@@ -328,9 +324,9 @@ static int tile_line = 0;
             if(x > 31) {
                bit10 ^= 1;
                x = 0;
-               tile_line++;
-               if(tile_line > 7) {
-                  tile_line = 0;
+               evaluation.row++;
+               if(evaluation.row > 7) {
+                  evaluation.row = 0;
                   y++;
                   /* if you manually set the value above 29 (from either 2005 or
                      2006), the wrapping from 29 obviously won't happen, and attrib data will be
