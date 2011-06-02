@@ -39,6 +39,7 @@
      - When calling functions, pass parameters as const whenever possible. */
 
 // TODO: State saving support.
+// TODO: MMC2 & MMC4 latches support in VRAMReadUnbuffed().
 // TODO: Properly emulate PPU power-up and reset states.
 // TODO: Add 16-bit rendering support with color tinting.
 // TODO: Proper overscan support.
@@ -409,9 +410,11 @@ UINT8 ppu_read(const UINT16 address)
       but because they're incompletely decoded,
       they're mirrored in every 8 bytes from $2008 through $3FFF,
       so a write to $3456 is the same as a write to $2006. */
+#if 0
    if((address < 0x2000) || (address > 0x3FFF))
       // Out of range
       return 0x00;
+#endif
 
    /* Map mirrored address to registers:
          0 - Write-only
@@ -423,6 +426,14 @@ UINT8 ppu_read(const UINT16 address)
          6 - Write-only
          7 - PPUDATA */
    switch(address & 7) {
+      case 0:
+      case 1:
+      case 3:
+      case 5:
+      case 6:
+         // Write-only registers return the last value written when read back(?).
+         return PPUState::writeBuffer;
+
       // PPUSTATUS
       case 2: {
          /* 76543210
@@ -481,9 +492,11 @@ void ppu_write(const UINT16 address, const UINT8 data)
       StartOAMDMA(data);
       return;
    }
+#if 0
    else if((address < 0x2000) || (address > 0x3FFF))
       // Out of range
       return;
+#endif
 
    // Save our data so it can be accessed by later reads/writes.
    PPUState::writeBuffer = data;
