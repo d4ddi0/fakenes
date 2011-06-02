@@ -47,7 +47,7 @@
       These are used exclusively by this file only. */
 // VRAM reading & writing.
 static linear uint8 VRAMRead();
-static inline uint8 VRAMReadUnbuffered();
+static inline uint8 VRAMReadUnbuffered(const uint16 vramAddress);
 static linear void VRAMWrite(const uint8 data);
 static inline void IncrementVRAMAddress();
 static inline void UpdateVRAMAddress();
@@ -617,7 +617,7 @@ void ppu_write(const UINT16 address, const UINT8 data)
          // The VRAM address is written to $2006 upper byte first.
          if(PPUState::addressLatch) {
             // Second byte.
-            ppu__vram_address = (ppu__vram_address & 0xFF00) | data;
+            // ppu__vram_address = (ppu__vram_address & 0xFF00) | data;
 
             /* 2006 second write:
                  t:0000000011111111=d:11111111
@@ -626,12 +626,11 @@ void ppu_write(const UINT16 address, const UINT8 data)
             PPUState::vramAddressLatch &= ~_11111111b;
             PPUState::vramAddressLatch |= data;
             // Copy the latch into the VRAM address.
-            if(ppu__enabled)
-               UpdateVRAMAddress();
+            UpdateVRAMAddress();
          }
          else {
             // First byte.
-            ppu__vram_address = (ppu__vram_address & 0x00FF) | (data << 8);
+            // ppu__vram_address = (ppu__vram_address & 0x00FF) | (data << 8);
 
             /* 2006 first write:
                  t:0011111100000000=d:00111111
@@ -994,76 +993,79 @@ UINT8 ppu_get_background_color(void)
 static linear uint8 VRAMRead()
 {
    // Valid addresses are $0000-$3FFF; higher addresses will be mirrored down.
-   ppu__vram_address &= 0x3FFF;
+   const unsigned address = ppu__vram_address & 0x3FFF;
 
    uint8 data = 0x00;
-   if(ppu__vram_address <= 0x3EFF) {
+   if(address <= 0x3EFF) {
       // Retrieve the current byte in the read buffer (initially garbage).
       data = PPUState::readBuffer;
       // Fill the read buffer with the next byte.
-      PPUState::readBuffer = VRAMReadUnbuffered();
+      PPUState::readBuffer = VRAMReadUnbuffered(address);
    }
    else
       // Direct access to palette VRAM.
-      data = VRAMReadUnbuffered();
+      data = VRAMReadUnbuffered(address);
 
    // Increment the VRAM address and return the byte read.
    IncrementVRAMAddress();
    return data;
 }
 
-static inline uint8 VRAMReadUnbuffered()
+static inline uint8 VRAMReadUnbuffered(const uint16 address)
 {
-   if(ppu__vram_address <= 0x1FFF) {
+   if(address <= 0x1FFF) {
       /* Read from pattern tables. The pattern tables occupy 8,192 bytes starting at $0000 and
          ending at $1FFF. Unlike name tables and palettes, they are not mirrored. */
-      const int page = ppu__vram_address / PPU__PATTERN_TABLE_PAGE_SIZE;
-      const unsigned offset = ppu__vram_address - (page * PPU__PATTERN_TABLE_PAGE_SIZE);
-      const uint8* data = ppu__pattern_tables_read[page];
-      return data[offset];
+      const int page = address / PPU__PATTERN_TABLE_PAGE_SIZE;
+      const uint8* read = ppu__pattern_tables_read[page];
+      return read[address & PPU__PATTERN_TABLE_PAGE_MASK];
    }
-   else if(ppu__vram_address <= 0x3EFF) {
+   else if(address <= 0x3EFF) {
       /* Read from name tables. The name tables occupy 4,096 bytes starting at $2000 and
-         ending at $2FFF, and are then mirrored from $3000 to $3EFF. */
-      const unsigned address = (ppu__vram_address - 0x2000) & 0x0FFF;
-      const int table = address / PPU__BYTES_PER_NAME_TABLE;
-      const unsigned offset = address - (table * PPU__BYTES_PER_NAME_TABLE);
-      const uint8* data = ppu__name_tables_read[table];
-      return data[offset];
+         ending at $2FFF, and are then mirrored from $3000 to $3EFF. Bits 10 and 11 of the
+         VRAM address contain the name table selector. */
+      const int table = (ppu__vram_address >> 10) & _00000011b;
+      const uint8* read = ppu__name_tables_read[table];
+      return read[address & PPU__NAME_TABLE_PAGE_MASK];
    }
    else {
       /* Read from palettes. The palettes occupy 32 bytes starting at $3F00 and ending at $3F1F,
-         and are then mirrored every 32 bytes from $3F20 to $3FFF. */
-      const unsigned address = (ppu__vram_address - 0x3F00) & 0x1F;
-      return ppu__palette_vram[address];
+         and are then mirrored every 32 bytes from $3F20 to $3FFF. Addresses $3F04/$3F08/$3F0C
+         can contain unique data, though these values are not used by the PPU when rendering.
+         Addresses $3F10/$3F14/$3F18/$3F1C are mirrors of $3F00/$3F04/$3F08/$3F0C. */
+      if((address & 3) == 0)
+         // Mirrors of color index #0.
+         return ppu__palette_vram[0];
+      else
+         return ppu__palette_vram[address & 0x1F];
    }
 }
 
 static linear void VRAMWrite(const uint8 data)
 {
    // Valid addresses are $0000-$3FFF; higher addresses will be mirrored down.
-   ppu__vram_address &= 0x3FFF;
+   const unsigned address = ppu__vram_address & 0x3FFF;
 
-   printf("PPU VRAM address is $%04X\n", ppu__vram_address);
-   if(ppu__vram_address <= 0x1FFF) {
+   printf("PPU VRAM address is $%04X\n", address);
+   if(address <= 0x1FFF) {
       // Write to pattern tables.
-      const int page = ppu__vram_address / PPU__PATTERN_TABLE_PAGE_SIZE;
-      const unsigned offset = ppu__vram_address - (page * PPU__PATTERN_TABLE_PAGE_SIZE);
-      uint8* patterns = ppu__pattern_tables_write[page];
-      patterns[offset] = data;
+      const int page = address / PPU__PATTERN_TABLE_PAGE_SIZE;
+      uint8* write = ppu__pattern_tables_write[page];
+      write[address & PPU__PATTERN_TABLE_PAGE_MASK] = data;
    }
-   else if(ppu__vram_address <= 0x3EFF) {
+   else if(address <= 0x3EFF) {
       // Write to name tables.
-      const unsigned address = (ppu__vram_address - 0x2000) & 0x0FFF;
-      const int table = address / PPU__BYTES_PER_NAME_TABLE;
-      const unsigned offset = address - (table * PPU__BYTES_PER_NAME_TABLE);
-      uint8* names = ppu__name_tables_write[table];
-      names[offset] = data;
+      const int table = (ppu__vram_address >> 10) & _00000011b;
+      uint8* write = ppu__name_tables_write[table];
+      write[address & PPU__NAME_TABLE_PAGE_MASK] = data;
    }
    else {
       // Write to palettes.
-      const unsigned address = (ppu__vram_address - 0x3F00) & 0x1F;
-      ppu__palette_vram[address] = data;
+      if((address & 3) == 0)
+         // Mirrors of color index #0.
+         ppu__palette_vram[0] = data;
+      else
+         ppu__palette_vram[address & 0x1F] = data;
    }
 
    IncrementVRAMAddress();

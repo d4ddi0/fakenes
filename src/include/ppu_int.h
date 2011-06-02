@@ -92,8 +92,10 @@ extern BOOL   ppu__force_rendering;
 #define PPU__NAME_TABLE_COUNT		2	/* Number of internal name tables. */
 #define PPU__NAME_TABLE_MAXIMUM		4	/* Number of name tables that can be used (total). */
 #define PPU__NAME_TABLE_PAGE_SIZE	PPU__BYTES_PER_NAME_TABLE
+#define PPU__NAME_TABLE_PAGE_MASK	(PPU__NAME_TABLE_PAGE_SIZE - 1)
 #define PPU__PATTERN_TABLE_COUNT	2
 #define PPU__PATTERN_TABLE_PAGE_SIZE	1024
+#define PPU__PATTERN_TABLE_PAGE_MASK	(PPU__PATTERN_TABLE_PAGE_SIZE - 1)
 #define PPU__PATTERN_TABLE_PAGE_COUNT	(8192 / PPU__PATTERN_TABLE_PAGE_SIZE)
 /* Array sizes. */
 #define PPU__NAME_TABLE_DUMMY_SIZE	PPU__BYTES_PER_NAME_TABLE
