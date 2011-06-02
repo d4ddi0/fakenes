@@ -9,13 +9,13 @@
 #include <cstdlib>
 #include <cstring>
 #include "../include/common.h"
+#include "../include/mmc.h"
 #include "../include/ppu.h"
 #include "../include/ppu_int.h"
 #include "../include/types.h"
 #include "renderer.hpp"
 #include "sprites.hpp"
 
-// TODO: Updating OAM address during reads from primary OAM.
 // TODO: Add MMC2 & MMC4 latches support.
 
 namespace Renderer {
@@ -66,7 +66,7 @@ inline void ClearSprites() {
 }
 
 inline void ClearEvaluation() {
-   RenderEvaluationContext& e = render.evaluation;
+   RenderSpriteEvaluation& e = render.spriteEvaluation;
 
    e.state = 1;
    e.substate = 1;
@@ -145,7 +145,7 @@ void Initialize() {
 
 void Line() {
    // Copy evaluation count to spriteCount, as it will be overwritten
-   render.spriteCount = render.evaluation.count;
+   render.spriteCount = render.spriteEvaluation.count;
 }
 
 #endif
@@ -321,8 +321,8 @@ inline void Clock() {
   /* Kind of ugly, but it works. Note that emulation starts on an odd cycle (1),
       and most writes take place on even cycles (2, 4, 6, etc.). */
    const int cycle = render.clock;
-   const bool cycle_is_even = (cycle % 2) == 0;
-   const bool cycle_is_odd = !cycle_is_even;
+   const bool cycle_is_even = !render.isOddClock;
+   const bool cycle_is_odd = render.isOddClock;
 
    const int line = render.line + 1;
 
@@ -357,7 +357,7 @@ inline void Clock() {
       if(cycle == EvaluationCycleFirst)
          ClearEvaluation();
 
-      RenderEvaluationContext& e = render.evaluation;
+      RenderSpriteEvaluation& e = render.spriteEvaluation;
 
    MAIN_LOOP:
       if(e.state == 1) {
@@ -534,7 +534,7 @@ inline void Clock() {
 
          /* We don't need to bother with sprites that aren't active. They get loaded with a transparent
             bitmap instead, although we never even try to render them for performance sake. */
-         if(index < render.evaluation.count) {
+         if(index < render.spriteEvaluation.count) {
             const int type = ((position - (index * 8)) / 2) + 1; // 1-4
 
             // To make things a little cleaner, we'll get a direct reference.
@@ -542,7 +542,7 @@ inline void Clock() {
 
             /* We need to keep track of the original index (0-63) for sprite #0 hit detection.
                This is filled in during sprite evaluation for each sprite. */
-            sprite.index = render.evaluation.indices[index];
+            sprite.index = render.spriteEvaluation.indices[index];
 
             /* The exact time when the attribute byte and X position are loaded into the
                latch and counter (respectively) is unknown, however we have a perfectly
@@ -577,6 +577,10 @@ inline void Clock() {
 
                      address = ((tile & OAM_Tile) * BytesPerTile) + bank;
                   }
+
+                  // If the MMC has a handler installed, we need to call it.
+                  if(mmc_check_latches)
+                     mmc_check_latches(address);
 
                   /* Each line of the plane data for the tile bitmap is a single byte, so this is
                      simply used as a byte offset. */

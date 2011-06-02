@@ -46,7 +46,7 @@ extern "C" {
 #define PPU_FIRST_DISPLAYED_LINE  0                                         /* First line rendered */
 #define PPU_LAST_DISPLAYED_LINE   239                                       /* Last line rendered */
 #define PPU_DISPLAY_LINES         240					    /* Total number of visible lines. */
-#define PPU_CLOCK_SKIP_LINE       20                                        /* Line at which the PPU skips a clock */
+#define PPU_CLOCK_SKIP_LINE       -1                                        /* Line at which the PPU skips a clock */
 #define PPU_CLOCK_SKIP_CYCLE      329                                       /* Cycle at which the PPU skips a clock */
 #define PPU_IDLE_LINE             240                                       /* Line on which the PPU only idles */
 #define PPU_FIRST_VBLANK_LINE     241                                       /* Line on which VBlank starts */

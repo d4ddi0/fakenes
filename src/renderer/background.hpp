@@ -14,11 +14,15 @@
 namespace Renderer {
 namespace Background {
 
+extern R_LookupTable( FetchTable );
+extern R_LookupTable( SequenceTable );
+
 extern void Initialize();
+extern void Frame();
 extern void Line();
 extern void Pixel();
 extern void PixelStub();
-extern void PixelSkip();
+extern void Clock();
 
 } // namespace Background
 } // namespace Renderer

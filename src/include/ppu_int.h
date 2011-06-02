@@ -45,7 +45,7 @@ extern "C" {
    ********** INTERNAL VARIABLES **********
    ****************************************/
 /* General. */
-extern UINT16 ppu__base_name_table_address;
+extern UINT8  ppu__base_name_table_address;
 extern BOOL   ppu__generate_interrupts;
 extern UINT8  ppu__vram_address_increment;
 /* Background. */
@@ -64,6 +64,7 @@ extern BOOL   ppu__intensify_blues;
 extern UINT8  ppu__palette_mask;
 /* Register-derived. */
 extern BOOL   ppu__enabled;
+extern UINT8  ppu__fine_scroll;
 extern UINT8  ppu__oam_address;
 extern UINT8  ppu__scroll_x_position;
 extern UINT8  ppu__scroll_y_position;
@@ -71,7 +72,6 @@ extern UINT16 ppu__vram_address;
 /* Emulation only. */
 extern ENUM   ppu__default_mirroring;
 extern ENUM   ppu__mirroring;
-extern UINT8* ppu__one_screen_base_address;
 extern BOOL   ppu__sprite_collision;
 extern BOOL   ppu__sprite_overflow;
 extern BOOL   ppu__vblank_started;

@@ -32,6 +32,7 @@ void Clear() {
    render.line = PPU_FIRST_LINE;
    render.pixel = 0;
    render.clock = 1; // Always starts from 1
+   render.isOddClock = true;
 
    render.spriteCount = 0;
 }
@@ -64,6 +65,8 @@ void Initialize() {
    is the dummy (non-visible) sprite evaluation line. */
 void Frame() {
    Clear();
+ 
+   Background::Frame();
 }
 
 /* This only gets called from PPU_FIRST_VISIBLE_LINE to PPU_LAST_VISIBLE_LINE.
@@ -74,6 +77,7 @@ void Line(const int line) {
    render.line = line;
    render.pixel = 0;
    render.clock = 1;
+   render.isOddClock = true;
 
    Background::Line();
    Sprites::Line();
@@ -101,12 +105,9 @@ inline void Pixel() {
          Background::Pixel();
    }
    else {
-      // Clear framebuffer
-      PPU__PUT_BACKGROUND_PIXEL(render.pixel, 0);
-      render.buffer[render.pixel] = PPU__BACKGROUND_COLOR;
-
-      // Advance raster position without affecting anything else
-      Background::PixelSkip();
+      // Clear rendering buffers
+      R_ClearBackgroundPixel();
+      R_ClearFramePixel();
    }
 
    if(ppu__enable_sprites) {
@@ -123,10 +124,13 @@ inline void Pixel() {
    the rendering stage or not, except during vblank. The PPU idle line (240) also
    does not trigger this function. */
 inline void Clock() {
+   if(ppu__enable_background)
+      Background::Clock();
    if(ppu__enable_sprites)
       Sprites::Clock();
 
    render.clock++;
+   render.isOddClock = !render.isOddClock;
 }
 
 #if !defined(INLINE_MA6R)
@@ -138,11 +142,7 @@ void Load(PACKFILE* file, const int version) {
    render.line = pack_igetw(file);
    render.pixel = pack_getc(file);
    render.clock = pack_igetw(file);
-
-   for(unsigned i = 0; i < SecondaryOAMSize; i++)
-      render.secondaryOAM[i] = pack_getc(file);
-
-   render.spriteCount = pack_getc(file);
+   render.isOddClock = Boolean(pack_getc(file));
 
    // Background
    RenderBackgroundContext& background = render.background;
@@ -159,7 +159,7 @@ void Load(PACKFILE* file, const int version) {
    }
 
    // Sprite evaluation
-   RenderEvaluationContext& e = render.evaluation;
+   RenderSpriteEvaluation& e = render.spriteEvaluation;
    for(int i = 0; i < SpritesPerLine; i++)
       e.indices[i] = pack_getc(file);
 
@@ -170,6 +170,12 @@ void Load(PACKFILE* file, const int version) {
    e.m = pack_getc(file);
    e.locked = Boolean(pack_getc(file));
    e.data = pack_getc(file);
+
+   // OAM
+   for(unsigned i = 0; i < SecondaryOAMSize; i++)
+      render.secondaryOAM[i] = pack_getc(file);
+
+   render.spriteCount = pack_getc(file);
 }
 
 void Save(PACKFILE* file, const int version) {
@@ -179,11 +185,7 @@ void Save(PACKFILE* file, const int version) {
    pack_iputw(render.line, file);
    pack_putc(render.pixel, file);
    pack_iputw(render.clock, file);
-
-   for(unsigned i = 0; i < SecondaryOAMSize; i++)
-      pack_putc(render.secondaryOAM[i], file);
-
-   pack_putc(render.spriteCount, file);
+   pack_putc(Binary(render.isOddClock), file);
 
    // Background
    const RenderBackgroundContext& background = render.background;
@@ -200,7 +202,7 @@ void Save(PACKFILE* file, const int version) {
    }
 
    // Sprite evaluation
-   const RenderEvaluationContext& e = render.evaluation;
+   const RenderSpriteEvaluation& e = render.spriteEvaluation;
    for(int i = 0; i < SpritesPerLine; i++)
       pack_putc(e.indices[i], file);
 
@@ -211,6 +213,13 @@ void Save(PACKFILE* file, const int version) {
    pack_putc(e.m, file);
    pack_putc(Binary(e.locked), file);
    pack_putc(e.data, file);
+
+   // OAM
+   for(unsigned i = 0; i < SecondaryOAMSize; i++)
+      pack_putc(render.secondaryOAM[i], file);
+
+   pack_putc(render.spriteCount, file);
+
 }
 
 #endif // !INLINE_MA6R

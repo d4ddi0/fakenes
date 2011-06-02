@@ -14,43 +14,70 @@
 #include "../include/ppu_int.h"
 #include "../include/types.h"
 
+/* This macro helps with creating scanline-length arrays for storing the results of calculations
+   for use on a per-clock basis to improve performance. */
+#define R_LookupTable(_name) \
+   int _name[1 + PPU_SCANLINE_CLOCKS]
+
+// This macro helps with clearing a lookup table before use.
+#define R_ClearLookupTable(_name) { \
+   for(int _i = 0; _i < 1 + PPU_SCANLINE_CLOCKS; _i++) \
+      _name[_i] = 0; \
+}
+
+// These macros write to the special background scanline buffer.
+#define R_PutBackgroundPixel(_pixel) \
+   ( ppu__background_pixels[render.pixel] = (_pixel) )
+#define R_ClearBackgroundPixel() \
+   ( R_PutBackgroundPixel(0) )
+
+// These macros write to the framebuffer.
+#define R_PutFramePixel(_pixel) \
+   ( render.buffer[render.pixel] = (_pixel) )
+#define R_ClearFramePixel() \
+   ( R_PutFramePixel(PPU__BACKGROUND_COLOR) )
+
+// --------------------------------------------------------------------------------
+
 namespace Renderer {
 
 // These have to be here, rather than in a file, due to compiler limitations.
 static const int SpritesPerLine = 8;
-
 static const int BytesPerSprite = PPU__BYTES_PER_SPRITE;
 static const unsigned SecondaryOAMSize = BytesPerSprite * SpritesPerLine;
 
 extern const int TileWidth;
 extern const int TileHeight;
-
 extern const int DisplayWidth;
 extern const int DisplayWidthTiles;
 extern const int DisplayHeight;
 
-typedef struct _BackgroundShifter {
-   uint16 bitmap;
-   uint8 attributes;
-
-} BackgroundShifter;
-
 typedef struct _RenderBackgroundContext {
+   uint16 lowShift, highShift;
+   uint8 lowFeed, highFeed;
+   uint16 latch;
    uint8 counter;
-   BackgroundShifter lowShift, highShift;
 
 } RenderBackgroundContext;
+
+typedef struct _RenderBackgroundEvaluation {
+   uint8 tile;
+   uint8 name;
+   uint8 attribute;
+   uint8 pattern1, pattern2;
+
+} RenderBackgroundEvaluation;
 
 typedef struct _RenderSpriteContext {
    uint8 index;
    uint8 lowShift, highShift;
    uint8 latch;
    uint8 counter;
-   BOOL dead;
+   bool dead;
 
 } RenderSpriteContext;
 
-typedef struct _RenderEvaluationContext {
+typedef struct _RenderSpriteEvaluation {
    uint8 indices[SpritesPerLine];
    uint8 state, substate;
    uint8 count;
@@ -58,25 +85,28 @@ typedef struct _RenderEvaluationContext {
    BOOL locked;
    uint8 data;
 
-} RenderEvaluationContext;
+} RenderSpriteEvaluation;
 
 typedef struct _RenderContext {
    uint8* buffer;
    int16 line;
    uint8 pixel;
    uint16 clock;
-
-   uint8 secondaryOAM[SecondaryOAMSize];
-   uint8 spriteCount;
+   bool isOddClock;
 
    RenderBackgroundContext background;
-   RenderSpriteContext sprites[SpritesPerLine];
+   RenderBackgroundEvaluation backgroundEvaluation;
 
-   RenderEvaluationContext evaluation;
+   RenderSpriteContext sprites[SpritesPerLine];
+   RenderSpriteEvaluation spriteEvaluation;
+   uint8 secondaryOAM[SecondaryOAMSize];
+   uint8 spriteCount;
 
 } RenderContext;
 
 extern RenderContext render;
+
+// --------------------------------------------------------------------------------
 
 extern void Initialize();
 extern void Frame();
