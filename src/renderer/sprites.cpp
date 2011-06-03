@@ -195,13 +195,13 @@ inline void Pixel() {
        if(sprite.latch & Attribute_HFlip) {
           /* The pixel is formed of two bits taken from each shift register,
              giving a possible color range from 0-3. */
-          pixel = (sprite.lowShift & 0x01) | ((sprite.highShift & 0x01) << 1);
+          pixel = (sprite.lowShift & _00000001b) | ((sprite.highShift & _00000001b) << 1);
 
           sprite.lowShift >>= 1;
           sprite.highShift >>= 1;
        }
        else {
-          pixel = ((sprite.lowShift & 0x80) >> 7) | ((sprite.highShift & 0x80) >> 6);
+          pixel = ((sprite.lowShift & _10000000b) >> 7) | ((sprite.highShift & _10000000b) >> 6);
 
           /* Clock the shift registers, moving the next pixel up.
              Shifting to the left brings it closer to the raster position. */
