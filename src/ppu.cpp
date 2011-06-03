@@ -48,7 +48,7 @@
       These are used exclusively by this file only. */
 // VRAM reading & writing.
 static linear uint8 VRAMRead();
-static inline uint8 VRAMReadUnbuffered(const uint16 vramAddress);
+static inline uint8 VRAMReadUnbuffered(const uint16 address);
 static linear void VRAMWrite(const uint8 data);
 static inline void IncrementVRAMAddress();
 static inline void UpdateVRAMAddress();
@@ -596,7 +596,7 @@ void ppu_write(const UINT16 address, const UINT8 data)
             /* 2005 second write:
                  t:0000001111100000=d:11111000
                  t:0111000000000000=d:00000111 */
-            // "Chunk" Y scroll (0-29).
+            // "Chunky" Y scroll (0-29).
             PPUState::vramAddressLatch &= ~(_00011111b << 5);
             PPUState::vramAddressLatch |= ((data >> 3) & _00011111b) << 5;
             // Fine Y scroll (0-7).
@@ -1035,9 +1035,8 @@ static inline uint8 VRAMReadUnbuffered(const uint16 address)
    }
    else if(address <= 0x3EFF) {
       /* Read from name tables. The name tables occupy 4,096 bytes starting at $2000 and
-         ending at $2FFF, and are then mirrored from $3000 to $3EFF. Bits 10 and 11 of the
-         VRAM address contain the name table selector. */
-      const int table = (ppu__vram_address >> 10) & _00000011b;
+         ending at $2FFF, and are then mirrored from $3000 to $3EFF. */
+      const int table = (address >> 10) & 3;
       const uint8* read = ppu__name_tables_read[table];
       return read[address & PPU__NAME_TABLE_PAGE_MASK];
    }
@@ -1068,7 +1067,7 @@ static linear void VRAMWrite(const uint8 data)
    }
    else if(address <= 0x3EFF) {
       // Write to name tables.
-      const int table = (ppu__vram_address >> 10) & _00000011b;
+      const int table = (address >> 10) & 3;
       uint8* write = ppu__name_tables_write[table];
       write[address & PPU__NAME_TABLE_PAGE_MASK] = data;
    }
@@ -1463,19 +1462,6 @@ static linear void EndFrame()
 
 static linear void StartScanline() 
 {
-   // Rendered lines, #-1-239
-   if(ppu__enabled &&
-      (PPUState::scanline <= PPU_LAST_DISPLAYED_LINE)) {
-      /* scanline start (if background and sprites are enabled):
-           v:0000010000011111=t:0000010000011111 */
-      // X scroll position.
-      ppu__vram_address &= ~_00011111b;
-      ppu__vram_address |= PPUState::vramAddressLatch & _00011111b;
-      // Horizontal name table bit.
-      ppu__vram_address &= ~(1 << 10);
-      ppu__vram_address |= PPUState::vramAddressLatch & (1 << 10);
-   }
-
    // Visible lines, #0-239
    if((PPUState::scanline >= PPU_FIRST_DISPLAYED_LINE) &&
       (PPUState::scanline <= PPU_LAST_DISPLAYED_LINE)) {
@@ -1511,6 +1497,18 @@ static linear void StartScanline()
    (excepting what is handled by StartScanline(), of course). */
 static linear void StartScanlineCycle(const cpu_time_t cycle)
 {
+   if(ppu__enabled &&
+      (cycle == PPU_HBLANK_START)) {
+      /* scanline start (if background and sprites are enabled):
+           v:0000010000011111=t:0000010000011111 */
+      // X scroll position.
+      ppu__vram_address &= ~_00011111b;
+      ppu__vram_address |= PPUState::vramAddressLatch & _00011111b;
+      // Horizontal name table bit.
+      ppu__vram_address &= ~(1 << 10);
+      ppu__vram_address |= PPUState::vramAddressLatch & (1 << 10);
+   }
+
    /* Generate a clock for the renderer. This handles things like background and sprite
       timing, pretty much everything that doesn't involve drawing a pixel. */
    Renderer::Clock();

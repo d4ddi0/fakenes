@@ -26,6 +26,8 @@
 }
 
 // These macros write to the special background scanline buffer.
+#define R_GetBackgroundPixel(_pixel) \
+   ( ppu__background_pixels[render.pixel] )
 #define R_PutBackgroundPixel(_pixel) \
    ( ppu__background_pixels[render.pixel] = (_pixel) )
 #define R_ClearBackgroundPixel() \
@@ -53,18 +55,18 @@ extern const int DisplayWidthTiles;
 extern const int DisplayHeight;
 
 typedef struct _RenderBackgroundContext {
-   uint16 lowShift, highShift;
+   uint8 lowShift, highShift;
    uint8 lowFeed, highFeed;
-   uint16 latch;
+   uint8 latch;
    uint8 counter;
 
 } RenderBackgroundContext;
 
 typedef struct _RenderBackgroundEvaluation {
-   uint8 tile, row;
    uint8 name;
    uint8 attribute;
    uint8 pattern1, pattern2;
+   uint8 row;
 
 } RenderBackgroundEvaluation;
 

@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <cstring>
 #include "../include/common.h"
+#include "../include/binary.h"
 #include "../include/mmc.h"
 #include "../include/ppu.h"
 #include "../include/ppu_int.h"
@@ -23,11 +24,13 @@ namespace Sprites {
 
 namespace {
 
+// Total number of sprites in OAM.
 const int SpriteCount = PPU__SPRITE_COUNT;
 
-// Data access.
+// Bytes that each tile takes up in a pattern table.
 const int BytesPerTile = 16;
 
+// Offsets into OAM for various sprite data, relative to the sprite entry.
 const int Sprite_YPosition  = 0;
 const int Sprite_TileIndex  = 1;
 const int Sprite_Attributes = 2;
@@ -43,13 +46,15 @@ const int FetchCycleLast       = FetchCycleFirst      + 63;	// 64 clocks
 const int PipelineCycleFirst   = FetchCycleLast       + 1;
 const int PipelineCycleLast    = PipelineCycleFirst   + 20;	// 21 clocks
 
-const unsigned OAM_Bank = 1 << 0;
+// Masks for 8x16 sprites.
+const unsigned OAM_Bank = _00000001b;
 const unsigned OAM_Tile = 0xFF & ~OAM_Bank;
 
-const unsigned Attribute_Palette  = 0x03;
-const unsigned Attribute_Priority = 1 << 5;
-const unsigned Attribute_HFlip    = 1 << 6;
-const unsigned Attribute_VFlip    = 1 << 7;
+// Masks for sprite attributes.
+const unsigned Attribute_Palette  = _00000011b;
+const unsigned Attribute_Priority = _00100000b;
+const unsigned Attribute_HFlip    = _01000000b;
+const unsigned Attribute_VFlip    = _10000000b;
 
 inline void ClearSprites() {
     for(int i = 0; i < SpritesPerLine; i++) {
@@ -82,6 +87,7 @@ linear void Clear()
     ClearSprites();
     ClearEvaluation();
 
+    // Writing $FF produces a hidden sprite.
     memset(render.secondaryOAM, 0xFF, SecondaryOAMSize);
 }
 
@@ -237,14 +243,14 @@ inline void Pixel() {
              3) The background is opaque */
        if((i == 0) && (sprite.index == 0) && // for sprite #0, i always == 0
           !ppu__sprite_collision) {
-          if(ppu__background_pixels[render.pixel] != 0)
+          if(R_GetBackgroundPixel() != 0)
              ppu__sprite_collision = TRUE;
        }
 
        if(sprite.latch & Attribute_Priority) {
           /* This is a back-priority sprite, so we should only plot pixels
              in areas where the background was transparent. */
-          if(ppu__background_pixels[render.pixel] != 0)
+          if(R_GetBackgroundPixel() != 0)
              continue;
 
           // We don't want to draw if the back-priority layer is disabled, either.
@@ -264,11 +270,13 @@ inline void Pixel() {
              4) The frame buffer is not locked for writes
              5) Drawing of the associated sprite layer is not disabled */
        const int palette = sprite.latch & Attribute_Palette;
-       render.buffer[render.pixel] = PPU__SPRITE_PALETTE(palette, pixel);
+       R_PutFramePixel( PPU__SPRITE_PALETTE(palette, pixel) );
     }
 }
 
+// Frame-skipping variant of Sprite::Pixel().
 inline void PixelStub() {
+    // Perform minimal logic for each sprite.
     for(int i = 0; i < render.spriteCount; i++)
        Logic(render.sprites[i]);
 }
@@ -523,7 +531,7 @@ inline void Clock() {
          4. Tile bitmap B (+8 bytes from tile bitmap A) */
 
       if(cycle == FetchCycleFirst)
-         // We're already in HBlank, so it's safe to clear data here
+         // We're already in HBlank, so it's safe to clear data here.
          ClearSprites();
 
       /* As each fetch takes 2 cycles to complete, we only care about even cycles,
@@ -595,7 +603,7 @@ inline void Clock() {
                      planes for this line of the tile bitmap. */
                   const unsigned page = address / PPU__PATTERN_TABLE_PAGE_SIZE;
                   const uint8 *data = ppu__sprite_pattern_tables_read[page];
-                  unsigned offset = address - (page * PPU__PATTERN_TABLE_PAGE_SIZE);
+                  unsigned offset = address & PPU__PATTERN_TABLE_PAGE_MASK;
 
                   /* For 8x16 sprites, we may need to jump to the next tile.
                      This occurs on row indices 8-15, which then become 0-7 after the offset. */
