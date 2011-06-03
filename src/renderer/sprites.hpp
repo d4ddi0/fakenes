@@ -16,8 +16,7 @@ namespace Sprites {
 
 extern void Initialize();
 extern void Line();
-extern void Pixel();
-extern void PixelStub();
+extern void Pixel(const bool rendering);
 extern void Clock();
 
 } // namespace Sprites

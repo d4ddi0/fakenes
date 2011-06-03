@@ -6,7 +6,6 @@
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
 
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include "../include/common.h"
@@ -193,8 +192,20 @@ void Line()
 
 #endif
 
-inline void Pixel()
+inline void Pixel(const bool rendering)
 {
+   // Check if we are frame-skipping.
+   if(!rendering) {
+      // Perform minimal logic for this pixel.
+      Logic();
+
+      /* As nothing is being rendered, produce a transparent pixel in the background
+         scanline buffer. The frame buffer is not updated at this time. */
+      R_ClearBackgroundPixel();
+
+      return;
+   }
+
    // Clock the counter.
    Prelogic();
 
@@ -231,7 +242,6 @@ inline void Pixel()
       To help with this, the code that handles tile fetching passes a special tag along
       with each attribute byte, which essentially contains the number of shifts to apply
       to the attribute mask to extract the relevant bits for a given tile. */
-
    unsigned attribute;
    int shifts;
    if(background.counter <= ppu__fine_scroll) {
@@ -251,29 +261,30 @@ inline void Pixel()
    R_PutFramePixel( PPU__BACKGROUND_PALETTE(palette, pixel) );
 }
 
-// Frame-skipping variant of Background::Pixel().
-inline void PixelStub()
+// This function is called when the background is disabled.
+inline void PixelStub(const bool rendering)
 {
-   // Perform minimal logic for this pixel.
-   Logic();
-
-   /* As nothing is being rendered, produce a transparent pixel. The video buffer is not
-      updated this time, as we are frame-skipping. */
+   /* Just clear rendering buffers. This produces the backdrop, or overscan color located
+      at the very first palette VRAM byte. */
    R_ClearBackgroundPixel();
+
+   // If rendering is enabled, we need to clear the frame buffer as well.
+   if(rendering)
+      R_ClearFramePixel();
 }
 
 /* PPU background rendering as I understand it:
 
    The unit possess two internal VRAM address registers, an active one (V) that the
    software can directly modify (via $2006) and a "shadow" or latch (T), which is
-   periodically loaded into V in three scearios: At the start of a frame, at the
+   periodically loaded into V in three scenarios: At the start of a frame, at the
    start of HBlank (though only partially), and at the second write to $2006
    (PPUADDR). The per-frame and per-scanline updates do not occur if rendering is
    disabled. All normal operations, such as setting the scrolling positions,
    normally modify T, and not V. Only writes to $2006 modify V directly, which is
    actually done by modifying T internally and then copying it into V.
 
-   V is encoded so that it contains a considerable amount of encoded information
+   V is designed so that it contains a considerable amount of unique information
    while still being directly useable as a VRAM address for purposes such as name
    table access. The contents of V are encoded as:
       Bit 15 xDDDCCBBBBBAAAAA Bit 0
@@ -294,8 +305,8 @@ inline void PixelStub()
    0-31 like X, the PPU normally wraps it around at 29 (see below). V is
    structured in such a way that it can be directly incremented after each tile;
    this initially adds 1 to X, but eventually X will wrap around to 0 (after 32
-   tiles have been fetched) and overflow into Y, incrementing it by 1 as well.
-   This simulates a 2-D tile matrix with only simple logic.
+   tiles have been fetched) and overflow. Along with some bit inversions, this
+   simulates an "infinite" 2-D tile matrix with only simple logic.
 
    At the end of the rendering portion of each scanline, starting with the sprite
    evaluation scanline -1 (or 240 if you  prefer), the PPU fetches the first two
@@ -311,7 +322,7 @@ inline void PixelStub()
    a garbage fetch that is not used for anything.
 
    In order to simulate the effect of a camera panning over a large background,
-   the horiontal name table bit (Xt, or bit 10) of V is inverted whenever X wraps
+   the horizontal name table bit (Xt, or bit 10) of V is inverted whenever X wraps
    around from 31 to 0. Consider the 33rd fetch of a line, where X has wrapped
    around and Xt is inverted, the tile fetched is actually the first tile of the
    next name table, on the same line, making it appear as if there is seamless
@@ -346,9 +357,13 @@ inline void Clock()
 
    const int cycle = render.clock;
 
-   if(cycle == PrefetchCycleFirst) {
+   /* On visible lines where tile data has been fetched in the first 256 clock cycles, we need to fix up
+      the VRAM address at the beginning of HBlank before we start fetching for the next line. */
+   if((cycle == PrefetchCycleFirst) &&
+      (render.line >= PPU_FIRST_DISPLAYED_LINE)) {
       /* scanline start (if background and sprites are enabled):
            v:0000010000011111=t:0000010000011111 */
+
       // Preserve y, bit11 and row from the existing VRAM address.
       int y = (ppu__vram_address >> 5) & _00011111b;
       unsigned bit11 = (ppu__vram_address >> 11) & 1;
@@ -387,10 +402,13 @@ inline void Clock()
    switch( FetchTable[cycle] ) {
       case Fetch_None:
          return;
+
       case Fetch_Visible:
          if(render.line < PPU_FIRST_DISPLAYED_LINE)
             return;
+
          break;
+
       case Fetch_Always:
          break;
 
@@ -469,9 +487,11 @@ inline void Clock()
       case 4: {
          // Fetch pattern table bytes.
          const unsigned address = (evaluation.name * BytesPerTile) + ppu__background_tileset;
+
          const int page = address / PPU__PATTERN_TABLE_PAGE_SIZE;
          const uint8 *data = ppu__background_pattern_tables_read[page];
-         unsigned offset = address & PPU__PATTERN_TABLE_PAGE_MASK;
+
+         const unsigned offset = address & PPU__PATTERN_TABLE_PAGE_MASK;
 
          switch(type) {
             case 3:

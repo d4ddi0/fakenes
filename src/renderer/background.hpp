@@ -20,8 +20,8 @@ extern R_LookupTable( SequenceTable );
 extern void Initialize();
 extern void Frame();
 extern void Line();
-extern void Pixel();
-extern void PixelStub();
+extern void Pixel(const bool rendering);
+extern void PixelStub(const bool rendering);
 extern void Clock();
 
 } // namespace Background

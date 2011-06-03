@@ -162,7 +162,17 @@ void Line() {
     * If the sprite has background priority:
           * If the BG pixel is zero, the sprite pixel is output.
           * If the BG pixel is nonzero, the BG pixel is output. */
-inline void Pixel() {
+inline void Pixel(const bool rendering)
+{
+    // Check if we are frame-skipping.
+    if(!rendering) {
+       // When not rendering, just perform minimal logic for each sprite.
+       for(int i = 0; i < render.spriteCount; i++)
+          Logic(render.sprites[i]);
+
+       return;
+    }
+
     // Check if we should clip sprites on the left side of the screen
     bool clipping = false;
     if((render.pixel <= 7) && ppu__clip_sprites)
@@ -192,7 +202,7 @@ inline void Pixel() {
           continue;
       }
 
-       uint8 pixel = 0;
+       int pixel = 0;
        if(sprite.latch & Attribute_HFlip) {
           /* The pixel is formed of two bits taken from each shift register,
              giving a possible color range from 0-3. */
@@ -275,13 +285,6 @@ inline void Pixel() {
     }
 }
 
-// Frame-skipping variant of Sprite::Pixel().
-inline void PixelStub() {
-    // Perform minimal logic for each sprite.
-    for(int i = 0; i < render.spriteCount; i++)
-       Logic(render.sprites[i]);
-}
-
 #define MAIN_LOOP	main_loop
 #define STATE1_LOOP	state1_loop
 #define STATE3_LOOP	state3_loop
@@ -333,7 +336,10 @@ inline void Clock() {
    const bool cycle_is_even = !render.isOddClock;
    const bool cycle_is_odd = render.isOddClock;
 
-   const int line = render.line + 1;
+   /* Minor gotcha: Sprites are delayed by one line, but sprite evaluation seems to be performed
+      using the current scanline as a reference. This is evidenced by the fact that you have to
+      subtract one from the sprite Y coordinate before writing it to OAM. */
+   const int line = render.line;
 
    if(cycle <= ClearCycleLast) {
       /* Cycles 0-63: Secondary OAM (32-byte buffer for current sprites on scanline) is initialized to $FF -

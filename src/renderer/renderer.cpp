@@ -29,7 +29,8 @@ namespace Renderer {
 
 namespace {
 
-void Clear() {
+void Clear()
+{
    render.buffer = NULL;
    render.line = PPU_FIRST_LINE;
    render.pixel = 0;
@@ -57,7 +58,8 @@ const int DisplayHeightTiles =  DisplayHeight / TileHeight;	// (240 / 8) = 30
 
 RenderContext render;
 
-void Initialize() {
+void Initialize()
+{
    Clear();
 
    Background::Initialize();
@@ -66,7 +68,8 @@ void Initialize() {
 
 /* This gets called at the start of each frame, on PPU_FIRST_LINE, which
    is the dummy (non-visible) sprite evaluation line. */
-void Frame() {
+void Frame()
+{
    Clear();
  
    Background::Frame();
@@ -74,7 +77,8 @@ void Frame() {
 
 /* This only gets called from PPU_FIRST_VISIBLE_LINE to PPU_LAST_VISIBLE_LINE.
    In other words, only for visible lines. */
-void Line(const int line) {
+void Line(const int line)
+{
    render.buffer = PPU__GET_LINE_ADDRESS(video_buffer, line);
 
    render.line = line;
@@ -90,48 +94,53 @@ void Line(const int line) {
 
 /* Like Render_Line(), this is called only for visible lines, for the first 256
    clock cycles which equate to a single pixel each. */
-inline void Pixel() {
+inline void Pixel()
+{
+   /* This is set if frame skipping is disabled, or when rendering has been forced
+      (i.e for sprite #0 hitscan or lightgun emulation) */
+   const bool rendering = ppu__enable_rendering || ppu__force_rendering;
+
    /* After loading a state, the render buffer is null and must be reloaded, and
       all previously rendered pixels are lost. This can causes momentary, but harmless
       flicker when first loading a save state. */
-   if(ppu__enabled && !render.buffer)
+   if(rendering && !render.buffer)
       render.buffer = PPU__GET_LINE_ADDRESS(video_buffer, render.line);
- 
-   /* This is set if frame skipping is enabled, and rendering has not been forced
-      (i.e for sprite #0 hitscan or lightgun emulation) */
-   const bool stubify = !ppu__enable_rendering && !ppu__force_rendering;
 
-   if(ppu__enable_background) {
-      if(stubify)
-         Background::PixelStub();
-      else
-         Background::Pixel();
-   }
-   else {
-      // Clear rendering buffers
-      R_ClearBackgroundPixel();
-      R_ClearFramePixel();
+   // Check if the PPU is completely disabled.
+   if(!ppu__enabled) {
+      // Skip further processing.
+      Background::PixelStub(rendering);
+      render.pixel++;
+      return;
    }
 
-   if(ppu__enable_sprites) {
-      if(stubify)
-         Sprites::PixelStub();
-      else
-         Sprites::Pixel();
-   }
+   // Check if the background is enabled.
+   if(ppu__enable_background)
+      Background::Pixel(rendering);
+   else
+      // When the background is disabled, we need to produce a backdrop pixel.
+      Background::PixelStub(rendering);
 
+   // Check if sprite rendering is enabled.
+   if(ppu__enable_sprites)
+      Sprites::Pixel(rendering);
+
+   // Advance to the next pixel position.
    render.pixel++;
 }
 
 /* This is called for each clock cycle of every line, whether the PPU is within
    the rendering stage or not, except during vblank. The PPU idle line (240) also
    does not trigger this function. */
-inline void Clock() {
+inline void Clock()
+{
+   // Clock the background and sprite generators.
    if(ppu__enable_background)
       Background::Clock();
    if(ppu__enable_sprites)
       Sprites::Clock();
 
+   // Advance to the next clock cycle.
    render.clock++;
    render.isOddClock = !render.isOddClock;
 }
