@@ -213,7 +213,7 @@ const UINT8* ppu__expansion_table = NULL;
 #define SPRITE_SIZE_ON				16
 #define SPRITE_ZERO_HIT_BIT			_01000000b
 #define VERTICAL_BLANK_BIT			_10000000b
-#define VRAM_ADDRESS_INCREMENT_MASK		_00000010b
+#define VRAM_ADDRESS_INCREMENT_MASK		_00000100b
 #define VRAM_ADDRESS_INCREMENT_OFF		1
 #define VRAM_ADDRESS_INCREMENT_ON		32
 
@@ -620,7 +620,6 @@ void ppu_write(const UINT16 address, const UINT8 data)
             ppu__fine_scroll = data & _00000111b;
          }
 
-         //printf("Scroll X position is %d, Scroll Y position is %d\n", ppu__scroll_x_position, ppu__scroll_y_position);
          /* A simple flip-flop is used to determine which byte to write to (low or high).
             By inverting it every write, it switches to the other byte. */
          PPUState::addressLatch = !PPUState::addressLatch;
@@ -853,7 +852,7 @@ void ppu_set_name_table_address(const int table, UINT8* address)
    RT_ASSERT(address);
 
    SyncHelper();
-   printf("Setting name table %d address to 0x%16X\n", table, &address[0]);
+
    ppu__name_tables_read[table] = address;
    ppu__name_tables_write[table] = address;
 }
@@ -865,7 +864,6 @@ void ppu_set_name_table_address_read_only(const int table, const UINT8* address)
 
    SyncHelper();
 
-   printf("Setting name table %d address to 0x%16X (read-only)\n", table, &address[0]);
    ppu__name_tables_read[table] = address;
    ppu__name_tables_write[table] = ppu__name_table_dummy;
 }
@@ -877,7 +875,6 @@ void ppu_set_1k_name_table_vram_page(const int table, const int page)
 
    SyncHelper();
 
-   printf("Setting name table %d to VRAM page %d\n", table, page);
    ppu_set_name_table_address(table, ppu__name_table_vram + (page * PPU__NAME_TABLE_PAGE_SIZE));
 }
 
@@ -892,7 +889,6 @@ void ppu_set_1k_name_table_vrom_page(const int table, int page)
    page = (page & 7) + ROM_CHR_ROM_PAGE_LOOKUP[(page / 8) &
       ROM_CHR_ROM_PAGE_OVERFLOW_MASK] * 8;
 
-   printf("Setting name table %d to VROM page %d\n", table, page);
    ppu__name_tables_read[table] = ROM_CHR_ROM + (page * PPU__NAME_TABLE_PAGE_SIZE);
    ppu__name_tables_write[table] = ppu__name_table_dummy;
 }
@@ -903,7 +899,6 @@ void ppu_set_1k_pattern_table_vram_page(const UINT16 address, int page)
 
    SyncHelper();
 
-   printf("Setting pattern table page at $%04X to VRAM page %d\n", address, page);
    const unsigned index = address / PPU__PATTERN_TABLE_PAGE_SIZE;
    page *= PPU__PATTERN_TABLE_PAGE_SIZE;
    ppu__pattern_tables_read[index] = ppu__pattern_table_vram + page;
@@ -923,7 +918,6 @@ void ppu_set_1k_pattern_table_vrom_page(const UINT16 address, int page)
       [(page / 8) & ROM_CHR_ROM_PAGE_OVERFLOW_MASK] * 8;
 
    const unsigned index = address / PPU__PATTERN_TABLE_PAGE_SIZE;
-   printf("Setting pattern table page at $%04X to VROM page %d\n", address, page);
    ppu__pattern_tables_read[index] = ROM_CHR_ROM + (page * PPU__PATTERN_TABLE_PAGE_SIZE);
    ppu__pattern_tables_write[index] = ppu__pattern_table_dummy;
 
@@ -1061,7 +1055,6 @@ static linear void VRAMWrite(const uint8 data)
    // Valid addresses are $0000-$3FFF; higher addresses will be mirrored down.
    const unsigned address = ppu__vram_address & 0x3FFF;
 
-   //printf("PPU VRAM address is $%04X\n", address);
    if(address <= 0x1FFF) {
       // Write to pattern tables.
       const int page = address / PPU__PATTERN_TABLE_PAGE_SIZE;
@@ -1088,7 +1081,6 @@ static linear void VRAMWrite(const uint8 data)
 
 static inline void IncrementVRAMAddress()
 {
-        //printf("VRAM adddress increment is %d\n", ppu__vram_address_increment);
    ppu__vram_address += ppu__vram_address_increment;
 }
 
@@ -1176,8 +1168,6 @@ static linear void StartOAMDMA(const uint8 page)
 
 static void SetupMirroring()
 {
-   printf("Setting mirroring to %d\n", ppu__mirroring);
-
    switch(ppu__mirroring) {
       case PPU_MIRRORING_HORIZONTAL: {
          /* 0 0
@@ -1452,40 +1442,6 @@ static linear void EndFrame()
       if rendering had been enabled (i.e this was not a skipped frame). */
    if(ppu__enable_rendering)
       video_blit(screen);
-
-#if 0
-   const uint8* data = ppu__name_tables_read[0];
-   printf("Name table 0 contents:\n\t");
-   for(unsigned j =0;j < PPU__BYTES_PER_NAME_TABLE;j++) {
-      printf("%02X ", data[j]);
-     if((j&31) == 31)
-     printf("\n\t");
-   }
-   printf("\n");
-   data = ppu__name_tables_read[1];
-   printf("Name table 1 contents:\n\t");
-   for(unsigned j =0;j < PPU__BYTES_PER_NAME_TABLE;j++) {
-      printf("%02X ", data[j]);
-     if((j&31) == 31)
-     printf("\n\t");
-   }
-   printf("\n");
-   data = ppu__name_tables_read[2];
-   printf("Name table 2 contents:\n\t");
-   for(unsigned j =0;j < PPU__BYTES_PER_NAME_TABLE;j++) {
-      printf("%02X ", data[j]);
-     if((j&31) == 31)
-     printf("\n\t");
-   }
-   printf("\n");
-   data = ppu__name_tables_read[3];
-   printf("Name table 3 contents:\n\t");
-   for(unsigned j =0;j < PPU__BYTES_PER_NAME_TABLE;j++) {
-      printf("%02X ", data[j]);
-     if((j&31) == 31)
-     printf("\n\t");
-   }
-#endif
 
    // Now we can reload our cached options into the actual variables.
    LoadCachedSettings();
