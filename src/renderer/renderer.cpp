@@ -50,9 +50,10 @@ void Clear() {
 const int TileWidth = 8;
 const int TileHeight = 8;
 
-const int DisplayWidth = PPU_RENDER_CLOCKS;		// 256
-const int DisplayWidthTiles = DisplayWidth / TileWidth;	// (256 / 8) = 32
-const int DisplayHeight = PPU_DISPLAY_LINES;		// 240
+const int DisplayWidth = PPU_RENDER_CLOCKS;			// 256
+const int DisplayWidthTiles = DisplayWidth / TileWidth;		// (256 / 8) = 32
+const int DisplayHeight = PPU_DISPLAY_LINES;			// 240
+const int DisplayHeightTiles =  DisplayHeight / TileHeight;	// (240 / 8) = 30
 
 RenderContext render;
 

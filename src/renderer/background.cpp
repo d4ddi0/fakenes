@@ -31,12 +31,12 @@ namespace {
 const int BytesPerTile = (TileWidth * TileHeight) / 4;
 
 // Offset of attributes in name tables, and associated mask.
-const unsigned AttributeBase = (DisplayWidth / TileWidth) * (DisplayHeight / TileHeight);
-const unsigned AttributeMask = 0x03;
+const unsigned AttributeBase = DisplayWidthTiles * DisplayHeightTiles;
+const unsigned AttributeMask = _00000011b;
 
 // Shifts and mask for extended attributes in MMC5 ExRAM.
 const int ExpansionAttributeShifts = 6;
-const unsigned ExpansionAttributeMask = 0x03;
+const unsigned ExpansionAttributeMask = _00000011b;
 
 // Evaluation timings.
 const int FetchCycleFirst    = 1;
@@ -75,20 +75,36 @@ void Clear() {
    ClearEvaluation();
 }
 
+inline void Load()
+{
+   /* Reload shift registers, latch and counter. This happens synchronously with the
+      data fetches performed by Background::Clock(). */
+   background.lowFeed = evaluation.pattern1;
+   background.highFeed = evaluation.pattern2;
+
+   /* For attribute bytes, it is neccessary to keep two at a time; one for the current tile,
+      and one for the next tile, otherwise fine scrolling will exhibit artifacts. */
+   background.buffer = background.latch;
+   background.bufferTag = background.latchTag;
+
+   background.latch = evaluation.attribute;
+   background.latchTag = evaluation.tag;
+
+   // Each tile takes exactly 8 cycles to fetch, thus TileWidth is our period.
+   background.counter = TileWidth;
+}
+
 // Logic that takes place before a pixel is built.
 inline void Prelogic()
 {
+   /* The background counter is clocked once per pixel, in synchronization with tile fetching.
+      Each time a tile is fetched, it reaches zero and loads the new data. */
    if(background.counter > 0)
       background.counter--;
 
-   if(background.counter == 0) {
-      /* Reload shift registers, latch and counter. This happens synchronously with the
-         data fetches performed by Background::Clock(). */
-      background.lowFeed = evaluation.pattern1;
-      background.highFeed = evaluation.pattern2;
-      background.latch = evaluation.attribute;
-      background.counter = TileWidth;
-   }
+   // If our counter has reached zero, then it is time to reload.
+   if(background.counter == 0)
+      Load();
 }
 
 // Logic that takes place after a pixel is built.
@@ -97,11 +113,11 @@ inline void Postlogic()
    /* Clock the shift registers, moving the next pixel up.
       Shifting to the left brings it closer to the raster position. */
    background.lowShift <<= 1;
-   background.lowShift |= (background.lowFeed & _10000000b) >> 7;
+   background.lowShift |= (background.lowFeed >> 7) & 1;
    background.lowFeed <<= 1;
 
    background.highShift <<= 1;
-   background.highShift |= (background.highFeed & _10000000b) >> 7;
+   background.highShift |= (background.highFeed >> 7) & 1;
    background.highFeed <<= 1;
 }
 
@@ -210,15 +226,27 @@ inline void Pixel()
       Each two bits (starting with the leftmost bit) form the attributes for each
       16x16 pixel segment of a 32x32 pixel segment of the screen, represented as a 2x2
       grid of the format AABBCCDD with AA, BB, CC, and DD being top left, top right,
-      bottom left and bottom right, respectively. */
-   const unsigned AttributeMaskTable[] = { _11000000b, _00110000b, _00001100b, _00000011b };
-   const int AttributeShiftTable[] = { 6, 4, 2, 0 };
-   const int x = (render.pixel / 32) & 1;
-   const int y = (render.line / 32) & 1;
-   // Combining bits together is faster than multiplying.
-   const int index = (y << 1) | x;
-   const int palette = (background.latch & AttributeMaskTable[index]) >> AttributeShiftTable[index];
- 
+      bottom left and bottom right, respectively.
+
+      To help with this, the code that handles tile fetching passes a special tag along
+      with each attribute byte, which essentially contains the number of shifts to apply
+      to the attribute mask to extract the relevant bits for a given tile. */
+
+   unsigned attribute;
+   int shifts;
+   if(background.counter <= ppu__fine_scroll) {
+      // Use the attributes from the next tile.
+      attribute = background.latch;
+      shifts = background.latchTag;
+   }
+   else {
+      // Use the attributes from the current tile.
+      attribute = background.buffer;
+      shifts = background.bufferTag;
+   }
+   
+   const int palette = (attribute & (AttributeMask << shifts)) >> shifts;
+
    // Write the finished pixel to the frame buffer.     
    R_PutFramePixel( PPU__BACKGROUND_PALETTE(palette, pixel) );
 }
@@ -228,6 +256,7 @@ inline void PixelStub()
 {
    // Perform minimal logic for this pixel.
    Logic();
+
    /* As nothing is being rendered, produce a transparent pixel. The video buffer is not
       updated this time, as we are frame-skipping. */
    R_ClearBackgroundPixel();
@@ -315,8 +344,47 @@ inline void Clock()
          * Tile bitmap A 
          * Tile bitmap B (+8 bytes from tile bitmap A) */
 
+   const int cycle = render.clock;
+
+   if(cycle == PrefetchCycleFirst) {
+      /* scanline start (if background and sprites are enabled):
+           v:0000010000011111=t:0000010000011111 */
+      // Preserve y, bit11 and row from the existing VRAM address.
+      int y = (ppu__vram_address >> 5) & _00011111b;
+      unsigned bit11 = (ppu__vram_address >> 11) & 1;
+      int row = (ppu__vram_address >> 12) & _00000111b;
+
+      // Reload x and bit10 from the latch.
+      const int x = ppu__vram_address_latch & _00011111b;
+      const unsigned bit10 = (ppu__vram_address_latch >> 10) & 1;
+
+      // Move to the next row.
+      row++;
+      if(row > 7) {
+         row = 0;
+
+         /* if you manually set the value above 29 (from either 2005 or
+            2006), the wrapping from 29 obviously won't happen, and attrib data will be
+            used as name table data.  the "y scroll" still wraps to 0 from 31, but
+            without switching bit 11.  this explains why writing 240+ to 'Y' in 2005
+            appeared as a negative scroll value. */
+         y++;
+         if(y == 30) {
+            // Normal wrap-around from 29.
+            y = 0;
+            bit11 ^= 1;
+         }
+         else if(y > 31)
+            // It has been manually set above 29 - do not invert bit 11.
+            y = 0;
+      }
+
+      // Update VRAM address.
+      ppu__vram_address = (row << 12) | (bit11 << 11) | (bit10 << 10) | (y << 5) | x;
+   }
+
    // Check if we need to do any data fetching for this clock cycle.
-   switch( FetchTable[render.clock] ) {
+   switch( FetchTable[cycle] ) {
       case Fetch_None:
          return;
       case Fetch_Visible:
@@ -331,8 +399,6 @@ inline void Clock()
          return;
    }
    
-   const int cycle = render.clock;
-
    /* Determine which type of data to fetch:
          1 - Name byte
          2 - Attribute byte
@@ -345,7 +411,9 @@ inline void Clock()
          // Fetch name table byte.
           const int table = (ppu__vram_address >> 10) & 3;
           const uint8 *data = ppu__name_tables_read[table];
+
           evaluation.name = data[ppu__vram_address & PPU__NAME_TABLE_PAGE_MASK];
+
           break;
       }
 
@@ -360,57 +428,48 @@ inline void Clock()
          // Fetch attribute byte. This is also when the VRAM address is updated.
          const int table = (ppu__vram_address >> 10) & 3;
          int x = ppu__vram_address & _00011111b;
-         int y = (ppu__vram_address >> 5) & _00011111b;
+         const int y = (ppu__vram_address >> 5) & _00011111b;
+         const int row = (ppu__vram_address >> 12) & _00000111b;
+
          const int attributeX = x / 4;
-         const int attributeY = y / 4;
+         const int attributeY = ((y * TileHeight) + row) / 32;
          const unsigned address = AttributeBase + (attributeY * (DisplayWidth / 32)) + attributeX;
          const uint8* data = ppu__name_tables_read[table];
+
          evaluation.attribute = data[address & PPU__NAME_TABLE_PAGE_MASK];
 
-         // Unpack the rest of the VRAM address so we can update it.
+         /* Attribute shift table:
+               X Odd   Y Odd   0 shifts
+               X Even  Y Odd   2 shifts
+               X Odd   Y Even  4 shifts
+               X Even  Y Even  6 shifts
+            We can get the same behavior simply by ORing the masked bits together. =) */
+         evaluation.tag = (x & 2) | ((y & 2) << 1);
+
+         // Unpack the rest of the VRAM address.
          unsigned bit10 = (ppu__vram_address >> 10) & 1;
-         unsigned bit11 = (ppu__vram_address >> 11) & 1;
-         int row = (ppu__vram_address >> 12) & _00000111b;
+         const unsigned bit11 = (ppu__vram_address >> 11) & 1;
 
          // We need to set this here so that the pattern data fetches can get at it.
          evaluation.row = row;
 
-         /* Increment VRAM address. We do this the hard way for now, later on I'll figure out the
-            proper calculations for doing it in a bitwise manner. */
+         /* Move to the next column, inverting the horizontal name table bit if we wrap around to zero.
+            This allows us to move to the next horizontal name table seamlessly. */
          x++;
          if(x > 31) {
             x = 0;
             bit10 ^= 1;
-
-            row++;
-            if(row > 7) {
-               row = 0;
-
-               /* if you manually set the value above 29 (from either 2005 or
-                  2006), the wrapping from 29 obviously won't happen, and attrib data will be
-                  used as name table data.  the "y scroll" still wraps to 0 from 31, but
-                  without switching bit 11.  this explains why writing 240+ to 'Y' in 2005
-                  appeared as a negative scroll value. */
-               y++;
-               if(y == 30) {
-                  y = 0;
-                  bit11 ^= 1;
-               }
-               else if(y > 31)
-                  y = 0;
-            }
          }
 
+         // Update VRAM address.
          ppu__vram_address = (row << 12) | (bit11 << 11) | (bit10 << 10) | (y << 5) | x;
-
-;
       }
 
       case 3:
       case 4: {
          // Fetch pattern table bytes.
          const unsigned address = (evaluation.name * BytesPerTile) + ppu__background_tileset;
-         const unsigned page = address / PPU__PATTERN_TABLE_PAGE_SIZE;
+         const int page = address / PPU__PATTERN_TABLE_PAGE_SIZE;
          const uint8 *data = ppu__background_pattern_tables_read[page];
          unsigned offset = address & PPU__PATTERN_TABLE_PAGE_MASK;
 
@@ -422,15 +481,16 @@ inline void Clock()
             case 4: {
                evaluation.pattern2 = data[offset + (BytesPerTile / 2) + evaluation.row];
 
-               /* Background::Pixel() does not get called during HBlank, so we need to load the
-                  shift registers, latch and counter manually here. */
+               /* Background::Pixel() does not get called during HBlank, so we need to take
+                  care of some of the normal logic here. */
                if(cycle >= PrefetchCycleFirst) {
-                  background.lowShift <<= 8;
-                  background.lowShift |= evaluation.pattern1;
-                  background.highShift <<= 8;
-                  background.highShift |= evaluation.pattern2;
-                  background.latch = evaluation.attribute;
-                  background.counter = TileWidth;
+                  // This is functionally equivalent to shifting left by 8 bits.
+                  background.lowShift = background.lowFeed;
+                  background.highShift = background.highFeed;
+
+                  /* Fill the lower 8-bits of the shift registers, attribute latch and reset
+                     the counter for the next tile (at the beginning of the scanline). */
+                  Load();
                }
 
                break;

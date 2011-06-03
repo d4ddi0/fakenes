@@ -18,6 +18,7 @@
 #include "sprites.hpp"
 
 // TODO: Add MMC2 & MMC4 latches support.
+// TODO: Make use of lookup tables for calculations.
 
 namespace Renderer {
 namespace Sprites {
@@ -601,7 +602,7 @@ inline void Clock() {
                   /* The PPU manages memory using 1 kB pages, so we first have to find the proper page,
                      then calculate the offset of the bytes containing the data for the two separate
                      planes for this line of the tile bitmap. */
-                  const unsigned page = address / PPU__PATTERN_TABLE_PAGE_SIZE;
+                  const int page = address / PPU__PATTERN_TABLE_PAGE_SIZE;
                   const uint8 *data = ppu__sprite_pattern_tables_read[page];
                   unsigned offset = address & PPU__PATTERN_TABLE_PAGE_MASK;
 

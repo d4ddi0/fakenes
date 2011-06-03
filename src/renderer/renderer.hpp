@@ -53,18 +53,20 @@ extern const int TileHeight;
 extern const int DisplayWidth;
 extern const int DisplayWidthTiles;
 extern const int DisplayHeight;
+extern const int DisplayHeightTiles;
 
 typedef struct _RenderBackgroundContext {
    uint8 lowShift, highShift;
    uint8 lowFeed, highFeed;
-   uint8 latch;
+   uint8 buffer, bufferTag;
+   uint8 latch, latchTag;
    uint8 counter;
 
 } RenderBackgroundContext;
 
 typedef struct _RenderBackgroundEvaluation {
    uint8 name;
-   uint8 attribute;
+   uint8 attribute, tag;
    uint8 pattern1, pattern2;
    uint8 row;
 

@@ -69,6 +69,7 @@ extern UINT8  ppu__oam_address;
 extern UINT8  ppu__scroll_x_position;
 extern UINT8  ppu__scroll_y_position;
 extern UINT16 ppu__vram_address;
+extern UINT16 ppu__vram_address_latch;
 /* Emulation only. */
 extern ENUM   ppu__default_mirroring;
 extern ENUM   ppu__mirroring;

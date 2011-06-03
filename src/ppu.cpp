@@ -103,7 +103,6 @@ bool       synchronizing = false;		// Set during synchronization; see SyncHelper
 bool       timeWarp = false;			// Inserts extra cycles during synchronization
 uint8      vblankQuirkTime = 0;			// For emulating the VBL flag read quirk
 uint8      writeBuffer = 0x00;			// Last data byte written to a register
-uint16     vramAddressLatch = 0x0000;		// Register combiner for the VRAM address
 
 } // namespace PPUState
 
@@ -119,7 +118,7 @@ BOOL   ppu__generate_interrupts = FALSE;	// Generate NMIs at the start of VBlank
 UINT8  ppu__vram_address_increment = 0;		// Applied after each VRAM access
 
 // Background registers.
-UINT16 ppu__background_tileset = 0x0000;	// Base address for background tiles
+UINT16 ppu__background_tileset = 0;		// Base address for background tiles
 BOOL   ppu__clip_background = FALSE;		// Hide background in the left 8 pixels of the screen
 BOOL   ppu__enable_background = FALSE;		// Enable emulation of the background-rendering pipeline
 
@@ -127,22 +126,23 @@ BOOL   ppu__enable_background = FALSE;		// Enable emulation of the background-re
 BOOL   ppu__clip_sprites = FALSE;		// Hide sprites in the left 8 pixels of the screen
 BOOL   ppu__enable_sprites = FALSE;		// Enable emulation of the sprite-rendering pipeline
 UINT8  ppu__sprite_height = 0;			// Sprite height, either 8 or 16 pixels
-UINT16 ppu__sprite_tileset = 0x0000;		// Base address for sprite tiles, only used in 8x8 mode
+UINT16 ppu__sprite_tileset = 0;			// Base address for sprite tiles, only used in 8x8 mode
 
 // Palette and color registers.
 BOOL  ppu__intensify_reds = FALSE;		// Darkens greens and blues
 BOOL  ppu__intensify_greens = FALSE;		// Darkens reds and blues
 BOOL  ppu__intensify_blues = FALSE;		// Darkens reds and greens
-UINT8 ppu__palette_mask = 0x00;			// Controlled by monochrome mode flag in PPUSTATUS
+UINT8 ppu__palette_mask = 0;			// Controlled by monochrome mode flag in PPUSTATUS
 
 /* These variables are derived from registers, but are not directly associated with a
    software-modifiable setting. Register clears will still reset them. */
 BOOL   ppu__enabled = FALSE;			// Don't access VRAM when this is cleared
 UINT8  ppu__fine_scroll = 0;			// Per-pixel horizontal scrolling
-UINT8  ppu__oam_address = 0;                    // Current read/write location in OAM
+UINT8  ppu__oam_address = 0;			// Current read/write location in OAM
 UINT8  ppu__scroll_x_position = 0;		// Background scrolling horizontal offset
 UINT8  ppu__scroll_y_position = 0;		// Background scrolling vertical offset
 UINT16 ppu__vram_address = 0;			// Current read/write location in VRAM
+UINT16 ppu__vram_address_latch = 0;		// Register combiner for the VRAM address
 
 /* These variables are used only by the emulation itself. They are not derived from registers in any way,
    but rather external sources (e.g the cartridge) or the current state of events within the PPU. */
@@ -310,6 +310,10 @@ int ppu_init(void)
       ppu__sprite_palettes[i] = ppu__palette_vram +
          PPU__SPRITE_PALETTE_OFFSET + (i * PPU__BYTES_PER_PALETTE);
 
+   // Compute CRC32 for CHR-ROM.
+   if(global_rom.chr_rom_pages > 0)
+      global_rom.chr_rom_crc32 = make_crc32(global_rom.chr_rom, global_rom.chr_rom_pages * 0x2000);
+
    // Initialize everything else.
    ppu_reset();
 
@@ -361,7 +365,6 @@ void ppu_reset(void)
    readBuffer = 0x00;
    writeBuffer = 0x00;
    addressLatch = false;
-   vramAddressLatch = 0x0000;
 
    oamDMATimer = 0;
    oamDMAReadAddress = 0x0000;
@@ -539,8 +542,8 @@ void ppu_write(const UINT16 address, const UINT8 data)
 
          /* 2000 write:
               t:0000110000000000=d:00000011 */   
-         PPUState::vramAddressLatch &= ~(_00000011b << 10);
-         PPUState::vramAddressLatch |= ppu__base_name_table_address << 10;
+         ppu__vram_address_latch &= ~(_00000011b << 10);
+         ppu__vram_address_latch |= ppu__base_name_table_address << 10;
 
          // If the state of bit 7 has changed, then we need to repredict the NMI.
          if(ppu__generate_interrupts != old_bit_7)
@@ -597,11 +600,11 @@ void ppu_write(const UINT16 address, const UINT8 data)
                  t:0000001111100000=d:11111000
                  t:0111000000000000=d:00000111 */
             // "Chunky" Y scroll (0-29).
-            PPUState::vramAddressLatch &= ~(_00011111b << 5);
-            PPUState::vramAddressLatch |= ((data >> 3) & _00011111b) << 5;
+            ppu__vram_address_latch &= ~(_00011111b << 5);
+            ppu__vram_address_latch |= ((data >> 3) & _00011111b) << 5;
             // Fine Y scroll (0-7).
-            PPUState::vramAddressLatch &= ~(_00000111b << 12);
-            PPUState::vramAddressLatch |= (data & _00000111b) << 12;
+            ppu__vram_address_latch &= ~(_00000111b << 12);
+            ppu__vram_address_latch |= (data & _00000111b) << 12;
          }
          else {
             // First byte.
@@ -611,8 +614,8 @@ void ppu_write(const UINT16 address, const UINT8 data)
                  t:0000000000011111=d:11111000
                  x=d:00000111 */
             // "Chunky" X scroll (0-31).
-            PPUState::vramAddressLatch &= ~_00011111b;
-            PPUState::vramAddressLatch |= (data >> 3) & _00011111b;
+            ppu__vram_address_latch &= ~_00011111b;
+            ppu__vram_address_latch |= (data >> 3) & _00011111b;
             // Fine X scroll (0-7).
             ppu__fine_scroll = data & _00000111b;
          }
@@ -636,8 +639,8 @@ void ppu_write(const UINT16 address, const UINT8 data)
                  t:0000000011111111=d:11111111
                  v=t */
             // Replace the lower byte.
-            PPUState::vramAddressLatch &= ~_11111111b;
-            PPUState::vramAddressLatch |= data;
+            ppu__vram_address_latch &= ~_11111111b;
+            ppu__vram_address_latch |= data;
             // Copy the latch into the VRAM address.
             UpdateVRAMAddress();
          }
@@ -650,8 +653,8 @@ void ppu_write(const UINT16 address, const UINT8 data)
                  t:1100000000000000=0 */
             /* Replace the upper byte. Note that all bits are cleared in the latch, despite fewer
                bits being put in their place. This is intentional. */
-            PPUState::vramAddressLatch &= ~(_11111111b << 8);
-            PPUState::vramAddressLatch |= (data & _00111111b) << 8;
+            ppu__vram_address_latch &= ~(_11111111b << 8);
+            ppu__vram_address_latch |= (data & _00111111b) << 8;
          }
 
          // Toggle flip-flop for the address latch.
@@ -1091,7 +1094,7 @@ static inline void IncrementVRAMAddress()
 
 static inline void UpdateVRAMAddress()
 {
-   ppu__vram_address = PPUState::vramAddressLatch;
+   ppu__vram_address = ppu__vram_address_latch;
 }
 
 static linear uint8 OAMRead()
@@ -1455,6 +1458,30 @@ static linear void EndFrame()
      if((j&31) == 31)
      printf("\n\t");
    }
+   printf("\n");
+   data = ppu__name_tables_read[1];
+   printf("Name table 1 contents:\n\t");
+   for(unsigned j =0;j < PPU__BYTES_PER_NAME_TABLE;j++) {
+      printf("%02X ", data[j]);
+     if((j&31) == 31)
+     printf("\n\t");
+   }
+   printf("\n");
+   data = ppu__name_tables_read[2];
+   printf("Name table 2 contents:\n\t");
+   for(unsigned j =0;j < PPU__BYTES_PER_NAME_TABLE;j++) {
+      printf("%02X ", data[j]);
+     if((j&31) == 31)
+     printf("\n\t");
+   }
+   printf("\n");
+   data = ppu__name_tables_read[3];
+   printf("Name table 3 contents:\n\t");
+   for(unsigned j =0;j < PPU__BYTES_PER_NAME_TABLE;j++) {
+      printf("%02X ", data[j]);
+     if((j&31) == 31)
+     printf("\n\t");
+   }
 
    // Now we can reload our cached options into the actual variables.
    LoadCachedSettings();
@@ -1497,18 +1524,6 @@ static linear void StartScanline()
    (excepting what is handled by StartScanline(), of course). */
 static linear void StartScanlineCycle(const cpu_time_t cycle)
 {
-   if(ppu__enabled &&
-      (cycle == PPU_HBLANK_START)) {
-      /* scanline start (if background and sprites are enabled):
-           v:0000010000011111=t:0000010000011111 */
-      // X scroll position.
-      ppu__vram_address &= ~_00011111b;
-      ppu__vram_address |= PPUState::vramAddressLatch & _00011111b;
-      // Horizontal name table bit.
-      ppu__vram_address &= ~(1 << 10);
-      ppu__vram_address |= PPUState::vramAddressLatch & (1 << 10);
-   }
-
    /* Generate a clock for the renderer. This handles things like background and sprite
       timing, pretty much everything that doesn't involve drawing a pixel. */
    Renderer::Clock();
