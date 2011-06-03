@@ -14,6 +14,9 @@
 namespace Renderer {
 namespace Sprites {
 
+extern R_LookupTable( IndexTable );
+extern R_LookupTable( SequenceTable );
+
 extern void Initialize();
 extern void Line();
 extern void Pixel(const bool rendering);

@@ -146,8 +146,30 @@ inline void WriteSOAM(const int index, const unsigned offset, const uint8 data)
 
 #if !defined(INLINE_P2EC)
 
+R_LookupTable( IndexTable );
+R_LookupTable( SequenceTable );
+
 void Initialize() {
    Clear();
+
+   // Clear lookup tables.
+   R_ClearLookupTable( IndexTable );
+   R_ClearLookupTable( SequenceTable );
+
+   /* Build our index table. This gives the *secondary* OAM index (0-7) of the sprite being
+      processed at a given clock cycle during data fetching. */
+   for(int i = 1; i <= PPU_SCANLINE_CLOCKS; i++) {
+      const int position = i - FetchCycleFirst;	// 0-63
+      IndexTable[i] = position / 8;
+   }
+
+   /* Build our sequence table. This tells us which type of data to fetch on each clock cycle
+      of the data fetching phase. Each sprite fetch is exactly 8 cycles long. */
+   for(int i = 1; i <= PPU_SCANLINE_CLOCKS; i++) {
+      const int position = i - FetchCycleFirst;			// 0-63
+      const int index = position / 8;				// 0-7
+      SequenceTable[i] = ((position - (index * 8)) / 2) + 1;	// 1-4
+   }
 }
 
 void Line() {
@@ -544,14 +566,12 @@ inline void Clock() {
       /* As each fetch takes 2 cycles to complete, we only care about even cycles,
          emulation-wise, at least. */
       if(cycle_is_even) {
-         const int position = cycle - FetchCycleFirst;	// 0-63
-         const int index = position / 8;		// 0-7
+         const int index = IndexTable[cycle];
 
          /* We don't need to bother with sprites that aren't active. They get loaded with a transparent
             bitmap instead, although we never even try to render them for performance sake. */
-         if(index < render.spriteEvaluation.count) {
-            const int type = ((position - (index * 8)) / 2) + 1; // 1-4
 
+         if(index < render.spriteEvaluation.count) {
             // To make things a little cleaner, we'll get a direct reference.
             RenderSpriteContext& sprite = render.sprites[index];
 
@@ -559,31 +579,33 @@ inline void Clock() {
                This is filled in during sprite evaluation for each sprite. */
             sprite.index = render.spriteEvaluation.indices[index];
 
-            /* The exact time when the attribute byte and X position are loaded into the
-               latch and counter (respectively) is unknown, however we have a perfectly
-               good oppertunity to do it here with the tile data, so we will. */
+            /* Determine the type of data being fetched:
+                  1 - Garbage fetch (1)
+                  2 - Garbage fetch (2)
+                  3 - Pattern byte 1
+                  4 - Pattern byte 2 */
+            const int type = SequenceTable[cycle];
+
             switch(type) {
-               // Garbage
                case 1:
-                  // Load latch and counter
+                  /* The exact time when the attribute byte and X position are loaded into the
+                     latch and counter (respectively) is unknown, however we have a perfectly
+                     good oppertunity to do it here with the tile data, so we will. */
                   sprite.latch = ReadSOAM(index, Sprite_Attributes);
                   sprite.counter = ReadSOAM(index, Sprite_XPosition);
+
                   break;
 
-               // Tile bitmap A
                case 3:	
-               // Tile bitmap B	
                case 4: {
-                  /* It's inefficient to execute all of this twice, but there isn't really any other way
-                     while still keeping it aligned to the proper clock cycles (for now).  */
-
+                  // Fetch tile bitmaps.
                   const int tile = ReadSOAM(index, Sprite_TileIndex);
-                  const int y = ReadSOAM(index, Sprite_YPosition);
 
                   unsigned address;
-                  if(ppu__sprite_height == 8)
+                  if(ppu__sprite_height == 8) {
                      // Render 8x8 sprites.
                      address = (tile * BytesPerTile) + ppu__sprite_tileset;
+                  }
                   else {
                      // Render 8x16 sprites.
                      unsigned bank = 0x0000;
@@ -596,6 +618,8 @@ inline void Clock() {
                   // If the MMC has a handler installed, we need to call it.
                   if(mmc_check_latches)
                      mmc_check_latches(address);
+
+                  const int y = ReadSOAM(index, Sprite_YPosition);
 
                   /* Each line of the plane data for the tile bitmap is a single byte, so this is
                      simply used as a byte offset. */
@@ -610,6 +634,7 @@ inline void Clock() {
                      planes for this line of the tile bitmap. */
                   const int page = address / PPU__PATTERN_TABLE_PAGE_SIZE;
                   const uint8 *data = ppu__sprite_pattern_tables_read[page];
+
                   unsigned offset = address & PPU__PATTERN_TABLE_PAGE_MASK;
 
                   /* For 8x16 sprites, we may need to jump to the next tile.
@@ -620,10 +645,10 @@ inline void Clock() {
                   }
 
                   if(type == 3)
-                     // Tile bitmap A
+                     // First tile bitmap.
                      sprite.lowShift = data[offset + row];
                   else
-                     // Tile bitmap B
+                     // Second tile bitmap.
                      sprite.highShift = data[offset + (BytesPerTile / 2) + row];
 
                   /* Mark sprite as active. This is only done when the sprite's bitmap is not

@@ -19,7 +19,6 @@
 
 // TODO: MMC2 and MMC4 latches support.
 // TODO: MMC5 ExRAM and attribute support.
-// TODO: State saving support.
 
 namespace Renderer {
 namespace Background {
