@@ -106,8 +106,8 @@ static int color_depth   = -1;
 /* Color controls (-100 to 100). */
 static int video_hue        = 0;
 static int video_saturation = 0;
-static int video_brightness = 0;
-static int video_contrast   = 0;
+static int video_brightness = -50;
+static int video_contrast   = 50;
 static int video_gamma      = 0;
                          
 static LIST filter_list = 0;
