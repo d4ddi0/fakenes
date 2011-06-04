@@ -344,11 +344,6 @@ inline void Pixel(const bool rendering)
 #define JUMP_4	JUMP(4)
 
 inline void Clock() {
-   if(render.line == PPU_LAST_DISPLAYED_LINE)
-      // No need to do anything here, as the next line cannot have sprites.
-      // FIXME: Is this really correct?
-      return;
-
   /* Kind of ugly, but it works. Note that emulation starts on an odd cycle (1),
       and most writes take place on even cycles (2, 4, 6, etc.). */
    const int cycle = render.clock;
@@ -562,104 +557,140 @@ inline void Clock() {
 
       /* As each fetch takes 2 cycles to complete, we only care about even cycles,
          emulation-wise, at least. */
-      if(cycle_is_even) {
-         const int index = IndexTable[cycle];
+      if(!cycle_is_even)
+         return;
 
-         /* We don't need to bother with sprites that aren't active. They get loaded with a transparent
-            bitmap instead, although we never even try to render them for performance sake.
+      // Determine which sprite we are processing for this cycle.
+      const int index = IndexTable[cycle];
 
-            Note that this optimization goes against the actual hardware behavior: The NES fetches the
-            tile data regardless of whether there are any sprites on the line or not. So when a mapper
-            depends on that functionality to work, we need to emulate it. */
+      // To make things a little cleaner, we'll get a direct reference.
+      RenderSpriteContext& sprite = render.sprites[index];
 
-         if(mmc_check_latches ||
-            (index < render.spriteEvaluation.count)) {
-            // To make things a little cleaner, we'll get a direct reference.
-            RenderSpriteContext& sprite = render.sprites[index];
+      /* We need to keep track of the original index (0-63) for sprite #0 hit detection.
+         This is filled in during sprite evaluation for each sprite. */
+      sprite.index = render.spriteEvaluation.indices[index];
 
-            /* We need to keep track of the original index (0-63) for sprite #0 hit detection.
-               This is filled in during sprite evaluation for each sprite. */
-            sprite.index = render.spriteEvaluation.indices[index];
+      /* Determine the type of data being fetched:
+            1 - Garbage fetch (1)
+            2 - Garbage fetch (2)
+            3 - Pattern byte 1
+            4 - Pattern byte 2 */
+      const int type = SequenceTable[cycle];
 
-            /* Determine the type of data being fetched:
-                  1 - Garbage fetch (1)
-                  2 - Garbage fetch (2)
-                  3 - Pattern byte 1
-                  4 - Pattern byte 2 */
-            const int type = SequenceTable[cycle];
+      // Check for the first cycle of the sequence.
+      if(type == 1) {
+         /* The exact time when the attribute byte and X position are loaded into the 
+            latch and counter (respectively) is unknown, however we have a perfectly
+            good oppertunity to do it here with the tile data, so we will. */
+         sprite.latch = ReadSOAM(index, Sprite_Attributes);
+         sprite.counter = ReadSOAM(index, Sprite_XPosition);
+      }
 
-            switch(type) {
-               case 1:
-                  /* The exact time when the attribute byte and X position are loaded into the
-                     latch and counter (respectively) is unknown, however we have a perfectly
-                     good oppertunity to do it here with the tile data, so we will. */
-                  sprite.latch = ReadSOAM(index, Sprite_Attributes);
-                  sprite.counter = ReadSOAM(index, Sprite_XPosition);
+      switch(type) {
+         case 1:
+         case 2: {
+            /* The PPU makes garbage fetches to the name tables so that the same hardware that
+               fetches data for the background could also be used for sprites. Normally we
+               don't have to emulate this, but if the MMC has a hook installed, we do. */
+             if(!mmc_check_latches)
+                break;
 
-                  break;
+             // Simulate a name table fetch.
+             const unsigned address = 0x2000 + (ppu__vram_address & 0x0FFF);
+             mmc_check_latches(address);
 
-               case 3:	
-               case 4: {
-                  // Fetch tile bitmaps.
-                  const int tile = ReadSOAM(index, Sprite_TileIndex);
+             break;
+         }
 
-                  unsigned address;
-                  if(ppu__sprite_height == 8) {
-                     // Render 8x8 sprites.
-                     address = (tile * BytesPerTile) + ppu__sprite_tileset;
-                  }
-                  else {
-                     // Render 8x16 sprites.
-                     unsigned bank = 0x0000;
-                     if(tile & OAM_Bank)
-                        bank = 0x1000;
+         case 3:	
+         case 4: {
+            // Fetch tile bitmaps.
+            if(index >= render.spriteEvaluation.count) {
+               /* If there are less than 8 sprites on the next scanline, then dummy fetches to
+                  tile $FF occur for the left-over sprites, because of the dummy sprite data
+                  in the secondary OAM (see sprite evaluation). This data is then discarded,
+                  and the sprites are loaded with a transparent bitmap instead. */
 
-                     address = ((tile & OAM_Tile) * BytesPerTile) + bank;
-                  }
+               // There's no reason to emulate this if a mapper doesn't depend on it.
+               if(!mmc_check_latches)
+                  return;
 
-                  if(mmc_check_latches)
-                     mmc_check_latches(address);
+               const unsigned address = (0xFF * BytesPerTile) + ppu__sprite_tileset;
+               mmc_check_latches(address);
 
-                  const int y = ReadSOAM(index, Sprite_YPosition);
-
-                  /* Each line of the plane data for the tile bitmap is a single byte, so this is
-                     simply used as a byte offset. */
-                  int row;
-                  if(sprite.latch & Attribute_VFlip)
-                     row = (y + (ppu__sprite_height - 1)) - line;
-                  else
-                     row = line - y;
-
-                  /* The PPU manages memory using 1 kB pages, so we first have to find the proper page,
-                     then calculate the offset of the bytes containing the data for the two separate
-                     planes for this line of the tile bitmap. */
-                  const int page = address / PPU__PATTERN_TABLE_PAGE_SIZE;
-                  const uint8 *data = ppu__sprite_pattern_tables_read[page];
-
-                  unsigned offset = address & PPU__PATTERN_TABLE_PAGE_MASK;
-
-                  /* For 8x16 sprites, we may need to jump to the next tile.
-                     This occurs on row indices 8-15, which then become 0-7 after the offset. */
-                  if(row >= 8) {
-                     offset += BytesPerTile;
-                     row -= 8;
-                  }
-
-                  if(type == 3)
-                     // First tile bitmap.
-                     sprite.lowShift = data[offset + row];
-                  else
-                     // Second tile bitmap.
-                     sprite.highShift = data[offset + (BytesPerTile / 2) + row];
-
-                  /* Mark sprite as active. This is only done when the sprite's bitmap is not
-                     transparent, otherwise it is ignored by the renderer. */
-                  if((sprite.lowShift + sprite.highShift) != 0x00)
-                     sprite.dead = FALSE;
-
-                  break;
-               }
+               /* Due to having cleared the evaluation state at the start of HBlank, unused
+                  sprites are already transparent and disabled by default, so there's
+                  nothing else to be done here. */
+               return;
             }
+
+            const int tile = ReadSOAM(index, Sprite_TileIndex);
+
+            unsigned address;
+            if(ppu__sprite_height == 8) {
+               // Render 8x8 sprites.
+               address = (tile * BytesPerTile) + ppu__sprite_tileset;
+            }
+            else {
+               // Render 8x16 sprites.
+               unsigned bank = 0x0000;
+               if(tile & OAM_Bank)
+                  bank = 0x1000;
+
+               address = ((tile & OAM_Tile) * BytesPerTile) + bank;
+            }
+
+            /* Calculate which line of the sprite's bitmap to fetch. */
+            const int y = ReadSOAM(index, Sprite_YPosition);
+
+            int row;
+            if(sprite.latch & Attribute_VFlip)
+               row = (y + (ppu__sprite_height - 1)) - line;
+            else
+               row = line - y;
+
+            /* For 8x16 sprites, we may need to jump to the next tile.
+               This occurs on row indices 8-15, which then become 0-7 after the offset. */
+            if(row >= 8) {
+               address += BytesPerTile;
+               row -= 8;
+            }
+
+            /* Each line of the plane data for the tile bitmap is a single byte, so this is
+               simply used as a byte offset. */
+            address += row;
+
+            /* For the second fetch, we need to increment the address to access the second bit plane.
+               As each tile is made up of 16 bytes, split into two planes, the offset for the 
+               second bit plane is 8 bytes, or BytesPerTile / 2. */
+            if(type == 4)
+               address += BytesPerTile / 2;
+
+            // Now that we have the complete address...
+            if(mmc_check_latches)
+               mmc_check_latches(address);
+
+            /* The PPU manages memory using 1 kB pages, so we first have to find the proper page,
+               then calculate the offset of the bytes containing the data for the two separate
+               planes for this line of the tile bitmap. */
+            const int page = address / PPU__PATTERN_TABLE_PAGE_SIZE;
+            const uint8 *data = ppu__sprite_pattern_tables_read[page];
+
+            unsigned offset = address & PPU__PATTERN_TABLE_PAGE_MASK;
+
+            if(type == 3)
+               // First tile bitmap.
+               sprite.lowShift = data[offset];
+            else
+               // Second tile bitmap.
+               sprite.highShift = data[offset];
+
+            /* Mark sprite as active. This is only done when the sprite's bitmap is not
+               transparent, otherwise it is ignored by the renderer. */
+            if((sprite.lowShift + sprite.highShift) != 0x00)
+               sprite.dead = FALSE;
+
+            break;
          }
       }
    }

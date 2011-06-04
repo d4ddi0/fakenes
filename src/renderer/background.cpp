@@ -402,9 +402,10 @@ inline void Clock()
          return;
 
       case Fetch_Visible:
-         if(render.line < PPU_FIRST_DISPLAYED_LINE)
-            return;
-
+         // Disabled as this might cause problems with MMC3 games with the IRQ tied to A12.
+         // if(render.line < PPU_FIRST_DISPLAYED_LINE)
+         //   return;
+       
          break;
 
       case Fetch_Always:
@@ -424,7 +425,7 @@ inline void Clock()
 
    switch(type) {
       case 1: {
-         // Fetch name table byte.
+          // Fetch name table byte.
           if(mmc_check_latches) {
              const unsigned vramAddress = 0x2000 + (ppu__vram_address & 0x0FFF);
              mmc_check_latches(vramAddress);
@@ -496,8 +497,17 @@ inline void Clock()
       case 3:
       case 4: {
          // Fetch pattern table bytes.
-         const unsigned address = (evaluation.name * BytesPerTile) + ppu__background_tileset;
+         unsigned address = (evaluation.name * BytesPerTile) + ppu__background_tileset;
 
+         /* Each row is simply an additional byte in the pattern tables, so it can be added
+            directly to the address as an offset. */
+         address += evaluation.row;
+
+         // For the second fetch, we need to offset it for the second bit plane.
+         if(type == 4)
+            address += BytesPerTile / 2; // +8 bytes
+
+         // With the complete address, we can now call any mapper hooks.
          if(mmc_check_latches)
             mmc_check_latches(address);
 
@@ -508,11 +518,13 @@ inline void Clock()
 
          switch(type) {
             case 3:
-               evaluation.pattern1 = data[offset + evaluation.row];
+               evaluation.pattern1 = data[offset];
                break;
 
             case 4: {
-               evaluation.pattern2 = data[offset + (BytesPerTile / 2) + evaluation.row];
+               evaluation.pattern2 = data[offset];
+
+               // This is a good oppertunity to perform any end-of-sequence operations...
 
                /* Background::Pixel() does not get called during HBlank, so we need to take
                   care of some of the normal logic here. */
