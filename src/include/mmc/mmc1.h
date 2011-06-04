@@ -239,25 +239,25 @@ static void mmc1_reset(void)
 {
    int index;
 
+   if(ROM_CHR_ROM_PAGES > 0) {
+      /* Select first 8k page. */
+      for(index = 0; index < 8; index ++)
+         ppu_set_1k_pattern_table_vrom_page(index << 10, index);
+   }
+   else
+      /* No VROM is present. */
+      ppu_set_8k_pattern_table_vram();
+
    /* Select first 16k page in lower 16k. */
    /* Select last 16k page in upper 16k. */
    mmc1_set_register_value(0, 0x0C);
    mmc1_set_register_value(1, 0x00);
    mmc1_set_register_value(2, 0x00);
    mmc1_set_register_value(3, 0x00);
-
-   if(ROM_CHR_ROM_PAGES > 0)
-      /* Select first 8k page. */
-      for(index = 0; index < 8; index ++)
-         ppu_set_1k_pattern_table_vrom_page(index << 10, index);
 }
 
 static int mmc1_init(void)
 {
-   if(ROM_CHR_ROM_PAGES == 0)
-      /* No VROM is present. */
-      ppu_set_8k_pattern_table_vram();
-
    cpu_set_write_handler_32k(0x8000, mmc1_write);
 
    mmc1_reset();

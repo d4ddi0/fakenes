@@ -113,6 +113,14 @@ static void bandai_write(UINT16 address, UINT8 value)
 
 static void bandai_reset(void)
 {
+   int index;
+
+   /* Set initial VROM mappings. */
+   for(index = 0; index < 8; index++) {
+       bandai_chr_bank[index] = index;
+       bandai_update_chr_bank(index);
+   }
+
    /* Select first 16k page in lower 16k. */
    bandai_prg_bank = 0;
    bandai_update_prg_bank();
@@ -124,14 +132,6 @@ static void bandai_reset(void)
 
 static int bandai_init(void)
 {
-   int index;
-
-   /* Set initial mappings. */
-   for(index = 0; index < 8; index++) {
-       bandai_chr_bank[index] = index;
-       bandai_update_chr_bank(index);
-   }
-
    /* Install write handlers. */
    cpu_set_write_handler_8k(0x6000, bandai_write);
    cpu_set_write_handler_32k(0x8000, bandai_write);

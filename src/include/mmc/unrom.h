@@ -30,6 +30,9 @@ static void unrom_write (UINT16 address, UINT8 value)
 
 static void unrom_reset (void)
 {
+   /* Set up VRAM. */
+   ppu_set_8k_pattern_table_vram ();
+
    /* Select first 16k ROM page in lower 16k. */
    cpu_set_read_address_16k_rom_block (0x8000, MMC_FIRST_ROM_BLOCK);
 
@@ -40,7 +43,6 @@ static void unrom_reset (void)
 static int unrom_init (void)
 {
    /* No VROM hardware. */
-   ppu_set_8k_pattern_table_vram ();
    mmc_pattern_vram_in_use = TRUE;
 
    /* Install write handler. */

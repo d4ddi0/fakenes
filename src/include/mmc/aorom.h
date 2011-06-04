@@ -39,6 +39,12 @@ static void aorom_write (UINT16 address, UINT8 value)
 
 static void aorom_reset (void)
 {
+   /* Set up VRAM. */
+   ppu_set_8k_pattern_table_vram ();
+
+   /* Set up mirroring. */
+   ppu_set_mirroring (PPU_MIRRORING_ONE_SCREEN_2000);
+
    /* Select first 32k page. */
    cpu_set_read_address_32k_rom_block (0x8000, 0);
 }
@@ -46,12 +52,11 @@ static void aorom_reset (void)
 static int aorom_init (void)
 {
    /* No VROM hardware. */
-   ppu_set_8k_pattern_table_vram ();
    mmc_pattern_vram_in_use = TRUE;
 
    /* Set the default mirroring. */
    mmc_name_table_count = 2;
-   ppu_set_mirroring (PPU_MIRRORING_ONE_SCREEN_2000);
+   ppu_set_default_mirroring (PPU_MIRRORING_ONE_SCREEN_2000);
 
    /* Install write handler. */
    cpu_set_write_handler_32k (0x8000, aorom_write);

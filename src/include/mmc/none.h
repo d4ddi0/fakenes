@@ -18,11 +18,6 @@ const MMC mmc_none = {
 
 static void none_reset(void)
 {
-   /* Do nothing. */
-}
-
-static int none_init(void)
-{
    /* Select first 32k page. */
    cpu_set_read_address_32k_rom_block(0x8000, 0);
 
@@ -35,7 +30,11 @@ static int none_init(void)
     else
         /* No VROM is present. */
         ppu_set_8k_pattern_table_vram();
+}
 
+static int none_init(void)
+{
+    none_reset();
     return 0;
 }
 

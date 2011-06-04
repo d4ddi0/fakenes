@@ -170,24 +170,7 @@ static void sunsoft4_write (UINT16 address, UINT8 value)
 
 static void sunsoft4_reset (void)
 {
-   /* Select first 16k page in lower 16k. */
-   sunsoft4_prg_bank = 0;
-   sunsoft4_update_prg_bank ();
-
-   /* Select last 16k page in upper 16k. */
-   cpu_set_read_address_16k (0xc000, LAST_ROM_PAGE);
-}
-
-static int sunsoft4_init (void)
-{
    int index;
-
-   if (mmc_pattern_vram_in_use)
-   {
-      /* Mapper requires some CHR ROM. */
-      WARN_GENERIC();
-      return (-1);
-   }
 
    /* Set initial name table mappings. */
    sunsoft4_name_table_banks[0] =
@@ -201,6 +184,23 @@ static int sunsoft4_init (void)
    {
       sunsoft4_chr_bank[index] = index;
       sunsoft4_update_chr_bank (index);
+   }
+
+   /* Select first 16k page in lower 16k. */
+   sunsoft4_prg_bank = 0;
+   sunsoft4_update_prg_bank ();
+
+   /* Select last 16k page in upper 16k. */
+   cpu_set_read_address_16k (0xc000, LAST_ROM_PAGE);
+}
+
+static int sunsoft4_init (void)
+{
+   if (mmc_pattern_vram_in_use)
+   {
+      /* Mapper requires some CHR ROM. */
+      WARN_GENERIC();
+      return (-1);
    }
 
    /* Install write handler. */

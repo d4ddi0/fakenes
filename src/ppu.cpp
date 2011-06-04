@@ -901,6 +901,7 @@ void ppu_set_1k_pattern_table_vram_page(const UINT16 address, int page)
 
    const unsigned index = address / PPU__PATTERN_TABLE_PAGE_SIZE;
    page *= PPU__PATTERN_TABLE_PAGE_SIZE;
+
    ppu__pattern_tables_read[index] = ppu__pattern_table_vram + page;
    ppu__pattern_tables_write[index] = ppu__pattern_table_vram + page;
 
@@ -918,6 +919,7 @@ void ppu_set_1k_pattern_table_vrom_page(const UINT16 address, int page)
       [(page / 8) & ROM_CHR_ROM_PAGE_OVERFLOW_MASK] * 8;
 
    const unsigned index = address / PPU__PATTERN_TABLE_PAGE_SIZE;
+
    ppu__pattern_tables_read[index] = ROM_CHR_ROM + (page * PPU__PATTERN_TABLE_PAGE_SIZE);
    ppu__pattern_tables_write[index] = ppu__pattern_table_dummy;
 
@@ -939,6 +941,7 @@ void ppu_set_1k_pattern_table_vrom_page_expanded(const UINT16 address, int page,
       [(page / 8) & ROM_CHR_ROM_PAGE_OVERFLOW_MASK] * 8;
  
    const unsigned index = address / PPU__PATTERN_TABLE_PAGE_SIZE;
+
    const uint8* readAddress = ROM_CHR_ROM + (page * PPU__PATTERN_TABLE_PAGE_SIZE);
    uint8* writeAddress = ppu__pattern_table_dummy;
 
