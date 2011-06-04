@@ -31,8 +31,9 @@ static UINT8 mmc3_chr_bank[MMC3_CHR_BANKS];
 static UINT8 mmc3_irq_counter = 0;
 static UINT8 mmc3_irq_latch = 0;
 
-static INT8 mmc3_disable_irqs = TRUE;
-static INT8 mmc3_counter_latched = FALSE;
+static BOOL mmc3_disable_irqs = TRUE;
+
+static UINT8 mmc3_irq_last_table = 0;
 
 static UINT8 mmc3_register_8000;
 static UINT8 mmc3_sram_enable;
@@ -40,27 +41,41 @@ static UINT8 mmc3_sram_enable;
 #define MMC3_PRG_ADDRESS_BIT 0x40
 #define MMC3_CHR_ADDRESS_BIT 0x80
 
-static int mmc3_irq_tick(const int line)
+static void mmc3_irq_slave(void)
 {
-   if((((line >= PPU_FIRST_DISPLAYED_LINE) && (line <= PPU_LAST_DISPLAYED_LINE)) ||
-          (line == PPU_LAST_LINE)) && ppu__enabled) {
-        mmc3_counter_latched = TRUE;
+   const UINT8 saved_irq_counter = mmc3_irq_counter;
 
-        if(mmc3_irq_counter--)
-           return CPU_INTERRUPT_NONE;
+   /* When the scanline counter is clocked, the value will first be checked. If it is zero,
+      it will be reloaded from the IRQ latch ($C000); otherwise, it will decrement. If the
+      old value in the counter is nonzero and new value is zero (whether from decrementing or
+      reloading), an IRQ will be fired if IRQ generation is enabled (by writing to $E001). */
 
-        /* Load next counter position */
-        mmc3_irq_counter = mmc3_irq_latch;
+   if(mmc3_irq_counter == 0)
+      mmc3_irq_counter = mmc3_irq_latch;
+   else
+      mmc3_irq_counter--;
 
-        if(mmc3_disable_irqs)
-           return CPU_INTERRUPT_NONE;
+   if(!mmc3_disable_irqs && 
+      ((saved_irq_counter != 0) && (mmc3_irq_counter == 0)))
+      cpu_interrupt(CPU_INTERRUPT_IRQ_MMC);
+}
 
-        mmc3_counter_latched = FALSE;
+static void mmc3_check_latches(const UINT16 address)
+{
+   /* The MMC3 scanline counter is based entirely on PPU A12, triggered on rising edges
+      (after the line remains low for a sufficiently long period of time). */
 
-        return CPU_INTERRUPT_IRQ_MMC;
-    }
+   if(address > 0x1FFF)
+      /* We only care about accesses to pattern table data. */
+      return;
 
-    return CPU_INTERRUPT_NONE;
+   /* The counter will not work properly unless you use different pattern tables for
+      background and sprite data. */
+   const int table = address / PPU__BYTES_PER_PATTERN_TABLE;
+   if((table == 1) && (mmc3_irq_last_table == 0))
+      mmc3_irq_slave();
+
+   mmc3_irq_last_table = table;
 }
 
 static void mmc3_cpu_bank_sort(void)
@@ -197,44 +212,31 @@ static void mmc3_write(UINT16 address, UINT8 value)
          break;
       }
 
-      case 0xC000: {
-         /* Set IRQ counter. */
+      /* This register specifies the IRQ counter reload value. When the IRQ counter is
+         zero (or a reload is requested through $C001), this value will be copied into the
+         MMC3 IRQ counter at the end of the current scanline. */
+      case 0xC000:
          mmc3_irq_latch = value;
-
-         if(!mmc3_counter_latched)
-            mmc3_irq_counter = mmc3_irq_latch;
-
          break;
-      }
 
-      case 0xC001: {
-         /* Set IRQ latch. */
-         mmc3_counter_latched = FALSE;
-         mmc3_irq_counter = mmc3_irq_latch;
-
+      /* Writing any value to this register clears the MMC3 IRQ counter so that it will be
+         reloaded at the end of the current scanline. */
+      case 0xC001:
+         mmc3_irq_counter = 0;
          break;
-      }
 
+      /* Writing any value to this register will disable MMC3 interrupts AND acknowledge
+         any pending interrupts. */
       case 0xE000: {
-         /* Disable IRQs. */
          mmc3_disable_irqs = TRUE;
          cpu_clear_interrupt(CPU_INTERRUPT_IRQ_MMC);
-
-         if(!mmc3_counter_latched)
-            mmc3_irq_counter = mmc3_irq_latch;
-
          break;
       }
 
-      case 0xE001: {
-         /* Enable IRQs. */
+      /* Writing any value to this register will enable MMC3 interrupts. */
+      case 0xE001:
          mmc3_disable_irqs = FALSE;
-
-         if(!mmc3_counter_latched)
-            mmc3_irq_counter = mmc3_irq_latch;
-
          break;
-      }
 
       default:
          break;
@@ -267,13 +269,15 @@ static void mmc3_reset(void)
    mmc3_ppu_bank_sort();
 
    mmc3_disable_irqs = TRUE;
+
+   mmc3_irq_last_table = 0;
 }
 
 static int mmc3_init(void)
 {
    cpu_set_write_handler_32k(0x8000, mmc3_write);
 
-   mmc_scanline_end = mmc3_irq_tick;
+   mmc_check_latches = mmc3_check_latches;
 
    mmc3_reset();
 
@@ -290,8 +294,9 @@ static void mmc3_save_state(PACKFILE* file, const int version)
    pack_putc(mmc3_irq_counter, file);
    pack_putc(mmc3_irq_latch, file);
 
-   pack_putc(mmc3_disable_irqs, file);
-   pack_putc(mmc3_counter_latched, file);
+   pack_putc(BINARY(mmc3_disable_irqs), file);
+
+   pack_putc(mmc3_irq_last_table, file);
 
    pack_fwrite(mmc3_prg_bank, MMC3_PRG_BANKS, file);
    pack_fwrite(mmc3_chr_bank, MMC3_CHR_BANKS, file);
@@ -311,8 +316,9 @@ static void mmc3_load_state(PACKFILE* file, const int version)
    mmc3_irq_counter = pack_getc(file);
    mmc3_irq_latch = pack_getc(file);
 
-   mmc3_disable_irqs = pack_getc(file);
-   mmc3_counter_latched = pack_getc(file);
+   mmc3_disable_irqs = BOOLEAN(pack_getc(file));
+
+   mmc3_irq_last_table = pack_getc(file);
 
    /* Restore banking */
    pack_fread(mmc3_prg_bank, MMC3_PRG_BANKS, file);

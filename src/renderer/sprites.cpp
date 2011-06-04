@@ -17,9 +17,6 @@
 #include "renderer.hpp"
 #include "sprites.hpp"
 
-// TODO: Add MMC2 & MMC4 latches support.
-// TODO: Make use of lookup tables for calculations.
-
 namespace Renderer {
 namespace Sprites {
 
@@ -569,9 +566,14 @@ inline void Clock() {
          const int index = IndexTable[cycle];
 
          /* We don't need to bother with sprites that aren't active. They get loaded with a transparent
-            bitmap instead, although we never even try to render them for performance sake. */
+            bitmap instead, although we never even try to render them for performance sake.
 
-         if(index < render.spriteEvaluation.count) {
+            Note that this optimization goes against the actual hardware behavior: The NES fetches the
+            tile data regardless of whether there are any sprites on the line or not. So when a mapper
+            depends on that functionality to work, we need to emulate it. */
+
+         if(mmc_check_latches ||
+            (index < render.spriteEvaluation.count)) {
             // To make things a little cleaner, we'll get a direct reference.
             RenderSpriteContext& sprite = render.sprites[index];
 
@@ -615,7 +617,6 @@ inline void Clock() {
                      address = ((tile & OAM_Tile) * BytesPerTile) + bank;
                   }
 
-                  // If the MMC has a handler installed, we need to call it.
                   if(mmc_check_latches)
                      mmc_check_latches(address);
 

@@ -38,8 +38,8 @@
      - When a variable won't be modified, make its value const, to improve optimization.
      - When calling functions, pass parameters as const whenever possible. */
 
+// TODO: Fix odd frame clock skip; it's not working properly and bugs IRQ games.
 // TODO: State saving support.
-// TODO: MMC2 & MMC4 latches support in VRAMReadUnbuffed().
 // TODO: Properly emulate PPU power-up and reset states.
 // TODO: Add 16-bit rendering support with color tinting.
 // TODO: Proper overscan support.
@@ -1026,6 +1026,10 @@ static linear uint8 VRAMRead()
 
 static inline uint8 VRAMReadUnbuffered(const uint16 address)
 {
+   // If the MMC has a handler installed, we need to call it.
+   if(mmc_check_latches)
+      mmc_check_latches(address);
+
    if(address <= 0x1FFF) {
       /* Read from pattern tables. The pattern tables occupy 8,192 bytes starting at $0000 and
          ending at $1FFF. Unlike name tables and palettes, they are not mirrored. */
@@ -1360,6 +1364,7 @@ static void Synchronize()
       if(PPUState::vblankQuirkTime > 0)
          PPUState::vblankQuirkTime--;
 
+#if 0
       if((PPUState::scanline == PPU_CLOCK_SKIP_LINE) && (cycle == PPU_CLOCK_SKIP_CYCLE) &&
           PPUState::isOddFrame && ppu__enable_background) {
          /* The PPU has an even/odd flag that is toggled every frame,
@@ -1375,6 +1380,7 @@ static void Synchronize()
          // Steal a clock from the scanline timer.
          PPUState::scanlineTimer--;
       }
+#endif
 
       /* Clock the scanline timer. This returns TRUE if the scanline ended on this cycle, along with
          the next scanline to be procesed. */
