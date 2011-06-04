@@ -30,10 +30,10 @@ static UINT8 mmc3_chr_bank[MMC3_CHR_BANKS];
 
 static UINT8 mmc3_irq_counter = 0;
 static UINT8 mmc3_irq_latch = 0;
-
 static BOOL mmc3_disable_irqs = TRUE;
 
-static UINT8 mmc3_irq_last_table = 0;
+static UINT8 mmc3_irq_bank = 0;
+static BOOL mmc3_irq_queued = FALSE;
 
 static UINT8 mmc3_register_8000;
 static UINT8 mmc3_sram_enable;
@@ -41,23 +41,69 @@ static UINT8 mmc3_sram_enable;
 #define MMC3_PRG_ADDRESS_BIT 0x40
 #define MMC3_CHR_ADDRESS_BIT 0x80
 
+/* Note: Don't save configuration variables to save states. */
+static int mmc3_config_irq_mode = 0;
+static int mmc3_config_sram = 1;
+
 static void mmc3_irq_slave(void)
 {
-   const UINT8 saved_irq_counter = mmc3_irq_counter;
-
    /* When the scanline counter is clocked, the value will first be checked. If it is zero,
       it will be reloaded from the IRQ latch ($C000); otherwise, it will decrement. If the
       old value in the counter is nonzero and new value is zero (whether from decrementing or
       reloading), an IRQ will be fired if IRQ generation is enabled (by writing to $E001). */
 
-   if(mmc3_irq_counter == 0)
-      mmc3_irq_counter = mmc3_irq_latch;
-   else
-      mmc3_irq_counter--;
+   /* There's a slight discrepancy with what happens when you set $C000 to $00, and so far,
+      two behaviors are known to exist: 
 
-   if(!mmc3_disable_irqs && 
-      ((saved_irq_counter != 0) && (mmc3_irq_counter == 0)))
+      All MMC3A's and non-Sharp MMC3B's will generate only a single IRQ when $C000 is $00.
+      This is because this version of the MMC3 generates IRQs when the scanline counter is
+      decremented to 0. In addition, writing to $C001 with $C000 still at $00 will result
+      in another single IRQ being generated. In the community, this is known as the
+      "alternate" behavior. 
+
+      All MMC3C's and Sharp MMC3B's will generate an IRQ on each scanline while $C000 is $00.
+      This is because this version of the MMC3 generates IRQs when the scanline counter is
+      equal to 0. In the community, this is known as the "normal" behavior. */
+
+   switch(mmc3_config_irq_mode) {
+      case 0: {
+         /* Normal behavior. */
+         const UINT8 saved_irq_counter = mmc3_irq_counter;
+
+         if(mmc3_irq_counter == 0)
+            mmc3_irq_counter = mmc3_irq_latch;
+         else
+            mmc3_irq_counter--;
+
+         if((saved_irq_counter != 0) && (mmc3_irq_counter == 0))
+            mmc3_irq_queued = TRUE;
+
+         break;
+      }
+
+      case 1: {
+         /* Alternate behavior. */
+         if(mmc3_irq_counter == 0) {
+            mmc3_irq_counter = mmc3_irq_latch;
+         }
+         else {
+            mmc3_irq_counter--;
+            if(mmc3_irq_counter == 0)
+               mmc3_irq_queued = TRUE;
+         }
+
+         break;
+      }
+
+      default:
+         WARN_GENERIC();
+         return;
+   }
+
+   if(mmc3_irq_queued && !mmc3_disable_irqs) {
       cpu_interrupt(CPU_INTERRUPT_IRQ_MMC);
+      mmc3_irq_queued = FALSE;
+   }
 }
 
 static void mmc3_check_latches(const UINT16 address)
@@ -71,11 +117,11 @@ static void mmc3_check_latches(const UINT16 address)
 
    /* The counter will not work properly unless you use different pattern tables for
       background and sprite data. */
-   const int table = address / PPU__BYTES_PER_PATTERN_TABLE;
-   if((table == 1) && (mmc3_irq_last_table == 0))
+   const int bank = address / PPU__BYTES_PER_PATTERN_TABLE;
+   if((bank == 1) && (mmc3_irq_bank == 0))
       mmc3_irq_slave();
 
-   mmc3_irq_last_table = table;
+   mmc3_irq_bank = bank;
 }
 
 static void mmc3_cpu_bank_sort(void)
@@ -199,15 +245,12 @@ static void mmc3_write(UINT16 address, UINT8 value)
 
       case 0xA001: {
          /* SRAM disable & enable. */
-
-         /* Disabled for Star Tropics(MMC6). */
-         /*
+         /* Note: This needs to be disabled for Star Tropics(MMC6). */
          mmc3_sram_enable = value & 0x80;
          if(mmc3_sram_enable)
             cpu_enable_sram();
          else
             cpu_disable_sram();
-         */
 
          break;
       }
@@ -215,9 +258,15 @@ static void mmc3_write(UINT16 address, UINT8 value)
       /* This register specifies the IRQ counter reload value. When the IRQ counter is
          zero (or a reload is requested through $C001), this value will be copied into the
          MMC3 IRQ counter at the end of the current scanline. */
-      case 0xC000:
+      case 0xC000: {
          mmc3_irq_latch = value;
+
+         if((mmc3_config_irq_mode == 1) && (mmc3_irq_latch == 0))
+            /* Force a single IRQ to be generated, even on latch=0. */
+            mmc3_irq_queued = TRUE;
+
          break;
+      }
 
       /* Writing any value to this register clears the MMC3 IRQ counter so that it will be
          reloaded at the end of the current scanline. */
@@ -270,7 +319,8 @@ static void mmc3_reset(void)
 
    mmc3_disable_irqs = TRUE;
 
-   mmc3_irq_last_table = 0;
+   mmc3_irq_bank = 0;
+   mmc3_irq_queued = FALSE;
 }
 
 static int mmc3_init(void)
@@ -293,10 +343,10 @@ static void mmc3_save_state(PACKFILE* file, const int version)
 
    pack_putc(mmc3_irq_counter, file);
    pack_putc(mmc3_irq_latch, file);
-
    pack_putc(BINARY(mmc3_disable_irqs), file);
 
-   pack_putc(mmc3_irq_last_table, file);
+   pack_putc(mmc3_irq_bank, file);
+   pack_putc(BINARY(mmc3_irq_queued), file);
 
    pack_fwrite(mmc3_prg_bank, MMC3_PRG_BANKS, file);
    pack_fwrite(mmc3_chr_bank, MMC3_CHR_BANKS, file);
@@ -315,10 +365,10 @@ static void mmc3_load_state(PACKFILE* file, const int version)
    /* Restore IRQ registers */
    mmc3_irq_counter = pack_getc(file);
    mmc3_irq_latch = pack_getc(file);
-
    mmc3_disable_irqs = BOOLEAN(pack_getc(file));
 
-   mmc3_irq_last_table = pack_getc(file);
+   mmc3_irq_bank = pack_getc(file);
+   mmc3_irq_queued = BOOLEAN(pack_getc(file));
 
    /* Restore banking */
    pack_fread(mmc3_prg_bank, MMC3_PRG_BANKS, file);
