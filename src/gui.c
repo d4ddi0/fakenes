@@ -166,8 +166,9 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(audio_menu_emulation_accurate,     (apu_options.emulation == APU_EMULATION_ACCURATE));
    TOGGLE_MENU_ITEM(audio_menu_emulation_high_quality, (apu_options.emulation == APU_EMULATION_HIGH_QUALITY));
 
-   TOGGLE_MENU_ITEM(audio_menu_volume_auto_normalize, apu_options.normalize);
    TOGGLE_MENU_ITEM(audio_menu_volume_logarithmic,    apu_options.logarithmic);
+   TOGGLE_MENU_ITEM(audio_menu_volume_auto_gain,      apu_options.agc);
+   TOGGLE_MENU_ITEM(audio_menu_volume_auto_normalize, apu_options.normalize);
 
    TOGGLE_MENU_ITEM(audio_channels_menu_square_1, apu_options.enable_square_1);
    TOGGLE_MENU_ITEM(audio_channels_menu_square_2, apu_options.enable_square_2);
@@ -2452,19 +2453,6 @@ static int audio_menu_volume_reset (void)
    return (D_O_K);
 }
 
-static int audio_menu_volume_auto_normalize (void)
-{
-   apu_options.normalize = !apu_options.normalize;
-   update_menus ();
-
-   apu_update ();
-
-   message_local ("Audio volume level normalization %s.",
-      get_enabled_text (apu_options.normalize)); 
-
-   return (D_O_K);
-}
-
 static int audio_menu_volume_logarithmic (void)
 {
    apu_options.logarithmic = !apu_options.logarithmic;
@@ -2474,6 +2462,38 @@ static int audio_menu_volume_logarithmic (void)
 
    message_local ("Audio logarithmic volume mapping %s.",
       get_enabled_text (apu_options.logarithmic)); 
+
+   return (D_O_K);
+}
+
+static int audio_menu_volume_auto_gain (void)
+{
+   apu_options.agc = !apu_options.agc;
+   if(apu_options.normalize)
+      apu_options.normalize = !apu_options.agc;
+
+   update_menus ();
+
+   apu_update ();
+
+   message_local ("Audio automatic gain control %s.",
+      get_enabled_text (apu_options.agc)); 
+
+   return (D_O_K);
+}
+
+static int audio_menu_volume_auto_normalize (void)
+{
+   apu_options.normalize = !apu_options.normalize;
+   if(apu_options.agc)
+      apu_options.agc = !apu_options.normalize;
+
+   update_menus ();
+
+   apu_update ();
+
+   message_local ("Audio volume level normalization %s.",
+      get_enabled_text (apu_options.normalize)); 
 
    return (D_O_K);
 }

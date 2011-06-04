@@ -39,8 +39,9 @@ apu_options_t apu_options = {
    1.0,                    // Global volume
 
    // Enable filters:
-   FALSE, // Use logarithmic mapping (slow, improves volume)
-   FALSE, // Normalize output
+   TRUE,  // Use logarithmic mapping (slow, improves volume)
+   FALSE, // Automatic gain control
+   FALSE, // Normalize levels
 
    // Enable channels:
    TRUE, //    Square 1
@@ -62,11 +63,16 @@ static const real apu_lpf_previous_weight = 0.25;
 static const real apu_dcf_frequency = 16.0; // Hz
 static const real apu_dcf_step_time = 0.01; // In seconds
 
-// Options for the normalizer.
+// Options for automatic gain control.
 static const real apu_agc_attack_time = 0.100; // In seconds
 static const real apu_agc_release_time = 0.100;
 static const real apu_agc_gain_floor = 0.5;
 static const real apu_agc_gain_ceiling = 2.0;
+
+// Options for the volume level normalizer.
+static const int apu_vln_samples_accumulate = 256;
+static const int apu_vln_samples_buffer = 1024;
+static const real apu_vln_average_weight = 0.2;
 
 // Static APU context.
 static APU apu;
@@ -971,6 +977,7 @@ void apu_load_config(void)
    apu_options.volume          = get_config_float("apu", "volume",          apu_options.volume);
 
    apu_options.logarithmic     = get_config_bool ("apu", "logarithmic",     apu_options.logarithmic);
+   apu_options.agc             = get_config_bool ("apu", "agc",             apu_options.agc);
    apu_options.normalize       = get_config_bool ("apu", "normalize",       apu_options.normalize);
 
    apu_options.enable_square_1 = get_config_bool ("apu", "enable_square_1", apu_options.enable_square_1);
@@ -999,6 +1006,7 @@ void apu_save_config(void)
    set_config_float("apu", "volume",          apu_options.volume);
 
    set_config_bool ("apu", "logarithmic",     apu_options.logarithmic);
+   set_config_bool ("apu", "agc",             apu_options.agc);
    set_config_bool ("apu", "normalize",       apu_options.normalize);
 
    set_config_bool ("apu", "enable_square_1", apu_options.enable_square_1);
@@ -1976,20 +1984,40 @@ static inline void filter(real& sample, APULPFilter* lpEnv, APUDCFilter* dcEnv)
 
 static inline void amplify(real& sample)
 {
-   if(apu_options.logarithmic) {
-      bool negative = false;
-      if(sample < 0.0) {
-         negative = true;
-         sample = fabs(sample);
+   /* Volume level normalizer. Note that this is not a true normalizer, as they are impossible to
+      make in real time, due to operating only on a whole waveform at once. This filter simply
+      attempts to bring games closer in volume to one another. */
+   if(apu_options.normalize) {
+      static uint8 buffer[apu_vln_samples_buffer];
+      static real accumulator = 0.0;
+      static int count;
+      static real output = 0.0;
+
+      accumulator += fabs(sample);
+      count++;
+      if(count >= apu_vln_samples_accumulate) {
+         for(unsigned i = 0; i < (apu_vln_samples_buffer - 1); i++)
+            buffer[i] = buffer[i + 1];
+
+         const int level = (accumulator / count) * 128;
+         buffer[apu_vln_samples_buffer - 1] = fix(level, 0, 255);
+         accumulator = 0.0;
+         count = 0;
+
+         real average = 0.0;
+         for(unsigned i = 0; i < (unsigned)apu_vln_samples_buffer; i++)
+            average += buffer[i];
+
+         average /= apu_vln_samples_buffer;
+         average /= 128;
+         output = 1.0 - (average / apu_vln_average_weight);
       }
 
-      sample = log(1.0 + sample) / log(2.0);
-      if(negative)
-         sample = 0.0 - sample;
+      sample += sample * output;
    }
 
-   if(apu_options.normalize) {
-      // Normalizer.
+   if(apu_options.agc) {
+      // Automatic gain control.
       static real gain = 0.0;
 
       const real amplitude = fabs(sample);
@@ -2011,6 +2039,27 @@ static inline void amplify(real& sample)
 
    // Apply global volume
    sample *= apu_options.volume;
+
+   if(apu_options.logarithmic) {
+      const unsigned size = 16384; // 16384*sizeof(float)=65536
+      const unsigned maximum = size - 1;
+      static float log_lut[size];
+      static bool initialized = false;
+
+      if(!initialized) {
+         for(unsigned i = 0; i < size; i++)
+            log_lut[i] = log(1.0 + (i / (real)maximum)) / log(2.0);
+
+         initialized = true;
+      }
+
+      const unsigned index = fix(Round(fabs(sample) * maximum), 0, maximum);
+      if(sample < 0.0)
+         sample = 0.0 - log_lut[index];
+      else
+         sample = log_lut[index];
+   }
+
 }
 
 static inline void enqueue(real& sample)

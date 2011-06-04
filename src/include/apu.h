@@ -43,7 +43,8 @@ typedef struct apu_options_s {
 
    /* Filters. */
    BOOL logarithmic;   /* Logarithmic mapping */
-   BOOL normalize;     /* Normalize output */
+   BOOL agc;           /* Automatic gain control */
+   BOOL normalize;     /* Normalize levels */
 
    /* Channels. */
    BOOL enable_square_1;

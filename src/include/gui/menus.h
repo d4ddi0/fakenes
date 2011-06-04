@@ -392,8 +392,9 @@ DEFINE_MENU_CALLBACK(audio_menu_volume_increase);
 DEFINE_MENU_CALLBACK(audio_menu_volume_decrease);
 DEFINE_MENU_CALLBACK(audio_menu_volume_custom);
 DEFINE_MENU_CALLBACK(audio_menu_volume_reset);
-DEFINE_MENU_CALLBACK(audio_menu_volume_auto_normalize);
 DEFINE_MENU_CALLBACK(audio_menu_volume_logarithmic);
+DEFINE_MENU_CALLBACK(audio_menu_volume_auto_gain);
+DEFINE_MENU_CALLBACK(audio_menu_volume_auto_normalize);
 
 /* Slot in which the "current volume" text is to placed. */
 #define AUDIO_MENU_VOLUME_TEXT   10
@@ -416,8 +417,9 @@ static const MENU audio_menu_base[] =
    { "  &Decrease (-)",   audio_menu_volume_decrease,        NULL,                             0, NULL },
    { "  Cu&stom...",      audio_menu_volume_custom,          NULL,                             0, NULL },
    { "  Rese&t",          audio_menu_volume_reset,           NULL,                             0, NULL },
-   { "Auto &Normalize",   audio_menu_volume_auto_normalize,  NULL,                             0, NULL },
    { "&Logarithmic",      audio_menu_volume_logarithmic,     NULL,                             0, NULL },
+   { "Auto &Gain",        audio_menu_volume_auto_gain,       NULL,                             0, NULL },
+   { "Auto &Normalize",   audio_menu_volume_auto_normalize,  NULL,                             0, NULL },
    MENU_ENDCAP
 };
 
