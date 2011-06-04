@@ -115,7 +115,7 @@ static void vrc6_process (void)
    if(elapsed_cycles == 0)
       return;
 
-   /* Scale from master clock to APU and buffer the remainder to avoid possibly losing cycles. */
+   /* Scale from master clock to CPU and buffer the remainder to avoid possibly losing cycles. */
    const cpu_time_t elapsed_cpu_cycles = elapsed_cycles / CPU_CLOCK_DIVIDER;
    vrc6_clock_buffer += elapsed_cycles - (elapsed_cpu_cycles * CPU_CLOCK_DIVIDER);
 
@@ -186,7 +186,7 @@ static void vrc6_repredict_irq(void)
    timestamp = cpu_get_cycles();
 
    cycles_elapsed = (cpu_rtime_t)timestamp - (cpu_rtime_t)vrc6_prediction_timestamp;
-   cycles_remaining = (cpu_rtime_t)vrc6_prediction_timestamp - cycles_elapsed;
+   cycles_remaining = (cpu_rtime_t)vrc6_prediction_cycles - cycles_elapsed;
    if(cycles_remaining <= 0)
       return;
 
