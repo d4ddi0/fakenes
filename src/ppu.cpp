@@ -15,6 +15,7 @@
 #include "common.h"
 #include "cpu.h"
 #include "input.h"
+#include "log.h"
 #include "mmc.h"
 #include "ppu.h"
 #include "ppu_int.h"
@@ -310,8 +311,10 @@ int ppu_init(void)
          PPU__SPRITE_PALETTE_OFFSET + (i * PPU__BYTES_PER_PALETTE);
 
    // Compute CRC32 for CHR-ROM.
-   if(global_rom.chr_rom_pages > 0)
+   if(global_rom.chr_rom_pages > 0) {
       global_rom.chr_rom_crc32 = make_crc32(global_rom.chr_rom, global_rom.chr_rom_pages * 0x2000);
+      log_printf("CHR-ROM CRC is %08X\n", global_rom.chr_rom_crc32);
+   }
 
    // Initialize everything else.
    ppu_reset();

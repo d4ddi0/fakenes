@@ -15,6 +15,7 @@
 #include "cpu.h"
 #include "debug.h"
 #include "input.h"
+#include "log.h"
 #include "mmc.h"
 #include "ppu.h"
 #include "rom.h"
@@ -158,6 +159,8 @@ void cpu_memmap_init (void)
         /* compute CRC32 for trainer */
         global_rom.trainer_crc32 = make_crc32 (global_rom.trainer,
             ROM_TRAINER_SIZE);
+
+        log_printf("Trainer CRC is $%08X\n", global_rom.trainer_crc32);
     }
     else
     {
@@ -169,6 +172,8 @@ void cpu_memmap_init (void)
     {
        global_rom.prg_rom_crc32 = make_crc32 (global_rom.prg_rom,
            (global_rom.prg_rom_pages * 0x4000));
+
+       log_printf("PRG-ROM CRC is %08X\n", global_rom.prg_rom_crc32);
     }
 }
 
