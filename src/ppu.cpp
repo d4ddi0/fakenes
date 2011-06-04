@@ -38,7 +38,6 @@
      - When a variable won't be modified, make its value const, to improve optimization.
      - When calling functions, pass parameters as const whenever possible. */
 
-// TODO: Fix odd frame clock skip; it's not working properly and bugs IRQ games.
 // TODO: State saving support.
 // TODO: Properly emulate PPU power-up and reset states.
 // TODO: Add 16-bit rendering support with color tinting.
@@ -98,7 +97,7 @@ uint8      oamDMATimer = 0;		        // Number of PPU cycles until the next read
 uint16     oamDMAWriteAddress = 0x000;		// Sprite DMA target address in OAM (disabled when >$FF)
 uint8      readBuffer = 0x00;                 	// Last buffered VRAM read
 int16      scanline = 0;			// The current scanline being processed
-int16      scanlineTimer = 0;			// Number of PPU cycles left on the current scanline
+uint16     scanlineTimer = 0;			// Number of PPU cycles left on the current scanline
 bool       synchronizing = false;		// Set during synchronization; see SyncHelper()
 bool       timeWarp = false;			// Inserts extra cycles during synchronization
 uint8      vblankQuirkTime = 0;			// For emulating the VBL flag read quirk
@@ -830,6 +829,7 @@ void ppu_free_chr_rom(ROM *rom)
 ENUM ppu_get_mirroring(void)
 {
    SyncHelper();
+
    return ppu__mirroring;
 }
 
@@ -978,6 +978,7 @@ void ppu_set_8k_pattern_table_vram(void)
 void ppu_set_expansion_table_address(const UINT8* address)
 {
    SyncHelper();
+
    ppu__expansion_table = address;
 }
 
@@ -1263,7 +1264,7 @@ static void PredictNMI(const cpu_time_t cycles)
 
    // Save variables since we just want to simulate.
    const int16 savedScanline = PPUState::scanline;
-   const int16 savedScanlineTimer = PPUState::scanlineTimer;
+   const uint16 savedScanlineTimer = PPUState::scanlineTimer;
 
    // Note that 'cycles' represents the number of *PPU* cycles to simulate.
    for(cpu_time_t current = 0; current < cycles; current++) {
@@ -1307,14 +1308,15 @@ static inline bool ClockScanlineTimer(int16 &nextScanline)
 
    if(scanlineTimer > 0)
       scanlineTimer--;
-   if(scanlineTimer <= 0) {
-      // The current scanline ended. Reload the scanline timer.
-      scanlineTimer += PPU_SCANLINE_CLOCKS;
-      /* Determine the next scanline to be processed, wrapping back around to the beginning
-         of the frame if neccessary. */
+   if(scanlineTimer == 0) {
+      /* The current scanline ended. Determine the next scanline to be processed, wrapping
+         back around to the beginning of the frame if neccessary. */
       nextScanline = scanline + 1;
       if(nextScanline > PPU_LAST_LINE)
          nextScanline = PPU_FIRST_LINE;
+
+      // Reload the scanline timer.
+      scanlineTimer += PPU_SCANLINE_CLOCKS;
 
       // Signal to the caller that the scanline has ended and a new one has begun.
       return TRUE;
@@ -1342,6 +1344,28 @@ static void Synchronize()
    for(cpu_time_t current = 0; current < time; current++) {
       // Get current scanline clock cycle (starting at 1).
       const cpu_time_t cycle = (PPU_SCANLINE_CLOCKS - PPUState::scanlineTimer) + 1;
+
+      if((PPUState::scanline == PPU_CLOCK_SKIP_LINE) && (cycle == PPU_CLOCK_SKIP_CYCLE) &&
+          PPUState::isOddFrame && ppu__enable_background) {
+         /* The PPU has an even/odd flag that is toggled every frame,
+            regardless of whether the BG is enabled or disabled. 
+
+            With BG disabled, each PPU frame is 341*262=89342 PPU clocks long.
+            There is no skipped clock every other frame. 
+
+            With BG enabled, each odd PPU frame is one PPU clock shorter than normal.
+            I've timed this to occur around PPU clock 328 on scanline 20,
+            but haven't written a test ROM for it yet. */
+
+         // Steal a clock from the scanline timer.
+         PPUState::scanlineTimer--;
+         continue;
+      }
+
+      /* Handle sprite DMA timing. I put this at the beginning as it seems to run in a separate process
+         from the rest of the PPU logic. */
+      OAMDMA();
+
       if(cycle == 1) {
          // This is the start of a new scanline, so let's check if it's the first one.
          if(PPUState::scanline == PPU_FIRST_LINE)
@@ -1364,24 +1388,6 @@ static void Synchronize()
       if(PPUState::vblankQuirkTime > 0)
          PPUState::vblankQuirkTime--;
 
-#if 0
-      if((PPUState::scanline == PPU_CLOCK_SKIP_LINE) && (cycle == PPU_CLOCK_SKIP_CYCLE) &&
-          PPUState::isOddFrame && ppu__enable_background) {
-         /* The PPU has an even/odd flag that is toggled every frame,
-            regardless of whether the BG is enabled or disabled.
-
-            With BG disabled, each PPU frame is 341*262=89342 PPU clocks long.
-            There is no skipped clock every other frame.
-
-            With BG enabled, each odd PPU frame is one PPU clock shorter than
-            normal. I've timed this to occur around PPU clock 328 on
-            scanline 20, but haven't written a test ROM for it yet. */
-
-         // Steal a clock from the scanline timer.
-         PPUState::scanlineTimer--;
-      }
-#endif
-
       /* Clock the scanline timer. This returns TRUE if the scanline ended on this cycle, along with
          the next scanline to be procesed. */
       int16 nextScanline;
@@ -1396,10 +1402,6 @@ static void Synchronize()
          // Update the scanline counter.
          PPUState::scanline = nextScanline;
       }
-
-      /* Handle sprite DMA timing. I put this at the end as it seems to run in a separate process
-         from the rest of the PPU logic. */
-      OAMDMA();
 
       /* If timeWarp is set, we need to re-evaluate the time elapsed. This can happen if cycles have
          been stolen from the CPU while the PPU was synchronizing, e.g by sprite DMA. */
