@@ -126,6 +126,10 @@ static BOOL mmc3_irq_predictor(const int line)
 {
    BOOL trigger;
 
+   /* The IRQ counter is only clocked when the PPU is rendering. */
+   if(line > PPU_LAST_DISPLAYED_LINE)
+      return FALSE;
+
    /* Save the IRQ counter since we're just simulating. */
    int saved_irq_counter = mmc3_irq_counter;
 
@@ -140,6 +144,9 @@ static BOOL mmc3_irq_predictor(const int line)
 
 static void mmc3_hblank_start(const int line)
 {
+   if(line > PPU_LAST_DISPLAYED_LINE)
+      return;
+
    mmc3_irq_slave(FALSE);
 }
 

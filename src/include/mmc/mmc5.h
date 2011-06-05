@@ -455,7 +455,7 @@ static void mmc5_update_exram_control(void)
       default: {
          WARN_GENERIC();
          break;
-      }
+      } 
    }
 
    /* Update nametables, since the conditions for mapping ExRAM to nametables may've changed. */
@@ -478,20 +478,24 @@ static UINT8 mmc5_disable_irqs = TRUE;
 
 static BOOL mmc5_irq_slave(const int line, const BOOL simulate)
 {
-   if(line == -1)
+   /* When the MMC5 detects a scanline, the following events occur: 
+
+      if the In Frame signal is clear, set it, reset the IRQ
+      counter to 0, and clear the IRQ Pending flag 
+
+      otherwise, increment the IRQ counter. If it now equals the
+      IRQ scanline ($5203), raise IRQ Pending flag */
+
+   if(!(mmc5_irq_status & 0x40)) {
+      mmc5_irq_status |= 0x40;
+
       mmc5_irq_line_counter = 0;
-
-    /* Don't modify anything else when just simulating. */
-   if(!simulate &&
-      (mmc5_irq_line_counter >= 238))
-         mmc5_irq_status |= 0x40;
-
-   if(mmc5_irq_line_counter < 245) {
+      mmc5_irq_status &= ~0x80;
+   }
+   else {
       mmc5_irq_line_counter++;
-
       if(mmc5_irq_line_counter == mmc5_irq_line_requested) {
-         if(!simulate)
-            mmc5_irq_status |= 0x80;
+         mmc5_irq_status |= 0x80;
 
          if(!mmc5_disable_irqs)
             /* Trigger an interrupt. */
@@ -507,20 +511,29 @@ static BOOL mmc5_irq_predictor(const int line)
 {
    BOOL trigger;
 
-   /* Save the IRQ counter since we're just simulating. */
+   /* The IRQ counter is only clocked when the PPU is rendering. */
+   if(line > PPU_LAST_DISPLAYED_LINE)
+      return FALSE;
+
+   /* Save the IRQ counter and status since we're just simulating. */
    const int saved_line_counter = mmc5_irq_line_counter;
+   const UINT8 saved_status = mmc5_irq_status;
 
    /* Clock the IRQ counter. */
    trigger = mmc5_irq_slave(line, TRUE);
 
    /* Restore the IRQ counter from the backup. */
    mmc5_irq_line_counter = saved_line_counter;
+   mmc5_irq_status = saved_status;
 
    return trigger;
 }
 
 static void mmc5_hblank_start(const int line)
 {
+   if(line > PPU_LAST_DISPLAYED_LINE)
+      return;
+
    mmc5_irq_slave(line, FALSE);
 }
 
