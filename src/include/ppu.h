@@ -51,12 +51,21 @@ enum {
    PPU_EXPAND_SPRITES    = 1 << 2
 };
 
+// Interrupt prediction.
+enum {
+   PPU_PREDICT_NONE    = 0,
+   PPU_PREDICT_NMI     = 1 << 0,
+   PPU_PREDICT_MMC_IRQ = 1 << 1,
+   PPU_PREDICT_ALL = PPU_PREDICT_NMI | PPU_PREDICT_MMC_IRQ
+};
+
 extern int ppu_init(void);
 extern void ppu_exit(void);
 extern void ppu_reset(void);
 extern UINT8 ppu_read(const UINT16 address);
 extern void ppu_write(const UINT16 address, const UINT8 data);
-extern void ppu_predict_nmi(const cpu_time_t cycles);
+extern void ppu_predict_interrupts(const cpu_time_t cycles, const unsigned flags);
+extern void ppu_repredict_interrupts(const unsigned flags);
 extern void ppu_sync_update(void);
 extern ENUM ppu_get_status(void);
 extern void ppu_set_option(const ENUM option, const BOOL value);

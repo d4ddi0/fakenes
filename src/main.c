@@ -455,10 +455,10 @@ int main (int argc, char *argv[])
          for(line = 0; line < total_lines; line++) {
             apu_predict_irqs(SCANLINE_CLOCKS);
 
-            if(mmc_predict_irqs)
-               mmc_predict_irqs(SCANLINE_CLOCKS);
+            if(mmc_predict_asynchronous_irqs)
+               mmc_predict_asynchronous_irqs(SCANLINE_CLOCKS);
 
-            ppu_predict_nmi(SCANLINE_CLOCKS);
+            ppu_predict_interrupts(SCANLINE_CLOCKS, PPU_PREDICT_ALL);
 
             cpu_execute(SCANLINE_CLOCKS);
 

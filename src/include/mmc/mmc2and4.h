@@ -56,7 +56,7 @@ static INLINE void mmc2and4_update_chr_bank(const int bank)
          ((int)mmc2and4_vrom_bank[bank][latch] * 4) + index);
 }
 
-static void mmc2and4_check_latches(UINT16 address)
+static void mmc2and4_check_address_lines(UINT16 address)
 {
    int bank, latch;
 
@@ -168,7 +168,7 @@ static int mmc2_init(void)
    cpu_set_write_handler_8k(0xA000, mmc2and4_write);
    cpu_set_write_handler_16k(0xC000, mmc2and4_write);
 
-   mmc_check_latches = mmc2and4_check_latches;
+   mmc_check_address_lines = mmc2and4_check_address_lines;
 
    mmc2_reset();
    return 0;
@@ -199,7 +199,7 @@ static int mmc4_init (void)
    cpu_set_write_handler_8k(0xA000, mmc2and4_write);
    cpu_set_write_handler_16k(0xC000, mmc2and4_write);
 
-   mmc_check_latches = mmc2and4_check_latches;
+   mmc_check_address_lines = mmc2and4_check_address_lines;
 
    return 0;
 }

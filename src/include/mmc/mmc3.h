@@ -45,7 +45,14 @@ static UINT8 mmc3_sram_enable;
 static int mmc3_config_irq_mode = 0;
 static int mmc3_config_sram = 1;
 
-static void mmc3_irq_slave(void)
+/* This needs reprediction when the following variables change:
+      mmc3_config_irq_mode
+      mmc3_disable_irqs
+      mmc3_irq_counter
+      mmc3_irq_latch
+      mmc3_irq_queued */
+
+static BOOL mmc3_irq_slave(const BOOL simulate)
 {
    /* When the scanline counter is clocked, the value will first be checked. If it is zero,
       it will be reloaded from the IRQ latch ($C000); otherwise, it will decrement. If the
@@ -65,6 +72,7 @@ static void mmc3_irq_slave(void)
       This is because this version of the MMC3 generates IRQs when the scanline counter is
       equal to 0. In the community, this is known as the "normal" behavior. */
 
+   BOOL trigger = FALSE;
    switch(mmc3_config_irq_mode) {
       case 0: {
          /* Normal behavior. */
@@ -76,7 +84,7 @@ static void mmc3_irq_slave(void)
             mmc3_irq_counter--;
 
          if((saved_irq_counter != 0) && (mmc3_irq_counter == 0))
-            mmc3_irq_queued = TRUE;
+            trigger = TRUE;
 
          break;
       }
@@ -89,7 +97,7 @@ static void mmc3_irq_slave(void)
          else {
             mmc3_irq_counter--;
             if(mmc3_irq_counter == 0)
-               mmc3_irq_queued = TRUE;
+               trigger = TRUE;
          }
 
          break;
@@ -97,16 +105,46 @@ static void mmc3_irq_slave(void)
 
       default:
          WARN_GENERIC();
-         return;
+         return FALSE;
    }
 
-   if(mmc3_irq_queued && !mmc3_disable_irqs) {
-      cpu_interrupt(CPU_INTERRUPT_IRQ_MMC);
-      mmc3_irq_queued = FALSE;
+   if(!mmc3_disable_irqs &&
+      (trigger || mmc3_irq_queued)) {
+       /* Don't modify anything else when just simulating. */
+      if(!simulate)
+         mmc3_irq_queued = FALSE;
+
+       /* Trigger an interrupt. */
+      return TRUE;
    }
+
+   /* Don't trigger an interrupt. */
+   return FALSE;
 }
 
-static void mmc3_check_latches(const UINT16 address)
+static BOOL mmc3_irq_predictor(const int line)
+{
+   BOOL trigger;
+
+   /* Save the IRQ counter since we're just simulating. */
+   int saved_irq_counter = mmc3_irq_counter;
+
+   /* Clock the IRQ counter. */
+   trigger = mmc3_irq_slave(TRUE);
+
+   /* Restore the IRQ counter from the backup. */
+   mmc3_irq_counter = saved_irq_counter;
+
+   return trigger;
+}
+
+static void mmc3_hblank_start(const int line)
+{
+   mmc3_irq_slave(FALSE);
+}
+
+#if 0
+static void mmc3_check_address_lines(const UINT16 address)
 {
    /* The MMC3 scanline counter is based entirely on PPU A12, triggered on rising edges
       (after the line remains low for a sufficiently long period of time). */
@@ -123,6 +161,7 @@ static void mmc3_check_latches(const UINT16 address)
 
    mmc3_irq_bank = bank;
 }
+#endif
 
 static void mmc3_cpu_bank_sort(void)
 {
@@ -265,27 +304,39 @@ static void mmc3_write(UINT16 address, UINT8 value)
             /* Force a single IRQ to be generated, even on latch=0. */
             mmc3_irq_queued = TRUE;
 
+         /* IRQs are driven by the PPU. */
+         ppu_repredict_interrupts(PPU_PREDICT_MMC_IRQ);
+
          break;
       }
 
       /* Writing any value to this register clears the MMC3 IRQ counter so that it will be
          reloaded at the end of the current scanline. */
-      case 0xC001:
+      case 0xC001: {
          mmc3_irq_counter = 0;
+         ppu_repredict_interrupts(PPU_PREDICT_MMC_IRQ);
+
          break;
+      }
 
       /* Writing any value to this register will disable MMC3 interrupts AND acknowledge
          any pending interrupts. */
       case 0xE000: {
-         mmc3_disable_irqs = TRUE;
          cpu_clear_interrupt(CPU_INTERRUPT_IRQ_MMC);
+         mmc3_disable_irqs = TRUE;
+
+         ppu_repredict_interrupts(PPU_PREDICT_MMC_IRQ);
+
          break;
       }
 
       /* Writing any value to this register will enable MMC3 interrupts. */
-      case 0xE001:
+      case 0xE001: {
          mmc3_disable_irqs = FALSE;
+         ppu_repredict_interrupts(PPU_PREDICT_MMC_IRQ);
+
          break;
+      }
 
       default:
          break;
@@ -327,7 +378,9 @@ static int mmc3_init(void)
 {
    cpu_set_write_handler_32k(0x8000, mmc3_write);
 
-   mmc_check_latches = mmc3_check_latches;
+   mmc_hblank_start = mmc3_hblank_start;
+   mmc_virtual_hblank_start = mmc3_irq_predictor;
+   /* mmc_check_address_lines = mmc3_check_address_lines; */
 
    mmc3_reset();
 

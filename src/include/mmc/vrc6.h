@@ -410,7 +410,7 @@ static int vrc6_base_init (void)
    cpu_set_write_handler_32k(0x8000, vrc6_write);
 
    /* Install IRQ predicter. */
-   mmc_predict_irqs = vrc6_predict_irq;
+   mmc_predict_asynchronous_irqs = vrc6_predict_irq;
 
    /* Select ExSound chip. */
    apu_enable_exsound(APU_EXSOUND_VRC6);

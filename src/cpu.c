@@ -305,6 +305,7 @@ void cpu_reset (void)
 
 void cpu_interrupt (int type)
 {
+#if 0
    switch (type)
    {
       case CPU_INTERRUPT_NONE:
@@ -313,7 +314,6 @@ void cpu_interrupt (int type)
       case CPU_INTERRUPT_IRQ_SINGLE_SHOT:
       {
          FN2A03_Interrupt (&cpu_context, FN2A03_INT_IRQ_SINGLE_SHOT);
-
          break;
       }
 
@@ -332,6 +332,11 @@ void cpu_interrupt (int type)
          break;
       }
    }
+#endif
+
+   /* Interrupt queueing is generally safer, as it doesn't modify the CPU context immediately,
+      but rather only when the CPU begins execution again. */
+   cpu_queue_interrupt(type, cpu_get_cycles());
 }
 
 void cpu_clear_interrupt (int type)

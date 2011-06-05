@@ -471,31 +471,57 @@ static UINT8 mmc5_irq_status = 0;
 
 static UINT8 mmc5_disable_irqs = TRUE;
 
+/* This needs reprediction when the following  variables change:
+      mmc5_disable_irqs
+      mmc5_irq_line_counter
+      mmc5_irq_line_requested */
 
-
-static int mmc5_irq_tick (int line)
+static BOOL mmc5_irq_slave(const int line, const BOOL simulate)
 {
-    if (line == 0)
-    {
-        mmc5_irq_line_counter = 0;
-    }
+   if(line == -1)
+      mmc5_irq_line_counter = 0;
 
-    if (mmc5_irq_line_counter >= 238)
-    {
-        mmc5_irq_status |= 0x40;
-    }
+    /* Don't modify anything else when just simulating. */
+   if(!simulate &&
+      (mmc5_irq_line_counter >= 238))
+         mmc5_irq_status |= 0x40;
 
-    if (mmc5_irq_line_counter < 245)
-    {
-        if (++mmc5_irq_line_counter == mmc5_irq_line_requested)
-        {
+   if(mmc5_irq_line_counter < 245) {
+      mmc5_irq_line_counter++;
+
+      if(mmc5_irq_line_counter == mmc5_irq_line_requested) {
+         if(!simulate)
             mmc5_irq_status |= 0x80;
-            if (!mmc5_disable_irqs) return CPU_INTERRUPT_IRQ_MMC;
-        }
-    }
 
+         if(!mmc5_disable_irqs)
+            /* Trigger an interrupt. */
+            return TRUE;
+      }
+   }
 
-    return CPU_INTERRUPT_NONE;
+   /* Don't trigger an interrupt. */
+   return FALSE;
+}
+
+static BOOL mmc5_irq_predictor(const int line)
+{
+   BOOL trigger;
+
+   /* Save the IRQ counter since we're just simulating. */
+   const int saved_line_counter = mmc5_irq_line_counter;
+
+   /* Clock the IRQ counter. */
+   trigger = mmc5_irq_slave(line, TRUE);
+
+   /* Restore the IRQ counter from the backup. */
+   mmc5_irq_line_counter = saved_line_counter;
+
+   return trigger;
+}
+
+static void mmc5_hblank_start(const int line)
+{
+   mmc5_irq_slave(line, FALSE);
 }
 
 
@@ -992,14 +1018,18 @@ static void mmc5_write (UINT16 address, UINT8 value)
 
             mmc5_irq_line_requested = value;
 
+            /* IRQs are driven by the PPU. */
+            ppu_repredict_interrupts(PPU_PREDICT_MMC_IRQ);
+
             break;
 
 /* 5204: IRQ enable/status register */
         case 0x5204:
 
             cpu_clear_interrupt (CPU_INTERRUPT_IRQ_MMC);
-
             mmc5_disable_irqs = (~value & 0x80);
+
+            ppu_repredict_interrupts(PPU_PREDICT_MMC_IRQ);
 
             break;
 
@@ -1159,7 +1189,8 @@ static int mmc5_init (void)
     cpu_set_read_handler_2k (0x5800, mmc5_exram_read);
     cpu_set_write_handler_2k (0x5800, mmc5_exram_write);
 
-    mmc_scanline_end = mmc5_irq_tick;
+    mmc_hblank_start = mmc5_hblank_start;
+    mmc_virtual_hblank_start = mmc5_irq_predictor;
 
     /* Select ExSound chip. */
 

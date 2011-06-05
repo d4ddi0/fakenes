@@ -426,9 +426,9 @@ inline void Clock()
    switch(type) {
       case 1: {
           // Fetch name table byte.
-          if(mmc_check_latches) {
+          if(mmc_check_address_lines) {
              const unsigned vramAddress = 0x2000 + (ppu__vram_address & 0x0FFF);
-             mmc_check_latches(vramAddress);
+             mmc_check_address_lines(vramAddress);
           }
 
           const int table = (ppu__vram_address >> 10) & 3;
@@ -457,10 +457,10 @@ inline void Clock()
          const int attributeY = ((y * TileHeight) + row) / 32;
          const unsigned address = AttributeBase + (attributeY * (DisplayWidth / 32)) + attributeX;
 
-         if(mmc_check_latches) {
+         if(mmc_check_address_lines) {
             // Mapper hooks expect the full address to be specified.
             const unsigned vramAddress = 0x2000 + (table * PPU__BYTES_PER_NAME_TABLE) + address;
-            mmc_check_latches(vramAddress);
+            mmc_check_address_lines(vramAddress);
          }
 
          const uint8* data = ppu__name_tables_read[table];
@@ -508,8 +508,8 @@ inline void Clock()
             address += BytesPerTile / 2; // +8 bytes
 
          // With the complete address, we can now call any mapper hooks.
-         if(mmc_check_latches)
-            mmc_check_latches(address);
+         if(mmc_check_address_lines)
+            mmc_check_address_lines(address);
 
          const int page = address / PPU__PATTERN_TABLE_PAGE_SIZE;
          const uint8 *data = ppu__background_pattern_tables_read[page];

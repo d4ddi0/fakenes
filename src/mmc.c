@@ -20,11 +20,12 @@
 #include "timing.h"
 #include "types.h"
 
-int (*mmc_hblank_start) (const int);
-int (*mmc_scanline_start) (const int);
-int (*mmc_scanline_end) (const int);
-void (*mmc_predict_irqs) (const cpu_time_t cycles);
-void (*mmc_check_latches) (const UINT16);
+void (*mmc_scanline_start) (const int);
+void (*mmc_hblank_start) (const int);
+BOOL (*mmc_virtual_scanline_start) (const int);
+BOOL (*mmc_virtual_hblank_start) (const int);
+void (*mmc_predict_asynchronous_irqs) (const cpu_time_t cycles);
+void (*mmc_check_address_lines) (const UINT16);
 
 static int mmc_name_table_count;
 static int mmc_pattern_vram_in_use;
@@ -111,11 +112,12 @@ int mmc_init (void)
         cpu_set_write_address_8k (index, dummy_write);
     }
 
-    mmc_hblank_start = NULL;
     mmc_scanline_start = NULL;
-    mmc_scanline_end = NULL;
-    mmc_predict_irqs = NULL;
-    mmc_check_latches = NULL;
+    mmc_hblank_start = NULL;
+    mmc_virtual_scanline_start = NULL;
+    mmc_virtual_hblank_start = NULL;
+    mmc_predict_asynchronous_irqs = NULL;
+    mmc_check_address_lines = NULL;
 
     mmc_name_table_count =
         (global_rom.control_byte_1 & ROM_CTRL_FOUR_SCREEN) ? 4 : 2;

@@ -592,12 +592,12 @@ inline void Clock() {
             /* The PPU makes garbage fetches to the name tables so that the same hardware that
                fetches data for the background could also be used for sprites. Normally we
                don't have to emulate this, but if the MMC has a hook installed, we do. */
-             if(!mmc_check_latches)
+             if(!mmc_check_address_lines)
                 break;
 
              // Simulate a name table fetch.
              const unsigned address = 0x2000 + (ppu__vram_address & 0x0FFF);
-             mmc_check_latches(address);
+             mmc_check_address_lines(address);
 
              break;
          }
@@ -612,11 +612,11 @@ inline void Clock() {
                   and the sprites are loaded with a transparent bitmap instead. */
 
                // There's no reason to emulate this if a mapper doesn't depend on it.
-               if(!mmc_check_latches)
+               if(!mmc_check_address_lines)
                   return;
 
                const unsigned address = (0xFF * BytesPerTile) + ppu__sprite_tileset;
-               mmc_check_latches(address);
+               mmc_check_address_lines(address);
 
                /* Due to having cleared the evaluation state at the start of HBlank, unused
                   sprites are already transparent and disabled by default, so there's
@@ -667,8 +667,8 @@ inline void Clock() {
                address += BytesPerTile / 2;
 
             // Now that we have the complete address...
-            if(mmc_check_latches)
-               mmc_check_latches(address);
+            if(mmc_check_address_lines)
+               mmc_check_address_lines(address);
 
             /* The PPU manages memory using 1 kB pages, so we first have to find the proper page,
                then calculate the offset of the bytes containing the data for the two separate

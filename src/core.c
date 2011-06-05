@@ -16,6 +16,7 @@
 #include "core/tables.h"
 #include "core/memory.h"
 #include "log.h"
+#include "ppu.h"
 
 /* define some macros to help improve readability */
 
@@ -392,6 +393,7 @@ void FN2A03_Run(FN2A03 *R)
             PC.word = R->PC.word;
          }
       }
+
     }
 
     R->PC.word=PC.word;

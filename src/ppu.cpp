@@ -63,9 +63,9 @@ static void SetupMirroring();
 static void SetupSingleScreenMirroring(UINT8* address);
 static void UpdatePatternTables();
 
-// NMI prediction.
-static void PredictNMI(const cpu_time_t cycles);
-static void RepredictNMI();
+// Interrupt prediction (PPU and MMC).
+static void PredictInterrupts(const cpu_time_t cycles, const unsigned flags);
+static void RepredictInterrupts(const unsigned flags);
 static inline bool ClockScanlineTimer(int16 &nextScanline);
 
 // Frame timing.
@@ -89,8 +89,8 @@ cpu_time_t clockBuffer = 0;			// Remaining unexecuted cycles
 cpu_time_t clockCounter = 0;			// Last time synchronization was performed
 int        initializing = 0;                    // Set while the PPU is initializing
 bool       isOddFrame = false;			// Toggled every frame, for emulating quirks
-cpu_time_t nmiPredictionCycles = 0;		// Amount of cycles in the prediction buffer
-cpu_time_t nmiPredictionTimestamp = 0;		// Last time NMI prediction was performed
+cpu_time_t predictionCycles = 0;		// Amount of cycles in the prediction buffer
+cpu_time_t predictionTimestamp = 0;		// Last time interrupt prediction was performed
 uint8      oamDMAByte = 0x00;			// Current sprite DMA transfer byte
 bool       oamDMAFlipFlop = false;		// Read a byte when false, write a byte when true
 uint16     oamDMAReadAddress = 0x000;		// Sprite DMA source address in system RAM
@@ -361,8 +361,8 @@ void ppu_reset(void)
    scanline = PPU_FIRST_LINE;
    scanlineTimer = SCANLINE_CLOCKS;
    isOddFrame = false;
-   nmiPredictionTimestamp = 0;
-   nmiPredictionCycles = 0;
+   predictionTimestamp = 0;
+   predictionCycles = 0;
 
    readBuffer = 0x00;
    writeBuffer = 0x00;
@@ -549,7 +549,7 @@ void ppu_write(const UINT16 address, const UINT8 data)
 
          // If the state of bit 7 has changed, then we need to repredict the NMI.
          if(ppu__generate_interrupts != old_bit_7)
-            RepredictNMI();
+            RepredictInterrupts(PPU_PREDICT_NMI);
 
          break;
       }
@@ -671,21 +671,28 @@ void ppu_write(const UINT16 address, const UINT8 data)
    }
 }
 
-void ppu_predict_nmi(const cpu_time_t cycles)
+void ppu_predict_interrupts(const cpu_time_t cycles, const unsigned flags)
 {
    SyncHelper();
 
    // Save parameters for re-prediction if a mid-scanline change occurs.
-   PPUState::nmiPredictionTimestamp = cpu_get_cycles();
+   PPUState::predictionTimestamp = cpu_get_cycles();
    // We'll actually emulate a little bit longer than requested, since it doesn't hurt to do so.
-   PPUState::nmiPredictionCycles = cycles + PREDICTION_BUFFER_CYCLES + (1 * PPU_CLOCK_MULTIPLIER);
+   PPUState::predictionCycles = cycles + PREDICTION_BUFFER_CYCLES + (1 * PPU_CLOCK_MULTIPLIER);
 
    // Convert from master clock to PPU clock.
-   const cpu_time_t ppuCycles = PPUState::nmiPredictionCycles / PPU_CLOCK_DIVIDER;
+   const cpu_time_t ppuCycles = PPUState::predictionCycles / PPU_CLOCK_DIVIDER;
    if(ppuCycles == 0)
       return;
 
-   PredictNMI(ppuCycles);
+   PredictInterrupts(ppuCycles, flags);
+}
+
+void ppu_repredict_interrupts(const unsigned flags)
+{
+   SyncHelper();
+
+   RepredictInterrupts(flags);
 }
 
 void ppu_sync_update(void)
@@ -1031,8 +1038,8 @@ static linear uint8 VRAMRead()
 static inline uint8 VRAMReadUnbuffered(const uint16 address)
 {
    // If the MMC has a handler installed, we need to call it.
-   if(mmc_check_latches)
-      mmc_check_latches(address);
+   if(mmc_check_address_lines)
+      mmc_check_address_lines(address);
 
    if(address <= 0x1FFF) {
       /* Read from pattern tables. The pattern tables occupy 8,192 bytes starting at $0000 and
@@ -1063,6 +1070,9 @@ static inline uint8 VRAMReadUnbuffered(const uint16 address)
 
 static linear void VRAMWrite(const uint8 data)
 {
+   if(mmc_check_address_lines)
+      mmc_check_address_lines(ppu__vram_address);
+
    // Valid addresses are $0000-$3FFF; higher addresses will be mirrored down.
    const unsigned address = ppu__vram_address & 0x3FFF;
 
@@ -1256,44 +1266,75 @@ static void UpdatePatternTables()
    }
 }
 
-static void PredictNMI(const cpu_time_t cycles)
+// FIXME: Emulate odd frame clock skip here, alhough it has dubious re-prediction requirements.
+static void PredictInterrupts(const cpu_time_t cycles, const unsigned flags)
 {
-   // Clear pending interrupt just in case.
-   cpu_unqueue_interrupt(CPU_INTERRUPT_NMI);
+   using namespace PPUState;
 
-   // NMIs only occur if the flag is set.
-   if(!ppu__generate_interrupts)
+   if(flags == PPU_PREDICT_NONE)
+      // Nothing to predict.
       return;
 
+   // Clear pending interrupts just in case.
+   if(flags & PPU_PREDICT_NMI)
+      cpu_unqueue_interrupt(CPU_INTERRUPT_NMI);
+   if(flags & PPU_PREDICT_MMC_IRQ)
+      cpu_unqueue_interrupt(CPU_INTERRUPT_IRQ_MMC);
+
    // Save variables since we just want to simulate.
-   const int16 savedScanline = PPUState::scanline;
-   const uint16 savedScanlineTimer = PPUState::scanlineTimer;
+   const int16 savedScanline = scanline;
+   const uint16 savedScanlineTimer = scanlineTimer;
 
    // Note that 'cycles' represents the number of *PPU* cycles to simulate.
    for(cpu_time_t current = 0; current < cycles; current++) {
       // Get current scanline clock cycle (starting at 1).
-      const cpu_time_t cycle = (PPU_SCANLINE_CLOCKS - PPUState::scanlineTimer) + 1;
+      const cpu_time_t cycle = (PPU_SCANLINE_CLOCKS - scanlineTimer) + 1;
 
-      // VBlank NMI occurs on the 1st cycle of the line after the VBlank flag is set.
-      if((cycle == 1) &&
-         (PPUState::scanline == PPU_FIRST_VBLANK_LINE))
-         cpu_queue_interrupt(CPU_INTERRUPT_NMI, PPUState::nmiPredictionTimestamp + (current * PPU_CLOCK_MULTIPLIER));
+      bool nmiTrigger = false, irqTrigger = false;
+      if(cycle == 1) {
+         // Scanline start.
+         if((flags & PPU_PREDICT_MMC_IRQ) &&
+               mmc_virtual_scanline_start)
+            irqTrigger = mmc_virtual_scanline_start(scanline);
 
-      ClockScanlineTimer(PPUState::scanline);
+         // VBlank NMI occurs on the 1st cycle of the line after the VBlank flag is set.
+         if((flags & PPU_PREDICT_NMI) &&
+               (scanline == PPU_FIRST_VBLANK_LINE) &&
+               ppu__generate_interrupts)
+            nmiTrigger = true;
+      }
+      else if(cycle == PPU_HBLANK_START) {
+         // HBlank start.
+         if((flags & PPU_PREDICT_MMC_IRQ) &&
+               mmc_virtual_hblank_start)
+            irqTrigger = mmc_virtual_hblank_start(scanline);
+      }
+
+      if(nmiTrigger || irqTrigger) {
+         // Calculate the time which an interrupt(s) will occur.
+         const cpu_time_t time = predictionTimestamp + (current * PPU_CLOCK_MULTIPLIER);
+         if(nmiTrigger)
+            cpu_queue_interrupt(CPU_INTERRUPT_NMI, time);
+         if(irqTrigger)
+            cpu_queue_interrupt(CPU_INTERRUPT_IRQ_MMC, time);
+      }
+              
+      // Clock the scanline timer.
+      ClockScanlineTimer(scanline);
    }
 
    // Restore variables.
-   PPUState::scanline = savedScanline;
-   PPUState::scanlineTimer = savedScanlineTimer;
+   scanline = savedScanline;
+   scanlineTimer = savedScanlineTimer;
 }
 
-static void RepredictNMI()
+static void RepredictInterrupts(const unsigned flags)
 {
    // Determine how much time has elapsed since our initial prediction.
    const cpu_time_t timestamp = cpu_get_cycles();
-   const cpu_time_t cyclesElapsed = (cpu_rtime_t)timestamp - (cpu_rtime_t)PPUState::nmiPredictionTimestamp;
+   const cpu_time_t cyclesElapsed = (cpu_rtime_t)timestamp - (cpu_rtime_t)PPUState::predictionTimestamp;
    // Calculate how many cycles are left in the prediction buffer.
-   const cpu_rtime_t cyclesRemaining = (cpu_rtime_t)PPUState::nmiPredictionCycles - cyclesElapsed;
+   const cpu_rtime_t cyclesRemaining = (cpu_rtime_t)PPUState::predictionCycles - cyclesElapsed;
    if(cyclesRemaining <= 0)
       return;
 
@@ -1302,7 +1343,7 @@ static void RepredictNMI()
    if(ppuCyclesRemaining == 0)
       return;
 
-   PredictNMI(ppuCyclesRemaining);
+   PredictInterrupts(ppuCyclesRemaining, flags);
 }
 
 static inline bool ClockScanlineTimer(int16 &nextScanline)
@@ -1491,7 +1532,7 @@ static linear void StartScanline()
 
    // If the MMC has a hook installed, we need to call it.
    if(mmc_scanline_start)
-      cpu_interrupt(mmc_scanline_start(PPUState::scanline));
+      mmc_scanline_start(PPUState::scanline);
 }
 
 /* This is only called for scanlines -1 to 239, as the PPU is idle during other lines
@@ -1514,7 +1555,7 @@ static linear void StartScanlineCycle(const cpu_time_t cycle)
 
       // If the MMC has a hook installed, we need to call it.
       if(mmc_hblank_start)
-         cpu_interrupt(mmc_hblank_start(PPUState::scanline));
+         mmc_hblank_start(PPUState::scanline);
    }
 }
 
@@ -1530,10 +1571,6 @@ static linear void EndScanline()
          (input_zapper_y_offset == PPUState::scanline))
          input_update_zapper();
    }
-
-   // If the MMC has a hook installed, we need to call it.
-   if(mmc_scanline_end)
-      cpu_interrupt(mmc_scanline_end(PPUState::scanline));
 
    // Clear HBlank status.
    ppu__hblank_started = FALSE;

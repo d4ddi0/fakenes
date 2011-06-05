@@ -33,20 +33,50 @@ static PAIR bandai_irq_latch;
 static UINT8 bandai_prg_bank;
 static UINT8 bandai_chr_bank[8];
 
-static int bandai_irq_tick(const int line)
+/* This needs repredicting when the following variables change:
+      bandai_enable_irqs
+      bandai_irq_counter */
+
+static BOOL bandai_irq_slave(const BOOL simulate)
 {
-   if(bandai_enable_irqs) {
-       bandai_irq_counter -= MMC_PSEUDO_CLOCKS_PER_SCANLINE;
-       if (bandai_irq_counter <= 0) {
+   if(!bandai_enable_irqs)
+      return FALSE;
+
+    bandai_irq_counter -= MMC_PSEUDO_CLOCKS_PER_SCANLINE;
+    if(bandai_irq_counter <= 0) {
+       /* Don't modify anything else when just simulating. */
+       if(!simulate) {
           bandai_irq_counter = 0;
           bandai_enable_irqs = FALSE;
-          return CPU_INTERRUPT_IRQ_MMC;
-       }
-       else
-          return CPU_INTERRUPT_NONE;
+        }
+
+       /* Trigger an interrupt. */
+       return TRUE;
    }
 
-   return CPU_INTERRUPT_NONE;
+   /* Don't trigger an interrupt. */
+   return FALSE;
+}
+
+static BOOL bandai_irq_predictor(const int line)
+{
+   BOOL trigger;
+
+   /* Save the IRQ counter since we're just simulating. */
+   int saved_irq_counter = bandai_irq_counter;
+
+   /* Clock the IRQ counter. */
+   trigger = bandai_irq_slave(TRUE);
+
+   /* Restore the IRQ counter from the backup. */
+   bandai_irq_counter = saved_irq_counter;
+
+   return trigger;
+}
+
+static void bandai_scanline_start(const int line)
+{
+   bandai_irq_slave(FALSE);
 }
 
 static INLINE void bandai_update_prg_bank(void)
@@ -91,13 +121,18 @@ static void bandai_write(UINT16 address, UINT8 value)
             ppu_set_mirroring(bandai_mirroring_table[value]);
             break;
 
-         case 0x800A:
+         case 0x800A: {
             /* Enable/disable IRQs. */
             cpu_clear_interrupt(CPU_INTERRUPT_IRQ_MMC);
             bandai_enable_irqs = value & 0x01;
             bandai_irq_counter = bandai_irq_latch.word;
+
+            /* IRQs are driven by the PPU. */
+            ppu_repredict_interrupts(PPU_PREDICT_MMC_IRQ);
+
             break;
- 
+         }
+
          case 0x800B:
             /* Low byte of IRQ counter. */
             bandai_irq_latch.bytes.low = value;
@@ -136,8 +171,9 @@ static int bandai_init(void)
    cpu_set_write_handler_8k(0x6000, bandai_write);
    cpu_set_write_handler_32k(0x8000, bandai_write);
 
-   /* Install IRQ tick handler. */
-   mmc_scanline_end = bandai_irq_tick;
+   /* Install IRQ tick handlers. */
+   mmc_scanline_start = bandai_scanline_start;
+   mmc_virtual_scanline_start = bandai_irq_predictor;
 
    bandai_reset();
    return 0;
