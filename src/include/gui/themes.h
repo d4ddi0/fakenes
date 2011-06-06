@@ -5,9 +5,9 @@ enum
    GUI_THEME_STAINLESS_STEEL,
    GUI_THEME_ZERO_4,
    GUI_THEME_PANTA,
+   GUI_THEME_FIREFLOWER,
 
    /* Generic themes. */
-   GUI_THEME_FIREFLOWER,
    GUI_THEME_XODIAC,
    GUI_THEME_MONOCHROME,
    GUI_THEME_ESSENCE,
@@ -35,7 +35,6 @@ static INLINE void set_classic_theme (void)
 {
    gui_mouse_sprite = DATA_TO_BITMAP(GUI_CLASSIC_THEME_MOUSE_SPRITE);
    background_image = NULL;
-   gui_image_palette = DATA_TO_RGB(GUI_CLASSIC_THEME_PALETTE);
 
    gui_theme_id = GUI_THEME_CLASSIC;
    gui_set_theme (&classic_theme);
@@ -61,7 +60,6 @@ static INLINE void set_stainless_steel_theme (void)
 {
    gui_mouse_sprite = DATA_TO_BITMAP(GUI_STAINLESS_STEEL_THEME_MOUSE_SPRITE);
    background_image = DATA_TO_BITMAP(GUI_STAINLESS_STEEL_THEME_BACKGROUND_IMAGE);
-   gui_image_palette = DATA_TO_RGB(GUI_STAINLESS_STEEL_THEME_PALETTE);
 
    gui_theme_id = GUI_THEME_STAINLESS_STEEL;
    gui_set_theme (&stainless_steel_theme);
@@ -87,7 +85,6 @@ static INLINE void set_zero_4_theme (void)
 {
    gui_mouse_sprite = DATA_TO_BITMAP(GUI_ZERO_4_THEME_MOUSE_SPRITE);
    background_image = DATA_TO_BITMAP(GUI_ZERO_4_THEME_BACKGROUND_IMAGE);
-   gui_image_palette = DATA_TO_RGB(GUI_ZERO_4_THEME_PALETTE);
 
    gui_theme_id = GUI_THEME_ZERO_4;
    gui_set_theme (&zero_4_theme);
@@ -113,15 +110,11 @@ static INLINE void set_panta_theme (void)
 {
    gui_mouse_sprite = DATA_TO_BITMAP(GUI_PANTA_THEME_MOUSE_SPRITE);
    background_image = DATA_TO_BITMAP(GUI_PANTA_THEME_BACKGROUND_IMAGE);
-   gui_image_palette = DATA_TO_RGB(GUI_PANTA_THEME_PALETTE);
 
    gui_theme_id = GUI_THEME_PANTA;
    gui_set_theme (&panta_theme);
 }
 
-#define set_default_theme()   set_panta_theme ()
-
-/* Generic themes. */
 static const GUI_THEME fireflower_theme =
 {
    { 0.5f,  0.25f,   0,     0 },  /* Gradients start. */
@@ -137,6 +130,19 @@ static const GUI_THEME fireflower_theme =
    { 0.75f, 0.75f,   0.25f, 0 },  /* Disabled. */
    { 1.0f,  0.4f,    0,     0 }   /* Errors. */
 };
+
+static INLINE void set_fireflower_theme (void)
+{
+   gui_mouse_sprite = DATA_TO_BITMAP(GUI_FIREFLOWER_THEME_MOUSE_SPRITE);
+   background_image = DATA_TO_BITMAP(GUI_FIREFLOWER_THEME_BACKGROUND_IMAGE);
+
+   gui_theme_id = GUI_THEME_FIREFLOWER;
+   gui_set_theme (&fireflower_theme);
+}
+
+#define set_default_theme()   set_panta_theme ()
+
+/* Generic themes. */
 
 static const GUI_THEME xodiac_theme =
 {
@@ -221,14 +227,12 @@ static const GUI_THEME hugs_and_kisses_theme =
 #define GENERIC_THEME_SETTER(name, id) \
    static INLINE void set_##name##_theme (void) \
    {  \
-      gui_mouse_sprite = DATA_TO_BITMAP(GUI_GENERIC_THEME_MOUSE_SPRITE);   \
+      gui_mouse_sprite = DATA_TO_BITMAP(CURSOR_ARROW);   \
       background_image = NULL;   \
-      gui_image_palette = DATA_TO_RGB(GUI_GENERIC_THEME_PALETTE); \
       gui_theme_id = id ;  \
       gui_set_theme (& name##_theme );  \
    }
 
-GENERIC_THEME_SETTER(fireflower,      GUI_THEME_FIREFLOWER)
 GENERIC_THEME_SETTER(xodiac,          GUI_THEME_XODIAC)
 GENERIC_THEME_SETTER(monochrome,      GUI_THEME_MONOCHROME)
 GENERIC_THEME_SETTER(essence,         GUI_THEME_ESSENCE)

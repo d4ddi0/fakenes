@@ -9,126 +9,110 @@
 #ifndef VIDEO_H_INCLUDED
 #define VIDEO_H_INCLUDED
 #include "common.h"
-#include "debug.h"
 #include "gui.h"
 #include "types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern volatile int video_message_duration;
-
-enum
-{
-   VIDEO_BLITTER_AUTOMATIC = -1,
-   VIDEO_BLITTER_NORMAL,
-   VIDEO_BLITTER_DES,
-   VIDEO_BLITTER_INTERPOLATED_2X,
-   VIDEO_BLITTER_INTERPOLATED_2X_HQ,
-   VIDEO_BLITTER_2XSCL,
-   VIDEO_BLITTER_DESII,
-   VIDEO_BLITTER_SUPER_2XSCL,
-   VIDEO_BLITTER_ULTRA_2XSCL,
+enum {
+   VIDEO_BLITTER_NONE = 0,
    VIDEO_BLITTER_HQ2X,
-   VIDEO_BLITTER_NTSC,
-   VIDEO_BLITTER_INTERPOLATED_3X,
    VIDEO_BLITTER_HQ3X,
    VIDEO_BLITTER_HQ4X,
-   VIDEO_BLITTER_STRETCHED
+   VIDEO_BLITTER_INTERPOLATION,
+   VIDEO_BLITTER_INTERPOLATION_SCANLINES,
+   VIDEO_BLITTER_INTERPOLATION_TV_MODE,
+   VIDEO_BLITTER_NTSC,
 };
 
-#define VIDEO_FILTER_SCANLINES_LOW      1
-#define VIDEO_FILTER_SCANLINES_MEDIUM   2
-#define VIDEO_FILTER_SCANLINES_HIGH     4
+enum {
+   VIDEO_FILTER_NONE                = 0,
+   VIDEO_FILTER_ASPECT_RATIO        = 1 << 0,
+   VIDEO_FILTER_OFFSET              = 1 << 1,
+   VIDEO_FILTER_OVERSCAN_HORIZONTAL = 1 << 2,
+   VIDEO_FILTER_OVERSCAN_VERTICAL   = 1 << 3
+};
 
 enum {
    VIDEO_FONT_SMALL = 0,
    VIDEO_FONT_MEDIUM,
    VIDEO_FONT_LARGE,
+   VIDEO_FONT_MONOLITHIC,
    VIDEO_FONT_LEGACY,
+   VIDEO_FONT_DEFAULT,
 };
 
-extern int video_buffer_width;
-extern int video_buffer_height;
+enum {
+   VIDEO_PALETTE_NESTER = 0,
+   VIDEO_PALETTE_NESTICLE,
+   VIDEO_PALETTE_NTSC,
+   VIDEO_PALETTE_PAL,
+   VIDEO_PALETTE_RGB,
 
-extern BOOL video_display_status;
-extern BOOL video_enable_page_buffer;
-extern BOOL video_enable_vsync;
-extern BOOL video_force_fullscreen;
-extern int video_cached_color_depth; /* Read only. */
+   VIDEO_PALETTE_DEFAULT = VIDEO_PALETTE_NTSC
+};
 
-extern int video_driver;
-   
-extern BITMAP *base_video_buffer;
-extern BITMAP *video_buffer;
+enum {
+   VIDEO_PROFILE_COLOR_PALETTE = 0,
+   VIDEO_PROFILE_COLOR_HUE,
+   VIDEO_PROFILE_COLOR_SATURATION,
+   VIDEO_PROFILE_COLOR_BRIGHTNESS,
+   VIDEO_PROFILE_COLOR_CONTRAST,
+   VIDEO_PROFILE_COLOR_GAMMA,
 
-extern LIST video_edge_clipping;
+   VIDEO_PROFILE_DISPLAY_DRIVER,
+   VIDEO_PROFILE_DISPLAY_WIDTH,
+   VIDEO_PROFILE_DISPLAY_HEIGHT,
+   VIDEO_PROFILE_DISPLAY_COLOR_DEPTH,
+   VIDEO_PROFILE_DISPLAY_DOUBLE_BUFFER,	/* Internal use only. */
 
-#define VIDEO_EDGE_CLIPPING_HORIZONTAL (1 << 0)
-#define VIDEO_EDGE_CLIPPING_VERTICAL   (1 << 1)
+   VIDEO_PROFILE_FILTER_ASPECT_RATIO,
+   VIDEO_PROFILE_FILTER_OFFSET,
+   VIDEO_PROFILE_FILTER_OVERSCAN_HORIZONTAL,
+   VIDEO_PROFILE_FILTER_OVERSCAN_VERTICAL,
 
-extern RGB *video_palette;
+   VIDEO_PROFILE_OPTION_ACCELERATION,
+   VIDEO_PROFILE_OPTION_DITHER,
+   VIDEO_PROFILE_OPTION_FULLSCREEN,
+   VIDEO_PROFILE_OPTION_HUD,
+   VIDEO_PROFILE_OPTION_TEXTURE_FILTER,
+   VIDEO_PROFILE_OPTION_VSYNC,
 
-extern void video_load_config (void);
-extern void video_save_config (void);
-extern int video_init (void);
-extern int video_reinit (void);
-extern int video_init_buffer (void);
-extern void video_exit (void);
-extern void video_blit (BITMAP *);
-extern void video_filter (void);
-extern void video_handle_keypress (int, int);
-extern void video_set_palette (RGB *);
-extern void video_set_palette_id (int);
-extern int video_get_palette_id (void);
-extern int video_create_color_dither (int, int, int, int, int);
-extern int video_create_gradient (int, int, int, int, int);
-extern void video_create_gui_gradient (GUI_COLOR *, GUI_COLOR *, int);
-extern void video_set_blitter (ENUM);
-extern ENUM video_get_blitter (void);
-extern void video_blitter_reinit (void);
-extern void video_set_filter_list (LIST);
-extern LIST video_get_filter_list (void);
-extern void video_set_resolution (int, int);
-extern int video_get_color_depth (void);
-extern void video_set_color_depth (int);
-extern void video_set_driver (int);
-extern BOOL video_is_opengl_mode (void);
-extern FONT* video_get_font(ENUM);
-extern void video_show_bitmap (BITMAP *, ENUM, BOOL);
+   VIDEO_PROFILE_OUTPUT_BLITTER,
+   VIDEO_PROFILE_OUTPUT_SCALE,
+   VIDEO_PROFILE_OUTPUT_SCALE_WIDTH,
+   VIDEO_PROFILE_OUTPUT_SCALE_HEIGHT
+};
 
-extern void video_message (const UCHAR *, ...);
-
-extern UINT8 video_color_map[32][32][32];
-
-static INLINE int video_create_color (int r, int g, int b)
-{
-   /* Note: Don't use the makecol() or makecol8() functions here, as they
-      don't appear to be inlined by Allegro. */
-
-   switch (video_cached_color_depth)
-   {
-      case 8:
-         return (video_color_map[(r >> 3)][(g >> 3)][(b >> 3)]);
-
-      case 15:
-         return (makecol15 (r, g, b));
-
-      case 16:
-         return (makecol16 (r, g, b));
-
-      case 24:
-         return (makecol24 (r, g, b));
-
-      case 32:
-         return (makecol32 (r, g, b));
-
-      default:
-         WARN_GENERIC();
-   }
-
-   return (0);
-}
+extern void video_load_config(void);
+extern void video_save_config(void);
+extern int video_init(void);
+extern void video_exit(void);
+extern int video_get_profile_integer(const ENUM key);
+extern REAL video_get_profile_real(const ENUM key);
+extern ENUM video_get_profile_enum(const ENUM key);
+extern BOOL video_get_profile_boolean(const ENUM key);
+extern void video_set_profile_integer(const ENUM key, const int value);
+extern void video_set_profile_real(const ENUM key, const REAL value);
+extern void video_set_profile_enum(const ENUM key, const ENUM value);
+extern void video_set_profile_boolean(const ENUM key, const BOOL value);
+extern void video_update_display(void);
+extern void video_update_settings(void);
+extern void video_handle_keypress(const int c, const int scancode);
+extern void video_message(const UCHAR* message, ...);
+extern BOOL video_is_opengl_mode(void);
+extern FONT* video_get_font(const ENUM type);
+extern BITMAP* video_get_display_buffer(void);
+extern BITMAP* video_get_blit_buffer(const int width, const int height);
+extern BITMAP* video_get_extra_buffer(const int width, const int height);
+extern BITMAP* video_get_filter_buffer(const int width, const int height);
+extern BITMAP* video_get_render_buffer(void);
+extern int video_legacy_create_color_dither(int r, int g, int b, int x, int y);
+extern int video_legacy_create_gradient(const int start, const int end, const int slices, const int x, const int y);
+extern void video_legacy_create_gui_gradient(GUI_COLOR* start, const GUI_COLOR* end, const int slices);
+extern void video_legacy_shadow_textout(BITMAP* bitmap, FONT* font, const UCHAR* text, int x, int y, int color);
+extern void video_legacy_shadow_textprintf(BITMAP* bitmap, FONT* font, int x, int y, int color, const UCHAR* text, ...);
 
 #ifdef __cplusplus
 }

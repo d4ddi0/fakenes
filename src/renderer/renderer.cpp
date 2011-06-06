@@ -79,7 +79,7 @@ void Frame()
    In other words, only for visible lines. */
 void Line(const int line)
 {
-   render.buffer = PPU__GET_LINE_ADDRESS(video_buffer, line);
+   render.buffer = PPU__GET_LINE_ADDRESS(video_get_render_buffer(), line);
 
    render.line = line;
    render.pixel = 0;
@@ -104,7 +104,7 @@ inline void Pixel()
       all previously rendered pixels are lost. This can causes momentary, but harmless
       flicker when first loading a save state. */
    if(rendering && !render.buffer)
-      render.buffer = PPU__GET_LINE_ADDRESS(video_buffer, render.line);
+      render.buffer = PPU__GET_LINE_ADDRESS(video_get_render_buffer(), render.line);
 
    // Check if the PPU is completely disabled.
    if(!ppu__enabled) {

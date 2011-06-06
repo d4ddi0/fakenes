@@ -87,6 +87,18 @@ static BOOL lock_recent = FALSE;
 #include "gui/util.h"
 #include "gui/file.h"
 
+/* Big bag of hacks. */
+#ifdef ALLEGRO_LINUX
+#  ifndef GFX_SVGALIB
+#    define GFX_SVGALIB 0xDEADBEEF
+#    define MISSING_SVGALIB
+#  endif
+#  ifndef GFX_FBCON
+#    define GFX_FBCON 0xDEADBEEF
+#    define MISSING_FBCON
+#  endif
+#endif
+
 static INLINE void update_menus (void)
 {
    static USTRING audio_menu_volume_text;
@@ -110,10 +122,6 @@ static INLINE void update_menus (void)
       DISABLE_MENU_ITEM(options_menu_reset_clock);
    }
 
-   /* Page buffer and VSync are not supported in OpenGL mode. */
-   SET_MENU_ITEM_ENABLED(video_menu_page_buffer, !video_is_opengl_mode ());
-   SET_MENU_ITEM_ENABLED(video_menu_vsync,       !video_is_opengl_mode ());
-
    TOGGLE_MENU_ITEM(main_open_recent_menu_lock, lock_recent);
 
    TOGGLE_MENU_ITEM(main_replay_select_menu_0, (replay_index == 0));
@@ -122,7 +130,7 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(main_replay_select_menu_3, (replay_index == 3));
    TOGGLE_MENU_ITEM(main_replay_select_menu_4, (replay_index == 4));
 
-   TOGGLE_MENU_ITEM(system_menu_show_status, video_display_status);
+   TOGGLE_MENU_ITEM(system_menu_show_status, video_get_profile_boolean(VIDEO_PROFILE_OPTION_HUD));
 
    TOGGLE_MENU_ITEM(system_menu_timing_smoothest,     (machine_timing == MACHINE_TIMING_SMOOTH));
    TOGGLE_MENU_ITEM(system_menu_timing_most_accurate, (machine_timing == MACHINE_TIMING_ACCURATE));
@@ -203,58 +211,45 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_175ms,     (audio_options.buffer_length_ms_hint == 175));
    TOGGLE_MENU_ITEM(audio_output_buffer_size_menu_200ms,     (audio_options.buffer_length_ms_hint == 200));
 
+#ifdef USE_ALLEGROGL
+   TOGGLE_MENU_ITEM(video_driver_menu_opengl_fullscreen, (gfx_driver->id == GFX_OPENGL_FULLSCREEN));
+   TOGGLE_MENU_ITEM(video_driver_menu_opengl_windowed,   (gfx_driver->id == GFX_OPENGL_WINDOWED));
+#endif
+
 #ifdef ALLEGRO_DOS
-
-   TOGGLE_MENU_ITEM(video_driver_dos_menu_vga,           (gfx_driver->id == GFX_VGA));
-   TOGGLE_MENU_ITEM(video_driver_dos_menu_vga_mode_x,    (gfx_driver->id == GFX_MODEX));
-   TOGGLE_MENU_ITEM(video_driver_dos_menu_vesa,          (gfx_driver->id == GFX_VESA1));
-   TOGGLE_MENU_ITEM(video_driver_dos_menu_vesa_2_banked, (gfx_driver->id == GFX_VESA2B));
-   TOGGLE_MENU_ITEM(video_driver_dos_menu_vesa_2_linear, (gfx_driver->id == GFX_VESA2L));
-   TOGGLE_MENU_ITEM(video_driver_dos_menu_vesa_3,        (gfx_driver->id == GFX_VESA3));
-   TOGGLE_MENU_ITEM(video_driver_dos_menu_vesa_vbe_af,   (gfx_driver->id == GFX_VBEAF));
-
-#endif   /* ALLEGRO_DOS */
-
-#ifdef ALLEGRO_WINDOWS
-
-   TOGGLE_MENU_ITEM(video_driver_windows_menu_directx,         (gfx_driver->id == GFX_DIRECTX));
-   TOGGLE_MENU_ITEM(video_driver_windows_menu_directx_window,  (gfx_driver->id == GFX_DIRECTX_WIN));
-   TOGGLE_MENU_ITEM(video_driver_windows_menu_directx_overlay, (gfx_driver->id == GFX_DIRECTX_OVL));
-   TOGGLE_MENU_ITEM(video_driver_windows_menu_gdi,             (gfx_driver->id == GFX_GDI));
-
-#endif   /* ALLEGRO_WINDOWS */
+   TOGGLE_MENU_ITEM(video_driver_menu_vga,           (gfx_driver->id == GFX_VGA));
+   TOGGLE_MENU_ITEM(video_driver_menu_vga_mode_x,    (gfx_driver->id == GFX_MODEX));
+   TOGGLE_MENU_ITEM(video_driver_menu_vesa,          (gfx_driver->id == GFX_VESA1));
+   TOGGLE_MENU_ITEM(video_driver_menu_vesa_2_banked, (gfx_driver->id == GFX_VESA2B));
+   TOGGLE_MENU_ITEM(video_driver_menu_vesa_2_linear, (gfx_driver->id == GFX_VESA2L));
+   TOGGLE_MENU_ITEM(video_driver_menu_vesa_3,        (gfx_driver->id == GFX_VESA3));
+   TOGGLE_MENU_ITEM(video_driver_menu_vesa_vbe_af,   (gfx_driver->id == GFX_VBEAF));
+#endif
 
 #ifdef ALLEGRO_LINUX
-
-   TOGGLE_MENU_ITEM(video_driver_linux_menu_vga,         (gfx_driver->id == GFX_VGA));
-   TOGGLE_MENU_ITEM(video_driver_linux_menu_vga_mode_x,  (gfx_driver->id == GFX_MODEX));
-   TOGGLE_MENU_ITEM(video_driver_linux_menu_vesa_vbe_af, (gfx_driver->id == GFX_VBEAF));
-#ifdef GFX_FBCON
-   TOGGLE_MENU_ITEM(video_driver_linux_menu_framebuffer, (gfx_driver->id == GFX_FBCON));
+   TOGGLE_MENU_ITEM(video_driver_menu_framebuffer, (gfx_driver->id == GFX_FBCON));
+   TOGGLE_MENU_ITEM(video_driver_menu_svgalib,     (gfx_driver->id == GFX_SVGALIB));
+   TOGGLE_MENU_ITEM(video_driver_menu_vesa_vbe_af, (gfx_driver->id == GFX_VBEAF));
+   TOGGLE_MENU_ITEM(video_driver_menu_vga,         (gfx_driver->id == GFX_VGA));
+   TOGGLE_MENU_ITEM(video_driver_menu_vga_mode_x,  (gfx_driver->id == GFX_MODEX));
 #endif
-#ifdef GFX_SVGALIB
-   TOGGLE_MENU_ITEM(video_driver_linux_menu_svgalib,     (gfx_driver->id == GFX_SVGALIB));
-#endif
-
-#endif   /* ALLEGRO_LINUX */
 
 #ifdef ALLEGRO_UNIX
+   TOGGLE_MENU_ITEM(video_driver_menu_dga,                  (gfx_driver->id == GFX_XDGA));
+   TOGGLE_MENU_ITEM(video_driver_menu_dga_fullscreen,       (gfx_driver->id == GFX_XDGA_FULLSCREEN));
+   TOGGLE_MENU_ITEM(video_driver_menu_dga_2,                (gfx_driver->id == GFX_XDGA2));
+   TOGGLE_MENU_ITEM(video_driver_menu_x_windows,            (gfx_driver->id == GFX_XWINDOWS));
+   TOGGLE_MENU_ITEM(video_driver_menu_x_windows_fullscreen, (gfx_driver->id == GFX_XWINDOWS_FULLSCREEN));
+#endif
 
-   TOGGLE_MENU_ITEM(video_driver_unix_menu_x_windows,      (gfx_driver->id == GFX_XWINDOWS));
-   TOGGLE_MENU_ITEM(video_driver_unix_menu_x_windows_full, (gfx_driver->id == GFX_XWINDOWS_FULLSCREEN));
-   TOGGLE_MENU_ITEM(video_driver_unix_menu_x_dga,          (gfx_driver->id == GFX_XDGA));
-   TOGGLE_MENU_ITEM(video_driver_unix_menu_x_dga_full,     (gfx_driver->id == GFX_XDGA_FULLSCREEN));
-   TOGGLE_MENU_ITEM(video_driver_unix_menu_x_dga_2,        (gfx_driver->id == GFX_XDGA2));
+#ifdef ALLEGRO_WINDOWS
+   TOGGLE_MENU_ITEM(video_driver_menu_directx,          (gfx_driver->id == GFX_DIRECTX));
+   TOGGLE_MENU_ITEM(video_driver_menu_directx_overlay,  (gfx_driver->id == GFX_DIRECTX_OVL));
+   TOGGLE_MENU_ITEM(video_driver_menu_directx_windowed, (gfx_driver->id == GFX_DIRECTX_WIN));
+   TOGGLE_MENU_ITEM(video_driver_menu_gdi,              (gfx_driver->id == GFX_GDI));
+#endif
 
-#endif   /* ALLEGRO_UNIX */
-
-#ifdef USE_ALLEGROGL
-
-   TOGGLE_MENU_ITEM(video_driver_menu_opengl_full, (gfx_driver->id == GFX_OPENGL_FULLSCREEN));
-   TOGGLE_MENU_ITEM(video_driver_menu_opengl_win,  (gfx_driver->id == GFX_OPENGL_WINDOWED));
-
-#endif   /* USE_ALLEGROGL */
-
+   /* TODO: Make these call video_get_profile_integer() instead. */
    TOGGLE_MENU_ITEM(video_resolution_proportionate_menu_256_224,   ((SCREEN_W == 256)  && (SCREEN_H == 224)));
    TOGGLE_MENU_ITEM(video_resolution_proportionate_menu_256_240,   ((SCREEN_W == 256)  && (SCREEN_H == 240)));
    TOGGLE_MENU_ITEM(video_resolution_proportionate_menu_512_448,   ((SCREEN_W == 512)  && (SCREEN_H == 448)));
@@ -276,60 +271,30 @@ static INLINE void update_menus (void)
    TOGGLE_MENU_ITEM(video_resolution_menu_1280_1024, ((SCREEN_W == 1280) && (SCREEN_H == 1024)));
    TOGGLE_MENU_ITEM(video_resolution_menu_1600_1200, ((SCREEN_W == 1600) && (SCREEN_H == 1200)));
 
-   TOGGLE_MENU_ITEM(video_color_depth_menu_paletted_8_bit,    (video_get_color_depth () == 8));
-   TOGGLE_MENU_ITEM(video_color_depth_menu_true_color_15_bit, (video_get_color_depth () == 15));
-   TOGGLE_MENU_ITEM(video_color_depth_menu_true_color_16_bit, (video_get_color_depth () == 16));
-   TOGGLE_MENU_ITEM(video_color_depth_menu_true_color_24_bit, (video_get_color_depth () == 24));
-   TOGGLE_MENU_ITEM(video_color_depth_menu_true_color_32_bit, (video_get_color_depth () == 32));
+   TOGGLE_MENU_ITEM(video_color_depth_menu_paletted_8_bit,    (video_get_profile_integer(VIDEO_PROFILE_DISPLAY_COLOR_DEPTH) == 8));
+   TOGGLE_MENU_ITEM(video_color_depth_menu_true_color_15_bit, (video_get_profile_integer(VIDEO_PROFILE_DISPLAY_COLOR_DEPTH) == 15));
+   TOGGLE_MENU_ITEM(video_color_depth_menu_true_color_16_bit, (video_get_profile_integer(VIDEO_PROFILE_DISPLAY_COLOR_DEPTH) == 16));
+   TOGGLE_MENU_ITEM(video_color_depth_menu_true_color_24_bit, (video_get_profile_integer(VIDEO_PROFILE_DISPLAY_COLOR_DEPTH) == 24));
+   TOGGLE_MENU_ITEM(video_color_depth_menu_true_color_32_bit, (video_get_profile_integer(VIDEO_PROFILE_DISPLAY_COLOR_DEPTH) == 32));
 
-   TOGGLE_MENU_ITEM(video_buffer_size_menu_match_resolution, ((video_buffer_width == -1)  && (video_buffer_height == -1)));
-   TOGGLE_MENU_ITEM(video_buffer_size_menu_256_240,          ((video_buffer_width == 256) && (video_buffer_height == 240)));
-   TOGGLE_MENU_ITEM(video_buffer_size_menu_320_240,          ((video_buffer_width == 320) && (video_buffer_height == 240)));
-   TOGGLE_MENU_ITEM(video_buffer_size_menu_512_480,          ((video_buffer_width == 512) && (video_buffer_height == 480)));
-   TOGGLE_MENU_ITEM(video_buffer_size_menu_640_480,          ((video_buffer_width == 640) && (video_buffer_height == 480)));
-   TOGGLE_MENU_ITEM(video_buffer_size_menu_256_256,          ((video_buffer_width == 256) && (video_buffer_height == 256)));
-   TOGGLE_MENU_ITEM(video_buffer_size_menu_512_512,          ((video_buffer_width == 512) && (video_buffer_height == 512)));
+   TOGGLE_MENU_ITEM(video_blitter_menu_disabled,                (video_get_profile_enum(VIDEO_PROFILE_OUTPUT_BLITTER) == VIDEO_BLITTER_NONE));
+   TOGGLE_MENU_ITEM(video_blitter_menu_interpolation,           (video_get_profile_enum(VIDEO_PROFILE_OUTPUT_BLITTER) == VIDEO_BLITTER_INTERPOLATION));
+   TOGGLE_MENU_ITEM(video_blitter_menu_interpolation_scanlines, (video_get_profile_enum(VIDEO_PROFILE_OUTPUT_BLITTER) == VIDEO_BLITTER_INTERPOLATION_SCANLINES));
+   TOGGLE_MENU_ITEM(video_blitter_menu_interpolation_tv_mode,   (video_get_profile_enum(VIDEO_PROFILE_OUTPUT_BLITTER) == VIDEO_BLITTER_INTERPOLATION_TV_MODE));
+   TOGGLE_MENU_ITEM(video_blitter_menu_hq2x,                    (video_get_profile_enum(VIDEO_PROFILE_OUTPUT_BLITTER) == VIDEO_BLITTER_HQ2X));
+   TOGGLE_MENU_ITEM(video_blitter_menu_hq3x,                    (video_get_profile_enum(VIDEO_PROFILE_OUTPUT_BLITTER) == VIDEO_BLITTER_HQ3X));
+   TOGGLE_MENU_ITEM(video_blitter_menu_hq4x,                    (video_get_profile_enum(VIDEO_PROFILE_OUTPUT_BLITTER) == VIDEO_BLITTER_HQ4X));
+   TOGGLE_MENU_ITEM(video_blitter_menu_ntsc,                    (video_get_profile_enum(VIDEO_PROFILE_OUTPUT_BLITTER) == VIDEO_BLITTER_NTSC));
 
-   TOGGLE_MENU_ITEM(video_blitter_menu_automatic,          (video_get_blitter () == VIDEO_BLITTER_AUTOMATIC));
-   TOGGLE_MENU_ITEM(video_blitter_menu_normal,             (video_get_blitter () == VIDEO_BLITTER_NORMAL));
-   TOGGLE_MENU_ITEM(video_blitter_menu_des,                (video_get_blitter () == VIDEO_BLITTER_DES));
-   TOGGLE_MENU_ITEM(video_blitter_menu_interpolated_2x,    (video_get_blitter () == VIDEO_BLITTER_INTERPOLATED_2X));
-   TOGGLE_MENU_ITEM(video_blitter_menu_interpolated_2x_hq, (video_get_blitter () == VIDEO_BLITTER_INTERPOLATED_2X_HQ));
-   TOGGLE_MENU_ITEM(video_blitter_menu_2xscl,              (video_get_blitter () == VIDEO_BLITTER_2XSCL));
-   TOGGLE_MENU_ITEM(video_blitter_menu_desii,              (video_get_blitter () == VIDEO_BLITTER_DESII));
-   TOGGLE_MENU_ITEM(video_blitter_menu_super_2xscl,        (video_get_blitter () == VIDEO_BLITTER_SUPER_2XSCL));
-   TOGGLE_MENU_ITEM(video_blitter_menu_ultra_2xscl,        (video_get_blitter () == VIDEO_BLITTER_ULTRA_2XSCL));
-   TOGGLE_MENU_ITEM(video_blitter_menu_hq2x,               (video_get_blitter () == VIDEO_BLITTER_HQ2X));
-   TOGGLE_MENU_ITEM(video_blitter_menu_ntsc,               (video_get_blitter () == VIDEO_BLITTER_NTSC));
-   TOGGLE_MENU_ITEM(video_blitter_menu_interpolated_3x,    (video_get_blitter () == VIDEO_BLITTER_INTERPOLATED_3X));
-   TOGGLE_MENU_ITEM(video_blitter_menu_hq3x,               (video_get_blitter () == VIDEO_BLITTER_HQ3X));
-   TOGGLE_MENU_ITEM(video_blitter_menu_hq4x,               (video_get_blitter () == VIDEO_BLITTER_HQ4X));
-   TOGGLE_MENU_ITEM(video_blitter_menu_stretched,          (video_get_blitter () == VIDEO_BLITTER_STRETCHED));
+   TOGGLE_MENU_ITEM(video_palette_menu_nester,   (video_get_profile_enum(VIDEO_PROFILE_COLOR_PALETTE) == VIDEO_PALETTE_NESTER));
+   TOGGLE_MENU_ITEM(video_palette_menu_nesticle, (video_get_profile_enum(VIDEO_PROFILE_COLOR_PALETTE) == VIDEO_PALETTE_NESTICLE));
+   TOGGLE_MENU_ITEM(video_palette_menu_ntsc,     (video_get_profile_enum(VIDEO_PROFILE_COLOR_PALETTE) == VIDEO_PALETTE_NTSC));
+   TOGGLE_MENU_ITEM(video_palette_menu_pal,      (video_get_profile_enum(VIDEO_PROFILE_COLOR_PALETTE) == VIDEO_PALETTE_PAL));
+   TOGGLE_MENU_ITEM(video_palette_menu_rgb,      (video_get_profile_enum(VIDEO_PROFILE_COLOR_PALETTE) == VIDEO_PALETTE_RGB));
 
-   TOGGLE_MENU_ITEM(video_filters_menu_scanlines_25_percent,  (video_get_filter_list () & VIDEO_FILTER_SCANLINES_LOW));
-   TOGGLE_MENU_ITEM(video_filters_menu_scanlines_50_percent,  (video_get_filter_list () & VIDEO_FILTER_SCANLINES_MEDIUM));
-   TOGGLE_MENU_ITEM(video_filters_menu_scanlines_100_percent, (video_get_filter_list () & VIDEO_FILTER_SCANLINES_HIGH));
-
-   TOGGLE_MENU_ITEM(video_menu_fullscreen,  video_force_fullscreen);
-   TOGGLE_MENU_ITEM(video_menu_page_buffer, video_enable_page_buffer);
-   TOGGLE_MENU_ITEM(video_menu_vsync,       video_enable_vsync);
-
-   TOGGLE_MENU_ITEM(video_palette_menu_ntsc_color,     (video_get_palette_id () == DATA_INDEX(DEFAULT_PALETTE)));
-   TOGGLE_MENU_ITEM(video_palette_menu_ntsc_grayscale, (video_get_palette_id () == DATA_INDEX(GRAYSCALE_PALETTE)));
-   TOGGLE_MENU_ITEM(video_palette_menu_gnuboy,         (video_get_palette_id () == DATA_INDEX(GNUBOY_PALETTE)));
-   TOGGLE_MENU_ITEM(video_palette_menu_nester,         (video_get_palette_id () == DATA_INDEX(NESTER_PALETTE)));
-   TOGGLE_MENU_ITEM(video_palette_menu_nesticle,       (video_get_palette_id () == DATA_INDEX(NESTICLE_PALETTE)));
-   TOGGLE_MENU_ITEM(video_palette_menu_modern_ntsc,    (video_get_palette_id () == DATA_INDEX(MODERN_NTSC_PALETTE)));
-   TOGGLE_MENU_ITEM(video_palette_menu_modern_pal,     (video_get_palette_id () == DATA_INDEX(MODERN_PAL_PALETTE)));
-   TOGGLE_MENU_ITEM(video_palette_menu_ega_mode_1,     (video_get_palette_id () == DATA_INDEX(EGA_PALETTE_1)));
-   TOGGLE_MENU_ITEM(video_palette_menu_ega_mode_2,     (video_get_palette_id () == DATA_INDEX(EGA_PALETTE_2)));
-   TOGGLE_MENU_ITEM(video_palette_menu_custom,         (video_get_palette_id () == -1));
-
-   TOGGLE_MENU_ITEM(video_layers_menu_show_back_sprites,   ppu_get_option(PPU_OPTION_ENABLE_SPRITE_BACK_LAYER));
-   TOGGLE_MENU_ITEM(video_layers_menu_show_front_sprites,  ppu_get_option(PPU_OPTION_ENABLE_SPRITE_FRONT_LAYER));
-   TOGGLE_MENU_ITEM(video_layers_menu_show_background,     ppu_get_option(PPU_OPTION_ENABLE_BACKGROUND_LAYER));
-   TOGGLE_MENU_ITEM(video_layers_menu_horizontal_overscan, (video_edge_clipping & VIDEO_EDGE_CLIPPING_HORIZONTAL));
-   TOGGLE_MENU_ITEM(video_layers_menu_vertical_overscan,   (video_edge_clipping & VIDEO_EDGE_CLIPPING_VERTICAL));
+   TOGGLE_MENU_ITEM(video_layers_menu_show_back_sprites,  ppu_get_option(PPU_OPTION_ENABLE_SPRITE_BACK_LAYER));
+   TOGGLE_MENU_ITEM(video_layers_menu_show_front_sprites, ppu_get_option(PPU_OPTION_ENABLE_SPRITE_FRONT_LAYER));
+   TOGGLE_MENU_ITEM(video_layers_menu_show_background,    ppu_get_option(PPU_OPTION_ENABLE_BACKGROUND_LAYER));
 
    TOGGLE_MENU_ITEM(input_menu_enable_zapper, input_enable_zapper);
 
@@ -395,25 +360,20 @@ int gui_init (void)
 
 #ifdef ALLEGRO_DOS
 
-   CHECK_MENU_ITEM(video_menu_fullscreen);
-   DISABLE_MENU_ITEM(video_menu_fullscreen);
+   //CHECK_MENU_ITEM(video_menu_fullscreen);
+   //DISABLE_MENU_ITEM(video_menu_fullscreen);
    DISABLE_MENU(options_cpu_usage_menu);
 
 #endif   /* ALLEGRO_DOS */
 
 #ifdef ALLEGRO_LINUX
-
-#ifndef GFX_FBCON
-   DISABLE_MENU_ITEM(video_driver_linux_menu_framebuffer);
+#  ifdef MISSING_SVGALIB
+      DISABLE_MENU_ITEM(video_driver_menu_svgalib);
+#   endif
+#  ifdef MISSING_FBCON
+      DISABLE_MENU_ITEM(video_driver_menu_framebuffer);
+#  endif
 #endif
-#ifndef GFX_SVGALIB
-   DISABLE_MENU_ITEM(video_driver_linux_menu_svgalib);
-#endif
-
-#endif   /* !ALLEGRO_LINUX */
-
-   /* Select default palette. */
-   CHECK_MENU_ITEM(video_palette_menu_modern_ntsc);
 
    /* Load up recent items. */
 
@@ -446,9 +406,7 @@ int gui_init (void)
    }
 
    /* Cheap hack to fix palette. */
-   gui_is_active = TRUE;
    set_theme ();
-   gui_is_active = FALSE;
 
    return (0);
 }
@@ -515,6 +473,9 @@ int show_gui (BOOL first_run)
 
       /* Close GUI. */
       gui_close (want_exit);
+
+      /* Clear screen. */
+      clear_bitmap(screen);
 
    } while (gui_needs_restart);
 
@@ -677,9 +638,6 @@ void gui_message (int color, const UCHAR *message, ...)
    }
 
    video_message (message_buffer);
-   video_message_duration = 3000;
-
-   log_printf ("GUI: %s", message_buffer);
 }
 
 void gui_heartbeat (void)
@@ -860,8 +818,6 @@ void gui_set_theme (const GUI_THEME *theme)
    last_theme = theme;
 
    memcpy (&gui_theme, theme, sizeof (GUI_THEME));
-
-   video_set_palette (NULL);
 
    for (index = 0; index < GUI_TOTAL_COLORS; index++)
       pack_color (&gui_theme[index]);
@@ -1585,7 +1541,7 @@ static int main_menu_save_snapshot (void)
       if (exists (filename))
          continue;
 
-      save_bitmap (filename, video_buffer, video_palette);
+      save_bitmap (filename, video_get_render_buffer(), NULL);
 
       message_local ("Snapshot saved to %s.", filename);
 
@@ -2003,7 +1959,10 @@ static int system_frame_skip_menu_custom (void)
 
 static int system_menu_show_status (void)
 {
-   video_display_status = (! video_display_status);
+   const ENUM key = VIDEO_PROFILE_OPTION_HUD;
+   video_set_profile_boolean(key, !video_get_profile_boolean(key));
+   video_update_settings();
+
    update_menus ();
 
    return (D_O_K);
@@ -2498,40 +2457,6 @@ static int audio_menu_volume_auto_normalize (void)
    return (D_O_K);
 }
 
-static int video_menu_fullscreen (void)
-{
-   video_force_fullscreen = !video_force_fullscreen;
-   video_reinit ();
-
-   gui_needs_restart = TRUE;
-   return (D_CLOSE);
-}
-
-static int video_menu_page_buffer (void)
-{
-   video_enable_page_buffer = !video_enable_page_buffer;
-   update_menus ();
-
-   video_reinit ();
-
-   cycle_video ();
-
-   message_local ("Page buffering %s.", get_enabled_text
-      (video_enable_page_buffer));
-
-   return (D_O_K);
-}
-
-static int video_menu_vsync (void)
-{
-   video_enable_vsync = !video_enable_vsync;
-   update_menus ();
-
-   message_local ("VSync %s.", get_enabled_text (video_enable_vsync));
-
-   return (D_O_K);
-}
-
 static int video_menu_color (void)
 {
    DIALOG *dialog;
@@ -2550,12 +2475,12 @@ static int video_menu_color (void)
    objgamma  = &dialog[VIDEO_COLOR_DIALOG_GAMMA];
    
    /* Load configuration. */
-   
-   objhue->d2    = (get_config_int ("video", "hue",        0) + 100);
-   objsat->d2    = (get_config_int ("video", "saturation", 0) + 100);
-   objbright->d2 = (get_config_int ("video", "brightness", 0) + 100);
-   objcon->d2    = (get_config_int ("video", "contrast",   0) + 100);
-   objgamma->d2  = (get_config_int ("video", "gamma",      0) + 100);
+     
+   objhue->d2    = video_get_profile_real(VIDEO_PROFILE_COLOR_HUE)        + 100;
+   objsat->d2    = video_get_profile_real(VIDEO_PROFILE_COLOR_SATURATION) + 100;
+   objbright->d2 = video_get_profile_real(VIDEO_PROFILE_COLOR_BRIGHTNESS) + 100;
+   objcon->d2    = video_get_profile_real(VIDEO_PROFILE_COLOR_CONTRAST)   + 100;
+   objgamma->d2  = video_get_profile_real(VIDEO_PROFILE_COLOR_GAMMA)      + 100;
    
    /* Show dialog. */
    result = show_dialog (dialog, -1);
@@ -2564,50 +2489,34 @@ static int video_menu_color (void)
    {
       /* Save configuration. */
    
-      set_config_int ("video", "hue",        (objhue->d2    - 100));
-      set_config_int ("video", "saturation", (objsat->d2    - 100));
-      set_config_int ("video", "brightness", (objbright->d2 - 100));
-      set_config_int ("video", "contrast",   (objcon->d2    - 100));
-      set_config_int ("video", "gamma",      (objgamma->d2  - 100));
-   
-      /* Reinitialize palette to the load new configuration. */
-      video_set_palette (NULL);
-   
-      /* Display changes. */
-      cycle_video ();
+      video_set_profile_real(VIDEO_PROFILE_COLOR_HUE,        objhue->d2    - 100);
+      video_set_profile_real(VIDEO_PROFILE_COLOR_SATURATION, objsat->d2    - 100);
+      video_set_profile_real(VIDEO_PROFILE_COLOR_BRIGHTNESS, objbright->d2 - 100);
+      video_set_profile_real(VIDEO_PROFILE_COLOR_CONTRAST,   objcon->d2    - 100);
+      video_set_profile_real(VIDEO_PROFILE_COLOR_GAMMA,      objgamma->d2  - 100);
    }
    else if (result == VIDEO_COLOR_DIALOG_RESET_BUTTON)
    {
       /* Save defaults. */
    
-      set_config_int ("video", "hue",        0);
-      set_config_int ("video", "saturation", 0);
-      set_config_int ("video", "brightness", 0);
-      set_config_int ("video", "contrast",   0);
-      set_config_int ("video", "gamma",      0);
-   
-      /* Reinitialize palette to the load new configuration. */
-      video_set_palette (NULL);
-   
-      /* Display changes. */
-      cycle_video ();
+      video_set_profile_real(VIDEO_PROFILE_COLOR_HUE,        0);
+      video_set_profile_real(VIDEO_PROFILE_COLOR_SATURATION, 0);
+      video_set_profile_real(VIDEO_PROFILE_COLOR_BRIGHTNESS, 0);
+      video_set_profile_real(VIDEO_PROFILE_COLOR_CONTRAST,   0);
+      video_set_profile_real(VIDEO_PROFILE_COLOR_GAMMA,      0);
    }
 
-   return (D_O_K);
+   video_update_settings();
+
+   frames_to_execute = 1;
+   return D_CLOSE;
 }
 
 #define DRIVER_MENU_HANDLER(driver, id)   \
    static int video_driver_menu_##driver (void) \
    {  \
-      video_set_driver (id);  \
-      gui_needs_restart = TRUE;  \
-      return (D_CLOSE); \
-   }
-
-#define DRIVER_MENU_HANDLER_EX(system, driver, id) \
-   static int video_driver_##system##_menu_##driver (void)   \
-   {  \
-      video_set_driver (id);  \
+      video_set_profile_integer(VIDEO_PROFILE_DISPLAY_DRIVER, id);  \
+      video_update_settings(); \
       gui_needs_restart = TRUE;  \
       return (D_CLOSE); \
    }
@@ -2615,70 +2524,53 @@ static int video_menu_color (void)
 DRIVER_MENU_HANDLER(automatic, GFX_AUTODETECT)
 DRIVER_MENU_HANDLER(safe,      GFX_SAFE)
 
+#ifdef USE_ALLEGROGL
+DRIVER_MENU_HANDLER(opengl,            GFX_OPENGL)
+DRIVER_MENU_HANDLER(opengl_fullscreen, GFX_OPENGL_FULLSCREEN)
+DRIVER_MENU_HANDLER(opengl_windowed,   GFX_OPENGL_WINDOWED)
+#endif
+
 #ifdef ALLEGRO_DOS
-
-DRIVER_MENU_HANDLER_EX(dos, vga,           GFX_VGA)
-DRIVER_MENU_HANDLER_EX(dos, vga_mode_x,    GFX_MODEX)
-DRIVER_MENU_HANDLER_EX(dos, vesa,          GFX_VESA1)
-DRIVER_MENU_HANDLER_EX(dos, vesa_2_banked, GFX_VESA2B)
-DRIVER_MENU_HANDLER_EX(dos, vesa_2_linear, GFX_VESA2L)
-DRIVER_MENU_HANDLER_EX(dos, vesa_3,        GFX_VESA3)
-DRIVER_MENU_HANDLER_EX(dos, vesa_vbe_af,   GFX_VBEAF)
-
-#endif   /* ALLEGRO_DOS */
-
-#ifdef ALLEGRO_WINDOWS
-
-DRIVER_MENU_HANDLER_EX(windows, directx,         GFX_DIRECTX)
-DRIVER_MENU_HANDLER_EX(windows, directx_window,  GFX_DIRECTX_WIN)
-DRIVER_MENU_HANDLER_EX(windows, directx_overlay, GFX_DIRECTX_OVL)
-DRIVER_MENU_HANDLER_EX(windows, gdi,             GFX_GDI)
-                   
-#endif   /* ALLEGRO_WINDOWS */
+DRIVER_MENU_HANDLER(vesa,          GFX_VESA1)
+DRIVER_MENU_HANDLER(vesa_2_banked, GFX_VESA2B)
+DRIVER_MENU_HANDLER(vesa_2_linear, GFX_VESA2L)
+DRIVER_MENU_HANDLER(vesa_3,        GFX_VESA3)
+DRIVER_MENU_HANDLER(vesa_vbe_af,   GFX_VBEAF)
+DRIVER_MENU_HANDLER(vga,           GFX_VGA)
+DRIVER_MENU_HANDLER(vga_mode_x,    GFX_MODEX)
+#endif
 
 #ifdef ALLEGRO_LINUX
-
-DRIVER_MENU_HANDLER_EX(linux, vga,         GFX_VGA)
-DRIVER_MENU_HANDLER_EX(linux, vga_mode_x,  GFX_MODEX)
-DRIVER_MENU_HANDLER_EX(linux, vesa_vbe_af, GFX_VBEAF)
-#ifdef GFX_FBCON   
-DRIVER_MENU_HANDLER_EX(linux, framebuffer, GFX_FBCON)
-#else              
-DRIVER_MENU_HANDLER_EX(linux, framebuffer, NULL)
+DRIVER_MENU_HANDLER(framebuffer, GFX_FBCON)
+DRIVER_MENU_HANDLER(svgalib,     GFX_SVGALIB)
+DRIVER_MENU_HANDLER(vesa_vbe_af, GFX_VBEAF)
+DRIVER_MENU_HANDLER(vga,         GFX_VGA)
+DRIVER_MENU_HANDLER(vga_mode_x,  GFX_MODEX)
 #endif
-#ifdef GFX_SVGALIB
-DRIVER_MENU_HANDLER_EX(linux, svgalib,     GFX_SVGALIB)
-#else
-DRIVER_MENU_HANDLER_EX(linux, svgalib,     NULL)
-#endif
-
-#endif   /* ALLEGRO_LINUX */
 
 #ifdef ALLEGRO_UNIX
+DRIVER_MENU_HANDLER(x_windows,            GFX_XWINDOWS)
+DRIVER_MENU_HANDLER(x_windows_fullscreen, GFX_XWINDOWS_FULLSCREEN)
+DRIVER_MENU_HANDLER(dga,                  GFX_XDGA)
+DRIVER_MENU_HANDLER(dga_fullscreen,       GFX_XDGA_FULLSCREEN)
+DRIVER_MENU_HANDLER(dga_2,                GFX_XDGA2)
+#endif
 
-DRIVER_MENU_HANDLER_EX(unix, x_windows,      GFX_XWINDOWS)
-DRIVER_MENU_HANDLER_EX(unix, x_windows_full, GFX_XWINDOWS_FULLSCREEN)
-DRIVER_MENU_HANDLER_EX(unix, x_dga,          GFX_XDGA)
-DRIVER_MENU_HANDLER_EX(unix, x_dga_full,     GFX_XDGA_FULLSCREEN)
-DRIVER_MENU_HANDLER_EX(unix, x_dga_2,        GFX_XDGA2)
-
-#endif   /* ALLEGRO_UNIX */
-
-#ifdef USE_ALLEGROGL
-
-DRIVER_MENU_HANDLER(opengl,      GFX_OPENGL)
-DRIVER_MENU_HANDLER(opengl_full, GFX_OPENGL_FULLSCREEN)
-DRIVER_MENU_HANDLER(opengl_win,  GFX_OPENGL_WINDOWED)
-
-#endif   /* USE_ALLEGROGL */
+#ifdef ALLEGRO_WINDOWS
+DRIVER_MENU_HANDLER(directx,          GFX_DIRECTX)
+DRIVER_MENU_HANDLER(directx_windowed, GFX_DIRECTX_WIN)
+DRIVER_MENU_HANDLER(directx_overlay,  GFX_DIRECTX_OVL)
+DRIVER_MENU_HANDLER(gdi,              GFX_GDI)
+#endif
 
 #undef DRIVER_MENU_HANDLER
-#undef DRIVER_MENU_HANDLER_EX
 
 #define RESOLUTION_MENU_HANDLER(width, height)  \
    static int video_resolution_menu_##width##_##height (void)   \
    {  \
-      video_set_resolution (width, height);  \
+      video_set_profile_integer(VIDEO_PROFILE_DISPLAY_WIDTH, width);  \
+      video_set_profile_integer(VIDEO_PROFILE_DISPLAY_HEIGHT, height);  \
+      video_update_settings(); \
       gui_needs_restart = TRUE;  \
       return (D_CLOSE); \
    }
@@ -2686,7 +2578,9 @@ DRIVER_MENU_HANDLER(opengl_win,  GFX_OPENGL_WINDOWED)
 #define RESOLUTION_MENU_HANDLER_EX(type, width, height)  \
    static int video_resolution_##type##_menu_##width##_##height (void)   \
    {  \
-      video_set_resolution (width, height);  \
+      video_set_profile_integer(VIDEO_PROFILE_DISPLAY_WIDTH, width);  \
+      video_set_profile_integer(VIDEO_PROFILE_DISPLAY_HEIGHT, height);  \
+      video_update_settings(); \
       gui_needs_restart = TRUE;  \
       return (D_CLOSE); \
    }
@@ -2724,7 +2618,9 @@ static int video_resolution_menu_custom (void)
 
    if (get_resolution_input ("Custom", &width, &height))
    {
-      video_set_resolution (width, height);
+      video_set_profile_integer(VIDEO_PROFILE_DISPLAY_WIDTH, width); 
+      video_set_profile_integer(VIDEO_PROFILE_DISPLAY_HEIGHT, height); 
+      video_update_settings();
 
       gui_needs_restart = TRUE;
       return (D_CLOSE);
@@ -2735,7 +2631,8 @@ static int video_resolution_menu_custom (void)
 
 static int video_color_depth_menu_paletted_8_bit (void)
 {
-   video_set_color_depth (8);
+   video_set_profile_integer(VIDEO_PROFILE_DISPLAY_COLOR_DEPTH, 8);
+   video_update_settings();
 
    gui_needs_restart = TRUE;
    return (D_CLOSE);
@@ -2743,7 +2640,8 @@ static int video_color_depth_menu_paletted_8_bit (void)
 
 static int video_color_depth_menu_true_color_15_bit (void)
 {
-   video_set_color_depth (15);
+   video_set_profile_integer(VIDEO_PROFILE_DISPLAY_COLOR_DEPTH, 15);
+   video_update_settings();
 
    gui_needs_restart = TRUE;
    return (D_CLOSE);
@@ -2751,7 +2649,8 @@ static int video_color_depth_menu_true_color_15_bit (void)
 
 static int video_color_depth_menu_true_color_16_bit (void)
 {
-   video_set_color_depth (16);
+   video_set_profile_integer(VIDEO_PROFILE_DISPLAY_COLOR_DEPTH, 16);
+   video_update_settings();
 
    gui_needs_restart = TRUE;
    return (D_CLOSE);
@@ -2759,7 +2658,8 @@ static int video_color_depth_menu_true_color_16_bit (void)
 
 static int video_color_depth_menu_true_color_24_bit (void)
 {
-   video_set_color_depth (24);
+   video_set_profile_integer(VIDEO_PROFILE_DISPLAY_COLOR_DEPTH, 24);
+   video_update_settings();
 
    gui_needs_restart = TRUE;
    return (D_CLOSE);
@@ -2767,96 +2667,38 @@ static int video_color_depth_menu_true_color_24_bit (void)
 
 static int video_color_depth_menu_true_color_32_bit (void)
 {
-   video_set_color_depth (32);
+   video_set_profile_integer(VIDEO_PROFILE_DISPLAY_COLOR_DEPTH, 32);
+   video_update_settings();
 
    gui_needs_restart = TRUE;
    return (D_CLOSE);
 }
 
-static int video_buffer_size_menu_match_resolution (void)
-{
-   video_buffer_width  =
-   video_buffer_height = -1;
-   video_init_buffer ();
-
-   update_menus ();
-   cycle_video ();
-
-   return (D_O_K);
-}
-
-#define VIDEO_BUFFER_SIZE_MENU_HANDLER(width, height)  \
-   static int video_buffer_size_menu_##width##_##height (void)   \
-   {  \
-      video_buffer_width = width;   \
-      video_buffer_height = height; \
-      video_init_buffer ();   \
-      update_menus ();  \
-      cycle_video ();   \
-      return (D_O_K);   \
-   }
-
-VIDEO_BUFFER_SIZE_MENU_HANDLER(256, 240)
-VIDEO_BUFFER_SIZE_MENU_HANDLER(320, 240)
-VIDEO_BUFFER_SIZE_MENU_HANDLER(512, 480)
-VIDEO_BUFFER_SIZE_MENU_HANDLER(640, 480)
-VIDEO_BUFFER_SIZE_MENU_HANDLER(256, 256)
-VIDEO_BUFFER_SIZE_MENU_HANDLER(512, 512)
-
-#undef VIDEO_BUFFER_SIZE_MENU_HANDLER
-
-static int video_buffer_size_menu_custom (void)
-{
-   int width, height;
-
-   width  = video_buffer_width;
-   height = video_buffer_height;
-
-   if (get_resolution_input ("Custom", &width, &height))
-   {
-      video_buffer_width = width;
-      video_buffer_height = height;
-      video_init_buffer ();
-
-      update_menus ();
-
-      cycle_video ();
-   }
-      
-   return (D_O_K);
-}
-
 #define BLITTER_MENU_HANDLER(name, caption, id) \
    static int video_blitter_menu_##name (void)   \
    {  \
-      video_set_blitter (id); \
+      video_set_profile_enum(VIDEO_PROFILE_OUTPUT_BLITTER, id); \
+      video_update_settings(); \
       update_menus ();  \
       cycle_video ();   \
       message_local ("Video blitter set to %s.", caption);  \
       return (D_O_K);   \
    }
 
-BLITTER_MENU_HANDLER(automatic,          "automatic",            VIDEO_BLITTER_AUTOMATIC)
-BLITTER_MENU_HANDLER(normal,             "normal",               VIDEO_BLITTER_NORMAL)
-BLITTER_MENU_HANDLER(des,                "des engine",           VIDEO_BLITTER_DES)
-BLITTER_MENU_HANDLER(interpolated_2x,    "interpolated (2x)",    VIDEO_BLITTER_INTERPOLATED_2X)
-BLITTER_MENU_HANDLER(interpolated_2x_hq, "interpolated (2x HQ)", VIDEO_BLITTER_INTERPOLATED_2X_HQ)
-BLITTER_MENU_HANDLER(2xscl,              "2xSCL engine",         VIDEO_BLITTER_2XSCL)
-BLITTER_MENU_HANDLER(desii,              "des 2 engine",         VIDEO_BLITTER_DESII)
-BLITTER_MENU_HANDLER(super_2xscl,        "super 2xSCL engine",   VIDEO_BLITTER_SUPER_2XSCL)
-BLITTER_MENU_HANDLER(ultra_2xscl,        "ultra 2xSCL engine",   VIDEO_BLITTER_ULTRA_2XSCL)
-BLITTER_MENU_HANDLER(hq2x,               "hq2x filter",          VIDEO_BLITTER_HQ2X)
-BLITTER_MENU_HANDLER(ntsc,               "ntsc engine",          VIDEO_BLITTER_NTSC)
-BLITTER_MENU_HANDLER(interpolated_3x,    "interpolated (3x)",    VIDEO_BLITTER_INTERPOLATED_3X)
-BLITTER_MENU_HANDLER(hq3x,               "hq3x filter",          VIDEO_BLITTER_HQ3X)
-BLITTER_MENU_HANDLER(hq4x,               "hq4x filter",          VIDEO_BLITTER_HQ4X)
-BLITTER_MENU_HANDLER(stretched,          "stretched",            VIDEO_BLITTER_STRETCHED)
+BLITTER_MENU_HANDLER(disabled,                "disabled",                   VIDEO_BLITTER_NONE)
+BLITTER_MENU_HANDLER(interpolation,           "HQ2X",                       VIDEO_BLITTER_INTERPOLATION)
+BLITTER_MENU_HANDLER(interpolation_scanlines, "interpolation w/ scanlines", VIDEO_BLITTER_INTERPOLATION_SCANLINES)
+BLITTER_MENU_HANDLER(interpolation_tv_mode,   "interpolated TV mode",       VIDEO_BLITTER_INTERPOLATION_TV_MODE)
+BLITTER_MENU_HANDLER(hq2x,                    "HQ2X",                       VIDEO_BLITTER_HQ2X)
+BLITTER_MENU_HANDLER(hq3x,                    "HQ3X",                       VIDEO_BLITTER_HQ3X)
+BLITTER_MENU_HANDLER(hq4x,                    "HQ4X",                       VIDEO_BLITTER_HQ4X)
+BLITTER_MENU_HANDLER(ntsc,                    "NTSC engine",                VIDEO_BLITTER_NTSC)
 
 #undef BLITTER_MENU_HANDLER
 
 static int video_blitter_menu_configure (void)
 {
-   switch (video_get_blitter ())
+   switch (video_get_profile_enum(VIDEO_PROFILE_OUTPUT_BLITTER))
    {
       case VIDEO_BLITTER_NTSC:
       {
@@ -2895,27 +2737,27 @@ static int video_blitter_menu_configure (void)
 
          /* Load configuration. */
 
-         objhue->d2    = (get_config_int ("ntsc", "hue",         0) + 100);
-         objhuew->d2   = (get_config_int ("ntsc", "hue_warping", 0) + 100);
-         objsat->d2    = (get_config_int ("ntsc", "saturation",  20) + 100);
-         objbright->d2 = (get_config_int ("ntsc", "brightness",  10) + 100);
-         objcon->d2    = (get_config_int ("ntsc", "contrast",    0) + 100);
-         objgamma->d2  = (get_config_int ("ntsc", "gamma",       0) + 100);
-         objsharp->d2  = (get_config_int ("ntsc", "sharpness",   40) + 100);
-         objres->d2    = (get_config_int ("ntsc", "resolution",  30) + 100);
-         objart->d2    = (get_config_int ("ntsc", "artifacts",   0) + 100);
-         objbleed->d2  = (get_config_int ("ntsc", "bleed",       0) + 100);
-         objfring->d2  = (get_config_int ("ntsc", "fringing",    0) + 100);
+         objhue->d2    = (get_config_int ("video", "ntsc.hue",         0) + 100);
+         objhuew->d2   = (get_config_int ("video", "ntsc.hue_warping", 0) + 100);
+         objsat->d2    = (get_config_int ("video", "ntsc.saturation",  20) + 100);
+         objbright->d2 = (get_config_int ("video", "ntsc.brightness",  10) + 100);
+         objcon->d2    = (get_config_int ("video", "ntsc.contrast",    0) + 100);
+         objgamma->d2  = (get_config_int ("video", "ntsc.gamma",       0) + 100);
+         objsharp->d2  = (get_config_int ("video", "ntsc.sharpness",   40) + 100);
+         objres->d2    = (get_config_int ("video", "ntsc.resolution",  30) + 100);
+         objart->d2    = (get_config_int ("video", "ntsc.artifacts",   0) + 100);
+         objbleed->d2  = (get_config_int ("video", "ntsc.bleed",       0) + 100);
+         objfring->d2  = (get_config_int ("video", "ntsc.fringing",    0) + 100);
 
-         merge_fields = get_config_int ("ntsc", "merge_fields", 1); /* Default On */
+         merge_fields = get_config_int ("video", "ntsc.merge_fields", 1); /* Default On */
          if (merge_fields)
             objmerge->flags |= D_SELECTED;
          
-         doubling = fix (get_config_int ("ntsc", "doubling", 2), 0, 2); /* Default Darken */
+         doubling = fix (get_config_int ("video", "ntsc.doubling", 2), 0, 2); /* Default Darken */
 
          objdbl[doubling]->flags |= D_SELECTED;
 
-         interpolated = get_config_int ("ntsc", "interpolated", 1);  /* Default On */
+         interpolated = get_config_int ("video", "ntsc.interpolated", 1);  /* Default On */
          if (interpolated)
             objinterp->flags |= D_SELECTED;
 
@@ -2929,21 +2771,21 @@ static int video_blitter_menu_configure (void)
          {
             /* Save configuration. */
 
-            set_config_int ("ntsc", "hue",         (objhue->d2    - 100));
-            set_config_int ("ntsc", "hue_warping", (objhuew->d2   - 100));
-            set_config_int ("ntsc", "saturation",  (objsat->d2    - 100));
-            set_config_int ("ntsc", "brightness",  (objbright->d2 - 100));
-            set_config_int ("ntsc", "contrast",    (objcon->d2    - 100));
-            set_config_int ("ntsc", "gamma",       (objgamma->d2  - 100));
-            set_config_int ("ntsc", "sharpness",   (objsharp->d2  - 100));
-            set_config_int ("ntsc", "resolution",  (objres->d2    - 100));
-            set_config_int ("ntsc", "artifacts",   (objart->d2    - 100));
-            set_config_int ("ntsc", "bleed",       (objbleed->d2  - 100));
-            set_config_int ("ntsc", "fringing",    (objfring->d2  - 100));
+            set_config_int ("video", "ntsc.hue",         (objhue->d2    - 100));
+            set_config_int ("video", "ntsc.hue_warping", (objhuew->d2   - 100));
+            set_config_int ("video", "ntsc.saturation",  (objsat->d2    - 100));
+            set_config_int ("video", "ntsc.brightness",  (objbright->d2 - 100));
+            set_config_int ("video", "ntsc.contrast",    (objcon->d2    - 100));
+            set_config_int ("video", "ntsc.gamma",       (objgamma->d2  - 100));
+            set_config_int ("video", "ntsc.sharpness",   (objsharp->d2  - 100));
+            set_config_int ("video", "ntsc.resolution",  (objres->d2    - 100));
+            set_config_int ("video", "ntsc.artifacts",   (objart->d2    - 100));
+            set_config_int ("video", "ntsc.bleed",       (objbleed->d2  - 100));
+            set_config_int ("video", "ntsc.fringing",    (objfring->d2  - 100));
 
             merge_fields = ((objmerge->flags & D_SELECTED) ? 1 : 0);
 
-            set_config_int ("ntsc", "merge_fields", merge_fields);
+            set_config_int ("video", "ntsc.merge_fields", merge_fields);
 
             for (index = 0; index < 3; index++)
             {
@@ -2951,14 +2793,14 @@ static int video_blitter_menu_configure (void)
                   doubling = index;
             }
 
-            set_config_int ("ntsc", "doubling", doubling);
+            set_config_int ("video", "ntsc.doubling", doubling);
 
             interpolated = ((objinterp->flags & D_SELECTED) ? 1 : 0);
 
-            set_config_int ("ntsc", "interpolated", interpolated);
+            set_config_int ("video", "ntsc.interpolated", interpolated);
 
             /* Reinitialize blitter to the load new configuration. */
-            video_blitter_reinit ();
+            //video_blitter_reinit ();
 
             /* Display changes. */
             cycle_video ();
@@ -2985,33 +2827,7 @@ static int video_blitter_menu_configure (void)
             set_config_int ("ntsc", "preset", preset);
 
             /* Reinitialize blitter to the load new configuration. */
-            video_blitter_reinit ();
-
-            /* Display changes. */
-            cycle_video ();
-         }
-
-         break;
-      }
-
-      case VIDEO_BLITTER_STRETCHED:
-      {
-         int width, height;
-
-         /* Load configuration. */
-
-         width  = get_config_int ("video", "stretch_width",  512);
-         height = get_config_int ("video", "stretch_height", 480);
-
-         if (get_resolution_input ("Stretched", &width, &height))
-         {
-            /* Save configuration. */
-
-            set_config_int ("video", "stretch_width",  width);
-            set_config_int ("video", "stretch_height", height);
-
-            /* Reinitialize blitter to the load new configuration. */
-            video_blitter_reinit ();
+            //video_blitter_reinit ();
 
             /* Display changes. */
             cycle_video ();
@@ -3033,60 +2849,6 @@ static int video_blitter_menu_configure (void)
    return (D_O_K);
 }
 
-static int video_filters_menu_scanlines_25_percent (void)
-{
-   LIST filters;
-
-   filters = video_get_filter_list ();
-   LIST_TOGGLE(filters, VIDEO_FILTER_SCANLINES_LOW);
-   video_set_filter_list (filters);
-
-   update_menus ();
-
-   cycle_video ();
-
-   message_local ("Scanlines video filter %s.", get_enabled_text_ex
-      ((filters & VIDEO_FILTER_SCANLINES_LOW), "enabled (25%)"));
-
-   return (D_O_K);
-}
-
-static int video_filters_menu_scanlines_50_percent (void)
-{
-   LIST filters;
-
-   filters = video_get_filter_list ();
-   LIST_TOGGLE(filters, VIDEO_FILTER_SCANLINES_MEDIUM);
-   video_set_filter_list (filters);
-
-   update_menus ();
-
-   cycle_video ();
-
-   message_local ("Scanlines video filter %s.", get_enabled_text_ex
-      ((filters & VIDEO_FILTER_SCANLINES_MEDIUM), "enabled (50%)"));
-
-   return (D_O_K);
-}
-
-static int video_filters_menu_scanlines_100_percent (void)
-{
-   LIST filters;
-
-   filters = video_get_filter_list ();
-   LIST_TOGGLE(filters, VIDEO_FILTER_SCANLINES_HIGH);
-   video_set_filter_list (filters);
-
-   update_menus ();
-
-   cycle_video ();
-
-   message_local ("Scanlines video filter %s.", get_enabled_text_ex
-      ((filters & VIDEO_FILTER_SCANLINES_HIGH), "enabled (100%)"));
-
-   return (D_O_K);
-}
-
 static int video_layers_menu_show_back_sprites (void)
 {
    const BOOL setting = ppu_get_option(PPU_OPTION_ENABLE_SPRITE_BACK_LAYER);
@@ -3094,6 +2856,11 @@ static int video_layers_menu_show_back_sprites (void)
    update_menus ();
 
    message_local ("Video sprites layer A %s.", get_enabled_text(!setting));
+
+   if(gui_is_active) {
+      frames_to_execute = 1;
+      return D_CLOSE;
+   }
 
    return (D_O_K);
 }
@@ -3105,6 +2872,11 @@ static int video_layers_menu_show_front_sprites (void)
    update_menus ();
 
    message_local ("Video sprites layer B %s.", get_enabled_text(!setting));
+
+   if(gui_is_active) {
+      frames_to_execute = 1;
+      return D_CLOSE;
+   }
 
    return (D_O_K);
 }
@@ -3118,43 +2890,10 @@ static int video_layers_menu_show_background (void)
 
    message_local ("Video background layer %s.", get_enabled_text(!setting));
 
-   return (D_O_K);
-}
-
-static int video_layers_menu_horizontal_overscan (void)
-{
-   LIST clipping = video_edge_clipping;
-
-   if (clipping & VIDEO_EDGE_CLIPPING_HORIZONTAL)
-      clipping &= ~VIDEO_EDGE_CLIPPING_HORIZONTAL;
-   else
-      clipping |= VIDEO_EDGE_CLIPPING_HORIZONTAL;
-
-   video_edge_clipping = clipping;
-
-   update_menus ();
-
-   message_local ("Video horizontal edge clipping %s.", get_enabled_text
-      (video_edge_clipping & VIDEO_EDGE_CLIPPING_HORIZONTAL));
-
-   return (D_O_K);
-}
-
-static int video_layers_menu_vertical_overscan (void)
-{
-   LIST clipping = video_edge_clipping;
-
-   if (clipping & VIDEO_EDGE_CLIPPING_VERTICAL)
-      clipping &= ~VIDEO_EDGE_CLIPPING_VERTICAL;
-   else
-      clipping |= VIDEO_EDGE_CLIPPING_VERTICAL;
-
-   video_edge_clipping = clipping;
-
-   update_menus ();
-
-   message_local ("Video vertical edge clipping %s.", get_enabled_text
-      (video_edge_clipping & VIDEO_EDGE_CLIPPING_VERTICAL));
+   if(gui_is_active) {
+      frames_to_execute = 1;
+      return D_CLOSE;
+   }
 
    return (D_O_K);
 }
@@ -3162,67 +2901,19 @@ static int video_layers_menu_vertical_overscan (void)
 #define PALETTE_MENU_HANDLER(name, caption, id) \
    static int video_palette_menu_##name (void)   \
    {  \
-      video_set_palette (DATA_TO_RGB(id));  \
-      video_set_palette_id (DATA_INDEX(id)); \
-      update_menus ();  \
-      cycle_video ();   \
-      message_local ("Video palette set to %s.", caption);  \
-      return (D_O_K);   \
+      video_set_profile_enum(VIDEO_PROFILE_COLOR_PALETTE, id); \
+      video_update_settings(); \
+      frames_to_execute = 1; \
+      return (D_CLOSE); \ 
    }
 
-#ifdef ALLEGRO_WINDOWS
-/* Kludge to get around a conflict with Win32 API. */
-#undef DEFAULT_PALETTE
-#endif
-
-PALETTE_MENU_HANDLER(ntsc_color,     "NTSC color",     DEFAULT_PALETTE)
-PALETTE_MENU_HANDLER(ntsc_grayscale, "NTSC grayscale", GRAYSCALE_PALETTE)
-PALETTE_MENU_HANDLER(gnuboy,         "gnuboy",         GNUBOY_PALETTE)
-PALETTE_MENU_HANDLER(nester,         "NESter",         NESTER_PALETTE)
-PALETTE_MENU_HANDLER(nesticle,       "NESticle",       NESTICLE_PALETTE)
-PALETTE_MENU_HANDLER(modern_ntsc,    "modern NTSC",    MODERN_NTSC_PALETTE)
-PALETTE_MENU_HANDLER(modern_pal,     "modern PAL",     MODERN_PAL_PALETTE)
-PALETTE_MENU_HANDLER(ega_mode_1,     "EGA (mode 1)",   EGA_PALETTE_1)
-PALETTE_MENU_HANDLER(ega_mode_2,     "EGA (mode 2)",   EGA_PALETTE_2)
+PALETTE_MENU_HANDLER(nester,   "NESter palette",   VIDEO_PALETTE_NESTER)
+PALETTE_MENU_HANDLER(nesticle, "NESticle palette", VIDEO_PALETTE_NESTICLE)
+PALETTE_MENU_HANDLER(ntsc,     "NTSC",             VIDEO_PALETTE_NTSC)
+PALETTE_MENU_HANDLER(pal,      "PAL",              VIDEO_PALETTE_PAL)
+PALETTE_MENU_HANDLER(rgb,      "RGB",              VIDEO_PALETTE_RGB)
 
 #undef PALETTE_MENU_HANDLER
-
-static int video_palette_menu_custom (void)
-{
-   PACKFILE *file;
-   int index;
-
-   file = pack_fopen ("fakenes.pal", "r");
-
-   if (!file)
-   {
-      gui_message (GUI_ERROR_COLOR, "Error opening FAKENES.PAL!");
-
-      return (D_O_K);
-   }
-
-   memset (custom_palette, 0, sizeof (PALETTE));
-
-   for (index = 1; index <= 64; index++)
-   {
-      custom_palette[index].r = ROUND((pack_getc (file) / 4.0));
-      custom_palette[index].g = ROUND((pack_getc (file) / 4.0));
-      custom_palette[index].b = ROUND((pack_getc (file) / 4.0));
-   }
-
-   pack_fclose (file);
-
-   video_set_palette (((RGB *)custom_palette));
-   video_set_palette_id (-1);
-
-   update_menus ();
-
-   cycle_video ();
-
-   message_local ("Video palette set to custom.");
-    
-   return (D_O_K);
-}
 
 static int input_menu_configure (void)
 {

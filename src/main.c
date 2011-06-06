@@ -74,6 +74,10 @@ unsigned timing_clock = 0;
    -1 = disabled */
 int frames_to_execute = -1;
 
+/* As the PPU can generate a frame at any time, this is used to lock the main loop with PPU
+   frame generation for timing purposes. */
+BOOL frame_lock = FALSE;
+
 /* Counters. */
 static int executed_frames = 0;
 static int rendered_frames = 0;
@@ -432,27 +436,26 @@ int main (int argc, char *argv[])
 
          input_process ();
 
-         /* Enable/disable PPU rendering for frame skipping. This only affects visual output
-            (i.e buffer writes), not emulation. This is a cached setting so it might not
-            take effect immediately, but on the next PPU frame. */
          if(redraw_flag) {
             /* Perform a full render. */
 
-            // TODO: The PPU should manage these counters now.
             rendered_frames++;
             actual_fps_count++;
 
-            // Enable rendering.
+            /* Enable rendering. */
             ppu_set_option(PPU_OPTION_ENABLE_RENDERING, TRUE);
          }
          else
-            // Disable rendering.
+            /* Disable PPU rendering for frame skipping. This only affects visual output
+               (i.e buffer writes), not emulation. This serves more as a hint, it is not
+               guaranteed to be honored by the PPU, especially if it is currently in mid-frame. */
             ppu_set_option(PPU_OPTION_ENABLE_RENDERING, FALSE);
 
-         int line, total_lines;
-         total_lines = PPU_TOTAL_LINES; // Cache it
-
-         for(line = 0; line < total_lines; line++) {
+         /* Execute a scanline at a time, waiting for the PPU to complete a frame. Note that this
+            just means the PPU completes a single frame, it does not account for when the frame
+            was completed or how long the PPU continues running afterwards. But it is sufficient
+            to sync the PPU with the main timing loop.*/
+         while(!frame_lock) {
             apu_predict_irqs(SCANLINE_CLOCKS);
 
             if(mmc_predict_asynchronous_irqs)
@@ -465,6 +468,9 @@ int main (int argc, char *argv[])
             apu_sync_update();
             ppu_sync_update();
          }
+
+         /* Clear lock. */
+         frame_lock = FALSE;
 
          if ((frames_to_execute != -1) &&
              (frames_to_execute > 0))

@@ -96,6 +96,7 @@ extern BOOL timing_fast_forward;
 extern unsigned timing_clock;
 
 extern int frames_to_execute;
+extern BOOL frame_lock;
 
 extern int machine_init (void);
 extern void machine_exit (void);

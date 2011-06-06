@@ -92,7 +92,7 @@ typedef struct _RenderSpriteEvaluation {
 } RenderSpriteEvaluation;
 
 typedef struct _RenderContext {
-   uint8* buffer;	// Rendering framebuffer
+   uint16* buffer;	// Rendering framebuffer
    int16 line;		// Current scanline
    uint8 pixel;		// Current pixel position
    uint16 clock;	// Current clock cycle (1-341)

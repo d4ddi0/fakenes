@@ -21,17 +21,11 @@ DEFINE_MENU(audio_channels_menu);
 DEFINE_MENU(audio_output_buffer_size_menu);
 DEFINE_MENU(audio_output_menu);
 DEFINE_MENU(audio_menu);
-DEFINE_MENU(video_driver_dos_menu);
-DEFINE_MENU(video_driver_windows_menu);
-DEFINE_MENU(video_driver_linux_menu);
-DEFINE_MENU(video_driver_unix_menu);
 DEFINE_MENU(video_driver_menu);
 DEFINE_MENU(video_resolution_proportionate_menu);
 DEFINE_MENU(video_resolution_menu);
 DEFINE_MENU(video_color_depth_menu);
-DEFINE_MENU(video_buffer_size_menu);
 DEFINE_MENU(video_blitter_menu);
-DEFINE_MENU(video_filters_menu);
 DEFINE_MENU(video_layers_menu);
 DEFINE_MENU(video_palette_menu);
 DEFINE_MENU(video_menu);
@@ -423,154 +417,94 @@ static const MENU audio_menu_base[] =
    MENU_ENDCAP
 };
 
-#ifdef ALLEGRO_DOS
-
-DEFINE_MENU_CALLBACK(video_driver_dos_menu_vga);
-DEFINE_MENU_CALLBACK(video_driver_dos_menu_vga_mode_x);
-DEFINE_MENU_CALLBACK(video_driver_dos_menu_vesa);
-DEFINE_MENU_CALLBACK(video_driver_dos_menu_vesa_2_banked);
-DEFINE_MENU_CALLBACK(video_driver_dos_menu_vesa_2_linear);
-DEFINE_MENU_CALLBACK(video_driver_dos_menu_vesa_3);
-DEFINE_MENU_CALLBACK(video_driver_dos_menu_vesa_vbe_af);
-
-static const MENU video_driver_dos_menu_base[] =
-{
-   { "&VGA",           video_driver_dos_menu_vga,           NULL, 0, NULL },
-   { "VGA Mode-&X",    video_driver_dos_menu_vga_mode_x,    NULL, 0, NULL },
-   { "V&ESA",          video_driver_dos_menu_vesa,          NULL, 0, NULL },
-   { "VESA 2 &Banked", video_driver_dos_menu_vesa_2_banked, NULL, 0, NULL },
-   { "VESA 2 &Linear", video_driver_dos_menu_vesa_2_linear, NULL, 0, NULL },
-   { "VE&SA 3",        video_driver_dos_menu_vesa_3,        NULL, 0, NULL },
-   { "VESA VBE/&AF",   video_driver_dos_menu_vesa_vbe_af,   NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-#else /* ALLEGRO_DOS */
-
-static const MENU video_driver_dos_menu_base[] =
-{
-   MENU_ENDCAP
-};
-
-#endif   /* !ALLEGRO_DOS */
-
-#ifdef ALLEGRO_WINDOWS
-
-DEFINE_MENU_CALLBACK(video_driver_windows_menu_directx);
-DEFINE_MENU_CALLBACK(video_driver_windows_menu_directx_window);
-DEFINE_MENU_CALLBACK(video_driver_windows_menu_directx_overlay);
-DEFINE_MENU_CALLBACK(video_driver_windows_menu_gdi);
-
-static const MENU video_driver_windows_menu_base[] =
-{
-   { "&DirectX",         video_driver_windows_menu_directx,         NULL, 0, NULL },
-   { "DirectX &Window",  video_driver_windows_menu_directx_window,  NULL, 0, NULL },
-   { "DirectX &Overlay", video_driver_windows_menu_directx_overlay, NULL, 0, NULL },
-   { "&GDI",             video_driver_windows_menu_gdi,             NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-#else /* ALLEGRO_WINDOWS */
-
-static const MENU video_driver_windows_menu_base[] =
-{
-   MENU_ENDCAP
-};
-
-#endif   /* !ALLEGRO_WINDOWS */
-
-#ifdef ALLEGRO_LINUX
-
-DEFINE_MENU_CALLBACK(video_driver_linux_menu_vga);
-DEFINE_MENU_CALLBACK(video_driver_linux_menu_vga_mode_x);
-DEFINE_MENU_CALLBACK(video_driver_linux_menu_vesa_vbe_af);
-DEFINE_MENU_CALLBACK(video_driver_linux_menu_framebuffer);
-DEFINE_MENU_CALLBACK(video_driver_linux_menu_svgalib);
-
-static const MENU video_driver_linux_menu_base[] =
-{
-   { "&VGA",         video_driver_linux_menu_vga,         NULL, 0, NULL },
-   { "VGA Mode-&X",  video_driver_linux_menu_vga_mode_x,  NULL, 0, NULL },
-   { "VESA VBE/&AF", video_driver_linux_menu_vesa_vbe_af, NULL, 0, NULL },
-   { "&Framebuffer", video_driver_linux_menu_framebuffer, NULL, 0, NULL },
-   { "&SVGAlib",     video_driver_linux_menu_svgalib,     NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-#else /* ALLEGRO_LINUX */
-
-static const MENU video_driver_linux_menu_base[] =
-{
-   MENU_ENDCAP
-};
-
-#endif   /* !ALLEGRO_LINUX */
-
-#ifdef ALLEGRO_UNIX
-
-DEFINE_MENU_CALLBACK(video_driver_unix_menu_x_windows);
-DEFINE_MENU_CALLBACK(video_driver_unix_menu_x_windows_full);
-DEFINE_MENU_CALLBACK(video_driver_unix_menu_x_dga);
-DEFINE_MENU_CALLBACK(video_driver_unix_menu_x_dga_full);
-DEFINE_MENU_CALLBACK(video_driver_unix_menu_x_dga_2);
-
-static const MENU video_driver_unix_menu_base[] =
-{
-   { "X &Windows",      video_driver_unix_menu_x_windows,      NULL, 0, NULL },
-   { "X &Windows Full", video_driver_unix_menu_x_windows_full, NULL, 0, NULL },
-   { "X/&DGA",          video_driver_unix_menu_x_dga,          NULL, 0, NULL },
-   { "X/&DGA FULL",     video_driver_unix_menu_x_dga_full,     NULL, 0, NULL },
-   { "X/D&GA 2",        video_driver_unix_menu_x_dga_2,        NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-#else /* ALLEGRO_UNIX */
-
-static const MENU video_driver_unix_menu_base[] =
-{
-   MENU_ENDCAP
-};
-
-#endif   /* !ALLEGRO_UNIX */
-
 DEFINE_MENU_CALLBACK(video_driver_menu_automatic);
 DEFINE_MENU_CALLBACK(video_driver_menu_safe);
 
 #ifdef USE_ALLEGROGL
-
 DEFINE_MENU_CALLBACK(video_driver_menu_opengl);
-DEFINE_MENU_CALLBACK(video_driver_menu_opengl_full);
-DEFINE_MENU_CALLBACK(video_driver_menu_opengl_win);
+DEFINE_MENU_CALLBACK(video_driver_menu_opengl_fullscreen);
+DEFINE_MENU_CALLBACK(video_driver_menu_opengl_windowed);
+#endif
 
-#endif   /* USE_ALLEGROGL */
+#ifdef ALLEGRO_DOS
+DEFINE_MENU_CALLBACK(video_driver_menu_vesa);
+DEFINE_MENU_CALLBACK(video_driver_menu_vesa_2_banked);
+DEFINE_MENU_CALLBACK(video_driver_menu_vesa_2_linear);
+DEFINE_MENU_CALLBACK(video_driver_menu_vesa_3);
+DEFINE_MENU_CALLBACK(video_driver_menu_vesa_vbe_af);
+DEFINE_MENU_CALLBACK(video_driver_menu_vga);
+DEFINE_MENU_CALLBACK(video_driver_menu_vga_mode_x);
+#endif
+
+#ifdef ALLEGRO_LINUX
+DEFINE_MENU_CALLBACK(video_driver_menu_framebuffer);
+DEFINE_MENU_CALLBACK(video_driver_menu_svgalib);
+DEFINE_MENU_CALLBACK(video_driver_menu_vesa_vbe_af);
+DEFINE_MENU_CALLBACK(video_driver_menu_vga);
+DEFINE_MENU_CALLBACK(video_driver_menu_vga_mode_x);
+#endif
+
+#ifdef ALLEGRO_UNIX
+DEFINE_MENU_CALLBACK(video_driver_menu_dga);
+DEFINE_MENU_CALLBACK(video_driver_menu_dga_fullscreen);
+DEFINE_MENU_CALLBACK(video_driver_menu_dga_2);
+DEFINE_MENU_CALLBACK(video_driver_menu_x_windows);
+DEFINE_MENU_CALLBACK(video_driver_menu_x_windows_fullscreen);
+#endif
+
+#ifdef ALLEGRO_WINDOWS
+DEFINE_MENU_CALLBACK(video_driver_menu_directx);
+DEFINE_MENU_CALLBACK(video_driver_menu_directx_overlay);
+DEFINE_MENU_CALLBACK(video_driver_menu_directx_windowed);
+DEFINE_MENU_CALLBACK(video_driver_menu_gdi);
+#endif
 
 static const MENU video_driver_menu_base[] =
 {
-   { "&Automatic",   video_driver_menu_automatic,   NULL,                                   0, NULL },
-   { "&Safe",        video_driver_menu_safe,        NULL,                                   0, NULL },
-
-#ifdef USE_ALLEGROGL
-
-   { "&OpenGL",      video_driver_menu_opengl,      NULL,                                   0, NULL },
-   { "OpenGL &Full", video_driver_menu_opengl_full, NULL,                                   0, NULL },
-   { "OpenGL &Win",  video_driver_menu_opengl_win,  NULL,                                   0, NULL },
+   { "&Automatic",              video_driver_menu_automatic,                 NULL, 0, NULL },
+   { "&Safe",                   video_driver_menu_safe,                      NULL, 0, NULL },
    MENU_SPLITTER,
-
-#endif   /* USE_ALLEGROGL */
-
-   /* Yay.  The cost of prettiness. :) */
-
-#ifdef ALLEGRO_DOS
-   { "&DOS",         NULL,                          IMPORT_MENU(video_driver_dos_menu),     0, NULL },
+   { "Accelerated",             NULL,                                   NULL, 0, NULL },
+#ifdef USE_ALLEGROGL
+   { "  &OpenGL",               video_driver_menu_opengl,               NULL, 0, NULL },
+   { "  OpenGL &Fullscreen",    video_driver_menu_opengl_fullscreen,    NULL, 0, NULL },
+   { "  OpenGL &Windowed",      video_driver_menu_opengl_windowed,      NULL, 0, NULL },
 #endif
-#ifdef ALLEGRO_WINDOWS
-   { "&Windows",     NULL,                          IMPORT_MENU(video_driver_windows_menu), 0, NULL },
+#ifdef ALLEGRO_DOS
+   { "  V&ESA",                 video_driver_menu_vesa,                 NULL, 0, NULL },
+   { "  VESA 2 &Banked",        video_driver_menu_vesa_2_banked,        NULL, 0, NULL },
+   { "  VESA 2 &Linear",        video_driver_menu_vesa_2_linear,        NULL, 0, NULL },
+   { "  VE&SA 3",               video_driver_menu_vesa_3,               NULL, 0, NULL },
+   { "  VESA VBE/&AF",          video_driver_menu_vesa_vbe_af,          NULL, 0, NULL },
+   { "  &VGA",                  video_driver_menu_vga,                  NULL, 0, NULL },
+   { "  VGA Mode-&X",           video_driver_menu_vga_mode_x,           NULL, 0, NULL },
 #endif
 #ifdef ALLEGRO_LINUX
-   { "&Linux",       NULL,                          IMPORT_MENU(video_driver_linux_menu),   0, NULL },
+   { "  &SVGAlib",              video_driver_menu_svgalib,              NULL, 0, NULL },
+   { "  VESA VBE/&AF",          video_driver_menu_vesa_vbe_af,          NULL, 0, NULL },
+   { "  &VGA",                  video_driver_menu_vga,                  NULL, 0, NULL },
+   { "  VGA Mode-&X",           video_driver_menu_vga_mode_x,           NULL, 0, NULL },
 #endif
 #ifdef ALLEGRO_UNIX
-   { "&Unix",        NULL,                          IMPORT_MENU(video_driver_unix_menu),    0, NULL },
+   { "  &DGA",                  video_driver_menu_dga,                  NULL, 0, NULL },
+   { "  &DGA Fullscreen",       video_driver_menu_dga_fullscreen,       NULL, 0, NULL },
+   { "  D&GA 2",                video_driver_menu_dga_2,                NULL, 0, NULL },
+#endif
+#ifdef ALLEGRO_WINDOWS
+   { "  &DirectX",              video_driver_menu_directx,              NULL, 0, NULL },
+   { "  DirectX &Overlay",      video_driver_menu_directx_overlay,      NULL, 0, NULL },
+   { "  DirectX &Windowed",     video_driver_menu_directx_windowed,     NULL, 0, NULL },
+#endif
+   { "Software",                NULL,                                   NULL, 0, NULL },
+#ifdef ALLEGRO_LINUX
+   { "  &Framebuffer",          video_driver_menu_framebuffer ,         NULL, 0, NULL },
+#endif
+#ifdef ALLEGRO_UNIX
+   { "  X &Windows",            video_driver_menu_x_windows,            NULL, 0, NULL },
+   { "  X &Windows Fullscreen", video_driver_menu_x_windows_fullscreen, NULL, 0, NULL },
+#endif
+#ifdef ALLEGRO_WINDOWS
+   { "  &GDI",                  video_driver_menu_gdi,                  NULL, 0, NULL },
 #endif
    MENU_ENDCAP
 };
@@ -645,151 +579,75 @@ static const MENU video_color_depth_menu_base[] =
    MENU_ENDCAP
 };
 
-DEFINE_MENU_CALLBACK(video_buffer_size_menu_match_resolution);
-DEFINE_MENU_CALLBACK(video_buffer_size_menu_256_240);
-DEFINE_MENU_CALLBACK(video_buffer_size_menu_320_240);
-DEFINE_MENU_CALLBACK(video_buffer_size_menu_512_480);
-DEFINE_MENU_CALLBACK(video_buffer_size_menu_640_480);
-DEFINE_MENU_CALLBACK(video_buffer_size_menu_256_256);
-DEFINE_MENU_CALLBACK(video_buffer_size_menu_512_512);
-DEFINE_MENU_CALLBACK(video_buffer_size_menu_custom);
-
-static const MENU video_buffer_size_menu_base[] =
-{
-   { "&Match Resolution", video_buffer_size_menu_match_resolution, NULL, 0, NULL },
-   MENU_SPLITTER,
-   { "Standard",          NULL,                                    NULL, 0, NULL },
-   { "  &1: 256x240",     video_buffer_size_menu_256_240,          NULL, 0, NULL },
-   { "  &2: 320x240",     video_buffer_size_menu_320_240,          NULL, 0, NULL },
-   { "  &3: 512x480",     video_buffer_size_menu_512_480,          NULL, 0, NULL },
-   { "  &4: 640x480",     video_buffer_size_menu_640_480,          NULL, 0, NULL },
-   { "OpenGL",            NULL,                                    NULL, 0, NULL },
-   { "  &5: 256x256",     video_buffer_size_menu_256_256,          NULL, 0, NULL },
-   { "  &6: 512x512",     video_buffer_size_menu_512_512,          NULL, 0, NULL },
-   { "&Custom...",        video_buffer_size_menu_custom,           NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(video_blitter_menu_automatic);
-DEFINE_MENU_CALLBACK(video_blitter_menu_normal);
-DEFINE_MENU_CALLBACK(video_blitter_menu_des);
-DEFINE_MENU_CALLBACK(video_blitter_menu_interpolated_2x);
-DEFINE_MENU_CALLBACK(video_blitter_menu_interpolated_2x_hq);
-DEFINE_MENU_CALLBACK(video_blitter_menu_2xscl);
-DEFINE_MENU_CALLBACK(video_blitter_menu_desii);
-DEFINE_MENU_CALLBACK(video_blitter_menu_super_2xscl);
-DEFINE_MENU_CALLBACK(video_blitter_menu_ultra_2xscl);
+DEFINE_MENU_CALLBACK(video_blitter_menu_disabled);
 DEFINE_MENU_CALLBACK(video_blitter_menu_hq2x);
-DEFINE_MENU_CALLBACK(video_blitter_menu_interpolated_3x);
 DEFINE_MENU_CALLBACK(video_blitter_menu_hq3x);
 DEFINE_MENU_CALLBACK(video_blitter_menu_hq4x);
-DEFINE_MENU_CALLBACK(video_blitter_menu_stretched);
+DEFINE_MENU_CALLBACK(video_blitter_menu_interpolation);
+DEFINE_MENU_CALLBACK(video_blitter_menu_interpolation_scanlines);
+DEFINE_MENU_CALLBACK(video_blitter_menu_interpolation_tv_mode);
 DEFINE_MENU_CALLBACK(video_blitter_menu_ntsc);
 DEFINE_MENU_CALLBACK(video_blitter_menu_configure);
 
 static const MENU video_blitter_menu_base[] =
 {
-   { "&Automatic",                  video_blitter_menu_automatic,          NULL, 0, NULL },
-   MENU_SPLITTER,
-   { "Basic",                       NULL,                                  NULL, 0, NULL },
-   { "   &1: Normal",               video_blitter_menu_normal,             NULL, 0, NULL },
-   { "   &2: Interpolated 2X",      video_blitter_menu_interpolated_2x,    NULL, 0, NULL },
-   { "   &3: Interpolated 2X (HQ)", video_blitter_menu_interpolated_2x_hq, NULL, 0, NULL },
-   { "   &4: Interpolated 3X",      video_blitter_menu_interpolated_3x,    NULL, 0, NULL },
-   { "   &5: DES",                  video_blitter_menu_des,                NULL, 0, NULL },
-   { "   &6: DESii",                video_blitter_menu_desii,              NULL, 0, NULL },
-   { "   &7: 2xSCL",                video_blitter_menu_2xscl,              NULL, 0, NULL },
-   { "   &8: Super 2xSCL",          video_blitter_menu_super_2xscl,        NULL, 0, NULL },
-   { "   &9: Ultra 2xSCL",          video_blitter_menu_ultra_2xscl,        NULL, 0, NULL },
-   { "  1&0: HQ2X",                 video_blitter_menu_hq2x,               NULL, 0, NULL },
-   { "  11: &HQ3X",                 video_blitter_menu_hq3x,               NULL, 0, NULL },
-   { "  12: H&Q4X",                 video_blitter_menu_hq4x,               NULL, 0, NULL },
-   { "Advanced",                    NULL,                                  NULL, 0, NULL },
-   { "  13: &Stretched",            video_blitter_menu_stretched,          NULL, 0, NULL },
-   { "  14: &NTSC",                 video_blitter_menu_ntsc,               NULL, 0, NULL },
-   { "&Configure...",               video_blitter_menu_configure,          NULL, 0, NULL },
-   MENU_ENDCAP
-};
-
-DEFINE_MENU_CALLBACK(video_filters_menu_scanlines_25_percent);
-DEFINE_MENU_CALLBACK(video_filters_menu_scanlines_50_percent);
-DEFINE_MENU_CALLBACK(video_filters_menu_scanlines_100_percent);
-
-static const MENU video_filters_menu_base[] =
-{
-   { "&Scanlines (25%)",  video_filters_menu_scanlines_25_percent,  NULL, 0, NULL },
-   { "S&canlines (50%)",  video_filters_menu_scanlines_50_percent,  NULL, 0, NULL },
-   { "Sc&anlines (100%)", video_filters_menu_scanlines_100_percent, NULL, 0, NULL },
+   { "&Disabled",                        video_blitter_menu_disabled,                NULL, 0, NULL },
+   MENU_SPLITTER,  
+   { "Basic",                            NULL,                                       NULL, 0, NULL },
+   { "   &1: HQ2X",                      video_blitter_menu_hq2x,                    NULL, 0, NULL },
+   { "   &2: HQ3X",                      video_blitter_menu_hq3x,                    NULL, 0, NULL },
+   { "   &3: HQ4X",                      video_blitter_menu_hq4x,                    NULL, 0, NULL },
+   { "   &4: Interpolation",             video_blitter_menu_interpolation,           NULL, 0, NULL },
+   { "   &5: Interpolation (Scanlines)", video_blitter_menu_interpolation_scanlines, NULL, 0, NULL },
+   { "   &6: Interpolation (TV Mode)",   video_blitter_menu_interpolation_tv_mode,   NULL, 0, NULL },
+   { "Advanced",                         NULL,                                       NULL, 0, NULL },
+   { "  14: &NTSC",                      video_blitter_menu_ntsc,                    NULL, 0, NULL },
+   { "&Configure...",                    video_blitter_menu_configure,               NULL, 0, NULL },
    MENU_ENDCAP
 };
 
 DEFINE_MENU_CALLBACK(video_layers_menu_show_back_sprites);
 DEFINE_MENU_CALLBACK(video_layers_menu_show_front_sprites);
 DEFINE_MENU_CALLBACK(video_layers_menu_show_background);
-DEFINE_MENU_CALLBACK(video_layers_menu_horizontal_overscan);
-DEFINE_MENU_CALLBACK(video_layers_menu_vertical_overscan);
 
 static const MENU video_layers_menu_base[] =
 {
    { "&Show Back Sprites   (F7)", video_layers_menu_show_back_sprites,   NULL, 0, NULL },
    { "Show &Front Sprites  (F7)", video_layers_menu_show_front_sprites,  NULL, 0, NULL },
    { "Show &Background     (F8)", video_layers_menu_show_background,     NULL, 0, NULL },
-   { "&Horizontal Overscan",      video_layers_menu_horizontal_overscan, NULL, 0, NULL },
-   { "&Vertical Overscan",        video_layers_menu_vertical_overscan,   NULL, 0, NULL },
    MENU_ENDCAP
 };
 
-DEFINE_MENU_CALLBACK(video_palette_menu_ntsc_color);
-DEFINE_MENU_CALLBACK(video_palette_menu_ntsc_grayscale);
-DEFINE_MENU_CALLBACK(video_palette_menu_gnuboy);
 DEFINE_MENU_CALLBACK(video_palette_menu_nester);
 DEFINE_MENU_CALLBACK(video_palette_menu_nesticle);
-DEFINE_MENU_CALLBACK(video_palette_menu_modern_ntsc);
-DEFINE_MENU_CALLBACK(video_palette_menu_modern_pal);
-DEFINE_MENU_CALLBACK(video_palette_menu_ega_mode_1);
-DEFINE_MENU_CALLBACK(video_palette_menu_ega_mode_2);
-DEFINE_MENU_CALLBACK(video_palette_menu_custom);
+DEFINE_MENU_CALLBACK(video_palette_menu_ntsc);
+DEFINE_MENU_CALLBACK(video_palette_menu_pal);
+DEFINE_MENU_CALLBACK(video_palette_menu_rgb);
 
 static const MENU video_palette_menu_base[] =
 {
-   { "NTSC",              NULL,                              NULL, 0, NULL },
-   { "  &NTSC Color",     video_palette_menu_ntsc_color,     NULL, 0, NULL },
-   { "  NTSC &Grayscale", video_palette_menu_ntsc_grayscale, NULL, 0, NULL },
-   { "  &Modern NTSC",    video_palette_menu_modern_ntsc,    NULL, 0, NULL },
-   { "PAL",               NULL,                              NULL, 0, NULL },
-   { "  Modern &PAL",     video_palette_menu_modern_pal,     NULL, 0, NULL },
-   { "Other",             NULL,                              NULL, 0, NULL },
-   { "  NE&Sticle",       video_palette_menu_nesticle,       NULL, 0, NULL },
-   { "  N&ESter",         video_palette_menu_nester,         NULL, 0, NULL },
-   { "  gn&uboy",         video_palette_menu_gnuboy,         NULL, 0, NULL },
-   { "  EG&A (Mode 1)",   video_palette_menu_ega_mode_1,     NULL, 0, NULL },
-   { "  EGA (M&ode 2)",   video_palette_menu_ega_mode_2,     NULL, 0, NULL },
-   { "&Custom",           video_palette_menu_custom,         NULL, 0, NULL },
+   { "&Nester",   video_palette_menu_nester,   NULL, 0, NULL },
+   { "N&esticle", video_palette_menu_nesticle, NULL, 0, NULL },
+   { "N&TSC",     video_palette_menu_ntsc,     NULL, 0, NULL },
+   { "&PAL",      video_palette_menu_pal,      NULL, 0, NULL },
+   { "&RGB",      video_palette_menu_rgb,      NULL, 0, NULL },
    MENU_ENDCAP
 };
 
-DEFINE_MENU_CALLBACK(video_menu_fullscreen);
-DEFINE_MENU_CALLBACK(video_menu_page_buffer);
-DEFINE_MENU_CALLBACK(video_menu_vsync);
 DEFINE_MENU_CALLBACK(video_menu_color);
 
 static const MENU video_menu_base[] =
 {                    
-   { "&Fullscreen",            video_menu_fullscreen,     NULL,                                0, NULL },
-   { "&VSync",                 video_menu_vsync,          NULL,                                0, NULL },
-   { "&Page Buffering",        video_menu_page_buffer,    NULL,                                0, NULL },
    MENU_SPLITTER,          
-   { "Basic Configuration",    NULL,                      NULL,                                0, NULL },
-   { "  &Screen/Window Size",  NULL,                      IMPORT_MENU(video_resolution_menu),  0, NULL },
-   { "  B&litter",             NULL,                      IMPORT_MENU(video_blitter_menu),     0, NULL },
-   { "  F&ilters",             NULL,                      IMPORT_MENU(video_filters_menu),     0, NULL },
-   { "  Pal&ette",             NULL,                      IMPORT_MENU(video_palette_menu),     0, NULL },
-   { "  Rendering Options",    NULL,                      IMPORT_MENU(video_layers_menu),      0, NULL },
-   { "Advanced Configuration", NULL,                      NULL,                                0, NULL },
-   { "  &Driver",              NULL,                      IMPORT_MENU(video_driver_menu),      0, NULL },
-   { "  &Color Depth",         NULL,                      IMPORT_MENU(video_color_depth_menu), 0, NULL },
-   { "  &Buffer Size",         NULL,                      IMPORT_MENU(video_buffer_size_menu), 0, NULL },
-   { "  C&olor Correction...", video_menu_color,          NULL,                                0, NULL },
+   { "Basic Configuration",    NULL,              NULL,                                0, NULL },
+   { "  &Screen/Window Size",  NULL,              IMPORT_MENU(video_resolution_menu),  0, NULL },
+   { "  B&litter",             NULL,              IMPORT_MENU(video_blitter_menu),     0, NULL },
+   { "  Pal&ette",             NULL,              IMPORT_MENU(video_palette_menu),     0, NULL },
+   { "  Rendering Options",    NULL,              IMPORT_MENU(video_layers_menu),      0, NULL },
+   { "Advanced Configuration", NULL,              NULL,                                0, NULL },
+   { "  &Driver",              NULL,              IMPORT_MENU(video_driver_menu),      0, NULL },
+   { "  &Color Depth",         NULL,              IMPORT_MENU(video_color_depth_menu), 0, NULL },
+   { "  C&olor Correction...", video_menu_color,  NULL,                                0, NULL },
    MENU_ENDCAP
 };
 
@@ -834,8 +692,8 @@ static const MENU options_gui_theme_menu_base[] =
    { "  &2: stainless Steel", options_gui_theme_menu_stainless_steel, NULL, 0, NULL },
    { "  &3: Zero 4",          options_gui_theme_menu_zero_4,          NULL, 0, NULL },
    { "  &4: Panta",           options_gui_theme_menu_panta,           NULL, 0, NULL },
-   { "Color Themes",          NULL,                                   NULL, 0, NULL },
    { "  &5: Fireflower",      options_gui_theme_menu_fireflower,      NULL, 0, NULL },
+   { "Color Themes",          NULL,                                   NULL, 0, NULL },
    { "  &6: Xodiac",          options_gui_theme_menu_xodiac,          NULL, 0, NULL },
    { "  &7: Monochrome",      options_gui_theme_menu_monochrome,      NULL, 0, NULL },
    { "  &8: Essence",         options_gui_theme_menu_essence,         NULL, 0, NULL },
@@ -1113,17 +971,11 @@ static INLINE void load_menus (void)
    MENU_FROM_BASE(audio_output_menu);
    MENU_FROM_BASE(audio_channels_menu);
    MENU_FROM_BASE(audio_menu);
-   MENU_FROM_BASE(video_driver_dos_menu);
-   MENU_FROM_BASE(video_driver_windows_menu);
-   MENU_FROM_BASE(video_driver_linux_menu);
-   MENU_FROM_BASE(video_driver_unix_menu);
    MENU_FROM_BASE(video_driver_menu);
    MENU_FROM_BASE(video_resolution_proportionate_menu);
    MENU_FROM_BASE(video_resolution_menu);
    MENU_FROM_BASE(video_color_depth_menu);
-   MENU_FROM_BASE(video_buffer_size_menu);
    MENU_FROM_BASE(video_blitter_menu);
-   MENU_FROM_BASE(video_filters_menu);
    MENU_FROM_BASE(video_layers_menu);
    MENU_FROM_BASE(video_palette_menu);
    MENU_FROM_BASE(video_menu);
@@ -1156,17 +1008,11 @@ static INLINE void unload_menus (void)
    unload_menu (audio_output_menu);
    unload_menu (audio_channels_menu);
    unload_menu (audio_menu);
-   unload_menu (video_driver_dos_menu);
-   unload_menu (video_driver_windows_menu);
-   unload_menu (video_driver_linux_menu);
-   unload_menu (video_driver_unix_menu);
    unload_menu (video_driver_menu);
    unload_menu (video_resolution_proportionate_menu);
    unload_menu (video_resolution_menu);
    unload_menu (video_color_depth_menu);
-   unload_menu (video_buffer_size_menu);
    unload_menu (video_blitter_menu);
-   unload_menu (video_filters_menu);
    unload_menu (video_layers_menu);
    unload_menu (video_palette_menu);
    unload_menu (video_menu);

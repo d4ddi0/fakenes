@@ -39,13 +39,17 @@
      - When a variable won't be modified, make its value const, to improve optimization.
      - When calling functions, pass parameters as const whenever possible. */
 
+// TODO: Support color tinting.
+// TODO: Proper overscan support.
 // TODO: State saving support.
 // TODO: Properly emulate PPU power-up and reset states.
-// TODO: Add 16-bit rendering support with color tinting.
-// TODO: Proper overscan support.
 
 /* Internal functions:
       These are used exclusively by this file only. */
+// Color mapping.
+static linear void BuildColorMap();
+static void MapColor(const UINT8 index, const UINT16 value);
+
 // VRAM reading & writing.
 static linear uint8 VRAMRead();
 static inline uint8 VRAMReadUnbuffered(const uint16 address);
@@ -87,6 +91,7 @@ namespace PPUState {
 bool       addressLatch = false;                // Inverted every write to PPUSCROLL and PPUADDR
 cpu_time_t clockBuffer = 0;			// Remaining unexecuted cycles
 cpu_time_t clockCounter = 0;			// Last time synchronization was performed
+uint16     colorMap[PPU__COLOR_MAP_SIZE];	// Shadowed copy of ppu__color_map[], DO NOT CLEAR
 int        initializing = 0;                    // Set while the PPU is initializing
 bool       isOddFrame = false;			// Toggled every frame, for emulating quirks
 cpu_time_t predictionCycles = 0;		// Amount of cycles in the prediction buffer
@@ -137,6 +142,7 @@ UINT8 ppu__palette_mask = 0;			// Controlled by monochrome mode flag in PPUSTATU
 /* These variables are derived from registers, but are not directly associated with a
    software-modifiable setting. Register clears will still reset them. */
 BOOL   ppu__enabled = FALSE;			// Don't access VRAM when this is cleared
+BOOL   ppu__enable_color_tinting = FALSE;	// So we know when to rebuild the palette.
 UINT8  ppu__fine_scroll = 0;			// Per-pixel horizontal scrolling
 UINT8  ppu__oam_address = 0;			// Current read/write location in OAM
 UINT8  ppu__scroll_x_position = 0;		// Background scrolling horizontal offset
@@ -154,12 +160,13 @@ BOOL   ppu__sprite_overflow = FALSE;		// More than eight sprites on a scanline
 BOOL   ppu__vblank_started = FALSE;		// Set when first VBlank scanline reached
 
 // These variables are used exclusively by the renderer.
-UINT8 ppu__background_pixels[PPU__BACKGROUND_PIXELS_SIZE]; // Used for sprite #0 hitscan and sprite priority
-BOOL  ppu__enable_background_layer = TRUE;	// Enable drawing of the background to the framebuffer
-BOOL  ppu__enable_rendering = TRUE;		// Toggle to disable rendering, used for frame skip
-BOOL  ppu__enable_sprite_back_layer = TRUE;	// Enable drawing of sprites to the framebuffer
-BOOL  ppu__enable_sprite_front_layer = TRUE;	// Same as above, but for front-priority sprites
-BOOL  ppu__force_rendering = FALSE;		// Overrides ppu__enable_rendering
+UINT16 ppu__color_map[PPU__COLOR_MAP_SIZE];	// Maps NES colors to framebuffer values.
+UINT8  ppu__background_pixels[PPU__BACKGROUND_PIXELS_SIZE]; // Used for sprite #0 hitscan and sprite priority
+BOOL   ppu__enable_background_layer = TRUE;	// Enable drawing of the background to the framebuffer
+BOOL   ppu__enable_rendering = TRUE;		// Toggle to disable rendering, used for frame skip
+BOOL   ppu__enable_sprite_back_layer = TRUE;	// Enable drawing of sprites to the framebuffer
+BOOL   ppu__enable_sprite_front_layer = TRUE;	// Same as above, but for front-priority sprites
+BOOL   ppu__force_rendering = FALSE;		// Overrides ppu__enable_rendering
 
 // Video memory - name tables and pattern tables.
 PPU__ARRAY( UINT8,        ppu__name_table_dummy,                PPU__NAME_TABLE_DUMMY_SIZE     );
@@ -298,6 +305,7 @@ int ppu_init(void)
    memset(ppu__sprite_vram,                     0, PPU__SPRITE_VRAM_SIZE);
    // Clear memory for rendering.
    memset(ppu__background_pixels,               0, PPU__BACKGROUND_PIXELS_SIZE);
+   memset(ppu__color_map,                       0, PPU__COLOR_MAP_SIZE);
 
    // Initially disable the expansion table.
    ppu_set_expansion_table_address(NULL);
@@ -578,6 +586,16 @@ void ppu_write(const UINT16 address, const UINT8 data)
 
          // When both background and sprites are disabled, the PPU enters forced blanking.
          ppu__enabled = ppu__enable_background || ppu__enable_sprites;
+
+         // Check if any kind of color tinting is enabled.
+         const bool tinting = ppu__intensify_reds || ppu__intensify_greens || ppu__intensify_blues;
+         
+         /* Color tinting is emulated using a color map. But it is costly to rebuild the
+            color map too often, so we only do so when neccessary. */
+         if(tinting != ppu__enable_color_tinting)
+            BuildColorMap();
+
+         ppu__enable_color_tinting = tinting;
 
          break;
       }
@@ -992,19 +1010,41 @@ void ppu_set_expansion_table_address(const UINT8* address)
    ppu__expansion_table = address;
 }
 
-UINT8 ppu_get_background_color(void)
+void ppu_map_color(const UINT8 index, const UINT16 value) {
+   RT_ASSERT(index < PPU__COLOR_MAP_SIZE);
+
+   // Shadow it so we can re-calculate color tinting later.
+   PPUState::colorMap[index] = value;
+   // Replace the existing color.
+   MapColor(index, value);
+}
+
+UINT16 ppu_get_background_color(void)
 {
    // Note: Don't synchronize from this function or it'll break things.
 
    /* Returns the current PPU background color - for drawing overscan e.g for NTSC.
-      In the future, this should be rendered by the PPU itself into a special kind of buffer. 
-      Returned as an index into the 256 color palette */
+      In the future, this should be rendered by the PPU itself into a special kind of buffer. */
    return PPU__BACKGROUND_COLOR;
 }
 
 // --------------------------------------------------------------------------------
 // PRIVATE FUNCTIONS
 // --------------------------------------------------------------------------------
+
+static linear void BuildColorMap()
+{
+   // Restore all colors and recalculate color tinting.
+   for(unsigned i = 0; i < PPU__COLOR_MAP_SIZE; i++)
+      MapColor(i, PPUState::colorMap[i]);
+}
+
+static void MapColor(const UINT8 index, const UINT16 value)
+{
+   RT_ASSERT(index < PPU__COLOR_MAP_SIZE);
+
+   ppu__color_map[index] = value;
+}
 
 /* When reading while the VRAM address is in the range 0-$3EFF,
    the read will return the contents of an internal buffer.
@@ -1496,10 +1536,13 @@ static linear void EndFrame()
    /* Current frame has ended, but we only have to draw the buffer to the screen
       if rendering had been enabled (i.e this was not a skipped frame). */
    if(ppu__enable_rendering)
-      video_blit(screen);
+      video_update_display();
 
    // Now we can reload our cached options into the actual variables.
    LoadCachedSettings();
+
+   // Let the timing system know that we've completed a frame.
+   frame_lock = TRUE;
 }
 
 static linear void StartScanline() 

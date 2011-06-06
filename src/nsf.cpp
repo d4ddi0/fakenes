@@ -440,23 +440,30 @@ void nsf_main(void)
             }
          }
 
+        // Get a direct reference to the rendering buffer.
+         BITMAP* buffer = video_get_render_buffer();
+         if(!buffer) {
+            WARN_GENERIC();
+            return;
+         }
+
          // Normally a game would initialize the PPU palette, but since we're not a game we have to clear it manually.
-         clear_to_color(video_buffer, 1 + PPU__PALETTE_ADJUST);
+         clear_to_color(buffer, ppu__color_map[0x01]);
 
-         const uint8 textColor = 0x30 + PPU__PALETTE_ADJUST;
-         textprintf_ex(video_buffer, small_font, 8,     8 + (12 * 0), textColor, -1, "TITLE:");
-         textprintf_ex(video_buffer, small_font, 8 + 8, 8 + (12 * 1), textColor, -1, (const char *)&nsf.name[0]);
-         textprintf_ex(video_buffer, small_font, 8,     8 + (12 * 2), textColor, -1, "COMPILED BY:");
-         textprintf_ex(video_buffer, small_font, 8 + 8, 8 + (12 * 3), textColor, -1, (const char *)&nsf.artist[0]);
-         textprintf_ex(video_buffer, small_font, 8,     8 + (12 * 4), textColor, -1, "COPYRIGHT:");
-         textprintf_ex(video_buffer, small_font, 8 + 8, 8 + (12 * 5), textColor, -1, (const char *)&nsf.copyright[0]);
+         const uint16 textColor = ppu__color_map[0x30];
+         textprintf_ex(buffer, small_font, 8,     8 + (12 * 0), textColor, -1, "TITLE:");
+         textprintf_ex(buffer, small_font, 8 + 8, 8 + (12 * 1), textColor, -1, (const char *)&nsf.name[0]);
+         textprintf_ex(buffer, small_font, 8,     8 + (12 * 2), textColor, -1, "COMPILED BY:");
+         textprintf_ex(buffer, small_font, 8 + 8, 8 + (12 * 3), textColor, -1, (const char *)&nsf.artist[0]);
+         textprintf_ex(buffer, small_font, 8,     8 + (12 * 4), textColor, -1, "COPYRIGHT:");
+         textprintf_ex(buffer, small_font, 8 + 8, 8 + (12 * 5), textColor, -1, (const char *)&nsf.copyright[0]);
 
-         textprintf_ex(video_buffer, small_font, 8, 8 + (12 * 7), textColor, -1, "Track %d of %d", nsfCurrentSong,
+         textprintf_ex(buffer, small_font, 8, 8 + (12 * 7), textColor, -1, "Track %d of %d", nsfCurrentSong,
             nsf.totalSongs);
-         textprintf_ex(video_buffer, small_font, 8, 8 + (12 * 8) + 2, textColor, -1, "Press A for next track");
-         textprintf_ex(video_buffer, small_font, 8, 8 + (12 * 9) + 2, textColor, -1, "Press B for previous track");
+         textprintf_ex(buffer, small_font, 8, 8 + (12 * 8) + 2, textColor, -1, "Press A for next track");
+         textprintf_ex(buffer, small_font, 8, 8 + (12 * 9) + 2, textColor, -1, "Press B for previous track");
 
-         textprintf_ex(video_buffer, small_font, 8, 8 + (12 * 11), textColor, -1, "Press SELECT or ESC to exit");
+         textprintf_ex(buffer, small_font, 8, 8 + (12 * 11), textColor, -1, "Press SELECT or ESC to exit");
 
          // Draw visualizations.
          nsfPowerLevelsVisualizationDraw();
@@ -464,7 +471,7 @@ void nsf_main(void)
          nsfWaveformVisualizationDraw();
 
          // filter and display
-         video_blit(screen);
+         video_update_display();
       }
 
       if(cpu_usage == CPU_USAGE_NORMAL)
@@ -568,6 +575,12 @@ static linear void nsfPowerLevelsVisualizationDraw(void)
    else
       last_channel = APU_VISDATA_MASTER_1;
 
+   BITMAP* buffer = video_get_render_buffer();
+   if(!buffer) {
+      WARN_GENERIC();
+      return;
+   }
+
    uint8 colorMask;
    if(nsfVisualizationFlags & NSFVisualizationPowerLevels) {
       // Since this visualization is active, use a fullbright display.
@@ -601,33 +614,34 @@ static linear void nsfPowerLevelsVisualizationDraw(void)
 
       // Draw unlit bars.
       for(int dx = x; dx <= max_x; dx += x_spacing)
-         vline(video_buffer, dx, y, (y + bar_height), (0x2D & colorMask) + PPU__PALETTE_ADJUST);
+         vline(buffer, dx, y, (y + bar_height), ppu__color_map[0x2D & colorMask]);
 
       // Draw partially lit bars.
       int power = Round(bar_width * peak);
       for(int dx = x; dx <= (x + power); dx += x_spacing)
-         vline(video_buffer, dx, y, (y + bar_height), (0x1C & colorMask) + PPU__PALETTE_ADJUST);
+         vline(buffer, dx, y, (y + bar_height), ppu__color_map[0x1C & colorMask]);
 
       // Draw lit bars.
       power = Round(bar_width * output);
       for(int dx = x; dx <= (x + power); dx += x_spacing)
-         vline(video_buffer, dx, y, (y + bar_height), (0x2C & colorMask) + PPU__PALETTE_ADJUST);
+         vline(buffer, dx, y, (y + bar_height), ppu__color_map[0x2C & colorMask]);
 
       // Draw peak.
       power = Round(bar_width * peak);
-      vline(video_buffer, (x + power), y, (y + bar_height), (0x3D & colorMask) + PPU__PALETTE_ADJUST);
+      vline(buffer, (x + power), y, (y + bar_height), ppu__color_map[0x3D & colorMask]);
 
       y += y_spacing;
       height += y_spacing;
    }
 
     // Draw labels.
-   textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 13) + 2, (0x30 & colorMask) + PPU__PALETTE_ADJUST, -1, "Square 1");
-   textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 14) + 2, (0x30 & colorMask) + PPU__PALETTE_ADJUST, -1, "Square 2");
-   textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 15) + 2, (0x30 & colorMask) + PPU__PALETTE_ADJUST, -1, "Triangle");
-   textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 16) + 2, (0x30 & colorMask) + PPU__PALETTE_ADJUST, -1, "   Noise");
-   textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 17) + 2, (0x30 & colorMask) + PPU__PALETTE_ADJUST, -1, " Digital");
-   textprintf_ex(video_buffer, small_font, 16, 8 + (12 * 18) + 2, (0x30 & colorMask) + PPU__PALETTE_ADJUST, -1, "  Master");
+   const uint16 color = ppu__color_map[0x30 & colorMask];
+   textprintf_ex(buffer, small_font, 16, 8 + (12 * 13) + 2, color, -1, "Square 1");
+   textprintf_ex(buffer, small_font, 16, 8 + (12 * 14) + 2, color, -1, "Square 2");
+   textprintf_ex(buffer, small_font, 16, 8 + (12 * 15) + 2, color, -1, "Triangle");
+   textprintf_ex(buffer, small_font, 16, 8 + (12 * 16) + 2, color, -1, "   Noise");
+   textprintf_ex(buffer, small_font, 16, 8 + (12 * 17) + 2, color, -1, " Digital");
+   textprintf_ex(buffer, small_font, 16, 8 + (12 * 18) + 2, color, -1, "  Master");
 
    if(!(nsfVisualizationFlags & NSFVisualizationPowerLevels)) {
       // Draw "Use D-PAD to select" text.
@@ -644,10 +658,10 @@ static linear void nsfPowerLevelsVisualizationDraw(void)
       const int box_x = (center_x - (box_width / 2));
       const int box_y = (center_y - (box_height / 2));
 
-      rectfill(video_buffer, box_x, box_y, (box_x + box_width), (box_y + box_height), 0x1D + PPU__PALETTE_ADJUST);
-      rect(video_buffer, box_x, box_y, (box_x + box_width), (box_y + box_height), 0x2D + PPU__PALETTE_ADJUST);
+      rectfill(buffer, box_x, box_y, (box_x + box_width), (box_y + box_height), ppu__color_map[0x1D]);
+      rect(buffer, box_x, box_y, (box_x + box_width), (box_y + box_height), ppu__color_map[0x2D]);
 
-      textprintf_ex(video_buffer, small_font, tex_x, tex_y, 0x3D + PPU__PALETTE_ADJUST, -1, "Use D-PAD to select");
+      textprintf_ex(buffer, small_font, tex_x, tex_y, ppu__color_map[0x3D], -1, "Use D-PAD to select");
    }
 }
 // End "Power Bars" visualization.
@@ -703,6 +717,12 @@ static linear void nsfFrequenciesVisualizationUpdate(void)
 
 static linear void nsfFrequenciesVisualizationDraw(void)
 {
+   BITMAP* buffer = video_get_render_buffer();
+   if(!buffer) {
+      WARN_GENERIC();
+      return;
+   }
+
    uint8 colorMask;
    if(nsfVisualizationFlags & NSFVisualizationFrequencies)
       colorMask = 0xFF;
@@ -723,11 +743,11 @@ static linear void nsfFrequenciesVisualizationDraw(void)
 
       // Draw bar.
       const int height = Round(max_height * output);
-      rectfill(video_buffer, (x + (bar_spacing * step)), y, ((x + (bar_spacing * step)) + bar_width), (y - height),
-         (0x24 & colorMask) + PPU__PALETTE_ADJUST);
+      rectfill(buffer, (x + (bar_spacing * step)), y, ((x + (bar_spacing * step)) + bar_width), (y - height),
+         ppu__color_map[0x24 & colorMask]);
    }
 
-   textprintf_ex(video_buffer, small_font, 152 + 3 + 3, 8 + (12 * 18) + 3, (0x30 & colorMask) + PPU__PALETTE_ADJUST, -1,
+   textprintf_ex(buffer, small_font, 152 + 3 + 3, 8 + (12 * 18) + 3, ppu__color_map[0x30 & colorMask], -1,
       "2k   4k   6k   8k");
 
    if(!(nsfVisualizationFlags & NSFVisualizationFrequencies)) {
@@ -745,10 +765,10 @@ static linear void nsfFrequenciesVisualizationDraw(void)
       const int box_x = (center_x - (box_width / 2));
       const int box_y = (center_y - (box_height / 2));
 
-      rectfill(video_buffer, box_x, box_y, (box_x + box_width), (box_y + box_height), 0x1D + PPU__PALETTE_ADJUST);
-      rect(video_buffer, box_x, box_y, (box_x + box_width), (box_y + box_height), 0x2D + PPU__PALETTE_ADJUST);
+      rectfill(buffer, box_x, box_y, (box_x + box_width), (box_y + box_height), ppu__color_map[0x1D]);
+      rect(buffer, box_x, box_y, (box_x + box_width), (box_y + box_height), ppu__color_map[0x2D]);
 
-      textprintf_ex(video_buffer, small_font, tex_x, tex_y, 0x3D + PPU__PALETTE_ADJUST, -1, "Use D-PAD to select");
+      textprintf_ex(buffer, small_font, tex_x, tex_y, ppu__color_map[0x3D], -1, "Use D-PAD to select");
    }
 }
 // End "Frequency Spectrum" visualization.
@@ -816,6 +836,12 @@ static linear void nsfWaveformVisualizationUpdate(void)
 
 static linear void nsfWaveformVisualizationDraw(void)
 {
+   BITMAP* buffer = video_get_render_buffer();
+   if(!buffer) {
+      WARN_GENERIC();
+      return;
+   }
+
    uint8 colorMask;
    if(nsfVisualizationFlags & NSFVisualizationWaveform)
       colorMask = 0xFF;
@@ -836,12 +862,12 @@ static linear void nsfWaveformVisualizationDraw(void)
 
    // Draw box background(s).
    if(apu_options.stereo) {
-      rectfill(video_buffer, x, y, max_x, (y + (max_height * 2)), (0x2D & colorMask) + PPU__PALETTE_ADJUST);
-      rectfill(video_buffer, x, (y + y_offset), max_x, ((y + y_offset) + (max_height * 2)),
-         (0x2D & colorMask) + PPU__PALETTE_ADJUST);
+      rectfill(buffer, x, y, max_x, (y + (max_height * 2)), ppu__color_map[0x2D & colorMask]);
+      rectfill(buffer, x, (y + y_offset), max_x, ((y + y_offset) + (max_height * 2)),
+         ppu__color_map[0x2D & colorMask]);
    }
    else
-      rectfill(video_buffer, x, y, max_x, (y + (max_height * 2)), (0x2D & colorMask) + PPU__PALETTE_ADJUST);
+      rectfill(buffer, x, y, max_x, (y + (max_height * 2)), ppu__color_map[0x2D & colorMask]);
 
    // Draw bars.
    for(int draw_x = x; draw_x < max_x; draw_x++) {
@@ -852,28 +878,28 @@ static linear void nsfWaveformVisualizationDraw(void)
          const real& outputRight = nsfWaveformVisualizationStereoOutputsRight[step];
 
          int power = Round(max_height * outputLeft);
-         vline(video_buffer, draw_x, y_base, (y_base + power), (0x2A & colorMask) + PPU__PALETTE_ADJUST);
+         vline(buffer, draw_x, y_base, (y_base + power), ppu__color_map[0x2A & colorMask]);
 
          power = Round(max_height * outputRight);
-         vline(video_buffer, draw_x, (y_base + y_offset), ((y_base + y_offset) + power),
-            (0x16 & colorMask) + PPU__PALETTE_ADJUST);
+         vline(buffer, draw_x, (y_base + y_offset), ((y_base + y_offset) + power),
+            ppu__color_map[0x16 & colorMask]);
       }
       else {
          const real& output = nsfWaveformVisualizationOutputs[step];
 
          const int power = Round(max_height * output);
-         vline(video_buffer, draw_x, y_base, (y_base + power), (0x2A & colorMask) + PPU__PALETTE_ADJUST);
+         vline(buffer, draw_x, y_base, (y_base + power), ppu__color_map[0x2A & colorMask]);
       }
    }
 
    // Draw box border(s).
    if(apu_options.stereo) {
-      rect(video_buffer, x, y, max_x, (y + (max_height * 2)), (0x3D & colorMask) + PPU__PALETTE_ADJUST);
-      rect(video_buffer, x, (y + y_offset), max_x, ((y + y_offset) + (max_height * 2)),
-         (0x3D & colorMask) + PPU__PALETTE_ADJUST);
+      rect(buffer, x, y, max_x, (y + (max_height * 2)), ppu__color_map[0x3D & colorMask]);
+      rect(buffer, x, (y + y_offset), max_x, ((y + y_offset) + (max_height * 2)),
+         ppu__color_map[0x3D & colorMask]);
    }
    else
-      rect(video_buffer, x, y, max_x, (y + (max_height * 2)), (0x3D & colorMask) + PPU__PALETTE_ADJUST);
+      rect(buffer, x, y, max_x, (y + (max_height * 2)), ppu__color_map[0x3D & colorMask]);
 
    if(!(nsfVisualizationFlags & NSFVisualizationWaveform)) {
       // Draw "Use D-PAD to select" text.
@@ -890,10 +916,10 @@ static linear void nsfWaveformVisualizationDraw(void)
       const int box_x = (center_x - (box_width / 2));
       const int box_y = (center_y - (box_height / 2));
 
-      rectfill(video_buffer, box_x, box_y, (box_x + box_width), (box_y + box_height), 0x1D + PPU__PALETTE_ADJUST);
-      rect(video_buffer, box_x, box_y, (box_x + box_width), (box_y + box_height), 0x2D + PPU__PALETTE_ADJUST);
+      rectfill(buffer, box_x, box_y, (box_x + box_width), (box_y + box_height), ppu__color_map[0x1D]);
+      rect(buffer, box_x, box_y, (box_x + box_width), (box_y + box_height), ppu__color_map[0x2D]);
 
-      textprintf_ex(video_buffer, small_font, tex_x, tex_y, 0x3D + PPU__PALETTE_ADJUST, -1, "Use D-PAD to select");
+      textprintf_ex(buffer, small_font, tex_x, tex_y, ppu__color_map[0x3D], -1, "Use D-PAD to select");
    }
 }
 // End "Waveform "visualization.

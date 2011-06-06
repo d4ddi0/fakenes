@@ -246,7 +246,7 @@ int sl_frame (int message, DIALOG *dialog, int key)
 
             int slice;
 
-            video_create_gradient (GUI_GRADIENT_START_COLOR,
+            video_legacy_create_gradient (GUI_GRADIENT_START_COLOR,
                GUI_GRADIENT_END_COLOR, dialog->w, 0, 0);
 
             for (slice = 0; slice < dialog->w; slice++)
@@ -257,7 +257,7 @@ int sl_frame (int message, DIALOG *dialog, int key)
 
                for (yo = y1; yo <= y2; yo++)
                {
-                  putpixel (bmp, xo, yo, video_create_gradient (0, 0, 0, xo,
+                  putpixel (bmp, xo, yo, video_legacy_create_gradient (0, 0, 0, xo,
                      yo));
                 }
             }
@@ -968,7 +968,7 @@ static void sl_draw_menu_item (MENU *menu, int x, int y, int width, int
          }
          else
          {
-            video_create_gradient (GUI_GRADIENT_START_COLOR,
+            video_legacy_create_gradient (GUI_GRADIENT_START_COLOR,
                GUI_GRADIENT_END_COLOR, width, 0, 0);
     
             for (slice = 0; slice < width; slice++)
@@ -979,7 +979,7 @@ static void sl_draw_menu_item (MENU *menu, int x, int y, int width, int
     
                for (yo = y; yo <= (y + (text_height (font) + 3)); yo++)
                {
-                  putpixel (bmp, xo, yo, video_create_gradient (0, 0, 0, xo,
+                  putpixel (bmp, xo, yo, video_legacy_create_gradient (0, 0, 0, xo,
                      yo));
                }
             }
@@ -1062,7 +1062,7 @@ static void sl_draw_menu_item (MENU *menu, int x, int y, int width, int
       }
       else
       {
-         video_create_gradient (GUI_GRADIENT_START_COLOR,
+         video_legacy_create_gradient (GUI_GRADIENT_START_COLOR,
             GUI_GRADIENT_END_COLOR, width, 0, 0);
     
          for (slice = 0; slice < width; slice++)
@@ -1073,7 +1073,7 @@ static void sl_draw_menu_item (MENU *menu, int x, int y, int width, int
     
             for (yo = y; yo <= (y + (text_height (font) + 3)); yo++)
             {
-               putpixel (bmp, xo, yo, video_create_gradient (0, 0, 0, xo,
+               putpixel (bmp, xo, yo, video_legacy_create_gradient (0, 0, 0, xo,
                   yo));
             }
          }

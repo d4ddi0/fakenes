@@ -147,16 +147,22 @@ typedef fakenes_real_t   real;
 #endif
 
 /* List access macros. */
-#define LIST_ADD(list, flags)       (list |= flags)
-#define LIST_REMOVE(list, flags)    (list &= ~flags)
-#define LIST_TOGGLE(list, flags)    (list ^= flags)
-#define LIST_COMPARE(list, flags)   TRUE_OR_FALSE(list & flags)
+#define LIST_ADD(_LIST, _FLAGS)       	( (_LIST) |= (_FLAGS) )
+#define LIST_REMOVE(_LIST, _FLAGS)    	( (_LIST) &= ~(_FLAGS) )
+#define LIST_TOGGLE(_LIST, _FLAGS)    	( (_LIST) ^= (_FLAGS) )
+#define LIST_COMPARE(_LIST, _FLAGS)	( TRUE_OR_FALSE( (_LIST) & (_FLAGS) ) )
+
+#define LIST_SET(_LIST, _FLAGS, _SET) { \
+   LIST_REMOVE( (_LIST), (_FLAGS) ); \
+   if( (_SET) ) \
+      LIST_ADD( (_LIST), (_FLAGS) ); \
+}
 
 /* String clearing macros. */
-#define STRING_CLEAR_SIZE(str, size)   memset (str, 0, size)
-#define USTRING_CLEAR_SIZE             STRING_CLEAR_SIZE
-#define STRING_CLEAR(str)              STRING_CLEAR_SIZE(str, STRING_SIZE)
-#define USTRING_CLEAR(str)             USTRING_CLEAR_SIZE(str, USTRING_SIZE)
+#define STRING_CLEAR_SIZE(_STR, _SIZE)	memset ( (_STR), 0, (_SIZE) )
+#define USTRING_CLEAR_SIZE             	STRING_CLEAR_SIZE
+#define STRING_CLEAR(_STR)             	STRING_CLEAR_SIZE( (_STR), STRING_SIZE )
+#define USTRING_CLEAR(_STR)            	USTRING_CLEAR_SIZE( (_STR), USTRING_SIZE )
 
 #ifdef __cplusplus                     
 }

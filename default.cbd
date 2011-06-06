@@ -291,7 +291,7 @@ SRCFILES += "${SRC_SOUNDDIR}/MMC5.cpp "
 SRCFILES += "${SRC_SOUNDDIR}/Sourcer.cpp "
 SRCFILES += "${SRC_SOUNDDIR}/VRC6.cpp "
 SRCFILES += 'timing.c '
-SRCFILES += 'video.c '
+SRCFILES += 'video.cpp '
 
 do ifplat unix
     SRCFILES += 'icon.c '

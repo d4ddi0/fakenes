@@ -24,7 +24,7 @@ CFLAGS += ' -DUSE_ALLEGROGL'
 
 LIBAGL = agl
 
-ifopt debug LIBAGL = 'agld'
+# ifopt debug LIBAGL = 'agld'
 
 AGL_LIBS = "-l${LIBAGL} "
 

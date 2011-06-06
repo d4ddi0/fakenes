@@ -8,7 +8,7 @@ static INLINE void pack_color (GUI_COLOR *color)
     g = (color->g * 255);
     b = (color->b * 255);
 
-    color->packed = video_create_color (r, g, b);
+    color->packed = makecol (r, g, b);
 }
 
 static INLINE void update_colors (void)
@@ -27,19 +27,69 @@ static INLINE void redraw (void)
    broadcast_dialog_message (MSG_DRAW, 0);
 }
 
+/* If the GUI is not being drawn directly to the screen, this function
+   displays it via video_update_display(). */
 static INLINE void refresh (void)
 {
-   BITMAP *bmp;
+   BITMAP* bitmap, *display;
+   BITMAP* cursor = NULL;
 
-   /* If the GUI is not being drawn directly to the screen, this function
-      displays it via video_show_bitmap(). */
-
-   bmp = gui_get_screen ();
-
-   if (bmp == screen)
+   bitmap = gui_get_screen();
+   if(bitmap == screen)
       return;
 
-   video_show_bitmap (bmp, 1, TRUE);
+   display = video_get_display_buffer();
+   if(!display) {
+      WARN_GENERIC();
+      return;
+   }
+
+   blit(bitmap, display, 0, 0, 0, 0, bitmap->w, bitmap->h);
+
+   if(gui_mouse_sprite) {
+      const int width = gui_mouse_sprite->w;
+      const int height = gui_mouse_sprite->h;
+
+      cursor = create_bitmap(width, height);
+      if(cursor)
+         blit(gui_mouse_sprite, cursor, 0, 0, 0, 0, width, height);
+   }
+
+   if(cursor) {
+      int x, y;
+      const int cursorX = mouse_x - mouse_x_focus;
+      const int cursorY = mouse_y - mouse_y_focus;
+
+      set_trans_blender(255, 255, 255, 128);
+      drawing_mode(DRAW_MODE_TRANS, NULL, 0, 0);
+
+      for(y = 0; y < cursor->h; y++) {
+         for(x = 0; x < cursor->w; x++) {
+            const int pixel = getpixel(cursor, x, y);
+            const int r = getr(pixel);
+            const int b = getb(pixel);
+            const int g = getg(pixel);
+
+            if((g == 0) && (r > 240) && (b > 240))
+               continue;
+
+            putpixel(display, cursorX + 8 + x, cursorY + 8 + y, makecol(0, 0, 0));
+         }
+      }
+
+      solid_mode();
+
+      draw_sprite(display, cursor, cursorX, cursorY);
+   }
+
+   /* If double buffering is not enabled, the display buffer won't be shown. */
+   video_set_profile_boolean(VIDEO_PROFILE_DISPLAY_DOUBLE_BUFFER, TRUE);
+   video_update_display();
+
+   video_set_profile_boolean(VIDEO_PROFILE_DISPLAY_DOUBLE_BUFFER, FALSE);
+
+   if(cursor)
+      destroy_bitmap(cursor);
 }
 
 static INLINE void draw_message (int color)
@@ -87,7 +137,6 @@ static INLINE void message_local (const UCHAR *message, ...)
    draw_message (GUI_TEXT_COLOR);
 
    video_message (message_buffer);
-   video_message_duration = 3000;
 
    log_printf ("GUI: %s", message_buffer);}
 
@@ -109,9 +158,6 @@ static INLINE void status_message (const UCHAR *message, ...)
 static INLINE void draw_background (void)
 {
    BITMAP *bmp;
-
-   if (rom_is_loaded)
-      return;
 
    bmp = gui_get_screen ();
 
@@ -144,6 +190,29 @@ static INLINE void draw_background (void)
             bmp->w, bmp->h);
    
          destroy_bitmap (buffer);
+      }
+   }
+
+   if(rom_is_loaded) {
+      /* draw_sprite() and masked_blit() don't support color conversion, pout. */
+      BITMAP* render = video_get_render_buffer();
+      if(render) {
+         int gameWidth = render->w;
+         int gameHeight = render->h;
+
+         BITMAP* game = create_bitmap(gameWidth, gameHeight);
+         if(game) {
+            int width = (gameWidth * bmp->w) / 640;
+            int height = (gameHeight * bmp->h) / 480;
+
+            int x = (bmp->w / 2) - (width / 2);
+            int y = (bmp->h / 2) - (height / 2);
+
+            blit(render, game, 0, 0, 0, 0, gameWidth, gameHeight);
+            stretch_blit(game, bmp, 0, 0, gameWidth, gameHeight, x, y, width, height);
+
+            destroy_bitmap(game);
+         }
       }
    }
 }
@@ -179,7 +248,6 @@ static INLINE void cycle_video (void)
    bmp = gui_get_screen ();
 
    clear_bitmap (bmp);
-   video_blit (bmp);
 
    if (gui_is_active)
    {
@@ -194,7 +262,7 @@ static INLINE void cycle_video (void)
       set_mouse_sprite_focus (8, 8);
 
       /* Note that we only show the mouse here if the drawing bitmap is the
-         screen; otherwise we let video_show_bitmap() handle it. */
+         screen; otherwise we let refresh() handle it. */
       if (bmp == screen)
          show_mouse (bmp);
 
@@ -247,7 +315,7 @@ static INLINE int gui_open (void)
       performance of screen reads/writes. */
 
    /* Create drawing buffer. */
-   gui_buffer = create_bitmap (SCREEN_W, SCREEN_H);
+   gui_buffer = create_bitmap(SCREEN_W, SCREEN_H);
    if (!gui_buffer)
    {
       WARN("Couldn't create GUI drawing buffer");
@@ -268,12 +336,14 @@ static INLINE void gui_close (BOOL exiting)
    if (gui_buffer)
    {
       /* Destroy and nullify drawing buffer. */
-
-      destroy_bitmap (gui_buffer);
+      destroy_bitmap(gui_buffer);
       gui_buffer = NULL;
 
       /* Restore screen. */
       gui_set_screen (screen);
+
+      /* Disable double buffering. */
+      video_set_profile_boolean(VIDEO_PROFILE_DISPLAY_DOUBLE_BUFFER, FALSE);
    }
 
    /* Deactivate. */

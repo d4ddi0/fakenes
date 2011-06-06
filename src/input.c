@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "audio.h"
+#include "color.h"
 #include "common.h"
 #include "data.h"
 #include "debug.h"
@@ -718,6 +719,7 @@ void input_update_zapper_offsets (void)
 
 void input_update_zapper (void)
 {
+   BITMAP* buffer;
    int pixel;
 
    zapper_mask = 0x08;
@@ -730,15 +732,17 @@ void input_update_zapper (void)
 
    if (input_zapper_on_screen)
    {
-      /* Note the (- 1) here is because NES colors in the video buffer begin
-         at 1 instead of 0.  This will need to be rewritten if the PPU is
-         updated with scalar rendering, regardless. */
-      pixel = (_getpixel (video_buffer, input_zapper_x_offset,
-         input_zapper_y_offset) - 1);
+      buffer = video_get_render_buffer();
+      if(buffer) {
+         int r, g, b;
 
-      /* Check for white. */
-      if ((pixel == 32) || (pixel == 48))
-         zapper_mask &= ~0x08;
+         pixel = _getpixel16(buffer, input_zapper_x_offset, input_zapper_y_offset);
+         color_unpack_16(pixel, &r, &g, &b);
+         
+         /* Check for white. */
+         if((r + g + b) >= 720) /* Min val. 240 */
+           zapper_mask &= ~0x08;
+      }
    }
 }
 
@@ -1135,7 +1139,7 @@ void input_handle_keypress (int c, int scancode)
             input_mode |= INPUT_MODE_CHAT;
 
             /* Play sound. */
-            play_sample (DATA_TO_SAMPLE(CHAT_WINDOW_SOUND), 255, 128, 1000, FALSE);
+            play_sample (DATA_TO_SAMPLE(SOUND_CHAT_POPUP), 255, 128, 1000, FALSE);
 
             return;
          }
@@ -1179,10 +1183,9 @@ void input_handle_keypress (int c, int scancode)
             {
                /* Just show message locally. */
                video_message (input_chat_text);
-               video_message_duration = 5000;
 
                /* Play sound. */
-               play_sample (DATA_TO_SAMPLE(CHAT_RECIEVE_SOUND), 255, 128, 1000, FALSE);
+               play_sample (DATA_TO_SAMPLE(SOUND_CHAT_RECEIVE), 255, 128, 1000, FALSE);
             }
 
             /* Clear buffer. */
@@ -1210,7 +1213,7 @@ void input_handle_keypress (int c, int scancode)
             uinsert (input_chat_text, ustrlen (input_chat_text), c);
 
             /* Play sound. */
-            play_sample (DATA_TO_SAMPLE(CHAT_TYPE_SOUND), 255, 128, 1000, FALSE);
+            play_sample (DATA_TO_SAMPLE(SOUND_CHAT_TYPE), 255, 128, 1000, FALSE);
          }
 
          break;

@@ -15,9 +15,13 @@
 extern "C" {
 #endif
 
-/* This macro gets direct access to an Allegro memory bitmap. */
+/* This is the size of the PPU color map, which maps the 64 NES colors to framebuffer values.
+   I would hope that how big it has to be would be obvious. ;) */
+#define PPU__COLOR_MAP_SIZE	64
+
+/* This macro gets direct access to the render buffer. */
 #define PPU__GET_LINE_ADDRESS(_BITMAP, _LINE) \
-   ( (_BITMAP)->line[(_LINE)] )
+   ( ((UINT16*)(_BITMAP)->line[(_LINE)]) )
 
 /* These macros are used to get and set pixels in the background scanline buffer. */
 #define PPU__BACKGROUND_PIXELS_SIZE PPU_RENDER_CLOCKS /* 256 pixels. */
@@ -26,13 +30,11 @@ extern "C" {
 #define PPU__PUT_BACKGROUND_PIXEL(_PIXEL, _COLOR) \
    ( ppu__background_pixels[(_PIXEL)] = (_COLOR) )
 
-/* NES color indexes start at position 1 in the global palette. */
-#define PPU__PALETTE_ADJUST 1
-/* These macros map palette indices to NES color values. */
+/* These macros map palette indices to NES color values, then framebuffer values. */
 #define PPU__BACKGROUND_PALETTE(_PALETTE, _INDEX) \
-   ( (ppu__background_palettes[(_PALETTE)][(_INDEX)] & ppu__palette_mask) + PPU__PALETTE_ADJUST )
+   ( ppu__color_map[ppu__background_palettes[(_PALETTE)][(_INDEX)] & ppu__palette_mask] )
 #define PPU__SPRITE_PALETTE(_PALETTE, _INDEX) \
-   ( (ppu__sprite_palettes[(_PALETTE)][(_INDEX)] & ppu__palette_mask) + PPU__PALETTE_ADJUST )
+   ( ppu__color_map[ppu__sprite_palettes[(_PALETTE)][(_INDEX)] & ppu__palette_mask] )
 
 /* This is the color the screen is filled with when the PPU background rendering
    is disabled, and the TV overscan around the image. */
@@ -77,6 +79,7 @@ extern BOOL   ppu__sprite_collision;
 extern BOOL   ppu__sprite_overflow;
 extern BOOL   ppu__vblank_started;
 /* Rendering only. */
+extern UINT16 ppu__color_map[PPU__COLOR_MAP_SIZE];
 extern UINT8  ppu__background_pixels[PPU__BACKGROUND_PIXELS_SIZE];
 extern BOOL   ppu__enable_background_layer;
 extern BOOL   ppu__enable_rendering;

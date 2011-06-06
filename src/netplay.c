@@ -286,11 +286,10 @@ static void parse_packet (PACKFILE *file)
 
          /* Display it. */
          video_message (text);
-         video_message_duration = 5000;
 
          /* Play sound. */
          /* TODO: Support OpenAL by piping this through an audiolib wrapper. */
-         play_sample (DATA_TO_SAMPLE(CHAT_RECIEVE_SOUND), 255, 128, 1000, FALSE);
+         play_sample (DATA_TO_SAMPLE(SOUND_CHAT_RECEIVE), 255, 128, 1000, FALSE);
 
          /* Append it to the buffer. */
          ustrncat (netplay_chat_buffer, "\n", (sizeof(netplay_chat_buffer) - 1));
