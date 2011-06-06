@@ -891,6 +891,12 @@ static INLINE int load_file (const UCHAR *filename)
          /* Mapper #0 = NONE. */
          mmc_force (&nsf_mapper);
 
+         /* Clear screen. */
+         clear_bitmap(screen);
+
+         /* Disable GUI. */
+         gui_is_active = FALSE;
+
          /* Initialize machine. */
          machine_init ();
 
@@ -911,6 +917,9 @@ static INLINE int load_file (const UCHAR *filename)
 
          /* Close machine. */
          machine_exit ();
+
+         /* Enable GUI. */
+         gui_is_active = TRUE;
 
          /* Botch. */
          rom_is_loaded = FALSE;
@@ -2508,8 +2517,12 @@ static int video_menu_color (void)
 
    video_update_settings();
 
-   frames_to_execute = 1;
-   return D_CLOSE;
+   if(rom_is_loaded) {
+      frames_to_execute = 1;
+      return D_CLOSE;
+   }
+
+   return D_O_K;
 }
 
 #define DRIVER_MENU_HANDLER(driver, id)   \
@@ -2857,7 +2870,7 @@ static int video_layers_menu_show_back_sprites (void)
 
    message_local ("Video sprites layer A %s.", get_enabled_text(!setting));
 
-   if(gui_is_active) {
+   if(gui_is_active && rom_is_loaded) {
       frames_to_execute = 1;
       return D_CLOSE;
    }
@@ -2873,14 +2886,13 @@ static int video_layers_menu_show_front_sprites (void)
 
    message_local ("Video sprites layer B %s.", get_enabled_text(!setting));
 
-   if(gui_is_active) {
+   if(gui_is_active && rom_is_loaded) {
       frames_to_execute = 1;
       return D_CLOSE;
    }
 
    return (D_O_K);
 }
-
 
 static int video_layers_menu_show_background (void)
 {
@@ -2890,7 +2902,7 @@ static int video_layers_menu_show_background (void)
 
    message_local ("Video background layer %s.", get_enabled_text(!setting));
 
-   if(gui_is_active) {
+   if(gui_is_active && rom_is_loaded) {
       frames_to_execute = 1;
       return D_CLOSE;
    }
@@ -2903,8 +2915,11 @@ static int video_layers_menu_show_background (void)
    {  \
       video_set_profile_enum(VIDEO_PROFILE_COLOR_PALETTE, id); \
       video_update_settings(); \
-      frames_to_execute = 1; \
-      return (D_CLOSE); \ 
+      if(rom_is_loaded) { \
+         frames_to_execute = 1; \
+         return (D_CLOSE); \
+      } \
+      return D_O_K; \
    }
 
 PALETTE_MENU_HANDLER(nester,   "NESter palette",   VIDEO_PALETTE_NESTER)
