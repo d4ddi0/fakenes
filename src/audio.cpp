@@ -503,6 +503,14 @@ void audio_visclose(void)
       delete[] audioVisBuffer;
       audioVisBuffer = null;
    }
+
+   audioVisBufferSize = 0;
+}
+
+
+BOOL audio_is_visopen(void)
+{
+   return (audioVisBufferSize > 0);
 }
 
 UINT16* audio_get_visdata(void)

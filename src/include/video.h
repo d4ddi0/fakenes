@@ -35,7 +35,8 @@ enum {
 };
 
 enum {
-   VIDEO_FONT_SMALL = 0,
+   VIDEO_FONT_SMALLEST = 0,
+   VIDEO_FONT_SMALL,
    VIDEO_FONT_MEDIUM,
    VIDEO_FONT_LARGE,
    VIDEO_FONT_MONOLITHIC,
@@ -100,6 +101,7 @@ extern void video_set_profile_real(const ENUM key, const REAL value);
 extern void video_set_profile_enum(const ENUM key, const ENUM value);
 extern void video_set_profile_boolean(const ENUM key, const BOOL value);
 extern void video_update_display(void);
+extern void video_update_game_display(void);
 extern void video_update_settings(void);
 extern void video_handle_keypress(const int c, const int scancode);
 extern void video_message(const UCHAR* message, ...);

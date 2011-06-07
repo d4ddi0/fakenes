@@ -42,13 +42,19 @@ extern BOOL gui_is_active;
 extern GUI_THEME gui_theme;
 extern RGB *gui_image_palette;
 
+extern int gui_mouse_x_position, gui_mouse_y_position;
+extern int gui_game_x, gui_game_y, gui_game_width, gui_game_height;
+
 extern void gui_load_config (void);
 extern void gui_save_config (void);
+extern void gui_preinit (void);
 extern int gui_init (void);
 extern void gui_exit (void);
 extern int show_gui (BOOL);
+extern void gui_update_display(void);
 extern int gui_alert (const UCHAR *, const UCHAR *, const UCHAR *, const UCHAR *, const UCHAR *, const UCHAR *, int, int);
 extern void gui_message (int, const UCHAR *, ...);
+extern void gui_log_message (const UCHAR *);
 extern void gui_heartbeat (void);
 extern void gui_handle_keypress (int, int);
 extern void gui_stop_replay (void);

@@ -11,6 +11,7 @@
 #include <time.h>
 #include "common.h"
 #include "debug.h"
+#include "gui.h"
 #include "log.h"
 #include "types.h"
 
@@ -75,6 +76,8 @@ void log_printf (const UCHAR *message, ...)
    fflush (log_file);
 
    ustrzncat (log_text, sizeof (log_text), buffer, sizeof (buffer));
+
+   gui_log_message(buffer);
 }
 
 UCHAR *get_log_text (void)

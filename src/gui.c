@@ -48,7 +48,6 @@ ENUM gui_theme_id = -1;
 const GUI_THEME *last_theme = NULL;
 void (*gui_theme_callback) (void);
 
-RGB *gui_image_palette = NULL;
 static BITMAP *gui_mouse_sprite = NULL;
 static BITMAP *background_image = NULL;
 
@@ -56,9 +55,20 @@ BOOL gui_is_active = FALSE;
 static BOOL gui_needs_restart = FALSE;
 static BOOL want_exit = FALSE;
 
-static USTRING message_buffer;
+/* This is the location of the mouse pointer when the GUI is running. It differs
+   from mouse_x/y because it takes into account the letterbox system. */
+int gui_mouse_x_position = 0, gui_mouse_y_position = 0;
 
-static PALETTE custom_palette;
+/* This is the location and size of the game screen when the GUI is running. */
+int gui_game_x = 0, gui_game_y = 0, gui_game_width = 0, gui_game_height = 0;
+
+#define GUI_MESSAGE_HISTORY_SIZE	20
+static USTRING gui_message_history[GUI_MESSAGE_HISTORY_SIZE];
+static int gui_last_message = 0;
+
+/* This is the text of the status bar. */
+static USTRING gui_status_text;
+static int gui_status_color = 0;
 
 static int save_state_index = 0; /* For save states. */
 static int replay_index = 0;     /* For replays. */
@@ -108,21 +118,42 @@ static INLINE void update_menus (void)
    DISABLE_MENU_ITEM(audio_output_menu_subsystem_openal);
 #endif
 
-   if (!rom_is_loaded)                
-   {
-      DISABLE_MENU_ITEM(main_menu_resume);
-      DISABLE_MENU_ITEM(main_menu_close);
-      DISABLE_SUBMENU(main_replay_menu);
-      DISABLE_MENU_ITEM(main_menu_cheat_manager);
-      DISABLE_MENU_ITEM(main_menu_save_snapshot);
-      DISABLE_MENU_ITEM(main_menu_advance_frame);
-      DISABLE_SUBMENU(main_record_audio_menu);
-      DISABLE_MENU_ITEM(system_menu_reset);
-      DISABLE_MENU_ITEM(system_menu_power_cycle);
-      DISABLE_SUBMENU(system_save_state_menu);
-      DISABLE_MENU_ITEM(options_menu_reset_clock);
-   }
+   DISABLE_MENU_ITEM(main_menu_hide_gui);
+   DISABLE_MENU_ITEM(main_menu_close);
+   DISABLE_SUBMENU(main_replay_menu);
+   DISABLE_MENU_ITEM(main_menu_cheat_manager);
+   DISABLE_MENU_ITEM(main_menu_save_snapshot);
+   DISABLE_MENU_ITEM(main_menu_advance_frame);
+   DISABLE_SUBMENU(main_record_audio_menu);
+   DISABLE_MENU_ITEM(system_menu_reset);
+   DISABLE_MENU_ITEM(system_menu_power_cycle);
+   DISABLE_SUBMENU(system_save_state_menu);
+   DISABLE_MENU_ITEM(options_menu_reset_clock);
 
+   if(rom_is_loaded)
+   {
+      ENABLE_MENU_ITEM(main_menu_hide_gui);
+      ENABLE_MENU_ITEM(main_menu_close);
+      ENABLE_SUBMENU(main_replay_menu);
+      ENABLE_MENU_ITEM(main_menu_cheat_manager);
+      ENABLE_MENU_ITEM(main_menu_save_snapshot);
+      ENABLE_MENU_ITEM(main_menu_advance_frame);
+      ENABLE_SUBMENU(main_record_audio_menu);
+      ENABLE_MENU_ITEM(system_menu_reset);
+      ENABLE_MENU_ITEM(system_menu_power_cycle);
+      ENABLE_SUBMENU(system_save_state_menu);
+      ENABLE_MENU_ITEM(options_menu_reset_clock);
+   }
+   else if(nsf_is_loaded)
+   {
+      /* NSF only has a limited subset of functionality. */
+      ENABLE_MENU_ITEM(main_menu_hide_gui);
+      ENABLE_MENU_ITEM(main_menu_close);
+      ENABLE_MENU_ITEM(main_menu_save_snapshot);
+      ENABLE_SUBMENU(main_record_audio_menu);
+      ENABLE_MENU_ITEM(options_menu_reset_clock);
+   }
+ 
    TOGGLE_MENU_ITEM(main_open_recent_menu_lock, lock_recent);
 
    TOGGLE_MENU_ITEM(main_replay_select_menu_0, (replay_index == 0));
@@ -344,6 +375,20 @@ void gui_save_config (void)
    set_config_int ("gui", "lock_recent", lock_recent);
 }
 
+void gui_preinit(void)
+{
+   int index;
+
+   /* Clear stuff. */
+   for(index = 0; index < GUI_MESSAGE_HISTORY_SIZE; index++)
+      USTRING_CLEAR(gui_message_history[index]);
+
+   gui_last_message = 0;
+
+   USTRING_CLEAR(gui_status_text);
+   gui_status_color = 0;
+}
+
 int gui_init (void)
 {
    int index;
@@ -406,7 +451,6 @@ int gui_init (void)
       menu->flags &= ~D_DISABLED;
    }
 
-   /* Cheap hack to fix palette. */
    set_theme ();
 
    return (0);
@@ -456,7 +500,7 @@ int show_gui (BOOL first_run)
          WARN("Failed to open GUI");
          return ((8 + result));
       }
-   
+
       if (first_run)
       {
          /* Show version. */
@@ -473,14 +517,16 @@ int show_gui (BOOL first_run)
       run_dialog (main_dialog, -1);
 
       /* Close GUI. */
-      gui_close (want_exit);
-
-      /* Clear screen. */
-      clear_bitmap(screen);
+      gui_close ();
 
    } while (gui_needs_restart);
 
    return (want_exit);
+}
+
+void gui_update_display(void) 
+{
+   update_display();
 }
 
 int gui_alert (const UCHAR *title, const UCHAR *s1, const UCHAR *s2, const
@@ -608,11 +654,9 @@ int gui_alert (const UCHAR *title, const UCHAR *s1, const UCHAR *s2, const
    /* Destroy dialog. */
    unload_dialog (dialog);
 
-   if (gui_opened)
-   {
+   if(gui_opened)
       /* Close GUI. */
-      gui_close (FALSE);
-   }
+      gui_close();
 
    if (result == ALERT_DIALOG_BUTTON_1)
       return (1); /* OK. */
@@ -623,22 +667,62 @@ int gui_alert (const UCHAR *title, const UCHAR *s1, const UCHAR *s2, const
 void gui_message (int color, const UCHAR *message, ...)
 {
    va_list format;
+   USTRING buffer;
 
-   RT_ASSERT(message);
+   va_start(format, message);
+   uvszprintf(buffer, USTRING_SIZE, message, format);
+   va_end(format);
 
-   va_start (format, message);
-   uvszprintf (message_buffer, USTRING_SIZE, message, format);
-   va_end (format);
+   add_message(buffer);
 
    if (gui_is_active)
    {
       if (color == -1)
          color = GUI_TEXT_COLOR;
 
-      draw_message (color);
+      status_text_color (color, buffer);
+   }
+}
+
+/* This just sends a preformatted message to the message history.
+   Newlines are also converted to separate strings.
+
+   This gets called by log_printf() to display the log in the GUI. */
+void gui_log_message(const UCHAR* message)
+{
+   USTRING buffer;
+   int length, index, subindex;
+
+   RT_ASSERT(message);
+
+   length = ustrlen(message);
+   index = 0;
+
+   USTRING_CLEAR(buffer);
+   subindex = 0;
+
+   BOOL done = FALSE;
+   while(!done) {
+      const UCHAR c = ugetat(message, index);
+      index++;
+      if(index == length)
+         done = TRUE;
+
+      if(c == '\n') {
+         if(ustrlen(buffer) > 0)
+            add_message(buffer);
+
+         USTRING_CLEAR(buffer);
+         subindex = 0;
+      }
+      else {  
+         uinsert(buffer, subindex, c);
+         subindex++;
+      }
    }
 
-   video_message (message_buffer);
+   if(ustrlen(buffer) > 0)
+      add_message(buffer);
 }
 
 void gui_heartbeat (void)
@@ -651,10 +735,7 @@ void gui_heartbeat (void)
 
    refresh ();
 
-   if (cpu_usage == CPU_USAGE_PASSIVE)
-      rest (1);
-   else if (cpu_usage == CPU_USAGE_NORMAL)
-      rest (0);
+  /* rest() has been moved into refresh() */
 }
 
 void gui_handle_keypress (int c, int scancode)
@@ -684,9 +765,9 @@ void gui_handle_keypress (int c, int scancode)
 
          /* See if the save succeeded. */
          if (check_save_state (-1))
-            message_local ("QuickSave: OK");
+            status_text ("QuickSave: OK");
          else
-            message_local ("QuickSave: Failed");
+            status_text ("QuickSave: Failed");
             
          break;
       }
@@ -779,7 +860,7 @@ void gui_handle_keypress (int c, int scancode)
          {
             save_state_index = (scancode - KEY_0);
     
-            message_local ("Machine state slot set to %d.",
+            status_text ("Machine state slot set to %d.",
                save_state_index);
          }
 
@@ -839,9 +920,9 @@ static INLINE void set_autosave (int interval)
    update_menus ();
 
    if (interval <= 0)
-      message_local ("Autosave disabled.");
+      status_text ("Autosave disabled.");
    else
-      message_local ("Autosave interval set to %d seconds.", interval);
+      status_text ("Autosave interval set to %d seconds.", interval);
 }
 
 static INLINE void close_file (void);
@@ -856,20 +937,65 @@ static INLINE int load_file (const UCHAR *filename)
       NSFs are also supported, and are determined from their extension.
       GZipped/Zipped NSFs are not supported however.
 
-      The return value of this function should be passed back to the calling
-      dialog (e.g, D_CLOSE to close it and start the emulation, etc.). */
+      The return value of this function is kept only for legacy purposes,
+      it no longer means anything. */
 
    ROM rom;
+   BOOL loaded = FALSE;
 
-   status_message ("Loading, please wait...");
+   status_text ("Loading, please wait...");
 
    if (ustricmp (get_extension (filename), "NSF") == 0)
    {
       /* Attempt to intercept NSF file. */
 
+      if( nsf_is_loaded )
+      {
+         close_file();
+      }
+      
       if (!nsf_open (filename))
       {
-         gui_message (GUI_ERROR_COLOR, "Failed to load NSF file!");
+         status_text_color (GUI_ERROR_COLOR, "Failed to load NSF file!");
+
+         return (D_O_K);
+      }
+      else
+      {
+         /* Clear status bar. */
+         status_text ("");
+
+         if (rom_is_loaded)
+         {
+            /* Close currently open ROM and save data. */
+            close_file ();
+         }
+
+         /* Clear ROM space. */
+         memset(&global_rom, 0, sizeof(global_rom));
+
+         /* Set up mapper. */
+         mmc_force (&nsf_mapper);
+
+         /* Set flag. */
+         nsf_is_loaded = TRUE;
+
+         /* Initialize machine. */
+         machine_init ();
+
+         /* Start emulation. */
+         nsf_setup();
+
+         /* Display a tip about hiding the GUI. */
+         status_text ("Tip: Press ESC to hide the GUI and maximise the player.");
+
+         loaded = TRUE;
+      }
+   }
+   else {
+      if (load_rom (filename, &rom) != 0)
+      {
+         status_text_color (GUI_ERROR_COLOR, "Failed to load ROM!");
 
          return (D_O_K);
       }
@@ -878,113 +1004,53 @@ static INLINE int load_file (const UCHAR *filename)
          USTRING scratch;
 
          /* Clear status bar. */
-         status_message ("");
+         status_text ("");
 
-         if (rom_is_loaded)
+         if (rom_is_loaded || nsf_is_loaded)
          {
             /* Close currently open ROM and save data. */
             close_file ();
          }
 
-         /* Big Batch O' Botches. */
+         memcpy (&global_rom, &rom, sizeof (ROM));
+
          rom_is_loaded = TRUE;
-         memset(&global_rom, 0, sizeof(global_rom));
-         /* Mapper #0 = NONE. */
-         mmc_force (&nsf_mapper);
-
-         /* Clear screen. */
-         clear_bitmap(screen);
-
-         /* Disable GUI. */
-         gui_is_active = FALSE;
 
          /* Initialize machine. */
          machine_init ();
 
-         /* Update window title. */
-         uszprintf (scratch, sizeof (scratch), "FakeNES - %s", get_filename (filename));
-         set_window_title (scratch);
+         /* Start emulation. */
+         machine_resume();
 
-         /* Unfreeze audio. */
-         audio_resume ();
+         /* Display a tip about hiding the GUI. */
+         status_text ("Tip: Press ESC to hide the GUI and maximise the game.");
 
-         nsf_main ();
-
-         /* Re-freeze audio. */
-         audio_suspend ();
-
-         /* Close NSF file. */
-         nsf_close ();
-
-         /* Close machine. */
-         machine_exit ();
-
-         /* Enable GUI. */
-         gui_is_active = TRUE;
-
-         /* Botch. */
-         rom_is_loaded = FALSE;
-
-         /* Clear filename. */
-         set_window_title ("FakeNES");
-
-         return (D_REDRAW);
+         loaded = TRUE;
       }
    }
 
-   if (load_rom (filename, &rom) != 0)
-   {
-      gui_message (GUI_ERROR_COLOR, "Failed to load ROM!");
-
-      return (D_O_K);
-   }
-   else
+   if(loaded)
    {
       USTRING scratch;
-
-      /* Clear status bar. */
-      status_message ("");
-
-      if (rom_is_loaded)
-      {
-         /* Close currently open ROM and save data. */
-         close_file ();
-      }
-
-      memcpy (&global_rom, &rom, sizeof (ROM));
 
       /* Update save state titles. */
       system_save_state_menu_select ();
       /* Update replay titles. */
       main_replay_menu_select ();
 
-      rom_is_loaded = TRUE;
-
-      /* Initialize machine. */
-      machine_init ();
-
       /* Clear the game clock. */
       options_menu_reset_clock ();
-
-      ENABLE_MENU_ITEM(main_menu_resume);
-      ENABLE_MENU_ITEM(main_menu_close);
-      ENABLE_SUBMENU(main_replay_menu);
-      ENABLE_MENU_ITEM(main_menu_cheat_manager);
-      ENABLE_MENU_ITEM(main_menu_save_snapshot);
-      ENABLE_MENU_ITEM(main_menu_advance_frame);
-      ENABLE_SUBMENU(main_record_audio_menu);
-      ENABLE_MENU_ITEM(system_menu_reset);
-      ENABLE_MENU_ITEM(system_menu_power_cycle);
-      ENABLE_SUBMENU(system_save_state_menu);
-      ENABLE_MENU_ITEM(options_menu_reset_clock);
 
       /* Update window title. */
       uszprintf (scratch, sizeof (scratch), "FakeNES - %s", get_filename
          (global_rom.filename));
       set_window_title (scratch);
 
-      return (D_CLOSE);
    }
+
+   update_menus();
+
+   return D_O_K;
 }
 
 static INLINE void close_file (void)
@@ -992,18 +1058,35 @@ static INLINE void close_file (void)
    /* Unloads the current ROM and returns the emulator to it's default
       state. */
 
-   /* Save SRAM. */
-   save_sram ();      
+   /* Check if the open file is an NSF. */
+   if(nsf_is_loaded)
+   {
+      /* Clean up. */
+      nsf_teardown();
 
-   /* Save patches. */
-   save_patches ();
+      /* Close machine. */
+      machine_exit ();
 
-   /* Close machine. */
-   machine_exit ();
+      /* Close NSF. */
+      nsf_close ();
+      nsf_is_loaded = FALSE;
+   }
+   /* Normal ROM. */
+   else
+   {
+      /* Save SRAM. */
+      save_sram ();      
 
-   /* Unload ROM. */
-   free_rom (&global_rom);
-   rom_is_loaded = FALSE;
+      /* Save patches. */
+      save_patches ();
+
+      /* Close machine. */
+      machine_exit ();
+
+      /* Unload ROM. */
+      free_rom (&global_rom);
+      rom_is_loaded = FALSE;
+   }
 
    /* Reset window title. */
    set_window_title ("FakeNES");
@@ -1040,9 +1123,6 @@ static int open_lobby (void)
    int object_id;
 
    bmp = gui_get_screen ();
-
-   /* Clear screen. */
-   clear_bitmap (bmp);
 
    /* Get dialog. */
    dialog = lobby_dialog;
@@ -1100,7 +1180,7 @@ static int open_lobby (void)
    player = init_dialog (dialog, -1);
    if (!player)
    {
-      gui_message (GUI_ERROR_COLOR, "Failed to create dialog player!");
+      status_text_color (GUI_ERROR_COLOR, "Failed to create dialog player!");
       return (D_O_K);
    }
 
@@ -1129,13 +1209,7 @@ static int open_lobby (void)
          /* End NetPlay session. */
          netplay_close ();
    
-         /* Clear screen. */
-         clear_bitmap (bmp);
-      
-         /* Draw background. */
-         draw_background ();
-      
-         message_local ("NetPlay session closed.");
+         status_text ("NetPlay session closed.");
 
          return (D_O_K);
       }
@@ -1144,7 +1218,7 @@ static int open_lobby (void)
 
 /* --- Menu handlers. --- */
 
-static int main_menu_resume (void)
+static int main_menu_hide_gui (void)
 {
     return (D_CLOSE);
 }
@@ -1194,7 +1268,8 @@ static int main_menu_open (void)
       int result;
 
       result = load_file (path);
-      if ((result == D_CLOSE) && !lock_recent)
+
+      if ((rom_is_loaded || nsf_is_loaded) && !lock_recent)
       {
          /* Load succeeded; add file to recent items list. */
 
@@ -1316,10 +1391,10 @@ static int main_menu_close (void)
    /* Unload ROM. */
    close_file ();
 
-   /* Clear the screen and restore background. */
-   cycle_video ();
+   /* Suspend emulation. */
+   machine_pause();
 
-   return (D_REDRAW);
+   return (D_O_K);
 }
 
 #define REPLAY_SELECT_MENU_HANDLER(index) \
@@ -1327,7 +1402,7 @@ static int main_menu_close (void)
    {  \
       replay_index = index;   \
       update_menus ();  \
-      message_local ("Replay slot set to %d.", index);   \
+      status_text ("Replay slot set to %d.", index);   \
       return (D_O_K);   \
    }
 
@@ -1404,7 +1479,7 @@ static int main_replay_menu_record_start (void)
    /* Open replay file. */
    if (!open_replay (replay_index, "w", title))
    {
-      gui_message (GUI_ERROR_COLOR, "Failed to open new machine state "
+      status_text_color (GUI_ERROR_COLOR, "Failed to open new machine state "
          "file.");
 
       return (D_O_K);
@@ -1424,7 +1499,7 @@ static int main_replay_menu_record_start (void)
    input_mode |= INPUT_MODE_REPLAY;
    input_mode |= INPUT_MODE_REPLAY_RECORD;
  
-   message_local ("Replay recording session started.");
+   status_text ("Replay recording session started.");
  
    /* Update replay titles. */
    main_replay_menu_select ();
@@ -1451,7 +1526,7 @@ static int main_replay_menu_record_stop (void)
    ENABLE_SUBMENU(system_save_state_autosave_menu);
    ENABLE_SUBMENU(netplay_menu);
 
-   message_local ("Replay recording session stopped.");
+   status_text ("Replay recording session stopped.");
 
    return (D_O_K);
 }
@@ -1460,7 +1535,7 @@ static int main_replay_menu_play_start (void)
 {
    if (!open_replay (replay_index, "r", NULL))
    {                       
-      gui_message (GUI_ERROR_COLOR, "Failed to open machine state file.");
+      status_text_color (GUI_ERROR_COLOR, "Failed to open machine state file.");
 
       return (D_O_K);
    }
@@ -1484,7 +1559,7 @@ static int main_replay_menu_play_start (void)
    input_mode |= INPUT_MODE_REPLAY;
    input_mode |= INPUT_MODE_REPLAY_PLAY;
 
-   message_local ("Replay playback started.");
+   status_text ("Replay playback started.");
 
    return (D_CLOSE);
 }
@@ -1515,9 +1590,9 @@ static int main_replay_menu_play_stop (void)
    ENABLE_SUBMENU(netplay_menu);
 
    if (gui_is_active)
-      message_local ("Replay playback stopped.");
+      status_text ("Replay playback stopped.");
    else
-      message_local ("Replay playback finished.");
+      status_text ("Replay playback finished.");
 
    return (D_O_K);
 }
@@ -1553,12 +1628,12 @@ static int main_menu_save_snapshot (void)
 
       save_bitmap (filename, video_get_render_buffer(), NULL);
 
-      message_local ("Snapshot saved to %s.", filename);
+      status_text ("Snapshot saved to %s.", filename);
 
       return (D_O_K);
    }
 
-   gui_message (GUI_ERROR_COLOR, "Couldn't find a suitable image "
+   status_text_color (GUI_ERROR_COLOR, "Couldn't find a suitable image "
       "filename.");
 
    return (D_O_K);
@@ -1566,9 +1641,7 @@ static int main_menu_save_snapshot (void)
 
 static int main_menu_advance_frame (void)
 {
-   frames_to_execute = 1;
-
-   return (D_CLOSE);
+   return D_O_K;
 }
 
 static int main_record_audio_menu_start (void)
@@ -1594,12 +1667,12 @@ static int main_record_audio_menu_start (void)
          ENABLE_MENU_ITEM(main_record_audio_menu_stop);
       }
    
-      message_local ("Audio WAV recording started to %s.", filename);
+      status_text ("Audio WAV recording started to %s.", filename);
 
       return (D_O_K);
    }
    
-   gui_message (GUI_ERROR_COLOR, "Couldn't find a suitable sound "
+   status_text_color (GUI_ERROR_COLOR, "Couldn't find a suitable sound "
       "filename.");
 
    return (D_O_K);
@@ -1612,7 +1685,7 @@ static int main_record_audio_menu_stop (void)
    ENABLE_MENU_ITEM(main_record_audio_menu_start);
    DISABLE_MENU_ITEM(main_record_audio_menu_stop);
 
-   message_local ("Audio WAV recording stopped.");
+   status_text ("Audio WAV recording stopped.");
 
    return (D_O_K);
 }
@@ -1658,7 +1731,7 @@ static int main_menu_exit (void)
    {  \
       save_state_index = index;  \
       update_menus ();  \
-      message_local ("Machine state slot set to %d.", index);  \
+      status_text ("Machine state slot set to %d.", index);  \
       return (D_O_K);   \
    }
 
@@ -1679,7 +1752,7 @@ static int system_save_state_menu_quick_save (void)
 {
    if (!save_state (-1, "QUICKSAVE"))
    {
-      gui_message (GUI_ERROR_COLOR, "Quick Save failed.");
+      status_text_color (GUI_ERROR_COLOR, "Quick Save failed.");
 
       return (D_O_K);
    }
@@ -1691,7 +1764,7 @@ static int system_save_state_menu_quick_load (void)
 {
    if (!load_state (-1))
    {
-      gui_message (GUI_ERROR_COLOR, "Quick Load failed.");
+      status_text_color (GUI_ERROR_COLOR, "Quick Load failed.");
 
       return (D_O_K);
    }
@@ -1734,13 +1807,13 @@ static int system_save_state_menu_save (void)
 
    if (!save_state (save_state_index, title))
    {
-      gui_message (GUI_ERROR_COLOR, "Failed to open new machine state "
+      status_text_color (GUI_ERROR_COLOR, "Failed to open new machine state "
          "file.");
 
       return (D_O_K);
    }
 
-   message_local ("Machine state saved to slot %d.", save_state_index);
+   status_text ("Machine state saved to slot %d.", save_state_index);
 
    /* Update save state titles. */
    system_save_state_menu_select ();
@@ -1752,12 +1825,12 @@ static int system_save_state_menu_restore (void)
 {
    if (!load_state (save_state_index))
    {
-      gui_message (GUI_ERROR_COLOR, "Failed to open machine state file.");
+      status_text_color (GUI_ERROR_COLOR, "Failed to open machine state file.");
 
       return (D_O_K);
    }
 
-   message_local ("Machine state loaded from slot %d.", save_state_index);
+   status_text ("Machine state loaded from slot %d.", save_state_index);
 
    return (D_CLOSE);
 }
@@ -1833,7 +1906,7 @@ static int system_region_menu_automatic (void)
    timing_update_machine_type ();
    update_menus ();
 
-   message_local ("System region set to automatic.");
+   status_text ("System region set to automatic.");
 
    return (D_O_K);
 }
@@ -1844,7 +1917,7 @@ static int system_region_menu_ntsc (void)
    timing_update_machine_type ();
    update_menus ();
 
-   message_local ("System region set to NTSC.");
+   status_text ("System region set to NTSC.");
 
    return (D_O_K);
 }
@@ -1855,7 +1928,7 @@ static int system_region_menu_pal (void)
    timing_update_machine_type ();
    update_menus ();
 
-   message_local ("System region set to PAL.");
+   status_text ("System region set to PAL.");
 
    return (D_O_K);
 }
@@ -1867,7 +1940,7 @@ static int system_speed_up_down_menu_50_percent (void)
 
    update_menus ();
 
-   message_local ("Machine speed factor set to 50%%.");
+   status_text ("Machine speed factor set to 50%%.");
 
    return (D_O_K);
 }
@@ -1879,7 +1952,7 @@ static int system_speed_up_down_menu_100_percent (void)
 
    update_menus ();
 
-   message_local ("Machine speed factor set to 100%%.");
+   status_text ("Machine speed factor set to 100%%.");
 
    return (D_O_K);
 }
@@ -1891,7 +1964,7 @@ static int system_speed_up_down_menu_200_percent (void)
 
    update_menus ();
 
-   message_local ("Machine speed factor set to 200%%.");
+   status_text ("Machine speed factor set to 200%%.");
 
    return (D_O_K);
 }
@@ -1909,7 +1982,7 @@ static int system_speed_up_down_menu_custom (void)
 
       update_menus ();
 
-      message_local ("Machine speed factor set to custom.");
+      status_text ("Machine speed factor set to custom.");
    }
 
    return (D_O_K);
@@ -1920,7 +1993,7 @@ static int system_frame_skip_menu_automatic (void)
    frame_skip = -1;
    update_menus ();
 
-   message_local ("Frame skip set to automatic.");
+   status_text ("Frame skip set to automatic.");
 
    return (D_O_K);
 }
@@ -1930,7 +2003,7 @@ static int system_frame_skip_menu_disabled (void)
    frame_skip = 0;
    update_menus ();
 
-   message_local ("Frame skip disabled.");
+   status_text ("Frame skip disabled.");
 
    return (D_O_K);
 }
@@ -1940,7 +2013,7 @@ static int system_frame_skip_menu_disabled (void)
    {  \
       frame_skip = frames; \
       update_menus ();  \
-      message_local ("Frame skip set to %d frames.", frames);  \
+      status_text ("Frame skip set to %d frames.", frames);  \
       return (D_O_K);   \
    }
 
@@ -1961,7 +2034,7 @@ static int system_frame_skip_menu_custom (void)
       frame_skip = frames;
       update_menus ();
    
-      message_local ("Frame skip set to %d frames.", frames);
+      status_text ("Frame skip set to %d frames.", frames);
    }
 
    return (D_O_K);
@@ -2015,7 +2088,7 @@ static int system_menu_power_cycle (void)
       /* Clear the game clock. */
       options_menu_reset_clock ();
 
-      return (D_CLOSE);
+      return (D_O_K);
    }
 }
 
@@ -2025,7 +2098,7 @@ static int system_menu_timing_smoothest (void)
    timing_update_timing ();
    update_menus ();
 
-   message_local ("Machine timing mode set to smoothest.");
+   status_text ("Machine timing mode set to smoothest.");
 
    return (D_O_K);
 }
@@ -2036,7 +2109,7 @@ static int system_menu_timing_most_accurate (void)
    timing_update_timing ();
    update_menus ();
 
-   message_local ("Machine timing mode set to most accurate.");
+   status_text ("Machine timing mode set to most accurate.");
 
    return (D_O_K);
 }
@@ -2046,7 +2119,7 @@ static int system_menu_speed_cap (void)
    speed_cap = !speed_cap;
    update_menus ();
 
-   message_local ("Speed cap %s.", get_enabled_text (speed_cap));
+   status_text ("Speed cap %s.", get_enabled_text (speed_cap));
 
    return (D_O_K);
 }
@@ -2058,7 +2131,7 @@ static int audio_menu_enable_apu (void)
 
    apu_update ();
 
-   message_local ("APU emulation %s.",
+   status_text ("APU emulation %s.",
       get_enabled_text (apu_options.enabled));
 
    return (D_O_K);
@@ -2071,7 +2144,7 @@ static int audio_menu_enable_output (void)
    cycle_audio ();
    update_menus ();
 
-   message_local ("Audio output %s.", get_enabled_text (audio_options.enable_output));
+   status_text ("Audio output %s.", get_enabled_text (audio_options.enable_output));
 
    return (D_O_K);
 }
@@ -2088,7 +2161,7 @@ static int audio_menu_emulation_fast (void)
       "Only use it if you have a very slow computer that cannot handle one of the other emulation modes.",
       NULL, "&OK", NULL, 0, 0);
 
-   message_local ("APU emulation quality set to fast.");
+   status_text ("APU emulation quality set to fast.");
 
    return (D_O_K);
 }
@@ -2100,7 +2173,7 @@ static int audio_menu_emulation_accurate (void)
 
    apu_update ();
 
-   message_local ("APU emulation quality set to accurate.");
+   status_text ("APU emulation quality set to accurate.");
 
    return (D_O_K);
 }
@@ -2112,7 +2185,7 @@ static int audio_menu_emulation_high_quality (void)
 
    apu_update ();
 
-   message_local ("APU emulation quality set to high quality.");
+   status_text ("APU emulation quality set to high quality.");
 
    return (D_O_K);
 }
@@ -2124,7 +2197,7 @@ static int audio_menu_emulation_high_quality (void)
       *enabled = !*enabled; \
       update_menus (); \
       apu_update (); \
-      message_local ("APU " name " %s.", get_enabled_text (*enabled)); \
+      status_text ("APU " name " %s.", get_enabled_text (*enabled)); \
       return (D_O_K); \
    }
 
@@ -2154,7 +2227,7 @@ static int audio_channels_menu_enable_all (void)
 
    apu_update ();
 
-   message_local ("All APU channels enabled.");
+   status_text ("All APU channels enabled.");
 
    return (D_O_K);
 }
@@ -2174,7 +2247,7 @@ static int audio_channels_menu_disable_all (void)
 
    apu_update ();
 
-   message_local ("All APU channels disabled.");
+   status_text ("All APU channels disabled.");
 
    return (D_O_K);
 }
@@ -2186,7 +2259,7 @@ static int audio_output_menu_subsystem_automatic (void)
    cycle_audio ();
    update_menus ();
 
-   message_local ("Audio subsystem set to Automatic.");
+   status_text ("Audio subsystem set to Automatic.");
    
    return (D_O_K);
 }
@@ -2198,7 +2271,7 @@ static int audio_output_menu_subsystem_safe (void)
    cycle_audio ();
    update_menus ();
 
-   message_local ("Audio subsystem set to Safe.");
+   status_text ("Audio subsystem set to Safe.");
    
    return (D_O_K);
 }
@@ -2210,7 +2283,7 @@ static int audio_output_menu_subsystem_allegro (void)
    cycle_audio ();
    update_menus ();
 
-   message_local ("Audio subsystem set to Allegro.");
+   status_text ("Audio subsystem set to Allegro.");
    
    return (D_O_K);
 }
@@ -2222,7 +2295,7 @@ static int audio_output_menu_subsystem_openal (void)
    cycle_audio ();
    update_menus ();
 
-   message_local ("Audio subsystem set to OpenAL.");
+   status_text ("Audio subsystem set to OpenAL.");
 
    return (D_O_K);
 }
@@ -2233,7 +2306,7 @@ static int audio_output_menu_subsystem_openal (void)
       audio_options.sample_rate_hint = rate;  \
       cycle_audio ();   \
       update_menus ();  \
-      message_local ("Audio sampling rate set to %d Hz.", rate);  \
+      status_text ("Audio sampling rate set to %d Hz.", rate);  \
       return (D_O_K);   \
    }
 
@@ -2250,7 +2323,7 @@ static int audio_output_menu_sampling_rate_automatic (void)
    cycle_audio ();
    update_menus ();
 
-   message_local ("Audio sampling rate set to automatic.");
+   status_text ("Audio sampling rate set to automatic.");
 
    return (D_O_K);
 }
@@ -2268,7 +2341,7 @@ static int audio_output_menu_sampling_rate_custom (void)
       cycle_audio ();
       update_menus ();
 
-      message_local ("Audio sampling rate set to %d Hz.", rate);
+      status_text ("Audio sampling rate set to %d Hz.", rate);
    }
 
    return (D_O_K);
@@ -2281,7 +2354,7 @@ static int audio_output_menu_mixing_mono (void)
    cycle_audio ();
    update_menus ();
 
-   gui_message (GUI_TEXT_COLOR, "Audio output set to mono.");
+   status_text_color (GUI_TEXT_COLOR, "Audio output set to mono.");
 
    return (D_O_K);
 }
@@ -2299,7 +2372,7 @@ static int audio_output_menu_mixing_stereo (void)
       "This is a harmless, accuracy-related procedure and should not be considered a bug.",
       "&OK", NULL, 0, 0);
       
-   message_local ("Audio output set to stereo.");
+   status_text ("Audio output set to stereo.");
 
    return (D_O_K);
 }
@@ -2312,7 +2385,7 @@ static int audio_output_menu_mixing_reverse_stereo (void)
    cycle_audio ();
    update_menus ();
    
-   message_local ("Audio output set to reverse stereo.");
+   status_text ("Audio output set to reverse stereo.");
 
    return (D_O_K);
 }
@@ -2323,7 +2396,7 @@ static int audio_output_menu_mixing_reverse_stereo (void)
       audio_options.buffer_length_ms_hint = length_ms; \
       cycle_audio (); \
       update_menus (); \
-      message_local ("Audio buffer size set to %dms.", length_ms); \
+      status_text ("Audio buffer size set to %dms.", length_ms); \
       return (D_O_K); \
    }
                         
@@ -2345,7 +2418,7 @@ static int audio_output_buffer_size_menu_automatic (void)
    cycle_audio ();
    update_menus ();
 
-   message_local ("Audio buffer size set to automatic.");
+   status_text ("Audio buffer size set to automatic.");
 
    return (D_O_K);
 }
@@ -2360,7 +2433,7 @@ static int audio_output_buffer_size_menu_custom (void)
       cycle_audio ();
       update_menus ();
 
-      message_local ("Audio buffer size set to %dms.", ms);
+      status_text ("Audio buffer size set to %dms.", ms);
    }
 
    return (D_O_K);
@@ -2374,7 +2447,7 @@ static int audio_menu_volume_increase (void)
 
    update_menus ();
 
-   message_local ("Audio master volume level increased to %d%%.",
+   status_text ("Audio master volume level increased to %d%%.",
       (int)ROUND(apu_options.volume * 100.0));
 
    return (D_O_K);
@@ -2388,7 +2461,7 @@ static int audio_menu_volume_decrease (void)
 
    update_menus ();
 
-   message_local ("Audio master volume level decreased to %d%%.",
+   status_text ("Audio master volume level decreased to %d%%.",
       (int)ROUND(apu_options.volume * 100.0));
 
    return (D_O_K);
@@ -2405,7 +2478,7 @@ static int audio_menu_volume_custom (void)
       apu_options.volume = (percent / 100.0);
       update_menus ();
    
-      message_local ("Audio master volume level set to %d%%.", percent);
+      status_text ("Audio master volume level set to %d%%.", percent);
    }
 
    return (D_O_K);
@@ -2416,7 +2489,7 @@ static int audio_menu_volume_reset (void)
    apu_options.volume = 1.0;
    update_menus ();
 
-   message_local ("Audio master volume level reset to %d%%.",
+   status_text ("Audio master volume level reset to %d%%.",
       (int)ROUND(apu_options.volume * 100.0));
 
    return (D_O_K);
@@ -2429,7 +2502,7 @@ static int audio_menu_volume_logarithmic (void)
 
    apu_update ();
 
-   message_local ("Audio logarithmic volume mapping %s.",
+   status_text ("Audio logarithmic volume mapping %s.",
       get_enabled_text (apu_options.logarithmic)); 
 
    return (D_O_K);
@@ -2445,7 +2518,7 @@ static int audio_menu_volume_auto_gain (void)
 
    apu_update ();
 
-   message_local ("Audio automatic gain control %s.",
+   status_text ("Audio automatic gain control %s.",
       get_enabled_text (apu_options.agc)); 
 
    return (D_O_K);
@@ -2461,7 +2534,7 @@ static int audio_menu_volume_auto_normalize (void)
 
    apu_update ();
 
-   message_local ("Audio volume level normalization %s.",
+   status_text ("Audio volume level normalization %s.",
       get_enabled_text (apu_options.normalize)); 
 
    return (D_O_K);
@@ -2518,11 +2591,6 @@ static int video_menu_color (void)
 
    video_update_settings();
 
-   if(rom_is_loaded) {
-      frames_to_execute = 1;
-      return D_CLOSE;
-   }
-
    return D_O_K;
 }
 
@@ -2531,7 +2599,7 @@ static int video_menu_color (void)
    {  \
       video_set_profile_integer(VIDEO_PROFILE_DISPLAY_DRIVER, id);  \
       video_update_settings(); \
-      gui_needs_restart = TRUE;  \
+      gui_needs_restart = TRUE; \
       return (D_CLOSE); \
    }
 
@@ -2694,8 +2762,7 @@ static int video_color_depth_menu_true_color_32_bit (void)
       video_set_profile_enum(VIDEO_PROFILE_OUTPUT_BLITTER, id); \
       video_update_settings(); \
       update_menus ();  \
-      cycle_video ();   \
-      message_local ("Video blitter set to %s.", caption);  \
+      status_text ("Video blitter set to %s.", caption);  \
       return (D_O_K);   \
    }
 
@@ -2816,8 +2883,6 @@ static int video_blitter_menu_configure (void)
             /* Reinitialize blitter to the load new configuration. */
             //video_blitter_reinit ();
 
-            /* Display changes. */
-            cycle_video ();
          }
          else if (result == NTSC_CONFIG_DIALOG_SET_BUTTON)
          {
@@ -2842,9 +2907,6 @@ static int video_blitter_menu_configure (void)
 
             /* Reinitialize blitter to the load new configuration. */
             //video_blitter_reinit ();
-
-            /* Display changes. */
-            cycle_video ();
          }
 
          break;
@@ -2869,12 +2931,7 @@ static int video_layers_menu_show_back_sprites (void)
    ppu_set_option(PPU_OPTION_ENABLE_SPRITE_BACK_LAYER, !setting);
    update_menus ();
 
-   message_local ("Video sprites layer A %s.", get_enabled_text(!setting));
-
-   if(gui_is_active && rom_is_loaded) {
-      frames_to_execute = 1;
-      return D_CLOSE;
-   }
+   status_text ("Video sprites layer A %s.", get_enabled_text(!setting));
 
    return (D_O_K);
 }
@@ -2885,12 +2942,7 @@ static int video_layers_menu_show_front_sprites (void)
    ppu_set_option(PPU_OPTION_ENABLE_SPRITE_FRONT_LAYER, !setting);
    update_menus ();
 
-   message_local ("Video sprites layer B %s.", get_enabled_text(!setting));
-
-   if(gui_is_active && rom_is_loaded) {
-      frames_to_execute = 1;
-      return D_CLOSE;
-   }
+   status_text ("Video sprites layer B %s.", get_enabled_text(!setting));
 
    return (D_O_K);
 }
@@ -2901,12 +2953,7 @@ static int video_layers_menu_show_background (void)
    ppu_set_option(PPU_OPTION_ENABLE_BACKGROUND_LAYER, !setting);
    update_menus ();
 
-   message_local ("Video background layer %s.", get_enabled_text(!setting));
-
-   if(gui_is_active && rom_is_loaded) {
-      frames_to_execute = 1;
-      return D_CLOSE;
-   }
+   status_text ("Video background layer %s.", get_enabled_text(!setting));
 
    return (D_O_K);
 }
@@ -2916,10 +2963,8 @@ static int video_layers_menu_show_background (void)
    {  \
       video_set_profile_enum(VIDEO_PROFILE_COLOR_PALETTE, id); \
       video_update_settings(); \
-      if(rom_is_loaded) { \
-         frames_to_execute = 1; \
-         return (D_CLOSE); \
-      } \
+      update_menus(); \
+      status_text ("Video palette set to %s.", caption);  \
       return D_O_K; \
    }
 
@@ -3004,7 +3049,7 @@ static int input_menu_enable_zapper (void)
    input_enable_zapper = !input_enable_zapper;
    update_menus ();
 
-   message_local ("Zapper emulation %s.", get_enabled_text
+   status_text ("Zapper emulation %s.", get_enabled_text
       (input_enable_zapper));
 
    return (D_O_K);
@@ -3015,7 +3060,7 @@ static int options_cpu_usage_menu_passive (void)
     cpu_usage = CPU_USAGE_PASSIVE;
     update_menus ();
 
-    message_local ("System CPU usage set to passive.");
+    status_text ("System CPU usage set to passive.");
 
     return (D_O_K);
 }
@@ -3025,7 +3070,7 @@ static int options_cpu_usage_menu_normal (void)
     cpu_usage = CPU_USAGE_NORMAL;
     update_menus ();
 
-    message_local ("System CPU usage set to normal.");
+    status_text ("System CPU usage set to normal.");
 
     return (D_O_K);
 }
@@ -3035,7 +3080,7 @@ static int options_cpu_usage_menu_aggressive (void)
     cpu_usage = CPU_USAGE_AGGRESSIVE;
     update_menus ();
 
-    message_local ("System CPU usage set to aggressive.");
+    status_text ("System CPU usage set to aggressive.");
 
     return (D_O_K);
 }
@@ -3185,11 +3230,11 @@ static int netplay_menu_start_as_server (void)
 
    if (!netplay_open_server (port))
    {
-      gui_message (GUI_ERROR_COLOR, "Failed to open server!");
+      status_text_color (GUI_ERROR_COLOR, "Failed to open server!");
       return (D_O_K);
    }
 
-   message_local ("NetPlay session opened.");
+   status_text ("NetPlay session opened.");
 
    /* Set nickname. */
    netplay_set_nickname (nick);
@@ -3262,11 +3307,11 @@ static int netplay_menu_start_as_client (void)
 
    if (!netplay_open_client (host, port))
    {
-      gui_message (GUI_ERROR_COLOR, "Failed to connect to remote host!");
+      status_text_color (GUI_ERROR_COLOR, "Failed to connect to remote host!");
       return (D_O_K);
    }
 
-   message_local ("NetPlay session opened.");
+   status_text ("NetPlay session opened.");
 
    /* Set nickname. */
    netplay_set_nickname (nick);
@@ -3740,7 +3785,7 @@ static int input_configure_dialog_set_buttons (DIALOG *dialog)
             return (D_O_K);
          }
       
-         message_local ("Scanning for device changes, press ESC to cancel.");
+         status_text ("Scanning for device changes, press ESC to cancel.");
           
          input_map_player_button (selected_player, button);
 
@@ -3795,7 +3840,7 @@ static int input_configure_dialog_calibrate (DIALOG *dialog)
          {
             int scancode;
 
-            message_local ("%s, and press any key.",
+            status_text ("%s, and press any key.",
                calibrate_joystick_name (index));
 
             while (!keypressed ())
@@ -3805,7 +3850,7 @@ static int input_configure_dialog_calibrate (DIALOG *dialog)
 
             if (scancode == KEY_ESC)
             {
-               gui_message (GUI_ERROR_COLOR, "Joystick calibration "
+               status_text_color (GUI_ERROR_COLOR, "Joystick calibration "
                   "cancelled.");
     
                return (D_O_K);

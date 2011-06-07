@@ -1573,8 +1573,12 @@ static linear void EndFrame()
 
    /* Current frame has ended, but we only have to draw the buffer to the screen
       if rendering had been enabled (i.e this was not a skipped frame). */
-   if(ppu__enable_rendering)
-      video_update_display();
+   if(ppu__enable_rendering) {
+      if(gui_is_active)
+         gui_update_display();
+      else
+         video_update_display();
+   }
 
    // Now we can reload our cached options into the actual variables.
    LoadCachedSettings();

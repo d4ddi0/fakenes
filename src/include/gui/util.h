@@ -1,3 +1,6 @@
+static INLINE void draw_background (BITMAP* bmp, int w, int h);
+static INLINE void draw_status_bar(BITMAP* bmp, int w, int h);
+
 static INLINE void pack_color (GUI_COLOR *color)
 {
     int r, g, b;
@@ -29,14 +32,13 @@ static INLINE void redraw (void)
 
 /* If the GUI is not being drawn directly to the screen, this function
    displays it via video_update_display(). */
-static INLINE void refresh (void)
+static INLINE void update_display (void) 
 {
    BITMAP* bitmap, *display;
    BITMAP* cursor = NULL;
+   int window_x, window_y, window_w, window_h;
 
    bitmap = gui_get_screen();
-   if(bitmap == screen)
-      return;
 
    display = video_get_display_buffer();
    if(!display) {
@@ -44,7 +46,74 @@ static INLINE void refresh (void)
       return;
    }
 
-   blit(bitmap, display, 0, 0, 0, 0, bitmap->w, bitmap->h);
+   /* This isn't needed since draw_background() fills the display. */
+   /* clear_bitmap(display); */
+
+   window_w = bitmap->w;
+   window_h = bitmap->h;
+   window_x = (display->w / 2) - (window_w / 2);
+   window_y = (display->h / 2) - (window_h / 2);
+  
+   gui_mouse_x_position = window_x + (mouse_x - mouse_x_focus);
+   gui_mouse_y_position = window_y + (mouse_y - mouse_y_focus);
+
+   draw_background(display, window_w, window_h);
+
+   draw_status_bar(display, window_w, window_h);
+
+   if(rom_is_loaded || nsf_is_loaded) {
+      video_update_game_display();
+
+      BITMAP* render = video_get_render_buffer();
+
+      if(render) {
+         const int gameWidth = render->w;
+         const int gameHeight = render->h;
+
+         /* Only scale if neccesary. */
+         if((window_w != 640) || (window_h != 480)) {
+            /* draw_sprite() and masked_blit() don't support color conversion, pout. */
+
+            BITMAP* game = create_bitmap(gameWidth, gameHeight);
+            if(game) {
+               const int width = (gameWidth * window_w) / 640;
+               const int height = (gameHeight * window_h) / 480;
+
+               const int x = window_x + ((window_w / 2) - (width / 2));
+               const int y = window_y + ((window_h / 2) - (height / 2));
+
+               gui_game_x = x;
+               gui_game_y = y;
+               gui_game_width = width;
+               gui_game_height = height;
+
+               blit(render, game, 0, 0, 0, 0, gameWidth, gameHeight);
+               stretch_blit(game, display, 0, 0, gameWidth, gameHeight, x, y, width, height);
+  
+               destroy_bitmap(game);
+            }
+         }
+         else {
+            const int x = window_x + ((window_w / 2) - (gameWidth / 2));
+            const int y = window_y + ((window_h / 2) - (gameHeight / 2));
+
+            gui_game_x = x;
+            gui_game_y = y;
+            gui_game_width = gameWidth;
+            gui_game_height = gameHeight;
+ 
+            blit(render, display, 0, 0, x, y, gameWidth, gameHeight);
+         }
+      }
+   }
+
+   masked_blit(bitmap, display, 0, 0, window_x, window_y, bitmap->w, bitmap->h);
+
+   if(window_y >= 16) {
+      FONT* font = video_get_font(VIDEO_FONT_LEGACY);
+      textout_ex(display, font, "Note: This is not a 4:3 resolution, so the GUI will be letterboxed. "
+         "Gameplay will not be affected.", 8, 8, makecol(255, 255, 255), -1);
+   }
 
    if(gui_mouse_sprite) {
       const int width = gui_mouse_sprite->w;
@@ -56,52 +125,32 @@ static INLINE void refresh (void)
    }
 
    if(cursor) {
-      int x, y;
-      const int cursorX = mouse_x - mouse_x_focus;
-      const int cursorY = mouse_y - mouse_y_focus;
+      int sx, sy;
       BOOL truecolor = FALSE;
 
-      if(bitmap_color_depth(display) > 8) {
+      if(bitmap_color_depth(display) > 8)
          truecolor = TRUE;
 
-         set_trans_blender(255, 255, 255, 128);
-         drawing_mode(DRAW_MODE_TRANS, NULL, 0, 0);
-      }
+      for(sy = 0; sy < cursor->h; sy++) {
+         for(sx = 0; sx < cursor->w; sx++) {
+            int sub_x, sub_y;
 
-      for(y = 0; y < cursor->h; y++) {
-         for(x = 0; x < cursor->w; x++) {
-            const int pixel = getpixel(cursor, x, y);
+            const int pixel = getpixel(cursor, sx, sy);
+            if(pixel == bitmap_mask_color(cursor))
+               continue;
 
-            if(truecolor) {
-               const int r = getr(pixel);
-               const int b = getb(pixel);
-               const int g = getg(pixel);
+            /* Patterned drawing. */
+            sub_x = sx & 1;
+            sub_y = sy & 1;
+            if(((sub_x == 0) && (sub_y == 1)) ||
+               ((sub_x == 1) && (sub_y == 0)))
+               continue;
 
-               if((g == 0) && (r > 240) && (b > 240))
-                  continue;
-            }
-            else {
-               int sub_x, sub_y;
-
-               if(pixel == 0)
-                  continue;
-
-               /* Only draw in a pattern in 256 color modes */
-               sub_x = x & 1;
-               sub_y = y & 1;
-               if(((sub_x == 0) && (sub_y == 1)) ||
-                  ((sub_x == 1) && (sub_y == 0)))
-                  continue;
-            }
-
-            putpixel(display, cursorX + 8 + x, cursorY + 8 + y, makecol(0, 0, 0));
+            putpixel(display, gui_mouse_x_position + 8 + sx, gui_mouse_y_position + 8 + sy, makecol(0, 0, 0));
          }
       }
 
-      if(truecolor)
-         solid_mode();
-      
-      draw_sprite(display, cursor, cursorX, cursorY);
+      draw_sprite(display, cursor, gui_mouse_x_position, gui_mouse_y_position);
    }
 
    /* If double buffering is not enabled, the display buffer won't be shown. */
@@ -112,25 +161,74 @@ static INLINE void refresh (void)
 
    if(cursor)
       destroy_bitmap(cursor);
+}
+
+static INLINE void refresh (void)
+{
+   if(rom_is_loaded) {
+      /* Main emulation loop. */
+      machine_main();
+   }
+  
+   if(nsf_is_loaded) {
+      /* NSF uses a separate, but similar loop. */
+      nsf_main();
+   }
 
    if(gui_theme_callback)
       gui_theme_callback();
+
+   /* When a game is loaded, we let it take care of updating the display by 
+      calling gui_update_display() instead. We also avoid resting as it will
+      mess up main timing (which has its own rests). */
+   if(!(rom_is_loaded || nsf_is_loaded)) {
+      if (cpu_usage == CPU_USAGE_PASSIVE)
+         rest (1);
+      else if (cpu_usage == CPU_USAGE_NORMAL)
+         rest (0);
+
+      update_display();
+  }
 }
 
-static INLINE void draw_message (int color)
+static INLINE void add_message(const UCHAR* message)
 {
-   /* This function draws the message currenty present in message_buffer
-      in the GUI status bar area. */
+   int i;
 
-   BITMAP *bmp;
+   RT_ASSERT(message);
+
+   for(i = 0; i < GUI_MESSAGE_HISTORY_SIZE; i++)
+      ustrzcpy(&gui_message_history[i][0], USTRING_SIZE, &gui_message_history[i + 1][0]);
+
+   ustrzcpy(&gui_message_history[GUI_MESSAGE_HISTORY_SIZE - 1][0], USTRING_SIZE, message);
+
+   gui_last_message++;
+   if(gui_last_message > GUI_MESSAGE_HISTORY_SIZE)
+      gui_last_message = GUI_MESSAGE_HISTORY_SIZE;
+}
+
+static INLINE void draw_status_bar(BITMAP* bmp, int w, int h)
+{
+   int window_x, window_y, window_w, window_h;
    int x1, y1, x2, y2;
+   const UCHAR* message;
+   int color;
 
-   bmp = gui_get_screen ();
+   /* bmp = gui_get_screen (); */
+   RT_ASSERT(bmp);
 
-   x1 = 8;
-   y1 = (((bmp->h - 8) - text_height (font)) - 8);
-   x2 = (bmp->w - 8);
-   y2 = (bmp->h - 8);
+   window_x = (bmp->w / 2) - (w / 2);
+   window_y = (bmp->h / 2) - (h / 2);
+   window_w = w;
+   window_h = h;
+
+   x1 = window_x + 8;
+   y1 = (window_y + (window_h - 1)) - (text_height(font) + 16);
+   x2 = (x1 +( window_w - 1)) - 16;
+   y2 = y1 + text_height(font) + 8;
+
+   message = gui_status_text;
+   color = gui_status_color;
 
    vline (bmp, (x2 + 1), (y1 + 1), (y2 + 1), GUI_SHADOW_COLOR);
    hline (bmp, (x1 + 1), (y2 + 1), (x2 + 1), GUI_SHADOW_COLOR);
@@ -138,62 +236,79 @@ static INLINE void draw_message (int color)
    rectfill (bmp, x1, y1, x2, y2, GUI_FILL_COLOR);
    rect (bmp, x1, y1, x2, y2, GUI_BORDER_COLOR);
 
-   textout_centre_ex (bmp, font, message_buffer, (bmp->w / 2), ((bmp->h
+   textout_centre_ex (bmp, font, message, window_x + (window_w / 2), window_y + ((window_h
       - 11) - text_height (font)), 0, -1);
-   textout_centre_ex (bmp, font, message_buffer, ((bmp->w / 2) - 1),
-      (((bmp->h - 11) - text_height (font)) - 1), color, -1);
-
-   refresh ();
+   textout_centre_ex (bmp, font, message, window_x + ((window_w / 2) - 1),
+      window_y + (((window_h - 11) - text_height (font)) - 1), color, -1);
 }
 
-static INLINE void message_local (const UCHAR *message, ...)
+static INLINE void set_status_text (const UCHAR* text, int color)
 {
-   /* This is identical to gui_message(), except that it always uses the
-      GUI text color and does not check if the GUI is active or not. */
+   /* This function places a message in the GUI status bar area.
+      No actual drawing is done here, draw_status_bar() handles that. */
 
-   va_list format;
+   USTRING_CLEAR(gui_status_text);
+   ustrncat(gui_status_text, text, sizeof(gui_status_text) - 1);
 
-   RT_ASSERT(message);
-
-   va_start (format, message);
-   uvszprintf (message_buffer, USTRING_SIZE, message, format);
-   va_end (format);
-
-   draw_message (GUI_TEXT_COLOR);
-
-   video_message (message_buffer);
-
-   log_printf ("GUI: %s", message_buffer);}
-
-static INLINE void status_message (const UCHAR *message, ...)
-{
-   /* Like message_local(), but does not log anywhere. */
-
-   va_list format;
-
-   RT_ASSERT(message);
-
-   va_start (format, message);
-   uvszprintf (message_buffer, USTRING_SIZE, message, format);
-   va_end (format);
-
-   draw_message (GUI_TEXT_COLOR);
+   gui_status_color = color;
 }
 
-static INLINE void draw_background (void)
+static INLINE void status_text (const UCHAR *text, ...)
 {
-   BITMAP *bmp;
+   /* This is identical to gui_message(), except that it does not
+      check if the GUI is active or not. */
 
-   bmp = gui_get_screen ();
+   va_list format;
+   USTRING buffer;
 
-   rectfill (bmp, 0, 0, bmp->w, bmp->h, GUI_BACKGROUND_COLOR);
+   RT_ASSERT(text);
+
+   va_start (format, text);
+   uvszprintf (buffer, USTRING_SIZE, text, format);
+   va_end (format);
+
+   set_status_text(buffer, GUI_TEXT_COLOR);
+}
+
+static INLINE void status_text_color (int color, const UCHAR *text, ...)
+{
+   /* Like status_text(), but allows a color to be specified. */
+
+   va_list format;
+   USTRING buffer;
+
+   RT_ASSERT(text);
+
+   va_start (format, text);
+   uvszprintf (buffer, USTRING_SIZE, text, format);
+   va_end (format);
+
+   set_status_text(buffer, color);
+}
+
+static INLINE void draw_background (BITMAP* bmp, int w, int h)
+{
+   int window_x, window_y, window_w, window_h;
+   int count, start, offset_x, offset_y, i, line;
+
+   window_x = (bmp->w / 2) - (w / 2);
+   window_y = (bmp->h / 2) - (h / 2);
+   window_w = w;
+   window_h = h;
+
+   if((window_w != bmp->w) || (window_h != bmp->h))
+      rectfill (bmp, 0, 0, bmp->w, bmp->h, GUI_BACKGROUND_COLOR);
 
    if (background_image)
    {
-      if (background_image->h < 200)
+      if( (background_image->w == window_w) && (background_image->h == window_h) )
+      { 
+         blit(background_image, bmp, 0, 0, window_x, window_y, background_image->w, background_image->h);
+      }
+      else if (background_image->h < 200)
       {
-         blit (background_image, bmp, 0, 0, ((bmp->w / 2) -
-            (background_image->w / 2)), ((bmp->h / 2) - (background_image->h
+         blit (background_image, bmp, 0, 0, window_x + ((window_w / 2) -
+            (background_image->w / 2)), window_y + ((window_h / 2) - (background_image->h
                / 2)), background_image->w, background_image->h);
       }
       else
@@ -202,7 +317,7 @@ static INLINE void draw_background (void)
    
          /* Hack to handle color conversion. */
    
-         buffer = create_bitmap_ex(bitmap_color_depth(background_image), bmp->w, bmp->h);
+         buffer = create_bitmap_ex(bitmap_color_depth(background_image), window_w, window_h);
          if (!buffer)
          {
             WARN("Failed to create background buffer");
@@ -212,32 +327,30 @@ static INLINE void draw_background (void)
          stretch_blit (background_image, buffer,
             0, 0, background_image->w, background_image->h,
             0, 0, buffer->w, buffer->h);
-         blit (buffer, bmp, 0, 0, 0, 0, buffer->w, buffer->h);
+         blit (buffer, bmp, 0, 0, window_x, window_y, buffer->w, buffer->h);
    
          destroy_bitmap (buffer);
       }
    }
 
-   if(rom_is_loaded) {
-      /* draw_sprite() and masked_blit() don't support color conversion, pout. */
-      BITMAP* render = video_get_render_buffer();
-      if(render) {
-         int gameWidth = render->w;
-         int gameHeight = render->h;
+   if(window_h >= 480) {
+      /* Draw the message history in the smallest possible font. */
+      FONT* font = video_get_font(VIDEO_FONT_SMALLEST);
 
-         BITMAP* game = create_bitmap(gameWidth, gameHeight);
-         if(game) {
-            int width = (gameWidth * bmp->w) / 640;
-            int height = (gameHeight * bmp->h) / 480;
+      /* 8 lines is about right for 480 pixel height */
+      count = (8 * window_h) / 480;
+      if(count > (GUI_MESSAGE_HISTORY_SIZE - 1))
+         count = GUI_MESSAGE_HISTORY_SIZE - 1;
 
-            int x = (bmp->w / 2) - (width / 2);
-            int y = (bmp->h / 2) - (height / 2);
+      start = (GUI_MESSAGE_HISTORY_SIZE - 1) - count;
 
-            blit(render, game, 0, 0, 0, 0, gameWidth, gameHeight);
-            stretch_blit(game, bmp, 0, 0, gameWidth, gameHeight, x, y, width, height);
+      offset_x = window_x + 16;
+      offset_y = window_y + 40;
 
-            destroy_bitmap(game);
-         }
+      line = 0;
+      for(i = (start - 1); i < (start + count); i++) {
+         textout_ex(bmp, font, gui_message_history[i], offset_x, offset_y + line, GUI_TEXT_COLOR, -1);
+         line += text_height(font) + 3;
       }
    }
 }
@@ -272,33 +385,23 @@ static INLINE void cycle_video (void)
 
    bmp = gui_get_screen ();
 
-   clear_bitmap (bmp);
+   clear_to_color (bmp, bitmap_mask_color(bmp));
 
-   if (gui_is_active)
-   {
-      update_colors ();
+   update_colors ();
 
-      draw_background ();
+   redraw ();
 
-      redraw ();
-
-      if (gui_mouse_sprite)
-         set_mouse_sprite (gui_mouse_sprite);
+   if (gui_mouse_sprite) {
+      set_mouse_sprite (gui_mouse_sprite);
       set_mouse_sprite_focus (8, 8);
+   }
 
-      /* Note that we only show the mouse here if the drawing bitmap is the
-         screen; otherwise we let refresh() handle it. */
-      if (bmp == screen)
-         show_mouse (bmp);
-
-      message_local ("%dx%d %d-bit, %s.", bmp->w, bmp->h, bitmap_color_depth
+   if(gui_last_message == 0) {
+      status_text ("%dx%d %d-bit, %s.", bmp->w, bmp->h, bitmap_color_depth
          (bmp), gfx_driver->name);
    }
    else
-   {
-      show_mouse (NULL);
-      set_mouse_sprite_focus (0, 0);
-   }
+      status_text (gui_message_history[gui_last_message - 1]);
 
    refresh ();
 }
@@ -324,23 +427,28 @@ static INLINE const UCHAR *get_enabled_text_ex (BOOL value, const UCHAR
 
 static INLINE int gui_open (void)
 {
+   int x, y, width, height;
+
    /* Helper function for show_gui() and gui_alert().  Enters the GUI
       (e.g, sets up display buffer, etc.) but doesn't do anything else. */
-
-   /* Pause audio. */
-   audio_suspend ();
-
-   /* Suspend timers. */
-   suspend_timing ();
-
+ 
    gui_is_active = TRUE;
 
    /* In the past we only double buffered in OpenGL mode, but now we
       always do it to fix some issues related to the horrible
       performance of screen reads/writes. */
 
+   /* Always use a 4:3 buffer. */
+   width = SCREEN_W;
+   height = (SCREEN_W * 3) / 4;
+
+   if(height > SCREEN_H) {
+      height = SCREEN_H;
+      width = (SCREEN_H * 4) / 3;
+   }
+
    /* Create drawing buffer. */
-   gui_buffer = create_bitmap(SCREEN_W, SCREEN_H);
+   gui_buffer = create_bitmap(width, height);
    if (!gui_buffer)
    {
       WARN("Couldn't create GUI drawing buffer");
@@ -350,13 +458,14 @@ static INLINE int gui_open (void)
    /* Make Allegro use it. */
    gui_set_screen (gui_buffer);
 
+   /* Do an initial video update. */
    cycle_video ();
 
    /* Return success. */
    return (0);
 }
 
-static INLINE void gui_close (BOOL exiting)
+static INLINE void gui_close (void)
 {
    if (gui_buffer)
    {
@@ -369,21 +478,13 @@ static INLINE void gui_close (BOOL exiting)
 
       /* Disable double buffering. */
       video_set_profile_boolean(VIDEO_PROFILE_DISPLAY_DOUBLE_BUFFER, FALSE);
+
+      /* Clear screen. */
+      clear_bitmap(screen);
    }
 
    /* Deactivate. */
    gui_is_active = FALSE;
-
-   if (!exiting)
-   {
-      cycle_video ();
-
-      /* Restart timers. */
-      resume_timing ();
-      
-      /* Unpause audio. */
-      audio_resume ();
-   }
 }
 
 static INLINE DIALOG *create_dialog (const DIALOG *base, const UCHAR *title)

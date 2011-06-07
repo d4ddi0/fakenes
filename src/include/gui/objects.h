@@ -931,24 +931,19 @@ static void sl_draw_menu (int x, int y, int width, int height)
    /* Draw shadow. */
    black = makecol(0, 0, 0);
 
-   if(bitmap_color_depth(bmp) > 8) {
-      set_trans_blender(255, 255, 255, 128);
-      drawing_mode(DRAW_MODE_TRANS, NULL, 0, 0);
-   }
-   else {
-      pattern = create_bitmap(2, 2);
-      if(pattern) {
-         clear_to_color(pattern, bitmap_mask_color(pattern));
-         putpixel(pattern, 0, 0, black);
-         putpixel(pattern, 1, 1, black);
+   pattern = create_bitmap(2, 2);
+   if(pattern) {
+      clear_to_color(pattern, bitmap_mask_color(pattern));
+      putpixel(pattern, 0, 0, black);
+      putpixel(pattern, 1, 1, black);
 
-         drawing_mode(DRAW_MODE_MASKED_PATTERN, pattern, 0, 0);
-      }
+      drawing_mode(DRAW_MODE_MASKED_PATTERN, pattern, 0, 0);
    }
 
    rectfill(bmp, x + 6, y + 3, x + 6 + width, y + 3 + height, black);
 
-   solid_mode();
+   if(pattern)
+      solid_mode();
 
    if(pattern)
       destroy_bitmap(pattern);

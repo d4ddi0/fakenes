@@ -15,6 +15,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <string>
 #include "audio.h"
 #include "common.h"
 #include "color.h"
@@ -25,8 +26,10 @@
 #include "hsl.h"
 #include "input.h"
 #include "log.h"
+#include "nsf.h"
 #include "ppu.h"
 #include "ppu_int.h"
+#include "rom.h"
 #include "timing.h"
 #include "types.h"
 #include "video.h"
@@ -43,6 +46,8 @@
 // TODO: OpenGL error checking.
 // TODO: Add support for the monolithic and custom fonts.
 // TODO: More verbose logging and warnings in general.
+
+using namespace std;
 
 // Internal functions.
 static bool Initialize();
@@ -169,19 +174,19 @@ static GLuint displayList = 0;
 #endif
 
 // Legacy support for showing chat and log messages.
-#define MAX_MESSAGES    10
-static USTRING messages[MAX_MESSAGES];
+#define MESSAGE_HISTORY_SIZE	10
+static USTRING message_history[MESSAGE_HISTORY_SIZE];
 
 // These functions handle when the user switches to or from the program.
 static void SwitchAway(void)
 {
-   if(!gui_is_active)
+   if(rom_is_loaded || nsf_is_loaded)
       audio_suspend();
 }
 
 static void SwitchBack(void)
 {
-   if(!gui_is_active)
+   if(rom_is_loaded || nsf_is_loaded)
       audio_resume();
 }
 
@@ -579,12 +584,22 @@ void video_set_profile_boolean(const ENUM key, const BOOL value)
 
 void video_update_display(void)
 {
-   // When the GUI is active, we follow a simplified pipeline.
+   /* When the GUI is active, we follow a simplified pipeline, as it has already
+      taken care of most of what we need to do. */
    if(gui_is_active) {
       UpdateScreen();
       return;
    }
 
+   // Update the game display. This includes things like the HUD.
+   video_update_game_display();
+
+   // Finally we can display it all.
+   UpdateDisplay();
+}
+
+void video_update_game_display(void)
+{
    if(input_enable_zapper)
       DrawLightgunCursor();
 
@@ -592,9 +607,6 @@ void video_update_display(void)
       DrawHUD();
 
    DrawMessages();
-
-   // Finally we can display it all.
-   UpdateDisplay();
 }
 
 /* Calling this will allow the display driver, width, height, and color depth to be changed,
@@ -657,13 +669,10 @@ void video_message(const UCHAR* message, ...)
    uvszprintf(buffer, USTRING_SIZE, message, format);
    va_end(format);
 
-   for(int i = 0; i < MAX_MESSAGES; i++)
-      ustrzcpy(&messages[i][0], USTRING_SIZE, &messages[i + 1][0]);
+   for(int i = 0; i < MESSAGE_HISTORY_SIZE; i++)
+      ustrzcpy(&message_history[i][0], USTRING_SIZE, &message_history[i + 1][0]);
 
-   ustrzcpy(&messages[MAX_MESSAGES - 1][0], USTRING_SIZE, buffer);
-
-   // All messages are automatically sent to the log.
-   log_printf("%s\n", buffer);
+   ustrzcpy(&message_history[MESSAGE_HISTORY_SIZE - 1][0], USTRING_SIZE, buffer);
 }
 
 BOOL video_is_opengl_mode(void)
@@ -726,6 +735,8 @@ FONT* video_get_font(const ENUM type) {
       lowRes = TRUE;
 
    switch(type) {
+      case VIDEO_FONT_SMALLEST:
+         return Fonts.smallLow;
       case VIDEO_FONT_SMALL:
          return lowRes ? Fonts.smallLow : Fonts.smallHigh;
       case VIDEO_FONT_MEDIUM:
@@ -925,12 +936,40 @@ static bool Initialize()
    memset(&Display.palette, 0, sizeof(PALETTE));
    memset(&Display.rgbMap, 0, sizeof(RGB_MAP));
 
+   // Display miscellaneous information.
+   const string nothing = "";
+
+   string capabilities = nothing;
+   capabilities += (cpu_capabilities & CPU_ID)       ? "CPUID "    : nothing;
+   capabilities += (cpu_capabilities & CPU_FPU)      ? "FPU "      : nothing;
+   capabilities += (cpu_capabilities & CPU_IA64)     ? "IA64 "     : nothing;
+   capabilities += (cpu_capabilities & CPU_AMD64)    ? "AMD64 "    : nothing;
+   capabilities += (cpu_capabilities & CPU_MMX)      ? "MMX "      : nothing;
+   capabilities += (cpu_capabilities & CPU_MMXPLUS)  ? "MMX+ "     : nothing;
+   capabilities += (cpu_capabilities & CPU_SSE)      ? "SSE "      : nothing;
+   capabilities += (cpu_capabilities & CPU_SSE2)     ? "SSE2 "     : nothing;
+   capabilities += (cpu_capabilities & CPU_SSE3)     ? "SSE3 "     : nothing;
+   capabilities += (cpu_capabilities & CPU_3DNOW)    ? "3DNOW "    : nothing;
+   capabilities += (cpu_capabilities & CPU_ENH3DNOW) ? "ENH3DNOW " : nothing;
+   capabilities += (cpu_capabilities & CPU_CMOV)     ? "CMOV "     : nothing;
+      
+   log_printf("CPU vendor: %s, family %d, model %d\n"
+              "Capabilities: %s\n",
+              cpu_vendor, cpu_family, cpu_model, capabilities.c_str()); 
+
+   if(os_multitasking)
+      log_printf("The operating system is capable of multitasking.\n");
+
    // Attempt to detect a windowing environment.
+
    bool haveDesktop = false;
    int desktopWidth, desktopHeight;
    if(get_desktop_resolution(&desktopWidth, &desktopHeight) == 0) {
       if((desktopWidth > 0) && (desktopHeight > 0)) {
-         log_printf("A windowing environment was found.\n");
+         log_printf("A windowing environment was found:\n"
+                    "The desktop area appears to be %dx%d pixels.\n",
+                    desktopWidth, desktopHeight);
+
          haveDesktop = true;
       }
    }
@@ -1258,6 +1297,7 @@ static bool Initialize()
    set_display_switch_callback(SWITCH_OUT, SwitchAway);
 
    // All done. Return with sweet success.
+   log_printf("Display initialization was successful.\n");
    return true;
 }
 

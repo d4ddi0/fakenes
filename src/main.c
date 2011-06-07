@@ -5,7 +5,7 @@
    Copyright (c) 2001-2007, FakeNES Team.
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
- 
+
 #include <allegro.h>
 #include <stdio.h>
 #include "apu.h"
@@ -22,6 +22,7 @@
 #include "mmc.h"
 #include "net.h"
 #include "netplay.h"
+#include "nsf.h"
 #include "platform.h"
 #include "ppu.h"
 #include "rewind.h"
@@ -70,10 +71,6 @@ int timing_audio_fps = 0;
 /* Game clock (in seconds). */
 unsigned timing_clock = 0;
 
-/* Number of frames to execute before re-entering the GUI automatically.
-   -1 = disabled */
-int frames_to_execute = -1;
-
 /* As the PPU can generate a frame at any time, this is used to lock the main loop with PPU
    frame generation for timing purposes. */
 BOOL frame_lock = FALSE;
@@ -83,119 +80,139 @@ static int executed_frames = 0;
 static int rendered_frames = 0;
 
 /* Internal stuff. */
+static BOOL want_exit = FALSE;
+static BOOL enter_gui = TRUE;
+
 static int actual_fps_count = 0;
 static int virtual_fps_count = 0;
 static int frame_count = 1;
 static volatile BOOL frame_interrupt = FALSE;
 static volatile int throttle_counter = 0;
 
-static void fps_timer (void)
+static void
+fps_timer (void)
 {
-   frame_interrupt = TRUE;
-}
-END_OF_STATIC_FUNCTION(fps_timer);
-
-static void throttle_timer (void)
-{
-   throttle_counter++;
-}
-END_OF_STATIC_FUNCTION(throttle_timer);
-
-void suspend_timing (void)
-{
-   /* Remove timers. */
-   remove_int (fps_timer);
-   remove_int (throttle_timer);
-
-   /* Reset variables. */
-   actual_fps_count = 0;
-   virtual_fps_count = 0;
-   frame_count = 1;
-   frame_interrupt = FALSE;
-   throttle_counter = 0;
+  frame_interrupt = TRUE;
 }
 
-void resume_timing (void)
+END_OF_STATIC_FUNCTION (fps_timer);
+
+static void
+throttle_timer (void)
 {
-   int timer_ticks_1_hz;
-   int timer_ticks;
-
-   /* Reset variables. */
-   actual_fps_count = 0;
-   virtual_fps_count = 0;
-   frame_count = 1;
-   frame_interrupt = FALSE;
-   throttle_counter = 0;
-
-   /* Determine how many timer ticks to a second. */
-   timer_ticks_1_hz = SECS_TO_TIMER(1);
-
-   /* Determine how often our throttle timer will execute, in timer ticks. */
-   timer_ticks = ROUND((REAL)timer_ticks_1_hz / timing_get_frame_rate ());
-
-   /* Install timers. */
-   install_int_ex (fps_timer,      timer_ticks_1_hz);
-   install_int_ex (throttle_timer, timer_ticks);
+  throttle_counter++;
 }
 
-int main (int argc, char *argv[])
+END_OF_STATIC_FUNCTION (throttle_timer);
+
+void
+suspend_timing (void)
 {
-   int result;
-   BOOL want_exit = FALSE;
-   BOOL enter_gui = TRUE;
+  /* Remove timers. */
+  remove_int (fps_timer);
+  remove_int (throttle_timer);
 
-   /* Clear the console. */
-   console_clear ();
+  /* Reset variables. */
+  actual_fps_count = 0;
+  virtual_fps_count = 0;
+  frame_count = 1;
+  frame_interrupt = FALSE;
+  throttle_counter = 0;
+}
 
-   if (VERSION == 0x030)
-   {
+void
+resume_timing (void)
+{
+  int timer_ticks_1_hz;
+  int timer_ticks;
+
+  /* Reset variables. */
+  actual_fps_count = 0;
+  virtual_fps_count = 0;
+  frame_count = 1;
+  frame_interrupt = FALSE;
+  throttle_counter = 0;
+
+  /* Determine how many timer ticks to a second. */
+  timer_ticks_1_hz = SECS_TO_TIMER (1);
+
+  /* Determine how often our throttle timer will execute, in timer ticks. */
+  timer_ticks = ROUND ((REAL) timer_ticks_1_hz / timing_get_frame_rate ());
+
+  /* Install timers. */
+  install_int_ex (fps_timer, timer_ticks_1_hz);
+  install_int_ex (throttle_timer, timer_ticks);
+}
+
+int
+main (int argc, char *argv[])
+{
+  int result;
+
+  /* Clear the console. */
+  console_clear ();
+
+  if (VERSION == 0x030)
+    {
       console_printf ("This release is dedicated to those who fell in the "
-         "9/11 attacks.\n\n");
-   }
+		      "9/11 attacks.\n\n");
+    }
 
-   console_printf ("FakeNES - A free, portable, Open Source NES emulator.\n");
-   console_printf ("\n");
-   console_printf ("Copyright (c) 2001-2007, FakeNES Team.\n");
-   console_printf ("\n");
-   console_printf( "This software is provided 'as-is', without any express or implied\n");
-   console_printf( "warranty.  In no event will the authors be held liable for any damages\n");
-   console_printf( "arising from the use of this software.\n");
-   console_printf ("\n");
-   console_printf( "Permission is granted to anyone to use this software for any purpose,\n");
-   console_printf( "including commercial applications, and to alter it and redistribute it\n");
-   console_printf( "freely, subject to the following restrictions:\n");
-   console_printf ("\n");
-   console_printf( "1. The origin of this software must not be misrepresented; you must not\n");
-   console_printf( "   claim that you wrote the original software. If you use this software\n");
-   console_printf( "   in a product, an acknowledgment in the product documentation would be\n");
-   console_printf( "   appreciated but is not required.\n");
-   console_printf( "2. Altered source versions must be plainly marked as such, and must not be\n");
-   console_printf( "   misrepresented as being the original software.\n");
-   console_printf( "3. This notice may not be removed or altered from any source distribution.\n");
+  console_printf ("FakeNES - A free, portable, Open Source NES emulator.\n");
+  console_printf ("\n");
+  console_printf ("Copyright (c) 2001-2007, FakeNES Team.\n");
+  console_printf ("\n");
+  console_printf
+    ("This software is provided 'as-is', without any express or implied\n");
+  console_printf
+    ("warranty.  In no event will the authors be held liable for any damages\n");
+  console_printf ("arising from the use of this software.\n");
+  console_printf ("\n");
+  console_printf
+    ("Permission is granted to anyone to use this software for any purpose,\n");
+  console_printf
+    ("including commercial applications, and to alter it and redistribute it\n");
+  console_printf ("freely, subject to the following restrictions:\n");
+  console_printf ("\n");
+  console_printf
+    ("1. The origin of this software must not be misrepresented; you must not\n");
+  console_printf
+    ("   claim that you wrote the original software. If you use this software\n");
+  console_printf
+    ("   in a product, an acknowledgment in the product documentation would be\n");
+  console_printf ("   appreciated but is not required.\n");
+  console_printf
+    ("2. Altered source versions must be plainly marked as such, and must not be\n");
+  console_printf ("   misrepresented as being the original software.\n");
+  console_printf
+    ("3. This notice may not be removed or altered from any source distribution.\n");
 
-   allegro_init ();
+  allegro_init ();
 
-   set_window_title ("FakeNES");
+  set_window_title ("FakeNES");
 
-   if ((result = platform_init ()) != 0)
-      return ((8 + result));
-
-
-   /* Load configuration. */
-   load_config ();
-
-   install_timer ();
+  if ((result = platform_init ()) != 0)
+    return ((8 + result));
 
 
-   if (argc >= 2)
-   {
+  /* Load configuration. */
+  load_config ();
+
+  /* Do initial GUI setup. */
+  gui_preinit();
+
+  install_timer ();
+
+
+  if (argc >= 2)
+    {
       if (load_rom (argv[1], &global_rom) != 0)
-      {
-         WARN("Failed to load ROM (bad format?)");
+	{
+	  WARN ("Failed to load ROM (bad format?)");
 
-         platform_exit ();
-         return (1);
-      }
+	  platform_exit ();
+	  return (1);
+	}
 
       rom_is_loaded = TRUE;
 
@@ -204,457 +221,469 @@ int main (int argc, char *argv[])
 
       /* Head straight into emulation mode. */
       enter_gui = FALSE;
-   }
+    }
 
 
-   net_init ();
+  net_init ();
 
-   netplay_init ();
+  netplay_init ();
 
 
-   if (input_init () != 0)
-   {          
-      WARN("PANIC: Failed to initialize input interface");
+  if (input_init () != 0)
+    {
+      WARN ("PANIC: Failed to initialize input interface");
 
       return (1);
-   }
+    }
 
 
-   if (audio_init () != 0)
-   {
+  if (audio_init () != 0)
+    {
       /* WARN("Failed to initialize audio interface"); */
 
 
       /* free_rom (&global_rom);
          return (1); */
-      
-      WARN("Oops!  It looks like audio failed to initialize.\n"
-           "Make sure another application isn't using it (a common problem).\n"
-           "\n"
-           "I'm disabling it for now.\n"
-           "You can try to re-enable it from the Audio menu once inside the program.");
+
+      WARN ("Oops!  It looks like audio failed to initialize.\n"
+	    "Make sure another application isn't using it (a common problem).\n"
+	    "\n"
+	    "I'm disabling it for now.\n"
+	    "You can try to re-enable it from the Audio menu once inside the program.");
       audio_options.enable_output = FALSE;
       audio_init ();
-   }
+    }
 
 
-   fade_out (4);
+  fade_out (4);
 
 
-   if (video_init () != 0)
-   {
-      set_gfx_mode (GFX_TEXT, 0, 0, 0, 0);
-
-      WARN("Failed to initialize video interface");
+  if (video_init () != 0)
+    {
+      WARN ("Failed to initialize video interface");
 
       free_rom (&global_rom);
       return (1);
-   }
+    }
 
 
-   gui_init ();
+  gui_init ();
 
 
-   LOCK_VARIABLE(frame_interrupt);
-   LOCK_VARIABLE(throttle_Counter);
-   LOCK_FUNCTION(fps_timer);
-   LOCK_FUNCTION(throttle_timer);
+  LOCK_VARIABLE (frame_interrupt);
+  LOCK_VARIABLE (throttle_Counter);
+  LOCK_FUNCTION (fps_timer);
+  LOCK_FUNCTION (throttle_timer);
 
-   /* Start timers. */
-   resume_timing ();
+  /* If we aren't entering directly into the GUI, start the emulation. */
+  if(!enter_gui)
+      machine_resume ();
+   
+  while (!want_exit)
+    {
+      if (enter_gui && !gui_is_active)
+	{
+	  want_exit = show_gui (first_run);
 
-
-   while (!want_exit)
-   {
-      if (enter_gui)
-      {
-         want_exit = show_gui (first_run);
-
-         if (first_run)
-            first_run = FALSE;
+	  if (first_run)
+	    first_run = FALSE;
 
          enter_gui = FALSE;
-
+   
          /* Skip everything else. */
-         continue;
-      }
+           continue;
+	}
+        else {
+            enter_gui = FALSE;
+        }
 
+      /* When the GUI isn't running, the emulator runs here. */
       if (rom_is_loaded)
-      {
-         BOOL redraw_flag;
+	machine_main ();
 
-         if (frame_interrupt)
-         {
-            /* The FPS timer was triggered; sync counters. */
+      if (nsf_is_loaded)
+         enter_gui = nsf_main();
+    }
 
-            timing_fps = actual_fps_count;
-            timing_hertz = virtual_fps_count;
-            timing_audio_fps = audio_fps;
-
-            actual_fps_count = 0;
-            virtual_fps_count = 0;
-            audio_fps = 0;
-
-            /* Increment our clock by one second. */
-            timing_clock++;
-
-            /* Clear interrupt flag so it doesn't fire again. */
-            frame_interrupt = FALSE;
-         }
+  /* Save configuration. */
+  save_config ();
 
 
-         /* NetPlay. */
-         if (netplay_mode)
-            netplay_process ();
-
-
-         /* Fast forward. */
-
-         if ((key [KEY_TILDE]) && (!(input_mode & INPUT_MODE_CHAT)))
-         {
-            if (!timing_fast_forward)
-            {
-               /* Enter fast forward mode. */
-               timing_fast_forward = TRUE;
-               timing_update_timing ();
-            }
-         }
-         else
-         {
-            if (timing_fast_forward)
-            {
-               /* Exit fast forward mode. */
-               timing_fast_forward = FALSE;
-               timing_update_timing ();
-            }
-         }
-
-
-         if (--frame_count > 0)
-         {
-            /* This frame will be executed, but not drawn. */
-            redraw_flag = FALSE;
-         }
-         else
-         {
-            /* This frame will be executed, and drawn. */
-            redraw_flag = TRUE;
-
-            if (speed_cap)
-            {
-               /* Speed throttling. */
-      
-               while (throttle_counter == 0)
-               {
-                  if (cpu_usage == CPU_USAGE_NORMAL)
-                     rest (0);
-                  else if (cpu_usage == CPU_USAGE_PASSIVE)
-                     rest (1);
-               }
-   
-               /* Get all currently pending frames into the frame
-                  counter. */
-               frame_count = throttle_counter;
-   
-               /* We use subtract here to avoid losing ticks if the timer
-                  fires between this and the last statement. */
-               throttle_counter -= frame_count;
-   
-               /* Enforce frame skip setting if it is not auto. */
-               if ((frame_skip != -1) &&
-                   (frame_count > frame_skip))
-               {
-                  frame_count = frame_skip;
-               }
-            }
-         }
-
-
-         if (rewind_is_enabled ())
-         {
-            /* Game rewinding. */
-
-            if (input_mode & INPUT_MODE_PLAY)
-            {
-               if (key[KEY_BACKSLASH])
-               {
-                  if (!rewind_load_snapshot ())
-                  {
-                     /* Skip remainder of this frame. */
-                     /* TODO: Do user interface input processing before this
-                        by splitting it away from the emulation input
-                        processing, somehow. */
-   
-                     /* TODO: Is one update per frame enough for the new audio system?  Not that it's going to perform
-                        very well during rewinding anyway. */
-                     apu_sync_update ();
-                     audio_update ();
-   
-                     continue;
-                  }
-               }
-               else
-               {
-                  rewind_save_snapshot ();
-               }
-            }        
-         }
-
-         /* Process input. */
-         while (keypressed ())
-         {
-            int c, scancode;
-
-            c = ureadkey (&scancode);
-
-            switch (scancode)
-            {
-               case KEY_ESC:
-               {
-                  /* ESC - Enter GUI. */
-
-                  enter_gui = TRUE;
-   
-                  break;
-               }
-
-               default:
-                  break;
-            }
-       
-
-            input_handle_keypress (c, scancode);
-            video_handle_keypress (c, scancode);
-            gui_handle_keypress (c, scancode);
-         }
-         
-
-         /* --- Emulation follows --- */
-
-         executed_frames++;
-         virtual_fps_count++;
-
-         input_process ();
-
-         if(redraw_flag) {
-            /* Perform a full render. */
-
-            rendered_frames++;
-            actual_fps_count++;
-
-            /* Enable rendering. */
-            ppu_set_option(PPU_OPTION_ENABLE_RENDERING, TRUE);
-         }
-         else
-            /* Disable PPU rendering for frame skipping. This only affects visual output
-               (i.e buffer writes), not emulation. This serves more as a hint, it is not
-               guaranteed to be honored by the PPU, especially if it is currently in mid-frame. */
-            ppu_set_option(PPU_OPTION_ENABLE_RENDERING, FALSE);
-
-         /* Execute a scanline at a time, waiting for the PPU to complete a frame. Note that this
-            just means the PPU completes a single frame, it does not account for when the frame
-            was completed or how long the PPU continues running afterwards. But it is sufficient
-            to sync the PPU with the main timing loop.*/
-         while(!frame_lock) {
-            apu_predict_irqs(SCANLINE_CLOCKS);
-
-            if(mmc_predict_asynchronous_irqs)
-               mmc_predict_asynchronous_irqs(SCANLINE_CLOCKS);
-
-            ppu_predict_interrupts(SCANLINE_CLOCKS, PPU_PREDICT_ALL);
-
-            cpu_execute(SCANLINE_CLOCKS);
-
-            apu_sync_update();
-            ppu_sync_update();
-         }
-
-         /* Clear lock. */
-         frame_lock = FALSE;
-
-         if ((frames_to_execute != -1) &&
-             (frames_to_execute > 0))
-         {
-            frames_to_execute--;
-            if (frames_to_execute == 0)
-            {
-               frames_to_execute = -1; /* Disable. */
-               enter_gui = TRUE;       /* Schedule GUI reentry. */
-            }
-         }
-
-         if ((cpu_usage == CPU_USAGE_PASSIVE) ||
-             (cpu_usage == CPU_USAGE_NORMAL))
-         {
-            rest (0);
-         }
-      }
-   }
-
-
-   /* Save configuration. */
-   save_config ();
-
-
-   if (rom_is_loaded)
-   {
+  if (rom_is_loaded)
+    {
       machine_exit ();
 
       free_rom (&global_rom);
-   }
+    }
 
 
-   fade_out (4);
+  fade_out (4);
 
-   video_exit ();
+  video_exit ();
 
+  audio_exit ();
 
-   audio_exit ();
+  input_exit ();
 
+  netplay_exit ();
 
-   input_exit ();
+  net_exit ();
 
-
-   netplay_exit ();
-
-   net_exit ();
-
-
-   gui_exit ();
+  gui_exit ();
 
 
-     log_printf ("Executed frames: %d (%d rendered).", executed_frames, rendered_frames);
+  log_printf ("Executed frames: %d (%d rendered).", executed_frames,
+	      rendered_frames);
 
 
-    platform_exit ();
+  platform_exit ();
 
 
-    /* unload_datafile (data); */
+  /* unload_datafile (data); */
 
 
-    return (0);
+  return (0);
 }
 
-END_OF_MAIN()
-
-void main_load_config (void)
+END_OF_MAIN ()
+     void main_load_config (void)
 {
-   first_run               = get_config_int   ("gui",    "first_run",    first_run);
-   machine_region          = get_config_int   ("timing", "region",       machine_region);
-   machine_timing          = get_config_int   ("timing", "mode",         machine_timing);
-   cpu_usage               = get_config_int   ("timing", "cpu_usage",    cpu_usage);
-   speed_cap               = get_config_int   ("timing", "speed_cap",    speed_cap);
-   frame_skip              = get_config_int   ("timing", "frame_skip",   frame_skip);
-   timing_speed_multiplier = get_config_float ("timing", "speed_factor", timing_speed_multiplier);
+  first_run = get_config_int ("gui", "first_run", first_run);
+  machine_region = get_config_int ("timing", "region", machine_region);
+  machine_timing = get_config_int ("timing", "mode", machine_timing);
+  cpu_usage = get_config_int ("timing", "cpu_usage", cpu_usage);
+  speed_cap = get_config_int ("timing", "speed_cap", speed_cap);
+  frame_skip = get_config_int ("timing", "frame_skip", frame_skip);
+  timing_speed_multiplier =
+    get_config_float ("timing", "speed_factor", timing_speed_multiplier);
 
-    /* Note: machine_type is set later by the ROM loading code, or more
-       specifically, machine_init(). */
+  /* Note: machine_type is set later by the ROM loading code, or more
+     specifically, machine_init(). */
 }
 
-void main_save_config (void)
+void
+main_save_config (void)
 {
-   set_config_int   ("gui",    "first_run",    first_run);
-   set_config_int   ("timing", "region",       machine_region);
-   set_config_int   ("timing", "mode",         machine_timing);
-   set_config_int   ("timing", "frame_skip",   frame_skip);
-   set_config_int   ("timing", "speed_cap",    speed_cap);
-   set_config_int   ("timing", "cpu_usage",    cpu_usage);
-   set_config_float ("timing", "speed_factor", timing_speed_multiplier);
+  set_config_int ("gui", "first_run", first_run);
+  set_config_int ("timing", "region", machine_region);
+  set_config_int ("timing", "mode", machine_timing);
+  set_config_int ("timing", "frame_skip", frame_skip);
+  set_config_int ("timing", "speed_cap", speed_cap);
+  set_config_int ("timing", "cpu_usage", cpu_usage);
+  set_config_float ("timing", "speed_factor", timing_speed_multiplier);
 }
 
 /* TODO: Move all of this into a machine.c or something - try to keep it separate from main. */
-int machine_init (void)
+int
+machine_init (void)
 {
-   if (!rom_is_loaded)
-   {
-      WARN("machine_init() called with no ROM loaded");
+  if (!(rom_is_loaded || nsf_is_loaded))
+    {
+      WARN ("machine_init() called with no file loaded");
       return (1);
-   }
+    }
 
-   /* Fixup machine type from region. */
-   timing_update_machine_type ();
+  /* Fixup machine type from region. */
+  timing_update_machine_type ();
 
-   if (cpu_init () != 0)
-   {
-      WARN("Failed to initialize the CPU core");
- 
-      free_rom (&global_rom);
+  if (cpu_init () != 0)
+    {
+      WARN ("Failed to initialize the CPU core");
+
+      if(rom_is_loaded)
+         free_rom (&global_rom);
       return (2);
-   }
+    }
 
-   if (ppu_init () != 0)
-   {
-      WARN("Failed to initialize the PPU core");
- 
-      free_rom (&global_rom);
+  if (ppu_init () != 0)
+    {
+      WARN ("Failed to initialize the PPU core");
+
+      if(rom_is_loaded)
+         free_rom (&global_rom);
       return (4);
-   }
- 
-   if (mmc_init () != 0)
-   {
-      WARN("mmc_init() failed (unsupported mapper?)");
- 
-      free_rom (&global_rom);
+    }
+
+  if (mmc_init () != 0)
+    {
+      WARN ("mmc_init() failed (unsupported mapper?)");
+
+      if(rom_is_loaded)
+         free_rom (&global_rom);
       return (3);
-   }
+    }
 
-   if (apu_init () != 0)
-   {
-      WARN("Failed to initialize the APU core");
- 
-      free_rom (&global_rom);
+  if (apu_init () != 0)
+    {
+      WARN ("Failed to initialize the APU core");
+
+      if(rom_is_loaded)
+         free_rom (&global_rom);
       return (5);
-   }
+    }
 
-   input_reset ();
+  input_reset ();
 
-   if (rewind_init () != 0)
-   {
-      WARN("Failed to initialize the rewinder");
- 
-      free_rom (&global_rom);
+  if (rewind_init () != 0)
+    {
+      WARN ("Failed to initialize the rewinder");
+
+      if(rom_is_loaded)
+         free_rom (&global_rom);
       return (6);
-   }
+    }
 
-   /* Reset everything.  Although this should be already performed by the
-      respective init functions, we do it again here just in case. */
-   machine_reset ();
+  /* Reset everything.  Although this should be already performed by the
+     respective init functions, we do it again here just in case. */
+  machine_reset ();
 
-   /* Return success. */
-   return (0);
+  /* Return success. */
+  return (0);
 }
 
-void machine_exit (void)
+void
+machine_exit (void)
 {
-   if (!rom_is_loaded)
-   {
-      WARN("machine_exit() called with no ROM loaded");
+  if (!(rom_is_loaded || nsf_is_loaded))
+    {
+      WARN ("machine_exit() called with no file loaded");
       return;
-   }
+    }
 
-   rewind_exit ();
+  rewind_exit ();
+  apu_exit ();
+  // mmc_exit ();
+  ppu_exit ();
+  cpu_exit ();
 
-   apu_exit ();
-
-   // mmc_exit ();
-
-   ppu_exit ();
-
-   cpu_exit ();
-
-
-   rewind_clear ();
+  rewind_clear ();
 }
 
-void machine_reset (void)
+void
+machine_reset (void)
 {
-   cpu_reset ();
+  cpu_reset ();
+  ppu_reset ();
+  mmc_reset ();
+  apu_reset ();
+  input_reset ();
+}
 
-   ppu_reset ();
+void
+machine_main (void)
+{
+  BOOL redraw_flag;
 
-   mmc_reset ();
+  if (frame_interrupt)
+    {
+      /* The FPS timer was triggered; sync counters. */
 
-   apu_reset ();
+      timing_fps = actual_fps_count;
+      timing_hertz = virtual_fps_count;
+      timing_audio_fps = audio_fps;
 
-   input_reset ();
+      actual_fps_count = 0;
+      virtual_fps_count = 0;
+      audio_fps = 0;
+
+      /* Increment our clock by one second. */
+      timing_clock++;
+
+      /* Clear interrupt flag so it doesn't fire again. */
+      frame_interrupt = FALSE;
+    }
+
+
+  /* NetPlay. */
+  if (netplay_mode)
+    netplay_process ();
+
+
+  /* Fast forward. */
+
+  if ((key[KEY_TILDE]) && (!(input_mode & INPUT_MODE_CHAT)))
+    {
+      if (!timing_fast_forward)
+	{
+	  /* Enter fast forward mode. */
+	  timing_fast_forward = TRUE;
+	  timing_update_timing ();
+	}
+    }
+  else
+    {
+      if (timing_fast_forward)
+	{
+	  /* Exit fast forward mode. */
+	  timing_fast_forward = FALSE;
+	  timing_update_timing ();
+	}
+    }
+
+
+  if (--frame_count > 0)
+    {
+      /* This frame will be executed, but not drawn. */
+      redraw_flag = FALSE;
+    }
+  else
+    {
+      /* This frame will be executed, and drawn. */
+      redraw_flag = TRUE;
+
+      if (speed_cap)
+	{
+	  /* Speed throttling. */
+
+	  while (throttle_counter == 0)
+	    {
+	      if (cpu_usage == CPU_USAGE_NORMAL)
+		rest (0);
+	      else if (cpu_usage == CPU_USAGE_PASSIVE)
+		rest (1);
+	    }
+
+	  /* Get all currently pending frames into the frame
+	     counter. */
+	  frame_count = throttle_counter;
+
+	  /* We use subtract here to avoid losing ticks if the timer
+	     fires between this and the last statement. */
+	  throttle_counter -= frame_count;
+
+	  /* Enforce frame skip setting if it is not auto. */
+	  if ((frame_skip != -1) && (frame_count > frame_skip))
+	    {
+	      frame_count = frame_skip;
+	    }
+	}
+    }
+
+
+  if (rewind_is_enabled ())
+    {
+      /* Game rewinding. */
+
+      if (input_mode & INPUT_MODE_PLAY)
+	{
+	  if (key[KEY_BACKSLASH])
+	    {
+	      if (!rewind_load_snapshot ())
+		{
+		  /* Skip remainder of this frame. */
+		  /* TODO: Do user interface input processing before this
+		     by splitting it away from the emulation input
+		     processing, somehow. */
+
+		  /* TODO: Is one update per frame enough for the new audio system?  Not that it's going to perform
+		     very well during rewinding anyway. */
+		  apu_sync_update ();
+		  audio_update ();
+
+		  return;
+		}
+	    }
+	  else
+	    {
+	      rewind_save_snapshot ();
+	    }
+	}
+    }
+
+  /* Process input. */
+  while (keypressed ())
+    {
+      int c, scancode;
+
+      c = ureadkey (&scancode);
+
+      switch (scancode)
+	{
+	case KEY_ESC:
+	  {
+	    /* ESC - Enter GUI. */
+
+	    enter_gui = TRUE;
+
+	    break;
+	  }
+
+	default:
+	  break;
+	}
+
+
+      input_handle_keypress (c, scancode);
+      video_handle_keypress (c, scancode);
+      gui_handle_keypress (c, scancode);
+    }
+
+
+  /* --- Emulation follows --- */
+
+  executed_frames++;
+  virtual_fps_count++;
+
+  input_process ();
+
+  if (redraw_flag)
+    {
+      /* Perform a full render. */
+
+      rendered_frames++;
+      actual_fps_count++;
+
+      /* Enable rendering. */
+      ppu_set_option (PPU_OPTION_ENABLE_RENDERING, TRUE);
+    }
+  else
+    /* Disable PPU rendering for frame skipping. This only affects visual output
+       (i.e buffer writes), not emulation. This serves more as a hint, it is not
+       guaranteed to be honored by the PPU, especially if it is currently in mid-frame. */
+    ppu_set_option (PPU_OPTION_ENABLE_RENDERING, FALSE);
+
+  /* Execute a scanline at a time, waiting for the PPU to complete a frame. Note that this
+     just means the PPU completes a single frame, it does not account for when the frame
+     was completed or how long the PPU continues running afterwards. But it is sufficient
+     to sync the PPU with the main timing loop. */
+  while (!frame_lock)
+    {
+      apu_predict_irqs (SCANLINE_CLOCKS);
+
+      if (mmc_predict_asynchronous_irqs)
+	mmc_predict_asynchronous_irqs (SCANLINE_CLOCKS);
+
+      ppu_predict_interrupts (SCANLINE_CLOCKS, PPU_PREDICT_ALL);
+
+      cpu_execute (SCANLINE_CLOCKS);
+
+      apu_sync_update ();
+      ppu_sync_update ();
+    }
+
+  /* Clear lock. */
+  frame_lock = FALSE;
+
+  if ((cpu_usage == CPU_USAGE_PASSIVE) || (cpu_usage == CPU_USAGE_NORMAL))
+    {
+      rest (0);
+    }
+}
+
+void machine_pause (void)
+{
+  /* Suspend timers. */
+  suspend_timing ();
+
+  /* Suspend audio. */
+  audio_suspend();
+}
+
+void machine_resume (void)
+{
+  /* Start timers. */
+  resume_timing ();
+
+  /* Start audio. */
+  audio_resume();
 }

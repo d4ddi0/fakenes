@@ -38,6 +38,7 @@ extern int audio_open_wav(const UCHAR* filename);
 extern void audio_close_wav(void);
 extern void audio_visopen(unsigned num_frames);
 extern void audio_visclose(void);
+extern BOOL audio_is_visopen(void);
 extern UINT16* audio_get_visdata(void);
 
 /* Subsystems. */

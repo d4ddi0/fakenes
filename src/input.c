@@ -688,8 +688,15 @@ void input_update_zapper_offsets (void)
 {
    BOOL adjust_mouse = FALSE;
 
-   input_zapper_x_offset = (mouse_x - mouse_x_focus);
-   input_zapper_y_offset = (mouse_y - mouse_y_focus);
+   if(gui_is_active && 
+      (gui_game_width > 0) && (gui_game_height > 0)) {
+      input_zapper_x_offset = ((gui_mouse_x_position - gui_game_x) * 255) / gui_game_width;
+      input_zapper_y_offset = ((gui_mouse_y_position - gui_game_y) * 239) / gui_game_height;
+   }
+   else {
+      input_zapper_x_offset = (mouse_x - mouse_x_focus);
+      input_zapper_y_offset = (mouse_y - mouse_y_focus);
+   }
 
    /* Trigger is left mouse button. */
    input_zapper_trigger = TRUE_OR_FALSE(mouse_b & 1);

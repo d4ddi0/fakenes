@@ -27,6 +27,9 @@
 
 // TODO: Proper support for PAL/NTSC selection.
 
+// This is set whenever an NSF is loaded, although not by this code.
+BOOL nsf_is_loaded = FALSE;
+
 // Size and number of NSF banks in the $8000 - $FFFF area.  This is also the size of NSF pages.
 static const unsigned NSFBankSize = 4096; // 4kiB
 static const int NSFBankCount = 8;
@@ -297,7 +300,15 @@ static linear void nsfWaveformVisualizationDraw(void);
 // Button states array, used to detect flip-flops.  This must be synchronized with the input system on every reset.
 static bool nsfButtonStates[INPUT_BUTTONS];
 
-void nsf_main(void)
+// Miscellaneous.
+static ENUM nsfSavedTimingMode = 0;
+static real nsfScanlinesPerFrame = 0.0;
+static real nsfScanlineBPM = 0.0;
+static real nsfPlaybackTimer = 0.0;
+static real nsfPlaybackBPM = 0.0;
+static real nsfPlaybackPeriod = 0.0;
+
+void nsf_setup(void)
 {
    /* To keep everything in sync, we have to clock the playback timer via the scanline timer, which is in turn clocked by
       the frame master timer. */
@@ -306,7 +317,7 @@ void nsf_main(void)
    small_font = video_get_font(VIDEO_FONT_LEGACY);
 
    // Switch to direct timing mode so that speed modifiers and the like do not skew the NSF timing.
-   const ENUM saved_timing_mode = timing_mode;
+   nsfSavedTimingMode = timing_mode;
    timing_mode = TIMING_MODE_DIRECT;
    timing_update_mode();
 
@@ -322,23 +333,20 @@ void nsf_main(void)
    nsfFrameBPM = timing_get_frame_rate();
 
    // Determine how many scanlines to a frame.
-   const real scanlinesPerFrame = ((machine_type == MACHINE_TYPE_PAL) ? PPU_TOTAL_LINES_PAL : PPU_TOTAL_LINES_NTSC);
-   const real scanlineBPM = (scanlinesPerFrame * nsfFrameBPM);
+   nsfScanlinesPerFrame = ((machine_type == MACHINE_TYPE_PAL) ? PPU_TOTAL_LINES_PAL : PPU_TOTAL_LINES_NTSC);
+   nsfScanlineBPM = (nsfScanlinesPerFrame * nsfFrameBPM);
 
    // Determine how often to update the playback timer, in scanline counts.
-   real playbackTimer = 0.0;
-   const real playbackBPM = (1000000.0 / ((machine_type == MACHINE_TYPE_PAL) ? nsf.speedPAL : nsf.speedNTSC));
-   const real playbackPeriod = (scanlineBPM / playbackBPM);
+   nsfPlaybackTimer = 0.0;
+   nsfPlaybackBPM = (1000000.0 / ((machine_type == MACHINE_TYPE_PAL) ? nsf.speedPAL : nsf.speedNTSC));
+   nsfPlaybackPeriod = (nsfScanlineBPM / nsfPlaybackBPM);
 
    // Jump to the starting song and queue the first playback cycle.
    play(nsf.startingSong);
-   playbackTimer = playbackPeriod;
+   nsfPlaybackTimer = nsfPlaybackPeriod;
 
    // How many samples to use for visualization(per frame). */
    nsfVisualizationSamples = (int)floor(audio_sample_rate / nsfFrameBPM);
-
-   // Enable visualization.
-   audio_visopen(nsfVisualizationSamples);
 
    // Clear visualizations.
    nsfPowerLevelsVisualizationClear();
@@ -350,149 +358,173 @@ void nsf_main(void)
    LOCK_FUNCTION(nsfFrameTimer);
    install_int_ex(nsfFrameTimer, BPS_TO_TIMER(nsfFrameBPM));
 
-   bool selectPressed = false;
-   while(!selectPressed && !key[KEY_ESC]) {
-      int cached_nsfFrameTicks = nsfFrameTicks;
-      nsfFrameTicks -= cached_nsfFrameTicks;
+   // Unmute audio.
+   audio_resume();
+}
 
-      if(cached_nsfFrameTicks > 0) {
-         while(cached_nsfFrameTicks > 0) {
-            cached_nsfFrameTicks--;
-
-            // Checking our inputs only once per frame should be enough without introducing additional overhead.
-            input_process();
-
-            bool buttonA = input_get_button_state(INPUT_PLAYER_1, INPUT_BUTTON_A);
-            if(buttonA &&
-               (buttonA != nsfButtonStates[INPUT_BUTTON_A])) {
-               int nextSong = nsfCurrentSong - 1;
-               if(nextSong < 1)
-                  nextSong = 1;
-
-               // Jump to the next song and queue the first playback cycle.
-               play(nextSong);
-               playbackTimer = playbackPeriod;
-
-               // Clear frame timer.
-               nsfFrameTicks -= nsfFrameTicks;
-            }
-
-            nsfButtonStates[INPUT_BUTTON_A] = buttonA;
-
-            bool buttonB = input_get_button_state(INPUT_PLAYER_1, INPUT_BUTTON_B);
-            if(buttonB &&
-               (buttonB != nsfButtonStates[INPUT_BUTTON_B])) {
-               int nextSong = nsfCurrentSong + 1;
-               if(nextSong > nsf.totalSongs)
-                  nextSong = nsf.totalSongs;
-
-               // Jump to the next song and queue the first playback cycle.
-               play(nextSong);
-               playbackTimer = playbackPeriod;
-
-               // Clear frame timer.
-               nsfFrameTicks -= nsfFrameTicks;
-            }
-
-            nsfButtonStates[INPUT_BUTTON_B] = buttonB;
-
-            bool buttonSelect = input_get_button_state(INPUT_PLAYER_1, INPUT_BUTTON_SELECT);
-            if(buttonSelect &&
-               (buttonSelect != nsfButtonStates[INPUT_BUTTON_SELECT]))
-               selectPressed = true;
-
-            nsfButtonStates[INPUT_BUTTON_SELECT] = buttonSelect;
-
-            for(int scanline = 0; scanline < scanlinesPerFrame; scanline++) {
-               if(playbackTimer > 0.0)
-                  playbackTimer--;
-               if(playbackTimer <= 0.0) {
-                  playbackTimer += playbackPeriod;
-
-                  // Just send a playback pulse to the current song.
-                  play(nsfCurrentSong);
-               }
-
-               apu_predict_irqs(SCANLINE_CLOCKS);
-               cpu_execute(SCANLINE_CLOCKS);
-            }
-
-            // I hope that only updating once per frame is ok.  main() does it once per scanline.
-            apu_sync_update();
-            audio_update();
-
-            // Update visualizations.
-            nsfAPUVisualizationData = apu_get_visdata();
-            if(nsfAPUVisualizationData) {
-               nsfPowerLevelsVisualizationUpdate();
-
-               delete[] nsfAPUVisualizationData;
-               nsfAPUVisualizationData = null;
-            }
-
-            nsfAudioVisualizationData = audio_get_visdata();
-            if(nsfAudioVisualizationData) {
-               nsfFrequenciesVisualizationUpdate();
-               nsfWaveformVisualizationUpdate();
-
-               delete[] nsfAudioVisualizationData;
-               nsfAudioVisualizationData = null;
-            }
-         }
-
-        // Get a direct reference to the rendering buffer.
-         BITMAP* buffer = video_get_render_buffer();
-         if(!buffer) {
-            WARN_GENERIC();
-            return;
-         }
-
-         // Normally a game would initialize the PPU palette, but since we're not a game we have to clear it manually.
-         clear_to_color(buffer, ppu__color_map[0x01]);
-
-         const uint16 textColor = ppu__color_map[0x30];
-         textprintf_ex(buffer, small_font, 8,     8 + (12 * 0), textColor, -1, "TITLE:");
-         textprintf_ex(buffer, small_font, 8 + 8, 8 + (12 * 1), textColor, -1, (const char *)&nsf.name[0]);
-         textprintf_ex(buffer, small_font, 8,     8 + (12 * 2), textColor, -1, "COMPILED BY:");
-         textprintf_ex(buffer, small_font, 8 + 8, 8 + (12 * 3), textColor, -1, (const char *)&nsf.artist[0]);
-         textprintf_ex(buffer, small_font, 8,     8 + (12 * 4), textColor, -1, "COPYRIGHT:");
-         textprintf_ex(buffer, small_font, 8 + 8, 8 + (12 * 5), textColor, -1, (const char *)&nsf.copyright[0]);
-
-         textprintf_ex(buffer, small_font, 8, 8 + (12 * 7), textColor, -1, "Track %d of %d", nsfCurrentSong,
-            nsf.totalSongs);
-         textprintf_ex(buffer, small_font, 8, 8 + (12 * 8) + 2, textColor, -1, "Press A for next track");
-         textprintf_ex(buffer, small_font, 8, 8 + (12 * 9) + 2, textColor, -1, "Press B for previous track");
-
-         textprintf_ex(buffer, small_font, 8, 8 + (12 * 11), textColor, -1, "Press SELECT or ESC to exit");
-
-         // Draw visualizations.
-         nsfPowerLevelsVisualizationDraw();
-         nsfFrequenciesVisualizationDraw();
-         nsfWaveformVisualizationDraw();
-
-         // filter and display
-         video_update_display();
-      }
-
-      if(cpu_usage == CPU_USAGE_NORMAL)
-         rest(0);
-      else if(cpu_usage == CPU_USAGE_PASSIVE)
-         rest(1);
-   }
+void nsf_teardown(void)
+{
+   // Mute audio.
+   audio_suspend();
 
    // Remove frame timer.
    remove_int(nsfFrameTimer);
 
    // Disble visualization.
-   audio_visclose();
+   if(audio_is_visopen())
+      audio_visclose();
 
    // Switch back to indirect timing mode and return.
-   timing_mode = saved_timing_mode;
+   timing_mode = nsfSavedTimingMode;
    timing_update_mode();
+}
 
-   /* Since this function is usually called from the GUI, we have to clear the keyboard buffer to prevent any keypresses
-      that we recieved from reaching the GUI, otherwise hangs and other issues could occur. */
-   clear_keybuf();
+// Main playback function, returns TRUE when its time to exit, otherwise FALSE.
+BOOL nsf_main(void)
+{
+   while(keypressed()) {
+      switch(readkey() >> 8) {
+         case KEY_ESC:
+            return TRUE; 
+      }
+   }
+
+   int cached_nsfFrameTicks = nsfFrameTicks;
+   nsfFrameTicks -= cached_nsfFrameTicks;
+
+   if(cached_nsfFrameTicks > 0) {
+      while(cached_nsfFrameTicks > 0) {
+         cached_nsfFrameTicks--;
+
+         // Checking our inputs only once per frame should be enough without introducing additional overhead.
+         input_process();
+
+         bool buttonA = input_get_button_state(INPUT_PLAYER_1, INPUT_BUTTON_A);
+         if(buttonA &&
+            (buttonA != nsfButtonStates[INPUT_BUTTON_A])) {
+            int nextSong = nsfCurrentSong - 1;
+            if(nextSong < 1)
+               nextSong = 1;
+
+            // Jump to the next song and queue the first playback cycle.
+            play(nextSong);
+            nsfPlaybackTimer = nsfPlaybackPeriod;
+
+            // Clear frame timer.
+            nsfFrameTicks -= nsfFrameTicks;
+         }
+
+         nsfButtonStates[INPUT_BUTTON_A] = buttonA;
+
+         bool buttonB = input_get_button_state(INPUT_PLAYER_1, INPUT_BUTTON_B);
+         if(buttonB &&
+            (buttonB != nsfButtonStates[INPUT_BUTTON_B])) {
+            int nextSong = nsfCurrentSong + 1;
+            if(nextSong > nsf.totalSongs)
+               nextSong = nsf.totalSongs;
+
+            // Jump to the next song and queue the first playback cycle.
+            play(nextSong);
+            nsfPlaybackTimer = nsfPlaybackPeriod;
+
+            // Clear frame timer.
+            nsfFrameTicks -= nsfFrameTicks;
+         }
+
+         nsfButtonStates[INPUT_BUTTON_B] = buttonB;
+
+         bool buttonSelect = input_get_button_state(INPUT_PLAYER_1, INPUT_BUTTON_SELECT);
+#if 0
+         if(buttonSelect &&
+            (buttonSelect != nsfButtonStates[INPUT_BUTTON_SELECT]))
+            selectPressed = true;
+#endif
+
+         nsfButtonStates[INPUT_BUTTON_SELECT] = buttonSelect;
+
+         for(int scanline = 0; scanline < nsfScanlinesPerFrame; scanline++) {
+            if(nsfPlaybackTimer > 0.0)
+               nsfPlaybackTimer--;
+            if(nsfPlaybackTimer <= 0.0) {
+               nsfPlaybackTimer += nsfPlaybackPeriod;
+
+               // Just send a playback pulse to the current song.
+               play(nsfCurrentSong);
+            }
+
+            apu_predict_irqs(SCANLINE_CLOCKS);
+            cpu_execute(SCANLINE_CLOCKS);
+         }
+
+         // I hope that only updating once per frame is ok.  main() does it once per scanline.
+         apu_sync_update();
+         audio_update();
+
+         // Update visualizations.
+         if(!audio_is_visopen())
+            audio_visopen(nsfVisualizationSamples);
+
+         nsfAPUVisualizationData = apu_get_visdata();
+         if(nsfAPUVisualizationData) {
+            nsfPowerLevelsVisualizationUpdate();
+
+            delete[] nsfAPUVisualizationData;
+            nsfAPUVisualizationData = null;
+         }
+
+         nsfAudioVisualizationData = audio_get_visdata();
+         if(nsfAudioVisualizationData) {
+            nsfFrequenciesVisualizationUpdate();
+            nsfWaveformVisualizationUpdate();
+
+            delete[] nsfAudioVisualizationData;
+            nsfAudioVisualizationData = null;
+         }
+      }
+
+     // Get a direct reference to the rendering buffer.
+      BITMAP* buffer = video_get_render_buffer();
+      if(!buffer) {
+         WARN_GENERIC();
+         return TRUE;
+      }
+
+      // Normally a game would initialize the PPU palette, but since we're not a game we have to clear it manually.
+      clear_to_color(buffer, ppu__color_map[0x01]);
+
+      const uint16 textColor = ppu__color_map[0x30];
+      textprintf_ex(buffer, small_font, 8,     8 + (12 * 0), textColor, -1, "TITLE:");
+      textprintf_ex(buffer, small_font, 8 + 8, 8 + (12 * 1), textColor, -1, (const char *)&nsf.name[0]);
+      textprintf_ex(buffer, small_font, 8,     8 + (12 * 2), textColor, -1, "COMPILED BY:");
+      textprintf_ex(buffer, small_font, 8 + 8, 8 + (12 * 3), textColor, -1, (const char *)&nsf.artist[0]);
+      textprintf_ex(buffer, small_font, 8,     8 + (12 * 4), textColor, -1, "COPYRIGHT:");
+      textprintf_ex(buffer, small_font, 8 + 8, 8 + (12 * 5), textColor, -1, (const char *)&nsf.copyright[0]);
+
+      textprintf_ex(buffer, small_font, 8, 8 + (12 * 7), textColor, -1, "Track %d of %d", nsfCurrentSong,
+         nsf.totalSongs);
+      textprintf_ex(buffer, small_font, 8, 8 + (12 * 8) + 2, textColor, -1, "Press A for next track");
+      textprintf_ex(buffer, small_font, 8, 8 + (12 * 9) + 2, textColor, -1, "Press B for previous track");
+
+      // textprintf_ex(buffer, small_font, 8, 8 + (12 * 11), textColor, -1, "Press SELECT or ESC to exit");
+
+      // Draw visualizations.
+      nsfPowerLevelsVisualizationDraw();
+      nsfFrequenciesVisualizationDraw();
+      nsfWaveformVisualizationDraw();
+
+      // filter and display
+      if(gui_is_active)
+         gui_update_display();
+      else
+         video_update_display();
+   }
+
+   if(cpu_usage == CPU_USAGE_NORMAL)
+      rest(0);
+   else if(cpu_usage == CPU_USAGE_PASSIVE)
+      rest(1);
+
+   return FALSE;
 }
 
 // Begin "Power Bars" visualization.

@@ -122,7 +122,7 @@ static const MENU main_record_audio_menu_base[] =
    MENU_ENDCAP
 };
 
-DEFINE_MENU_CALLBACK(main_menu_resume);
+DEFINE_MENU_CALLBACK(main_menu_hide_gui);
 DEFINE_MENU_CALLBACK(main_menu_open);
 DEFINE_MENU_CALLBACK(main_menu_close);
 DEFINE_MENU_CALLBACK(main_menu_cheat_manager);
@@ -133,7 +133,7 @@ DEFINE_MENU_CALLBACK(main_menu_exit);
 
 static const MENU main_menu_base[] =
 {
-   { "&Resume        (ESC)", main_menu_resume,             NULL,                                0, NULL },
+   { "&Hide GUI      (ESC)", main_menu_hide_gui,           NULL,                                0, NULL },
    MENU_SPLITTER,                                                                       
    { "&Open...",             main_menu_open,               NULL,                                0, NULL },
    { "Open R&ecent",         NULL,                         IMPORT_MENU(main_open_recent_menu),  0, NULL },

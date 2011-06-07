@@ -15,9 +15,13 @@
 extern "C" {
 #endif
 
+extern BOOL nsf_is_loaded;
+
 extern BOOL nsf_open(const UCHAR* filename);
 extern void nsf_close(void);
-extern void nsf_main(void);
+extern void nsf_setup(void);
+extern void nsf_teardown(void);
+extern BOOL nsf_main(void);
 
 extern const MMC nsf_mapper;
 
