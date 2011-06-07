@@ -220,7 +220,7 @@ void video_load_config(void)
    Color.gamma = 0;
 
    Options.enableAcceleration = false;
-   Options.enableDither = true;
+   Options.enableDither = false;
    Options.enableFullscreen = false;
    Options.enableHUD = false;
    Options.enableTextureFilter = true;
@@ -1181,13 +1181,11 @@ static bool Initialize()
       Display.swapRGB = true;
    }
    else {
-      /* Attempt to detect if color component swapping (R<>B) is required. This uses a neat
-         little trick that KittyCat showed me. */
-      const int red = makecol(255, 0, 0);
+      /* Attempt to detect if color component swapping (R<>B) is required. We can test for this
+         by checking if any of the lower bits are set on a color containing only blue. */
       const int blue = makecol(0, 0, 255);
-
-      // If the format is RGB, red will be larger. If it is BGR, blue will be larger.
-      Display.swapRGB = (red > blue);
+      // 0 = BGR, 1 = RGB
+      Display.swapRGB = ((blue & 1) == 1);
    }
 
    if(Display.swapRGB)
