@@ -1181,15 +1181,29 @@ static bool Initialize()
       Display.swapRGB = true;
    }
    else {
-      /* Attempt to detect if color component swapping (R<>B) is required. We can test for this
-         by checking if any of the lower bits are set on a color containing only blue. */
-      const int blue = makecol(0, 0, 255);
+      /* Attempt to detect if color component swapping (R<>B) is required. There are two
+         notable cases where we have to swap red and blue:
+            1) The format of color_pack_16() and makecol16() do not match.
+            2) The display itself is BGR, when we need RGB. */
+      video__swap_rgb = FALSE;
+      const int c1 = color_pack_16(0, 0, 255);
+      const int c2 = makecol16(0, 0, 255);
+      const int c3 = makecol(0, 0, 255);
+
+      if((c1 & 1) != (c2 & 1)) {
+         log_printf("The 16-bit pixel format is BGR. Converting from RGB.\n");
+         Display.swapRGB = true;
+      }
+
       // 0 = BGR, 1 = RGB
-      Display.swapRGB = ((blue & 1) == 1);
+      if((c3 & 1) == 0) {
+         log_printf("The display has been detected as BGR. Converting from RGB.\n");
+         Display.swapRGB = true;
+      }
    }
 
    if(Display.swapRGB)
-      log_printf("The display has been detected as RGB. Converting from BGR.\n");
+      log_printf("The display has been detected as BGR. Converting from RGB.\n");
 
    video__swap_rgb = Display.swapRGB;
 
