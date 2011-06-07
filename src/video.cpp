@@ -193,6 +193,10 @@ static void SwitchBack(void)
    } \
 }
 
+/* In order for color math to know when to swap components, yet remain fast and inlined
+   whenever possible, we have to export this variable. */
+BOOL video__swap_rgb = FALSE;
+
 // --------------------------------------------------------------------------------
 
 void video_load_config(void)
@@ -211,6 +215,7 @@ void video_load_config(void)
    Color.gamma = 0;
 
    Options.enableAcceleration = false;
+   Options.enableDither = true;
    Options.enableFullscreen = false;
    Options.enableHUD = false;
    Options.enableTextureFilter = true;
@@ -755,6 +760,19 @@ static const int dither_table[4][4] =
 
 int video_legacy_create_color_dither(int r, int g, int b, int x, int y)
 {
+   if(!Options.enableDither)
+      return makecol(r, g, b);
+
+   // We use a more aggressive dithering in indexed color modes.
+   if(Display.colorDepth == 8) {
+      const int color = makecol15_dither(r, g, b, x, y);
+      const int r = getr15(color);
+      const int g = getg15(color);
+      const int b = getb15(color);
+
+      return makecol(r, g, b);
+   }
+
    if(Display.colorDepth < 24) {
       x &= 3;
       y &= 3;
@@ -1075,17 +1093,26 @@ static bool Initialize()
 
    // Some special setup is required for indexed color modes.
    if(Display.indexed) {
-       /* Calculate and set an RGB 3:3:2 format color palette. This essentially makes an 8-bit
+       /* Calculate and set an RGB format color palette. This essentially makes an 8-bit
           truecolor mode, allowing all later calculations to work under that assumption. Note
           that Allegro palettes expect components to be in the 0-63 range. */
-       int index = 0;
-       for(int r = 0; r < 8; r++) {
-          for(int g = 0; g < 8; g++) {
-             for(int b = 0; b < 4; b++) {
-                // 7*9 = 63, 3*21 = 63
-                Display.palette[index].r = r * 9;
-                Display.palette[index].g = g * 9;
-                Display.palette[index].b = b * 21;
+       int index = 1;
+       for(int s = 0; s < 9; s++) {
+          Display.palette[index].r = Round(s * (63 / 8.f));
+          Display.palette[index].g = Round(s * (63 / 8.f));
+          Display.palette[index].b = Round(s * (63 / 8.f));
+          index++;
+       }
+
+       for(int r = 0; r < 6; r++) {
+          for(int g = 0; g < 7; g++) {
+             for(int b = 0; b < 6; b++) {
+                if((r == b) && (b == g))
+                   continue;
+
+                Display.palette[index].r = Round(r * (63 / 5.f));
+                Display.palette[index].g = Round(g * (63 / 6.f));
+                Display.palette[index].b = Round(b * (63 / 5.f));
                 index++;
              }
           }
@@ -1108,6 +1135,7 @@ static bool Initialize()
    else
       set_color_conversion(COLORCONV_TOTAL | COLORCONV_KEEP_TRANS);
 
+   // Attempt to detect whether color component swapping is needed.
    if(IsOpenGL()) {
       // OpenGL always requires RGB<>BGR color swapping.
       Display.swapRGB = true;
@@ -1124,6 +1152,8 @@ static bool Initialize()
 
    if(Display.swapRGB)
       log_printf("The display has been detected as RGB. Converting from BGR.\n");
+
+   video__swap_rgb = Display.swapRGB;
 
    // We have all the information needed now to set up the color system.
    UpdateColor();
@@ -1429,14 +1459,10 @@ static void UpdateColor()
       // Get our color from the palette. For legacy reasons, they are offset by one.
       const RGB& color = palette[i + 1];
 
-      /* First we have to map from Allegro's 0-63 to the normal 0-255 range.
-         We also take the oppertunity to perform component swapping here, if necessary. */
-      int r = Display.swapRGB ? color.b : color.r;
-      int g = color.g;
-      int b = Display.swapRGB ? color.r : color.b;
-      r <<= 2;
-      g <<= 2;
-      b <<= 2;
+      // First we have to map from Allegro's 0-63 to the normal 0-255 range.
+      int r = color.r << 2;
+      int g = color.g << 2;
+      int b = color.b << 2;
 
       // Convert from RGB to HSL.
       real h, s, l;

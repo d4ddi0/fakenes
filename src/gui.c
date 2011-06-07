@@ -46,6 +46,7 @@ static BOOL restart_dialog = FALSE;
 GUI_THEME gui_theme;
 ENUM gui_theme_id = -1;
 const GUI_THEME *last_theme = NULL;
+void (*gui_theme_callback) (void);
 
 RGB *gui_image_palette = NULL;
 static BITMAP *gui_mouse_sprite = NULL;

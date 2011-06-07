@@ -59,26 +59,48 @@ static INLINE void refresh (void)
       int x, y;
       const int cursorX = mouse_x - mouse_x_focus;
       const int cursorY = mouse_y - mouse_y_focus;
+      BOOL truecolor = FALSE;
 
-      set_trans_blender(255, 255, 255, 128);
-      drawing_mode(DRAW_MODE_TRANS, NULL, 0, 0);
+      if(bitmap_color_depth(display) > 8) {
+         truecolor = TRUE;
+
+         set_trans_blender(255, 255, 255, 128);
+         drawing_mode(DRAW_MODE_TRANS, NULL, 0, 0);
+      }
 
       for(y = 0; y < cursor->h; y++) {
          for(x = 0; x < cursor->w; x++) {
             const int pixel = getpixel(cursor, x, y);
-            const int r = getr(pixel);
-            const int b = getb(pixel);
-            const int g = getg(pixel);
 
-            if((g == 0) && (r > 240) && (b > 240))
-               continue;
+            if(truecolor) {
+               const int r = getr(pixel);
+               const int b = getb(pixel);
+               const int g = getg(pixel);
+
+               if((g == 0) && (r > 240) && (b > 240))
+                  continue;
+            }
+            else {
+               int sub_x, sub_y;
+
+               if(pixel == 0)
+                  continue;
+
+               /* Only draw in a pattern in 256 color modes */
+               sub_x = x & 1;
+               sub_y = y & 1;
+               if(((sub_x == 0) && (sub_y == 1)) ||
+                  ((sub_x == 1) && (sub_y == 0)))
+                  continue;
+            }
 
             putpixel(display, cursorX + 8 + x, cursorY + 8 + y, makecol(0, 0, 0));
          }
       }
 
-      solid_mode();
-
+      if(truecolor)
+         solid_mode();
+      
       draw_sprite(display, cursor, cursorX, cursorY);
    }
 
@@ -90,6 +112,9 @@ static INLINE void refresh (void)
 
    if(cursor)
       destroy_bitmap(cursor);
+
+   if(gui_theme_callback)
+      gui_theme_callback();
 }
 
 static INLINE void draw_message (int color)
@@ -177,17 +202,17 @@ static INLINE void draw_background (void)
    
          /* Hack to handle color conversion. */
    
-         buffer = create_bitmap (background_image->w, background_image->h);
+         buffer = create_bitmap_ex(bitmap_color_depth(background_image), bmp->w, bmp->h);
          if (!buffer)
          {
             WARN("Failed to create background buffer");
             return;
          }
    
-         blit (background_image, buffer, 0, 0, 0, 0, background_image->w,
-            background_image->h);
-         stretch_blit (buffer, bmp, 0, 0, buffer->w, buffer->h, 0, 0,
-            bmp->w, bmp->h);
+         stretch_blit (background_image, buffer,
+            0, 0, background_image->w, background_image->h,
+            0, 0, buffer->w, buffer->h);
+         blit (buffer, bmp, 0, 0, 0, 0, buffer->w, buffer->h);
    
          destroy_bitmap (buffer);
       }

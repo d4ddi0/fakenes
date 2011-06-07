@@ -33,11 +33,13 @@ static const GUI_THEME classic_theme =
 
 static INLINE void set_classic_theme (void)
 {
-   gui_mouse_sprite = DATA_TO_BITMAP(GUI_CLASSIC_THEME_MOUSE_SPRITE);
+   gui_mouse_sprite = DATA_TO_BITMAP(CURSOR_THEME_CLASSIC);
    background_image = NULL;
 
    gui_theme_id = GUI_THEME_CLASSIC;
    gui_set_theme (&classic_theme);
+
+   gui_theme_callback = NULL;
 }
 
 static const GUI_THEME stainless_steel_theme =
@@ -58,11 +60,13 @@ static const GUI_THEME stainless_steel_theme =
 
 static INLINE void set_stainless_steel_theme (void)
 {
-   gui_mouse_sprite = DATA_TO_BITMAP(GUI_STAINLESS_STEEL_THEME_MOUSE_SPRITE);
-   background_image = DATA_TO_BITMAP(GUI_STAINLESS_STEEL_THEME_BACKGROUND_IMAGE);
+   gui_mouse_sprite = DATA_TO_BITMAP(CURSOR_THEME_STAINLESS_STEEL);
+   background_image = DATA_TO_BITMAP(IMAGE_THEME_BACKGROUND_STAINLESS_STEEL);
 
    gui_theme_id = GUI_THEME_STAINLESS_STEEL;
    gui_set_theme (&stainless_steel_theme);
+
+   gui_theme_callback = NULL;
 }
 
 static const GUI_THEME zero_4_theme =
@@ -83,11 +87,13 @@ static const GUI_THEME zero_4_theme =
 
 static INLINE void set_zero_4_theme (void)
 {
-   gui_mouse_sprite = DATA_TO_BITMAP(GUI_ZERO_4_THEME_MOUSE_SPRITE);
-   background_image = DATA_TO_BITMAP(GUI_ZERO_4_THEME_BACKGROUND_IMAGE);
+   gui_mouse_sprite = DATA_TO_BITMAP(CURSOR_THEME_ZERO_4);
+   background_image = DATA_TO_BITMAP(IMAGE_THEME_BACKGROUND_ZERO_4);
 
    gui_theme_id = GUI_THEME_ZERO_4;
    gui_set_theme (&zero_4_theme);
+
+   gui_theme_callback = NULL;
 }
 
 static const GUI_THEME panta_theme =
@@ -108,11 +114,13 @@ static const GUI_THEME panta_theme =
 
 static INLINE void set_panta_theme (void)
 {
-   gui_mouse_sprite = DATA_TO_BITMAP(GUI_PANTA_THEME_MOUSE_SPRITE);
-   background_image = DATA_TO_BITMAP(GUI_PANTA_THEME_BACKGROUND_IMAGE);
+   gui_mouse_sprite = DATA_TO_BITMAP(CURSOR_THEME_PANTA);
+   background_image = DATA_TO_BITMAP(IMAGE_THEME_BACKGROUND_PANTA);
 
    gui_theme_id = GUI_THEME_PANTA;
    gui_set_theme (&panta_theme);
+
+   gui_theme_callback = NULL;
 }
 
 static const GUI_THEME fireflower_theme =
@@ -131,13 +139,27 @@ static const GUI_THEME fireflower_theme =
    { 1.0f,  0.4f,    0,     0 }   /* Errors. */
 };
 
+static int fireflower_cursor = 0;
+
+static void fireflower_theme_callback(void)
+{
+   fireflower_cursor ^= 1;
+   if(fireflower_cursor == 0)
+      gui_mouse_sprite = DATA_TO_BITMAP(CURSOR_THEME_FIREFLOWER_FRAME_1);
+   else
+      gui_mouse_sprite = DATA_TO_BITMAP(CURSOR_THEME_FIREFLOWER_FRAME_2);
+}
+
 static INLINE void set_fireflower_theme (void)
 {
-   gui_mouse_sprite = DATA_TO_BITMAP(GUI_FIREFLOWER_THEME_MOUSE_SPRITE);
-   background_image = DATA_TO_BITMAP(GUI_FIREFLOWER_THEME_BACKGROUND_IMAGE);
+   gui_mouse_sprite = DATA_TO_BITMAP(CURSOR_THEME_FIREFLOWER_FRAME_1);
+   background_image = DATA_TO_BITMAP(IMAGE_THEME_BACKGROUND_FIREFLOWER);
 
    gui_theme_id = GUI_THEME_FIREFLOWER;
    gui_set_theme (&fireflower_theme);
+
+   fireflower_cursor = 0;
+   gui_theme_callback = fireflower_theme_callback;
 }
 
 #define set_default_theme()   set_panta_theme ()
@@ -231,6 +253,7 @@ static const GUI_THEME hugs_and_kisses_theme =
       background_image = NULL;   \
       gui_theme_id = id ;  \
       gui_set_theme (& name##_theme );  \
+      gui_theme_callback = NULL; \
    }
 
 GENERIC_THEME_SETTER(xodiac,          GUI_THEME_XODIAC)

@@ -10,6 +10,7 @@
 #define COLOR_H_INCLUDED
 #include "common.h"
 #include "types.h"
+#include "video.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -42,18 +43,33 @@ static INLINE UINT16 color_mix_16_fast(const UINT16 c1, const UINT16 c2)
    return (c1 + c2) >> 1;
 }
 
-static INLINE UINT16 color_pack_16(const int r, const int g, const int b)
+static INLINE UINT16 _color_pack_16(const int r, const int g, const int b)
 {
    return ((r >> RED_SHIFTS_16) << RED_CSHIFTS_16) |
           ((g >> GREEN_SHIFTS_16) << GREEN_CSHIFTS_16) |
           ((b >> BLUE_SHIFTS_16) << BLUE_CSHIFTS_16);
 }
 
-static INLINE void color_unpack_16(const UINT16 c, int *r, int *g, int *b)
+static INLINE void _color_unpack_16(const UINT16 c, int *r, int *g, int *b)
 {
    *r = ((c & RED_CMASK_16) >> RED_CSHIFTS_16) << RED_SHIFTS_16;
    *g = ((c & GREEN_CMASK_16) >> GREEN_CSHIFTS_16) << GREEN_SHIFTS_16;
    *b = ((c & BLUE_CMASK_16) >> BLUE_CSHIFTS_16) << BLUE_SHIFTS_16;
+}
+
+static INLINE UINT16 color_pack_16(const int r, const int g, const int b)
+{
+   return video__swap_rgb ?
+      _color_pack_16(b, g, r) : _color_pack_16(r, g, b);
+
+}
+
+static INLINE void color_unpack_16(const UINT16 c, int *r, int *g, int *b)
+{
+   if(video__swap_rgb)
+      _color_unpack_16(c, b, g, r);
+   else
+      _color_unpack_16(c, r, g, b);
 }
 
 static INLINE UINT16 color_add_16(const UINT16 c1, const UINT16 c2)

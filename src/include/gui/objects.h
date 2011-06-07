@@ -915,12 +915,43 @@ int sl_x_button (int message, DIALOG *dialog, int key)
 static void sl_draw_menu (int x, int y, int width, int height)
 {
    BITMAP *bmp;
+   BITMAP *pattern = NULL;
+   int black;
 
    /* Bug fix (Allegro 4.1.1+). */
    width--;
    height--;
 
    bmp = gui_get_screen ();
+
+   /* Account for shadow */
+   width -= 6;
+   height -= 3;
+
+   /* Draw shadow. */
+   black = makecol(0, 0, 0);
+
+   if(bitmap_color_depth(bmp) > 8) {
+      set_trans_blender(255, 255, 255, 128);
+      drawing_mode(DRAW_MODE_TRANS, NULL, 0, 0);
+   }
+   else {
+      pattern = create_bitmap(2, 2);
+      if(pattern) {
+         clear_to_color(pattern, bitmap_mask_color(pattern));
+         putpixel(pattern, 0, 0, black);
+         putpixel(pattern, 1, 1, black);
+
+         drawing_mode(DRAW_MODE_MASKED_PATTERN, pattern, 0, 0);
+      }
+   }
+
+   rectfill(bmp, x + 6, y + 3, x + 6 + width, y + 3 + height, black);
+
+   solid_mode();
+
+   if(pattern)
+      destroy_bitmap(pattern);
 
    vline (bmp, (x + width), (y + 1), (y + height), GUI_SHADOW_COLOR);
    hline (bmp, (x + 1), (y + height), (x + width), GUI_SHADOW_COLOR);
@@ -938,6 +969,9 @@ static void sl_draw_menu_item (MENU *menu, int x, int y, int width, int
    BITMAP *bmp;
 
    RT_ASSERT(menu);
+
+   /* Account for shadow. */
+   width -= 6;
 
    /* TODO: Make sure all of this is fully Unicode compliant. */
    /* TODO: Clean all of this up. */

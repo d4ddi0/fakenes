@@ -13,6 +13,7 @@
 #include <cstring>
 #include "binary.h"
 #include "common.h"
+#include "color.h"
 #include "cpu.h"
 #include "input.h"
 #include "log.h"
@@ -39,7 +40,6 @@
      - When a variable won't be modified, make its value const, to improve optimization.
      - When calling functions, pass parameters as const whenever possible. */
 
-// TODO: Support color tinting.
 // TODO: Proper overscan support.
 // TODO: State saving support.
 // TODO: Properly emulate PPU power-up and reset states.
@@ -48,7 +48,7 @@
       These are used exclusively by this file only. */
 // Color mapping.
 static linear void BuildColorMap();
-static void MapColor(const UINT8 index, const UINT16 value);
+static inline void MapColor(const UINT8 index, const UINT16 value);
 
 // VRAM reading & writing.
 static linear uint8 VRAMRead();
@@ -384,6 +384,9 @@ void ppu_reset(void)
 
    vblankQuirkTime = 0;
 
+   // Disable color tinting.
+   ppu__enable_color_tinting = FALSE;
+
    // Initialize registers. This resets all register-derived internal variables.
    ppu_write(0x2000, 0x00); // PPUCTRL
    ppu_write(0x2001, 0x00); // PPUMASK
@@ -592,10 +595,10 @@ void ppu_write(const UINT16 address, const UINT8 data)
          
          /* Color tinting is emulated using a color map. But it is costly to rebuild the
             color map too often, so we only do so when neccessary. */
-         if(tinting != ppu__enable_color_tinting)
+         if(tinting != ppu__enable_color_tinting) {
+            ppu__enable_color_tinting = tinting;
             BuildColorMap();
-
-         ppu__enable_color_tinting = tinting;
+         }
 
          break;
       }
@@ -1039,11 +1042,43 @@ static linear void BuildColorMap()
       MapColor(i, PPUState::colorMap[i]);
 }
 
-static void MapColor(const UINT8 index, const UINT16 value)
+static inline void MapColor(const UINT8 index, const UINT16 value)
 {
    RT_ASSERT(index < PPU__COLOR_MAP_SIZE);
 
+   // Start with the original color value.
    ppu__color_map[index] = value;
+
+   // If color tinting is not enabled, there's no need to recalculate colors.
+   if(!ppu__enable_color_tinting)
+      return;
+
+   // Tinting black ($xE and $xF) is a waste of time.
+   const UINT8 masked = index & 0x0F;
+   if((masked == 0x0E) || (masked == 0x0F))
+      return;
+
+   int r, g, b;
+   color_unpack_16(value, &r, &g, &b);
+
+   /* The color tint bits work on an attenuation cycle. Furthermore, all colors share the same attenuator,
+      so activating all three results in a global reduction of intensity. */
+   const bool darkenRed = ppu__intensify_greens || ppu__intensify_blues;
+   const bool darkenGreen = ppu__intensify_reds || ppu__intensify_blues;
+   const bool darkenBlue = ppu__intensify_reds || ppu__intensify_greens;
+
+   /* It would be fun to emulate the actual NTSC color math here, but as this color map is rebuilt every
+      time the color tint bits have changed, and there's the chance of that happening quite a few times
+      in a frame, we'll just sacrifice accuracy for something fast that still looks good. */
+   if(darkenRed)
+      r = (r * 2) / 3;	// 255->170
+   if(darkenGreen)
+      g = (g * 2) / 3;
+   if(darkenBlue)
+      b = (b * 2) / 3;
+
+   // Store the tinted color value in the color map.
+   ppu__color_map[index] = color_pack_16(r, g, b);
 }
 
 /* When reading while the VRAM address is in the range 0-$3EFF,
