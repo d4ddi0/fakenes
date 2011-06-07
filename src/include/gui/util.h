@@ -30,6 +30,38 @@ static INLINE void redraw (void)
    broadcast_dialog_message (MSG_DRAW, 0);
 }
 
+static INLINE void draw_game_border(BITMAP* bmp)
+{
+   const int x1 = gui_game_x - 1;
+   const int y1 = gui_game_y - 1;
+   const int x2 = x1 + (gui_game_width - 1) + 2;
+   const int y2 = y1 + (gui_game_height - 1) + 2;
+   const int black = makecol(0, 0, 0);
+   BITMAP* pattern = NULL;
+
+   pattern = create_bitmap(2, 2);
+   if(pattern) {
+      clear_to_color(pattern, bitmap_mask_color(pattern));
+      putpixel(pattern, 0, 0, black);
+      putpixel(pattern, 1, 1, black);
+
+      drawing_mode(DRAW_MODE_MASKED_PATTERN, pattern, 0, 0);
+   }
+
+   /* Shadow. */
+   rectfill(bmp, x1 + 8, y1 + 8, x2 + 8, y2 + 8, black);
+
+   if(pattern) {
+      solid_mode();
+      destroy_bitmap(pattern);
+   }
+
+   /* Background. */
+   rectfill(bmp, x1, y1, x2, y2, black);
+   /* Frame. */
+   rect(bmp, x1, y1, x2, y2, GUI_BORDER_COLOR);
+}
+
 /* If the GUI is not being drawn directly to the screen, this function
    displays it via video_update_display(). */
 static INLINE void update_display (void) 
@@ -87,6 +119,9 @@ static INLINE void update_display (void)
                gui_game_width = width;
                gui_game_height = height;
 
+               if(!background_image)
+                  draw_game_border(display);
+               
                blit(render, game, 0, 0, 0, 0, gameWidth, gameHeight);
                stretch_blit(game, display, 0, 0, gameWidth, gameHeight, x, y, width, height);
   
@@ -102,6 +137,9 @@ static INLINE void update_display (void)
             gui_game_width = gameWidth;
             gui_game_height = gameHeight;
  
+            if(!background_image)
+               draw_game_border(display);
+
             blit(render, display, 0, 0, x, y, gameWidth, gameHeight);
          }
       }
@@ -290,14 +328,47 @@ static INLINE void draw_background (BITMAP* bmp, int w, int h)
 {
    int window_x, window_y, window_w, window_h;
    int count, start, offset_x, offset_y, i, line;
+   BOOL cleared = FALSE;
 
    window_x = (bmp->w / 2) - (w / 2);
    window_y = (bmp->h / 2) - (h / 2);
    window_w = w;
    window_h = h;
 
-   if((window_w != bmp->w) || (window_h != bmp->h))
+
+   if((window_w != bmp->w) || (window_h != bmp->h)) {
       rectfill (bmp, 0, 0, bmp->w, bmp->h, GUI_BACKGROUND_COLOR);
+      cleared = TRUE;
+   }
+
+   if(!background_image) {
+      const int x1 = window_x;
+      const int y1 = window_y;
+      const int x2 = window_x + (window_w - 1);
+      const int y2 = window_y + (window_h - 1);
+
+      if (GUI_GRADIENT_START_COLOR == GUI_GRADIENT_END_COLOR) {
+         /* Accelerated solid drawing. */
+         rectfill (bmp, x1, y1, x2, y2, GUI_GRADIENT_START_COLOR);
+      }
+      else {
+         /* Gradient fill. */
+         int slice;
+
+         /* We have to do this in big chunks to make it fast. */
+         video_legacy_create_gradient (GUI_GRADIENT_START_COLOR,
+            GUI_GRADIENT_END_COLOR, window_h / 24, 0, 0);
+
+         for(slice = 0; slice < (window_h / 24); slice++) {
+             int bottom = y1 + (slice * 24) + 24;
+             if(bottom > y2)
+                bottom = y2;
+
+             const int color = video_legacy_create_gradient (0, 0, 0, slice, 0);
+             rectfill(bmp, x1, y1 + (slice * 24), x2, bottom, color);
+         }
+      }
+   }
 
    if (background_image)
    {
@@ -305,8 +376,13 @@ static INLINE void draw_background (BITMAP* bmp, int w, int h)
       { 
          blit(background_image, bmp, 0, 0, window_x, window_y, background_image->w, background_image->h);
       }
-      else if (background_image->h < 200)
+      else if (background_image->h < 240)
       {
+         if(!cleared) {
+            rectfill (bmp, 0, 0, bmp->w, bmp->h, GUI_BACKGROUND_COLOR);
+            cleared = TRUE;
+         }
+
          blit (background_image, bmp, 0, 0, window_x + ((window_w / 2) -
             (background_image->w / 2)), window_y + ((window_h / 2) - (background_image->h
                / 2)), background_image->w, background_image->h);
