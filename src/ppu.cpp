@@ -318,6 +318,9 @@ int ppu_init(void)
       ppu__sprite_palettes[i] = ppu__palette_vram +
          PPU__SPRITE_PALETTE_OFFSET + (i * PPU__BYTES_PER_PALETTE);
 
+   // Build color map.
+   BuildColorMap();
+
    // Compute CRC32 for CHR-ROM.
    if(global_rom.chr_rom_pages > 0) {
       global_rom.chr_rom_crc32 = make_crc32(global_rom.chr_rom, global_rom.chr_rom_pages * 0x2000);

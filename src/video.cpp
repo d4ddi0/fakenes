@@ -508,6 +508,7 @@ void video_set_profile_enum(const ENUM key, const ENUM value)
       case VIDEO_PROFILE_COLOR_PALETTE: {
          Color.palette = value;
          LIST_ADD(dirty, DirtyColor);
+         break;
       }
 
       case VIDEO_PROFILE_OUTPUT_BLITTER:
