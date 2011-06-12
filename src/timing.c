@@ -10,6 +10,9 @@
 #include "common.h"
 #include "core.h"
 #include "gui.h"
+#include "load.h"
+#include "machine.h"
+#include "nsf.h"
 #include "rom.h"
 #include "timing.h"
 #include "types.h"
@@ -65,17 +68,19 @@ REAL timing_get_frequency(void)
 
 void timing_update_timing(void)
 {
-   if(!gui_is_active) {
-      /* Cycle timers to match new emulation speeds. */
-      suspend_timing();
-      resume_timing();
-   }
+   /* Cycle timers to match new emulation speeds. */
+   suspend_timing();
+   resume_timing();
 
    /* Rebuild cycle table. */
    FN2A03_Rebuild_Cycle_Table();
 
    /* Update the APU's mixer. */
    apu_update();
+
+   /* Update the NSF player. */
+   if(nsf_is_loaded)
+      nsf_update_timing();
 }
 
 void timing_update_machine_type(void)

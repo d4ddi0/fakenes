@@ -9,19 +9,21 @@
 #ifndef NSF_H_INCLUDED
 #define NSF_H_INCLUDED
 #include "common.h"
+#include "cpu.h"
 #include "mmc.h"
 #include "types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern BOOL nsf_is_loaded;
-
 extern BOOL nsf_open(const UCHAR* filename);
 extern void nsf_close(void);
 extern void nsf_setup(void);
 extern void nsf_teardown(void);
-extern BOOL nsf_main(void);
+extern void nsf_start_frame(void);
+extern void nsf_end_frame(void);
+extern void nsf_execute(const cpu_time_t cycles);
+extern void nsf_update_timing(void);
 
 extern const MMC nsf_mapper;
 

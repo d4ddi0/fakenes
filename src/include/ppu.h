@@ -86,6 +86,8 @@ extern void ppu_set_1k_pattern_table_vrom_page(const UINT16 address, int page);
 extern void ppu_set_1k_pattern_table_vrom_page_expanded(const UINT16 address, int page, const unsigned flags);
 extern void ppu_set_8k_pattern_table_vram(void);
 extern void ppu_set_expansion_table_address(const UINT8* address);
+extern void ppu_begin_state_restore(void);
+extern void ppu_end_state_restore(void);
 extern void ppu_map_color(const UINT8 index, const UINT16 value);
 extern UINT16 ppu_get_background_color(void);
 

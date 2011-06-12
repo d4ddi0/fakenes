@@ -52,7 +52,6 @@ extern int load_rom_from_zip (const UCHAR*, ROM *);
 extern void free_rom (ROM *);
 
 extern ROM global_rom;
-extern BOOL rom_is_loaded;
 
 #define ROM_TRAINER_SIZE      512
 

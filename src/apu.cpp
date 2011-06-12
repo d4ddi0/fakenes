@@ -23,6 +23,7 @@
 #include "cpu.h"
 #include "debug.h"
 #include "log.h"
+#include "machine.h"
 #include "timing.h"
 #include "types.h"
 
@@ -1618,6 +1619,9 @@ void apu_load_state(PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
+   // Begin initialization sequence.
+   apu.initializing++;
+
    apu.clock_counter = pack_igetl(file);
    apu.clock_buffer = pack_igetl(file);
 
@@ -1637,6 +1641,9 @@ void apu_load_state(PACKFILE* file, const int version)
    apu_load_dmc(apu.dmc, file, version);
 
    apu_exsound_sourcer.load(file, version);
+
+   // End initialization sequence.
+   apu.initializing--;
 }
 
 void apu_sync_update(void)
@@ -1906,7 +1913,8 @@ static inline void mix(void)
             rightInput = 1;
          }
 
-         if(apu_exsound_sourcer.getSources() > 0) {
+         const int sources = apu_exsound_sourcer.getSources();
+         if(sources > 0) {
             /* In the case of cartridges with extra sound capabilities, we have to force the Famicom's sound to mono so
                that it is suitable for passing through the cartridge mixer.  While this is not the ideal solution(since it
                effectively disables stereo sound output for these games), it is the most accurate. */
@@ -1914,8 +1922,11 @@ static inline void mix(void)
 
             apu_exsound_sourcer.mix(total);
 
-            apu.mixer.inputs[leftInput] = apu_exsound_sourcer.output;
-            apu.mixer.inputs[rightInput] = apu_exsound_sourcer.output;
+            /* Ideally, we'd just pass the mixed output to the audio buffer. However, that can give results that are far
+               too quiet for some games, accurate or not. So some volume scaling is applied. */
+            const real output = apu_exsound_sourcer.output * 2.0;
+            apu.mixer.inputs[leftInput] = output;
+            apu.mixer.inputs[rightInput] = output;
          }
          else {
             // Normalise output without damaging the relative volume levels.

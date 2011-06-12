@@ -33,7 +33,7 @@ static BOOL enabled = TRUE;
    This should be a fractional value that represents a normalized percentage
    of the current emulation speed (e.g, 0.5 of 50 Hz would be 25 FPS).
 
-   Default: 0.25
+   Default: 1.0
    Minimum: Value of EPSILON
    Maximum: 1.0
    */
@@ -48,7 +48,8 @@ static REAL frame_rate = 0.25;
    */
 static int seconds = 10;
 
-/* Compression level (when available).
+/* Compression level (when available). At least a small amount of compression
+   is recommended to take advantage of delta encoding.
 
    Default: 0
    Minimum: 0 (disabled)
@@ -66,6 +67,7 @@ static int wait_frames = 0;
 
 typedef struct _QUEUE_FRAME
 {
+   int key;
    void *data;
    unsigned data_size;
    unsigned data_size_unpacked;

@@ -12,6 +12,7 @@
 #include "config.h"
 #include "gui.h"
 #include "input.h"
+#include "machine.h"
 #include "main.h"
 #include "rewind.h"
 #include "version.h"
@@ -23,6 +24,7 @@ static void actually_load_config(void)
    audio_load_config();
    gui_load_config();
    input_load_config();
+   machine_load_config();
    main_load_config();
    rewind_load_config();
    video_load_config();
@@ -61,6 +63,7 @@ void save_config(void)
    audio_save_config();
    gui_save_config();
    input_save_config();
+   machine_save_config();
    main_save_config();
    rewind_save_config();
    video_save_config();

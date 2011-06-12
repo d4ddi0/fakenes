@@ -44,6 +44,7 @@ extern void (*mmc_predict_asynchronous_irqs) (const cpu_time_t cycles);
 extern void (*mmc_check_address_lines) (const UINT16);
 extern int mmc_get_name_table_count (void);
 extern int mmc_uses_pattern_vram (void);
+extern int mmc_controls_mirroring (void);
 extern void mmc_save_state (PACKFILE *, const int);
 extern void mmc_load_state (PACKFILE *, const int);
 extern void mmc_save_state_prg (PACKFILE *, const int);

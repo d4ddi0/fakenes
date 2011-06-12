@@ -50,7 +50,7 @@ extern void gui_save_config (void);
 extern void gui_preinit (void);
 extern int gui_init (void);
 extern void gui_exit (void);
-extern int show_gui (BOOL);
+extern void show_gui (BOOL);
 extern void gui_update_display(void);
 extern int gui_alert (const UCHAR *, const UCHAR *, const UCHAR *, const UCHAR *, const UCHAR *, const UCHAR *, int, int);
 extern void gui_message (int, const UCHAR *, ...);

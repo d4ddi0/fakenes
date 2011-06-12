@@ -15,6 +15,7 @@
 #include "cpu.h"
 #include "debug.h"
 #include "input.h"
+#include "load.h"
 #include "log.h"
 #include "mmc.h"
 #include "ppu.h"

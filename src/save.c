@@ -15,6 +15,7 @@
 #include "cpu.h"
 #include "debug.h"
 #include "input.h"
+#include "machine.h"
 #include "mmc.h"
 #include "ppu.h"
 #include "rom.h"
@@ -139,6 +140,9 @@ static INLINE BOOL fnss_save (PACKFILE *file, const UCHAR *title)
    pack_iputl (global_rom.prg_rom_crc32, file);
    pack_iputl (global_rom.chr_rom_crc32, file);
    
+   /* Write VM chunk. */
+   fnss_save_chunk (file, version, "VM\0", machine_save_state);
+
    /* Write CPU chunk. */
    fnss_save_chunk (file, version, "CPU\0", cpu_save_state);
    /* Write MMC chunk for CPU. */
@@ -235,10 +239,15 @@ static INLINE BOOL fnss_load (PACKFILE *file)
       In the new version, portions of the MMC are reset separately depending
       on which internal hardware has been initialized. */
 
+   /* Load VM chunk. */
+   fnss_load_chunk (file, version, "VM\0", machine_load_state);
+
    /* Load CPU chunk. */
    fnss_load_chunk (file, version, "CPU\0", cpu_load_state);
    /* Load MMC chunk for CPU. */
    fnss_load_chunk (file, version, "MMCP\0", mmc_load_state_prg);
+
+   ppu_begin_state_restore();
 
    /* Load PPU chunk. */
    fnss_load_chunk (file, version, "PPU\0", ppu_load_state);
@@ -247,6 +256,8 @@ static INLINE BOOL fnss_load (PACKFILE *file)
 
    /* Load MMC chunk. */
    fnss_load_chunk (file, version, "MMC\0", mmc_load_state);
+
+   ppu_end_state_restore();
 
    /* Load APU chunk. */
    fnss_load_chunk (file, version, "APU\0", apu_load_state);
@@ -269,6 +280,9 @@ static INLINE BOOL fnss_save_raw (PACKFILE *file)
 
    /* Set version. */
    version = FNSS_VERSION;
+
+   /* Dump virtual machine state. */
+   machine_save_state (file, version);
 
    /* Dump CPU state. */
    cpu_save_state (file, version);
@@ -307,10 +321,15 @@ static INLINE BOOL fnss_load_raw (PACKFILE *file)
    /* Reset the virtual machine to it's initial state. */
    machine_reset ();
 
+   /* Restore virtual machine state. */
+   machine_load_state (file, version);
+
    /* Restore CPU state. */
    cpu_load_state (file, version);
    /* Restore MMC state for CPU. */
    mmc_load_state_prg (file, version);
+
+   ppu_begin_state_restore();
 
    /* Restore PPU state. */
    ppu_load_state (file, version);
@@ -319,6 +338,8 @@ static INLINE BOOL fnss_load_raw (PACKFILE *file)
 
    /* Restore MMC state. */
    mmc_load_state (file, version);
+
+   ppu_end_state_restore();
 
    /* Restore APU state. */
    apu_load_state (file, version);

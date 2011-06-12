@@ -14,6 +14,7 @@
 #include "cpu.h"
 #include "debug.h"
 #include "gui.h"
+#include "machine.h"
 #include "mmc.h"
 #include "ppu.h"
 #include "rom.h"
@@ -29,6 +30,7 @@ void (*mmc_check_address_lines) (const UINT16);
 
 static int mmc_name_table_count;
 static int mmc_pattern_vram_in_use;
+static int mmc_fixed_mirroring;
 
 int mmc_get_name_table_count(void)
 {
@@ -38,6 +40,11 @@ int mmc_get_name_table_count(void)
 int mmc_uses_pattern_vram(void)
 {
     return mmc_pattern_vram_in_use;
+}
+
+int mmc_controls_mirroring(void)
+{
+   return !mmc_fixed_mirroring;
 }
 
 #include "mmc/none.h"
@@ -123,6 +130,8 @@ int mmc_init (void)
         (global_rom.control_byte_1 & ROM_CTRL_FOUR_SCREEN) ? 4 : 2;
 
     mmc_pattern_vram_in_use = (ROM_CHR_ROM_PAGES == 0);
+
+    mmc_fixed_mirroring = TRUE;
 
     if (mmc_pattern_vram_in_use)
     {

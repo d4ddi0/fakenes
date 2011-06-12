@@ -93,7 +93,7 @@ static INLINE void update_display (void)
 
    draw_status_bar(display, window_w, window_h);
 
-   if(rom_is_loaded || nsf_is_loaded) {
+   if(file_is_loaded) {
       video_update_game_display();
 
       BITMAP* render = video_get_render_buffer();
@@ -203,23 +203,18 @@ static INLINE void update_display (void)
 
 static INLINE void refresh (void)
 {
-   if(rom_is_loaded) {
-      /* Main emulation loop. */
+   if(file_is_loaded) {
+      /* Emulation loop. */
       machine_main();
    }
   
-   if(nsf_is_loaded) {
-      /* NSF uses a separate, but similar loop. */
-      nsf_main();
-   }
-
    if(gui_theme_callback)
       gui_theme_callback();
 
    /* When a game is loaded, we let it take care of updating the display by 
       calling gui_update_display() instead. We also avoid resting as it will
       mess up main timing (which has its own rests). */
-   if(!(rom_is_loaded || nsf_is_loaded)) {
+   if(!file_is_loaded) {
       if (cpu_usage == CPU_USAGE_PASSIVE)
          rest (1);
       else if (cpu_usage == CPU_USAGE_NORMAL)
@@ -505,6 +500,9 @@ static INLINE int gui_open (void)
 {
    int x, y, width, height;
 
+   /* Clear keyboard buffer. This prevents some annoyances. */
+   clear_keybuf();
+
    /* Helper function for show_gui() and gui_alert().  Enters the GUI
       (e.g, sets up display buffer, etc.) but doesn't do anything else. */
  
@@ -561,6 +559,9 @@ static INLINE void gui_close (void)
 
    /* Deactivate. */
    gui_is_active = FALSE;
+
+   /* Clear keyboard buffer. This prevents some annoyances. */
+   clear_keybuf();
 }
 
 static INLINE DIALOG *create_dialog (const DIALOG *base, const UCHAR *title)

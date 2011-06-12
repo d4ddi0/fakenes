@@ -16,6 +16,7 @@
 #include "core/tables.h"
 #include "core/memory.h"
 #include "log.h"
+#include "machine.h"
 #include "ppu.h"
 
 /* define some macros to help improve readability */

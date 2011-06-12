@@ -25,8 +25,6 @@
 /* Global ROM container. */
 ROM global_rom;
 
-BOOL rom_is_loaded = FALSE;
-
 #ifdef USE_ZLIB
 #  define LR_FILE                     gzFile
 #  define LR_OPEN(name, mode)         (gzopen (name, mode "b"))

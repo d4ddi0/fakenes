@@ -76,65 +76,7 @@ extern "C" {
    always execute more than requested. */
 #define PREDICTION_BUFFER_CYCLES (8 * CPU_CLOCK_MULTIPLIER) /* 8 = Maximum cycle length of a 6502 opcode. */
 
-extern ENUM machine_region;
-extern ENUM machine_type;
-extern ENUM machine_timing;
-
-extern ENUM cpu_usage;
-
-extern BOOL speed_cap;
-extern int frame_skip;
-extern int timing_fps;
-extern int timing_hertz;
-extern int timing_audio_fps;
-
-extern ENUM timing_mode;
-extern REAL timing_speed_multiplier;
-extern BOOL timing_half_speed;
-extern BOOL timing_fast_forward;
-
-extern unsigned timing_clock;
-
-extern BOOL frame_lock;
-
-extern int machine_init (void);
-extern void machine_exit (void);
-extern void machine_reset (void);
-extern void machine_main (void);
-extern void machine_pause (void);
-extern void machine_resume (void);
-
-extern void suspend_timing (void);
-extern void resume_timing (void);
-
-enum {
-   MACHINE_REGION_AUTOMATIC = -1,
-   MACHINE_REGION_NTSC,
-   MACHINE_REGION_PAL,
-};
-
-enum {
-   MACHINE_TYPE_NTSC = 0,
-   MACHINE_TYPE_PAL,
-};
-
-enum {
-   MACHINE_TIMING_ACCURATE = 0,
-   MACHINE_TIMING_SMOOTH,
-};
-
-enum {
-   CPU_USAGE_PASSIVE = 0,
-   CPU_USAGE_NORMAL,
-   CPU_USAGE_AGGRESSIVE,
-};
-
-enum {
-   /* Direct timing bypasses all speed modifiers(the timings used always match the real thing). */
-   TIMING_MODE_DIRECT,
-   /* Indirect timing takes all speed modifiers, etc. into account. */
-   TIMING_MODE_INDIRECT,
-};
+/* -------------------------------------------------------------------------------- */
 
 extern REAL timing_get_timing_scale(void);
 extern REAL timing_get_frame_rate(void);

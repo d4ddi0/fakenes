@@ -23,7 +23,10 @@
 #include "debug.h"
 #include "gui.h"
 #include "input.h"
+#include "load.h"
 #include "log.h"
+#include "machine.h"
+#include "main.h"
 #include "mmc.h"
 #include "netplay.h"
 #include "nsf.h"
@@ -53,7 +56,6 @@ static BITMAP *background_image = NULL;
 
 BOOL gui_is_active = FALSE;
 static BOOL gui_needs_restart = FALSE;
-static BOOL want_exit = FALSE;
 
 /* This is the location of the mouse pointer when the GUI is running. It differs
    from mouse_x/y because it takes into account the letterbox system. */
@@ -480,10 +482,8 @@ void gui_exit (void)
    unload_dialogs ();
 }
 
-int show_gui (BOOL first_run)
+void show_gui (BOOL first_run)
 {
-   want_exit = FALSE;
-
    do
    {
       int result;
@@ -498,7 +498,7 @@ int show_gui (BOOL first_run)
       if (result != 0)
       {
          WARN("Failed to open GUI");
-         return ((8 + result));
+         return;
       }
 
       if (first_run)
@@ -519,9 +519,10 @@ int show_gui (BOOL first_run)
       /* Close GUI. */
       gui_close ();
 
-   } while (gui_needs_restart);
+      /* Remove any stale GUI keys (e.g ESC) from the VM keyboard buffer */
+      machine_clear_key_buffer();
 
-   return (want_exit);
+   } while (gui_needs_restart);
 }
 
 void gui_update_display(void) 
@@ -925,175 +926,7 @@ static INLINE void set_autosave (int interval)
       status_text ("Autosave interval set to %d seconds.", interval);
 }
 
-static INLINE void close_file (void);
 static int main_replay_menu_select (void);
-
-static INLINE int load_file (const UCHAR *filename)
-{
-   /* This function loads the ROM specified by filename.  The file is NOT
-      automatically added to the recent items list.  That must be done
-      manually (currently by main_menu_open()).
-
-      NSFs are also supported, and are determined from their extension.
-      GZipped/Zipped NSFs are not supported however.
-
-      The return value of this function is kept only for legacy purposes,
-      it no longer means anything. */
-
-   ROM rom;
-   BOOL loaded = FALSE;
-
-   status_text ("Loading, please wait...");
-
-   if (ustricmp (get_extension (filename), "NSF") == 0)
-   {
-      /* Attempt to intercept NSF file. */
-
-      if( nsf_is_loaded )
-      {
-         close_file();
-      }
-      
-      if (!nsf_open (filename))
-      {
-         status_text_color (GUI_ERROR_COLOR, "Failed to load NSF file!");
-
-         return (D_O_K);
-      }
-      else
-      {
-         /* Clear status bar. */
-         status_text ("");
-
-         if (rom_is_loaded)
-         {
-            /* Close currently open ROM and save data. */
-            close_file ();
-         }
-
-         /* Clear ROM space. */
-         memset(&global_rom, 0, sizeof(global_rom));
-
-         /* Set up mapper. */
-         mmc_force (&nsf_mapper);
-
-         /* Set flag. */
-         nsf_is_loaded = TRUE;
-
-         /* Initialize machine. */
-         machine_init ();
-
-         /* Start emulation. */
-         nsf_setup();
-
-         /* Display a tip about hiding the GUI. */
-         status_text ("Tip: Press ESC to hide the GUI and maximise the player.");
-
-         loaded = TRUE;
-      }
-   }
-   else {
-      if (load_rom (filename, &rom) != 0)
-      {
-         status_text_color (GUI_ERROR_COLOR, "Failed to load ROM!");
-
-         return (D_O_K);
-      }
-      else
-      {
-         USTRING scratch;
-
-         /* Clear status bar. */
-         status_text ("");
-
-         if (rom_is_loaded || nsf_is_loaded)
-         {
-            /* Close currently open ROM and save data. */
-            close_file ();
-         }
-
-         memcpy (&global_rom, &rom, sizeof (ROM));
-
-         rom_is_loaded = TRUE;
-
-         /* Initialize machine. */
-         machine_init ();
-
-         /* Start emulation. */
-         machine_resume();
-
-         /* Display a tip about hiding the GUI. */
-         status_text ("Tip: Press ESC to hide the GUI and maximise the game.");
-
-         loaded = TRUE;
-      }
-   }
-
-   if(loaded)
-   {
-      USTRING scratch;
-
-      /* Update save state titles. */
-      system_save_state_menu_select ();
-      /* Update replay titles. */
-      main_replay_menu_select ();
-
-      /* Clear the game clock. */
-      options_menu_reset_clock ();
-
-      /* Update window title. */
-      uszprintf (scratch, sizeof (scratch), "FakeNES - %s", get_filename
-         (global_rom.filename));
-      set_window_title (scratch);
-
-   }
-
-   update_menus();
-
-   return D_O_K;
-}
-
-static INLINE void close_file (void)
-{
-   /* Unloads the current ROM and returns the emulator to it's default
-      state. */
-
-   /* Check if the open file is an NSF. */
-   if(nsf_is_loaded)
-   {
-      /* Clean up. */
-      nsf_teardown();
-
-      /* Close machine. */
-      machine_exit ();
-
-      /* Close NSF. */
-      nsf_close ();
-      nsf_is_loaded = FALSE;
-   }
-   /* Normal ROM. */
-   else
-   {
-      /* Save SRAM. */
-      save_sram ();      
-
-      /* Save patches. */
-      save_patches ();
-
-      /* Close machine. */
-      machine_exit ();
-
-      /* Unload ROM. */
-      free_rom (&global_rom);
-      rom_is_loaded = FALSE;
-   }
-
-   /* Reset window title. */
-   set_window_title ("FakeNES");
-
-   /* Update menus. */
-   update_menus ();
-}
 
 static int open_lobby (void)
 {
@@ -1223,6 +1056,47 @@ static int main_menu_hide_gui (void)
     return (D_CLOSE);
 }
 
+/* This is a helper for main_menu_open() and the recent files menu.
+   This could probably be moved somewhere more suitable, but its not a big deal. */
+static BOOL load_helper(const UCHAR* filename) {
+   const UCHAR* error = NULL;
+
+   RT_ASSERT(filename);
+
+   status_text ("Loading, please wait...");
+
+   error = load_file(filename);
+   if(error) {
+      status_text_color(GUI_ERROR_COLOR, error);
+      return FALSE;
+   }
+
+   /* Sanity check. */
+   if(!file_is_loaded) {
+      WARN_GENERIC();
+      return FALSE;
+   }
+
+   /* Clear status bar. */
+   status_text ("");
+
+   /* Update save state titles. */
+   system_save_state_menu_select ();
+   /* Update replay titles. */
+   main_replay_menu_select ();
+
+   /* Update menus. */
+   update_menus();
+
+   /* Clear the game clock. */
+   options_menu_reset_clock ();
+
+   /* Display a tip about hiding the GUI. */
+   status_text ("Tip: Press ESC to hide the GUI and maximise the game.");
+
+   return TRUE;
+}
+
 static int main_menu_open (void)
 {
    USTRING path;
@@ -1232,7 +1106,7 @@ static int main_menu_open (void)
 
    if (rom_is_loaded)
    {
-      if (gui_alert ("Confirmation", "A ROM is already loaded.", "If you continue, any unsaved progress will be lost.", "Are you sure?", "&OK", "&Cancel", 0, 0) == 2)
+      if (gui_alert ("Confirmation", "A game is already loaded.", "If you continue, any unsaved progress will be lost.", "Are you sure?", "&OK", "&Cancel", 0, 0) == 2)
       {
          /* Cancelled. */
          return (D_O_K);
@@ -1265,11 +1139,12 @@ static int main_menu_open (void)
    {
       /* Dialog was OK'ed. */
 
-      int result;
-
-      result = load_file (path);
-
-      if ((rom_is_loaded || nsf_is_loaded) && !lock_recent)
+      if(!load_helper(path)) {
+         /* The file failed to load, skip everything else. */
+         return D_O_K;
+      }
+      
+      if(!lock_recent)
       {
          /* Load succeeded; add file to recent items list. */
 
@@ -1311,11 +1186,8 @@ static int main_menu_open (void)
             menu->text = text;
          }
       }
-
-      return (result);
    }
 
-   /* Dialog was cancelled. */
    return (D_O_K);
 }
 
@@ -1324,14 +1196,15 @@ static int main_menu_open (void)
    {  \
       if (rom_is_loaded) \
       { \
-         if (gui_alert ("Confirmation", "A ROM is already loaded.", "If you continue, any unsaved progress will be lost.", "Are you sure?", "&OK", "&Cancel", 0, 0) == 2) \
+         if (gui_alert ("Confirmation", "A game is already loaded.", "If you continue, any unsaved progress will be lost.", "Are you sure?", "&OK", "&Cancel", 0, 0) == 2) \
          { \
             /* Cancelled. */ \
             return (D_O_K); \
          } \
       } \
       \
-      return (load_file (open_recent_filenames[index])); \
+      load_helper(open_recent_filenames[index]); \
+      return D_O_K; \
    }
 
 OPEN_RECENT_MENU_HANDLER(0)
@@ -1382,17 +1255,21 @@ static int main_open_recent_menu_clear (void)
 
 static int main_menu_close (void)
 {
-   if (gui_alert ("Confirmation", "If you continue, any unsaved progress will be lost.", "Are you sure you want to unload the ROM?", NULL, "&OK", "&Cancel", 0, 0) == 2)
-   {
-      /* Cancelled. */
-      return (D_O_K);
+   /* Since games can lose data easily, we present a confirmation prompt for them.
+      This doesn't need to be done for NSFs, obviously. */
+   if(rom_is_loaded) {
+      if (gui_alert ("Confirmation", "If you continue, any unsaved progress will be lost.", "Are you sure you want to close the file?", NULL, "&OK", "&Cancel", 0, 0) == 2)
+      {
+         /* Cancelled. */
+         return (D_O_K);
+      }
    }
 
-   /* Unload ROM. */
-   close_file ();
+   /* Close the file. */
+   close_file();
 
-   /* Suspend emulation. */
-   machine_pause();
+   /* Update menus. */
+   update_menus();
 
    return (D_O_K);
 }
@@ -1704,7 +1581,7 @@ static int main_menu_exit (void)
    {
       /* Confirm exit. */
 
-      if (gui_alert ("Confirmation", "A ROM is currently loaded.", "If you continue, any unsaved progress will be lost.", "Really exit?", "&OK", "&Cancel", 0, 0) == 2)
+      if (gui_alert ("Confirmation", "A game is currently loaded.", "If you continue, any unsaved progress will be lost.", "Really exit?", "&OK", "&Cancel", 0, 0) == 2)
       {
          /* Cancelled. */
          return (D_O_K);
@@ -3843,8 +3720,12 @@ static int input_configure_dialog_calibrate (DIALOG *dialog)
             status_text ("%s, and press any key.",
                calibrate_joystick_name (index));
 
-            while (!keypressed ())
+            while (!keypressed ()) {
+               if(keyboard_needs_poll())
+                  poll_keyboard();
+
                gui_heartbeat ();
+            }
 
             ureadkey (&scancode);
 

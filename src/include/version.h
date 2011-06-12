@@ -12,16 +12,19 @@
 extern "C" {
 #endif
 
-#define VERSION_MAJOR   0
-#define VERSION_MINOR   60
-#define VERSION         0x060
+#define VERSION_MAJOR   6
+#define VERSION_MINOR   0
+#define VERSION         0x600
 
 /* Version tag can be overriden by Makefiles. */
 #ifndef VERSION_TAG
-#define VERSION_TAG     "CVS"
+#define VERSION_TAG     "Unstable"
 #endif
 
-#define VERSION_STRING  "0.6.0 (" VERSION_TAG ")"
+#define VERSION_STRING  "6.0 (" VERSION_TAG ")"
+
+#define WINDOW_TITLE_NORMAL	"FakeNES 6.0 \"Fireflower\" (Unstable)"
+#define WINDOW_TITLE_FILE	"FakeNES"
 
 #ifdef __cplusplus
 }

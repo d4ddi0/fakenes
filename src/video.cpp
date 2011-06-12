@@ -25,11 +25,11 @@
 #include "gui.h"
 #include "hsl.h"
 #include "input.h"
+#include "load.h"
 #include "log.h"
-#include "nsf.h"
+#include "machine.h"
 #include "ppu.h"
 #include "ppu_int.h"
-#include "rom.h"
 #include "timing.h"
 #include "types.h"
 #include "video.h"
@@ -180,13 +180,13 @@ static USTRING message_history[MESSAGE_HISTORY_SIZE];
 // These functions handle when the user switches to or from the program.
 static void SwitchAway(void)
 {
-   if(rom_is_loaded || nsf_is_loaded)
+   if(file_is_loaded)
       audio_suspend();
 }
 
 static void SwitchBack(void)
 {
-   if(rom_is_loaded || nsf_is_loaded)
+   if(file_is_loaded)
       audio_resume();
 }
 
@@ -215,8 +215,8 @@ void video_load_config(void)
    Color.palette = VIDEO_PALETTE_DEFAULT;
    Color.hue = 0;
    Color.saturation = 0;
-   Color.brightness = -50;
-   Color.contrast = 50;
+   Color.brightness = 0;
+   Color.contrast = 0;
    Color.gamma = 0;
 
    Options.enableAcceleration = false;
@@ -1544,26 +1544,33 @@ static void UpdateColor()
       real G = g / 255.0;
       real B = b / 255.0;
 
+      // Apply oversaturation.
+      if(saturation > 0.0) {
+         const real average = (R + G + B) / 3;
+         R += (R - average) * saturation * average;
+         G += (G - average) * saturation * average;
+         B += (B - average) * saturation * average;
+      }
+      
       // Apply contrast control.
       if(contrast) {
-         R += R * contrast;
-         G += G * contrast;
-         B += B * contrast;
+         real scale;
+         if(contrast > 0.0)
+            scale = 1.0 + (contrast * 2);
+         else
+            scale = 1.0 + (contrast / 2);
 
-         if(contrast < 0) {
-            const real delta = fabs(0.5 - fabs(contrast));
-            R += delta;
-            G += delta;
-            B += delta;
-         }
+         R = 0.5 + ((R - 0.5) * scale);
+         G = 0.5 + ((G - 0.5) * scale);
+         B = 0.5 + ((B - 0.5) * scale);
       }
 
       // Apply gamma control.
       if(gamma) {
-         const real exponent = 1.0 - (gamma / 2);
-         R = pow(R, exponent);
-         G = pow(G, exponent);
-         B = pow(B, exponent);
+         const real scale = 1.0 + gamma;
+         R *= scale;
+         G *= scale;
+         B *= scale;
       }
 
       // Apply brightness control.
@@ -1686,28 +1693,16 @@ static void DrawHUD()
    const int line = Round(text_height(font) * 1.25);
    const int spacer = Round(line * 1.5);
 
-   // Convert seconds-elapsed to hours, minutes, and seconds.
-   // FIXME: This is really god-awful slow, find a better way to do this. :p
-   int hours, minutes, seconds;
-   for(unsigned i = 0; i < timing_clock; i++) {
-      seconds++;
-      if(seconds >= 60) {
-         seconds -= 60;
-
-         minutes++;
-         if(minutes >= 60) {
-            minutes -= 60;
-
-            hours++;
-            if(hours > 60)
-               hours = 60;
-         }
-      }
+   // Not the prettiest code, that's for sure. ;)
+   if(game_clock_days > 0) {
+      video_legacy_shadow_textprintf(buffer, font, left, y, color, "%03d:%02d:%02d:%02d.%d",
+         game_clock_days, game_clock_hours, game_clock_minutes, game_clock_seconds, game_clock_milliseconds / 100);
+   }
+   else {
+      video_legacy_shadow_textprintf(buffer, font, left, y, color, "%02d:%02d:%02d.%d",
+         game_clock_hours, game_clock_minutes, game_clock_seconds, game_clock_milliseconds / 100);
    }
 
-   // Not the prettiest code, that's for sure. ;)
-   video_legacy_shadow_textprintf(buffer, font, left, y, color,
-      "%02d:%02d:%02d", hours, minutes, seconds);
    y += spacer;
 
    video_legacy_shadow_textout(buffer, font, "Video:", left, y, color);

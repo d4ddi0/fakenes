@@ -9,12 +9,16 @@
 #ifndef MAIN_H_INCLUDED
 #define MAIN_H_INCLUDED
 #include "common.h"
+#include "types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void main_load_config (void);
-void main_save_config (void);
+extern BOOL want_exit;
+extern BOOL want_gui;
+
+extern void main_load_config(void);
+extern void main_save_config(void);
 
 #ifdef __cplusplus
 }
