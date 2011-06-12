@@ -64,13 +64,13 @@ int timing_hertz = 0;
 int timing_audio_fps = 0;
 
 /* Timing clock (in milliseconds). Actual accuracy varies depending on the machine type
-   and speed modifiers (NTSC gives a base accuracy of about 16ms). This is mainly used
-   to drive NSF playback, and doesn't really need to be terribly accurate */
+   and speed modifiers (NTSC gives a base accuracy of about 16ms). */
 UINT32 timing_clock = 0;
 /* Keep this float so it can be saved as a UINT32 using a cast. */
 static float timing_clock_delta = 0;
 
-/* Game clock. This is derived from the global clock, and is included in save states. */
+/* Game clock. This is derived from the timing clock, and is included in save states.
+   The only way this is ever cleared is via machine_reset_game_clock(). */
 UINT16 game_clock_milliseconds = 0;
 UINT8 game_clock_seconds = 0;
 UINT8 game_clock_minutes = 0;
@@ -187,15 +187,18 @@ int machine_init(void)
       init functions, we do it again here just in case. */
    machine_reset();
 
+   /* Reset game clock. */
+   machine_reset_game_clock();
+
    /* Reset counters. */
    executed_frames = 0;
    rendered_frames = 0;
 
-  /* Install keyboard handler. */
-  LOCK_VARIABLE(key_names);
-  LOCK_VARIABLE(key_codes);
-  LOCK_FUNCTION(keyboard_handler);
-  keyboard_ucallback = keyboard_handler;
+   /* Install keyboard handler. */
+   LOCK_VARIABLE(key_names);
+   LOCK_VARIABLE(key_codes);
+   LOCK_FUNCTION(keyboard_handler);
+   keyboard_ucallback = keyboard_handler;
 
    /* Clear keyboard buffer. */
    memset(&key_names, 0, sizeof(key_names));
@@ -388,7 +391,7 @@ void machine_main(void)
    virtual_fps_count++;
 
    /* Adjust the timing and game clocks. */
-   timing_clock_delta += 1000 / timing_get_frame_rate();
+   timing_clock_delta += 1000 / timing_get_base_frame_rate();
    timing_clock += timing_clock_delta;
    game_clock_milliseconds += timing_clock_delta;
    timing_clock_delta -= floor(timing_clock_delta);
@@ -541,6 +544,16 @@ void machine_load_state(PACKFILE* file, const int version)
 void machine_clear_key_buffer(void)
 {
    key_buffer_size = 0;
+}
+
+/* This just clears the game clock. */
+void machine_reset_game_clock(void)
+{
+   game_clock_milliseconds = 0;
+   game_clock_seconds = 0;
+   game_clock_minutes = 0;
+   game_clock_hours = 0;
+   game_clock_days = 0;
 }
 
 /* These are like machine_pause() and machine_resume(), except that they don't touch audio.

@@ -38,9 +38,15 @@ REAL timing_get_timing_scale(void)
    return scale;
 }
 
+/* This returns the frame rate without any speed modifiers applied. */
+REAL timing_get_base_frame_rate(void)
+{
+   return PPU_FRAME_RATE;
+}
+
 REAL timing_get_frame_rate(void)
 {
-   REAL rate = PPU_FRAME_RATE;
+   REAL rate = timing_get_base_frame_rate();
 
    /* Modifications are only allowed in the INDIRECT timing mode. */
    if(timing_mode == TIMING_MODE_INDIRECT) {

@@ -448,7 +448,7 @@ void nsf_execute(const cpu_time_t cycles)
 void nsf_update_timing(void)
 {
    // Calculate beats per second (BPM) for the frame timer.
-   const real frameBPM = timing_get_frame_rate();
+   const real frameBPM = timing_get_base_frame_rate();
 
    // Determine how many scanlines to a frame.
    const real scanlinesPerFrame = PPU_TOTAL_LINES;
@@ -458,10 +458,6 @@ void nsf_update_timing(void)
    const real playbackBPM = 1000000.0 / ((machine_type == MACHINE_TYPE_PAL) ? nsf.speedPAL : nsf.speedNTSC);
    nsfPlaybackPeriod = (scanlineBPM / playbackBPM) * SCANLINE_CLOCKS;
    nsfPlaybackTimer = 0.0;
-
-   /* We also need to take any speed modifiers into account, otherwise the pitch of the music will be changed,
-      but the playback speed will not, giving strange results. */
-   nsfPlaybackPeriod = nsfPlaybackPeriod / timing_get_timing_scale();
 
    // How many samples to use for visualization(per frame). */
    nsfVisualizationSamples = (int)floor(audio_sample_rate / frameBPM);

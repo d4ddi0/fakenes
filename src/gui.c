@@ -1088,9 +1088,6 @@ static BOOL load_helper(const UCHAR* filename) {
    /* Update menus. */
    update_menus();
 
-   /* Clear the game clock. */
-   options_menu_reset_clock ();
-
    /* Display a tip about hiding the GUI. */
    status_text ("Tip: Press ESC to hide the GUI and maximise the game.");
 
@@ -3040,7 +3037,7 @@ OPTIONS_GUI_THEME_MENU_HANDLER(hugs_and_kisses)
 
 static int options_menu_reset_clock (void)
 {
-   timing_clock = 0;
+   machine_reset_game_clock();
 
    return (D_O_K);
 }

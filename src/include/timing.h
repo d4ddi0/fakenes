@@ -79,6 +79,7 @@ extern "C" {
 /* -------------------------------------------------------------------------------- */
 
 extern REAL timing_get_timing_scale(void);
+extern REAL timing_get_base_frame_rate(void);
 extern REAL timing_get_frame_rate(void);
 extern REAL timing_get_frequency(void);
 extern void timing_update_timing(void);

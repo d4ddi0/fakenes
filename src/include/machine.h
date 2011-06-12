@@ -88,6 +88,7 @@ extern void machine_resume(void);
 extern void machine_save_state(PACKFILE* file, const int version);
 extern void machine_load_state(PACKFILE* file, const int version);
 extern void machine_clear_key_buffer(void);
+extern void machine_reset_game_clock(void);
 extern void suspend_timing(void);
 extern void resume_timing(void);
 
