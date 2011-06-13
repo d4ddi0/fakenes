@@ -77,6 +77,9 @@ extern UINT16 game_clock_days;
 
 extern BOOL frame_lock;
 
+extern int executed_frames;
+extern int rendered_frames;
+
 extern void machine_load_config(void);
 extern void machine_save_config(void);
 extern int machine_init(void);

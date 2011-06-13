@@ -1809,6 +1809,10 @@ static void DrawHUD()
 
    video_legacy_shadow_textprintf(buffer, font, left + indent, y, color, opacity,
       "%02d FPS", timing_fps);
+   y += line;
+
+   video_legacy_shadow_textprintf(buffer, font, left + indent, y, color, opacity,
+      "Dropped %d%%", Round((1.0 - (rendered_frames / (real)executed_frames)) * 100));
    y += spacer;
 
    video_legacy_shadow_textout(buffer, font, "Audio:", left, y, color, opacity);
@@ -1816,7 +1820,36 @@ static void DrawHUD()
 
    if(audio_options.enable_output) {
       video_legacy_shadow_textprintf(buffer, font, left + indent, y, color, opacity,
-         "%02d FPS", timing_audio_fps);
+         "%2.1f kHz", timing_audio_fps / 1000.0);
+
+      y += spacer;
+
+      set_trans_blender(255, 255, 255, opacity);
+
+      REAL* vis = apu_get_visdata();
+      if(vis) {
+         int offset = 0;
+         for(int i = 0; i < APU_VISDATA_ENTRIES; i++) {
+            if((i == APU_VISDATA_MASTER_1) || (i == APU_VISDATA_MASTER_2))
+               continue;
+
+            const int x1 = left + indent + offset;
+            const int y1 = y + ((1.0 - fabs(vis[i])) * 8);
+            const int x2 = x1 + 6;
+            const int y2 = y + 8;
+
+            const int black = makecol_depth(bitmap_color_depth(buffer), 0, 0, 0);
+
+            rectfill(buffer, x1 + 2, y1 + 2, x2 + 2, y2 + 2, black);
+            rectfill(buffer, x1 + 1, y1 + 1, x2 - 1, y2 - 1, color);
+            rect(buffer, x1, y1, x2, y2, black);
+            offset += 12;
+         }
+
+         delete[] vis;
+      }
+
+      y += 2;
    }
    else
       video_legacy_shadow_textout(buffer, font, "Disabled", left + indent, y, color, opacity);
@@ -1827,8 +1860,12 @@ static void DrawHUD()
    y += line;
 
    video_legacy_shadow_textprintf(buffer, font, left + indent, y, color, opacity,
-      "%02d/%g Hz", timing_hertz, (double)timing_get_frame_rate());
+      "%s", (machine_type == MACHINE_TYPE_NTSC) ? "NTSC Mode" : "PAL Mode");
    y += line;
+
+   video_legacy_shadow_textprintf(buffer, font, left + indent, y, color, opacity,
+      "%02d/%g Hz", timing_hertz, (double)timing_get_frame_rate());
+   y += line + 2;
 
    video_legacy_shadow_textprintf(buffer, font, left + indent, y, color, opacity,
       "PC: $%04X", *cpu_active_pc);

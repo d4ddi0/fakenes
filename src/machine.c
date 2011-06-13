@@ -83,8 +83,8 @@ BOOL frame_lock = FALSE;
 
 /* Frame counters. These are just logged to a file at the end of emulation, in order to
    give an idea of system performance. More rendered frames is better. */
-static int executed_frames = 0;
-static int rendered_frames = 0;
+int executed_frames = 0;
+int rendered_frames = 0;
 
 /* Internal stuff. */
 static int actual_fps_count = 0;
