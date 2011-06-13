@@ -39,8 +39,13 @@ enum {
    VIDEO_FONT_SMALL,
    VIDEO_FONT_MEDIUM,
    VIDEO_FONT_LARGE,
-   VIDEO_FONT_MONOLITHIC,
+
    VIDEO_FONT_LEGACY,
+   VIDEO_FONT_MONOLITHIC,
+   VIDEO_FONT_SHADOWED_BOTTOM,
+   VIDEO_FONT_SHADOWED_TOP,
+   VIDEO_FONT_SHADOWED = VIDEO_FONT_SHADOWED_TOP,
+
    VIDEO_FONT_DEFAULT,
 };
 
@@ -104,9 +109,11 @@ extern void video_update_display(void);
 extern void video_update_game_display(void);
 extern void video_update_settings(void);
 extern void video_handle_keypress(const int c, const int scancode);
-extern void video_message(const UCHAR* message, ...);
+extern void video_message(const int duration, const UCHAR* message, ...);
 extern BOOL video_is_opengl_mode(void);
 extern FONT* video_get_font(const ENUM type);
+extern int video_search_palette(const int color);
+extern int video_search_palette_rgb(const int r, const int g, const int b);
 extern BITMAP* video_get_display_buffer(void);
 extern BITMAP* video_get_blit_buffer(const int width, const int height);
 extern BITMAP* video_get_extra_buffer(const int width, const int height);
@@ -115,8 +122,9 @@ extern BITMAP* video_get_render_buffer(void);
 extern int video_legacy_create_color_dither(int r, int g, int b, int x, int y);
 extern int video_legacy_create_gradient(const int start, const int end, const int slices, const int x, const int y);
 extern void video_legacy_create_gui_gradient(GUI_COLOR* start, const GUI_COLOR* end, const int slices);
-extern void video_legacy_shadow_textout(BITMAP* bitmap, FONT* font, const UCHAR* text, int x, int y, int color);
-extern void video_legacy_shadow_textprintf(BITMAP* bitmap, FONT* font, int x, int y, int color, const UCHAR* text, ...);
+extern void video_legacy_translucent_textout(BITMAP* bitmap, FONT* font, const UCHAR* text, const int x, const int y, const int color);
+extern void video_legacy_shadow_textout(BITMAP* bitmap, FONT* font, const UCHAR* text, const int x, const int y, const int color, const int opacity);
+extern void video_legacy_shadow_textprintf(BITMAP* bitmap, FONT* font, const int x, const int y, const int color, const int opacity, const UCHAR* text, ...);
 
 #ifdef __cplusplus
 }

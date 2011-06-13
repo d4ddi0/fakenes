@@ -284,6 +284,9 @@ static INLINE void set_status_text (const UCHAR* text, int color)
    ustrncat(gui_status_text, text, sizeof(gui_status_text) - 1);
 
    gui_status_color = color;
+
+   if(!gui_is_active)
+      video_message(-1, text);
 }
 
 static INLINE void status_text (const UCHAR *text, ...)

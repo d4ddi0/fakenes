@@ -1189,7 +1189,7 @@ void input_handle_keypress (int c, int scancode)
             else
             {
                /* Just show message locally. */
-               video_message (input_chat_text);
+               video_message (10000, input_chat_text);
 
                /* Play sound. */
                play_sample (DATA_TO_SAMPLE(SOUND_CHAT_RECEIVE), 255, 128, 1000, FALSE);

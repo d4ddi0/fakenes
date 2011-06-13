@@ -1077,9 +1077,6 @@ static BOOL load_helper(const UCHAR* filename) {
       return FALSE;
    }
 
-   /* Clear status bar. */
-   status_text ("");
-
    /* Update save state titles. */
    system_save_state_menu_select ();
    /* Update replay titles. */

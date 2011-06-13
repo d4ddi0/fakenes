@@ -285,7 +285,7 @@ static void parse_packet (PACKFILE *file)
          pack_fread (text, MIN( length, (USTRING_SIZE - 1) ), file);
 
          /* Display it. */
-         video_message (text);
+         video_message (10000, text);
 
          /* Play sound. */
          /* TODO: Support OpenAL by piping this through an audiolib wrapper. */

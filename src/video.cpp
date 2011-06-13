@@ -16,6 +16,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <vector>
 #include "audio.h"
 #include "common.h"
 #include "color.h"
@@ -37,11 +38,9 @@
 // TODO: Finish display update routines.
 // TODO: Check for non-power-of-2 texture support.
 // TODO: Move OpenGL stuff into its own container and initialize it properly.
-// TODO: Overhaul color correction math.
 // TODO: Color correction quantization and tinting.
 // TODO: Verify that all settings are in a valid range.
 // TODO: Add filters and blitters.
-// TODO: Finish writing DrawMessages().
 // TODO: Improve HUD.
 // TODO: OpenGL error checking.
 // TODO: Add support for the monolithic and custom fonts.
@@ -109,8 +108,9 @@ typedef struct _VideoDisplay {
 typedef struct _VideoFonts {
    FONT* smallLow, *mediumLow, *largeLow;	// Low-resolution fonts in three sizes.
    FONT* smallHigh, *mediumHigh, *largeHigh;	// High-resolutions fonts, also in three sizes.
-   FONT* monolithic;				// Multilingual Unicode font.
    FONT* legacy;				// The old 5x6 font, which is still heavily used.
+   FONT* monolithic;				// Multilingual Unicode font.
+   FONT* shadowedBottom, *shadowedTop;		// A shadowed version of the smallest font.
    FONT* custom;				// A custom font, overrides low and high res fonts.
 
 } VideoFonts;
@@ -173,9 +173,17 @@ static GLuint displayTexture = 0;
 static GLuint displayList = 0;
 #endif
 
-// Legacy support for showing chat and log messages.
-#define MESSAGE_HISTORY_SIZE	10
-static USTRING message_history[MESSAGE_HISTORY_SIZE];
+// Support for showing chat and log messages.
+typedef struct _Message {
+   USTRING text;	// Unicode text representing the message.
+   int lifetime;	// Lifetime (ms) of the message, before it is deleted.
+   int duration;	// Display duration (ms) of the message.
+   int fadeTime;	// How long the message takes to fade out (ms).
+
+} Message;
+
+typedef vector<Message> History;
+static History history;
 
 // These functions handle when the user switches to or from the program.
 static void SwitchAway(void)
@@ -660,7 +668,7 @@ void video_handle_keypress(const int c, const int scancode)
    }
 }
 
-void video_message(const UCHAR* message, ...)
+void video_message(const int duration, const UCHAR* message, ...)
 {
    va_list format;
    USTRING buffer;
@@ -669,10 +677,19 @@ void video_message(const UCHAR* message, ...)
    uvszprintf(buffer, USTRING_SIZE, message, format);
    va_end(format);
 
-   for(int i = 0; i < MESSAGE_HISTORY_SIZE; i++)
-      ustrzcpy(&message_history[i][0], USTRING_SIZE, &message_history[i + 1][0]);
+   Message msg;
+   USTRING_CLEAR(msg.text);
+   ustrncat(msg.text, buffer, USTRING_SIZE - 1);
 
-   ustrzcpy(&message_history[MESSAGE_HISTORY_SIZE - 1][0], USTRING_SIZE, buffer);
+   if(duration == -1)
+      msg.duration = 3000;
+   else
+      msg.duration = duration;
+
+   msg.lifetime = msg.duration * 10;
+   msg.fadeTime = msg.duration / 5;
+
+   history.push_back(msg);
 }
 
 BOOL video_is_opengl_mode(void)
@@ -746,6 +763,10 @@ FONT* video_get_font(const ENUM type) {
 
       case VIDEO_FONT_MONOLITHIC:
           return Fonts.monolithic;
+      case VIDEO_FONT_SHADOWED_BOTTOM:
+         return Fonts.shadowedBottom;
+      case VIDEO_FONT_SHADOWED_TOP:
+         return Fonts.shadowedTop;
       case VIDEO_FONT_LEGACY:
       case VIDEO_FONT_DEFAULT:
           return Fonts.legacy;
@@ -755,6 +776,21 @@ FONT* video_get_font(const ENUM type) {
    }
 
    return font;
+}
+
+// This function finds the best color from the NES palette to represent an RGB triplet.
+int video_search_palette(const int color)
+{
+   const int r = getr(color);
+   const int g = getg(color);
+   const int b = getb(color);
+
+   return video_search_palette_rgb(r, g, b);
+}
+
+int video_search_palette_rgb(const int r, const int g, const int b)
+{
+   return (bestfit_color(DATA_TO_RGB(PALETTE_RGB), r, g, b) - 1) & 0x3F;
 }
 
 /*******************
@@ -871,17 +907,73 @@ void video_legacy_create_gui_gradient(GUI_COLOR* start, const GUI_COLOR* end, co
    }
 }
 
-void video_legacy_shadow_textout(BITMAP* bitmap, FONT* font, const UCHAR* text, int x, int y, int color)
+/* This is like Allegro's textout(), but it uses slow putpixels, so it supports translucent drawing.
+   This is used by video_legacy_shadow_textout(). */
+void video_legacy_translucent_textout(BITMAP* bitmap, FONT* font, const UCHAR* text, const int x, const int y, const int color)
 {
    RT_ASSERT(bitmap);
    RT_ASSERT(font);
    RT_ASSERT(text);
 
-   textout_ex(bitmap, font, text, (x + 1), (y + 1), 0, -1);
-   textout_ex(bitmap, font, text, x, y, color, -1);
+   const int width = text_length(font, text);
+   const int height = text_height(font);
+
+   BITMAP* buffer = create_bitmap(width, height);
+   if(!buffer) {
+      WARN_GENERIC();
+      return;
+   }
+
+   // For our mask color, we'll use the exact inverse of color.
+   clear_to_color(buffer, ~color);
+
+   textout_ex(buffer, font, text, 0, 0, color, -1);
+
+   for(int subY = 0; subY < height; subY++) {
+      for(int subX = 0; subX < width; subX++) {
+         const int pixel = getpixel(buffer, subX, subY);
+         if(pixel == ~color)
+            continue;
+
+         putpixel(bitmap, x + subX, y + subY, pixel);
+      }
+   }
+
+   destroy_bitmap(buffer);
 }
 
-void video_legacy_shadow_textprintf(BITMAP* bitmap, FONT* font, int x, int y, int color, const UCHAR* text, ...)
+// Draws text with a shadow. This is designed to be used with DRAW_MODE_TRANS.
+void video_legacy_shadow_textout(BITMAP* bitmap, FONT* font, const UCHAR* text, const int x, const int y, const int color, const int opacity)
+{
+   RT_ASSERT(bitmap);
+   RT_ASSERT(font);
+   RT_ASSERT(text);
+
+   // If we're drawing with the smallest font, we can literally use a shadowed version.
+   const int black = makecol_depth(bitmap_color_depth(bitmap), 0, 0, 0);
+
+   if(font == video_get_font(VIDEO_FONT_SHADOWED)) {
+      FONT *shadowFont = video_get_font(VIDEO_FONT_SHADOWED_BOTTOM);
+      if(!shadowFont) {
+          WARN_GENERIC();
+          return;
+      }
+
+      set_trans_blender(255, 255, 255, opacity / 2);
+      video_legacy_translucent_textout(bitmap, shadowFont, text, x + 1, y + 1, black);
+
+      set_trans_blender(255, 255, 255, opacity);
+      video_legacy_translucent_textout(bitmap, shadowFont, text, x, y, black);
+      video_legacy_translucent_textout(bitmap, font, text, x, y, color);
+   }
+   else {
+      // Just draw a plain drop shadow instead.
+      video_legacy_translucent_textout(bitmap, font, text, x + 1, y + 1, black);
+      video_legacy_translucent_textout(bitmap, font, text, x, y, color);
+   }
+}
+
+void video_legacy_shadow_textprintf(BITMAP* bitmap, FONT* font, const int x, const int y, const int color, const int opacity, const UCHAR* text, ...)
 {
    RT_ASSERT(bitmap);
    RT_ASSERT(font);
@@ -894,7 +986,7 @@ void video_legacy_shadow_textprintf(BITMAP* bitmap, FONT* font, int x, int y, in
    uvszprintf(buffer, sizeof(buffer), text, format);
    va_end(format);
 
-   video_legacy_shadow_textout(bitmap, font, buffer, x, y, color);
+   video_legacy_shadow_textout(bitmap, font, buffer, x, y, color, opacity);
 }
 
 // --------------------------------------------------------------------------------
@@ -926,8 +1018,10 @@ static bool Initialize()
    Fonts.smallHigh = NULL;
    Fonts.mediumHigh = NULL;
    Fonts.largeHigh = NULL;
-   Fonts.monolithic = NULL;
    Fonts.legacy = NULL;
+   Fonts.monolithic = NULL;
+   Fonts.shadowedBottom = NULL;
+   Fonts.shadowedTop = NULL;
    Fonts.custom = NULL;
 
    Output.width = 0;
@@ -1475,8 +1569,10 @@ static void LoadFonts()
 
    // Monolithic and legacy fonts.
    // Fonts.monolithic = DATA_TO_FONT(FONT_MONOLITHIC);
-   Fonts.monolithic = NULL;
    Fonts.legacy = DATA_TO_FONT(FONT_LEGACY);
+   Fonts.monolithic = NULL;
+   Fonts.shadowedBottom = DATA_TO_FONT(FONT_SHADOWED_BOTTOM);
+   Fonts.shadowedTop = DATA_TO_FONT(FONT_SHADOWED_TOP);
 
    // Custom font (not yet supported).
    Fonts.custom = NULL;
@@ -1678,63 +1774,278 @@ static void DrawHUD()
    BITMAP* buffer = Buffers.overlay;
 
    // The font that we will use when drawing the text.
-   FONT* font = Fonts.smallLow;
+   FONT* font = video_get_font(VIDEO_FONT_SHADOWED);
 
    // The color to use for text.
    const uint16 color = ppu__color_map[0x29];
+   const int opacity = 240;
 
    // Initial offsets.
-   const int left = 180;
-   const int top = 32;
+   const int left = 160;
+   const int top = 16;
    int y = top;
 
    // Calculate whitespace.
-   const int indent = text_length(font, "XXXX");
+   const int indent = text_length(font, "X");
    const int line = Round(text_height(font) * 1.25);
    const int spacer = Round(line * 1.5);
 
+   drawing_mode(DRAW_MODE_TRANS, NULL, 0, 0);
+
    // Not the prettiest code, that's for sure. ;)
    if(game_clock_days > 0) {
-      video_legacy_shadow_textprintf(buffer, font, left, y, color, "%03d:%02d:%02d:%02d.%d",
+      video_legacy_shadow_textprintf(buffer, font, left, y, color, opacity, "%03d:%02d:%02d:%02d.%d",
          game_clock_days, game_clock_hours, game_clock_minutes, game_clock_seconds, game_clock_milliseconds / 100);
    }
    else {
-      video_legacy_shadow_textprintf(buffer, font, left, y, color, "%02d:%02d:%02d.%d",
+      video_legacy_shadow_textprintf(buffer, font, left, y, color, opacity, "%02d:%02d:%02d.%d",
          game_clock_hours, game_clock_minutes, game_clock_seconds, game_clock_milliseconds / 100);
    }
 
    y += spacer;
 
-   video_legacy_shadow_textout(buffer, font, "Video:", left, y, color);
+   video_legacy_shadow_textout(buffer, font, "Video:", left, y, color, opacity);
    y += line;
 
-   video_legacy_shadow_textprintf(buffer, font, left + indent, y, color,
+   video_legacy_shadow_textprintf(buffer, font, left + indent, y, color, opacity,
       "%02d FPS", timing_fps);
    y += spacer;
 
-   video_legacy_shadow_textout(buffer, font, "Audio:", left, y, color);
+   video_legacy_shadow_textout(buffer, font, "Audio:", left, y, color, opacity);
    y += line;
 
    if(audio_options.enable_output) {
-      video_legacy_shadow_textprintf(buffer, font, left + indent, y, color,
+      video_legacy_shadow_textprintf(buffer, font, left + indent, y, color, opacity,
          "%02d FPS", timing_audio_fps);
    }
    else
-      video_legacy_shadow_textout(buffer, font, "Disabled", left + indent, y, color);
+      video_legacy_shadow_textout(buffer, font, "Disabled", left + indent, y, color, opacity);
 
    y += spacer;
 
-   video_legacy_shadow_textout(buffer, font, "Core:",  left, y, color);
+   video_legacy_shadow_textout(buffer, font, "Timing:",  left, y, color, opacity);
    y += line;
 
-   video_legacy_shadow_textprintf(buffer, font, left + indent, y, color,
+   video_legacy_shadow_textprintf(buffer, font, left + indent, y, color, opacity,
       "%02d/%g Hz", timing_hertz, (double)timing_get_frame_rate());
    y += line;
 
-   video_legacy_shadow_textprintf(buffer, font, left + indent, y, color,
+   video_legacy_shadow_textprintf(buffer, font, left + indent, y, color, opacity,
       "PC: $%04X", *cpu_active_pc);
+
+   solid_mode();
 }
 
 static void DrawMessages()
 {
+   // The bitmap that we will draw onto.
+   BITMAP* buffer = Buffers.overlay;
+
+   // The font that we will use when drawing the text.
+   FONT* font = video_get_font(VIDEO_FONT_SHADOWED);
+
+   // Determine colors to use for drawing.
+   const uint16 backgroundColor = ppu__color_map[video_search_palette_rgb(64, 128, 128)];
+   const uint16 borderColor = ppu__color_map[video_search_palette_rgb(255, 255, 192)];
+   const uint16 shadowColor = ppu__color_map[video_search_palette_rgb(64, 64, 64)];
+   const uint16 textColor = ppu__color_map[video_search_palette_rgb(255, 255, 255)];
+
+   /* Gather our text sources. Generally, this will include only the message history,
+      but in chat mode it may also include the current chat line(s). */
+   const int maxSources = history.size() + 2;
+   const UCHAR* sources[maxSources];
+   int intensities[maxSources];
+   int nextSource = 0;
+
+   for(int i = 0; i < maxSources; i++) {
+      sources[i] = NULL;
+      intensities[i] = 255;
+   }
+
+   // Determine if we are in full chat mode.
+   const bool chatMode = input_mode & INPUT_MODE_CHAT;
+
+   for(int i = 0; i < history.size(); i++) {
+      const Message& message = history[i];
+      // Skip empty lines for a more compact layout.
+      if(ustrlen(message.text) == 0)
+         continue;
+
+      int intensity = chatMode ? 255 : 240;
+      if(!chatMode) {
+         // If the message duration has expired, hide it.
+         if(message.duration == 0)
+            continue;
+
+         // Handle fade-out.
+         if(message.duration < message.fadeTime)
+            intensity = Round((message.duration / (real)message.fadeTime) * 255);
+      }
+
+      sources[nextSource] = message.text;
+      intensities[nextSource] = intensity;
+      nextSource++;
+   }
+
+   USTRING chat;
+   if(chatMode) {
+      // Separate the current chat line from the message history.
+      if(nextSource > 0) {
+         sources[nextSource] = "-";
+         nextSource++;
+      }
+
+      // To let the user know that they are typing, we have to add an underscore to it.
+      USTRING_CLEAR(chat);
+      ustrncat(chat, input_chat_text, USTRING_SIZE - 1);
+      ustrncat(chat, "_",  USTRING_SIZE - 1);
+
+      sources[nextSource] = chat;
+      nextSource++;
+   }
+
+   // Handle word-wrapping.
+   const int maxWidth = 33;	// In characters.
+   const int maxHeight = 20;	// In lines.
+   USTRING lines[maxHeight];
+   int opacities[maxHeight];
+   int height = 0;
+
+   for(int i = 0; i < maxHeight; i++)
+      USTRING_CLEAR(lines[i]);
+
+   for(int i = 0; i < maxSources; i++) {
+      const UCHAR* text = sources[i];
+      if(!text)
+         continue;
+
+      // Cache the intensity for use as an opacity value.
+      const int intensity = intensities[i];
+
+      USTRING line, word;
+      USTRING_CLEAR(line);
+      USTRING_CLEAR(word);
+
+      const int length = ustrlen(text);
+      for(int j = 0; j < length; j++) {
+         const UCHAR c = ugetat(text, j);
+
+         /* Check if this is a normal character or whitespace.  We want to avoid processing whitespace
+            until after we've determined if the line will be wrapped. */
+         if(!uisspace(c))
+            uinsert(word, ustrlen(word), c);
+
+         bool newLine = false, wrap = false;
+
+         // If we're at the end of the line, we obviously want to start a new one.
+         if(j == (length - 1))
+            newLine = true;
+
+         // If we've exceeded the maximum line length, start a new line.
+         if((ustrlen(line) + ustrlen(word)) > maxWidth) {
+            newLine = true;
+            wrap = true;
+         }
+
+         // If there is no whitespace to split the line on, we have to force it.
+         if(ustrlen(word) >= maxWidth) {
+            ustrncat(line, word, USTRING_SIZE - 1);
+            USTRING_CLEAR(word);
+
+            newLine = true;
+            wrap = true;
+         }
+         
+         if(newLine) {
+            // Check if we've exceeded the height limit.
+            if(height >= maxHeight) {
+               // Drop oldest line to make room for the newest one.
+               for(int k = 0; k < (maxHeight - 1); k++) {
+                  USTRING_CLEAR(lines[k]);
+                  ustrncat(lines[k], lines[k + 1], USTRING_SIZE - 1);
+                  opacities[k] = opacities[k + 1];
+               }
+
+               height--;
+               USTRING_CLEAR(lines[height]);
+            }
+
+            // If we aren't wrapping, we need to make sure the line is complete.
+            if(!wrap && (ustrlen(word) > 0)) {
+               ustrncat(line, word, USTRING_SIZE - 1);
+               USTRING_CLEAR(word);
+            }
+
+            ustrncat(lines[height], line, USTRING_SIZE - 1);
+            opacities[height] = intensity;
+            height++;
+
+            USTRING_CLEAR(line);
+         }
+
+         // Check if we've reached the end of the word.
+         if(uisspace(c)) {
+            ustrncat(line, word, USTRING_SIZE - 1);
+            ustrncat(line, " ", USTRING_SIZE - 1);
+            USTRING_CLEAR(word);
+         }
+      }
+   }
+
+   // Calculate bounding box.
+   const int nextLine = Round(text_height(font) * 1.25);
+   const int x1 = 16;
+   const int y1 = 240 - (16 + (nextLine * height) + 8);
+   const int x2 = 224;
+   const int y2 = 240 - 16;
+   int x = x1 + 4;
+   int y = y1 + 4;
+
+   set_trans_blender(255, 255, 255, 128);
+   drawing_mode(DRAW_MODE_TRANS, NULL, 0, 0);
+
+   // Draw shadow, background and borders.
+   if(chatMode) {
+      rectfill(buffer, x1 + 4, y1 + 4, x2 + 4, y2 + 4, shadowColor);
+      rectfill(buffer, x1 + 1, y1 + 1, x2 - 1, y2 - 1, backgroundColor);
+      rect(buffer, x1, y1, x2, y2, borderColor);
+   }
+
+   for(int i = 0; i < height; i++) {
+      const USTRING& line = lines[i];
+      if(ustrlen(line) == 0)
+         continue;
+
+      // Check for a separator.
+      if(chatMode && (line[0] == '-')) {
+         set_trans_blender(255, 255, 255, 128);
+         hline(buffer, x1 + 1, y + (nextLine / 2), x2 - 1, borderColor);
+      }
+      else {
+         // Note that shadow_textout() handles our transparency for us.
+         video_legacy_shadow_textout(buffer, font, line, x, y, textColor, opacities[i]);
+      }
+      
+      y += nextLine;
+   }
+
+   solid_mode();
+
+   // Process message history.
+   for(History::iterator i = history.begin(); i != history.end(); ) {
+      Message& message = *i;
+
+      const int time = 1000 / timing_get_base_frame_rate();
+      message.lifetime -= time;
+      if(message.lifetime <= 0) {
+         i = history.erase(i);
+         continue;
+      }
+
+      message.duration -= time;
+      if(message.duration < 0)
+         message.duration = 0;
+
+      i++;
+   }
 }
