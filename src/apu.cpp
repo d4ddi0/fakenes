@@ -38,6 +38,7 @@ apu_options_t apu_options = {
    FALSE,                  // Stereo output mode
    FALSE,                  // Swap stereo channels
    1.0,                    // Global volume
+   FALSE,                  // Squelch
 
    // Enable filters:
    TRUE,  // Use logarithmic mapping (slow, improves volume)
@@ -989,6 +990,9 @@ void apu_load_config(void)
    apu_options.enable_extra_1  = get_config_bool ("apu", "enable_extra_1",  apu_options.enable_extra_1);
    apu_options.enable_extra_2  = get_config_bool ("apu", "enable_extra_2",  apu_options.enable_extra_2);
    apu_options.enable_extra_3  = get_config_bool ("apu", "enable_extra_3",  apu_options.enable_extra_3);
+
+   // Squelching is used on multitasking systems to silence audio when switched away.
+   apu_options.squelch = false;
 
    // Build mixer tables.
    for(int n = 0; n < 31; n++)
@@ -2071,6 +2075,9 @@ static inline void amplify(real& sample)
          sample = log_lut[index];
    }
 
+   // Apply squelch
+   if(apu_options.squelch)
+      sample = 0;
 }
 
 static inline void enqueue(real& sample)

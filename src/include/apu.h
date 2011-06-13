@@ -40,6 +40,7 @@ typedef struct apu_options_s {
    BOOL stereo;        /* Stereo output mode */
    BOOL swap_channels; /* Swap stereo channels */
    REAL volume;        /* Global volume */
+   BOOL squelch;       /* Force silence. */
 
    /* Filters. */
    BOOL logarithmic;   /* Logarithmic mapping */

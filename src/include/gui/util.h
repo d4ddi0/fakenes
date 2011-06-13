@@ -411,8 +411,8 @@ static INLINE void draw_background (BITMAP* bmp, int w, int h)
       /* Draw the message history in the smallest possible font. */
       FONT* font = video_get_font(VIDEO_FONT_SMALLEST);
 
-      /* 8 lines is about right for 480 pixel height */
-      count = (8 * window_h) / 480;
+      /* 7 lines is about right for 480 pixel height */
+      count = (7 * window_h) / 480;
       if(count > (GUI_MESSAGE_HISTORY_SIZE - 1))
          count = GUI_MESSAGE_HISTORY_SIZE - 1;
 

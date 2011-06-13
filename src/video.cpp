@@ -17,6 +17,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#include "apu.h"
 #include "audio.h"
 #include "common.h"
 #include "color.h"
@@ -189,13 +190,13 @@ static History history;
 static void SwitchAway(void)
 {
    if(file_is_loaded)
-      audio_suspend();
+      apu_options.squelch = !apu_options.squelch;
 }
 
 static void SwitchBack(void)
 {
    if(file_is_loaded)
-      audio_resume();
+      apu_options.squelch = !apu_options.squelch;
 }
 
 // This macro helps with clearing the memory used by bitmaps.
