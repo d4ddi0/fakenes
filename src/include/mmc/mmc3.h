@@ -142,12 +142,43 @@ static BOOL mmc3_irq_predictor(const int line)
    return trigger;
 }
 
-static void mmc3_hblank_start(const int line)
+static void mmc3_irq_handler(const int line)
 {
    if(line > PPU_LAST_DISPLAYED_LINE)
       return;
 
    mmc3_irq_slave(FALSE);
+}
+
+static void mmc3_check_vram_banking(void)
+{
+   int background_bank, sprite_bank;
+
+   mmc_hblank_start = NULL;
+   mmc_virtual_hblank_start = NULL;
+
+   mmc_hblank_prefetch_start = NULL;
+   mmc_virtual_hblank_prefetch_start = NULL;
+
+   /* If the BG uses $0000, and the sprites use $1000, then the IRQ will occur after PPU cycle 260
+      (as in, a little after the visible part of the target scanline has ended). 
+
+      If the BG uses $1000, and the sprites use $0000, then the IRQ will occur after PPU cycle 324
+      of the previous scanline (as in, right before the target scanline is about to be drawn). */
+
+   background_bank = (ppu__background_tileset >> 12) & 1;
+   sprite_bank = (ppu__sprite_tileset >> 12) & 1;
+
+   if((background_bank == 0) && (sprite_bank == 1)) {
+      mmc_hblank_start = mmc3_irq_handler;
+      mmc_virtual_hblank_start = mmc3_irq_predictor;
+   }
+   else if((background_bank == 1) && (sprite_bank == 0)) {
+      mmc_hblank_prefetch_start = mmc3_irq_handler;
+      mmc_virtual_hblank_prefetch_start = mmc3_irq_predictor;
+   }
+
+   ppu_repredict_interrupts(PPU_PREDICT_MMC_IRQ);
 }
 
 #if 0
@@ -385,8 +416,8 @@ static int mmc3_init(void)
 {
    cpu_set_write_handler_32k(0x8000, mmc3_write);
 
-   mmc_hblank_start = mmc3_hblank_start;
-   mmc_virtual_hblank_start = mmc3_irq_predictor;
+   mmc3_check_vram_banking();
+   mmc_check_vram_banking = mmc3_check_vram_banking;
    /* mmc_check_address_lines = mmc3_check_address_lines; */
 
    mmc3_reset();

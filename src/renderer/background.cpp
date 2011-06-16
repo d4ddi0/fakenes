@@ -185,7 +185,13 @@ void Frame()
 
 void Line()
 {
-   // Do nothing.
+   /* As an optmization, our background counter is clocked at the beginning of each pixel,
+      which allows us to skip the rest of the rendering logic under certain conditions.
+      However, on the real hardware the counter is clocked *after* a pixel is rendered, so
+      that data can be reloaded before the beginning of the next pixel. This gives us a
+      rather ugly off-by-one error near the end of the first tile, but luckily it is easy to
+      compensate for while still keeping our efficient flow-control. */
+   background.counter++;
 }
 
 #endif
@@ -355,10 +361,9 @@ inline void Clock()
 
    const int cycle = render.clock;
 
-   /* On visible lines where tile data has been fetched in the first 256 clock cycles, we need to fix up
-      the VRAM address at the beginning of HBlank before we start fetching for the next line. */
-   if((cycle == PrefetchCycleFirst) &&
-      (render.line >= PPU_FIRST_DISPLAYED_LINE)) {
+   /* Once tile data has been fetched for the first 256 clock cycles, we need to fix up the VRAM
+      address at the beginning of HBlank before we start fetching for the next line. */
+   if(cycle == PrefetchCycleFirst) {
       /* scanline start (if background and sprites are enabled):
            v:0000010000011111=t:0000010000011111 */
 
@@ -404,7 +409,7 @@ inline void Clock()
       case Fetch_Visible:
          // Disabled as this might cause problems with MMC3 games with the IRQ tied to A12.
          // if(render.line < PPU_FIRST_DISPLAYED_LINE)
-         //   return;
+         //    return;
        
          break;
 

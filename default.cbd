@@ -66,6 +66,7 @@ ifopt profile OBJ_DIR += '-profile'
 DEP_DIR = "${OBJ_DIR}"
 
 # Source Code subdirectories.
+SRC_COREDIR = Core
 SRC_ETCDIR = etc
 SRC_RENDERERDIR = renderer
 SRC_SHAREDDIR = shared
@@ -74,6 +75,7 @@ SRC_SOUNDDIR = sound
 # Create missing directories.
 do ifnopt clean
    ifnexist "${OBJ_DIR}" mkdir "${OBJ_DIR}"
+   ifnexist "${OBJ_DIR}/${SRC_COREDIR}"     mkdir "${OBJ_DIR}/${SRC_COREDIR}"
    ifnexist "${OBJ_DIR}/${SRC_ETCDIR}"      mkdir "${OBJ_DIR}/${SRC_ETCDIR}"
    ifnexist "${OBJ_DIR}/${SRC_RENDERERDIR}" mkdir "${OBJ_DIR}/${SRC_RENDERERDIR}"
    ifnexist "${OBJ_DIR}/${SRC_SHAREDDIR}"   mkdir "${OBJ_DIR}/${SRC_SHAREDDIR}"
@@ -265,8 +267,8 @@ SRCFILES += 'audio.cpp '
 SRCFILES += 'audiolib.cpp '
 SRCFILES += 'cheats.c '
 SRCFILES += 'config.c '
-SRCFILES += 'core.c '
-SRCFILES += 'cpu.c '
+SRCFILES += '${SRC_COREDIR}/Core.cpp '
+SRCFILES += '${SRC_COREDIR}/CPU.cpp '
 SRCFILES += "${SRC_ETCDIR}/hqx.c "
 SRCFILES += "${SRC_ETCDIR}/snes_ntsc.c "
 SRCFILES += 'gui.c '
@@ -326,6 +328,7 @@ exit 0
 
 rm     ${CLEANFILES}
 rmobj  ${SRCFILES}
+rm     "${OBJ_DIR}/${SRC_COREDIR}"
 rm     "${OBJ_DIR}/${SRC_ETCDIR}"
 rm     "${OBJ_DIR}/${SRC_RENDERERDIR}"
 rm     "${OBJ_DIR}/${SRC_SHAREDDIR}"

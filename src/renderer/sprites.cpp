@@ -350,10 +350,7 @@ inline void Clock() {
    const bool cycle_is_even = !render.isOddClock;
    const bool cycle_is_odd = render.isOddClock;
 
-   /* Minor gotcha: Sprites are delayed by one line, but sprite evaluation seems to be performed
-      using the current scanline as a reference. This is evidenced by the fact that you have to
-      subtract one from the sprite Y coordinate before writing it to OAM. */
-   const int line = render.line;
+   const int line = render.line + 1;
 
    if(cycle <= ClearCycleLast) {
       /* Cycles 0-63: Secondary OAM (32-byte buffer for current sprites on scanline) is initialized to $FF -

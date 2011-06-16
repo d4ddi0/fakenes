@@ -126,16 +126,16 @@ static INLINE void set_panta_theme (void)
 static const GUI_THEME fireflower_theme =
 {
    { 0,     0,       0,       0 },  /* Gradients start. */
-   { 0.75f, 0.25f,   0,       0 },  /* Gradients end. */
+   { 0.75f, 0.1875f, 0,       0 },  /* Gradients end. */
    { 0,     0,       0,       0 },  /* Background. */
    { 0,     0,       0,       0 },  /* Fill. */
    { 0.5f , 0.125f,  0,       0 },  /* Menu bar. */
-   { 1.0f,  0.75f,   0.5f,    0 },  /* Borders. */
-   { 1.0f,  1.0f,    0.75f,   0 },  /* Text. */
-   { 0.5f,  0.25f,   0,       0 },  /* Light shadows. */
-   { 0.25f, 0.0833f, 0,       0 },  /* Shadows. */
-   { 1.0f,  0.25f,   0,       0 },  /* Selected. */
-   { 0.75f, 0.75,    0.5625f, 0 },  /* Disabled. */
+   { 1.0f,  0.9f,    0.6f,    0 },  /* Borders. */
+   { 1.0f,  0.9f,    0.6f,    0 },  /* Text. */
+   { 0.25f, 0.0625f, 0,       0 },  /* Light shadows. */
+   { 0,     0,       0,       0 },  /* Shadows. */
+   { 0.75f, 0.1875f, 0,       0 },  /* Selected. */
+   { 0.75f, 0.675f,  0.4f,    0 },  /* Disabled. */
    { 1.0f,  0,       0,       0 }   /* Errors. */
 };
 

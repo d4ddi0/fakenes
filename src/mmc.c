@@ -23,9 +23,12 @@
 
 void (*mmc_scanline_start) (const int);
 void (*mmc_hblank_start) (const int);
+void (*mmc_hblank_prefetch_start) (const int);
 BOOL (*mmc_virtual_scanline_start) (const int);
 BOOL (*mmc_virtual_hblank_start) (const int);
+BOOL (*mmc_virtual_hblank_prefetch_start) (const int);
 void (*mmc_predict_asynchronous_irqs) (const cpu_time_t cycles);
+void (*mmc_check_vram_banking) (void);
 void (*mmc_check_address_lines) (const UINT16);
 
 static int mmc_name_table_count;
@@ -121,9 +124,12 @@ int mmc_init (void)
 
     mmc_scanline_start = NULL;
     mmc_hblank_start = NULL;
+    mmc_hblank_prefetch_start = NULL;
     mmc_virtual_scanline_start = NULL;
     mmc_virtual_hblank_start = NULL;
+    mmc_virtual_hblank_prefetch_start = NULL;
     mmc_predict_asynchronous_irqs = NULL;
+    mmc_check_vram_banking = NULL;
     mmc_check_address_lines = NULL;
 
     mmc_name_table_count =

@@ -1,52 +1,31 @@
 /* FakeNES - A free, portable, Open Source NES emulator.
 
-   cpu.h: Declarations for the CPU abstraction.
-
-   Copyright (c) 2001-2006, FakeNES Team.
+   Copyright (c) 2001-2011, FakeNES Team.
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
 
-#ifndef CPU_H_INCLUDED
-#define CPU_H_INCLUDED
-#include <allegro.h>
-#include "common.h"
-#include "core.h"
-#include "rom.h"
-#include "types.h"
+#ifndef CORE__CPU_H__INCLUDED
+#define CORE__CPU_H__INCLUDED
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Use macros instead of inline functions for stack
-   and zero-page handlers. */
-#define INLINE_WITH_MACROS
+enum {
+   CPU_INTERRUPT_NMI = 0,
+   CPU_INTERRUPT_IRQ,
+   CPU_INTERRUPT_IRQ_DMC,
+   CPU_INTERRUPT_IRQ_FRAME,
+   CPU_INTERRUPT_IRQ_MMC,
+   CPU_INTERRUPT_IRQ_MMC_ASYNC,
+};
 
-#define CPU_INTERRUPT_NONE              0
-#define CPU_INTERRUPT_NMI               1
-#define CPU_INTERRUPT_IRQ_BASE          2
+#define CPU__RAM_SIZE    	65536
+#define CPU__STATIC_RAM_SIZE   	8192
+#define CPU__PATCH_RAM_SIZE	CPU__RAM_SIZE
 
-/* Maskable IRQ, cleared after an IRQ is acknowledged. */
-#define CPU_INTERRUPT_IRQ_SINGLE_SHOT   2
-#define CPU_INTERRUPT_IRQ           CPU_INTERRUPT_IRQ_SINGLE_SHOT
-#define CPU_INTERRUPT_IRQ_SOURCE(x) (CPU_INTERRUPT_IRQ_BASE + 1 + (x))
-/* pAPU Delta Modulation Channel IRQ. */
-#define CPU_INTERRUPT_IRQ_DMC           CPU_INTERRUPT_IRQ_SOURCE(0)
-/* Frame IRQ. */
-#define CPU_INTERRUPT_IRQ_FRAME         CPU_INTERRUPT_IRQ_SOURCE(1)
-/* MMC-specific IRQ. */
-#define CPU_INTERRUPT_IRQ_MMC           CPU_INTERRUPT_IRQ_SOURCE(2)
-#define CPU_INTERRUPT_IRQ_MMC_ASYNC     CPU_INTERRUPT_IRQ_SOURCE(3)
-#define CPU_INTERRUPT_IRQ_SOURCE_MAX    FN2A03_INT_IRQ_SOURCE_MAX
-
-#define CPU_RAM_SIZE    65536
-#define CPU_SRAM_SIZE   8192
-
-extern UINT8 cpu_ram[CPU_RAM_SIZE];
-extern UINT8 cpu_sram[CPU_SRAM_SIZE];
-
-extern FN2A03 cpu_context;
-
-extern INT8 cpu_patch_table[CPU_RAM_SIZE];
+extern UINT8 cpu__ram[CPU__RAM_SIZE];
+extern UINT8 cpu__static_ram[CPU__STATIC_RAM_SIZE];
+extern INT8 cpu__patch_ram[CPU__PATCH_RAM_SIZE];
 
 /* Number of used entries in cpu_patch_info. */
 extern int cpu_patch_count;
@@ -108,9 +87,7 @@ extern cpu_time_t cpu_get_elapsed_cycles (cpu_time_t *timestamp);
 extern void cpu_save_state (PACKFILE *, int);
 extern void cpu_load_state (PACKFILE *, int);
 
-#include "cpu_in.h"
-
 #ifdef __cplusplus
 }
 #endif   /* __cplusplus */
-#endif   /* !CPU_H_INCLUDED */
+#endif   /* !CORE__CPU_H__INCLUDED */

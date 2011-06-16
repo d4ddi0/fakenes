@@ -1,3 +1,15 @@
+/* FakeNES - A free, portable, Open Source NES emulator.
+
+   Copyright (c) 2001-2011, FakeNES Team.
+   This is free software.  See 'LICENSE' for details.
+   You must read and accept the license prior to use. */
+
+#ifndef CORE__INTERNALS_H__INCLUDED
+#define CORE__INTERNALS_H__INCLUDED
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 static INLINE UINT8 FN2A03_Read (UINT16);
 
 /* Wrapper for memory patching. */
@@ -336,3 +348,8 @@ static INLINE void cpu_burn (cpu_time_t cycles)
 #undef CPU_PAGE_16K_SIZE
 #undef CPU_PAGE_NK_ADDRESS_MASK
 #undef CPU_PAGE_NK_SIZE
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+#endif /* !CORE__INTERNALS_H__INCLUDED */

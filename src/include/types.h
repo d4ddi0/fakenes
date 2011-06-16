@@ -144,6 +144,8 @@ typedef fakenes_int16_t  int16;
 typedef fakenes_uint32_t uint32;
 typedef fakenes_int32_t  int32;
 typedef fakenes_real_t   real;
+
+typedef fakenes_pair_t   pair;
 #endif
 
 /* List access macros. */

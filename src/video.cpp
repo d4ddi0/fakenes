@@ -1395,13 +1395,14 @@ static bool Initialize()
    LoadFonts();
 
    // One last thing to handle is the callbacks for switching to and from the program.
-   if(is_windowed_mode())
+   if(is_windowed_mode()) {
       set_display_switch_mode(SWITCH_BACKGROUND);
-   else
+   }
+   else {
       set_display_switch_mode(SWITCH_AMNESIA);
-
-   set_display_switch_callback(SWITCH_IN, SwitchBack);
-   set_display_switch_callback(SWITCH_OUT, SwitchAway);
+      set_display_switch_callback(SWITCH_IN, SwitchBack);
+      set_display_switch_callback(SWITCH_OUT, SwitchAway);
+   }
 
    // All done. Return with sweet success.
    log_printf("Display initialization was successful.\n");
@@ -1722,7 +1723,9 @@ static void UpdateDisplay()
       const int y = (Display.height / 2) - (height / 2);
 
       // Scale the image and place it on the screen.
+      acquire_screen();
       stretch_blit(source, screen, 0, 0, sourceWidth, sourceHeight, x, y, width, height);
+      release_screen();
    }
    else {
       // Calculate where to place thed image on the screen.
@@ -1730,7 +1733,9 @@ static void UpdateDisplay()
       const int y = (Display.height / 2) - (sourceHeight / 2);
 
       // Place the image on the screen.
+      acquire_screen();
       blit(source, screen, 0, 0, 0, 0, sourceWidth, sourceHeight);
+      release_screen();
    }
 
    UpdateScreen();
@@ -1744,8 +1749,11 @@ static void UpdateScreen()
       return;
    }
 
-   if(Display.doubleBuffer)
+   if(Display.doubleBuffer) {
+      acquire_screen();
       blit(Buffers.display, screen, 0, 0, 0, 0, Buffers.display->w, Buffers.display->h);
+      release_screen();
+   }
 }
 
 static void UpdateScreenOpenGL()

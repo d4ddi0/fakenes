@@ -573,6 +573,10 @@ void ppu_write(const UINT16 address, const UINT8 data)
          if(ppu__generate_interrupts != old_bit_7)
             RepredictInterrupts(PPU_PREDICT_NMI);
 
+         // Currently, this is only needed by MMC3.
+         if(mmc_check_vram_banking)
+            mmc_check_vram_banking();
+
          break;
       }
 
@@ -1527,21 +1531,23 @@ static void PredictInterrupts(const cpu_time_t cycles, const unsigned flags)
       bool nmiTrigger = false, irqTrigger = false;
       if(cycle == 1) {
          // Scanline start.
-         if((flags & PPU_PREDICT_MMC_IRQ) &&
-               mmc_virtual_scanline_start)
+         if((flags & PPU_PREDICT_MMC_IRQ) && mmc_virtual_scanline_start)
             irqTrigger = mmc_virtual_scanline_start(scanline);
 
          // VBlank NMI occurs on the 1st cycle of the line after the VBlank flag is set.
-         if((flags & PPU_PREDICT_NMI) &&
-               (scanline == PPU_FIRST_VBLANK_LINE) &&
-               ppu__generate_interrupts)
+         if((scanline == PPU_FIRST_VBLANK_LINE) &&
+            (flags & PPU_PREDICT_NMI) && ppu__generate_interrupts)
             nmiTrigger = true;
       }
-      else if(cycle == PPU_HBLANK_START) {
+      else if((cycle == PPU_HBLANK_START) &&
+              (flags & PPU_PREDICT_MMC_IRQ) && mmc_virtual_hblank_start) {
          // HBlank start.
-         if((flags & PPU_PREDICT_MMC_IRQ) &&
-               mmc_virtual_hblank_start)
-            irqTrigger = mmc_virtual_hblank_start(scanline);
+         irqTrigger = mmc_virtual_hblank_start(scanline);
+      }
+      else if((cycle == PPU_HBLANK_PREFETCH_START) &&
+              (flags & PPU_PREDICT_MMC_IRQ) && mmc_virtual_hblank_prefetch_start) {
+         // HBlank prefetch start.
+         irqTrigger = mmc_virtual_hblank_prefetch_start(scanline);
       }
 
       if(nmiTrigger || irqTrigger) {
@@ -1785,8 +1791,8 @@ static linear void StartScanlineCycle(const cpu_time_t cycle)
    Renderer::Clock();
 
    // The PPU renders one pixel per clock for the first 256 clock cycles.
-   if((cycle <= PPU_RENDER_CLOCKS) &&
-      (PPUState::scanline >= PPU_FIRST_DISPLAYED_LINE))
+   if((PPUState::scanline >= PPU_FIRST_DISPLAYED_LINE) &&
+      (cycle <= PPU_RENDER_CLOCKS))
       Renderer::Pixel();
 
    // After this is the HBlank period.
@@ -1797,6 +1803,10 @@ static linear void StartScanlineCycle(const cpu_time_t cycle)
       // If the MMC has a hook installed, we need to call it.
       if(mmc_hblank_start)
          mmc_hblank_start(PPUState::scanline);
+   }
+   else if((cycle == PPU_HBLANK_PREFETCH_START) && mmc_hblank_prefetch_start) {
+      // Start of the mid-HBlank fetches.
+      mmc_hblank_prefetch_start(PPUState::scanline);
    }
 }
 

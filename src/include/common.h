@@ -25,7 +25,13 @@ extern "C" {
 #undef NULL
 #define NULL 0
 
+#ifdef __GNUC__
+#undef INLINE
+#define INLINE __attribute__((always_inline)) inline
+#endif
+
 #define LINEAR INLINE
+#define QUICK static INLINE
 
 #define BOOLEAN(x) ((x) ? TRUE : FALSE)
 #define BINARY(x)  ((x) ? 1 : 0)
@@ -53,6 +59,7 @@ extern "C" {
 
 #define inline INLINE
 #define linear LINEAR // for functions that are called only once
+#define quick QUICK
 
 #define Boolean(x) (BOOLEAN((x)))
 #define Binary(x)  (BINARY((x)))
