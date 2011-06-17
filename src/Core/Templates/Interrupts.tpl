@@ -20,8 +20,7 @@ quick bool T(InterruptPending) {
 		if(interrypt.type == COREInterruptNMI) {
 			// NMIs cannot be inhibited.
 			return true;
-		}
-		else {
+		} else {
 			// The I flag prevents IRQs from occuring as long as it is set.
 			return !_IF;
 		}
@@ -55,11 +54,16 @@ quick void T(Interrupt)(const COREInterruptType type) {
 	T(WriteStack)(_PCL);			// Clock 4
 	T(PackFlags)();
 	T(WriteStack)(_P);			// Clock 5
-	// BRK and IRQ set the I flag, while NMI does not.
-	if(type != COREInterruptNMI)
+	uint16 vector;
+	if(type == COREInterruptNMI) {
+		vector = COREInterruptVectorNMI;
+	} else {
+		// BRK and IRQ set the I flag, while NMI does not.
 		SetFlag(_IF, true);		// Clock (?)
+		vector = COREInterruptVectorIRQ;
+	}	
 
-	_PC = T(ReadWord)(0xFFFE);		// Clocks 6-7
+	_PC = T(ReadWord)(vector);		// Clocks 6-7
 
 #if defined(COREFast)
 	// Adjust the clock counter manually.

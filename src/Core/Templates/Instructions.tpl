@@ -112,7 +112,7 @@ quick void T(InstructionBIT)(WithData) {
 quick void T(InstructionBRK)() {
 	T(WriteStack)(_PCH);			// Clock 3
 	T(WriteStack)(_PCL);			// Clock 4
-	const bool interrupted = InterruptPending_T();
+	const bool interrupted = T(InterruptPending)();
 	T(PackFlags)();
 	T(WriteStack)(_P | COREFlagBreak);	// Clock 5
 	// BRK and IRQ both set the I flag.

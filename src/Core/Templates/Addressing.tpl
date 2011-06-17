@@ -119,8 +119,7 @@ quick FromData T(AddressAbsoluteIndexedRead)(WithRegister) {
 		T(DummyRead)(address.word);	// Clock 4
 		savedAddress += register;	// Clock 4+
 		return T(Read)(savedAddress);	// Clock 5
-	}
-	else {
+	} else {
 		address.bytes.low += register;	// Clock 3
 		return T(Read)(address.word);	// Clock 4
 	}
@@ -258,8 +257,7 @@ quick FromData T(AddressIndirectIndexedRead)() {
 		T(DummyRead)(address.word);		// Clock 5
 		savedAddress += _Y;			// Clock 5+
 		return T(Read)(savedAddress);		// Clock 6
-	}
-	else {
+	} else {
 		address.bytes.low += _Y;		// Clock 4+
 		return T(Read)(address.word);		// Clock 5
 	}
@@ -333,8 +331,7 @@ WithInstructor void T(AddressRelative)() {
 		_PC = savedAddress + operand;	// Clock 4+
 		if(_PCH == highByte)
 			_PC++;			// Clock 4+
-	}
-	else {
+	} else {
 		_PC += 2;			// Clocks 3-4
 	}
 
