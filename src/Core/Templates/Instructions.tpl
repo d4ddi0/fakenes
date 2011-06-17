@@ -78,14 +78,14 @@ Embeddable bool T(InstructionBxx)(const WithFlag, const uint8 state) {
 	return (flag == state);
 }
 
-Embeddable bool T(InstructionBCC)() { T(InstructionBxx)(_CF, 0); }	// Carry clear.
-Embeddable bool T(InstructionBCS)() { T(InstructionBxx)(_CF, 1); }	// Carry set.
-Embeddable bool T(InstructionBNE)() { T(InstructionBxx)(_ZF, 0); }	// Zero clear.
-Embeddable bool T(InstructionBEQ)() { T(InstructionBxx)(_ZF, 1); }	// Zero set.
-Embeddable bool T(InstructionBPL)() { T(InstructionBxx)(_NF, 0); }	// Negative clear.
-Embeddable bool T(InstructionBMI)() { T(InstructionBxx)(_NF, 1); }	// Negative set.
-Embeddable bool T(InstructionBVC)() { T(InstructionBxx)(_VF, 0); }	// Overflow clear.
-Embeddable bool T(InstructionBVS)() { T(InstructionBxx)(_VF, 1); }	// Overflow set.
+Embeddable bool T(InstructionBCC)() { return T(InstructionBxx)(_CF, 0); }	// Carry clear.
+Embeddable bool T(InstructionBCS)() { return T(InstructionBxx)(_CF, 1); }	// Carry set.
+Embeddable bool T(InstructionBNE)() { return T(InstructionBxx)(_ZF, 0); }	// Zero clear.
+Embeddable bool T(InstructionBEQ)() { return T(InstructionBxx)(_ZF, 1); }	// Zero set.
+Embeddable bool T(InstructionBPL)() { return T(InstructionBxx)(_NF, 0); }	// Negative clear.
+Embeddable bool T(InstructionBMI)() { return T(InstructionBxx)(_NF, 1); }	// Negative set.
+Embeddable bool T(InstructionBVC)() { return T(InstructionBxx)(_VF, 0); }	// Overflow clear.
+Embeddable bool T(InstructionBVS)() { return T(InstructionBxx)(_VF, 1); }	// Overflow set.
 
 /* *********** */
 /* *** BIT *** */
