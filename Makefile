@@ -68,7 +68,7 @@ install:
 
 uninstall:
 	@echo "Uninstalling program files from $(INSTALL_PATH)."
-	@echo "(Type 'make uninstall INSTALL_PATH=path\' if you want to use another path.)"
+	@echo "(Type 'make uninstall INSTALL_PATH=path' if you want to use another path.)"
 	@$(CBUILD) uninstall --prefix=$(INSTALL_PATH) $(CBUILD_OPTIONS)
 
 $(CBUILD): $(CBUILD_PATH)/CBuild.c
