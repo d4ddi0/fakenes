@@ -1,12 +1,21 @@
 CC = gcc
 
-# Attempt to auto-detect DJGPP or MinGW.
-ifneq ($(MINGDIR)$(DJDIR),)
-	RM = del
-	SUFFIX = .exe
-else
+# Attempt to auto-detect DOS (DJGPP) or Windows. Note that MINGDIR isn't too
+# reliable as MinGW users don't always set it, and there are other GCC-derived
+# compilers on Windows besides MinGW, so we check WINDIR as well.
+POSIX = true
+ifneq ($(WINDIR)$(MINGDIR)$(DJDIR),)
+	ifneq ($(OSTYPE),cygwin)	
+		POSIX = false
+	endif
+endif
+
+ifeq ($(POSIX),true)
 	RM = rm
 	SUFFIX =
+else
+	RM = del
+	SUFFIX = .exe
 endif
 
 CBUILD_PATH = Build
@@ -38,13 +47,13 @@ all: bootstrap $(CBUILD)
 bootstrap:
 	@echo Starting the build process.
 	@echo If you encounter any problems, please submit a bug report.
-ifneq ($(MINGDIR)$(DJDIR),)
-	@echo (Type 'make VERBOSE=1' to debug build errors.)
-	@echo **********************************************************
-else
-#	Unix shells are a bit more annoying than the Windows one...
+ifeq ($(POSIX),true)
+#	Disable parsing on Unix shells.
 	@echo "(Type 'make VERBOSE=1' to debug build errors.)"
 	@echo "**********************************************************"
+else
+	@echo (Type 'make VERBOSE=1' to debug build errors.)
+	@echo **********************************************************
 endif
 
 clean: $(CBUILD)
