@@ -56,7 +56,11 @@ pnl_socket_t *nlSockets = NULL;
 /* the current selected driver */
 static nl_netdriver_t /*@null@*/*driver = NULL;
 
-static nl_netdriver_t netdrivers[] =
+#define NULL_NET_DRIVER \
+    (NLchar*)NULL, \
+    0, 0, 0, 0, 0, 0 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+
+static nl_netdriver_t netdrivers[MAX_NET_DRIVERS + 1] =
 {
     {
         (NLchar*)TEXT("NL_IP"),
@@ -88,9 +92,9 @@ static nl_netdriver_t netdrivers[] =
         sock_PollGroup,
         sock_Hint
     }
-#ifdef NL_INCLUDE_LOOPBACK
     ,
     {
+#ifdef NL_INCLUDE_LOOPBACK
         (NLchar*)TEXT("NL_LOOP_BACK"),
         (NLchar*)TEXT("NL_RELIABLE NL_UNRELIABLE NL_RELIABLE_PACKETS NL_BROADCAST"),
         NL_LOOP_BACK,
@@ -119,11 +123,13 @@ static nl_netdriver_t netdrivers[] =
         loopback_GetSystemError,
         loopback_PollGroup,
         loopback_Hint
-    }
+#else
+	NULL_NET_DRIVER
 #endif /* NL_INCLUDE_LOOPBACK */
-#if defined WINDOWS_APP && defined NL_INCLUDE_IPX
+    }
     ,
     {
+#if defined WINDOWS_APP && defined NL_INCLUDE_IPX
         (NLchar*)TEXT("NL_IPX"),
         (NLchar*)TEXT("NL_RELIABLE NL_UNRELIABLE NL_RELIABLE_PACKETS NL_BROADCAST"),
         NL_IPX,
@@ -152,12 +158,16 @@ static nl_netdriver_t netdrivers[] =
         ipx_GetSystemError,
         ipx_PollGroup,
         ipx_Hint
-    }
+#else
+	NULL_NET_DRIVER
 #endif /* WINDOWS_APP && NL_INCLUDE_IPX */
-    ,
-    {
-        (NLchar*)NULL,
     }
+    ,
+    { NULL_NET_DRIVER },
+    { NULL_NET_DRIVER },
+    { NULL_NET_DRIVER },
+    { NULL_NET_DRIVER },
+
 };
 
 /*
@@ -1833,9 +1843,10 @@ NL_EXP NLfloat   NL_APIENTRY nlSwapf(NLfloat f)
 {
     if(NL_SWAP_TRUE)
     {
-        NLulong temp = (NLulong)nlSwapl(*(NLulong *)&f);
-
-        return *((float *)&temp);
+	NLulong * tempRef = (NLulong *)&f;
+        NLulong temp = (NLulong)nlSwapl(*tempRef);
+	float * resultRef = (float *)&temp;
+        return *resultRef;
     }
     else
     {
@@ -1848,6 +1859,11 @@ NL_EXP NLdouble  NL_APIENTRY nlSwapd(NLdouble d)
     if(NL_SWAP_TRUE)
     {
         union {NLulong l[2]; NLdouble d;} in, out;
+
+	/* Initialize fields. */
+	in.l[0] = 0;
+	in.l[1] = 0;
+	out.d = 0;
 
         in.d = d;
         out.l[0] = nlSwapl(in.l[1]);

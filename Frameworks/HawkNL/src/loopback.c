@@ -57,7 +57,9 @@ static volatile NLushort newport = 1024;
 static NLushort loopback_getNextPort(void)
 {
     (void)nlMutexLock(&portlock);
-    if(++newport > 65535)
+    /* if(++newport > 65535) */
+    /* Handle wrap-around instead for NLushort. */
+    if(++newport == 0)
     {
         newport = 1024;
     }
@@ -737,7 +739,9 @@ NLboolean loopback_GetAddrFromNameAsync(const NLchar *name, NLaddress *address)
 
 NLboolean loopback_AddrCompare(const NLaddress *address1, const NLaddress *address2)
 {
-    if(*(NLushort *)(&address1->addr[0]) == *(NLushort *)(&address2->addr[0]))
+    const NLushort * portRef1 = (const NLushort *)&address1->addr[0];
+    const NLushort * portRef2 = (const NLushort *)&address2->addr[0];
+    if(*portRef1 == *portRef2)
     {
         return NL_TRUE;
     }
@@ -746,12 +750,14 @@ NLboolean loopback_AddrCompare(const NLaddress *address1, const NLaddress *addre
 
 NLushort loopback_GetPortFromAddr(const NLaddress *address)
 {
-    return *(NLushort *)(&address->addr[0]);
+    const NLushort * portRef = (const NLushort *)&address->addr[0];
+    return *portRef;
 }
 
 void loopback_SetAddrPort(NLaddress *address, NLushort port)
 {
-    *(NLushort *)(&address->addr[0]) = port;
+    NLushort * portRef = (NLushort *)&address->addr[0];
+    *portRef = port;
 }
 
 NLint loopback_GetSystemError(void)

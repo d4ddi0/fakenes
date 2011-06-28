@@ -22,6 +22,20 @@
 
 #include "htinternal.h"
 
+/* These macros allow integers to be stored in a void pointer. */
+#ifdef HL_WINDOWS_APP
+#define VOID_CAST	(LPVOID)(DWORD_PTR)
+#define VOID_CATCH	(DWORD_PTR)
+#define KEY_CAST	(HTKey)(DWORD_PTR)
+#define KEY_CATCH	(DWORD)(DWORD_PTR)
+#else
+#include <stdint.h>
+#define VOID_CAST	(void *)(uintptr_t)
+#define VOID_CATCH	(uintptr_t)
+#define KEY_CAST	(HTkey)(uintptr_t)
+#define KEY_CATCH	(pthread_key_t)(uintptr_t)
+#endif
+
 #define KEY_NULL    ((HTkey)HT_INVALID)
 static HTkey prioritykey = KEY_NULL;
 
@@ -41,7 +55,7 @@ static unsigned  __stdcall threadfunc(void *arg)
     func = ((ThreadParms *)arg)->func;
     args = ((ThreadParms *)arg)->arg;
     /* any thread specific data goes here since we are now running in the new thread */
-    (void)htThreadSetKeyData(prioritykey, (void *)((ThreadParms *)arg)->priority);
+    (void)htThreadSetKeyData(prioritykey, (VOID_CAST ((ThreadParms *)arg)->priority));
     free(arg);
     
     return (unsigned)((*func)(args));
@@ -80,7 +94,7 @@ static void *threadfunc(void *arg)
     func = ((ThreadParms *)arg)->func;
     args = ((ThreadParms *)arg)->arg;
     /* any thread specific data goes here since we are now running in the new thread */
-    (void)htThreadSetKeyData(prioritykey, (void *)((ThreadParms *)arg)->priority);
+    (void)htThreadSetKeyData(prioritykey, (VOID_CAST ((ThreadParms *)arg)->priority));
     free(arg);
     
     return ((*func)(args));
@@ -241,10 +255,14 @@ HL_EXP int HL_APIENTRY htThreadEqual(HThreadID threadID1, HThreadID threadID2)
 {
 #ifdef HT_WIN_THREADS
     /* Windows threads */
-    return (int)(threadID1 == threadID2);
+    const int thread1 = (int)(VOID_CATCH threadID1);
+    const int thread2 = (int)(VOID_CATCH threadID2);
+    return (int)(thread1 == thread2);
 #else
     /* POSIX systems */
-    return (int)pthread_equal(threadID1, threadID2);
+    const pthread_t thread1 = (pthread_t)(VOID_CATCH threadID1);
+    const pthread_t thread2 = (pthread_t)(VOID_CATCH threadID2);
+    return (int)pthread_equal(thread1, thread2);
 #endif
 }
 
@@ -256,11 +274,11 @@ HL_EXP int HL_APIENTRY htThreadGetPriority(void)
     {
         prioritykey = htThreadNewKey();
     }
-    p = (int)htThreadGetKeyData(prioritykey);
+    p = (int)(VOID_CATCH htThreadGetKeyData(prioritykey));
     if(p == 0)
     {
         /* key has never been set, so assume HT_THREAD_PRIORITY_NORMAL */
-        (void)htThreadSetKeyData(prioritykey, (void *)HT_THREAD_PRIORITY_NORMAL);
+        (void)htThreadSetKeyData(prioritykey, (VOID_CAST HT_THREAD_PRIORITY_NORMAL));
         return HT_THREAD_PRIORITY_NORMAL;
     }
     else
@@ -346,7 +364,7 @@ HL_EXP int HL_APIENTRY htThreadSetPriority(int priority)
     else
     {
         priority++;
-        (void)htThreadSetKeyData(prioritykey, (void *)priority);
+        (void)htThreadSetKeyData(prioritykey, (VOID_CAST priority));
         return 0;
     }
 #endif
@@ -358,13 +376,13 @@ HL_EXP HTkey HL_APIENTRY htThreadNewKey(void)
     /* Windows threads */
     DWORD key = TlsAlloc();
 
-    if(key == (DWORD)0xFFFFFFFF)
+    if(key == (KEY_CAST 0xFFFFFFFF))
     {
-        return (HTkey)HT_INVALID;
+        return KEY_NULL;
     }
     else
     {
-        return (HTkey)key;
+        return (KEY_CAST key);
     }
 #else
     /* POSIX systems */
@@ -372,7 +390,7 @@ HL_EXP HTkey HL_APIENTRY htThreadNewKey(void)
 
     if(key == NULL)
     {
-        (HTkey)HT_INVALID;
+        return KEY_NULL;
     }
     else
     {
@@ -383,11 +401,11 @@ HL_EXP HTkey HL_APIENTRY htThreadNewKey(void)
 #ifdef HL_WINDOWS_APP
             SetLastError((DWORD)result);
 #endif
-            (HTkey)HT_INVALID;
+            return KEY_NULL;
         }
         else
         {
-            return (HTkey)*key;
+            return (KEY_CAST *key);
         }
     }
 #endif
@@ -397,7 +415,7 @@ HL_EXP int HL_APIENTRY htThreadSetKeyData(HTkey key, void* data)
 {
 #ifdef HT_WIN_THREADS
     /* Windows threads */
-    BOOL result = TlsSetValue((DWORD)key, (LPVOID)data);
+    BOOL result = TlsSetValue((KEY_CATCH key), (LPVOID)data);
 
     if(result == 0)
     {
@@ -407,7 +425,7 @@ HL_EXP int HL_APIENTRY htThreadSetKeyData(HTkey key, void* data)
         return 0;
 #else
     /* POSIX systems */
-    return pthread_setspecific((pthread_key_t)key, data);
+    return pthread_setspecific((KEY_CATCH key), data);
 #endif
 }
 
@@ -415,11 +433,11 @@ HL_EXP void* HL_APIENTRY htThreadGetKeyData(HTkey key)
 {
 #ifdef HT_WIN_THREADS
     /* Windows threads */
-    return (void *)TlsGetValue((DWORD)key);
+    return (void *)TlsGetValue((KEY_CATCH key));
 
 #else
     /* POSIX systems */
-    return (void *)pthread_getspecific((pthread_key_t)key);
+    return (void *)pthread_getspecific((KEY_CATCH key));
 #endif
 }
 
@@ -427,7 +445,7 @@ HL_EXP int HL_APIENTRY htThreadDeleteKey(HTkey key)
 {
 #ifdef HT_WIN_THREADS
     /* Windows threads */
-    BOOL result = TlsFree((DWORD)key);
+    BOOL result = TlsFree((KEY_CATCH key));
     if(result == 0)
     {
         return GetLastError();
@@ -438,7 +456,7 @@ HL_EXP int HL_APIENTRY htThreadDeleteKey(HTkey key)
     }
 #else
     /* POSIX systems */
-    return pthread_key_delete((pthread_key_t)key);
+    return pthread_key_delete((KEY_CATCH key));
 #endif
 }
 

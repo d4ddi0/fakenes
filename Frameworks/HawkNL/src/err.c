@@ -52,6 +52,16 @@ static DWORD key = (DWORD)0xFFFFFFFF;
 static pthread_key_t key = KEY_NULL;
 #endif
 
+/* These macros allow integers to be stored in a void pointer. */
+#ifdef HL_WINDOWS_APP
+#define VOID_CAST	(LPVOID)(DWORD_PTR)
+#define VOID_CATCH	(DWORD_PTR)
+#else
+#include <stdint.h>
+#define VOID_CAST	(void *)(uintptr_t)
+#define VOID_CATCH	(uintptr_t)
+#endif
+
 void nlSetError(NLenum err)
 {
 
@@ -63,7 +73,7 @@ void nlSetError(NLenum err)
     }
     if(key != (DWORD)0xFFFFFFFF)
     {
-        (void)TlsSetValue(key, (LPVOID)err);
+        (void)TlsSetValue(key, (VOID_CAST err));
     }
 #else
     /* check to see if we need to initialize */
@@ -73,7 +83,7 @@ void nlSetError(NLenum err)
     }
     if(key != KEY_NULL)
     {
-        (void)pthread_setspecific(key, (void *)err);
+        (void)pthread_setspecific(key, (VOID_CAST err));
     }
 #endif
 }
@@ -95,7 +105,7 @@ NL_EXP NLenum NL_APIENTRY nlGetError(void)
     {
         int     lasterror = WSAGetLastError();
 
-        result = (NLenum)TlsGetValue(key);
+        result = (NLenum)(VOID_CATCH TlsGetValue(key));
         WSASetLastError(lasterror);
         return result;
     }
@@ -110,7 +120,7 @@ NL_EXP NLenum NL_APIENTRY nlGetError(void)
     }
     else
     {
-        result = (NLenum)pthread_getspecific(key);
+        result = (NLenum)(VOID_CATCH pthread_getspecific(key));
         return result;
     }
 #endif
