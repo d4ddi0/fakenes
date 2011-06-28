@@ -1,0 +1,35 @@
+Copyright © 2001-2007 FakeNES Team
+Copyright © 2001-2007 FakeNES Contributors
+Copyright © 2001-2004 Charles Bilyue'
+Copyright © 2011 Digital Carat
+Portions Copyright © 2003 MaxSt ( maxst@hiend3d.com )
+Portions Copyright © 2006 Shay Green
+
+This software is provided 'as-is', without any express or implied
+warranty.  In no event will the authors be held liable for any damages
+arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not
+   claim that you wrote the original software. If you use this software
+   in a product, an acknowledgment in the product documentation would be
+   appreciated but is not required.
+
+2. Altered source versions must be plainly marked as such, and must not be
+   misrepresented as being the original software.
+
+3. This notice may not be removed or altered from any source distribution.
+
+Portions of the Source Code ("Source") package are comprised of content
+that is separately licensed under either the GNU General Public License or
+GNU Lesser or Library Public License. Copies of these licenses are
+included within the Source package. They are both "copyleft compatible"
+with the licensing terms defined here; and may be used together without
+violation of any license. However, the licensing terms for individual
+files does not change, and any modifications to the Source files is
+subject to the licensing to which they are individually bound.
+
+- Sat June 18 2011

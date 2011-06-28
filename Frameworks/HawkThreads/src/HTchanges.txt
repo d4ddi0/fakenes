@@ -1,0 +1,9 @@
+Change log for HawkThreads
+
+Version 1.1
+Moved thread local storage code from HawkNL err.c into HawkThreads
+Added htThreadSelf, htThreadEqual, htThreadGetPriority, and htThreadSetPriority
+
+
+Version 1.0 (never released separately from HawkNL)
+Initial code split from HawkNL
