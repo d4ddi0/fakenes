@@ -36,15 +36,13 @@ all: bootstrap $(CBUILD)
 	@$(CBUILD) $(CBUILD_OPTIONS)
 
 bootstrap:
-ifneq ($(MINGDIR)$(DJDIR),)
 	@echo Starting the build process.
 	@echo If you encounter any problems, please submit a bug report.
+ifneq ($(MINGDIR)$(DJDIR),)
 	@echo (Type 'make VERBOSE=1' to debug build errors.)
 	@echo **********************************************************
 else
 #	Unix shells are a bit more annoying than the Windows one...
-	@echo "Starting the build process."
-	@echo "If you encounter any problems, please submit a bug report."
 	@echo "(Type 'make VERBOSE=1' to debug build errors.)"
 	@echo "**********************************************************"
 endif
