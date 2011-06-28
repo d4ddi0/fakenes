@@ -244,7 +244,7 @@ quick void T(AddressIndirectXWrite)(WithRegister) { T(AddressIndexedIndirectWrit
     3    pointer    R  fetch effective address low
     4   pointer+1   R  fetch effective address high, add Y to low byte of effective address
     5   address+Y*  R  read from effective address, fix high byte of effective address
-    6+  address+Y   R  read from effective address
+    6+  address+Y   R  read from effective address */
 quick FromData T(AddressIndirectIndexedRead)() {
 	const uint8 pointer = T(Fetch)();		// Clock 2
 	pair address;
@@ -273,7 +273,7 @@ quick FromData T(AddressIndirectYRead)() { return T(AddressIndirectIndexedRead)(
     5   address+Y*  R  read from effective address, fix high byte of effective address
     6   address+Y   R  read from effective address
     7   address+Y   W  write the value back to effective address, and do the operation on it
-    8   address+Y   W  write the new value to effective address
+    8   address+Y   W  write the new value to effective address */
 WithInstruction void T(AddressIndirectIndexedRMW)() {
 	const uint8 pointer = T(Fetch)();		// Clock 2
 	pair address;
