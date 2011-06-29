@@ -788,6 +788,7 @@ cwrite(struct dat2c *dat2c, enum dat2c_file x, const char *fmt, ...)
 
 	    remaining = size;
 	    while (1) {
+               int i;
 	       int sp;
 
 	       if (remaining <= 50) {
@@ -798,6 +799,54 @@ cwrite(struct dat2c *dat2c, enum dat2c_file x, const char *fmt, ...)
 	       _cwrite_esc(fp, data, 50);
 	       remaining -= 50;
 	       data += 50;
+
+	       switch (dat2c->lformat) {
+		  case lineformat_dos:
+		     putc(13, fp);
+		     putc(10, fp);
+		     break;
+
+		  case lineformat_mac:
+		     putc(13, fp);
+		     break;
+
+		  default:
+		     putc(10, fp);
+		     break;
+	       }
+	       for (sp = offset; sp; sp--)
+		  putc(' ', fp);
+	    }
+         }
+	 else if (!strncmp(rd, "$table$", 6)) {
+	    /* data block, table format */
+
+	    unsigned int size, offset, remaining;
+	    const unsigned char *data = 0;
+
+	    size = va_arg(va, unsigned int);
+	    offset = va_arg(va, unsigned int);
+	    data = va_arg(va, const unsigned char *);
+
+	    remaining = size;
+	    while (1) {
+               int i;
+	       int sp;
+
+	       if (remaining <= 25) {
+                  for(i = 0; i < remaining; i++) {
+                     if(i == (remaining - 1))
+                        fprintf(fp, "%d", data[i]);
+                     else
+                        fprintf(fp, "%d,", data[i]);
+                  }
+		  break;
+	       }
+
+                 for(i = 0; i < 25; i++)
+                    fprintf(fp, "%d,", data[i]);
+	       remaining -= 25;
+	       data += 25;
 
 	       switch (dat2c->lformat) {
 		  case lineformat_dos:
@@ -1122,14 +1171,18 @@ cvt_BITMAP_aux(struct dat2c *dat2c, BITMAP *bmp,
    }
 
    /* write out lines data (we actually write it as one big chunk) */
-   cwrite(dat2c, C, "static unsigned char $string lower$_lines[] = $n$",
+   cwrite(dat2c, C, "static unsigned char $string lower$_lines[] = { $n$",
 	  name);
 
    for (y = 0; y < bmp->h; y++) {
-      cwrite(dat2c, C, "$data$$n$", bmp->w * bypp, 4, bmp->line[y]);
+      cwrite(dat2c, C, "/* line $int$ */ $table$", y, bmp->w * bypp, 4, bmp->line[y]);
+      if(y < (bmp->h - 1))
+         cwrite(dat2c, C,",$n$");
+      else
+         cwrite(dat2c, C, "$n$");
    }
 
-   cwrite(dat2c, C, ";$n$$n$");
+   cwrite(dat2c, C, "};$n$$n$");
 
    /* write out BITMAP structure */
 
@@ -1356,13 +1409,21 @@ static int cvt_SAMPLE(struct dat2c *dat2c, DATAFILE *dat, const char *name)
       cwrite(dat2c, H, "extern SAMPLE $string lower$;$n$$n$", name);
    }
 
+   cwrite(dat2c, C, "$string$unsigned char $string lower$_data[] = {$n$"
+          "$table$$n$"
+          "};$n$$n$",
+	  dat2c->global_symbols ? "" : "static ",
+	  name,
+	  spl->len * (spl->bits / 8) * (spl->stereo ? 2 : 1), 4,
+	  spl->data);
+
    cwrite(dat2c, C, "$string$SAMPLE $string lower$ = {$n$"
 	  "    $int$, $int$, $int$, 0,"
 	  " /* bits, stereo, freq */$n$"
 	  "    $ulong$, /* length (in samples) */$n$"
 	  "    $ulong$, $ulong$, $ulong$,"
 	  " /* loop start/end */$n$"
-	  "    $data$$n$"
+          "    $string lower$_data$n$"
 	  "};$n$"
 	  "$n$$n$$n$",
 	  dat2c->global_symbols ? "" : "static ",
@@ -1370,8 +1431,7 @@ static int cvt_SAMPLE(struct dat2c *dat2c, DATAFILE *dat, const char *name)
 	  spl->bits, spl->stereo, spl->freq,
 	  spl->len,
 	  spl->loop_start, spl->loop_end, spl->param,
-	  spl->len * (spl->bits / 8) * (spl->stereo ? 2 : 1), 4,
-	  spl->data);
+	  name);
 
    return 0;
 }
