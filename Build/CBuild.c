@@ -2566,7 +2566,8 @@ dir_write_check:
 		/* Don't display normal output */
 		if(linebuf[0] == '@')
 		{
-			shh = 1;
+			if(!verbose)
+				shh = 1;
 			memmove(linebuf, linebuf+1, strlen(linebuf));
 		}
 
