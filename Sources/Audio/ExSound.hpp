@@ -9,6 +9,8 @@
 #define Audio__ExSound_hpp__includde
 #include "Common.hpp"
 
+namespace Sound {
+
 // These are just templates - they do nothing unless you derive from them and replace their virtual members.
 class Channel {
 public:
@@ -39,9 +41,6 @@ public:
    real output;
 };
 
-} //namespace Sound
-
-namespace Sound {
 namespace Sourcer {
 
 static const int MaximumSources = 8;

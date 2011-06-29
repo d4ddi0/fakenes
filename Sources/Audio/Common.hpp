@@ -23,7 +23,7 @@
 #include "Common/Math.h"
 #include "Common/Types.h"
 #include "Core/CPU.h"
-#include "Platform/Config.h"
+#include "Platform/Configuration.h"
 #include "Platform/Log.h"
 #include "System/Machine.h"
 #include "System/Timing.h"

@@ -1,16 +1,15 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   machine.h: Declarations for the virtual machine.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   Copyright (c) 2001-2011, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use. */
-
-#ifndef MACHINE_H_INCLUDED
-#define MACHINE_H_INCLUDED
+#ifndef SYSTEM__MACHINE_H__INCLUDED
+#define SYSTEM__MACHINE_H__INCLUDED
 #include <allegro.h>
-#include "common.h"
-#include "types.h"
+#include "Common/Common.h"
+#include "Common/Types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -98,4 +97,4 @@ extern void resume_timing(void);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#endif /* !MACHINE_H_INCLUDED */
+#endif /* !SYSTEM__MACHINE_H__INCLUDED */

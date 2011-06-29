@@ -1,8 +1,9 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   Copyright (c) 2001-2011, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use.*/
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
 /* Checks if an interrupt is pending, either NMI or IRQ. This will not signal an IRQ as pending
    if the interrupt inhibit (I) flag is set in the processor status register. */

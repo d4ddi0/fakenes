@@ -5,21 +5,7 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
-#include <allegro.h>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <vector>
-#include "apu.h"
-#include "audio.h"
-#include "audio_int.h"
-#include "audiolib.h"
-#include "common.h"
-#include "config.h"
-#include "debug.h"
-#include "gui.h"
-#include "timing.h"
-#include "types.h"
+#include "Common.hpp"
 
 /* TODO: Fix WAV recording stuff up to work properly on big-endian platforms(currently it produces a big-endian ordered
          WAV file, I think). */
@@ -235,7 +221,7 @@ void audio_update(void)
          const unsigned queuedFrames = audioQueue.size() / audio_channels;
          if(queuedFrames > 0) {
             // Determine how many frames we want to make room for.
-            const unsigned framesToAdd = Minimum(queuedFrames, audio_buffer_size_frames);
+            const unsigned framesToAdd = Minimum<unsigned>(queuedFrames, audio_buffer_size_frames);
             // Make room for the frames in the buffer.
             const unsigned framesToMove = audioBufferedFrames - framesToAdd;
             if(framesToMove > 0) {
@@ -259,7 +245,7 @@ void audio_update(void)
          // Determine how many frames are available in the buffer.
          const unsigned bufferableFrames = audio_buffer_size_frames - audioBufferedFrames;
          // Determine the number of frames to copy to the buffer.
-         const unsigned framesToCopy = Minimum(queuedFrames, bufferableFrames);
+         const unsigned framesToCopy = Minimum<unsigned>(queuedFrames, bufferableFrames);
 
          // Copy frames to the buffer.
          for(unsigned frame = 0; frame < framesToCopy; frame++) {

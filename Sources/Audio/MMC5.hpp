@@ -8,6 +8,7 @@
 #ifndef Audio__MMC5_hpp__included
 #define Audio__MMC5_hpp__included
 #include "Common.hpp"
+#include "ExSound.hpp"
 
 namespace Sound {
 namespace MMC5 {

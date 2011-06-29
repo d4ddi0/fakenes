@@ -1,16 +1,14 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   timing.h: Declarations for the timing system.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   Copyright (c) 2001-2007, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use. */
-
-#ifndef TIMING_H_INCLUDED
-#define TIMING_H_INCLUDED
-#include <math.h>
-#include "common.h"
-#include "types.h"
+#ifndef SYSTEM__TIMING_H__INCLUDED
+#define SYSTEM__TIMING_H__INCLUDED
+#include "Common/Common.h"
+#include "Common/Types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -90,4 +88,4 @@ extern void timing_update_mode(void);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#endif /* !TIMING_H_INCLUDED */
+#endif /* !SYSTEM__TIMING_H__INCLUDED */

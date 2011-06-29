@@ -8,6 +8,7 @@
 #ifndef Audio__VRC6_hpp__included                                
 #define Audio__VRC6_hpp__included
 #include "Common.hpp"
+#include "ExSound.hpp"
 
 namespace Sound {
 namespace VRC6 {

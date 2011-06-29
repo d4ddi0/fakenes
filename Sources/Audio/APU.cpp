@@ -9,7 +9,10 @@
 #include "APUAtoms.hpp"
 #include "Audio.h"
 #include "Common.hpp"
+#include "ExSound.hpp"
 #include "Internals.h"
+#include "MMC5.hpp"
+#include "VRC6.hpp"
 
 // Global options.
 apu_options_t apu_options = {
@@ -2027,7 +2030,7 @@ static forceinline void amplify(real& sample)
          gain -= releaseRate;
       }
 
-      real output = 1.0 / Maximum(gain, Epsilon);
+      real output = 1.0 / Maximum<real>(gain, Epsilon);
       output = Clamp<real>(output, apu_agc_gain_floor, apu_agc_gain_ceiling);
       sample *= output;
    }

@@ -1,25 +1,24 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   config.h: Declarations for configuration wrapper.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   Copyright (c) 2001-2007, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use. */
-
-#ifndef CONFIG_H_INCLUDED
-#define CONFIG_H_INCLUDED
-#include "common.h"
+#ifndef PLATFORM__CONFIGURATION_H__INCLUDED
+#define PLATFORM__CONFIGURATION_H__INCLUDED
+#include "Common/Common.h"
+#include "Common/Types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern void load_config (void);
-extern void save_config (void);
+extern void load_config(void);
+extern void save_config(void);
 extern BOOL get_config_bool(const char* section, const char* name, BOOL default_value);
 extern void set_config_bool(const char* section, const char* name, BOOL value);
 
 #ifdef __cplusplus
 }
-#endif
-#endif /* !CONFIG_H_INCLUDED */
-
+#endif /* __cplusplus */
+#endif /* !PLATFORM__CONFIGURATION_H__INCLUDED */

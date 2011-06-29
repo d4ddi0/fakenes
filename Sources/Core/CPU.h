@@ -1,11 +1,14 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   Copyright (c) 2001-2011, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use. */
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
 #ifndef CORE__CPU_H__INCLUDED
 #define CORE__CPU_H__INCLUDED
+#include "Common/Common.h"
+#include "Common/Types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -27,6 +30,9 @@ extern UINT8 cpu__ram[CPU__RAM_SIZE];
 extern UINT8 cpu__static_ram[CPU__STATIC_RAM_SIZE];
 extern INT8 cpu__patch_ram[CPU__PATCH_RAM_SIZE];
 
+typedef UINT32 cpu_time_t;
+typedef int32 cpu_rtime_t;
+
 /* Number of used entries in cpu_patch_info. */
 extern int cpu_patch_count;
 
@@ -38,8 +44,7 @@ typedef struct _CPU_PATCH
    BOOL active;
    USTRING title;
    UINT16 address;
-   UINT8 value;
-   UINT8 match_value;
+   UINT8 value, match_value;
    BOOL enabled;
 
 } CPU_PATCH;
@@ -89,5 +94,5 @@ extern void cpu_load_state (PACKFILE *, int);
 
 #ifdef __cplusplus
 }
-#endif   /* __cplusplus */
-#endif   /* !CORE__CPU_H__INCLUDED */
+#endif /* __cplusplus */
+#endif /* !CORE__CPU_H__INCLUDED */

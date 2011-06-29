@@ -8,8 +8,8 @@
 #ifndef AUDIO__INTERNALS_H__INCLUDED
 #define AUDIO__INTERNALS_H__INCLUDED
 #include <vector>
-#include "common.h"
-#include "types.h"
+#include "Common/Common.h"
+#include "Common/Types.h"
 
 extern int audio_channels;
 extern int audio_sample_rate;

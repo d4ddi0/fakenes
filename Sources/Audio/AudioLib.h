@@ -7,12 +7,7 @@
 
 #ifndef AUDIO__AUDIOLIB_H__INCLUDED
 #define AUDIO__AUDIOLIB_H__INCLUDED
-#ifdef USE_OPENAL
-#include <AL/al.h>
-#include <AL/alc.h>
-#endif
-#include "common.h"
-#include "types.h"
+#include "Common/Common.h"
 #ifdef __cplusplus
 extern "C" {
 #endif

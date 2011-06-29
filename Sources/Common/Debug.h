@@ -17,9 +17,9 @@ extern "C" {
 #endif
 
 #ifdef DEBUG
-#   define DEBUG_PRINTF(_FORMAT, args...)  log_printf(_FORMAT, ## args )
+#   define DEBUG_PRINTF log_printf
 #else
-#   define DEBUG_PRINTF(_FORMAT, args...)
+#   define DEBUG_PRINTF
 #endif
 
 /* Warning macros to help with debugging. */

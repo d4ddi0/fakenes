@@ -7,8 +7,8 @@
 
 #ifndef AUDIO__AUDIO_H__INCLUDED
 #define AUDIO__AUDIO_H__INCLUDED
-#include "common.h"
-#include "types.h"
+#include "Common/Common.h"
+#include "Common/Types.h"
 #include "Audio/APU.h"
 #ifdef __cplusplus
 extern "C" {
