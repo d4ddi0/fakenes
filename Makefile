@@ -16,7 +16,7 @@ ifeq ($(POSIX),true)
 	SUFFIX =
 else
 	RM = del
-	SEPARATOR = \
+	SEPARATOR = \\
 	SUFFIX = .exe
 endif
 
