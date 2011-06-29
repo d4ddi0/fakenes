@@ -12,14 +12,16 @@ endif
 
 ifeq ($(POSIX),true)
 	RM = rm
+	SEPARATOR = /
 	SUFFIX =
 else
 	RM = del
+	SEPARATOR = \
 	SUFFIX = .exe
 endif
 
 CBUILD_PATH = Build
-CBUILD = $(CBUILD_PATH)/CBuild$(SUFFIX)
+CBUILD = $(CBUILD_PATH)$(SEPARATOR)CBuild$(SUFFIX)
 
 # Default to an optimized build. Remove this for a generic build.
 CBUILD_OPTIONS = --optimize
@@ -78,6 +80,6 @@ uninstall:
 	@echo "(Type 'make uninstall INSTALL_PATH=path' if you want to use another path.)"
 	@$(CBUILD) uninstall --prefix=$(INSTALL_PATH) $(CBUILD_OPTIONS)
 
-$(CBUILD): $(CBUILD_PATH)/CBuild.c
+$(CBUILD): $(CBUILD_PATH)$(SEPARATOR)CBuild.c
 	@echo Preparing the build system, please wait.
 	@$(CC) -o $@ $< $(CFLAGS)
