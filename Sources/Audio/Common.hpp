@@ -7,43 +7,26 @@
 
 #ifndef Audio__Common_hpp__included
 #define Audio__Common_hpp__included
-#include <cstdlib>
-#include <cstring>
 #include <allegro.h>
+#ifdef USE_OPENAL
+#include <AL/al.h>
+#include <AL/alc.h>
+#endif
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
 #include <vector>
-#include "apu.h"
-#include "apu_int.h"
-#include "audio.h"
-#include "audio_int.h"
-#include "common.h"
-#include "config.h"
-#include "core.h"
-#include "cpu.h"
-#include "debug.h"
-#include "log.h"
-#include "machine.h"
-#include "timing.h"
-#include "types.h"
-#include <allegro.h>
-#include <cstdlib>
-#include <cstring>
-#include "audio.h"
-#include "audio_int.h"
-#include "audiolib.h"
-#include "common.h"
-#include "debug.h"
-#include "log.h"
-#include "types.h"
-
-#ifdef USE_OPENAL
-#include <AL/al.h>
-#include <AL/alc.h>
-#endif
+#include "Common/Common.h"
+#include "Common/Debug.h"
+#include "Common/Math.h"
+#include "Common/Types.h"
+#include "Core/CPU.h"
+#include "Platform/Config.h"
+#include "Platform/Log.h"
+#include "System/Machine.h"
+#include "System/Timing.h"
 
 // Curse you, Windows!
 #ifdef ALLEGRO_WINDOWS

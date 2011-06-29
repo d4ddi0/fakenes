@@ -1,109 +1,69 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   common.h: Global common definitions.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   Copyright (c) 2001-2007, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use. */
-
-#ifndef COMMON_H_INCLUDED
-#define COMMON_H_INCLUDED
+#ifndef COMMON__COMMON_H__INCLUDED
+#define COMMON__COMMON_H__INCLUDED
+/* Allegro defines some things such as INLINE. However, in the future we won't use it. */
 #include <allegro.h>
-#include "debug.h"
-#include "types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/* For legacy reasons, these are forced to 0 and 1 for when they are saved to a file.
+   However, these days LOAD_BOOLEAN and SAVE_BOOLEAN should be used instead. */
 #undef TRUE
 #undef FALSE
 #define TRUE  1
 #define FALSE 0
 
-#define TRUE_OR_FALSE(x) ((x) ? TRUE : FALSE)
+/* This resolves a boolean condition to an integral value. */
+#define TRUE_OR_FALSE(_CONDITION) ( (_CONDITION) ? TRUE : FALSE )
+#define ZERO_OR_ONE(_CONDITION) ( (_CONDITION) ? 1 : 0 )
 
+#define LOAD_BOOLEAN(_INTEGER) ( TRUE_OR_FALSE(_INTEGER) )
+#define SAVE_BOOLEAN(_BOOLEAN) ( ZERO_OR_ONE(_BOOLEAN) )
+
+/* Usually NULL is defined as (void*)0, however it is often more useful for it to just
+   equal zero, since it is compatible with pointers either way. */
 #undef NULL
 #define NULL 0
 
+/* For GCC, we can force it to always inline. Without this, it would refuse to inline
+   functions which are too large. Note that normally Allegro defines INLINE, so we
+   have to undefine it before redefining it. */
 #ifdef __GNUC__
-#undef INLINE
-#define INLINE __attribute__((always_inline)) inline
+#   undef INLINE
+#   define INLINE __attribute__((always_inline)) inline
+#else
+#   ifndef INLINE
+#      define INLINE inline
+#   endif
 #endif
 
+/* The LINEAR macro is used for when a function is only ever called once. */
 #define LINEAR INLINE
+/* The QUICK macro serves as a shortcut for a function that must run as fast as
+   possible. Generally this equates to a static inline function. */
 #define QUICK static INLINE
 
-#define BOOLEAN(x) ((x) ? TRUE : FALSE)
-#define BINARY(x)  ((x) ? 1 : 0)
-
-/* Note that the C version of this macro does not cast to integer. */
-#define ROUND(x) ((x) + 0.5)
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
-/* <+KittyCat> $ grep EPSILON include/3dobject.h
-   <+KittyCat> #define EPSILON (1.0f/1024.0f)
-   */
-#define EPSILON (1.0 / 1024.0)
-
-#define MAX3(a, b, c) (MAX((a), MAX((b), (c))))
-
 #ifdef __cplusplus
-/* Cleaner lowercase versions for use in 'pure' C++ code. */
+} // extern "C"
+
 #define true  (TRUE)
 #define false (FALSE)
 
 #define null (NULL)
 
-#ifdef __GNUC__
-#define inline __attribute__((always_inline)) inline
-#else
-#define inline INLINE
-#endif
-#define linear inline // for functions that are called only once
-#define quick static inline
+/* Note that the 'inline' keyword should never be used, as it can cause problems due to
+   the way macro expansion is handled with INLINE. */
+#define forceinline INLINE
 
-#define Boolean(x) (BOOLEAN((x)))
-#define Binary(x)  (BINARY((x)))
+#define linear (LINEAR)
+#define quick (QUICK)
 
-#define Round(x) ((int)ROUND((x)))
-
-#define Epsilon (EPSILON)
-
-#define Minimum(x, y) (MIN((x),(y)))
-#define Maximum(x, y) (MAX((x),(y)))
 #endif /* __cplusplus */
-
-/* Macro to compare 2 REALs. */
-#define COMPARE_TWO_REALS(a, b)  \
-   TRUE_OR_FALSE(((a) >= ((b) - EPSILON)) && ((a) <= ((b) + EPSILON)))
-
-/* TODO: Remove all references to NIL and correct compiler warnings. */
-#define NIL    0
-
-static INLINE int fix(int value, int base, int limit)
-{
-   if(value < base)
-      value = base;
-   if(value > limit)
-      value = limit;
-
-   return value;
-}
-
-static INLINE REAL fixf(REAL value, REAL base, REAL limit)
-{
-   if(value < base)
-      value = base;
-   if(value > limit)
-      value = limit;
-
-   return value;
-}
-     
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
-#endif /* !COMMON_H_INCLUDED */
+#endif /* !COMMON__COMMON_H__INCLUDED */

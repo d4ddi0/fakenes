@@ -24,10 +24,10 @@ extern unsigned audio_buffer_size_bytes;
 extern std::vector<uint16> audioQueue;
 
 // Keep this inline and using references for speed.
-static inline void audio_queue_sample(real& sample)
+quick void audio_queue_sample(real& sample)
 {
    // Convert to 16-bit unsigned and clip.
-   const uint16 packed = (((int16)fix((int)ROUND(sample * 32768.0), -32768, 32767)) ^ 0x8000);
+   const uint16 packed = (((int16)Clamp<int>( Round<real>(sample * 32768.0), -32768, 32767 )) ^ 0x8000);
    // Store it in the queue.
    audioQueue.push_back(packed);
 }

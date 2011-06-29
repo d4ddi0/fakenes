@@ -59,11 +59,11 @@ void Square::write(const uint16 address, const uint8 value)
          regs[0] = value;
 
          volume = value & 0x0F;
-         halt = Boolean(value & 0x20);
+         halt = LOAD_BOOLEAN(value & 0x20);
          duty = value >> 6;
 
          envelope.period = (value & 0x0F) + 1;
-         envelope.fixed = Boolean(value & 0x10);
+         envelope.fixed = LOAD_BOOLEAN(value & 0x10);
          envelope.fixed_volume = value & 0x0F;
 
          break;        
@@ -141,7 +141,7 @@ void Square::save(PACKFILE* file, const int version) const
    pack_putc(output, file);
 
    pack_putc(envelope.timer, file);
-   pack_putc(Binary(envelope.reset), file);
+   pack_putc(SAVE_BOOLEAN(envelope.reset), file);
    pack_putc(envelope.counter, file);
 }
 
@@ -159,7 +159,7 @@ void Square::load(PACKFILE* file, const int version)
    output = pack_getc(file);
 
    envelope.timer = pack_getc(file);
-   envelope.reset = Boolean(pack_getc(file));
+   envelope.reset = LOAD_BOOLEAN(pack_getc(file));
    envelope.counter = pack_getc(file);
 }
 
@@ -284,11 +284,11 @@ void Interface::write(const uint16 address, const uint8 value)
       }
 
       case 0x5015: {
-         square1.clamped = Boolean(~value & 0x01);
+         square1.clamped = LOAD_BOOLEAN(~value & 0x01);
          if(square1.clamped)
             square1.length = 0;
 
-         square2.clamped = Boolean(~value & 0x02);
+         square2.clamped = LOAD_BOOLEAN(~value & 0x02);
          if(square2.clamped)
             square2.length = 0;
 
@@ -334,7 +334,7 @@ void Interface::save(PACKFILE* file, const int version) const
    RT_ASSERT(file);
 
    pack_iputl(timer, file);
-   pack_putc(Binary(flip), file);
+   pack_putc(SAVE_BOOLEAN(flip), file);
 
    square1.save(file, version);
    square2.save(file, version);
@@ -346,7 +346,7 @@ void Interface::load(PACKFILE* file, const int version)
    RT_ASSERT(file);
 
    timer = pack_igetl(file);
-   flip = Boolean(pack_getc(file));
+   flip = LOAD_BOOLEAN(pack_getc(file));
 
    square1.load(file, version);
    square2.load(file, version);

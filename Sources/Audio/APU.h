@@ -8,9 +8,9 @@
 #ifndef AUDIO__APU_H__INCLUDED
 #define AUDIO__APU_H__INCLUDED
 #include <allegro.h>
-#include "common.h"
-#include "core.h"
-#include "types.h"
+#include "Common/Common.h"
+#include "Common/Types.h"
+#include "Core/CPU.h"
 #ifdef __cplusplus
 extern "C" {
 #endif

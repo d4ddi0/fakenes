@@ -1,32 +1,32 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   version.h: Global version definitions.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   Copyright (c) 2001-2007, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use. */
-
-#ifndef VERSION_H_INCLUDED
-#define VERSION_H_INCLUDED
+#ifndef COMMON__VERSION_H__INCLUDED
+#define COMMON__VERSION_H__INCLUDED
+#include "Common.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define VERSION_MAJOR   6
+#define VERSION_MAJOR   1
 #define VERSION_MINOR   0
-#define VERSION         0x600
+#define VERSION         0x100
 
 /* Version tag can be overriden by Makefiles. */
 #ifndef VERSION_TAG
-#define VERSION_TAG     "Unstable"
+#define VERSION_TAG     "SVN"
 #endif
 
-#define VERSION_STRING  "6.0 (" VERSION_TAG ")"
+#define VERSION_STRING  "1.0 (" VERSION_TAG ")"
 
-#define WINDOW_TITLE_NORMAL	"FakeNES 6.0 \"Fireflower\" (Unstable)"
-#define WINDOW_TITLE_FILE	"FakeNES"
+#define WINDOW_TITLE_NORMAL	"FakeNES GT - Let the good times roll!"
+#define WINDOW_TITLE_FILE	"FakeNES GT"
 
 #ifdef __cplusplus
 }
-#endif
-#endif   /* !VERSION_H_INCLUDED */
+#endif /* __cplusplus */
+#endif /* !COMMON__VERSION_H__INCLUDED */

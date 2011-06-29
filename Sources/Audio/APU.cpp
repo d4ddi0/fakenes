@@ -66,10 +66,10 @@ static Sound::VRC6::Interface apu_exsound_vrc6;
 
 // Internal function prototypes (defined at bottom).
 static void process(void);
-static inline void mix(void);
-static inline void filter(real& sample, APULPFilter *lpEnv, APUDCFilter* dcEnv);
-static inline void amplify(real& sample);
-static inline void enqueue(real& sample);
+static forceinline void mix(void);
+static forceinline void filter(real& sample, APULPFilter *lpEnv, APUDCFilter* dcEnv);
+static forceinline void amplify(real& sample);
+static forceinline void enqueue(real& sample);
 
 // Channel indices.
 enum {
@@ -177,7 +177,7 @@ static void apu_repredict_irqs(const unsigned predictionFlags);
 // --- Sound generators. ---
 
 // Envelope generator for squares and noise
-static inline void apu_envelope(APUChannel& chan, APUEnvelope& env)
+static forceinline void apu_envelope(APUChannel& chan, APUEnvelope& env)
 {
    /* When clocked by the frame sequencer, one of two actions occurs: if there was a
       write to the fourth channel register since the last clock, the counter is set
@@ -222,9 +222,9 @@ static void apu_save_envelope(const APUEnvelope& env, PACKFILE* file, const int 
    pack_putc(env.timer, file);
    pack_putc(env.period, file);
    pack_putc(env.counter, file);
-   pack_putc(Binary(env.fixed), file);
+   pack_putc(SAVE_BOOLEAN(env.fixed), file);
    pack_putc(env.fixed_volume, file);
-   pack_putc(Binary(env.dirty), file);
+   pack_putc(SAVE_BOOLEAN(env.dirty), file);
 }
 
 static void apu_load_envelope(APUEnvelope& env, PACKFILE* file, const int version)
@@ -234,9 +234,9 @@ static void apu_load_envelope(APUEnvelope& env, PACKFILE* file, const int versio
    env.timer = pack_getc(file);
    env.period = pack_getc(file);
    env.counter = pack_getc(file);
-   env.fixed = Boolean(pack_getc(file));
+   env.fixed = LOAD_BOOLEAN(pack_getc(file));
    env.fixed_volume = pack_getc(file);
-   env.dirty = Boolean(pack_getc(file));
+   env.dirty = LOAD_BOOLEAN(pack_getc(file));
 }
 
 // Sweep unit for squares.
@@ -287,28 +287,28 @@ static void apu_save_sweep(const APUSweep& env, PACKFILE* file, const int versio
 {
    RT_ASSERT(file);
 
-   pack_putc(Binary(env.enabled), file);
+   pack_putc(SAVE_BOOLEAN(env.enabled), file);
    pack_putc(env.timer, file);
    pack_putc(env.period, file);
    pack_putc(env.shifts, file);
-   pack_putc(Binary(env.invert), file);
-   pack_putc(Binary(env.dirty), file);
+   pack_putc(SAVE_BOOLEAN(env.invert), file);
+   pack_putc(SAVE_BOOLEAN(env.dirty), file);
 }
 
 static void apu_load_sweep(APUSweep& env, PACKFILE* file, const int version)
 {
    RT_ASSERT(file);
 
-   env.enabled = Boolean(pack_getc(file));
+   env.enabled = LOAD_BOOLEAN(pack_getc(file));
    env.timer = pack_getc(file);
    env.period = pack_getc(file);
    env.shifts = pack_getc(file);
-   env.invert = Boolean(pack_getc(file));
-   env.dirty = Boolean(pack_getc(file));
+   env.invert = LOAD_BOOLEAN(pack_getc(file));
+   env.dirty = LOAD_BOOLEAN(pack_getc(file));
 }
 
 // Length counter for squares, triangle, and noise
-static inline void apu_update_length_counter(APUWaveformChannel& chan)
+static forceinline void apu_update_length_counter(APUWaveformChannel& chan)
 {
    if((chan.length > 0) && !chan.looping)
       chan.length--;
@@ -353,8 +353,8 @@ static linear void apu_save_square(const APUSquare& chan, PACKFILE* file, const 
    // General
    pack_putc(chan.output, file);
    pack_putc(chan.volume, file);
-   pack_putc(Binary(chan.looping), file);
-   pack_putc(Binary(chan.silence), file);
+   pack_putc(SAVE_BOOLEAN(chan.looping), file);
+   pack_putc(SAVE_BOOLEAN(chan.silence), file);
 
    // Timer
    pack_iputw(chan.timer, file);
@@ -362,7 +362,7 @@ static linear void apu_save_square(const APUSquare& chan, PACKFILE* file, const 
 
    // Length counter
    pack_putc(chan.length, file);
-   pack_putc(Binary(chan.length_disable), file);
+   pack_putc(SAVE_BOOLEAN(chan.length_disable), file);
 
    // Envelope generator.
    apu_save_envelope(chan.envelope, file, version);
@@ -380,14 +380,14 @@ static linear void apu_load_square(APUSquare& chan, PACKFILE* file, const int ve
 
    chan.output = pack_getc(file);
    chan.volume = pack_getc(file);
-   chan.looping = Boolean(pack_getc(file));
-   chan.silence = Boolean(pack_getc(file));
+   chan.looping = LOAD_BOOLEAN(pack_getc(file));
+   chan.silence = LOAD_BOOLEAN(pack_getc(file));
 
    chan.timer = pack_igetw(file);
    chan.period = pack_igetw(file);
 
    chan.length = pack_getc(file);
-   chan.length_disable = Boolean(pack_getc(file));
+   chan.length_disable = LOAD_BOOLEAN(pack_getc(file));
 
    apu_load_envelope(chan.envelope, file, version);
    apu_load_sweep(chan.sweep, file, version);
@@ -457,7 +457,7 @@ static linear void apu_save_triangle(const APUTriangle& chan, PACKFILE* file, co
 
    // General
    pack_putc(chan.output, file);
-   pack_putc(Binary(chan.looping), file);
+   pack_putc(SAVE_BOOLEAN(chan.looping), file);
 
    // Timer
    pack_iputw(chan.timer, file);
@@ -465,11 +465,11 @@ static linear void apu_save_triangle(const APUTriangle& chan, PACKFILE* file, co
 
    // Length counter
    pack_putc(chan.length, file);
-   pack_putc(Binary(chan.length_disable), file);
+   pack_putc(SAVE_BOOLEAN(chan.length_disable), file);
 
    // Linear counter
    pack_putc(chan.linear_length, file);
-   pack_putc(Binary(chan.halt_counter), file);
+   pack_putc(SAVE_BOOLEAN(chan.halt_counter), file);
    pack_putc(chan.cached_linear_length, file);
 }
 
@@ -478,16 +478,16 @@ static linear void apu_load_triangle(APUTriangle& chan, PACKFILE* file, const in
    RT_ASSERT(file);
 
    chan.output = pack_getc(file);
-   chan.looping = Boolean(pack_getc(file));
+   chan.looping = LOAD_BOOLEAN(pack_getc(file));
 
    chan.timer = pack_igetw(file);
    chan.period = pack_igetw(file);
 
    chan.length = pack_getc(file);
-   chan.length_disable = Boolean(pack_getc(file));
+   chan.length_disable = LOAD_BOOLEAN(pack_getc(file));
 
    chan.linear_length = pack_getc(file);
-   chan.halt_counter = Boolean(pack_getc(file));
+   chan.halt_counter = LOAD_BOOLEAN(pack_getc(file));
    chan.cached_linear_length = pack_getc(file);
 }
 
@@ -532,8 +532,8 @@ static linear void apu_save_noise(const APUNoise& chan, PACKFILE* file, const in
    // General
    pack_putc(chan.output, file);
    pack_putc(chan.volume, file);
-   pack_putc(Binary(chan.looping), file);
-   pack_putc(Binary(chan.silence), file);
+   pack_putc(SAVE_BOOLEAN(chan.looping), file);
+   pack_putc(SAVE_BOOLEAN(chan.silence), file);
 
    // Timer
    pack_iputw(chan.timer, file);
@@ -541,7 +541,7 @@ static linear void apu_save_noise(const APUNoise& chan, PACKFILE* file, const in
 
    // Length counter
    pack_putc(chan.length, file);
-   pack_putc(Binary(chan.length_disable), file);
+   pack_putc(SAVE_BOOLEAN(chan.length_disable), file);
 
    // Envelope generator.
    apu_save_envelope(chan.envelope, file, version);
@@ -557,14 +557,14 @@ static linear void apu_load_noise(APUNoise& chan, PACKFILE* file, const int vers
 
    chan.output = pack_getc(file);
    chan.volume = pack_getc(file);
-   chan.looping = Boolean(pack_getc(file));
-   chan.silence = Boolean(pack_getc(file));
+   chan.looping = LOAD_BOOLEAN(pack_getc(file));
+   chan.silence = LOAD_BOOLEAN(pack_getc(file));
 
    chan.timer = pack_igetw(file);
    chan.period = pack_igetw(file);
 
    chan.length = pack_getc(file);
-   chan.length_disable = Boolean(pack_getc(file));
+   chan.length_disable = LOAD_BOOLEAN(pack_getc(file));
 
    apu_load_envelope(chan.envelope, file, version);
 
@@ -572,7 +572,7 @@ static linear void apu_load_noise(APUNoise& chan, PACKFILE* file, const int vers
    chan.shift16 = pack_igetw(file);
 }
 
-static inline void apu_reload_dmc(APUDMC& chan)
+static forceinline void apu_reload_dmc(APUDMC& chan)
 {
    chan.address = chan.cached_address;
    chan.dma_length = chan.cached_dmalength;
@@ -654,7 +654,7 @@ static linear void apu_update_dmc(APUDMC& chan)
          the DAC counter: If bit 0 is clear and the counter is greater than 1, the
          counter is decremented by 2, otherwise if bit 0 is set and the counter is less
          than 126, the counter is incremented by 2. */
-      const bool bit0 = Boolean(chan.shift_reg & 1);
+      const bool bit0 = LOAD_BOOLEAN(chan.shift_reg & 1);
 
       if(!bit0 && (chan.volume > 1)) {
          // positive delta
@@ -728,8 +728,8 @@ static linear void apu_save_dmc(const APUDMC& chan, PACKFILE* file, const int ve
    // General
    pack_putc(chan.output, file);
    pack_putc(chan.volume, file);
-   pack_putc(Binary(chan.looping), file);
-   pack_putc(Binary(chan.silence), file);
+   pack_putc(SAVE_BOOLEAN(chan.looping), file);
+   pack_putc(SAVE_BOOLEAN(chan.silence), file);
 
    // Timer
    pack_iputw(chan.timer, file);
@@ -750,8 +750,8 @@ static linear void apu_save_dmc(const APUDMC& chan, PACKFILE* file, const int ve
    pack_putc(chan.shift_reg, file);
 
    // IRQ generator
-   pack_putc(Binary(chan.irq_gen), file);
-   pack_putc(Binary(chan.irq_occurred), file);
+   pack_putc(SAVE_BOOLEAN(chan.irq_gen), file);
+   pack_putc(SAVE_BOOLEAN(chan.irq_occurred), file);
 }
 
 static linear void apu_load_dmc(APUDMC& chan, PACKFILE* file, const int version)
@@ -760,8 +760,8 @@ static linear void apu_load_dmc(APUDMC& chan, PACKFILE* file, const int version)
 
    chan.output = pack_getc(file);
    chan.volume = pack_getc(file);
-   chan.looping = Boolean(pack_getc(file));
-   chan.silence = Boolean(pack_getc(file));
+   chan.looping = LOAD_BOOLEAN(pack_getc(file));
+   chan.silence = LOAD_BOOLEAN(pack_getc(file));
 
    chan.timer = pack_igetw(file);
    chan.period = pack_igetw(file);
@@ -777,11 +777,11 @@ static linear void apu_load_dmc(APUDMC& chan, PACKFILE* file, const int version)
    chan.counter = pack_getc(file);
    chan.shift_reg = pack_getc(file);
 
-   chan.irq_gen = Boolean(pack_getc(file));
-   chan.irq_occurred = Boolean(pack_getc(file));
+   chan.irq_gen = LOAD_BOOLEAN(pack_getc(file));
+   chan.irq_occurred = LOAD_BOOLEAN(pack_getc(file));
 }
 
-static inline void apu_update_channels(const FLAGS update_flags)
+static forceinline void apu_update_channels(const FLAGS update_flags)
 {
    apu_update_square(apu.square[0], update_flags);
    apu_update_square(apu.square[1], update_flags);
@@ -792,7 +792,7 @@ static inline void apu_update_channels(const FLAGS update_flags)
       apu_update_dmc(apu.dmc);
 }
 
-static inline void apu_reload_sequence_counter(void)
+static forceinline void apu_reload_sequence_counter(void)
 {
    const int mode = (apu.sequence_steps == 5) ? 1 : 0;
 
@@ -802,7 +802,7 @@ static inline void apu_reload_sequence_counter(void)
       apu.sequence_counter += frame_sequencer_period_lut_pal[mode][apu.sequence_step - 1];
 }
 
-static inline void apu_update_frame_sequencer(void)
+static forceinline void apu_update_frame_sequencer(void)
 {
    if(apu.sequence_counter > 0) {
       apu.sequence_counter -= apu.timer_delta;
@@ -1222,12 +1222,12 @@ void apu_write(const UINT16 address, UINT8 value)
          APUSquare& chan = apu.square[index];
 
          chan.volume = value & 0x0F;
-         chan.looping = Boolean(value & 0x20);
+         chan.looping = LOAD_BOOLEAN(value & 0x20);
          chan.duty_cycle = value >> 6;
 
          // The divider's period is set to n + 1.
          chan.envelope.period = (value & 0x0F) + 1;
-         chan.envelope.fixed = Boolean(value & 0x10);
+         chan.envelope.fixed = LOAD_BOOLEAN(value & 0x10);
          chan.envelope.fixed_volume = value & 0x0F;
 
          break;
@@ -1241,10 +1241,10 @@ void apu_write(const UINT16 address, UINT8 value)
          APUSquare& chan = apu.square[index];
 
          // The divider's period is set to p + 1.
-         chan.sweep.enabled = Boolean(value & 0x80);
+         chan.sweep.enabled = LOAD_BOOLEAN(value & 0x80);
          chan.sweep.period = ((value >> 4) & 7) + 1;
          chan.sweep.shifts = value & 7;
-         chan.sweep.invert = Boolean(value & 0x08);
+         chan.sweep.invert = LOAD_BOOLEAN(value & 0x08);
 
          // Reset the sweep unit.
          chan.sweep.dirty = true;
@@ -1294,7 +1294,7 @@ void apu_write(const UINT16 address, UINT8 value)
          /* TODO: Are writes to this register really supposed to be
             affecting the linear counter immediately...? */
          chan.linear_length = value & 0x7F;
-         chan.looping = Boolean(value & 0x80);
+         chan.looping = LOAD_BOOLEAN(value & 0x80);
 
          chan.cached_linear_length = chan.linear_length;
 
@@ -1332,10 +1332,10 @@ void apu_write(const UINT16 address, UINT8 value)
          APUNoise& chan = apu.noise;
 
          chan.volume = value & 0x0F;
-         chan.looping = Boolean(value & 0x20);
+         chan.looping = LOAD_BOOLEAN(value & 0x20);
 
          chan.envelope.period = (value & 0x0F) + 1;
-         chan.envelope.fixed = Boolean(value & 0x10);
+         chan.envelope.fixed = LOAD_BOOLEAN(value & 0x10);
          chan.envelope.fixed_volume = value & 0x0F;
 
          break;
@@ -1383,8 +1383,8 @@ void apu_write(const UINT16 address, UINT8 value)
          else
             chan.period = dmc_period_lut_pal[value & 0x0F];
 
-         chan.looping = Boolean(value & 0x40);
-         chan.irq_gen = Boolean(value & 0x80);
+         chan.looping = LOAD_BOOLEAN(value & 0x40);
+         chan.irq_gen = LOAD_BOOLEAN(value & 0x80);
 
          // IRQ enabled flag. If clear, the interrupt flag is cleared.
          if(!chan.irq_gen) {
@@ -1452,18 +1452,18 @@ void apu_write(const UINT16 address, UINT8 value)
          for(int index = 0; index < 2; index++) {
             APUSquare& chan = apu.square[index];
 
-            chan.length_disable = Boolean(~value & (1 << index));
+            chan.length_disable = LOAD_BOOLEAN(~value & (1 << index));
             if(chan.length_disable)
                chan.length = 0;
          }
 
          // Triangle.
-         apu.triangle.length_disable = Boolean(~value & 0x04);
+         apu.triangle.length_disable = LOAD_BOOLEAN(~value & 0x04);
          if(apu.triangle.length_disable)
             apu.triangle.length = 0;
 
          // Noise.
-         apu.noise.length_disable = Boolean(~value & 0x08);
+         apu.noise.length_disable = LOAD_BOOLEAN(~value & 0x08);
          if (apu.noise.length_disable)
             apu.noise.length = 0;
 
@@ -1473,7 +1473,7 @@ void apu_write(const UINT16 address, UINT8 value)
             If d is set and the DMC's DMA reader has no more sample bytes to fetch, the DMC
             sample is restarted. If d is clear then the DMA reader's sample bytes remaining
             is set to 0. */
-         bool enabled = Boolean(value & 0x10);
+         bool enabled = LOAD_BOOLEAN(value & 0x10);
          if(enabled) {
             // Check for a reload.
             if(apu.dmc.dma_length == 0)
@@ -1500,7 +1500,7 @@ void apu_write(const UINT16 address, UINT8 value)
          /* <_Q> setting $4017.6 or $4017.7 will turn off frame IRQs
             <_Q> setting $4017.7 puts it into the 5-step sequence
             <_Q> which does not generate interrupts */
-         apu.frame_irq_gen = Boolean(~value & 0x40);
+         apu.frame_irq_gen = LOAD_BOOLEAN(~value & 0x40);
 
          // Reset frame sequencer.
          apu_reset_frame_sequencer();
@@ -1585,8 +1585,8 @@ void apu_save_state(PACKFILE* file, const int version)
    pack_iputw(apu.sequence_counter, file);
    pack_putc(apu.sequence_step, file);
    pack_putc(apu.sequence_steps, file);
-   pack_putc(Binary(apu.frame_irq_gen), file);
-   pack_putc(Binary(apu.frame_irq_occurred), file);
+   pack_putc(SAVE_BOOLEAN(apu.frame_irq_gen), file);
+   pack_putc(SAVE_BOOLEAN(apu.frame_irq_occurred), file);
 
    // Sound generators
    apu_save_square(apu.square[0], file, version);
@@ -1615,8 +1615,8 @@ void apu_load_state(PACKFILE* file, const int version)
    apu.sequence_counter = pack_igetw(file);
    apu.sequence_step = pack_getc(file);
    apu.sequence_steps = pack_getc(file);
-   apu.frame_irq_gen = Boolean(pack_getc(file));
-   apu.frame_irq_occurred = Boolean(pack_getc(file));
+   apu.frame_irq_gen = LOAD_BOOLEAN(pack_getc(file));
+   apu.frame_irq_occurred = LOAD_BOOLEAN(pack_getc(file));
 
    apu_load_square(apu.square[0], file, version);
    apu_load_square(apu.square[1], file, version);
@@ -1850,7 +1850,7 @@ static void process(void)
    apu.processing = false;
 }
 
-static inline void mix(void)
+static forceinline void mix(void)
 {
    static const APUSquare& square1 = apu.square[0];
    static const APUSquare& square2 = apu.square[1];
@@ -1937,7 +1937,7 @@ static inline void mix(void)
    }
 }
 
-static inline void filter(real& sample, APULPFilter* lpEnv, APUDCFilter* dcEnv)
+static forceinline void filter(real& sample, APULPFilter* lpEnv, APUDCFilter* dcEnv)
 {
    if(lpEnv) {
       // Low pass filter.
@@ -1977,7 +1977,7 @@ static inline void filter(real& sample, APULPFilter* lpEnv, APUDCFilter* dcEnv)
    }
 }
 
-static inline void amplify(real& sample)
+static forceinline void amplify(real& sample)
 {
    /* Volume level normalizer. Note that this is not a true normalizer, as they are impossible to
       make in real time, due to operating only on a whole waveform at once. This filter simply
@@ -1995,7 +1995,7 @@ static inline void amplify(real& sample)
             buffer[i] = buffer[i + 1];
 
          const int level = (accumulator / count) * 128;
-         buffer[apu_vln_samples_buffer - 1] = fix(level, 0, 255);
+         buffer[apu_vln_samples_buffer - 1] = Clamp<int>(level, 0, 255);
          accumulator = 0.0;
          count = 0;
 
@@ -2028,7 +2028,7 @@ static inline void amplify(real& sample)
       }
 
       real output = 1.0 / Maximum(gain, Epsilon);
-      output = fixf(output, apu_agc_gain_floor, apu_agc_gain_ceiling);
+      output = Clamp<real>(output, apu_agc_gain_floor, apu_agc_gain_ceiling);
       sample *= output;
    }
 
@@ -2048,7 +2048,7 @@ static inline void amplify(real& sample)
          initialized = true;
       }
 
-      const unsigned index = fix(Round(fabs(sample) * maximum), 0, maximum);
+      const unsigned index = Clamp<int>( Round<real>(fabs(sample) * maximum), 0, maximum );
       if(sample < 0.0)
          sample = 0.0 - log_lut[index];
       else
@@ -2060,7 +2060,7 @@ static inline void amplify(real& sample)
       sample = 0;
 }
 
-static inline void enqueue(real& sample)
+static forceinline void enqueue(real& sample)
 {
    audio_queue_sample(sample);
 }
