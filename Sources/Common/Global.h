@@ -5,8 +5,8 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
-#ifndef COMMON__COMMON_H__INCLUDED
-#define COMMON__COMMON_H__INCLUDED
+#ifndef COMMON__GLOBAL_H__INCLUDED
+#define COMMON__GLOBAL_H__INCLUDED
 /* Allegro defines some things such as INLINE. However, in the future we won't use it. */
 #include <allegro.h>
 #ifdef __cplusplus
@@ -66,4 +66,4 @@ extern "C" {
 #define quick (QUICK)
 
 #endif /* __cplusplus */
-#endif /* !COMMON__COMMON_H__INCLUDED */
+#endif /* !COMMON__GLOBAL_H__INCLUDED */

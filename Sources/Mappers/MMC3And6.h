@@ -1,6 +1,9 @@
 /* Mapper #4 (MMC3). */
 /* This mapper is fully supported. */
 
+/* A variant known as MMC6 is used by StarTropics, which
+   requires SRAM to be disabled by default. */
+
 /* MMC3 IRQ depends on PPU internal timing. */
 #include "ppu_int.h"
 

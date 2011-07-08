@@ -7,7 +7,7 @@
 
 #ifndef COMMON__BINARY_H__INCLUDED
 #define COMMON__BINARY_H__INCLUDED
-#include "Common.h"
+#include "Global.h"
 #ifdef __cplusplus
 extern "C" {
 #endif

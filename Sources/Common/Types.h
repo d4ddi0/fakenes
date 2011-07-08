@@ -16,7 +16,7 @@
 #include <stdint.h>
 #endif
 #include <string.h>
-#include "Common.h"
+#include "Global.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
