@@ -10,6 +10,7 @@
 #include "Core/CPU.h"
 #include "Core/CPUAtoms.hpp"
 #include "Core/Internals.h"
+#include "Core/Patch.h"
 
 using namespace std;
 
@@ -291,22 +292,22 @@ void cpu_save_state(PACKFILE* file, const int version)
    CORE::GetContext(&context);
 
    // Save clock counter.
-   pack_iputl(file, context.time);
+   pack_iputl(context.time, file);
 
    // Save registers.
-   pack_iputw(file, context.registers.pc.word);
-   pack_putc(file, context.registers.a);
-   pack_putc(file, context.registers.p);
-   pack_putc(file, context.registers.s);
-   pack_putc(file, context.registers.x);
-   pack_putc(file, context.registers.y);
+   pack_iputw(context.registers.pc.word, file);
+   pack_putc(context.registers.a, file);
+   pack_putc(context.registers.p, file);
+   pack_putc(context.registers.s, file);
+   pack_putc(context.registers.x, file);
+   pack_putc(context.registers.y, file);
 
    // Save interrupt queue.
    pack_putc(file, context.interrupts.size());
    for(COREInterruptQueue::iterator i = context.interrupts.begin(); i != context.interrupts.end(); ) {
       COREInterrupt& interrupt = *i;
-      pack_putc(file, interrupt.type);
-      pack_iputl(file, interrupt.time);
+      pack_putc(interrupt.type, file);
+      pack_iputl(interrupt.time, file);
 
       i++;
    }
@@ -352,6 +353,10 @@ void cpu_map_block_read_address(const UINT16 address, const int pages, const UIN
       cpu__read_address[index] = data + (page * CPU__MAP_PAGE_SIZE);
       cpu__read_handler[index] = NULL;
    }
+
+   const uint16 startAddress = start * CPU__MAP_PAGE_SIZE;
+   const uint16 endAddress = startAddress + (pages * CPU__MAP_PAGE_SIZE);
+   map_patches(startAddress, endAddress);
 }
 
 void cpu_map_block_write_address(const UINT16 address, const int pages, UINT8* data)
@@ -380,6 +385,10 @@ void cpu_map_block_read_handler(const UINT16 address, const int pages, CPU_READ_
       cpu__read_address[index] = NULL;
       cpu__read_handler[index] = handler;
    }
+
+   const uint16 startAddress = start * CPU__MAP_PAGE_SIZE;
+   const uint16 endAddress = startAddress + (pages * CPU__MAP_PAGE_SIZE);
+   map_patches(startAddress, endAddress);
 }
 
 void cpu_map_block_write_handler(const UINT16 address, const int pages, CPU_WRITE_HANDLER(handler))
