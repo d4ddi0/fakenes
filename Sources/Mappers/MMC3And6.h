@@ -153,6 +153,24 @@ static void mmc3_irq_handler(const int line)
    mmc3_irq_slave(FALSE);
 }
 
+static void mmc3_check_address_lines(const UINT16 address)
+{
+   /* The MMC3 scanline counter is based entirely on PPU A12, triggered on rising edges
+      (after the line remains low for a sufficiently long period of time). */
+
+   if(address > 0x1FFF)
+      /* We only care about accesses to pattern table data. */
+      return;
+
+   /* The counter will not work properly unless you use different pattern tables for
+      background and sprite data. */
+   const int bank = address / PPU__BYTES_PER_PATTERN_TABLE;
+   if((bank == 1) && (mmc3_irq_bank == 0))
+      mmc3_irq_slave(FALSE);
+
+   mmc3_irq_bank = bank;
+}
+
 static void mmc3_check_vram_banking(void)
 {
    int background_bank, sprite_bank;
@@ -162,6 +180,16 @@ static void mmc3_check_vram_banking(void)
 
    mmc_hblank_prefetch_start = NULL;
    mmc_virtual_hblank_prefetch_start = NULL;
+
+   mmc_check_address_lines = NULL;
+
+   /* When the CPU is in unchained mode, we can do cycle-by-cycle processing. */
+   if(cpu_get_execution_model() == CPU_EXECUTION_MODEL_UNCHAINED) {
+      mmc_check_address_lines = mmc3_check_address_lines;
+      return;
+   }
+
+   /* Otherwise, we have to use IRQ prediction. */
 
    /* If the BG uses $0000, and the sprites use $1000, then the IRQ will occur after PPU cycle 260
       (as in, a little after the visible part of the target scanline has ended). 
@@ -183,26 +211,6 @@ static void mmc3_check_vram_banking(void)
 
    ppu_repredict_interrupts(PPU_PREDICT_MMC_IRQ);
 }
-
-#if 0
-static void mmc3_check_address_lines(const UINT16 address)
-{
-   /* The MMC3 scanline counter is based entirely on PPU A12, triggered on rising edges
-      (after the line remains low for a sufficiently long period of time). */
-
-   if(address > 0x1FFF)
-      /* We only care about accesses to pattern table data. */
-      return;
-
-   /* The counter will not work properly unless you use different pattern tables for
-      background and sprite data. */
-   const int bank = address / PPU__BYTES_PER_PATTERN_TABLE;
-   if((bank == 1) && (mmc3_irq_bank == 0))
-      mmc3_irq_slave();
-
-   mmc3_irq_bank = bank;
-}
-#endif
 
 static void mmc3_cpu_bank_sort(void)
 {
