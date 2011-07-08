@@ -47,6 +47,12 @@ CPU__ARRAY( void*,        cpu__write_handler, CPU__WRITE_HANDLER_SIZE );
 CPU__ARRAY( UINT8, cpu__save_ram,  CPU__SAVE_RAM_SIZE );
 CPU__ARRAY( UINT8, cpu__work_ram,  CPU__WORK_RAM_SIZE );
 
+// Function prototypes.
+static UINT8 DummyRead(const UINT16 address);
+static void DummyWrite(const UINT16 address, const UINT8 data);
+
+// ----------------------------------------------------------------------
+
 void cpu_load_config(void)
 {
    executionModel = get_config_int("system", "execution_model", CPU_EXECUTION_MODEL_DEFAULT);
@@ -447,4 +453,16 @@ void cpu_unmap_block_write(const UINT16 address, const int pages)
    Safeguard(pages > 0);
 
    cpu_map_block_write_handler(address, pages, DummyWrite);
+}
+
+// --------------------------------------------------------------------------------
+
+// Dummy read/write functions, used when nothing is mapped in.
+static UINT8 DummyRead(const UINT16 address)
+{
+   return 0x00;
+}
+
+static void DummyWrite(const UINT16 address, const UINT8 data)
+{
 }
