@@ -5,10 +5,10 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
-#include "Core/Common.hpp"
 #include "Core/Core.hpp"
 #include "Core/CPU.h"
 #include "Core/Internals.h"
+#include "Core/Local.hpp"
 
 namespace {
 

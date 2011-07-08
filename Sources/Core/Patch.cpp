@@ -7,6 +7,7 @@
 
 #include "CPU.h"
 #include "Internals.h"
+#include "Local.hpp"
 #include "Patch.h"
 
 using namespace std;

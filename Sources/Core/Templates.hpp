@@ -7,8 +7,8 @@
 
 #ifndef Core__Templates_hpp__included
 #define Core__Templates_hpp__included
-#include "Core/Common.hpp"
 #include "Core/Core.hpp"
+#include "Core/Local.hpp"
 
 namespace Templates {
 

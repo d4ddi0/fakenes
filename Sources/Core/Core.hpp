@@ -7,7 +7,7 @@
 
 #ifndef Core__Core_hpp__included
 #define Core__Core_hpp__included
-#include "Core/Common.hpp"
+#include "Core/Local.hpp"
 
 // Define this to enable some important sanity checks.
 #define COREDebug
