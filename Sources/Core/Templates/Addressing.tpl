@@ -110,7 +110,7 @@ quick void T(AddressAbsoluteWrite)(WithRegister) {
     4  address+I* R  read from effective address, fix the high byte of effective address
     5+ address+I  R  re-read from effective address */
 quick FromData T(AddressAbsoluteIndexedRead)(WithRegister) {
-	pair address;
+	byte_pair address;
 	address.word = T(FetchWord)();		// Clocks 2-3
 	if(T(Wrap)(address.bytes.low, register) {
 		uint16 savedAddress = address.word;
@@ -138,7 +138,7 @@ quick FromData T(AddressAbsoluteYRead)() { return T(AddressAbsoluteIndexedRead)(
     6  address+X  W  write the value back to effective address, and do the operation on it
     7  address+X  W  write the new value to effective address */
 WithInstruction void T(AddressAbsoluteIndexedRMW)() {
-	pair address;
+	byte_pair address;
 	address.word = T(FetchWord)();		// Clocks 2-3
 	uint16 savedAddress = address.word;
 #if !defined(COREFast)
@@ -162,7 +162,7 @@ WithInstruction void T(AddressAbsoluteXRMW)() { T(AddressAbsoluteIndexedRMW)<ins
     4  address+I* R  read from effective address, fix the high byte of effective address
     5  address+I  W  write to effective address */
 quick void T(AddressAbsoluteIndexedWrite)(WithIndex, WithRegister) {
-	pair address;
+	byte_pair address;
 	address.word = T(FetchWord)();		// Clocks 2-3
 	uint16 savedAddress = address.word;
 #if !defined(COREFast)
@@ -248,7 +248,7 @@ quick void T(AddressIndirectXWrite)(WithRegister) { T(AddressIndexedIndirectWrit
     6+  address+Y   R  read from effective address */
 quick FromData T(AddressIndirectIndexedRead)() {
 	const uint8 pointer = T(Fetch)();		// Clock 2
-	pair address;
+	byte_pair address;
 	address.word = T(ReadZeroPageWord)(pointer);	// Clocks 3-4
 	if(T(Wrap)(address.bytes.low, _Y)) {
 		uint16 savedAddress = address.word;
@@ -277,7 +277,7 @@ quick FromData T(AddressIndirectYRead)() { return T(AddressIndirectIndexedRead)(
     8   address+Y   W  write the new value to effective address */
 WithInstruction void T(AddressIndirectIndexedRMW)() {
 	const uint8 pointer = T(Fetch)();		// Clock 2
-	pair address;
+	byte_pair address;
 	address.word = T(ReadZeroPageWord)(pointer);	// Clocks 3-4
 	uint16 savedAddress = address.word;
 #if !defined(COREFast)
@@ -302,7 +302,7 @@ WithInstruction void T(AddressIndirectYRMW)() { T(AddressIndirectIndexedRMW)<ins
     6   address+Y   W  write to effective address */
 quick void T(AddressIndirectIndexedWrite)(WithRegister) {
 	const uint8 pointer = T(Fetch)();		// Clock 2
-	pair address;
+	byte_pair address;
 	address.word = T(ReadZeroPageWord)(pointer);	// Clocks 3-4
 	uint16 savedAddress = address.word;
 #if !defined(COREFast)

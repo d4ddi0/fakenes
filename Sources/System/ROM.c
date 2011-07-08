@@ -136,6 +136,7 @@ int load_ines_rom (PACKFILE *file, ROM *rom)
       already open PACKFILE. */
 
    INES_HEADER header;
+   unsigned size;
 
    RT_ASSERT(file);
    RT_ASSERT(rom);
@@ -205,7 +206,12 @@ int load_ines_rom (PACKFILE *file, ROM *rom)
       return (4);
    }
 
-   pack_fread (rom->prg_rom, (rom->prg_rom_pages * 0x4000), file);
+   size = rom->prg_rom_pages * ROM_PRG_ROM_PAGE_SIZE;
+   pack_fread (rom->prg_rom, size, file);
+
+   /* Compute CRC32 for PRG-ROM. */
+   rom->prg_rom_crc32 = make_crc32(rom->prg_rom, size);
+   log_printf("PRG-ROM CRC is %08X\n", rom->prg_rom_crc32);
 
    /* Load CHR-ROM. */
    if (rom->chr_rom_pages > 0)
@@ -218,7 +224,12 @@ int load_ines_rom (PACKFILE *file, ROM *rom)
          return (5);
       }
 
-      pack_fread (rom->chr_rom, (rom->chr_rom_pages * 0x2000), file);
+      size = rom->chr_rom_pages * ROM_CHR_ROM_PAGE_SIZE;
+      pack_fread (rom->chr_rom, size, file);
+
+      /* Compute CRC for CHR-ROM. */
+      rom->chr_rom_crc32 = make_crc32(rom->chr_rom, size);
+      log_printf("CHR-ROM CRC is %08X\n", rom->chr_rom-crc32);
    }
 
    /* Copy SRAM flag. */

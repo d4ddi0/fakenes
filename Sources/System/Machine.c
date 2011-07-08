@@ -108,6 +108,9 @@ static void fps_timer(void);
 static void throttle_timer(void);
 static int keyboard_handler(int key, int* scancode);
 
+static UINT8 read_registers(const UINT16 address);
+static void write_registers(const UINT16 address, const UINT8 data);
+
 void machine_load_config(void)
 {
    cpu_usage      = get_config_int("timing", "cpu_usage",  cpu_usage);
@@ -151,6 +154,10 @@ int machine_init(void)
       machine_exit();
       return 1;
    }
+
+   /* Map in hardware registers. */
+   cpu_map_block_read_handler(0x4000, read_registers);
+   cpu_map_block_write_handler(0x4000, write_registers);
 
    /* Initialize Picture Processing Unit (PPU). */
    if(ppu_init() != 0) {
@@ -628,3 +635,30 @@ static int keyboard_handler(int key, int* scancode)
    return key;
 }
 END_OF_STATIC_FUNCTION(keyboard_handler);
+
+/* Memory-mapped I/O handlers. These trap the $4000-$47FF range for hardware registers,
+   which is used for the APU, PPU and input controller. */
+static UINT8 read_registers(const UINT16 address)
+{
+   if(address == 0x4014)
+      return ppu_read(address);
+   else if(address <= 0x4015)
+      return apu_read(address);
+   else if((address == 0x4016) || (address == 0x4017))
+      return input_read(address);
+
+   return 0x00;
+}
+
+static void write_registers(const UINT16 address, const UINT8 data)
+{
+   if(address == 0x4014) {
+      ppu_write (address, value);
+   }
+   else if(address <= 0x4017) {
+      apu_write(address, value);
+
+      if((address == 0x4016) || (address == 0x4017))
+         input_write(address, value);
+   }
+}

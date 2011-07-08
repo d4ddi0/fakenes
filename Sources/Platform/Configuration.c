@@ -22,6 +22,7 @@ static void actually_load_config(void)
 {
    apu_load_config();
    audio_load_config();
+   cpu_load_config();
    gui_load_config();
    input_load_config();
    machine_load_config();
@@ -61,6 +62,7 @@ void save_config(void)
 
    apu_save_config();
    audio_save_config();
+   cpu_save_config();
    gui_save_config();
    input_save_config();
    machine_save_config();

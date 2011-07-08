@@ -156,7 +156,7 @@ void Load(PACKFILE* file, const int version)
    render.pixel = pack_getc(file);
 
    render.clock = pack_igetw(file);
-   render.isOddClock = Boolean(pack_getc(file));
+   render.isOddClock = LOAD_BOOLEAN(pack_getc(file));
 
    // Background
    RenderBackgroundContext& background = render.background;
@@ -199,7 +199,7 @@ void Load(PACKFILE* file, const int version)
 
       sprite.counter = pack_getc(file);
 
-      sprite.dead = Boolean(pack_getc(file));
+      sprite.dead = LOAD_BOOLEAN(pack_getc(file));
    }
 
    // Sprite evaluation
@@ -216,7 +216,7 @@ void Load(PACKFILE* file, const int version)
    spriteEvaluation.n = pack_getc(file);
    spriteEvaluation.m = pack_getc(file);
 
-   spriteEvaluation.locked = Boolean(pack_getc(file));
+   spriteEvaluation.locked = LOAD_BOOLEAN(pack_getc(file));
 
    spriteEvaluation.data = pack_getc(file);
 
@@ -236,7 +236,7 @@ void Save(PACKFILE* file, const int version)
    pack_putc(render.pixel, file);
 
    pack_iputw(render.clock, file);
-   pack_putc(Binary(render.isOddClock), file);
+   pack_putc(SAVE_BOOLEAN(render.isOddClock), file);
 
    // Background
    const RenderBackgroundContext& background = render.background;
@@ -279,7 +279,7 @@ void Save(PACKFILE* file, const int version)
 
       pack_putc(sprite.counter, file);
 
-      pack_putc(Binary(sprite.dead), file);
+      pack_putc(SAVE_BOOLEAN(sprite.dead), file);
    }
 
    // Sprite evaluation
@@ -296,7 +296,7 @@ void Save(PACKFILE* file, const int version)
    pack_putc(spriteEvaluation.n, file);
    pack_putc(spriteEvaluation.m, file);
 
-   pack_putc(Binary(spriteEvaluation.locked), file);
+   pack_putc(SAVE_BOOLEAN(spriteEvaluation.locked), file);
 
    pack_putc(spriteEvaluation.data, file);
 

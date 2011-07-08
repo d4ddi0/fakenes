@@ -152,17 +152,24 @@ void ClearInterrupt(const COREInterruptType type) {
 	}
 }
 
-// This sets the internal context to the contents of a user-provided one.
+/* This returns a copy of the internal context (e.g for state saving).
+   The flags are packed into the status register 'P'. */
 void GetContext(COREContext* context) {
-	RT_ASSERT(context);
+	Safeguard(context);
+
+	PackFlags();
 	memcpy(context, &core, sizeof(COREContext));
 }
 
-// This returns a copy of the internal context (e.g for state saving).
+/* This sets the internal context to the contents of a user-provided one.
+   The flags are unpacked from the status register 'P'. */
 void SetContext(const COREContext* context) {
-	RT_ASSERT(context);
+	Safeguard(context);
+
+	UnpackFlags();
 	memcpy(&core, context, sizeof(COREContext));
 }
+
 
 /* This returns the current execution time, in master clock cycles. It is not an
    infinite counter, so be careful of wrapping: calculations that compute deltas

@@ -23,7 +23,6 @@
 #include "ppu_int.h"
 #include "rom.h"
 #include "renderer/renderer.hpp"
-#include "shared/crc32.h"
 #include "timing.h"
 #include "types.h"
 #include "video.h"
@@ -326,11 +325,9 @@ int ppu_init(void)
    // Build color map.
    BuildColorMap();
 
-   // Compute CRC32 for CHR-ROM.
-   if(global_rom.chr_rom_pages > 0) {
-      global_rom.chr_rom_crc32 = make_crc32(global_rom.chr_rom, global_rom.chr_rom_pages * 0x2000);
-      log_printf("CHR-ROM CRC is %08X\n", global_rom.chr_rom_crc32);
-   }
+   // Map registers in the $2000-$3FFF range. Note that $4017 is handled elsewhere.
+   cpu_map_block_read_handler(0x2000, CPU_MAP_BLOCK_8K, ppu_read);
+   cpu_map_block_write_handler(0x2000, CPU_MAP_BLOCK_8K, ppu_write);
 
    // Initialize everything else.
    ppu_reset();
@@ -832,63 +829,6 @@ BOOL ppu_get_option(const ENUM option)
    return FALSE;
 }
 
-void ppu_save_state(PACKFILE* file, const int version)
-{
-   using namespace PPUState;
-
-   RT_ASSERT(file);
-
-   // Save internal state.
-   pack_iputl(clockCounter, file);
-   pack_iputl(clockBuffer, file);
-   pack_iputw(scanline, file);
-   pack_iputw(scanlineTimer, file);
-   pack_putc(Binary(isOddFrame), file);
-   pack_iputl(predictionTimestamp, file);
-   pack_iputl(predictionCycles, file);
-
-   pack_putc(readBuffer, file);
-   pack_putc(writeBuffer, file);
-   pack_putc(Binary(addressLatch), file);
-
-   pack_putc(oamDMATimer, file);
-   pack_iputw(oamDMAReadAddress, file);
-   pack_iputw(oamDMAWriteAddress, file);
-   pack_putc(oamDMAByte, file);
-   pack_putc(Binary(oamDMAFlipFlop), file);
-
-   pack_putc(vblankQuirkTime, file);
-
-   // Save registers.
-   pack_putc(ppu__register_2000, file);
-   pack_putc(ppu__register_2001, file);
-   pack_putc(ppu__register_2003, file);
-   pack_iputw(ppu__register_2005, file);
-   pack_iputw(ppu__register_2006, file);
-
-   // Save flags.
-   pack_putc(Binary(ppu__hblank_started), file);
-   pack_putc(Binary(ppu__vblank_started), file);
-   pack_putc(Binary(ppu__sprite_collision), file);
-   pack_putc(Binary(ppu__sprite_overflow), file);
-   pack_putc(Binary(ppu__force_rendering), file);
-
-   // Save mirroring.
-   pack_putc(ppu__mirroring, file);
-
-   /* Save VRAM. Name tables and pattern tables only need to be saved when in use, while
-      palettes and sprite VRAM must always be saved. */
-   const int count = mmc_get_name_table_count();
-   if(count > 0)
-      pack_fwrite(ppu__name_table_vram, PPU__BYTES_PER_NAME_TABLE * count, file);
-
-   if(mmc_uses_pattern_vram())
-      pack_fwrite(ppu__pattern_table_vram, PPU__PATTERN_TABLE_VRAM_SIZE, file);
-
-   pack_fwrite(ppu__palette_vram, PPU__PALETTE_VRAM_SIZE, file);
-   pack_fwrite(ppu__sprite_vram, PPU__SPRITE_VRAM_SIZE, file);
-}
-
 void ppu_load_state(PACKFILE* file, const int version)
 {
    using namespace PPUState;
@@ -900,19 +840,19 @@ void ppu_load_state(PACKFILE* file, const int version)
    clockBuffer = pack_igetl(file);
    scanline = pack_igetw(file);
    scanlineTimer = pack_igetw(file);
-   isOddFrame = Boolean(pack_getc(file));
+   isOddFrame = LOAD_BOOLEAN(pack_getc(file));
    predictionTimestamp = pack_igetl(file);
    predictionCycles = pack_igetl(file);
 
    readBuffer = pack_getc(file);
    writeBuffer = pack_getc(file);
-   addressLatch = Boolean(pack_getc(file));
+   addressLatch = LOAD_BOOLEAN(pack_getc(file));
 
    oamDMATimer = pack_getc(file);
    oamDMAReadAddress = pack_igetw(file);
    oamDMAWriteAddress = pack_igetw(file);
    oamDMAByte = pack_getc(file);
-   oamDMAFlipFlop = Boolean(pack_getc(file));
+   oamDMAFlipFlop = LOAD_BOOLEAN(pack_getc(file));
 
    vblankQuirkTime = pack_getc(file);
 
@@ -930,11 +870,11 @@ void ppu_load_state(PACKFILE* file, const int version)
    ppu_write(0x2006, register_2006 & 0x00FF);
  
    // Restore flags.
-   ppu__hblank_started = Boolean(pack_getc(file));
-   ppu__vblank_started = Boolean(pack_getc(file));
-   ppu__sprite_collision = Boolean(pack_getc(file));
-   ppu__sprite_overflow = Boolean(pack_getc(file));
-   ppu__force_rendering = Boolean(pack_getc(file));
+   ppu__hblank_started = LOAD_BOOLEAN(pack_getc(file));
+   ppu__vblank_started = LOAD_BOOLEAN(pack_getc(file));
+   ppu__sprite_collision = LOAD_BOOLEAN(pack_getc(file));
+   ppu__sprite_overflow = LOAD_BOOLEAN(pack_getc(file));
+   ppu__force_rendering = LOAD_BOOLEAN(pack_getc(file));
 
    // Restore mirroring.
    ppu_set_mirroring(pack_getc(file));
@@ -949,6 +889,63 @@ void ppu_load_state(PACKFILE* file, const int version)
 
    pack_fread(ppu__palette_vram, PPU__PALETTE_VRAM_SIZE, file);
    pack_fread(ppu__sprite_vram, PPU__SPRITE_VRAM_SIZE, file);
+}
+
+void ppu_save_state(PACKFILE* file, const int version)
+{
+   using namespace PPUState;
+
+   RT_ASSERT(file);
+
+   // Save internal state.
+   pack_iputl(clockCounter, file);
+   pack_iputl(clockBuffer, file);
+   pack_iputw(scanline, file);
+   pack_iputw(scanlineTimer, file);
+   pack_putc(SAVE_BOOLEAN(isOddFrame), file);
+   pack_iputl(predictionTimestamp, file);
+   pack_iputl(predictionCycles, file);
+
+   pack_putc(readBuffer, file);
+   pack_putc(writeBuffer, file);
+   pack_putc(SAVE_BOOLEAN(addressLatch), file);
+
+   pack_putc(oamDMATimer, file);
+   pack_iputw(oamDMAReadAddress, file);
+   pack_iputw(oamDMAWriteAddress, file);
+   pack_putc(oamDMAByte, file);
+   pack_putc(SAVE_BOOLEAN(oamDMAFlipFlop), file);
+
+   pack_putc(vblankQuirkTime, file);
+
+   // Save registers.
+   pack_putc(ppu__register_2000, file);
+   pack_putc(ppu__register_2001, file);
+   pack_putc(ppu__register_2003, file);
+   pack_iputw(ppu__register_2005, file);
+   pack_iputw(ppu__register_2006, file);
+
+   // Save flags.
+   pack_putc(SAVE_BOOLEAN(ppu__hblank_started), file);
+   pack_putc(SAVE_BOOLEAN(ppu__vblank_started), file);
+   pack_putc(SAVE_BOOLEAN(ppu__sprite_collision), file);
+   pack_putc(SAVE_BOOLEAN(ppu__sprite_overflow), file);
+   pack_putc(SAVE_BOOLEAN(ppu__force_rendering), file);
+
+   // Save mirroring.
+   pack_putc(ppu__mirroring, file);
+
+   /* Save VRAM. Name tables and pattern tables only need to be saved when in use, while
+      palettes and sprite VRAM must always be saved. */
+   const int count = mmc_get_name_table_count();
+   if(count > 0)
+      pack_fwrite(ppu__name_table_vram, PPU__BYTES_PER_NAME_TABLE * count, file);
+
+   if(mmc_uses_pattern_vram())
+      pack_fwrite(ppu__pattern_table_vram, PPU__PATTERN_TABLE_VRAM_SIZE, file);
+
+   pack_fwrite(ppu__palette_vram, PPU__PALETTE_VRAM_SIZE, file);
+   pack_fwrite(ppu__sprite_vram, PPU__SPRITE_VRAM_SIZE, file);
 }
 
 UINT8* ppu_get_chr_rom_pages(ROM *rom)

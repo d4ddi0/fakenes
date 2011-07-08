@@ -28,9 +28,9 @@ extern void apu_enable_exsound(const ENUM exsound_id);
 extern UINT8 apu_read(const UINT16 address);
 extern void apu_write(const UINT16 address, UINT8 value);
 extern void apu_predict_irqs(const cpu_time_t cycles);
-extern void apu_save_state(PACKFILE* file, const int version);
-extern void apu_load_state(PACKFILE* file, const int version);
 extern void apu_sync_update(void);
+extern void apu_load_state(PACKFILE* file, const int version);
+extern void apu_save_state(PACKFILE* file, const int version);
 extern REAL* apu_get_visdata(void);
 
 typedef struct apu_options_s {

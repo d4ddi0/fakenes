@@ -29,7 +29,7 @@ enum {
 };
 
 // Interrupt types:
-enum COREInterrupt_Type {
+enum COREInterruptType {
 	COREInterruptNMI = 0,	// Non-maskable interrupt (NMI).
 	COREInterruptIRQ,	// Interrupt request (IRQ), must be acknowledged.
 	COREInterruptIRQ1,	// Additional IRQ sources (1-4). 
@@ -47,7 +47,7 @@ enum {
 
 // State context:
 typedef struct _CORERegisters {
-	pair pc;		// Program counter.
+	byte_pair pc;		// Program counter.
 	uint8 a, p, s, x, y;	// Accumulator, status, index registers, stack pointer.
 } CORERegisters;
 

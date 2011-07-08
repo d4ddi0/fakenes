@@ -1569,37 +1569,12 @@ static void apu_repredict_irqs(const unsigned predictionFlags)
       apu_predict_frame_irq(apu_cycles_remaining);
 }
 
-void apu_save_state(PACKFILE* file, const int version)
+void apu_sync_update(void)
 {
-   RT_ASSERT(file);
-
    // Sync state.
    process();
 
-   // Processing timestamp
-   pack_iputl(apu.clock_counter, file);
-   pack_iputl(apu.clock_buffer, file);
-
-   // IRQ prediction
-   pack_iputl(apu.prediction_timestamp, file);
-   pack_iputl(apu.prediction_cycles, file);
-
-   // Frame sequencer & frame IRQs
-   pack_iputw(apu.sequence_counter, file);
-   pack_putc(apu.sequence_step, file);
-   pack_putc(apu.sequence_steps, file);
-   pack_putc(SAVE_BOOLEAN(apu.frame_irq_gen), file);
-   pack_putc(SAVE_BOOLEAN(apu.frame_irq_occurred), file);
-
-   // Sound generators
-   apu_save_square(apu.square[0], file, version);
-   apu_save_square(apu.square[1], file, version);
-   apu_save_triangle(apu.triangle, file, version);
-   apu_save_noise(apu.noise, file, version);
-   apu_save_dmc(apu.dmc, file, version);
-
-   // ExSound
-   apu_exsound_sourcer.save(file, version);
+   audio_update();
 }
 
 void apu_load_state(PACKFILE* file, const int version)
@@ -1633,12 +1608,37 @@ void apu_load_state(PACKFILE* file, const int version)
    apu.initializing--;
 }
 
-void apu_sync_update(void)
+void apu_save_state(PACKFILE* file, const int version)
 {
+   RT_ASSERT(file);
+
    // Sync state.
    process();
 
-   audio_update();
+   // Processing timestamp
+   pack_iputl(apu.clock_counter, file);
+   pack_iputl(apu.clock_buffer, file);
+
+   // IRQ prediction
+   pack_iputl(apu.prediction_timestamp, file);
+   pack_iputl(apu.prediction_cycles, file);
+
+   // Frame sequencer & frame IRQs
+   pack_iputw(apu.sequence_counter, file);
+   pack_putc(apu.sequence_step, file);
+   pack_putc(apu.sequence_steps, file);
+   pack_putc(SAVE_BOOLEAN(apu.frame_irq_gen), file);
+   pack_putc(SAVE_BOOLEAN(apu.frame_irq_occurred), file);
+
+   // Sound generators
+   apu_save_square(apu.square[0], file, version);
+   apu_save_square(apu.square[1], file, version);
+   apu_save_triangle(apu.triangle, file, version);
+   apu_save_noise(apu.noise, file, version);
+   apu_save_dmc(apu.dmc, file, version);
+
+   // ExSound
+   apu_exsound_sourcer.save(file, version);
 }
 
 REAL* apu_get_visdata(void)
