@@ -962,63 +962,6 @@ void ppu_save_state(PACKFILE* file, const int version)
    pack_fwrite(ppu__sprite_vram, PPU__SPRITE_VRAM_SIZE, file);
 }
 
-UINT8* ppu_get_chr_rom_pages(ROM *rom)
-{
-   RT_ASSERT(rom);
-
-   const int num_pages = rom->chr_rom_pages;
-
-   /* Compute a mask used to wrap invalid CHR ROM page numbers.
-      As CHR ROM uses a 8k page size, this mask is based
-      on a 8k page size. */
-   int pages_mirror_size;
-   if(((num_pages * 2 - 1) & (num_pages - 1)) == (num_pages - 1)) {
-      // Compute mask for even power of two.
-      pages_mirror_size = num_pages;
-   }
-   else {
-      /* Compute the smallest even power of 2 greater than
-         CHR ROM page count, and use that to compute the mask. */
-      int i;
-      for(i = 0; (num_pages >> i) > 0; i++);
-      pages_mirror_size = 1 << i;
-   }
-
-   rom->chr_rom_page_overflow_mask = pages_mirror_size - 1;
-
-   // Identify-map all the present pages.
-   int copycount;
-   for(copycount = 0; copycount < num_pages; copycount++)
-      rom->chr_rom_page_lookup[copycount] = copycount;
-
-   // Mirror-map all the not-present pages.
-   int missing, count, next;
-   for(next = num_pages, missing = pages_mirror_size - num_pages,
-       count = 1; missing; count <<= 1, missing >>= 1)
-        if(missing & 1)
-            for(copycount = count; copycount; copycount--, next++)
-                rom->chr_rom_page_lookup[next] = rom->chr_rom_page_lookup[next - count];
-
-    // 8k CHR ROM page size.
-    const unsigned size = num_pages * 0x2000;
-    rom->chr_rom = (UINT8*)malloc(size);
-    if(rom->chr_rom)
-        // Initialize to a known value for areas not present in image.
-        memset(rom->chr_rom, 0xFF, size);
-
-    return rom->chr_rom;
-}
-
-void ppu_free_chr_rom(ROM *rom)
-{
-   RT_ASSERT(rom);
-
-   if(rom->chr_rom) {
-      free(rom->chr_rom);
-      rom->chr_rom = NULL;
-   }
-}
-
 ENUM ppu_get_mirroring(void)
 {
    SyncHelper();

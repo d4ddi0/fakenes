@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "common.h"
+#include "debug.h"
 #include "cpu.h"
 #include "mmc.h"
 #include "ppu.h"
@@ -40,6 +41,11 @@ ROM global_rom;
 /* Size of the transfer buffer when loading ROM files into memory (larger is
    faster, but don't get too carried away). */
 #define BUFFER_SIZE  65536
+
+static UINT8* get_prg_rom_pages(ROM* rom);
+static UINT8* get_chr_rom_pages(ROM* rom);
+static void free_prg_rom(ROM* rom);
+static void free_chr_rom(ROM* rom);
 
 int load_ips (const UCHAR *filename, PACKFILE *buffer_file)
 {
@@ -198,7 +204,7 @@ int load_ines_rom (PACKFILE *file, ROM *rom)
    }
 
    /* Load PRG-ROM. */
-   if (!cpu_get_prg_rom_pages (rom))
+   if (!get_prg_rom_pages (rom))
    {
       WARN_GENERIC();
       log_printf ("ROM: iNES loader: Failed to allocate memory for PRG ROM.");
@@ -216,7 +222,7 @@ int load_ines_rom (PACKFILE *file, ROM *rom)
    /* Load CHR-ROM. */
    if (rom->chr_rom_pages > 0)
    {
-      if (!ppu_get_chr_rom_pages (rom))
+      if (!get_chr_rom_pages (rom))
       {
          WARN_GENERIC();
          log_printf ("ROM: iNES loader: Failed to allocate memory for CHR ROM.");
@@ -455,6 +461,138 @@ void free_rom (ROM *rom)
       rom->trainer = NULL;
    }
 
-   cpu_free_prg_rom (rom);
-   ppu_free_chr_rom (rom);
+   free_prg_rom (rom);
+   free_chr_rom (rom);
+}
+
+/* ---------------------------------------------------------------------- */
+
+static UINT8* get_prg_rom_pages(ROM* rom)
+{
+   int num_pages;
+   int copycount, missing, count, next, pages_mirror_size;
+
+   RT_ASSERT(rom);
+
+   num_pages = rom->prg_rom_pages;
+
+    /* Compute a mask used to wrap invalid PRG ROM page numbers.
+     *  As PRG ROM uses a 16k page size, this mask is based
+     *  on a 16k page size.
+     */
+    if (((num_pages * 2 - 1) & (num_pages - 1)) == (num_pages - 1))
+    /* compute mask for even power of two */
+    {
+        pages_mirror_size = num_pages;
+    }
+    else
+    /* compute mask */
+    {
+        int i;
+
+        /* compute the smallest even power of 2 greater than
+           PRG ROM page count, and use that to compute the mask */
+        for (i = 0; (num_pages >> i) > 0; i++);
+
+        pages_mirror_size = (1 << i);
+    }
+
+    rom->prg_rom_page_overflow_mask = (pages_mirror_size - 1);
+
+    /* identify-map all the present pages */
+    for (copycount = 0; copycount < num_pages; copycount++)
+    {
+        rom->prg_rom_page_lookup[copycount] = copycount;
+    }
+
+    /* mirror-map all the not-present pages */
+    for (next = num_pages, missing = pages_mirror_size - num_pages,
+        count = 1; missing; count <<= 1, missing >>= 1)
+    {
+        if (missing & 1)
+        {
+            for (copycount = count; copycount; copycount--, next++)
+            {
+                rom->prg_rom_page_lookup[next] =
+                  rom->prg_rom_page_lookup[(next - count)];
+            }
+        }
+    }
+
+    /* 16k PRG ROM page size */
+    rom->prg_rom = malloc ((num_pages * 0x4000));
+    if (rom->prg_rom)
+    {
+        /* initialize to a known value for areas not present in image */
+        memset (rom->prg_rom, 0xff, (num_pages * 0x4000));
+    }
+
+    return (rom->prg_rom);
+}
+
+static UINT8* get_chr_rom_pages(ROM* rom)
+{
+   RT_ASSERT(rom);
+
+   const int num_pages = rom->chr_rom_pages;
+
+   /* Compute a mask used to wrap invalid CHR ROM page numbers.
+      As CHR ROM uses a 8k page size, this mask is based
+      on a 8k page size. */
+   int pages_mirror_size;
+   if(((num_pages * 2 - 1) & (num_pages - 1)) == (num_pages - 1)) {
+      // Compute mask for even power of two.
+      pages_mirror_size = num_pages;
+   }
+   else {
+      /* Compute the smallest even power of 2 greater than
+         CHR ROM page count, and use that to compute the mask. */
+      int i;
+      for(i = 0; (num_pages >> i) > 0; i++);
+      pages_mirror_size = 1 << i;
+   }
+
+   rom->chr_rom_page_overflow_mask = pages_mirror_size - 1;
+
+   // Identify-map all the present pages.
+   int copycount;
+   for(copycount = 0; copycount < num_pages; copycount++)
+      rom->chr_rom_page_lookup[copycount] = copycount;
+
+   // Mirror-map all the not-present pages.
+   int missing, count, next;
+   for(next = num_pages, missing = pages_mirror_size - num_pages,
+       count = 1; missing; count <<= 1, missing >>= 1)
+        if(missing & 1)
+            for(copycount = count; copycount; copycount--, next++)
+                rom->chr_rom_page_lookup[next] = rom->chr_rom_page_lookup[next - count];
+
+    // 8k CHR ROM page size.
+    const unsigned size = num_pages * 0x2000;
+    rom->chr_rom = (UINT8*)malloc(size);
+    if(rom->chr_rom)
+        // Initialize to a known value for areas not present in image.
+        memset(rom->chr_rom, 0xFF, size);
+
+    return rom->chr_rom;
+}
+
+static void free_prg_rom(ROM* rom)
+{
+   RT_ASSERT(rom);
+
+   if(rom->prg_rom) {
+      free(rom->prg_rom);
+      rom->prg_rom = NULL;
+   }
+}
+
+static void free_chr_rom(ROM* rom)
+{
+   RT_ASSERT(rom);
+
+   if(rom->chr_rom) {
+      free(rom->chr_rom);
+      rom->chr_rom = NULL;
+   }
 }
