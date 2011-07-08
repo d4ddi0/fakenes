@@ -91,10 +91,6 @@ extern void cpu_unmap_block(const UINT16 address, const int pages);
 extern void cpu_unmap_block_read(const UINT16 address, const int pages);
 extern void cpu_unmap_block_write(const UINT16 address, const int pages);
 
-extern UINT16 *cpu_active_pc;
-extern void cpu_free_prg_rom(ROM *);
-extern UINT8 *cpu_get_prg_rom_pages(ROM *);
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
