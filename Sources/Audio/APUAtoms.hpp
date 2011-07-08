@@ -130,7 +130,7 @@ class APU {
 public:
    // State detection.
    int initializing;
-   bool processing;
+   bool synchronizing;
 
    // Timestamp of the last call to process().
    cpu_time_t clock_counter;

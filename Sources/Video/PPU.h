@@ -64,6 +64,7 @@ extern void ppu_exit(void);
 extern void ppu_reset(void);
 extern UINT8 ppu_read(const UINT16 address);
 extern void ppu_write(const UINT16 address, const UINT8 data);
+extern cpu_time_t ppu_execute(const cpu_time_t time);
 extern void ppu_predict_interrupts(const cpu_time_t cycles, const unsigned flags);
 extern void ppu_repredict_interrupts(const unsigned flags);
 extern void ppu_sync_update(void);

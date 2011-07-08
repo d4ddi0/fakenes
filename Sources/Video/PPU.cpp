@@ -36,7 +36,7 @@
      - A fixed-width data type must be used on anything that gets saved to a save state file.
      - When a variable won't be saved to a save state, try to stick with int or unsigned.
      - The 'linear' keyword should be used on any function called only once.
-     - Similarly, the 'inline' keyword should be used on functions that get called excessively.
+     - Similarly, the 'forceinline' keyword should be used on functions that get called excessively.
      - When a variable won't be modified, make its value const, to improve optimization.
      - When calling functions, pass parameters as const whenever possible. */
 
@@ -47,18 +47,18 @@
       These are used exclusively by this file only. */
 // Color mapping.
 static linear void BuildColorMap();
-static inline void MapColor(const UINT8 index, const UINT16 value);
+static forceinline void MapColor(const UINT8 index, const UINT16 value);
 
 // VRAM reading & writing.
 static linear uint8 VRAMRead();
-static inline uint8 VRAMReadUnbuffered(const uint16 address);
+static forceinline uint8 VRAMReadUnbuffered(const uint16 address);
 static linear void VRAMWrite(const uint8 data);
-static inline void IncrementVRAMAddress();
-static inline void UpdateVRAMAddress();
+static forceinline void IncrementVRAMAddress();
+static forceinline void UpdateVRAMAddress();
 
 // Sprite VRAM (OAM) reading & writing.
 static linear uint8 OAMRead();
-static inline void OAMWrite(const uint8 data);
+static forceinline void OAMWrite(const uint8 data);
 static linear void StartOAMDMA(const uint8 page);
 
 // Mirroring, name tables and pattern tables.
@@ -69,18 +69,19 @@ static void UpdatePatternTables();
 // Interrupt prediction (PPU and MMC).
 static void PredictInterrupts(const cpu_time_t cycles, const unsigned flags);
 static void RepredictInterrupts(const unsigned flags);
-static inline bool ClockScanlineTimer(int16 &nextScanline);
+static forceinline bool ClockScanlineTimer(int16 &nextScanline);
 
 // Frame timing.
-static void Synchronize();
-static inline cpu_time_t GetTimeElapsed();
+static forceinline void Synchronize();
+static forceinline Process(const cpu_time_t time);
+static forceinline cpu_time_t GetTimeElapsed();
 static linear void StartFrame();
 static linear void EndFrame();
 static linear void StartScanline();
 static linear void StartScanlineCycle(const cpu_time_t cycle);
 static linear void EndScanline();
 static linear void OAMDMA();
-static inline void LoadCachedSettings();
+static forceinline void LoadCachedSettings();
 
 /* Internal state:
       These variables store internal state information, particularly timing information.
@@ -729,6 +730,19 @@ void ppu_write(const UINT16 address, const UINT8 data)
    }
 }
 
+cpu_time_t ppu_execute(const cpu_time_t time)
+{
+   /* Don't synchronize here, as this function is only called when the synchronizing engine is
+      not being used (e.g the CPU is in unchained mode). */
+
+   // Process individual clock cycles.
+   const cpu_time_t processed = process(time);
+   // Update timestamp.
+   PPUState::clockCounter = cpu_get_time();
+
+   return processed;
+}
+
 void ppu_predict_interrupts(const cpu_time_t cycles, const unsigned flags)
 {
    SyncHelper();
@@ -1202,7 +1216,7 @@ static linear void BuildColorMap()
       MapColor(i, PPUState::colorMap[i]);
 }
 
-static inline void MapColor(const UINT8 index, const UINT16 value)
+static forceinline void MapColor(const UINT8 index, const UINT16 value)
 {
    RT_ASSERT(index < PPU__COLOR_MAP_SIZE);
 
@@ -1270,7 +1284,7 @@ static linear uint8 VRAMRead()
    return data;
 }
 
-static inline uint8 VRAMReadUnbuffered(const uint16 address)
+static forceinline uint8 VRAMReadUnbuffered(const uint16 address)
 {
    // If the MMC has a handler installed, we need to call it.
    if(mmc_check_address_lines)
@@ -1335,12 +1349,12 @@ static linear void VRAMWrite(const uint8 data)
    IncrementVRAMAddress();
 }
 
-static inline void IncrementVRAMAddress()
+static forceinline void IncrementVRAMAddress()
 {
    ppu__vram_address += ppu__vram_address_increment;
 }
 
-static inline void UpdateVRAMAddress()
+static forceinline void UpdateVRAMAddress()
 {
    ppu__vram_address = ppu__vram_address_latch;
 }
@@ -1362,7 +1376,7 @@ static linear uint8 OAMRead()
       return ppu__sprite_vram[ppu__oam_address];
 }
 
-static inline void OAMWrite(const uint8 data)
+static forceinline void OAMWrite(const uint8 data)
 {
    /* Writes will increment OAMADDR after the write;
       reads during vertical or forced blanking return the value from OAM at that address but do not increment. */
@@ -1583,7 +1597,7 @@ static void RepredictInterrupts(const unsigned flags)
    PredictInterrupts(ppuCyclesRemaining, flags);
 }
 
-static inline bool ClockScanlineTimer(int16 &nextScanline)
+static forceinline bool ClockScanlineTimer(int16 &nextScanline)
 {
    using namespace PPUState;
 
@@ -1609,20 +1623,41 @@ static inline bool ClockScanlineTimer(int16 &nextScanline)
 
 static void Synchronize()
 {
-   if(PPUState::synchronizing)
+   if(PPUState::synchronizing) {
       // No point to continue if we're already synchronizing.
+      WARN_GENERIC();
       return;
+    }
 
-   // Find out how many PPU cycles have elapsed since the last synchronization.
-   cpu_time_t time = GetTimeElapsed();
+   // Calculate the delta period.
+   const cpu_time_t time = cpu_get_time_elapsed(&PPUState::clockCounter);
    if(time == 0)
-      // Nothing to do.
-      return;
-  
+      // Nothing to do. 
+      return 0;
+
    // Set a simple flag to avoid re-entry, which is bad.
    PPUState::synchronizing = true;
 
-   for(cpu_time_t current = 0; current < time; current++) {
+   // Process individual clock cycles until we are caught up.
+   Process(time);
+
+   // End unbreakable code section.
+   PPUState::synchronizing = false;
+}
+
+static cpu_time_t Process(const cpu_time_t time)
+{
+   // Scale from master clock to PPU and buffer the remainder to avoid possibly losing cycles.
+   const cpu_time_t cycles = (time + PPUState::clockBuffer) / PPU_CLOCK_DIVIDER;
+   PPUState::clockBuffer = time - (cycles * PPU_CLOCK_MULTIPLIER);
+
+   // Note: This is always > 0 when PPUState::clockBuffer > 0.
+   if(cycles == 0) {
+      // Nothing to do.
+      return 0;
+   }
+
+   for(cpu_time_t current = 0; current < cycles; current++) {
       // Get current scanline clock cycle (starting at 1).
       const cpu_time_t cycle = (PPU_SCANLINE_CLOCKS - PPUState::scanlineTimer) + 1;
 
@@ -1692,22 +1727,26 @@ static void Synchronize()
       }
    }
 
-   // End unbreakable code section.
-   PPUState::synchronizing = false;
+   // Return the number of cycles processed.
+   return cycles * PPU_CLOCK_MULTIPLIER;
 }
 
-static inline cpu_time_t GetTimeElapsed()
+/* This simply gets the amount of time elasped (in PPU cycles). Synchronize() and Process() have
+   their own version of this; since it has to be split up for them. */
+static forceinline cpu_time_t GetTimeElapsed()
 {
    // Calculate the delta period.
-   const cpu_time_t elapsedCycles = cpu_get_elapsed_cycles(&PPUState::clockCounter) + PPUState::clockBuffer;
-   if(elapsedCycles == 0) // Always > 0 when ppu_clock_buffer > 0
+   const cpu_time_t time = cpu_get_time_elapsed(&PPUState::clockCounter);
+   if(time == 0) {
       // Nothing to do. 
       return 0;
-
+   }
+   
    // Scale from master clock to PPU and buffer the remainder to avoid possibly losing cycles.
-   const cpu_time_t ppuElapsedCycles = elapsedCycles / PPU_CLOCK_DIVIDER;
-   PPUState::clockBuffer = elapsedCycles - (ppuElapsedCycles * PPU_CLOCK_DIVIDER);
-   return ppuElapsedCycles;
+   const cpu_time_t ppuTime = (time + PPUState::clockBuffer) / PPU_CLOCK_DIVIDER;
+   PPUState::clockBuffer = time - (ppuTime * PPU_CLOCK_MULTIPLIER);
+
+   return ppuTime;
 }
 
 static linear void StartFrame()
@@ -1875,7 +1914,7 @@ static linear void OAMDMA()
    oamDMAFlipFlop = !oamDMAFlipFlop;
 }
 
-static inline void LoadCachedSettings()
+static forceinline void LoadCachedSettings()
 {
    ppu__enable_background_layer = cache_enable_background_layer;
    ppu__enable_sprite_back_layer = cache_enable_sprite_back_layer;

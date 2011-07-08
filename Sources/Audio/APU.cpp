@@ -68,7 +68,8 @@ static Sound::MMC5::Interface apu_exsound_mmc5;
 static Sound::VRC6::Interface apu_exsound_vrc6;
 
 // Internal function prototypes (defined at bottom).
-static void process(void);
+static forceinline void synchronize(void);
+static forceinline cpu_time_t process(const cpu_time_t time);
 static forceinline void mix(void);
 static forceinline void filter(real& sample, APULPFilter *lpEnv, APUDCFilter* dcEnv);
 static forceinline void amplify(real& sample);
@@ -1152,7 +1153,7 @@ UINT8 apu_read(const UINT16 address)
    uint8 value = 0x00;
 
    // Sync state.
-   process();
+   synchronize();
 
    switch(address) {
       case 0x4015: {
@@ -1209,7 +1210,7 @@ UINT8 apu_read(const UINT16 address)
 void apu_write(const UINT16 address, UINT8 value)
 {
    // Sync state.
-   process();
+   synchronize();
 
    switch(address) {
       case 0x4000:
@@ -1520,10 +1521,23 @@ void apu_write(const UINT16 address, UINT8 value)
    apu_exsound_sourcer.write(address, value);
 }
 
+cpu_time_t apu_execute(const cpu_time_t time)
+{
+   /* Note: DO NOT synchronize here, as this function is only called when the synchronizing
+      engine is *not* being used (e.g the CPU is in unchained mode). */
+
+   // Process individual clock cycles.
+   const cpu_time_t processed = process(time);
+   // Update timestamp.
+   apu.clock_counter = cpu_get_time();
+
+   return processed;
+}
+
 void apu_predict_irqs(const cpu_time_t cycles)
 {
    // Sync state.
-   process();
+   synchronize();
 
    // Save parameters for re-prediction if a mid-scanline change occurs.
    apu.prediction_timestamp = cpu_get_cycles();
@@ -1547,7 +1561,7 @@ static void apu_repredict_irqs(const unsigned predictionFlags)
       occurs (such as the frame sequencer being reset). */
 
    // Sync state.
-   process();
+   synchronize();
 
    // Determine how much time has elapsed since our initial prediction.
    const cpu_time_t timestamp = cpu_get_cycles();
@@ -1572,7 +1586,7 @@ static void apu_repredict_irqs(const unsigned predictionFlags)
 void apu_sync_update(void)
 {
    // Sync state.
-   process();
+   synchronize();
 
    audio_update();
 }
@@ -1613,7 +1627,7 @@ void apu_save_state(PACKFILE* file, const int version)
    RT_ASSERT(file);
 
    // Sync state.
-   process();
+   synchronize();
 
    // Processing timestamp
    pack_iputl(apu.clock_counter, file);
@@ -1665,43 +1679,56 @@ REAL* apu_get_visdata(void)
 
 // --- Internal functions. --- 
 
-static void process(void)
+static forceinline void synchronize(void)
 {
    if(apu.initializing)
       // Don't do processing while the APU is still initializing.
       return;
-   if(apu.processing) {
-      printf("WARNING: process() called when it is already running\n");
-      return;
-   }
 
-   if(!apu_options.enabled) {
-      // APU emulation is disabled - skip processing.
+   if(apu.synchronizing) {
+      printf("WARNING: synchronize() called when it is already running\n");
       return;
    }
 
    // Calculate the delta period.
-   const cpu_time_t elapsed_cycles = cpu_get_elapsed_cycles(&apu.clock_counter) + apu.clock_buffer;
-   if(elapsed_cycles == 0) { // Always > 0 if apu.clock_buffer > 0
+   const cpu_time_t time = cpu_get_time_elapsed(&apu.clock_counter);
+   if(time == 0) {
       // Nothing to do. 
       return;
    }
 
-   // Scale from master clock to APU and buffer the remainder to avoid possibly losing cycles.
-   const cpu_time_t elapsed_apu_cycles = elapsed_cycles / APU_CLOCK_DIVIDER;
-   apu.clock_buffer = elapsed_cycles - (elapsed_apu_cycles * APU_CLOCK_DIVIDER);
-
-   if(elapsed_apu_cycles == 0)
-      return;
-
    // Begin unbreakable code section.
-   apu.processing = true;
+   apu.synchronizing = true;
+
+   // Process individual clock cycles until we are caught up.
+   process(time);
+
+   // End unbreakable code section.
+   apu.synchronizing = false;
+}
+
+static forceinline cpu_time_t process(const cpu_time_t time)
+{
+   if(!apu_options.enabled) {
+      // APU emulation is disabled - skip processing.
+      return 0;
+   }
+
+   // Scale from master clock to APU and buffer the remainder to avoid possibly losing cycles.
+   const cpu_time_t cycles = (time + apu.clock_buffer) / APU_CLOCK_DIVIDER;
+   apu.clock_buffer = time - (cycles * APU_CLOCK_MULTIPLIER);
+
+   // Note: This is always > 0 when apu.clock_buffer > 0.
+   if(cycles == 0) {
+      // Nothing to do.
+      return 0;
+   }
 
    switch(apu_options.emulation) {
       case APU_EMULATION_FAST: {
          // -- Faster, inaccurate version of the mixer.
 
-         for(cpu_time_t count = 0; count < elapsed_apu_cycles; count++) {
+         for(cpu_time_t current = 0; current < cycles; current++) {
             // Buffer a cycle.
             apu.mixer.delta_cycles++;
 
@@ -1749,7 +1776,7 @@ static void process(void)
          // Since we'll be emulating every cycle, we'll use a timer delta of 1.
          apu.timer_delta = 1;
 
-         for(cpu_time_t count = 0; count < elapsed_apu_cycles; count++) {
+         for(cpu_time_t current = 0; current < cycles; current++) {
             // Update the frame sequencer.
             apu_update_frame_sequencer();
             // ~1.79MHz update driven independantly of the frame sequencer.
@@ -1789,7 +1816,7 @@ static void process(void)
          // Since we'll be emulating every cycle, we'll use a timer delta of 1.
          apu.timer_delta = 1;
 
-         for(cpu_time_t count = 0; count < elapsed_apu_cycles; count++) {
+         for(cpu_time_t current = 0; curent < cycles; current++) {
             // Update the frame sequencer.
             apu_update_frame_sequencer();
             // Update outputs.
@@ -1849,8 +1876,8 @@ static void process(void)
          WARN_GENERIC();
    }
 
-   // End unbreakable code section.
-   apu.processing = false;
+   // Return the number of cycles processed.
+   return cycles * APU_CLOCK_MULTIPLIER
 }
 
 static forceinline void mix(void)
