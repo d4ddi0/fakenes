@@ -24,48 +24,15 @@
  * Modified by Gray Watson <http://256.com/gray/>, 1997.
  */
 
-/* Modified Fri Jul 08 2011: Merged some files together and added some
+/* Modified Fri Jul 09 2011: Merged some files together and added some
     integration specific code and fixes along a simple wrapper
     function called calculate_md5(). */
-
-/*
- * NOTE: during quick performance tests on a Sun Sparc Ultra 1 and an
- * Alpha 255 300, these functions performed upwards of 3mb/sec
- * including disk I/O time.
- */
-
-/*
- * MD5 Test Suite from RFC1321: http://ds.internic.net:/rfc/rfc1321.txt
- *
- * MD5 ("") = d41d8cd98f00b204e9800998ecf8427e
- * MD5 ("a") = 0cc175b9c0f1b6a831c399e269772661
- * MD5 ("abc") = 900150983cd24fb0d6963f7d28e17f72
- * MD5 ("message digest") = f96b697d7cb7938d525a2f31aaf161d0
- * MD5 ("abcdefghijklmnopqrstuvwxyz") = c3fcd3d76192e4007dfb496cca67e13b
- * MD5 ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789") =
- * d174ab98d277d9f5a5611c2c9f419d9f
- * MD5 ("123456789012345678901234567890123456789012345678901234567890123456
- * 78901234567890") = 57edf4a22be3c955ac49da2e2107b67a
- */
 
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-
+#include "Common/Global.h"
 #include "MD5.h"
-
-MD5_HASH calculate_md5(const void* buffer, const size_t size)
-{
-  SAFEGUARD(buffer);
-  SAFEGUARD(size > 0);
-
-  MD5_HASH hash;
-  memset(&hash, 0, sizeof(MD5_HASH));
-  
-  md5_buffer(buffer, size, hash.bytes);
-  
-  return hash;
-}
 
 /* Begin 'md5_loc.h'. */
 
@@ -127,7 +94,7 @@ MD5_HASH calculate_md5(const void* buffer, const size_t size)
        a += FF (b, c, d) + *c_p + T;				\
        a = CYCLIC (a, s);					\
        a += b;							\
-       b_p = (char *)b_p + sizeof(md5_uint32);			\
+       b_p = (md5_uint8 *)b_p + sizeof(md5_uint32);		\
        c_p++;							\
     } while (0)
 
@@ -181,7 +148,7 @@ static	void	process_block(md5_t *md5_p, const void *buffer,
   md5_uint32	A, B, C, D;
 
   words_n = buf_len / sizeof(md5_uint32);
-  end_p = (char *)buf_p + words_n * sizeof(md5_uint32);
+  end_p = (md5_uint8 *)buf_p + words_n * sizeof(md5_uint32);
 
   A = md5_p->md_A;
   B = md5_p->md_B;
@@ -333,15 +300,15 @@ static	void	md5_get_result(const md5_t *md5_p, void *result)
 
   hold = SWAP(md5_p->md_A);
   memcpy(res_p, &hold, sizeof(md5_uint32));
-  res_p = (char *)res_p + sizeof(md5_uint32);
+  res_p = (md5_uint8 *)res_p + sizeof(md5_uint32);
 
   hold = SWAP(md5_p->md_B);
   memcpy(res_p, &hold, sizeof(md5_uint32));
-  res_p = (char *)res_p + sizeof(md5_uint32);
+  res_p = (md5_uint8 *)res_p + sizeof(md5_uint32);
 
   hold = SWAP(md5_p->md_C);
   memcpy(res_p, &hold, sizeof(md5_uint32));
-  res_p = (char *)res_p + sizeof(md5_uint32);
+  res_p = (md5_uint8 *)res_p + sizeof(md5_uint32);
 
   hold = SWAP(md5_p->md_D);
   memcpy(res_p, &hold, sizeof(md5_uint32));
@@ -437,14 +404,14 @@ void	md5_process(md5_t *md5_p, const void *buffer,
       md5_p->md_buf_len = in_block & BLOCK_SIZE_MASK;
     }
 
-    buffer = (const char *)buffer + add;
+    buffer = (const md5_uint8 *)buffer + add;
     len -= add;
   }
 
   /* process available complete blocks right from the user buffer */
   if (len > MD5_BLOCK_SIZE) {
     process_block (md5_p, buffer, len & ~BLOCK_SIZE_MASK);
-    buffer = (const char *) buffer + (len & ~BLOCK_SIZE_MASK);
+    buffer = (const md5_uint8 *) buffer + (len & ~BLOCK_SIZE_MASK);
     len &= BLOCK_SIZE_MASK;
   }
 
@@ -511,7 +478,7 @@ void	md5_finish(md5_t *md5_p, void *signature)
    */
   if (pad > 0) {
     /* some sort of padding start byte */
-    md5_p->md_buffer[bytes] = (unsigned char)0x80;
+    md5_p->md_buffer[bytes] = 0x80;
     if (pad > 1) {
       memset (md5_p->md_buffer + bytes + 1, 0, pad - 1);
     }
@@ -558,7 +525,7 @@ void	md5_finish(md5_t *md5_p, void *signature)
  *
  * signature - A 16 byte buffer that will contain the MD5 signature.
  */
-void	md5_buffer(const char *buffer, const md5_size buf_len,
+void	md5_buffer(const void *buffer, const md5_size buf_len,
 		   void *signature)
 {
   md5_t		md5;
@@ -656,4 +623,19 @@ void	md5_sig_from_string(void *signature, const char *str)
     val = high * 16 + low;
     *sig_p++ = val;
   }
+}
+
+/* ******************************************************************************** */
+
+MD5_HASH calculate_md5(const void* buffer, const md5_size size)
+{
+  SAFEGUARD(buffer);
+  SAFEGUARD(size > 0);
+
+  MD5_HASH hash;
+  memset(&hash, 0, sizeof(MD5_HASH));
+  
+  md5_buffer(buffer, size, hash.bytes);
+  
+  return hash;
 }
