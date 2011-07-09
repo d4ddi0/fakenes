@@ -669,7 +669,7 @@ void video_handle_keypress(const int c, const int scancode)
    }
 }
 
-void video_message(const int duration, const UCHAR* message, ...)
+void video_message(const int duration, const UDATA* message, ...)
 {
    va_list format;
    USTRING buffer;
@@ -910,7 +910,7 @@ void video_legacy_create_gui_gradient(GUI_COLOR* start, const GUI_COLOR* end, co
 
 /* This is like Allegro's textout(), but it uses slow putpixels, so it supports translucent drawing.
    This is used by video_legacy_shadow_textout(). */
-void video_legacy_translucent_textout(BITMAP* bitmap, FONT* font, const UCHAR* text, const int x, const int y, const int color)
+void video_legacy_translucent_textout(BITMAP* bitmap, FONT* font, const UDATA* text, const int x, const int y, const int color)
 {
    RT_ASSERT(bitmap);
    RT_ASSERT(font);
@@ -944,7 +944,7 @@ void video_legacy_translucent_textout(BITMAP* bitmap, FONT* font, const UCHAR* t
 }
 
 // Draws text with a shadow. This is designed to be used with DRAW_MODE_TRANS.
-void video_legacy_shadow_textout(BITMAP* bitmap, FONT* font, const UCHAR* text, const int x, const int y, const int color, const int opacity)
+void video_legacy_shadow_textout(BITMAP* bitmap, FONT* font, const UDATA* text, const int x, const int y, const int color, const int opacity)
 {
    RT_ASSERT(bitmap);
    RT_ASSERT(font);
@@ -974,7 +974,7 @@ void video_legacy_shadow_textout(BITMAP* bitmap, FONT* font, const UCHAR* text, 
    }
 }
 
-void video_legacy_shadow_textprintf(BITMAP* bitmap, FONT* font, const int x, const int y, const int color, const int opacity, const UCHAR* text, ...)
+void video_legacy_shadow_textprintf(BITMAP* bitmap, FONT* font, const int x, const int y, const int color, const int opacity, const UDATA* text, ...)
 {
    RT_ASSERT(bitmap);
    RT_ASSERT(font);
@@ -1899,7 +1899,7 @@ static void DrawMessages()
    /* Gather our text sources. Generally, this will include only the message history,
       but in chat mode it may also include the current chat line(s). */
    const int maxSources = history.size() + 2;
-   const UCHAR* sources[maxSources];
+   const UDATA* sources[maxSources];
    int intensities[maxSources];
    int nextSource = 0;
 
@@ -1961,7 +1961,7 @@ static void DrawMessages()
       USTRING_CLEAR(lines[i]);
 
    for(int i = 0; i < maxSources; i++) {
-      const UCHAR* text = sources[i];
+      const UDATA* text = sources[i];
       if(!text)
          continue;
 
@@ -1974,7 +1974,7 @@ static void DrawMessages()
 
       const int length = ustrlen(text);
       for(int j = 0; j < length; j++) {
-         const UCHAR c = ugetat(text, j);
+         const UCCHAR c = ugetat(text, j);
 
          /* Check if this is a normal character or whitespace.  We want to avoid processing whitespace
             until after we've determined if the line will be wrapped. */

@@ -102,10 +102,10 @@ static INLINE BOOL fnss_load_chunk (PACKFILE *file, int version, const char
    return (TRUE);
 }
 
-static INLINE BOOL fnss_save (PACKFILE *file, const UCHAR *title)
+static INLINE BOOL fnss_save (PACKFILE *file, const UDATA *title)
 {
    UINT16 version;
-   UCHAR save_title[NEW_SAVE_TITLE_SIZE];
+   UDATA save_title[NEW_SAVE_TITLE_SIZE];
    int size;
 
    /* Core FNSS (FakeNES save state) saving code.  Returns TRUE if the save
@@ -173,7 +173,7 @@ static INLINE BOOL fnss_load (PACKFILE *file)
 
    UINT8 signature[4];
    UINT16 version;
-   UCHAR title[NEW_SAVE_TITLE_SIZE_Z];
+   UDATA title[NEW_SAVE_TITLE_SIZE_Z];
    UINT32 trainer_crc;
    UINT32 prg_rom_crc;
    UINT32 chr_rom_crc;
@@ -351,7 +351,7 @@ static INLINE BOOL fnss_load_raw (PACKFILE *file)
    return (TRUE);
 }
 
-static INLINE UCHAR *get_save_filename (UCHAR *filename, const UCHAR *ext,
+static INLINE UDATA *get_save_filename (UDATA *filename, const UDATA *ext,
    int size)
 {
    /* THis function builds a path and filename suitable for the storage of
@@ -379,7 +379,7 @@ static INLINE UCHAR *get_save_filename (UCHAR *filename, const UCHAR *ext,
    return (filename);
 }
 
-static INLINE UCHAR *get_state_filename (UCHAR *filename, int index, int
+static INLINE UDATA *get_state_filename (UDATA *filename, int index, int
    size)
 {
    /* This function generates the path and filename for the state file
@@ -407,7 +407,7 @@ static INLINE UCHAR *get_state_filename (UCHAR *filename, int index, int
    return (filename);
 }
 
-static INLINE UCHAR *get_replay_filename (UCHAR *filename, int index, int
+static INLINE UDATA *get_replay_filename (UDATA *filename, int index, int
    size)
 {
    /* This function generates the path and filename for the replay file
@@ -427,7 +427,7 @@ static INLINE UCHAR *get_replay_filename (UCHAR *filename, int index, int
    return (filename);
 }
 
-static INLINE UCHAR *get_save_title (const UCHAR *filename, UCHAR *title,
+static INLINE UDATA *get_save_title (const UDATA *filename, UDATA *title,
    int size)
 {
    /* This function retrives the save title from the state or replay file
@@ -475,7 +475,7 @@ static INLINE UCHAR *get_save_title (const UCHAR *filename, UCHAR *title,
    return (title);
 }
 
-static UCHAR *get_patches_filename (UCHAR *filename, int size)
+static UDATA *get_patches_filename (UDATA *filename, int size)
 {
    /* This function generates the path and filename for the patches (aka
       cheats) file.  Patch table files are plain text, stored in the save
@@ -486,7 +486,7 @@ static UCHAR *get_patches_filename (UCHAR *filename, int size)
    return (filename);
 }
 
-static UCHAR *get_sram_filename (UCHAR *filename, int size)
+static UDATA *get_sram_filename (UDATA *filename, int size)
 {
    /* This function generates the path and filename for the save RAM (SRAM)
       Save RAM is stored in the save path, and has a .sav extension. */
@@ -500,7 +500,7 @@ static UCHAR *get_sram_filename (UCHAR *filename, int size)
 
 /* -- Replay functions. -- */
 
-UCHAR *get_replay_title (int index, UCHAR *title, int size)
+UDATA *get_replay_title (int index, UDATA *title, int size)
 {
    /* This function gets the title of the replay # 'index' and stores up
       to 'size' characters of it in 'title'.  Returns a copy of 'title'.
@@ -520,7 +520,7 @@ UCHAR *get_replay_title (int index, UCHAR *title, int size)
 static PACKFILE *replay_file = NULL;
 static PACKFILE *replay_file_chunk = NULL;
 
-BOOL open_replay (int index, const char *mode, const UCHAR *title)
+BOOL open_replay (int index, const char *mode, const UDATA *title)
 {
    /* This function begins reading or writing an FNSS-format save state
       with an open REPL(replay) chunk appended to it.  The REPL chunk must
@@ -640,7 +640,7 @@ void save_replay_data (UINT8 data)
 
 /* --- Save state functions. --- */
 
-UCHAR *get_state_title (int index, UCHAR *title, int size)
+UDATA *get_state_title (int index, UDATA *title, int size)
 {
    /* This function gets the title of the state # 'index' and stores up
       to 'size' characters of it in 'title'.  Returns a copy of 'title'.
@@ -657,7 +657,7 @@ UCHAR *get_state_title (int index, UCHAR *title, int size)
    return (title);
 }
 
-BOOL save_state (int index, const UCHAR *title)
+BOOL save_state (int index, const UDATA *title)
 {
    /* index == -1 == quicksave. */
 
@@ -910,7 +910,7 @@ BOOL save_sram (void)
 
 /* --- Miscellaneous. --- */
 
-UCHAR *get_save_path (UCHAR *filename, int size)
+UDATA *get_save_path (UDATA *filename, int size)
 {                                     
    /* This function places the filename part of 'filename' at the end of
       the currently defined save path.
@@ -935,7 +935,7 @@ UCHAR *get_save_path (UCHAR *filename, int size)
    return (filename);
 }
 
-UCHAR *fix_save_title (UCHAR *title, int size)
+UDATA *fix_save_title (UDATA *title, int size)
 {
    /* This function compares 'title' against UNUSED_SLOT_TEXT, and if they
       are found to be the same, it replaces it with "Untitled" instead.

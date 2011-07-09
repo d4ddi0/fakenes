@@ -17,7 +17,7 @@ extern "C" {
 extern BOOL nsf_is_loaded, rom_is_loaded;
 extern BOOL file_is_loaded;
 
-extern const UCHAR* load_file(const UCHAR *filename);
+extern const UDATA* load_file(const UDATA *filename);
 extern void close_file(void);
 
 #ifdef __cplusplus

@@ -431,8 +431,8 @@ int gui_init (void)
    {
       USTRING key;
       const char *path;
-      UCHAR *filename = open_recent_filenames[index];
-      UCHAR *text     = open_recent_menu_texts[index];
+      UDATA *filename = open_recent_filenames[index];
+      UDATA *text     = open_recent_menu_texts[index];
       MENU  *menu     = &main_open_recent_menu[index];
 
       USTRING_CLEAR(key);
@@ -467,7 +467,7 @@ void gui_exit (void)
    for (index = 0; index < OPEN_RECENT_SLOTS; index++)
    {
       USTRING key;
-      const UCHAR *filename = open_recent_filenames[index];
+      const UDATA *filename = open_recent_filenames[index];
 
       if (!filename)
          continue;
@@ -530,8 +530,8 @@ void gui_update_display(void)
    update_display();
 }
 
-int gui_alert (const UCHAR *title, const UCHAR *s1, const UCHAR *s2, const
-   UCHAR *s3, const UCHAR *b1, const UCHAR *b2, int c1, int c2)
+int gui_alert (const UDATA *title, const UDATA *s1, const UDATA *s2, const
+   UDATA *s3, const UDATA *b1, const UDATA *b2, int c1, int c2)
 {
    /* Alert dialog with 1 or 2 buttons.  The title, first string, and first
       button are required.  The rest are optional and may be NULL.
@@ -665,7 +665,7 @@ int gui_alert (const UCHAR *title, const UCHAR *s1, const UCHAR *s2, const
       return (2); /* Cancel. */
 }
 
-void gui_message (int color, const UCHAR *message, ...)
+void gui_message (int color, const UDATA *message, ...)
 {
    va_list format;
    USTRING buffer;
@@ -689,7 +689,7 @@ void gui_message (int color, const UCHAR *message, ...)
    Newlines are also converted to separate strings.
 
    This gets called by log_printf() to display the log in the GUI. */
-void gui_log_message(const UCHAR* message)
+void gui_log_message(const UDATA* message)
 {
    USTRING buffer;
    int length, index, subindex;
@@ -704,7 +704,7 @@ void gui_log_message(const UCHAR* message)
 
    BOOL done = FALSE;
    while(!done) {
-      const UCHAR c = ugetat(message, index);
+      const UCCHAR c = ugetat(message, index);
       index++;
       if(index == length)
          done = TRUE;
@@ -1058,8 +1058,8 @@ static int main_menu_hide_gui (void)
 
 /* This is a helper for main_menu_open() and the recent files menu.
    This could probably be moved somewhere more suitable, but its not a big deal. */
-static BOOL load_helper(const UCHAR* filename) {
-   const UCHAR* error = NULL;
+static BOOL load_helper(const UDATA* filename) {
+   const UDATA* error = NULL;
 
    RT_ASSERT(filename);
 
@@ -1155,8 +1155,8 @@ static int main_menu_open (void)
 
          for (index = 0; index < OPEN_RECENT_SLOTS; index++)
          {
-            const UCHAR *filename = open_recent_filenames[index];
-            UCHAR       *text     = open_recent_menu_texts[index];
+            const UDATA *filename = open_recent_filenames[index];
+            UDATA       *text     = open_recent_menu_texts[index];
             MENU        *menu     = &main_open_recent_menu[index];
 
             if (filename[0])
@@ -1228,8 +1228,8 @@ static int main_open_recent_menu_clear (void)
 
    for (index = 0; index < OPEN_RECENT_SLOTS; index++)
    {
-      UCHAR *filename = open_recent_filenames[index];
-      UCHAR *text     = open_recent_menu_texts[index];
+      UDATA *filename = open_recent_filenames[index];
+      UDATA *text     = open_recent_menu_texts[index];
       MENU  *menu     = &main_open_recent_menu[index];
 
       USTRING_CLEAR(filename);
@@ -1296,8 +1296,8 @@ static int main_replay_menu_select (void)
 
    for (index = 0; index < REPLAY_SLOTS; index++)
    {
-      UCHAR *title;
-      UCHAR *text;
+      UDATA *title;
+      UDATA *text;
 
       title = replay_titles[index];
       text = replay_menu_texts[index];
@@ -1712,8 +1712,8 @@ static int system_save_state_menu_select (void)
 
    for (index = 0; index < SAVE_STATE_SLOTS; index++)
    {
-      UCHAR *title;
-      UCHAR *text;
+      UDATA *title;
+      UDATA *text;
 
       title = save_state_titles[index];
       text = save_state_menu_texts[index];
@@ -3498,7 +3498,7 @@ static char *main_cheat_manager_dialog_list_filler (int index, int *list_size)
    if (index >= 0)
    {
       CPU_PATCH *patch = &cpu_patch_info[index];
-      UCHAR *text = main_cheat_manager_dialog_list_texts[index];
+      UDATA *text = main_cheat_manager_dialog_list_texts[index];
 
       USTRING_CLEAR(text);
       uszprintf (text, USTRING_SIZE, "$%04x -$%02x +$%02x %s ",

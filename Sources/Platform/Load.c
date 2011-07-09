@@ -27,14 +27,14 @@ BOOL rom_is_loaded = FALSE;
 BOOL file_is_loaded = FALSE;
 
 /* Function prototypes (defined at bottom). */
-static const UCHAR* load_nsf_file(const UCHAR* filename);
+static const UDATA* load_nsf_file(const UDATA* filename);
 static void close_nsf_file(void);
-static const UCHAR* load_rom_file(const UCHAR* filename);
+static const UDATA* load_rom_file(const UDATA* filename);
 static void close_rom_file(void);
 
-const UCHAR* load_file(const UCHAR *filename)
+const UDATA* load_file(const UDATA *filename)
 {
-   const UCHAR* result = NULL;
+   const UDATA* result = NULL;
 
    RT_ASSERT(filename);
 
@@ -93,7 +93,7 @@ void close_file(void)
 
 /* -------------------------------------------------------------------------------- */
 
-static const UCHAR* load_nsf_file(const UCHAR* filename)
+static const UDATA* load_nsf_file(const UDATA* filename)
 {
    RT_ASSERT(filename);
 
@@ -147,7 +147,7 @@ static void close_nsf_file(void)
    nsf_is_loaded = FALSE;
 }
 
-static const UCHAR* load_rom_file(const UCHAR* filename)
+static const UDATA* load_rom_file(const UDATA* filename)
 {
    ROM rom;
 

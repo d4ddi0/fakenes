@@ -564,7 +564,7 @@ void AudiolibOpenALDriver::resume(void)
    alSourcePlay(source);
 }
 
-const UCHAR* AudiolibOpenALDriver::getErrorStringAL(ALenum error)
+const UDATA* AudiolibOpenALDriver::getErrorStringAL(ALenum error)
 {
    switch(error) {
       case AL_INVALID_ENUM:
@@ -582,7 +582,7 @@ const UCHAR* AudiolibOpenALDriver::getErrorStringAL(ALenum error)
    }
 }
 
-const UCHAR* AudiolibOpenALDriver::getErrorStringALC(ALCenum error)
+const UDATA* AudiolibOpenALDriver::getErrorStringALC(ALCenum error)
 {
    switch(error) {
       case ALC_INVALID_CONTEXT:

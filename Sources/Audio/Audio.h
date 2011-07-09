@@ -33,7 +33,7 @@ extern void audio_exit(void);
 extern void audio_update(void);
 extern void audio_suspend(void);
 extern void audio_resume(void);
-extern int audio_open_wav(const UCHAR* filename);
+extern int audio_open_wav(const UDATA* filename);
 extern void audio_close_wav(void);
 extern void audio_visopen(unsigned num_frames);
 extern void audio_visclose(void);

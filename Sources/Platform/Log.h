@@ -15,11 +15,11 @@ extern "C" {
 
 extern void log_open(const char*);
 extern void log_close(void);
-extern void log_printf(const UCHAR*, ...);
-extern UCHAR* get_log_text(void);
+extern void log_printf(const UDATA*, ...);
+extern UDATA* get_log_text(void);
 extern void console_clear(void);
-extern void console_printf(const UCHAR*, ...);
-extern UCHAR* get_console_text(void);
+extern void console_printf(const UDATA*, ...);
+extern UDATA* get_console_text(void);
 
 #ifdef __cplusplus
 }

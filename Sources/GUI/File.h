@@ -9,14 +9,14 @@
 
 typedef struct FS_LIST_ENTRY
 {
-   UCHAR *text;   /* Pointer to the text, allocated by malloc(). */
+   UDATA *text;   /* Pointer to the text, allocated by malloc(). */
    int size;      /* Size of the text, including null terminator. */
 
 } FS_LIST_ENTRY;
 
 static struct
 {
-   const UCHAR *ext;
+   const UDATA *ext;
 
    USTRING path;
 
@@ -45,7 +45,7 @@ static int fs_sorter (const void *a, const void *b)
    return (ustricmp (ax->text, bx->text));
 }
 
-static INLINE void fs_set_path (const UCHAR *dirname)
+static INLINE void fs_set_path (const UDATA *dirname)
 {
    /* Helper function to set 'dirname' as the new path (it may either be
       a relative path, or an absolute path, including a drive letter on
@@ -293,7 +293,7 @@ static int file_select_dialog_file_list (DIALOG *dialog)
 
    int index;
    FS_LIST_ENTRY *entry;
-   const UCHAR *filename;
+   const UDATA *filename;
    USTRING buffer;
 
    RT_ASSERT(dialog);
@@ -348,7 +348,7 @@ static char *file_select_dialog_file_list_filler (int index, int
    {
       USTRING buffer;
       USTRING ext;
-      UCHAR *mask;
+      UDATA *mask;
 
       /* Copy path to buffer. */
       ustrzncpy (buffer, sizeof (buffer), fs_info.path, ustrsize
@@ -650,8 +650,8 @@ static int file_select_dialog_filename (DIALOG *dialog)
    return (D_REDRAW);
 }
 
-static INLINE int gui_file_select (const UCHAR *title, const UCHAR *caption,
-   UCHAR *path, int path_max, const UCHAR *ext)
+static INLINE int gui_file_select (const UDATA *title, const UDATA *caption,
+   UDATA *path, int path_max, const UDATA *ext)
 {
    /* Displays a file selector.
 

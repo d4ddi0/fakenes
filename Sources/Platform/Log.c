@@ -54,7 +54,7 @@ void log_close (void)
       fclose (log_file);
 }
 
-void log_printf (const UCHAR *message, ...)
+void log_printf (const UDATA *message, ...)
 {
    va_list format;
    USTRING buffer;
@@ -80,7 +80,7 @@ void log_printf (const UCHAR *message, ...)
    gui_log_message(buffer);
 }
 
-UCHAR *get_log_text (void)
+UDATA *get_log_text (void)
 {
    return (log_text);
 }
@@ -92,7 +92,7 @@ void console_clear (void)
    USTRING_CLEAR(console_text);
 }
 
-void console_printf (const UCHAR *message, ...)
+void console_printf (const UDATA *message, ...)
 {
    va_list format;
    USTRING buffer;
@@ -106,7 +106,7 @@ void console_printf (const UCHAR *message, ...)
    ustrzncat (console_text, sizeof (console_text), buffer, sizeof (buffer));
 }
 
-UCHAR *get_console_text (void)
+UDATA *get_console_text (void)
 {
    return (console_text);
 }

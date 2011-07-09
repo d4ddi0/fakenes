@@ -31,7 +31,7 @@ const FILE_SIZE ChunkSize = 4096;
 
 // --------------------------------------------------------------------------------
 
-FILE_CONTEXT* open_file(const UCHAR* filename, const FILE_MODE mode, const FILE_ORDER order)
+FILE_CONTEXT* open_file(const UDATA* filename, const FILE_MODE mode, const FILE_ORDER order)
 {
    Safeguard(filename);
 

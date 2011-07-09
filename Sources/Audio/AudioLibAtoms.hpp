@@ -57,8 +57,8 @@ public:
    void resume(void);
 
 private:
-   const UCHAR* getErrorStringAL(ALenum error);
-   const UCHAR* getErrorStringALC(ALCenum error);
+   const UDATA* getErrorStringAL(ALenum error);
+   const UDATA* getErrorStringALC(ALCenum error);
 
    ALCdevice* device;
    ALCcontext* context;

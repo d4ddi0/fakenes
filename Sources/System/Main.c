@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 
    /* Check if a filename was passed on the command-line. */
    if(argc >= 2) {
-      const UCHAR* error = NULL;
+      const UDATA* error = NULL;
 
       /* Attempt to load file. */
       error = load_file(argv[1]);

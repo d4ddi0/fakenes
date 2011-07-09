@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-extern BOOL nsf_open(const UCHAR* filename);
+extern BOOL nsf_open(const UDATA* filename);
 extern void nsf_close(void);
 extern void nsf_setup(void);
 extern void nsf_teardown(void);

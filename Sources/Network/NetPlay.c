@@ -160,7 +160,7 @@ void netplay_process (void)
    }
 }
 
-void netplay_set_nickname (const UCHAR *nickname)
+void netplay_set_nickname (const UDATA *nickname)
 {
    /* This function sets the nickname for client #0, which is always the
       local "player". */
@@ -173,7 +173,7 @@ void netplay_set_nickname (const UCHAR *nickname)
    ustrncat (client->nickname, nickname, (USTRING_SIZE - 1));
 }
 
-void netplay_send_message (const UCHAR *message)
+void netplay_send_message (const UDATA *message)
 {
    /* This function sends a Unicode chat message over the network from
       client #0, prefixed with the nickname set by netplay_set_nickname().
@@ -214,7 +214,7 @@ void netplay_send_message (const UCHAR *message)
    pack_fclose (file);
 }
 
-void netplay_enumerate_clients (UCHAR *buffer, unsigned size)
+void netplay_enumerate_clients (UDATA *buffer, unsigned size)
 {
    /* This function stores a list of all clients' nicknames in 'buffer',
       suitable for display in a text box. */
@@ -240,7 +240,7 @@ void netplay_enumerate_clients (UCHAR *buffer, unsigned size)
    }
 }
 
-void netplay_enumerate_chat (UCHAR *buffer, unsigned size)
+void netplay_enumerate_chat (UDATA *buffer, unsigned size)
 {
    RT_ASSERT(buffer);
 

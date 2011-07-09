@@ -109,7 +109,7 @@ extern void video_update_display(void);
 extern void video_update_game_display(void);
 extern void video_update_settings(void);
 extern void video_handle_keypress(const int c, const int scancode);
-extern void video_message(const int duration, const UCHAR* message, ...);
+extern void video_message(const int duration, const UDATA* message, ...);
 extern BOOL video_is_opengl_mode(void);
 extern FONT* video_get_font(const ENUM type);
 extern int video_search_palette(const int color);
@@ -122,9 +122,9 @@ extern BITMAP* video_get_render_buffer(void);
 extern int video_legacy_create_color_dither(int r, int g, int b, int x, int y);
 extern int video_legacy_create_gradient(const int start, const int end, const int slices, const int x, const int y);
 extern void video_legacy_create_gui_gradient(GUI_COLOR* start, const GUI_COLOR* end, const int slices);
-extern void video_legacy_translucent_textout(BITMAP* bitmap, FONT* font, const UCHAR* text, const int x, const int y, const int color);
-extern void video_legacy_shadow_textout(BITMAP* bitmap, FONT* font, const UCHAR* text, const int x, const int y, const int color, const int opacity);
-extern void video_legacy_shadow_textprintf(BITMAP* bitmap, FONT* font, const int x, const int y, const int color, const int opacity, const UCHAR* text, ...);
+extern void video_legacy_translucent_textout(BITMAP* bitmap, FONT* font, const UDATA* text, const int x, const int y, const int color);
+extern void video_legacy_shadow_textout(BITMAP* bitmap, FONT* font, const UDATA* text, const int x, const int y, const int color, const int opacity);
+extern void video_legacy_shadow_textprintf(BITMAP* bitmap, FONT* font, const int x, const int y, const int color, const int opacity, const UDATA* text, ...);
 
 #ifdef __cplusplus
 }

@@ -24,13 +24,13 @@ extern "C" {
 #define NEW_SAVE_TITLE_SIZE   255
 #define NEW_SAVE_TITLE_SIZE_Z (NEW_SAVE_TITLE_SIZE + 1)
 
-UCHAR *get_replay_title (int, UCHAR *, int);
-BOOL open_replay (int, const char *, const UCHAR *);
+UDATA *get_replay_title (int, UDATA *, int);
+BOOL open_replay (int, const char *, const UDATA *);
 void close_replay (void);
 BOOL get_replay_data (UINT8 *);
 void save_replay_data (UINT8);
-UCHAR *get_state_title (int, UCHAR *, int);
-BOOL save_state (int, const UCHAR *);
+UDATA *get_state_title (int, UDATA *, int);
+BOOL save_state (int, const UDATA *);
 BOOL load_state (int);
 BOOL save_state_raw (PACKFILE *);
 BOOL load_state_raw (PACKFILE *);
@@ -39,8 +39,8 @@ BOOL load_patches (void);
 BOOL save_patches (void);
 BOOL load_sram (void);
 BOOL save_sram (void);
-UCHAR *get_save_path (UCHAR *, int);
-UCHAR *fix_save_title (UCHAR *, int);
+UDATA *get_save_path (UDATA *, int);
+UDATA *fix_save_title (UDATA *, int);
 
 #ifdef __cplusplus
 }

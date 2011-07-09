@@ -420,7 +420,7 @@ typedef struct _WAVDataChunk {
                          sizeof(WAVFormatChunk) + \
                          sizeof(WAVDataChunk))
 
-int audio_open_wav(const UCHAR* filename)
+int audio_open_wav(const UDATA* filename)
 {
    /* Open file. */
    wavFile = fopen(filename, "wb");

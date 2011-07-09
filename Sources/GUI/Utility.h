@@ -224,7 +224,7 @@ static INLINE void refresh (void)
   }
 }
 
-static INLINE void add_message(const UCHAR* message)
+static INLINE void add_message(const UDATA* message)
 {
    int i;
 
@@ -244,7 +244,7 @@ static INLINE void draw_status_bar(BITMAP* bmp, int w, int h)
 {
    int window_x, window_y, window_w, window_h;
    int x1, y1, x2, y2;
-   const UCHAR* message;
+   const UDATA* message;
    int color;
 
    /* bmp = gui_get_screen (); */
@@ -275,7 +275,7 @@ static INLINE void draw_status_bar(BITMAP* bmp, int w, int h)
       window_y + (((window_h - 11) - text_height (font)) - 1), color, -1);
 }
 
-static INLINE void set_status_text (const UCHAR* text, int color)
+static INLINE void set_status_text (const UDATA* text, int color)
 {
    /* This function places a message in the GUI status bar area.
       No actual drawing is done here, draw_status_bar() handles that. */
@@ -289,7 +289,7 @@ static INLINE void set_status_text (const UCHAR* text, int color)
       video_message(-1, text);
 }
 
-static INLINE void status_text (const UCHAR *text, ...)
+static INLINE void status_text (const UDATA *text, ...)
 {
    /* This is identical to gui_message(), except that it does not
       check if the GUI is active or not. */
@@ -306,7 +306,7 @@ static INLINE void status_text (const UCHAR *text, ...)
    set_status_text(buffer, GUI_TEXT_COLOR);
 }
 
-static INLINE void status_text_color (int color, const UCHAR *text, ...)
+static INLINE void status_text_color (int color, const UDATA *text, ...)
 {
    /* Like status_text(), but allows a color to be specified. */
 
@@ -480,7 +480,7 @@ static INLINE void cycle_video (void)
    refresh ();
 }
 
-static INLINE const UCHAR *get_enabled_text (BOOL value)
+static INLINE const UDATA *get_enabled_text (BOOL value)
 {
    /* This simple function returns either "enabled" or "disabled", depending
       on the value of the boolean parameter 'value'. */
@@ -488,7 +488,7 @@ static INLINE const UCHAR *get_enabled_text (BOOL value)
    return ((value ? "enabled" : "disabled"));
 }
 
-static INLINE const UCHAR *get_enabled_text_ex (BOOL value, const UCHAR
+static INLINE const UDATA *get_enabled_text_ex (BOOL value, const UDATA
    *enabled_text)
 {
    /* Identical to the above function, except that it returns 'enabled_text'
@@ -567,7 +567,7 @@ static INLINE void gui_close (void)
    clear_keybuf();
 }
 
-static INLINE DIALOG *create_dialog (const DIALOG *base, const UCHAR *title)
+static INLINE DIALOG *create_dialog (const DIALOG *base, const UDATA *title)
 {
    /* Abstract function to create a new dialog of class 'base', and set it's
       title to 'title'.  The resulting dialog must be later destroyed by a
@@ -591,7 +591,7 @@ static INLINE DIALOG *create_dialog (const DIALOG *base, const UCHAR *title)
    return (dialog);
 }
 
-static INLINE BOOL get_resolution_input (const UCHAR *title, int *width, int
+static INLINE BOOL get_resolution_input (const UDATA *title, int *width, int
    *height)
 {
    /* Pops up an abstract input dialog that allows the user to enter a
@@ -645,8 +645,8 @@ static INLINE BOOL get_resolution_input (const UCHAR *title, int *width, int
    return (TRUE);
 }
 
-static INLINE BOOL get_float_input (const UCHAR *title, REAL *value, const
-   UCHAR *units)
+static INLINE BOOL get_float_input (const UDATA *title, REAL *value, const
+   UDATA *units)
 {
    /* Pops up an abstract input dialog that allows the user to enter a
       floating point number specified in 'units' (e.g, frames, dots, etc.).
@@ -692,8 +692,8 @@ static INLINE BOOL get_float_input (const UCHAR *title, REAL *value, const
    return (TRUE);
 }
 
-static INLINE BOOL get_integer_input (const UCHAR *title, int *value, const
-   UCHAR *units)
+static INLINE BOOL get_integer_input (const UDATA *title, int *value, const
+   UDATA *units)
 {
    /* Same as above, but rounds the value off to an integer. */
 

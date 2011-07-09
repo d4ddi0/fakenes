@@ -47,7 +47,7 @@ static UINT8* get_chr_rom_pages(ROM* rom);
 static void free_prg_rom(ROM* rom);
 static void free_chr_rom(ROM* rom);
 
-int load_ips (const UCHAR *filename, PACKFILE *buffer_file)
+int load_ips (const UDATA *filename, PACKFILE *buffer_file)
 {
    PACKFILE *file;
    UINT8 signature[5];
@@ -252,7 +252,7 @@ int load_ines_rom (PACKFILE *file, ROM *rom)
    return (0);
 }
 
-int load_rom (const UCHAR *filename, ROM *rom)
+int load_rom (const UDATA *filename, ROM *rom)
 {
    LR_FILE file;
    PACKFILE *buffer_file;
@@ -344,7 +344,7 @@ int load_rom (const UCHAR *filename, ROM *rom)
    return (0);
 }
 
-int load_rom_from_zip (const UCHAR *filename, ROM *rom)
+int load_rom_from_zip (const UDATA *filename, ROM *rom)
 {
 #ifdef USE_ZLIB
    unzFile file;

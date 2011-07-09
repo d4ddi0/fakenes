@@ -91,7 +91,7 @@ typedef struct _FILE_CONTEXT {
 
 } FILE_CONTEXT;
 
-extern FILE_CONTEXT* open_file(const UCHAR* filename, const FILE_MODE mode, const FILE_ORDER order);
+extern FILE_CONTEXT* open_file(const UDATA* filename, const FILE_MODE mode, const FILE_ORDER order);
 extern FILE_CONTEXT* open_memory_file(const FILE_MODE mode, const FILE_ORDER order);
 extern void* get_file_buffer(FILE_CONTEXT* file, FILE_SIZE* size);
 extern void set_file_buffer(FILE_CONTEXT* file, void* buffer, const FILE_SIZE size);

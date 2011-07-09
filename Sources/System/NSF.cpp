@@ -99,7 +99,7 @@ static void play(int song);
 static real bandpass(uint16* buffer, unsigned size, real sampleRate, int channels, real cutoffLow, real cutoffHigh);
 
 // Opening/closing.
-BOOL nsf_open(const UCHAR* filename)
+BOOL nsf_open(const UDATA* filename)
 {
    // Open file.
    PACKFILE* file = pack_fopen(filename, "r");

@@ -28,10 +28,10 @@ BOOL netplay_open_server (int port);
 BOOL netplay_open_client (const CHAR *host, int port);
 void netplay_close (void);
 void netplay_process (void);
-void netplay_set_nickname (const UCHAR *nickname);
-void netplay_send_message (const UCHAR *message);
-void netplay_enumerate_clients (UCHAR *buffer, unsigned size);
-void netplay_enumerate_chat (UCHAR *buffer, unsigned size);
+void netplay_set_nickname (const UDATA *nickname);
+void netplay_send_message (const UDATA *message);
+void netplay_enumerate_clients (UDATA *buffer, unsigned size);
+void netplay_enumerate_chat (UDATA *buffer, unsigned size);
 
 enum
 {
