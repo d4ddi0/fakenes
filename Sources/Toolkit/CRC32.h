@@ -1,21 +1,24 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   Copyright (c) 2001-2006, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   crc32.h: CRC32 calculation routines by TRAC. */
-
-#ifndef CRC32_H_INCLUDED
-#define CRC32_H_INCLUDED
-#include "../include/common.h"
+#ifndef TOOLKIT__CRC32_H__INCLUDED
+#define TOOLKIT__CRC32_H__INCLUDED
+#include "Common/Global.h"
+#include "Common/Types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-UINT32 make_crc32 (const UINT8 *buffer, unsigned size);
+extern UITN32 crc32_start(void);
+extern void crc32_end(UINT32* crc32);
+extern void crc32_update(UINT32* crc32, const UINT8 data);
+extern UINT32 calculate_crc32(const void* buffer, const SIZE size);
 
 #ifdef __cplusplus
 }
-#endif   /* __cplusplus */
-#endif   /* !CRC32_H_INCLUDED */
+#endif /* __cplusplus */
+#endif /* !TOOLKIT__CRC32_H__INCLUDED */

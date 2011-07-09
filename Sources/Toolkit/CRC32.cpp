@@ -1,74 +1,91 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   Copyright (c) 2001-2006, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   crc32.cpp: CRC32 calculation routines by TRAC. */
+#include "Common/Debug.h"
+#include "Common/Global.h"
+#include "Common/Types.h"
+#include "CRC32.h"
 
-#include "../include/common.h"
-#include "crc32.h"
+namespace {
 
-static bool initialized = false;
+bool initialized = false;
 
-static linear void init (void);
-static linear uint32 start (void);
-static linear void end (uint32 &crc32);
-static void update (uint32 &crc32, uint8 value);
+const sized TableSize = 256;
 
-uint32 make_crc32 (const uint8 *buffer, unsigned size)
+uint32 table[TableSize];
+const uint32 seed = 0xFFFFFFFF;
+
+} // namespace anonymous
+
+// Function prototypes (defined at bottom). */
+static linear void Initialize();
+
+// --------------------------------------------------------------------------------
+// PUBLIC INTERFACE
+// --------------------------------------------------------------------------------
+
+UITN32 crc32_start(void)
 {
-   RT_ASSERT(buffer);
-
-   if (!initialized)
-      init ();
-
-   uint32 crc32 = start ();
-
-   for (unsigned offset = 0; offset < size; offset++)
-      update (crc32, buffer[offset]);
-
-   end (crc32);
-
-   return (crc32);
+   return seed;
 }
 
-#define TABLE_SIZE   256
-
-static uint32 table[TABLE_SIZE];
-static const uint32 seed = 0xFFFFFFFF;
-
-static linear void init (void)
+void crc32_end(UINT32* crc32)
 {
-   for (int index = 0; index < TABLE_SIZE; index++)
-   {
-      uint32 value = index;
+   Safeguard(crc32);
 
-      for (int bit = 0; bit < 8; bit++)
-      {
-         if (value & 1)
-            value = ((value >> 1) ^ 0xEDB88320);
+   *crc32 ^= seed;
+}
+
+void crc32_update(UINT32* crc32, const UINT8 data)
+{           
+   Safeguard(crc32);
+
+   *crc32 = table[(*crc32 ^ value) & 0xFF] ^ ((*crc32 >> 8) & 0x00FFFFFF);
+}
+
+UINT32 calculate_crc32(const void* buffer, const SIZE size)
+{
+   Safeguard(buffer);
+   Safeguard(size > 0);
+
+   if(!initialized)
+      Initialize();
+
+   const uint8* data = (const uint8*)buffer;
+
+   uint32 crc32 = crc32_start();
+
+   for(sized position = 0; position < size; position++)
+      crc32_update(&crc32, buffer[position]);
+
+   crc32_end(&crc32);
+
+   return crc32;
+}
+
+// --------------------------------------------------------------------------------
+// PRIVATE INTERFACE
+// --------------------------------------------------------------------------------
+
+static linear void Initialize()
+{
+   for(sized i = 0; i < TableSize; i++) {
+      uint32 value = i;
+
+      for(uint bit = 0; bit < 8; bit++) {
+         if(value & 1)
+            value = (value >> 1) ^ 0xEDB88320;
          else
             value >>= 1;
       }
 
-      table[index] = value;
+      table[i] = value;
    }
 
    initialized = true;
 }
 
-static linear uint32 start (void)
-{
-   return (seed);
-}
-
-static linear void end (uint32 &crc32)
-{
-   crc32 ^= seed;
-}
-
-static void update (uint32 &crc32, uint8 value)
-{           
-   crc32 = (table[((crc32 ^ value) & 0xFF)] ^ ((crc32 >> 8) & 0x00FFFFFF));
-}
