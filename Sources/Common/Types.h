@@ -15,6 +15,8 @@
 #ifdef C99_TYPES
 #include <stdint.h>
 #endif
+#include <stddef.h> /* For size_t. */
+#include <stdlib.h> /* For size_t. */
 #include <string.h>
 #include "Global.h"
 #ifdef __cplusplus
@@ -73,23 +75,25 @@ extern "C" {
 #endif
 
 typedef signed char     fakenes_bool_t;   /* Boolean value. */
-typedef unsigned char   fakenes_char_t;   /* ASCII character. */
+typedef char   		fakenes_char_t;   /* ASCII character. */
 typedef int             fakenes_enum_t;   /* Enumeration index. */
 typedef unsigned        fakenes_flags_t;  /* Flags. */
 typedef fakenes_flags_t fakenes_list_t;   /* List of flags. */
 typedef double          fakenes_real_t;   /* Real number. */
-typedef unsigned char   fakenes_uchar_t;  /* Unicode character. */
+typedef size_t		fakenes_size_t;   /* Size or offset. */
+typedef unsigned char   fakenes_ucchar_t; /* Unicode UTF-8 character segment. */
+typedef unsigned int    fakenes_uint_t;   /* Unsigned integer, unsized. */
 
-/* Maximum length (in fakenes_uchar_t's) of a Unicode character. */
-#define MAX_UCHAR_LENGTH   4
+/* Maximum length (in fakenes_ucchar_t's) of a UTF-8 character. */
+#define MAX_UTF8_SEGMENTS  4
 
 /* String data types. */
-#define STRING_SIZE_BASE   1024  /* Typical size. */
-#define STRING_SIZE        ( STRING_SIZE_BASE * sizeof(fakenes_char_t) )
-#define USTRING_SIZE       ( STRING_SIZE_BASE * sizeof(fakenes_uchar_t) )
+#define MAX_STRING_LENGTH  1024  /* In characters. */
+#define STRING_SIZE        ( MAX_STRING_LENGTH * sizeof(fakenes_char_t) )
+#define USTRING_SIZE       ( MAX_STRING_LENGTH * sizeof(fakenes_ucchar_t) * MAX_UTF8_SEGMENTS )
 
-typedef fakenes_char_t fakenes_string_t[STRING_SIZE_BASE];
-typedef fakenes_uchar_t fakenes_ustring_t[STRING_SIZE_BASE];
+typedef fakenes_char_t fakenes_string_t[MAX_STRING_LENGTH];
+typedef fakenes_ucchar_t fakenes_ustring_t[MAX_STRING_LENGTH * MAX_UTF8_SEGMENTS];
 
 /* Pair data type for CPU core. */
 typedef union
@@ -109,6 +113,8 @@ typedef union
 
 /* Shorthand aliases. */
 /* typedef where possible, otherwise #define. */
+typedef fakenes_uint UINT;
+
 typedef fakenes_uint8_t UINT8;
 typedef fakenes_int8_t INT8;
 typedef fakenes_uint16_t UINT16;
@@ -119,12 +125,10 @@ typedef fakenes_int16_t INT16;
 #  define UINT32 fakenes_uint32_t
 #  define INT32 fakenes_int32_t
 #  define BOOL fakenes_bool_t
-#  define UCHAR fakenes_uchar_t
 #else
    typedef fakenes_uint32_t UINT32;
    typedef fakenes_int32_t INT32;
    typedef fakenes_bool_t BOOL;
-   typedef fakenes_uchar_t UCHAR;
 #endif
 
 typedef fakenes_char_t CHAR;
@@ -133,7 +137,9 @@ typedef fakenes_flags_t FLAGS;
 typedef fakenes_list_t LIST;
 typedef fakenes_pair_t PAIR;
 typedef fakenes_real_t REAL;
+typedef fakenes_size_t SIZE;
 typedef fakenes_string_t STRING;
+typedef fakenes_ucchar_t UCCHAR;
 typedef fakenes_ustring_t USTRING;
 
 /* List access macros. */
@@ -186,10 +192,12 @@ typedef fakenes_uint16_t uint16;
 typedef fakenes_int16_t int16;
 typedef fakenes_uint32_t uint32;
 typedef fakenes_int32_t int32;
-typedef fakenes_real_t real;
 
 typedef fakenes_pair_t byte_pair;
-     
+typedef fakenes_real_t real;
+typedef fakenes_size_t sized;
+typedef fakenes_uint_t uint;
+
 /* This should be used instead of fix/fixf() when possible. */
 template<typename TYPE>
 TYPE Clamp(TYPE value, const TYPE minimum, const TYPE maximum)

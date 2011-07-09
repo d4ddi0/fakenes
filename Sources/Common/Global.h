@@ -24,9 +24,6 @@ extern "C" {
 #define TRUE_OR_FALSE(_CONDITION) ( (_CONDITION) ? TRUE : FALSE )
 #define ZERO_OR_ONE(_CONDITION) ( (_CONDITION) ? 1 : 0 )
 
-#define LOAD_BOOLEAN(_INTEGER) ( TRUE_OR_FALSE(_INTEGER) )
-#define SAVE_BOOLEAN(_BOOLEAN) ( ZERO_OR_ONE(_BOOLEAN) )
-
 /* Usually NULL is defined as (void*)0, however it is often more useful for it to just
    equal zero, since it is compatible with pointers either way. */
 #undef NULL

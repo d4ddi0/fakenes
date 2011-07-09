@@ -49,7 +49,9 @@ extern "C" {
 #define SAFEGUARD(_GUARD) RT_ASSERT((_GUARD))
 
 #ifdef __cplusplus
-#   define Safeguard SAFEGUARD
+#   define Warning		WARN
+#   define GenericWarning	WARN_GENERIC
+#   define Safeguard		SAFEGUARD
 #endif
 
 #ifdef __cplusplus
