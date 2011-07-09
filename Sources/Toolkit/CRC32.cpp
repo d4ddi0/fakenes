@@ -3,7 +3,9 @@
 
    This is free software. See 'License.txt' for additional copyright and
    licensing information. You must read and accept the license prior to
-   any modification or use of this software. */
+   any modification or use of this software.
+
+   Original version by Charles Bilyue' (TRAC). */
 
 #include "Common/Debug.h"
 #include "Common/Global.h"
