@@ -5,8 +5,8 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
-#ifndef TOOLKIT__FILE_H__INCLUDED
-#define TOOLKIT__FILE_H__INCLUDED
+#ifndef PLATFORM__FILE_H__INCLUDED
+#define PLATFORM__FILE_H__INCLUDED
 #include <stdio.h>
 #include "Common/Global.h"
 #include "Common/Types.h"
@@ -99,4 +99,4 @@ extern void set_file_buffer(FILE_CONTEXT* file, void* buffer, const FILE_SIZE si
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#endif /* TOOLKIT__FILE_H__INCLUDED */
+#endif /* PLATFORM__FILE_H__INCLUDED */
