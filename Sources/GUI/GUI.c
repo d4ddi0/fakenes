@@ -987,15 +987,15 @@ static int open_lobby (void)
 
    obj_chat->bg = makecol (0, 0, 0);
    obj_chat->fg = makecol (240, 240, 240);
-   obj_chat->d1 = ((sizeof (chat) / MAX_UCHAR_LENGTH) - 1);
+   obj_chat->d1 = ((sizeof (chat) / MAX_UTF8_SEGMENTS) - 1);
    obj_chat->dp = chat;
 
    obj_list->bg = makecol (0, 0, 0);
    obj_list->fg = makecol (240, 240, 240);
-   obj_list->d1 = ((sizeof (list) / MAX_UCHAR_LENGTH) - 1);
+   obj_list->d1 = ((sizeof (list) / MAX_UTF8_SEGMENTS) - 1);
    obj_list->dp = list;
 
-   obj_message->d1 = ((sizeof (message) / MAX_UCHAR_LENGTH) - 1);
+   obj_message->d1 = ((sizeof (message) / MAX_UTF8_SEGMENTS) - 1);
    obj_message->dp = message;
 
    if (netplay_mode != NETPLAY_MODE_SERVER_OPEN)
@@ -2987,10 +2987,10 @@ static int options_menu_paths (void)
    /* Set up objects. */
 
    objopen->dp = open_path;
-   objopen->d1 = ((sizeof (open_path) / MAX_UCHAR_LENGTH) - 1);
+   objopen->d1 = ((sizeof (open_path) / MAX_UTF8_SEGMENTS) - 1);
 
    objsave->dp = save_path;
-   objsave->d1 = ((sizeof (save_path) / MAX_UCHAR_LENGTH) - 1);
+   objsave->d1 = ((sizeof (save_path) / MAX_UTF8_SEGMENTS) - 1);
 
    if (locked)
       objlock->flags |= D_SELECTED;
@@ -3080,10 +3080,10 @@ static int netplay_menu_start_as_server (void)
    obj_host->dp = host;
    obj_host->flags |= D_DISABLED;
 
-   obj_port->d1 = ((sizeof (port_str) / MAX_UCHAR_LENGTH) - 1);
+   obj_port->d1 = ((sizeof (port_str) / MAX_UTF8_SEGMENTS) - 1);
    obj_port->dp = port_str;
 
-   obj_nick->d1 = ((sizeof (nick) / MAX_UCHAR_LENGTH) - 1);
+   obj_nick->d1 = ((sizeof (nick) / MAX_UTF8_SEGMENTS) - 1);
    obj_nick->dp = nick;
 
    /* Display dialog. */
@@ -3152,14 +3152,14 @@ static int netplay_menu_start_as_client (void)
 
    obj_host_label->flags &= ~D_DISABLED;
 
-   obj_host->d1 = ((sizeof (host) / MAX_UCHAR_LENGTH) - 1);
+   obj_host->d1 = ((sizeof (host) / MAX_UTF8_SEGMENTS) - 1);
    obj_host->dp = host;
    obj_host->flags &= ~D_DISABLED;
 
-   obj_port->d1 = ((sizeof (port_str) / MAX_UCHAR_LENGTH) - 1);
+   obj_port->d1 = ((sizeof (port_str) / MAX_UTF8_SEGMENTS) - 1);
    obj_port->dp = port_str;
 
-   obj_nick->d1 = ((sizeof (nick) / MAX_UCHAR_LENGTH) - 1);
+   obj_nick->d1 = ((sizeof (nick) / MAX_UTF8_SEGMENTS) - 1);
    obj_nick->dp = nick;
 
    /* Display dialog. */
