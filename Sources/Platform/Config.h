@@ -5,8 +5,8 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
-#ifndef PLATFORM__CONFIGURATION_H__INCLUDED
-#define PLATFORM__CONFIGURATION_H__INCLUDED
+#ifndef PLATFORM__CONFIG_H__INCLUDED
+#define PLATFORM__CONFIG_H__INCLUDED
 #include "Common/Common.h"
 #include "Common/Types.h"
 #ifdef __cplusplus
@@ -21,4 +21,4 @@ extern void set_config_bool(const char* section, const char* name, BOOL value);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#endif /* !PLATFORM__CONFIGURATION_H__INCLUDED */
+#endif /* !PLATFORM__CONFIG_H__INCLUDED */
