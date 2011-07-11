@@ -33,13 +33,13 @@ enum FILE_TYPE {
 /* Note that no duplex mode is supported yet. */
 enum FILE_MODE {
    FILE_MODE_READ = 0,		/* Open for reading. */
-   FILE_MODE_WRITE,		/* Open for writing. */
+   FILE_MODE_WRITE		/* Open for writing. */
 };
 
 enum FILE_ORDER {
    FILE_ORDER_NATIVE = 0,	/* Auto-detect native byte order. */
    FILE_ORDER_INTEL,		/* Always little-endian. */
-   FILE_ORDER_MOTOROLA,		/* Always big-endian. */
+   FILE_ORDER_MOTOROLA		/* Always big-endian. */
 };
 
 /* Data type used for sizes, positions, etc. This is used instead of
@@ -65,27 +65,27 @@ typedef struct _FILE_CONTEXT {
    /* General functions. These can be overriden by replacing the file
       pointers, allowing custom routines to be used for a given file
       without changing any code that accesses it. */
-   FILE_SIZE (*read)(FILE_CONTEXT* file, void* data, const FILE_SIZE size);
-   FILE_SIZE (*write)(FILE_CONTEXT* file, const void* data, const FILE_SIZE size);
-   void (*seek_from)(FILE_CONTEXT* file, const FILE_OFFSET offset);
-   void (*seek_to)(FILE_CONTEXT* file, const FILE_SIZE position);
-   void (*flush)(FILE_CONTEXT* file);
-   void (*close)(FILE_CONTEXT* file);
+   FILE_SIZE (*read)(struct _FILE_CONTEXT* file, void* data, const FILE_SIZE size);
+   FILE_SIZE (*write)(struct _FILE_CONTEXT* file, const void* data, const FILE_SIZE size);
+   void (*seek_from)(struct _FILE_CONTEXT* file, const FILE_OFFSET offset);
+   void (*seek_to)(struct _FILE_CONTEXT* file, const FILE_SIZE position);
+   void (*flush)(struct _FILE_CONTEXT* file);
+   void (*close)(struct _FILE_CONTEXT* file);
 
    /* Data access functions. Most of these are subject to endianness.
       Note that get_real() and put_real() are reduced to single precision,
       and booleans require an entire byte of storage space. Again, these
       can be overriden on a per-file basis.*/
-   UINT8 (*read_byte)(FILE_CONTEXT* file);
-   UINT16 (*read_word)(FILE_CONTEXT* file);
-   UINT32 (*read_long)(FILE_CONTEXT* file);
-   BOOL (*read_boolean)(FILE_CONTEXT* file);
-   REAL (*read_real)(FILE_CONTEXT* file, );
-   void (*write_byte)(FILE_CONTEXT* file, const UINT8 data);
-   void (*write_word)(FILE_CONTEXT* file, const UINT16 data);
-   void (*write_long)(FILE_CONTEXT* file, const UINT32 data);
-   void (*write_boolean)(FILE_CONTEXT* file, const BOOL data);
-   void (*write_real)(FILE_CONTEXT* file, const REAL data);
+   UINT8 (*read_byte)(struct _FILE_CONTEXT* file);
+   UINT16 (*read_word)(struct _FILE_CONTEXT* file);
+   UINT32 (*read_long)(struct _FILE_CONTEXT* file);
+   BOOL (*read_boolean)(struct _FILE_CONTEXT* file);
+   REAL (*read_real)(struct _FILE_CONTEXT* file, );
+   void (*write_byte)(struct _FILE_CONTEXT* file, const UINT8 data);
+   void (*write_word)(struct _FILE_CONTEXT* file, const UINT16 data);
+   void (*write_long)(struct _FILE_CONTEXT* file, const UINT32 data);
+   void (*write_boolean)(struct _FILE_CONTEXT* file, const BOOL data);
+   void (*write_real)(struct _FILE_CONTEXT* file, const REAL data);
 
    /* Underlying file handle in the C library. This is only used for
       physical files, not memory files. */
