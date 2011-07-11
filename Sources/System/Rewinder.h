@@ -1,29 +1,28 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   rewind.h: Definitions for the game rewinder.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   Copyright (c) 2001-2006, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use. */
-
-#ifndef REWIND_H_INCLUDED
-#define REWIND_H_INCLUDED
-#include "common.h"
-#include "types.h"
+#ifndef SYSTEM__REWINDER_H__INCLUDED
+#define SYSTEM__REWINDER_H__INCLUDED
+#include "Common/Global.h"
+#include "Common/Types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void rewind_load_config (void);
-void rewind_save_config (void);
-int rewind_init (void);
-void rewind_exit (void);
-void rewind_clear (void);
-BOOL rewind_save_snapshot (void);
-BOOL rewind_load_snapshot (void);
-BOOL rewind_is_enabled (void);
+extern void rewind_load_config(void);
+extern void rewind_save_config(void);
+extern int rewind_init(void);
+extern void rewind_exit(void);
+extern void rewind_clear(void);
+extern BOOL rewind_save_snapshot(void);
+extern BOOL rewind_load_snapshot(void);
+extern BOOL rewind_is_enabled(void);
 
 #ifdef __cplusplus
 }
-#endif
-#endif   /* !REWIND_H_INCLUDED */
+#endif /* __cplusplus */
+#endif /* !SYSTEM__REWINDER_H__INCLUDED */

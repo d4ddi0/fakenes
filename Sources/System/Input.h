@@ -1,16 +1,15 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   input.h: Declarations for the input abstraction.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   Copyright (c) 2001-2006, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use. */
-
-#ifndef INPUT_H_INCLUDED
-#define INPUT_H_INCLUDED
-#include <allegro.h>
-#include "common.h"
-#include "types.h"
+#ifndef SYSTEM__INPUT_H__INCLUDED
+#define SYSTEM__INPUT_H__INCLUDED
+#include "Common/Global.h"
+#include "Common/Types.h"
+#include "Platform/File.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -25,25 +24,25 @@ extern int input_zapper_y_offset;
 extern BOOL input_zapper_trigger;
 extern BOOL input_zapper_on_screen;
 
-extern void input_load_config (void);
-extern void input_save_config (void);
-extern int input_init (void);
-extern void input_exit (void);
-extern void input_reset (void);
-extern UINT8 input_read (UINT16);
-extern void input_write (UINT16, UINT8);
-extern void input_process (void);
-extern void input_update_zapper (void);
-extern void input_update_zapper_offsets (void);
-extern void input_handle_keypress (int, int);
-extern ENUM input_get_player_device (ENUM);
-extern void input_set_player_device (ENUM, ENUM);
-extern void input_map_player_button (ENUM, ENUM);
-extern int input_get_player_button_param (ENUM, ENUM, ENUM);
-extern void input_set_player_button_param (ENUM, ENUM, ENUM, int);
-extern BOOL input_get_button_state (ENUM, ENUM);
-extern void input_save_state (PACKFILE *, int);
-extern void input_load_state (PACKFILE *, int);
+extern void input_load_config(void);
+extern void input_save_config(void);
+extern int input_init(void);
+extern void input_exit(void);
+extern void input_reset(void);
+extern UINT8 input_read(UINT16);
+extern void input_write(UINT16, UINT8);
+extern void input_process(void);
+extern void input_update_zapper(void);
+extern void input_update_zapper_offsets(void);
+extern void input_handle_keypress(int, int);
+extern ENUM input_get_player_device(ENUM);
+extern void input_set_player_device(ENUM, ENUM);
+extern void input_map_player_button(ENUM, ENUM);
+extern int input_get_player_button_param(ENUM, ENUM, ENUM);
+extern void input_set_player_button_param(ENUM, ENUM, ENUM, int);
+extern BOOL input_get_button_state(ENUM, ENUM);
+extern void input_save_state(FILE_CONTEXT*, int);
+extern void input_load_state(FILE_CONTEXT*, int);
 
 enum
 {
@@ -99,5 +98,5 @@ enum
 
 #ifdef __cplusplus
 }
-#endif
-#endif   /* !INPUT_H_INCLUDED */
+#endif /* __cplusplus */
+#endif /* !SYSTEM__INPUT_H__INCLUDED */

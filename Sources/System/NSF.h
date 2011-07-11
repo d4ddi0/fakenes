@@ -1,17 +1,16 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   nsf.h: Declarations for the NSF player.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   Copyright (c) 2001-2007, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use. */
-
-#ifndef NSF_H_INCLUDED
-#define NSF_H_INCLUDED
-#include "common.h"
-#include "cpu.h"
-#include "mmc.h"
-#include "types.h"
+#ifndef SYSTEM__NSF_H__INCLUDED
+#define SYSTEM__NSF_H__INCLUDED
+#include "Common/Global.h"
+#include "Common/Types.h"
+#include "Core/CPU.h"
+#include "System/Mapper.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -29,6 +28,6 @@ extern const MMC nsf_mapper;
 
 #ifdef __cplusplus
 }
-#endif
-#endif   /* !NSF_H_INCLUDED */
+#endif /* __cplusplus */
+#endif /* !SYSTEM__NSF_H__INCLUDED */
 

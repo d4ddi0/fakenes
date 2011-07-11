@@ -7,9 +7,9 @@
 
 #ifndef SYSTEM__MACHINE_H__INCLUDED
 #define SYSTEM__MACHINE_H__INCLUDED
-#include <allegro.h>
-#include "Common/Common.h"
+#include "Common/Global.h"
 #include "Common/Types.h"
+#include "Platform/File.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -87,8 +87,8 @@ extern void machine_reset(void);
 extern void machine_main(void);
 extern void machine_pause(void);
 extern void machine_resume(void);
-extern void machine_save_state(PACKFILE* file, const int version);
-extern void machine_load_state(PACKFILE* file, const int version);
+extern void machine_save_state(FILE_CONTEXT* file, const int version);
+extern void machine_load_state(FILE_CONTEXT* file, const int version);
 extern void machine_clear_key_buffer(void);
 extern void machine_reset_game_clock(void);
 extern void suspend_timing(void);
