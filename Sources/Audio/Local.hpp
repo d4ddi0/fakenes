@@ -16,7 +16,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <ctime>
 #include <vector>
 #include "Common/Debug.h"
 #include "Common/Global.h"
