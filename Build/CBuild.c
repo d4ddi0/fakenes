@@ -955,6 +955,7 @@ static char *expand_string(char *str, const char *stp, size_t len,
 					}
 
 					val = strrchr(opt, '/');
+                                        if(!val) val = strrchr(opt, '\\');
 					if(!val)
 						val = opt;
 					val = strrchr(val, '.');
@@ -995,6 +996,7 @@ static char *expand_string(char *str, const char *stp, size_t len,
 					}
 
 					val = strrchr(opt, '/');
+                                        if(!val) val = strrchr(opt, '\\');
 					if(!val)
 						val = opt;
 					val = strrchr(val, '.');
@@ -1178,6 +1180,7 @@ static char *expand_string(char *str, const char *stp, size_t len,
 					}
 
 					val = strrchr(opt, '/');
+					if(!val) val = strrchr(opt, '\\');
 					if(val)
 					{
 						val[1] = 0;
@@ -1221,6 +1224,7 @@ static char *expand_string(char *str, const char *stp, size_t len,
 					}
 
 					val = strrchr(opt, '/');
+                                        if(!val) val = strrchr(opt, '\\');
 					if(!val)
 						val = opt;
 					else
@@ -1528,10 +1532,11 @@ static int check_obj_deps(char *base, char *src, time_t obj_time)
 	FILE *df;
 
 	ptr = strrchr(base, '/');
+        if(!ptr) ptr = strrchr(base, '\\');
 	if(!ptr) ptr = base;
 	ptr = strrchr(ptr, '.');
 	if(ptr) *ptr = 0;
-	snprintf(dep, sizeof(dep), "${DEP_DIR}/'%s'${DEP_EXT}", base);
+	snprintf(dep, sizeof(dep), "${DEP_DIR}${PATH_SEP}'%s'${DEP_EXT}", base);
 	expand_string(dep, "", sizeof(dep), 0);
 	if(ptr) *ptr = '.';
 
@@ -1677,13 +1682,22 @@ static int copy_file(const char *sf, const char *df)
 static int libify_name(char *buf, size_t buflen, char *name)
 {
 	int i;
+        int back = 0;
 	char *curr = strrchr(name, '/');
+	if(!curr) {
+        	curr = strrchr(name, '\\');
+                if(curr)
+                   back = 1;
+        }
 	if(curr)
 	{
 		*curr = 0;
-		i = snprintf(buf, buflen, "'%s'/${LIB_PRE}'%s'${LIB_EXT}", name,
+		i = snprintf(buf, buflen, "'%s'${PATH_SEP}${LIB_PRE}'%s'${LIB_EXT}", name,
 		             curr+1);
-		*curr = '/';
+                if(back)
+			*curr = '\\';
+                else
+			*curr = '/';
 	}
 	else
 		i = snprintf(buf, buflen, "${LIB_PRE}'%s'${LIB_EXT}", name);
@@ -1742,7 +1756,7 @@ static int build_command(char *buffer, size_t bufsize, char *barename,
 	size_t i;
 
 	ext = strrchr(barename, '.');
-	if(strchr(ext, '/') || !ext)
+	if(strchr(ext, '/') || strchr(ext, '\\') || !ext)
 		ext = dummy;
 
 	for(i = 0;i < num_assocs;++i)
@@ -1807,11 +1821,12 @@ static int build_obj_list(char *buffer, size_t bufsize, time_t base_time,
 		next = grab_word(&ptr, &c);
 
 		ext = strrchr(ptr, '/');
+		if(!ext) ext = strrchr(ptr, '\\');
 		if(!ext) ext = ptr;
 		ext = strrchr(ext, '.');
 
 		if(ext) *ext = 0;
-		snprintf(buf, sizeof(buf), "${OBJ_DIR}/'%s'${OBJ_EXT}", ptr);
+		snprintf(buf, sizeof(buf), "${OBJ_DIR}${PATH_SEP}'%s'${OBJ_EXT}", ptr);
 		expand_string(buf, "", sizeof(buf), 0);
 		if(ext) *ext = '.';
 
@@ -1821,7 +1836,7 @@ static int build_obj_list(char *buffer, size_t bufsize, time_t base_time,
 
 		if(ext) *ext = 0;
 		i += snprintf(buffer+i, bufsize-i,
-		              " \\\"${OBJ_DIR}/'%s'${OBJ_EXT}\\\"", ptr);
+		              " \\\"${OBJ_DIR}${PATH_SEP}'%s'${OBJ_EXT}\\\"", ptr);
 		if(ext) *ext = '.';
 
 		ptr += strlen(ptr);
@@ -1933,6 +1948,8 @@ int main(int _argc, char **_argv)
 	setenv("CFLAGS", "", 0);
 	setenv("CXXFLAGS", "", 0);
 	setenv("LDFLAGS", "", 0);
+
+	setenv("PATH_SEP", "/", 0);
 
 	/* Open the default file */
 	fname = strdup(DEFAULT_FILE);
@@ -2855,13 +2872,14 @@ compile_more_sources:
 				next = grab_word(&ptr, &c);
 
 				ext = strrchr(ptr, '/');
+				if(!ext) ext = strrchr(ptr, '\\');
 				if(!ext) ext = ptr;
 				ext = strrchr(ext, '.');
 				if(!ext) 
 					goto next_src_file;
 
 				*ext = 0;
-				snprintf(obj, sizeof(obj), "${OBJ_DIR}/'%s'${OBJ_EXT}", ptr);
+				snprintf(obj, sizeof(obj), "${OBJ_DIR}${PATH_SEP}'%s'${OBJ_EXT}", ptr);
 				expand_string(obj, "", sizeof(obj), 0);
 				*ext = '.';
 
@@ -2891,10 +2909,10 @@ compile_more_sources:
 				*ext = 0;
 				if(*getvar("DEP_OPT"))
 					i += snprintf(buffer+i, sizeof(buffer)-i,
-					            " ${DEP_OPT}\\\"${DEP_DIR}/'%s'${DEP_EXT}\\\"",
+					            " ${DEP_OPT}\\\"${DEP_DIR}${PATH_SEP}'%s'${DEP_EXT}\\\"",
 					              ptr);
 				i += snprintf(buffer+i, sizeof(buffer)-i,
-				              " ${OUT_OPT}\\\"${OBJ_DIR}/'%s'${OBJ_EXT}\\\"",
+				              " ${OUT_OPT}\\\"${OBJ_DIR}${PATH_SEP}'%s'${OBJ_EXT}\\\"",
 				              ptr);
 				*ext = '.';
 
@@ -3539,11 +3557,12 @@ next_src_file:
 				next = extract_word(ptr, sizeof(linebuf)+linebuf-ptr);
 
 				ext = strrchr(ptr, '/');
+                                if(!ext) ext = strrchr(ptr, '\\');
 				if(!ext) ext = ptr;
 				ext = strrchr(ext, '.');
 
 				if(ext) *ext = 0;
-				snprintf(buffer, sizeof(buffer), "${OBJ_DIR}/'%s'${OBJ_EXT}",
+				snprintf(buffer, sizeof(buffer), "${OBJ_DIR}${PATH_SEP}'%s'${OBJ_EXT}",
 				         ptr);
 				expand_string(buffer, "", sizeof(buffer), 0);
 				if(ext) *ext = '.';
@@ -3573,7 +3592,7 @@ next_src_file:
 				}
 
 				if(ext) *ext = 0;
-				snprintf(buffer, sizeof(buffer), "${DEP_DIR}/'%s'${DEP_EXT}",
+				snprintf(buffer, sizeof(buffer), "${DEP_DIR}${PATH_SEP}'%s'${DEP_EXT}",
 				         ptr);
 				expand_string(buffer, "", sizeof(buffer), 0);
 				if(ext) *ext = '.';
