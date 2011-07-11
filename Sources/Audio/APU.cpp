@@ -219,28 +219,28 @@ static forceinline void apu_envelope(APUChannel& chan, APUEnvelope& env)
    chan.volume = env.fixed ? env.fixed_volume : env.counter;
 }
 
-static void apu_save_envelope(const APUEnvelope& env, PACKFILE* file, const int version)
+static void apu_save_envelope(const APUEnvelope& env, FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
-   pack_putc(env.timer, file);
-   pack_putc(env.period, file);
-   pack_putc(env.counter, file);
-   pack_putc(SAVE_BOOLEAN(env.fixed), file);
-   pack_putc(env.fixed_volume, file);
-   pack_putc(SAVE_BOOLEAN(env.dirty), file);
+   file->write_byte(file, env.timer);
+   file->write_byte(file, env.period);
+   file->write_byte(file, env.counter);
+   file->write_boolean(file, env.fixed);
+   file->write_byte(file, env.fixed_volume);
+   file->write_boolean(file, env.dirty);
 }
 
-static void apu_load_envelope(APUEnvelope& env, PACKFILE* file, const int version)
+static void apu_load_envelope(APUEnvelope& env, FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
-   env.timer = pack_getc(file);
-   env.period = pack_getc(file);
-   env.counter = pack_getc(file);
-   env.fixed = LOAD_BOOLEAN(pack_getc(file));
-   env.fixed_volume = pack_getc(file);
-   env.dirty = LOAD_BOOLEAN(pack_getc(file));
+   env.timer= file->read_byte(file);
+   env.period = file->read_byte(file);
+   env.counter = file->read_byte(file);
+   env.fixed = file->read_boolean(file);
+   env.fixed_volume = file->read_byte(file);
+   env.dirty = file->read_boolean(file);
 }
 
 // Sweep unit for squares.
@@ -287,28 +287,28 @@ static linear void apu_sweep(APUChannel& chan, APUSweep& sweep)
       chan.period = delta;
 }
 
-static void apu_save_sweep(const APUSweep& env, PACKFILE* file, const int version)
+static void apu_save_sweep(const APUSweep& env, FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
-   pack_putc(SAVE_BOOLEAN(env.enabled), file);
-   pack_putc(env.timer, file);
-   pack_putc(env.period, file);
-   pack_putc(env.shifts, file);
-   pack_putc(SAVE_BOOLEAN(env.invert), file);
-   pack_putc(SAVE_BOOLEAN(env.dirty), file);
+   file->write_boolean(file, env.enabled);
+   file->write_byte(file, env.timer);
+   file->write_byte(file, env.period);
+   file->write_byte(file, env.shifts);
+   file->write_boolean(file, env.invert);
+   file->write_boolean(file, env.dirty);
 }
 
-static void apu_load_sweep(APUSweep& env, PACKFILE* file, const int version)
+static void apu_load_sweep(APUSweep& env, FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
-   env.enabled = LOAD_BOOLEAN(pack_getc(file));
-   env.timer = pack_getc(file);
-   env.period = pack_getc(file);
-   env.shifts = pack_getc(file);
-   env.invert = LOAD_BOOLEAN(pack_getc(file));
-   env.dirty = LOAD_BOOLEAN(pack_getc(file));
+   env.enabled = file->read_boolean(file);
+   env.timer = file->read_byte(file);
+   env.period = file->read_byte(file);
+   env.shifts = file->read_byte(file);
+   env.invert = file->read_boolean(file);
+   env.dirty = file->read_boolean(file);
 }
 
 // Length counter for squares, triangle, and noise
@@ -350,23 +350,23 @@ static linear void apu_update_square(APUSquare& chan, const FLAGS update_flags)
    }
 }
 
-static linear void apu_save_square(const APUSquare& chan, PACKFILE* file, const int version)
+static linear void apu_save_square(const APUSquare& chan, FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
    // General
-   pack_putc(chan.output, file);
-   pack_putc(chan.volume, file);
-   pack_putc(SAVE_BOOLEAN(chan.looping), file);
-   pack_putc(SAVE_BOOLEAN(chan.silence), file);
+   file->write_byte(file, chan.output);
+   file->write_byte(file, chan.volume);
+   file->write_boolean(file, chan.looping);
+   file->write_boolean(file, chan.silence);
 
    // Timer
-   pack_iputw(chan.timer, file);
-   pack_iputw(chan.period, file);
+   file->write_word(file, chan.timer);
+   file->write_word(file, chan.period);
 
    // Length counter
-   pack_putc(chan.length, file);
-   pack_putc(SAVE_BOOLEAN(chan.length_disable), file);
+   file->write_byte(file, chan.length);
+   file->write_boolean(file, chan.length_disable);
 
    // Envelope generator.
    apu_save_envelope(chan.envelope, file, version);
@@ -374,30 +374,30 @@ static linear void apu_save_square(const APUSquare& chan, PACKFILE* file, const 
    apu_save_sweep(chan.sweep, file, version);
 
    // Sequencer & duty cycle.
-   pack_putc(chan.sequence_step, file);
-   pack_putc(chan.duty_cycle, file);
+   file->write_byte(file, chan.sequence_step);
+   file->write_byte(file, chan.duty_cycle);
 }
 
-static linear void apu_load_square(APUSquare& chan, PACKFILE* file, const int version)
+static linear void apu_load_square(APUSquare& chan, FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
-   chan.output = pack_getc(file);
-   chan.volume = pack_getc(file);
-   chan.looping = LOAD_BOOLEAN(pack_getc(file));
-   chan.silence = LOAD_BOOLEAN(pack_getc(file));
+   chan.output = file->read_byte(file);
+   chan.volume = file->read_byte(file);
+   chan.looping = file->read_boolean(file);
+   chan.silence = file->read_boolean(file);
 
-   chan.timer = pack_igetw(file);
-   chan.period = pack_igetw(file);
+   chan.timer = file->read_word(file);
+   chan.period = file->read_word(file);
 
-   chan.length = pack_getc(file);
-   chan.length_disable = LOAD_BOOLEAN(pack_getc(file));
+   chan.length = file->read_byte(file);
+   chan.length_disable = file->read_boolean(file)
 
    apu_load_envelope(chan.envelope, file, version);
    apu_load_sweep(chan.sweep, file, version);
 
-   chan.sequence_step = pack_getc(file);
-   chan.duty_cycle = pack_getc(file);
+   chan.sequence_step = file->read_byte(file)
+   chan.duty_cycle = file->read_byte(file)
 }
 
 // Linear counter for triangle
@@ -455,44 +455,44 @@ static linear void apu_update_triangle(APUTriangle& chan, const FLAGS update_fla
    }
 }
 
-static linear void apu_save_triangle(const APUTriangle& chan, PACKFILE* file, const int version)
+static linear void apu_save_triangle(const APUTriangle& chan, FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
    // General
-   pack_putc(chan.output, file);
-   pack_putc(SAVE_BOOLEAN(chan.looping), file);
+   file->write_byte(file, chan.output);
+   file->write_boolean(file, chan.looping);
 
    // Timer
-   pack_iputw(chan.timer, file);
-   pack_iputw(chan.period, file);
+   file->write_word(file, chan.timer);
+   file->write_word(file, chan.period);
 
    // Length counter
-   pack_putc(chan.length, file);
-   pack_putc(SAVE_BOOLEAN(chan.length_disable), file);
+   file->write_byte(file, chan.length);
+   file->write_boolean(file, chan.length_disable);
 
    // Linear counter
-   pack_putc(chan.linear_length, file);
-   pack_putc(SAVE_BOOLEAN(chan.halt_counter), file);
-   pack_putc(chan.cached_linear_length, file);
+   file->write_byte(file, chan.linear_length);
+   file->write_boolean(file, chan.halt_counter);
+   file->write_byte(file, chan.cached_linear_length);
 }
 
-static linear void apu_load_triangle(APUTriangle& chan, PACKFILE* file, const int version)
+static linear void apu_load_triangle(APUTriangle& chan, FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
-   chan.output = pack_getc(file);
-   chan.looping = LOAD_BOOLEAN(pack_getc(file));
+   chan.output = file->read_byte(file);
+   chan.looping = file->read_boolean(file);
 
-   chan.timer = pack_igetw(file);
-   chan.period = pack_igetw(file);
+   chan.timer = file->read_word(file);
+   chan.period = file->read_word(file);
 
-   chan.length = pack_getc(file);
-   chan.length_disable = LOAD_BOOLEAN(pack_getc(file));
+   chan.length = file->read_byte(file);
+   chan.length_disable = file->read_boolean(file);
 
-   chan.linear_length = pack_getc(file);
-   chan.halt_counter = LOAD_BOOLEAN(pack_getc(file));
-   chan.cached_linear_length = pack_getc(file);
+   chan.linear_length = file->read_byte(file);
+   chan.halt_counter = file->read_boolean(file);
+   chan.cached_linear_length = file->read_byte(file);
 }
 
 static linear void apu_update_noise(APUNoise& chan, const FLAGS update_flags)
@@ -529,51 +529,51 @@ static linear void apu_update_noise(APUNoise& chan, const FLAGS update_flags)
    }
 }
 
-static linear void apu_save_noise(const APUNoise& chan, PACKFILE* file, const int version)
+static linear void apu_save_noise(const APUNoise& chan, FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
    // General
-   pack_putc(chan.output, file);
-   pack_putc(chan.volume, file);
-   pack_putc(SAVE_BOOLEAN(chan.looping), file);
-   pack_putc(SAVE_BOOLEAN(chan.silence), file);
+   file->write_byte(file, chan.output);
+   file->write_byte(file, chan.volume);
+   file->write_boolean(file, chan.looping);
+   file->write_boolean(file, chan.silence);
 
    // Timer
-   pack_iputw(chan.timer, file);
-   pack_iputw(chan.period, file);
+   file->write_word(file, chan.timer);
+   file->write_word(file, chan.period);
 
    // Length counter
-   pack_putc(chan.length, file);
-   pack_putc(SAVE_BOOLEAN(chan.length_disable), file);
+   file->write_byte(file, chan.length);
+   file->write_boolean(file, chan.length_disable);
 
    // Envelope generator.
    apu_save_envelope(chan.envelope, file, version);
 
    // Noise generator.
-   pack_iputw(chan.xor_tap, file);
-   pack_iputw(chan.shift16, file);
+   file->write_word(file, chan.xor_tap);
+   file->write_word(file, chan.shift16);
 }
 
-static linear void apu_load_noise(APUNoise& chan, PACKFILE* file, const int version)
+static linear void apu_load_noise(APUNoise& chan, FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
-   chan.output = pack_getc(file);
-   chan.volume = pack_getc(file);
-   chan.looping = LOAD_BOOLEAN(pack_getc(file));
-   chan.silence = LOAD_BOOLEAN(pack_getc(file));
+   chan.output = file->read_byte(file);
+   chan.volume = file->read_byte(file);
+   chan.looping = file->read_boolean(file);
+   chan.silence = file->read_boolean(file);
 
-   chan.timer = pack_igetw(file);
-   chan.period = pack_igetw(file);
+   chan.timer = file->read_word(file);
+   chan.period = file->read_word(file);
 
-   chan.length = pack_getc(file);
-   chan.length_disable = LOAD_BOOLEAN(pack_getc(file));
+   chan.length = file->read_byte(file);
+   chan.length_disable = file->read_boolean(file);
 
    apu_load_envelope(chan.envelope, file, version);
 
-   chan.xor_tap = pack_igetw(file);
-   chan.shift16 = pack_igetw(file);
+   chan.xor_tap = file->read_word(file);
+   chan.shift16 = file->read_word(file);
 }
 
 static forceinline void apu_reload_dmc(APUDMC& chan)
@@ -725,64 +725,64 @@ static void apu_predict_dmc_irq(APUDMC& chan, const cpu_time_t cycles)
    chan = saved_chan;
 }
 
-static linear void apu_save_dmc(const APUDMC& chan, PACKFILE* file, const int version)
+static linear void apu_save_dmc(const APUDMC& chan, FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
    // General
-   pack_putc(chan.output, file);
-   pack_putc(chan.volume, file);
-   pack_putc(SAVE_BOOLEAN(chan.looping), file);
-   pack_putc(SAVE_BOOLEAN(chan.silence), file);
+   file->write_byte(file, chan.output);
+   file->write_byte(file, chan.volume);
+   file->write_boolean(file, chan.looping);
+   file->write_boolean(file, chan.silence);
 
    // Timer
-   pack_iputw(chan.timer, file);
-   pack_iputw(chan.period, file);
+   file->write_word(file, chan.timer);
+   file->write_word(file, chan.period);
 
    // Memory reader
-   pack_iputw(chan.address, file);
-   pack_iputw(chan.dma_length, file);
-   pack_iputw(chan.cached_address, file);
-   pack_iputw(chan.cached_dmalength, file);
+   file->write_word(file, chan.address);
+   file->write_word(file, chan.dma_length);
+   file->write_word(file, chan.cached_address);
+   file->write_word(file, chan.cached_dmalength);
 
    // Sample buffer
-   pack_putc(chan.cur_byte, file);
-   pack_putc(chan.sample_bits, file);
+   file->write_byte(file, chan.cur_byte);
+   file->write_byte(file, chan.sample_bits);
 
    // Output unit
-   pack_putc(chan.counter, file);
-   pack_putc(chan.shift_reg, file);
+   file->write_byte(file, chan.counter);
+   file->write_byte(file, chan.shift_reg);
 
    // IRQ generator
-   pack_putc(SAVE_BOOLEAN(chan.irq_gen), file);
-   pack_putc(SAVE_BOOLEAN(chan.irq_occurred), file);
+   file->write_boolean(file, chan.irq_gen);
+   file->write_boolean(file, chan.irq_occurred);
 }
 
-static linear void apu_load_dmc(APUDMC& chan, PACKFILE* file, const int version)
+static linear void apu_load_dmc(APUDMC& chan, FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
-   chan.output = pack_getc(file);
-   chan.volume = pack_getc(file);
-   chan.looping = LOAD_BOOLEAN(pack_getc(file));
-   chan.silence = LOAD_BOOLEAN(pack_getc(file));
+   chan.output = file->read_byte(file);
+   chan.volume = file->read_byte(file);
+   chan.looping = file->read_boolean(file);
+   chan.silence = file->read_boolean(file);
 
-   chan.timer = pack_igetw(file);
-   chan.period = pack_igetw(file);
+   chan.timer = file->read_word(file);
+   chan.period = file->read_word(file);
 
-   chan.address = pack_igetw(file);
-   chan.dma_length = pack_igetw(file);
-   chan.cached_address = pack_igetw(file);
-   chan.cached_dmalength = pack_igetw(file);
+   chan.address = file->read_word(file);
+   chan.dma_length = file->read_word(file);
+   chan.cached_address = file->read_word(file);
+   chan.cached_dmalength = file->read_word(file);
 
-   chan.cur_byte = pack_getc(file);
-   chan.sample_bits = pack_getc(file);
+   chan.cur_byte = file->read_byte(file);
+   chan.sample_bits = file->read_byte(file);
 
-   chan.counter = pack_getc(file);
-   chan.shift_reg = pack_getc(file);
+   chan.counter = file->read_byte(file);
+   chan.shift_reg = file->read_byte(file);
 
-   chan.irq_gen = LOAD_BOOLEAN(pack_getc(file));
-   chan.irq_occurred = LOAD_BOOLEAN(pack_getc(file));
+   chan.irq_gen = file->read_boolean(file);
+   chan.irq_occurred = file->read_boolean(file);
 }
 
 static forceinline void apu_update_channels(const FLAGS update_flags)
@@ -1591,24 +1591,24 @@ void apu_sync_update(void)
    audio_update();
 }
 
-void apu_load_state(PACKFILE* file, const int version)
+void apu_load_state(FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
    // Begin initialization sequence.
    apu.initializing++;
 
-   apu.clock_counter = pack_igetl(file);
-   apu.clock_buffer = pack_igetl(file);
+   apu.clock_counter = file->read_long(file);
+   apu.clock_buffer = file->read_long(file);
 
-   apu.prediction_timestamp = pack_igetl(file);
-   apu.prediction_cycles = pack_igetl(file);
+   apu.prediction_timestamp = file->read_long(file);
+   apu.prediction_cycles = file->read_long(file);
 
-   apu.sequence_counter = pack_igetw(file);
-   apu.sequence_step = pack_getc(file);
-   apu.sequence_steps = pack_getc(file);
-   apu.frame_irq_gen = LOAD_BOOLEAN(pack_getc(file));
-   apu.frame_irq_occurred = LOAD_BOOLEAN(pack_getc(file));
+   apu.sequence_counter = file->read_word(file);
+   apu.sequence_step = file->read_byte(file);
+   apu.sequence_steps = file->read_byte(file);
+   apu.frame_irq_gen = file->read_boolean(file);
+   apu.frame_irq_occurred = file->read_boolean(file);
 
    apu_load_square(apu.square[0], file, version);
    apu_load_square(apu.square[1], file, version);
@@ -1622,7 +1622,7 @@ void apu_load_state(PACKFILE* file, const int version)
    apu.initializing--;
 }
 
-void apu_save_state(PACKFILE* file, const int version)
+void apu_save_state(FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -1630,19 +1630,19 @@ void apu_save_state(PACKFILE* file, const int version)
    synchronize();
 
    // Processing timestamp
-   pack_iputl(apu.clock_counter, file);
-   pack_iputl(apu.clock_buffer, file);
+   file->write_long(file, apu.clock_counter);
+   file->write_long(file, apu.clock_buffer);
 
    // IRQ prediction
-   pack_iputl(apu.prediction_timestamp, file);
-   pack_iputl(apu.prediction_cycles, file);
+   file->write_long(file, apu.prediction_timestamp);
+   file->write_long(file, apu.prediction_cycles);
 
    // Frame sequencer & frame IRQs
-   pack_iputw(apu.sequence_counter, file);
-   pack_putc(apu.sequence_step, file);
-   pack_putc(apu.sequence_steps, file);
-   pack_putc(SAVE_BOOLEAN(apu.frame_irq_gen), file);
-   pack_putc(SAVE_BOOLEAN(apu.frame_irq_occurred), file);
+   file->write_word(file, apu.sequence_counter);
+   file->write_byte(file, apu.sequence_step);
+   file->write_byte(file, apu.sequence_steps);
+   file->write_boolean(file, apu.frame_irq_gen);
+   file->write_boolean(file, apu.frame_irq_occurred);
 
    // Sound generators
    apu_save_square(apu.square[0], file, version);

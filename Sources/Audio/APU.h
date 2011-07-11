@@ -11,6 +11,7 @@
 #include "Common/Common.h"
 #include "Common/Types.h"
 #include "Core/CPU.h"
+#include "Platform/File.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -30,8 +31,8 @@ extern void apu_write(const UINT16 address, UINT8 value);
 extern cpu_time_t apu_execute(const cpu_time_t time);
 extern void apu_predict_irqs(const cpu_time_t cycles);
 extern void apu_sync_update(void);
-extern void apu_load_state(PACKFILE* file, const int version);
-extern void apu_save_state(PACKFILE* file, const int version);
+extern void apu_load_state(FILE_CONTEXT* file, const int version);
+extern void apu_save_state(FILE_CONTEXT* file, const int version);
 extern REAL* apu_get_visdata(void);
 
 typedef struct apu_options_s {
