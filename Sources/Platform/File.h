@@ -42,7 +42,9 @@ enum FILE_ORDER {
    FILE_ORDER_MOTOROLA,		/* Always big-endian. */
 };
 
-/* Data type used for sizes, positions, etc. */
+/* Data type used for sizes, positions, etc. This is used instead of
+   the standard size data type (size_t) because we still want to
+   support e.g 64-bit file sizes on 32-bit platforms. */
 typedef UINT64 FILE_SIZE;
 /* Data type used for relative offsets. */
 typedef INT64 FILE_OFFSET;
@@ -74,16 +76,16 @@ typedef struct _FILE_CONTEXT {
       Note that get_real() and put_real() are reduced to single precision,
       and booleans require an entire byte of storage space. Again, these
       can be overriden on a per-file basis.*/
-   UINT8 (*get_byte)(FILE_CONTEXT* file);
-   UINT16 (*get_word)(FILE_CONTEXT* file);
-   UINT32 (*get_long)(FILE_CONTEXT* file);
-   BOOL (*get_boolean)(FILE_CONTEXT* file);
-   REAL (*get_real)(FILE_CONTEXT* file, );
-   void (*put_byte)(FILE_CONTEXT* file, const UINT8 data);
-   void (*put_word)(FILE_CONTEXT* file, const UINT16 data);
-   void (*put_long)(FILE_CONTEXT* file, const UINT32 data);
-   void (*put_boolean)(FILE_CONTEXT* file, const BOOL data);
-   void (*put_real)(FILE_CONTEXT* file, const REAL data);
+   UINT8 (*read_byte)(FILE_CONTEXT* file);
+   UINT16 (*read_word)(FILE_CONTEXT* file);
+   UINT32 (*read_long)(FILE_CONTEXT* file);
+   BOOL (*read_boolean)(FILE_CONTEXT* file);
+   REAL (*read_real)(FILE_CONTEXT* file, );
+   void (*write_byte)(FILE_CONTEXT* file, const UINT8 data);
+   void (*write_word)(FILE_CONTEXT* file, const UINT16 data);
+   void (*write_long)(FILE_CONTEXT* file, const UINT32 data);
+   void (*write_boolean)(FILE_CONTEXT* file, const BOOL data);
+   void (*write_real)(FILE_CONTEXT* file, const REAL data);
 
    /* Underlying file handle in the C library. This is only used for
       physical files, not memory files. */
