@@ -5,7 +5,7 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
-#include "Common.hpp"
+#include "Local.hpp"
 #include "MMC5.hpp"
 
 namespace Sound {
@@ -127,40 +127,40 @@ void Square::process(const cpu_time_t cycles)
       step = 0;
 }
 
-void Square::save(PACKFILE* file, const int version) const
+void Square::save(FILE_CONTEXT* file, const int version) const
 {
    RT_ASSERT(file);
 
    for(int index = 0; index < 4; index++)
-      pack_putc(regs[index], file);
+      file->write_byte(file, regs[index]);
 
-   pack_iputw(timer, file);
-   pack_putc(length, file);
-   pack_putc(volume, file);
-   pack_putc(step, file);
-   pack_putc(output, file);
+   file->write_word(file, timer);
+   file->write_byte(file, length);
+   file->write_byte(file, volume);
+   file->write_byte(file, step);
+   file->write_byte(file, output);
 
-   pack_putc(envelope.timer, file);
-   pack_putc(SAVE_BOOLEAN(envelope.reset), file);
-   pack_putc(envelope.counter, file);
+   file->write_byte(file, envelope.timer);
+   file->write_boolean(file, envelope.reset);
+   file->write_byte(file, envelope.counter);
 }
 
-void Square::load(PACKFILE* file, const int version)
+void Square::load(FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
    for(int index = 0; index < 4; index++)
-      write((0x5000 + index), pack_getc(file)); // should work for both
+      write((0x5000 + index), file->read_byte(file)); // should work for both
 
-   timer = pack_igetw(file);
-   length = pack_getc(file);
-   volume = pack_getc(file);
-   step = pack_getc(file);
-   output = pack_getc(file);
+   timer = file->read_word(file);
+   length = file->read_byte(file);
+   volume = file->read_byte(file);
+   step = file->read_byte(file);
+   output = file->read_byte(file);
 
-   envelope.timer = pack_getc(file);
-   envelope.reset = LOAD_BOOLEAN(pack_getc(file));
-   envelope.counter = pack_getc(file);
+   envelope.timer = file->read_byte(file);
+   envelope.reset = file->read_boolean(file);
+   envelope.counter = file->read_byte(file);
 }
 
 void Square::update_120hz(void)
@@ -212,18 +212,18 @@ void PCM::write(const uint16 address, const uint8 value)
    }
 }
 
-void PCM::save(PACKFILE* file, const int version) const
+void PCM::save(FILE_CONTEXT* file, const int version) const
 {
    RT_ASSERT(file);
 
-   pack_putc(output, file);
+   file->write_byte(file, output);
 }
 
-void PCM::load(PACKFILE* file, const int version)
+void PCM::load(FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
-   output = pack_getc(file);
+   output = file->read_byte(file);
 }
 
 void Interface::reset(void)
@@ -329,24 +329,24 @@ void Interface::process(const cpu_time_t cycles)
    square2.process(cycles);
 }
 
-void Interface::save(PACKFILE* file, const int version) const
+void Interface::save(FILE_CONTEXT* file, const int version) const
 {
    RT_ASSERT(file);
 
-   pack_iputl(timer, file);
-   pack_putc(SAVE_BOOLEAN(flip), file);
+   file->write_long(file, timer);
+   file->write_boolean(file, flip);
 
    square1.save(file, version);
    square2.save(file, version);
    pcm.save(file, version);
 }
 
-void Interface::load(PACKFILE* file, const int version)
+void Interface::load(FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
-   timer = pack_igetl(file);
-   flip = LOAD_BOOLEAN(pack_getc(file));
+   timer = file->read_long(file);
+   flip = file->read_boolean(file);
 
    square1.load(file, version);
    square2.load(file, version);

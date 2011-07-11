@@ -5,7 +5,9 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
-#include "Common.hpp"
+#include "APU.hpp"
+#include "AudioLib.hpp"
+#include "Local.hpp"
 
 /* TODO: Fix WAV recording stuff up to work properly on big-endian platforms(currently it produces a big-endian ordered
          WAV file, I think). */

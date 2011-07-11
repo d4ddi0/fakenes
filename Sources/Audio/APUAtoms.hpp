@@ -7,7 +7,7 @@
 
 #ifndef Audio__APUAtoms_hpp__included
 #define Audio__APUAtoms_hpp__included
-#include "Common.hpp"
+#include "Common/Global.h"
 
 // Maximum number of channels to send to the DSP (mono = 1, stereo = 2).
 #define APU_MIXER_MAX_CHANNELS 2

@@ -7,7 +7,7 @@
 
 #ifndef AUDIO__AUDIOLIB_H__INCLUDED
 #define AUDIO__AUDIOLIB_H__INCLUDED
-#include "Common/Common.h"
+#include "Common/Global.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -23,5 +23,5 @@ extern void audiolib_resume(void);
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* __cplusplus */
 #endif /* !AUDIO__AUDIOLIB_H__INCLUDED */

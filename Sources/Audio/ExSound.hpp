@@ -7,7 +7,7 @@
 
 #ifndef Audio__ExSound_hpp__included
 #define Audio__ExSound_hpp__includde
-#include "Common.hpp"
+#include "Local.hpp"
 
 namespace Sound {
 

@@ -5,8 +5,8 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
-#include "Common.hpp"
 #include "ExSound.hpp"
+#include "Local.hpp"
 
 namespace Sound {
 namespace Sourcer {

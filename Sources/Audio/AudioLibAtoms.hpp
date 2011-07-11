@@ -7,7 +7,7 @@
 
 #ifndef Audio__AudioLibAtoms_hpp__included
 #define Audio__AudioLibAtoms_hpp__included
-#include "Common.hpp"
+#include "Local.hpp"
 
 // Driver interfaces for the audio library.
 class AudiolibDriver {

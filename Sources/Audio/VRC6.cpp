@@ -5,7 +5,7 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
-#include "Common.hpp"
+#include "Local.hpp"
 #include "VRC6.hpp"
 
 namespace Sound {
@@ -90,28 +90,28 @@ void Square::process(const cpu_time_t cycles)
       step = 0;
 }
 
-void Square::save(PACKFILE* file, const int version) const
+void Square::save(FILE_CONTEXT* file, const int version) const
 {
    RT_ASSERT(file);
 
    for(int index = 0; index < 3; index++)
-      pack_putc(regs[index], file);
+      file->write_byte(file, regs[index]);
 
-   pack_iputw(timer, file);
-   pack_putc(step, file);
-   pack_putc(output, file);
+   file->write_word(file, timer);
+   file->write_byte(file, step);
+   file->write_byte(file, output);
 }
 
-void Square::load(PACKFILE* file, const int version)
+void Square::load(FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
    for(int index = 0; index < 3; index++)
-      write((0x9000 + index), pack_getc(file)); // should work for both
+      write((0x9000 + index), file->read_byte(file)); // should work for both
 
-   timer = pack_igetw(file);
-   step = pack_getc(file);
-   output = pack_getc(file);
+   timer = file->read_word(file);
+   step = file->read_byte(file);
+   output = file->read_byte(file);
 }
 
 void Saw::reset(void)
@@ -190,30 +190,30 @@ void Saw::process(const cpu_time_t cycles)
    output = volume >> 3;
 }
 
-void Saw::save(PACKFILE* file, const int version) const
+void Saw::save(FILE_CONTEXT* file, const int version) const
 {
    RT_ASSERT(file);
 
    for(int index = 0; index < 3; index++)
-      pack_putc(regs[index], file);
+      file->write_byte(file, regs[index]);
 
-   pack_iputw(timer, file);
-   pack_putc(step, file);
-   pack_putc(volume, file);
-   pack_putc(output, file);
+   file->write_word(file, timer);
+   file->write_byte(file, step);
+   file->write_byte(file, volume);
+   file->write_byte(file, output);
 }
 
-void Saw::load(PACKFILE* file, const int version)
+void Saw::load(FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
    for(int index = 0; index < 3; index++)
-      write((0xB000 + index), pack_getc(file));
+      write((0xB000 + index), file->read_byte(file));
 
-   timer = pack_igetw(file);
-   step = pack_getc(file);
-   volume = pack_getc(file);
-   output = pack_getc(file);
+   timer = file->read_word(file);
+   step = file->read_byte(file);
+   volume = file->read_byte(file);
+   output = file->read_byte(file);
 }
 
 void Interface::reset(void)
@@ -261,7 +261,7 @@ void Interface::process(const cpu_time_t cycles)
    saw.process(cycles);
 }
 
-void Interface::save(PACKFILE* file, const int version) const
+void Interface::save(FILE_CONTEXT* file, const int version) const
 {
    RT_ASSERT(file);
 
@@ -270,7 +270,7 @@ void Interface::save(PACKFILE* file, const int version) const
    saw.save(file, version);
 }
 
-void Interface::load(PACKFILE* file, const int version)
+void Interface::load(FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 

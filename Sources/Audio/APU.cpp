@@ -8,9 +8,9 @@
 #include "APU.h"
 #include "APUAtoms.hpp"
 #include "Audio.h"
-#include "Common.hpp"
 #include "ExSound.hpp"
 #include "Internals.h"
+#include "Local.hpp"
 #include "MMC5.hpp"
 #include "VRC6.hpp"
 
@@ -1534,7 +1534,7 @@ cpu_time_t apu_execute(const cpu_time_t time)
    return processed;
 }
 
-void apu_predict_irqs(const cpu_time_t cycles)
+void apu_predict_irqs(const cpu_time_t time)
 {
    // Sync state.
    synchronize();
@@ -1542,15 +1542,15 @@ void apu_predict_irqs(const cpu_time_t cycles)
    // Save parameters for re-prediction if a mid-scanline change occurs.
    apu.prediction_timestamp = cpu_get_cycles();
    // We'll actually emulate a little bit longer than requested, since it doesn't hurt to do so.
-   apu.prediction_cycles = cycles + PREDICTION_BUFFER_CYCLES + (1 * APU_CLOCK_MULTIPLIER);
+   apu.prediction_cycles = time + PREDICTION_BUFFER_CYCLES + (1 * APU_CLOCK_MULTIPLIER);
 
    // Convert from master clock to APU clock.
-   const cpu_time_t apu_cycles = apu.prediction_cycles / APU_CLOCK_DIVIDER;
-   if(apu_cycles == 0)
+   const cpu_time_t cycles = apu.prediction_cycles / APU_CLOCK_DIVIDER;
+   if(cycles == 0)
       return;
 
-   apu_predict_dmc_irq(apu.dmc, apu_cycles);
-   apu_predict_frame_irq(apu_cycles);
+   apu_predict_dmc_irq(apu.dmc, cycles);
+   apu_predict_frame_irq(cycles);
 }
 
 static void apu_repredict_irqs(const unsigned predictionFlags)

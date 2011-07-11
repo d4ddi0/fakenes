@@ -7,8 +7,8 @@
 
 #ifndef Audio__MMC5_hpp__included
 #define Audio__MMC5_hpp__included
-#include "Common.hpp"
 #include "ExSound.hpp"
+#include "Local.hpp"
 
 namespace Sound {
 namespace MMC5 {
@@ -22,8 +22,8 @@ protected:
    void reset(void);
    void write(const uint16 address, const uint8 value);
    void process(const cpu_time_t cycles);
-   void save(PACKFILE* file, const int version) const;
-   void load(PACKFILE* file, const int version);
+   void save(FILE_CONTEXT* file, const int version) const;
+   void load(FILE_CONTEXT* file, const int version);
 
    void update_120hz(void);
    void update_240hz(void);
@@ -61,8 +61,8 @@ protected:
 
    void reset(void);
    void write(uint16 address, uint8 value);
-   void save(PACKFILE* file, int version) const;
-   void load(PACKFILE* file, int version);
+   void save(FILE_CONTEXT* file, int version) const;
+   void load(FILE_CONTEXT* file, int version);
 
    uint8 output;  // save
 };
@@ -73,8 +73,8 @@ public:
    uint8 read(const uint16 address) const;
    void write(const uint16 address, const uint8 value);
    void process(const cpu_time_t cycles);
-   void save(PACKFILE* file, const int version) const;
-   void load(PACKFILE* file, const int version);
+   void save(FILE_CONTEXT* file, const int version) const;
+   void load(FILE_CONTEXT* file, const int version);
    void mix(const real input);
 
 private:

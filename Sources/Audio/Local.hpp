@@ -5,8 +5,8 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
-#ifndef Audio__Common_hpp__included
-#define Audio__Common_hpp__included
+#ifndef Audio__Local_hpp__included
+#define Audio__Local_hpp__included
 #include <allegro.h>
 #ifdef USE_OPENAL
 #include <AL/al.h>
@@ -18,12 +18,13 @@
 #include <cstring>
 #include <ctime>
 #include <vector>
-#include "Common/Common.h"
 #include "Common/Debug.h"
+#include "Common/Global.h"
 #include "Common/Math.h"
 #include "Common/Types.h"
 #include "Core/CPU.h"
-#include "Platform/Configuration.h"
+#include "Platform/Config.h"
+#include "Platform/File.h"
 #include "Platform/Log.h"
 #include "System/Machine.h"
 #include "System/Timing.h"
@@ -33,4 +34,4 @@
 #undef interface
 #endif
 
-#endif // !Audio__Common_hpp__included
+#endif // !Audio__Local_hpp__included

@@ -7,8 +7,7 @@
 
 #ifndef AUDIO__APU_H__INCLUDED
 #define AUDIO__APU_H__INCLUDED
-#include <allegro.h>
-#include "Common/Common.h"
+#include "Common/Global.h"
 #include "Common/Types.h"
 #include "Core/CPU.h"
 #include "Platform/File.h"
@@ -29,7 +28,7 @@ extern void apu_enable_exsound(const ENUM exsound_id);
 extern UINT8 apu_read(const UINT16 address);
 extern void apu_write(const UINT16 address, UINT8 value);
 extern cpu_time_t apu_execute(const cpu_time_t time);
-extern void apu_predict_irqs(const cpu_time_t cycles);
+extern void apu_predict_irqs(const cpu_time_t time);
 extern void apu_sync_update(void);
 extern void apu_load_state(FILE_CONTEXT* file, const int version);
 extern void apu_save_state(FILE_CONTEXT* file, const int version);
