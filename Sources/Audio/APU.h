@@ -64,12 +64,12 @@ extern apu_options_t apu_options;
 enum {
    APU_EMULATION_FAST = 0,
    APU_EMULATION_ACCURATE,
-   APU_EMULATION_HIGH_QUALITY,
+   APU_EMULATION_HIGH_QUALITY
 };
 
 enum {
    APU_EXSOUND_MMC5,
-   APU_EXSOUND_VRC6,
+   APU_EXSOUND_VRC6
 };
 
 enum {
@@ -80,7 +80,7 @@ enum {
    APU_VISDATA_DMC,
    APU_VISDATA_MASTER_1,
    APU_VISDATA_MASTER_2,
-   APU_VISDATA_ENTRIES,
+   APU_VISDATA_ENTRIES
 };
 
 #ifdef __cplusplus
