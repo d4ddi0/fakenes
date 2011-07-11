@@ -8,7 +8,7 @@
 #include "Audio.h"
 #include "AudioLib.h"
 #include "AudioLibAtoms.hpp"
-#include "Common.hpp"
+#include "Local.hpp"
 
 // TODO: Beef up OpenAL support.  Error handling is a must.
 
