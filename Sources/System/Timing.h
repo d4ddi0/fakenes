@@ -7,7 +7,7 @@
 
 #ifndef SYSTEM__TIMING_H__INCLUDED
 #define SYSTEM__TIMING_H__INCLUDED
-#include "Common/Common.h"
+#include "Common/Global.h"
 #include "Common/Types.h"
 #ifdef __cplusplus
 extern "C" {
