@@ -59,8 +59,8 @@ extern "C" {
    the way macro expansion is handled with INLINE. */
 #define forceinline INLINE
 
-#define linear (LINEAR)
-#define quick (QUICK)
+#define linear LINEAR
+#define quick QUICK
 
 #endif /* __cplusplus */
 #endif /* !COMMON__GLOBAL_H__INCLUDED */
