@@ -115,7 +115,7 @@ typedef union
 
 /* Shorthand aliases. */
 /* typedef where possible, otherwise #define. */
-typedef fakenes_uint UINT;
+typedef fakenes_uint_t UINT;
 
 typedef fakenes_uint8_t UINT8;
 typedef fakenes_int8_t INT8;
