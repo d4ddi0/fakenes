@@ -85,7 +85,7 @@ enum {
    APU_CHANNEL_EXTRA_1,
    APU_CHANNEL_EXTRA_2,
    APU_CHANNEL_EXTRA_3,
-   APU_CHANNELS,
+   APU_CHANNELS
 };
 
 // --- Lookup tables. ---
@@ -166,13 +166,13 @@ enum {
 
    // 5-step mode.
    UPDATE_96HZ = (UPDATE_LENGTH | UPDATE_SWEEP),
-   UPDATE_192HZ = (UPDATE_ENVELOPE | UPDATE_LINEAR),
+   UPDATE_192HZ = (UPDATE_ENVELOPE | UPDATE_LINEAR)
 };
 
 // IRQ prediction flags.
 enum {
    APU_PREDICT_IRQ_DMC   = (1 << 0),
-   APU_PREDICT_IRQ_FRAME = (1 << 1),
+   APU_PREDICT_IRQ_FRAME = (1 << 1)
 };
 
 // IRQ reprediction handler.
@@ -391,13 +391,13 @@ static linear void apu_load_square(APUSquare& chan, FILE_CONTEXT* file, const in
    chan.period = file->read_word(file);
 
    chan.length = file->read_byte(file);
-   chan.length_disable = file->read_boolean(file)
+   chan.length_disable = file->read_boolean(file);
 
    apu_load_envelope(chan.envelope, file, version);
    apu_load_sweep(chan.sweep, file, version);
 
-   chan.sequence_step = file->read_byte(file)
-   chan.duty_cycle = file->read_byte(file)
+   chan.sequence_step = file->read_byte(file);
+   chan.duty_cycle = file->read_byte(file);
 }
 
 // Linear counter for triangle
@@ -683,7 +683,7 @@ static void apu_predict_dmc_irq(APUDMC& chan, const cpu_time_t cycles)
    // DMC IRQ predictor.  See apu_predict_frame_irq() for more information.
 
    // Clear any pending interrupts just in case.
-   cpu_unqueue_interrupt(CPU_INTERRUPT_IRQ_DMC);
+   cpu_clear_interrupt(CPU_INTERRUPT_IRQ_DMC);
 
    // DMC IRQs are not generated if they are disabled or the channel's loop flag is set.
    if(!chan.irq_gen || chan.looping)
@@ -700,7 +700,7 @@ static void apu_predict_dmc_irq(APUDMC& chan, const cpu_time_t cycles)
 
          chan.dma_length--;
          if(chan.dma_length == 0)
-            cpu_queue_interrupt(CPU_INTERRUPT_IRQ_DMC, apu.prediction_timestamp + (current * APU_CLOCK_MULTIPLIER));
+            cpu_set_interrupt(CPU_INTERRUPT_IRQ_DMC, apu.prediction_timestamp + (current * APU_CLOCK_MULTIPLIER));
       }
 
       if(chan.counter == 0) {
@@ -912,7 +912,7 @@ static void apu_predict_frame_irq(const cpu_time_t cycles)
       get a rough(more accurate than not) idea of when the IRQ will occur. */
 
    // Clear any pending interrupts just in case.
-   cpu_unqueue_interrupt(CPU_INTERRUPT_IRQ_FRAME);
+   cpu_clear_interrupt(CPU_INTERRUPT_IRQ_FRAME);
 
    // Frame IRQs are not generated if they are disabled or if the APU is in 5-step mode.
    if(!apu.frame_irq_gen ||
@@ -924,7 +924,7 @@ static void apu_predict_frame_irq(const cpu_time_t cycles)
 
    /* Now we simply simulate emulating the frame sequencer cycle-by-cycle
       (up to a minimum and maximum of 'cycles') keeping track of what
-      virtual cycle we are on for calls to cpu_queue_interrupt(). */
+      virtual cycle we are on for calls to cpu_set_interrupt(). */
 
    // Note that cycles is the number of *APU* cycles to predict.
    for(cpu_time_t current = 0; current < cycles; current++) {
@@ -938,7 +938,7 @@ static void apu_predict_frame_irq(const cpu_time_t cycles)
 
       // check to see if we should generate an irq
       if(apu.sequence_step == 4)
-         cpu_queue_interrupt(CPU_INTERRUPT_IRQ_FRAME, apu.prediction_timestamp + (current * APU_CLOCK_MULTIPLIER));
+         cpu_set_interrupt(CPU_INTERRUPT_IRQ_FRAME, apu.prediction_timestamp + (current * APU_CLOCK_MULTIPLIER));
 
       if(++apu.sequence_step > apu.sequence_steps)
          apu.sequence_step = 1;
@@ -1540,7 +1540,7 @@ void apu_predict_irqs(const cpu_time_t time)
    synchronize();
 
    // Save parameters for re-prediction if a mid-scanline change occurs.
-   apu.prediction_timestamp = cpu_get_cycles();
+   apu.prediction_timestamp = cpu_get_time();
    // We'll actually emulate a little bit longer than requested, since it doesn't hurt to do so.
    apu.prediction_cycles = time + PREDICTION_BUFFER_CYCLES + (1 * APU_CLOCK_MULTIPLIER);
 
@@ -1564,7 +1564,7 @@ static void apu_repredict_irqs(const unsigned predictionFlags)
    synchronize();
 
    // Determine how much time has elapsed since our initial prediction.
-   const cpu_time_t timestamp = cpu_get_cycles();
+   const cpu_time_t timestamp = cpu_get_time();
    const cpu_time_t cycles_elapsed = (cpu_rtime_t)timestamp - (cpu_rtime_t)apu.prediction_timestamp;
 
    // Calculate how many cycles are left in the prediction buffer.
@@ -1816,7 +1816,7 @@ static forceinline cpu_time_t process(const cpu_time_t time)
          // Since we'll be emulating every cycle, we'll use a timer delta of 1.
          apu.timer_delta = 1;
 
-         for(cpu_time_t current = 0; curent < cycles; current++) {
+         for(cpu_time_t current = 0; current < cycles; current++) {
             // Update the frame sequencer.
             apu_update_frame_sequencer();
             // Update outputs.
@@ -1877,7 +1877,7 @@ static forceinline cpu_time_t process(const cpu_time_t time)
    }
 
    // Return the number of cycles processed.
-   return cycles * APU_CLOCK_MULTIPLIER
+   return cycles * APU_CLOCK_MULTIPLIER;
 }
 
 static forceinline void mix(void)

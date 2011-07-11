@@ -21,8 +21,8 @@ public:
    virtual uint8 read(const uint16 address) const { return 0x00; }
    virtual void write(const uint16 address, const uint8 value) { }
    virtual void process(const cpu_time_t cycles) { }
-   virtual void save(PACKFILE* file, const int version) const { }
-   virtual void load(PACKFILE* file, const int version) { }
+   virtual void load(FILE_CONTEXT* file, const int version) { }
+   virtual void save(FILE_CONTEXT* file, const int version) const { }
 };
 
 class Interface {
@@ -34,8 +34,8 @@ public:
    virtual uint8 read(const uint16 address) const { return 0x00; }
    virtual void write(const uint16 address, const uint8 value) { }
    virtual void process(const cpu_time_t cycles) { }
-   virtual void save(PACKFILE* file, const int version) const { }
-   virtual void load(PACKFILE* file, const int version) { }
+   virtual void load(FILE_CONTEXT* file, const int version) { }
+   virtual void save(FILE_CONTEXT* file, const int version) const { }
    virtual void mix(const real input) { output = input; }
 
    real output;
@@ -58,8 +58,8 @@ public:
    uint8 read(uint16 address) const;
    void write(uint16 address, uint8 value);
    void process(cpu_time_t cycles);
-   void save(PACKFILE* file, int version) const;
-   void load(PACKFILE* file, int version);
+   void load(FILE_CONTEXT* file, int version);
+   void save(FILE_CONTEXT* file, int version) const;
    void mix(real input);
 
 private:

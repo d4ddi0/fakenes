@@ -7,11 +7,11 @@
 
 #ifndef AUDIO__INTERNALS_H__INCLUDED
 #define AUDIO__INTERNALS_H__INCLUDED
-#ifdef __cplusplus
-#include <vector>
-#endif
 #include "Common/Global.h"
 #include "Common/Types.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 extern int audio_channels;
 extern int audio_sample_rate;
@@ -24,6 +24,10 @@ extern unsigned audio_buffer_size_samples;
 extern unsigned audio_buffer_size_bytes;
 
 #ifdef __cplusplus
+} // extern "C"
+
+#include <vector>
+
 extern std::vector<uint16> audioQueue;
 
 // Keep this inline and using references for speed.
@@ -34,6 +38,6 @@ quick void audio_queue_sample(real& sample)
    // Store it in the queue.
    audioQueue.push_back(packed);
 }
-#endif /* __cplusplus */
 
+#endif /* __cplusplus */
 #endif /* !AUDIO__INTERNALS_H__INCLUDED */
