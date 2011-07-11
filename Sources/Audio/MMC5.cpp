@@ -127,24 +127,6 @@ void Square::process(const cpu_time_t cycles)
       step = 0;
 }
 
-void Square::save(FILE_CONTEXT* file, const int version) const
-{
-   RT_ASSERT(file);
-
-   for(int index = 0; index < 4; index++)
-      file->write_byte(file, regs[index]);
-
-   file->write_word(file, timer);
-   file->write_byte(file, length);
-   file->write_byte(file, volume);
-   file->write_byte(file, step);
-   file->write_byte(file, output);
-
-   file->write_byte(file, envelope.timer);
-   file->write_boolean(file, envelope.reset);
-   file->write_byte(file, envelope.counter);
-}
-
 void Square::load(FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
@@ -161,6 +143,24 @@ void Square::load(FILE_CONTEXT* file, const int version)
    envelope.timer = file->read_byte(file);
    envelope.reset = file->read_boolean(file);
    envelope.counter = file->read_byte(file);
+}
+
+void Square::save(FILE_CONTEXT* file, const int version) const
+{
+   RT_ASSERT(file);
+
+   for(int index = 0; index < 4; index++)
+      file->write_byte(file, regs[index]);
+
+   file->write_word(file, timer);
+   file->write_byte(file, length);
+   file->write_byte(file, volume);
+   file->write_byte(file, step);
+   file->write_byte(file, output);
+
+   file->write_byte(file, envelope.timer);
+   file->write_boolean(file, envelope.reset);
+   file->write_byte(file, envelope.counter);
 }
 
 void Square::update_120hz(void)
@@ -212,18 +212,18 @@ void PCM::write(const uint16 address, const uint8 value)
    }
 }
 
-void PCM::save(FILE_CONTEXT* file, const int version) const
-{
-   RT_ASSERT(file);
-
-   file->write_byte(file, output);
-}
-
 void PCM::load(FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
    output = file->read_byte(file);
+}
+
+void PCM::save(FILE_CONTEXT* file, const int version) const
+{
+   RT_ASSERT(file);
+
+   file->write_byte(file, output);
 }
 
 void Interface::reset(void)
@@ -329,18 +329,6 @@ void Interface::process(const cpu_time_t cycles)
    square2.process(cycles);
 }
 
-void Interface::save(FILE_CONTEXT* file, const int version) const
-{
-   RT_ASSERT(file);
-
-   file->write_long(file, timer);
-   file->write_boolean(file, flip);
-
-   square1.save(file, version);
-   square2.save(file, version);
-   pcm.save(file, version);
-}
-
 void Interface::load(FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
@@ -351,6 +339,18 @@ void Interface::load(FILE_CONTEXT* file, const int version)
    square1.load(file, version);
    square2.load(file, version);
    pcm.load(file, version);
+}
+
+void Interface::save(FILE_CONTEXT* file, const int version) const
+{
+   RT_ASSERT(file);
+
+   file->write_long(file, timer);
+   file->write_boolean(file, flip);
+
+   square1.save(file, version);
+   square2.save(file, version);
+   pcm.save(file, version);
 }
 
 void Interface::mix(const real input)

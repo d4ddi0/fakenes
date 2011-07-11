@@ -22,8 +22,8 @@ protected:
    void reset(void);
    void write(const uint16 address, const uint8 value);
    void process(const cpu_time_t cycles);
-   void save(FILE_CONTEXT* file, const int version) const;
    void load(FILE_CONTEXT* file, const int version);
+   void save(FILE_CONTEXT* file, const int version) const;
 
    uint8 output;  // save
 
@@ -47,8 +47,8 @@ protected:
    void reset(void);
    void write(const uint16 address, const uint8 value);
    void process(const cpu_time_t cycles);
-   void save(FILE_CONTEXT* file, const int version) const;
    void load(FILE_CONTEXT* file, const int version);
+   void save(FILE_CONTEXT* file, const int version) const;
 
    uint8 output;  // save
 
@@ -69,8 +69,8 @@ public:
    void reset(void);
    void write(const uint16 address, const uint8 value);
    void process(const cpu_time_t cycles);
-   void save(FILE_CONTEXT* file, const int version) const;
    void load(FILE_CONTEXT* file, const int version);
+   void save(FILE_CONTEXT* file, const int version) const;
    void mix(const real input);
 
 private:

@@ -90,18 +90,6 @@ void Square::process(const cpu_time_t cycles)
       step = 0;
 }
 
-void Square::save(FILE_CONTEXT* file, const int version) const
-{
-   RT_ASSERT(file);
-
-   for(int index = 0; index < 3; index++)
-      file->write_byte(file, regs[index]);
-
-   file->write_word(file, timer);
-   file->write_byte(file, step);
-   file->write_byte(file, output);
-}
-
 void Square::load(FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
@@ -112,6 +100,18 @@ void Square::load(FILE_CONTEXT* file, const int version)
    timer = file->read_word(file);
    step = file->read_byte(file);
    output = file->read_byte(file);
+}
+
+void Square::save(FILE_CONTEXT* file, const int version) const
+{
+   RT_ASSERT(file);
+
+   for(int index = 0; index < 3; index++)
+      file->write_byte(file, regs[index]);
+
+   file->write_word(file, timer);
+   file->write_byte(file, step);
+   file->write_byte(file, output);
 }
 
 void Saw::reset(void)
@@ -190,19 +190,6 @@ void Saw::process(const cpu_time_t cycles)
    output = volume >> 3;
 }
 
-void Saw::save(FILE_CONTEXT* file, const int version) const
-{
-   RT_ASSERT(file);
-
-   for(int index = 0; index < 3; index++)
-      file->write_byte(file, regs[index]);
-
-   file->write_word(file, timer);
-   file->write_byte(file, step);
-   file->write_byte(file, volume);
-   file->write_byte(file, output);
-}
-
 void Saw::load(FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
@@ -214,6 +201,19 @@ void Saw::load(FILE_CONTEXT* file, const int version)
    step = file->read_byte(file);
    volume = file->read_byte(file);
    output = file->read_byte(file);
+}
+
+void Saw::save(FILE_CONTEXT* file, const int version) const
+{
+   RT_ASSERT(file);
+
+   for(int index = 0; index < 3; index++)
+      file->write_byte(file, regs[index]);
+
+   file->write_word(file, timer);
+   file->write_byte(file, step);
+   file->write_byte(file, volume);
+   file->write_byte(file, output);
 }
 
 void Interface::reset(void)
@@ -261,15 +261,6 @@ void Interface::process(const cpu_time_t cycles)
    saw.process(cycles);
 }
 
-void Interface::save(FILE_CONTEXT* file, const int version) const
-{
-   RT_ASSERT(file);
-
-   square1.save(file, version);
-   square2.save(file, version);
-   saw.save(file, version);
-}
-
 void Interface::load(FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
@@ -277,6 +268,15 @@ void Interface::load(FILE_CONTEXT* file, const int version)
    square1.load(file, version);
    square2.load(file, version);
    saw.load(file, version);
+}
+
+void Interface::save(FILE_CONTEXT* file, const int version) const
+{
+   RT_ASSERT(file);
+
+   square1.save(file, version);
+   square2.save(file, version);
+   saw.save(file, version);
 }
 
 void Interface::mix(const real input)
