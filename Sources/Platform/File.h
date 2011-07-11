@@ -80,7 +80,7 @@ typedef struct _FILE_CONTEXT {
    UINT16 (*read_word)(struct _FILE_CONTEXT* file);
    UINT32 (*read_long)(struct _FILE_CONTEXT* file);
    BOOL (*read_boolean)(struct _FILE_CONTEXT* file);
-   REAL (*read_real)(struct _FILE_CONTEXT* file, );
+   REAL (*read_real)(struct _FILE_CONTEXT* file);
    void (*write_byte)(struct _FILE_CONTEXT* file, const UINT8 data);
    void (*write_word)(struct _FILE_CONTEXT* file, const UINT16 data);
    void (*write_long)(struct _FILE_CONTEXT* file, const UINT32 data);
