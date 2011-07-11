@@ -22,7 +22,7 @@ enum CPU_EXECUTION_MODEL {
    CPU_EXECUTION_MODEL_UNCHAINED,
 
    /* Default to a balance between speed and accuracy. */
-   CPU_EXECUTION_MODEL_DEFAULT = CPU_EXECUTION_MODEL_NORMAL,
+   CPU_EXECUTION_MODEL_DEFAULT = CPU_EXECUTION_MODEL_NORMAL
 };
 
 /* Interrupt types that the CPU can generate, via cpu_set_interrupt(). */
@@ -49,7 +49,7 @@ enum {
    CPU_MAP_BLOCK_64K = 64,
 
    /* Alias to map all of memory at once. */
-   CPU_MAP_ALL = CPU_MAP_BLOCK_64K,
+   CPU_MAP_ALL = CPU_MAP_BLOCK_64K
 };
 
 /* Data types used for execution times. */
