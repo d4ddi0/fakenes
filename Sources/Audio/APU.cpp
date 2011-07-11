@@ -683,7 +683,7 @@ static void apu_predict_dmc_irq(APUDMC& chan, const cpu_time_t cycles)
    // DMC IRQ predictor.  See apu_predict_frame_irq() for more information.
 
    // Clear any pending interrupts just in case.
-   cpu_clear_interrupt(CPU_INTERRUPT_IRQ_DMC);
+   cpu_clear_interrupt(CPU_INTERRUPT_IRQ_APU_DMC);
 
    // DMC IRQs are not generated if they are disabled or the channel's loop flag is set.
    if(!chan.irq_gen || chan.looping)
@@ -700,7 +700,7 @@ static void apu_predict_dmc_irq(APUDMC& chan, const cpu_time_t cycles)
 
          chan.dma_length--;
          if(chan.dma_length == 0)
-            cpu_set_interrupt(CPU_INTERRUPT_IRQ_DMC, apu.prediction_timestamp + (current * APU_CLOCK_MULTIPLIER));
+            cpu_set_interrupt(CPU_INTERRUPT_IRQ_APU_DMC, apu.prediction_timestamp + (current * APU_CLOCK_MULTIPLIER));
       }
 
       if(chan.counter == 0) {
@@ -885,7 +885,7 @@ static void apu_reset_frame_sequencer(void)
 
    // Clear frame IRQ.
    apu.frame_irq_occurred = false;
-   cpu_clear_interrupt(CPU_INTERRUPT_IRQ_FRAME);
+   cpu_clear_interrupt(CPU_INTERRUPT_IRQ_APU_FRAME);
 
    /* If the mode flag is clear, the 4-step sequence is selected, otherwise the
       5-step sequence is selected and the sequencer is immediately clocked once. */
@@ -912,7 +912,7 @@ static void apu_predict_frame_irq(const cpu_time_t cycles)
       get a rough(more accurate than not) idea of when the IRQ will occur. */
 
    // Clear any pending interrupts just in case.
-   cpu_clear_interrupt(CPU_INTERRUPT_IRQ_FRAME);
+   cpu_clear_interrupt(CPU_INTERRUPT_IRQ_APU_FRAME);
 
    // Frame IRQs are not generated if they are disabled or if the APU is in 5-step mode.
    if(!apu.frame_irq_gen ||
@@ -938,7 +938,7 @@ static void apu_predict_frame_irq(const cpu_time_t cycles)
 
       // check to see if we should generate an irq
       if(apu.sequence_step == 4)
-         cpu_set_interrupt(CPU_INTERRUPT_IRQ_FRAME, apu.prediction_timestamp + (current * APU_CLOCK_MULTIPLIER));
+         cpu_set_interrupt(CPU_INTERRUPT_IRQ_APU_FRAME, apu.prediction_timestamp + (current * APU_CLOCK_MULTIPLIER));
 
       if(++apu.sequence_step > apu.sequence_steps)
          apu.sequence_step = 1;
@@ -1393,7 +1393,7 @@ void apu_write(const UINT16 address, UINT8 value)
          // IRQ enabled flag. If clear, the interrupt flag is cleared.
          if(!chan.irq_gen) {
             chan.irq_occurred = false;
-            cpu_clear_interrupt(CPU_INTERRUPT_IRQ_DMC);
+            cpu_clear_interrupt(CPU_INTERRUPT_IRQ_APU_DMC);
          }
 
          apu_repredict_irqs(APU_PREDICT_IRQ_DMC);
@@ -1490,7 +1490,7 @@ void apu_write(const UINT16 address, UINT8 value)
             the DMC is possibly started or stopped, and the DMC's IRQ occurred flag is
             cleared. */
          apu.dmc.irq_occurred = false;
-         cpu_clear_interrupt(CPU_INTERRUPT_IRQ_DMC);
+         cpu_clear_interrupt(CPU_INTERRUPT_IRQ_APU_DMC);
 
          break;
       }
