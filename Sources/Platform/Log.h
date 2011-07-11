@@ -7,7 +7,7 @@
 
 #ifndef PLATFORM__LOG_H__INCLUDED
 #define PLATFORM__LOG_H__INCLUDED
-#include "Common/Common.h"
+#include "Common/Global.h"
 #include "Common/Types.h"
 #ifdef __cplusplus
 extern "C" {

@@ -1,15 +1,14 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   load.h: Declarations for the file loader.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   Copyright (c) 2001-2011, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use. */
-
-#ifndef LOAD_H_INCLUDED
-#define LOAD_H_INCLUDED
-#include "common.h"
-#include "types.h"
+#ifndef PLATFORM__LOAD_H__INCLUDED
+#define PLATFORM__LOAD_H__INCLUDED
+#include "Common/Global.h"
+#include "Common/Types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -23,4 +22,4 @@ extern void close_file(void);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-#endif /* !LOAD_H_INCLUDED */
+#endif /* !PLATFORM__LOAD_H__INCLUDED */

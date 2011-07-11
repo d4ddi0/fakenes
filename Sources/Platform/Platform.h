@@ -1,22 +1,22 @@
 /* FakeNES - A free, portable, Open Source NES emulator.
 
-   platform.h: Declarations for the platform interface.
+   load.h: Declarations for the file loader.
 
-   Copyright (c) 2001-2006, FakeNES Team.
+   Copyright (c) 2001-2011, FakeNES Team.
    This is free software.  See 'LICENSE' for details.
    You must read and accept the license prior to use. */
 
-#ifndef PLATFORM_H_INCLUDED
-#define PLATFORM_H_INCLUDED
-#include "common.h"
+#ifndef PLATFORM__PLATFORM_H__INCLUDED
+#define PLATFORM__PLATFORM_H__INCLUDED
+#include "Common/Global.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int platform_init (void);
-void platform_exit (void);
+extern int platform_init(void);
+extern void platform_exit(void);
 
 #ifdef __cplusplus
 }
-#endif
-#endif   /* !PLATFORM_H_INCLUDED */
+#endif /* __cplusplus */
+#endif /* !PLATFORM__PLATFORM_H__INCLUDED */

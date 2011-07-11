@@ -1,16 +1,15 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   save.h: Declarations for the save data routines.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   Copyright (c) 2001-2006, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use. */
-
-#ifndef SAVE_H_INCLUDED
-#define SAVE_H_INCLUDED
-#include <allegro.h>
-#include "common.h"
-#include "types.h"
+#ifndef PLATFORM__SAVE_H__INCLUDED
+#define PLATFORM__SAVE_H__INCLUDED
+#include "Common/Global.h"
+#include "Common/Types.h"
+#include "Platform/File.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -24,25 +23,25 @@ extern "C" {
 #define NEW_SAVE_TITLE_SIZE   255
 #define NEW_SAVE_TITLE_SIZE_Z (NEW_SAVE_TITLE_SIZE + 1)
 
-UDATA *get_replay_title (int, UDATA *, int);
-BOOL open_replay (int, const char *, const UDATA *);
-void close_replay (void);
-BOOL get_replay_data (UINT8 *);
-void save_replay_data (UINT8);
-UDATA *get_state_title (int, UDATA *, int);
-BOOL save_state (int, const UDATA *);
-BOOL load_state (int);
-BOOL save_state_raw (PACKFILE *);
-BOOL load_state_raw (PACKFILE *);
-BOOL check_save_state (int);
-BOOL load_patches (void);
-BOOL save_patches (void);
-BOOL load_sram (void);
-BOOL save_sram (void);
-UDATA *get_save_path (UDATA *, int);
-UDATA *fix_save_title (UDATA *, int);
+extern UDATA* get_replay_title(int, UDATA*, int);
+extern BOOL open_replay(int, const char*, const UDATA*);
+extern void close_replay(void);
+extern BOOL get_replay_data(UINT8*);
+extern void save_replay_data(UINT8);
+extern UDATA* get_state_title(int, UDATA*, int);
+extern BOOL save_state(int, const UDATA*);
+extern BOOL load_state(int);
+extern BOOL save_state_raw(FILE_CONTEXT*);
+extern BOOL load_state_raw(FILE_CONTEXT*);
+extern BOOL check_save_state(int);
+extern BOOL load_patches(void);
+extern BOOL save_patches(void);
+extern BOOL load_sram(void);
+extern BOOL save_sram(void);
+extern UDATA* get_save_path(UDATA*, int);
+extern UDATA* fix_save_title(UDATA*, int);
 
 #ifdef __cplusplus
 }
-#endif
-#endif   /* !SAVE_H_INCLUDED */
+#endif /* __cplusplus */
+#endif /* !PLATFORM__SAVE_H__INCLUDED */
