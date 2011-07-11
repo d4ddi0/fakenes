@@ -10,7 +10,7 @@
 /* We need Allegro.h for allegro_message(). */
 #include <allegro.h>
 #include <stdlib.h>
-#include "Global.h"
+#include "Common/Global.h"
 #include "Platform/Log.h"
 #ifdef __cplusplus
 extern "C" {

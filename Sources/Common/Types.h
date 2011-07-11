@@ -18,7 +18,7 @@
 #include <stddef.h> /* For size_t. */
 #include <stdlib.h> /* For size_t. */
 #include <string.h>
-#include "Global.h"
+#include "Common/Global.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -153,6 +153,9 @@ typedef fakenes_string_t STRING;
 typedef fakenes_ucchar_t UCCHAR;
 typedef fakenes_udata_t UDATA;
 typedef fakenes_ustring_t USTRING;
+
+#define LOAD_BOOLEAN(_INTEGER) ( TRUE_OR_FALSE(_INTEGER) )
+#define SAVE_BOOLEAN(_BOOLEAN) ( ZERO_OR_ONE(_BOOLEAN) )
 
 /* List access macros. */
 #define LIST_ADD(_LIST, _FLAGS)       	( (_LIST) |= (_FLAGS) )

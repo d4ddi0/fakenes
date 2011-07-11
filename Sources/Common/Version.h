@@ -7,7 +7,7 @@
 
 #ifndef COMMON__VERSION_H__INCLUDED
 #define COMMON__VERSION_H__INCLUDED
-#include "Global.h"
+#include "Common/Global.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
