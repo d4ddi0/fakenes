@@ -6,7 +6,7 @@
    any modification or use of this software. */
 
 #ifndef Audio__ExSound_hpp__included
-#define Audio__ExSound_hpp__includde
+#define Audio__ExSound_hpp__included
 #include "Local.hpp"
 
 namespace Sound {

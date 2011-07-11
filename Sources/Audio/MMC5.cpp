@@ -5,6 +5,7 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
+#include "APU.h"
 #include "Local.hpp"
 #include "MMC5.hpp"
 

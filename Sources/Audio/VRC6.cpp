@@ -5,6 +5,7 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
+#include "APU.h"
 #include "Local.hpp"
 #include "VRC6.hpp"
 
@@ -33,7 +34,7 @@ void Square::write(const uint16 address, const uint8 value)
 
          volume = value & 0x0F;
          duty = (value >> 4) & 0x07;
-         force = Boolean(value & 0x80);
+         force = LOAD_BOOLEAN(value & 0x80);
 
          if(force)
             output = volume;
@@ -55,7 +56,7 @@ void Square::write(const uint16 address, const uint8 value)
       case 0xA002: {
          regs[2] = value;
 
-         enabled = Boolean(value & 0x80);
+         enabled = LOAD_BOOLEAN(value & 0x80);
          if(!enabled)
             output = 0;
 
@@ -148,7 +149,7 @@ void Saw::write(const uint16 address, const uint8 value)
       case 0xB002: {
          regs[2] = value;
 
-         enabled = Boolean(value & 0x80);
+         enabled = LOAD_BOOLEAN(value & 0x80);
          if(!enabled)
             output = 0;
 

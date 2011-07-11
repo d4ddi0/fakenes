@@ -27,6 +27,7 @@ extern unsigned audio_buffer_size_bytes;
 } // extern "C"
 
 #include <vector>
+#include "Common/Math.h"
 
 extern std::vector<uint16> audioQueue;
 

@@ -33,4 +33,11 @@
 #undef interface
 #endif
 
+/* "FYI: If I see it correctly, AL_INVALID is not mentioned in the 1.1 spec, so
+   I've moved it to a "deprecated" section of the <AL/al.h> header (to be on
+   the safe side). I'll remove any traces of it from the Linux implementation,
+   and I guess the other implementations should follow..." */
+#undef AL_INVALID
+#define AL_INVALID 0
+
 #endif // !Audio__Local_hpp__included

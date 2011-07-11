@@ -114,20 +114,20 @@ void Interface::process(cpu_time_t cycles)
    }
 }
 
-void Interface::save(PACKFILE* file, int version) const
-{
-   RT_ASSERT(file);
-
-   SourceLoop
-      ConstSource(CurrentSource)->save(file, version);
-}
-
-void Interface::load(PACKFILE* file, int version)
+void Interface::load(FILE_CONTEXT* file, int version)
 {
    RT_ASSERT(file);
 
    SourceLoop
       CurrentSource->load(file, version);
+}
+
+void Interface::save(FILE_CONTEXT* file, int version) const
+{
+   RT_ASSERT(file);
+
+   SourceLoop
+      ConstSource(CurrentSource)->save(file, version);
 }
 
 void Interface::mix(real input)
