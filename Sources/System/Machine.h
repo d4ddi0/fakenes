@@ -17,35 +17,35 @@ extern "C" {
 enum {
    CPU_USAGE_PASSIVE = 0,
    CPU_USAGE_NORMAL,
-   CPU_USAGE_AGGRESSIVE,
+   CPU_USAGE_AGGRESSIVE
 };
 
 enum {
    MACHINE_MEDIA_ROM = 0,
-   MACHINE_MEDIA_NSF,
+   MACHINE_MEDIA_NSF
 };
 
 enum {
    MACHINE_REGION_AUTOMATIC = -1,
    MACHINE_REGION_NTSC,
-   MACHINE_REGION_PAL,
+   MACHINE_REGION_PAL
 };
 
 enum {
    MACHINE_TIMING_ACCURATE = 0,
-   MACHINE_TIMING_SMOOTH,
+   MACHINE_TIMING_SMOOTH
 };
 
 enum {
    MACHINE_TYPE_NTSC = 0,
-   MACHINE_TYPE_PAL,
+   MACHINE_TYPE_PAL
 };
 
 enum {
    /* Direct timing bypasses all speed modifiers(the timings used always match the real thing). */
    TIMING_MODE_DIRECT,
    /* Indirect timing takes all speed modifiers, etc. into account. */
-   TIMING_MODE_INDIRECT,
+   TIMING_MODE_INDIRECT
 };
 
 extern ENUM machine_region;
