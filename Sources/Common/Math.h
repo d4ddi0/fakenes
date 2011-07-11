@@ -23,7 +23,10 @@ extern "C" {
    <+KittyCat> #define EPSILON (1.0f/1024.0f) */
 #define EPSILON ( 1.0 / 1024.0 )
 
-#define MAX2(_A, _B)     ( ((_A) > (_B)) ? (_A) : (_B) )
+#define MIN2(_A, _B)     ( ((_A) < (_B)) ? (_A) : (_B) )
+#define MAX2(_A, _B)     ( ((_A) < (_B)) ? (_A) : (_B) )
+
+#define MIN3(_A, _B, _C) ( MIN2( (_A), MIN2((_B), (_C)) ) )
 #define MAX3(_A, _B, _C) ( MAX2( (_A), MAX2((_B), (_C)) ) )
 
 /* Macro to compare 2 REALs. */
