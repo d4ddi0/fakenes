@@ -123,12 +123,12 @@ int cpu_init(void)
    }
 
    // Build interrupt mapping table.
-   interruptTable[CPU_INTERRUPT_NMI]           = COREInterruptNMI;
-   interruptTable[CPU_INTERRUPT_IRQ]           = COREInterruptIRQ;
-   interruptTable[CPU_INTERRUPT_IRQ_DMC]       = COREInterruptIRQ1;
-   interruptTable[CPU_INTERRUPT_IRQ_FRAME]     = COREInterruptIRQ2;
-   interruptTable[CPU_INTERRUPT_IRQ_MMC]       = COREInterruptIRQ3;
-   interruptTable[CPU_INTERRUPT_IRQ_MMC_ASYNC] = COREInterruptIRQ4;
+   interruptTable[CPU_INTERRUPT_NMI]              = COREInterruptNMI;
+   interruptTable[CPU_INTERRUPT_IRQ]              = COREInterruptIRQ;
+   interruptTable[CPU_INTERRUPT_IRQ_APU_DMC]      = COREInterruptIRQ1;
+   interruptTable[CPU_INTERRUPT_IRQ_APU_FRAME]    = COREInterruptIRQ2;
+   interruptTable[CPU_INTERRUPT_IRQ_MAPPER]       = COREInterruptIRQ3;
+   interruptTable[CPU_INTERRUPT_IRQ_MAPPER_PROXY] = COREInterruptIRQ4;
 
    /* Initialize the core. Note that this can only be done safely
       after the memory map has been initialized. */
