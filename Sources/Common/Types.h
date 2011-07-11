@@ -126,10 +126,18 @@ typedef fakenes_int16_t INT16;
    /* Override Win32 typedefs. */
 #  define UINT32 fakenes_uint32_t
 #  define INT32 fakenes_int32_t
+
+#  define UINT64 fakenes_uint64_t
+#  define INT64 fakenes_int64_t
+
 #  define BOOL fakenes_bool_t
 #else
    typedef fakenes_uint32_t UINT32;
    typedef fakenes_int32_t INT32;
+
+   typedef fakenes_uint64_t UINT64;
+   typedef fakenes_int64_t INT64;
+
    typedef fakenes_bool_t BOOL;
 #endif
 
