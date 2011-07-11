@@ -843,7 +843,7 @@ BOOL ppu_get_option(const ENUM option)
    return FALSE;
 }
 
-void ppu_load_state(PACKFILE* file, const int version)
+void ppu_load_state(FILE_CONTEXT* file, const int version)
 {
    using namespace PPUState;
 
@@ -905,7 +905,7 @@ void ppu_load_state(PACKFILE* file, const int version)
    pack_fread(ppu__sprite_vram, PPU__SPRITE_VRAM_SIZE, file);
 }
 
-void ppu_save_state(PACKFILE* file, const int version)
+void ppu_save_state(FILE_CONTEXT* file, const int version)
 {
    using namespace PPUState;
 

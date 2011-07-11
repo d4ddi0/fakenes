@@ -123,7 +123,7 @@ static void bandai_write(UINT16 address, UINT8 value)
 
          case 0x800A: {
             /* Enable/disable IRQs. */
-            cpu_clear_interrupt(CPU_INTERRUPT_IRQ_MMC);
+            cpu_clear_interrupt(CPU_INTERRUPT_IRQ_MAPPER_PROXY);
             bandai_enable_irqs = value & 0x01;
             bandai_irq_counter = bandai_irq_latch.word;
 

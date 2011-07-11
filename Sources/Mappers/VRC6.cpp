@@ -99,7 +99,7 @@ static void vrc6_update_irq_counter(const cpu_time_t cycles, const BOOL allow_ir
          vrc6_irq_counter = vrc6_irq_latch;
 
          if (allow_irq)
-            cpu_queue_interrupt(CPU_INTERRUPT_IRQ_MMC_ASYNC,
+            cpu_queue_interrupt(CPU_INTERRUPT_IRQ_MAPPER,
                 vrc6_prediction_timestamp + (current * CPU_CLOCK_MULTIPLIER));
       }
       else
@@ -135,7 +135,7 @@ static void vrc6_predict_irq_slave(const cpu_time_t cycles)
    UINT8 saved_irq_counter;
 
    /* Clear any pending IRQs, just in case. */
-   cpu_unqueue_interrupt(CPU_INTERRUPT_IRQ_MMC_ASYNC);
+   cpu_unqueue_interrupt(CPU_INTERRUPT_IRQ_MAPPER);
 
    if (!vrc6_enable_irqs)
       return;
@@ -334,7 +334,7 @@ static void vrc6_write(UINT16 address, UINT8 value)
                }
 
                /* Reset IRQ status. */
-               cpu_clear_interrupt(CPU_INTERRUPT_IRQ_MMC_ASYNC);
+               cpu_clear_interrupt(CPU_INTERRUPT_IRQ_MAPPER);
 
                /* Update prediction. */
                vrc6_repredict_irq();
@@ -347,7 +347,7 @@ static void vrc6_write(UINT16 address, UINT8 value)
                vrc6_enable_irqs = TRUE_OR_FALSE(vrc6_irq_reg & 0x01);
 
                /* Reset IRQ status. */
-               cpu_clear_interrupt(CPU_INTERRUPT_IRQ_MMC_ASYNC);
+               cpu_clear_interrupt(CPU_INTERRUPT_IRQ_MAPPER);
 
                /* Update prediction. */
                vrc6_repredict_irq();

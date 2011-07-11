@@ -621,7 +621,7 @@ static UINT8 mmc5_read (UINT16 address)
         {
             UINT8 read_value = mmc5_irq_status;
 
-            cpu_clear_interrupt (CPU_INTERRUPT_IRQ_MMC);
+            cpu_clear_interrupt (CPU_INTERRUPT_IRQ_MAPPER_PROXY);
 
             mmc5_irq_status &= 0x40;
 
@@ -1027,7 +1027,7 @@ static void mmc5_write (UINT16 address, UINT8 value)
 /* 5203: IRQ scanline select */
         case 0x5203:
 
-            cpu_clear_interrupt (CPU_INTERRUPT_IRQ_MMC);
+            cpu_clear_interrupt (CPU_INTERRUPT_IRQ_MAPPER_PROXY);
 
             mmc5_irq_line_requested = value;
 
@@ -1039,7 +1039,7 @@ static void mmc5_write (UINT16 address, UINT8 value)
 /* 5204: IRQ enable/status register */
         case 0x5204:
 
-            cpu_clear_interrupt (CPU_INTERRUPT_IRQ_MMC);
+            cpu_clear_interrupt (CPU_INTERRUPT_IRQ_MAPPER_PROXY);
             mmc5_disable_irqs = (~value & 0x80);
 
             ppu_repredict_interrupts(PPU_PREDICT_MMC_IRQ);

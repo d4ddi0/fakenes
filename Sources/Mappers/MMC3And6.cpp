@@ -371,7 +371,7 @@ static void mmc3_write(UINT16 address, UINT8 value)
       /* Writing any value to this register will disable MMC3 interrupts AND acknowledge
          any pending interrupts. */
       case 0xE000: {
-         cpu_clear_interrupt(CPU_INTERRUPT_IRQ_MMC);
+         cpu_clear_interrupt(CPU_INTERRUPT_IRQ_MAPPER_PROXY);
          mmc3_disable_irqs = TRUE;
 
          ppu_repredict_interrupts(PPU_PREDICT_MMC_IRQ);
