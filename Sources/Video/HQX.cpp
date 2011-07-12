@@ -19,8 +19,8 @@
 #include "Local.hpp"
 #include "HQX.hpp"
 
-static int   LUT16to32[65536];
-static int   RGBtoYUV[65536];
+UINT32   HQX_LUT16to32[65536];
+UINT32   HQX_RGBtoYUV[65536];
 static int   YUV1, YUV2;
 static const  int   Ymask = 0x00FF0000;
 static const  int   Umask = 0x0000FF00;
@@ -28,40 +28,44 @@ static const  int   Vmask = 0x000000FF;
 static const  int   trY   = 0x00300000;
 static const  int   trU   = 0x00000700;
 static const  int   trV   = 0x00000006;
-static bool initialized = false;
 
-static inline void Interp1(unsigned char * pc, int c1, int c2)
+void HQX_Initialize()
+{
+  int i, j, k, r, g, b, Y, u, v;
+
+  for (i=0; i<65536; i++)
+    HQX_LUT16to32[i] = ((i & 0xF800) << 8) + ((i & 0x07E0) << 5) + ((i & 0x001F) << 3);
+
+  for (i=0; i<32; i++)
+  for (j=0; j<64; j++)
+  for (k=0; k<32; k++)
+  {
+    r = i << 3;
+    g = j << 2;
+    b = k << 3;
+    Y = (r + g + b) >> 2;
+    u = 128 + ((r - b) >> 2);
+    v = 128 + ((-r + 2*g -b)>>3);
+    HQX_RGBtoYUV[ (i << 11) + (j << 5) + k ] = (Y<<16) + (u<<8) + v;
+  }
+}
+
+quick void Interp1(unsigned char * pc, const int c1, const int c2)
 {
   *((int*)pc) = (c1*3+c2) >> 2;
 }
 
-static inline void Interp2(unsigned char * pc, int c1, int c2, int c3)
+quick void Interp2(unsigned char * pc, const int c1, const int c2, const int c3)
 {
   *((int*)pc) = (c1*2+c2+c3) >> 2;
 }
 
-static inline void Interp3(unsigned char * pc, int c1, int c2)
-{
-  //*((int*)pc) = (c1*7+c2)/8;
-
-  *((int*)pc) = ((((c1 & 0x00FF00)*7 + (c2 & 0x00FF00) ) & 0x0007F800) +
-                 (((c1 & 0xFF00FF)*7 + (c2 & 0xFF00FF) ) & 0x07F807F8)) >> 3;
-}
-
-static inline void Interp4(unsigned char * pc, int c1, int c2, int c3)
-{
-  //*((int*)pc) = (c1*2+(c2+c3)*7)/16;
-
-  *((int*)pc) = ((((c1 & 0x00FF00)*2 + ((c2 & 0x00FF00) + (c3 & 0x00FF00))*7 ) & 0x000FF000) +
-                 (((c1 & 0xFF00FF)*2 + ((c2 & 0xFF00FF) + (c3 & 0xFF00FF))*7 ) & 0x0FF00FF0)) >> 4;
-}
-
-static inline void Interp5(unsigned char * pc, int c1, int c2)
+quick void Interp5(unsigned char * pc, const int c1, const int c2)
 {
   *((int*)pc) = (c1+c2) >> 1;
 }
 
-static inline void Interp6(unsigned char * pc, int c1, int c2, int c3)
+quick void Interp6(unsigned char * pc, const int c1, const int c2, const int c3)
 {
   //*((int*)pc) = (c1*5+c2*2+c3)/8;
 
@@ -69,7 +73,7 @@ static inline void Interp6(unsigned char * pc, int c1, int c2, int c3)
                  (((c1 & 0xFF00FF)*5 + (c2 & 0xFF00FF)*2 + (c3 & 0xFF00FF) ) & 0x07F807F8)) >> 3;
 }
 
-static inline void Interp7(unsigned char * pc, int c1, int c2, int c3)
+quick void Interp7(unsigned char * pc, const int c1, const int c2, const int c3)
 {
   //*((int*)pc) = (c1*6+c2+c3)/8;
 
@@ -77,15 +81,7 @@ static inline void Interp7(unsigned char * pc, int c1, int c2, int c3)
                  (((c1 & 0xFF00FF)*6 + (c2 & 0xFF00FF) + (c3 & 0xFF00FF) ) & 0x07F807F8)) >> 3;
 }
 
-static inline void Interp8(unsigned char * pc, int c1, int c2)
-{
-  //*((int*)pc) = (c1*5+c2*3)/8;
-
-  *((int*)pc) = ((((c1 & 0x00FF00)*5 + (c2 & 0x00FF00)*3 ) & 0x0007F800) +
-                 (((c1 & 0xFF00FF)*5 + (c2 & 0xFF00FF)*3 ) & 0x07F807F8)) >> 3;
-}
-
-static inline void Interp9(unsigned char * pc, int c1, int c2, int c3)
+quick void Interp9(unsigned char * pc, const int c1, const int c2, const int c3)
 {
   //*((int*)pc) = (c1*2+(c2+c3)*3)/8;
 
@@ -93,12 +89,21 @@ static inline void Interp9(unsigned char * pc, int c1, int c2, int c3)
                  (((c1 & 0xFF00FF)*2 + ((c2 & 0xFF00FF) + (c3 & 0xFF00FF))*3 ) & 0x07F807F8)) >> 3;
 }
 
-static inline void Interp10(unsigned char * pc, int c1, int c2, int c3)
+quick void Interp10(unsigned char * pc, const int c1, const int c2, const int c3)
 {
   //*((int*)pc) = (c1*14+c2+c3)/16;
 
   *((int*)pc) = ((((c1 & 0x00FF00)*14 + (c2 & 0x00FF00) + (c3 & 0x00FF00) ) & 0x000FF000) +
                  (((c1 & 0xFF00FF)*14 + (c2 & 0xFF00FF) + (c3 & 0xFF00FF) ) & 0x0FF00FF0)) >> 4;
+}
+
+quick bool Diff(const unsigned int w1, const unsigned int w2)
+{
+  YUV1 = HQX_RGBtoYUV[w1];
+  YUV2 = HQX_RGBtoYUV[w2];
+  return ( ( abs((YUV1 & Ymask) - (YUV2 & Ymask)) > trY ) ||
+           ( abs((YUV1 & Umask) - (YUV2 & Umask)) > trU ) ||
+           ( abs((YUV1 & Vmask) - (YUV2 & Vmask)) > trV ) );
 }
 
 #define HQ2X_PIXEL00_0     *((int*)(pOut)) = c[5];
@@ -345,48 +350,12 @@ static inline void Interp10(unsigned char * pc, int c1, int c2, int c3)
 #define HQ4X_PIXEL33_81    Interp8(pOut+BpL+BpL+BpL+12, c[5], c[6]);
 #define HQ4X_PIXEL33_82    Interp8(pOut+BpL+BpL+BpL+12, c[5], c[8]);
 
-static inline bool Diff(unsigned int w1, unsigned int w2)
-{
-  YUV1 = RGBtoYUV[w1];
-  YUV2 = RGBtoYUV[w2];
-  return ( ( abs((YUV1 & Ymask) - (YUV2 & Ymask)) > trY ) ||
-           ( abs((YUV1 & Umask) - (YUV2 & Umask)) > trU ) ||
-           ( abs((YUV1 & Vmask) - (YUV2 & Vmask)) > trV ) );
-}
-
-static void InitLUTs(void)
-{
-  int i, j, k, r, g, b, Y, u, v;
-
-  for (i=0; i<65536; i++)
-    LUT16to32[i] = ((i & 0xF800) << 8) + ((i & 0x07E0) << 5) + ((i & 0x001F) << 3);
-
-  for (i=0; i<32; i++)
-  for (j=0; j<64; j++)
-  for (k=0; k<32; k++)
-  {
-    r = i << 3;
-    g = j << 2;
-    b = k << 3;
-    Y = (r + g + b) >> 2;
-    u = 128 + ((r - b) >> 2);
-    v = 128 + ((-r + 2*g -b)>>3);
-    RGBtoYUV[ (i << 11) + (j << 5) + k ] = (Y<<16) + (u<<8) + v;
-  }
-}
-
-void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int BpL )
+void hq2x( unsigned char * pIn, unsigned char * pOut, const int Xres, const int Yres, const int BpL )
 {
   int  i, j, k;
   int  prevline, nextline;
   int  w[10];
   int  c[10];
-
-  if (!initialized)
-  {
-    InitLUTs();
-    initialized = true;
-  }
 
   //   +----+----+----+
   //   |    |    |    |
@@ -439,7 +408,7 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
       int pattern = 0;
       int flag = 1;
 
-      YUV1 = RGBtoYUV[w[5]];
+      YUV1 = HQX_RGBtoYUV[w[5]];
 
       for (k=1; k<=9; k++)
       {
@@ -447,7 +416,7 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
 
         if ( w[k] != w[5] )
         {
-          YUV2 = RGBtoYUV[w[k]];
+          YUV2 = HQX_RGBtoYUV[w[k]];
           if ( ( abs((YUV1 & Ymask) - (YUV2 & Ymask)) > trY ) ||
                ( abs((YUV1 & Umask) - (YUV2 & Umask)) > trU ) ||
                ( abs((YUV1 & Vmask) - (YUV2 & Vmask)) > trV ) )
@@ -457,7 +426,7 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
       }
 
       for (k=1; k<=9; k++)
-        c[k] = LUT16to32[w[k]];
+        c[k] = HQX_LUT16to32[w[k]];
 
       switch (pattern)
       {
@@ -3108,18 +3077,12 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
   }
 }
 
-void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int BpL )
+void hq3x( unsigned char * pIn, unsigned char * pOut, const int Xres, const int Yres, const int BpL )
 {
   int  i, j, k;
   int  prevline, nextline;
   int  w[10];
   int  c[10];
-
-  if (!initialized)
-  {
-    InitLUTs();
-    initialized = true;
-  }
 
   //   +----+----+----+
   //   |    |    |    |
@@ -3172,7 +3135,7 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
       int pattern = 0;
       int flag = 1;
 
-      YUV1 = RGBtoYUV[w[5]];
+      YUV1 = HQX_RGBtoYUV[w[5]];
 
       for (k=1; k<=9; k++)
       {
@@ -3180,7 +3143,7 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
 
         if ( w[k] != w[5] )
         {
-          YUV2 = RGBtoYUV[w[k]];
+          YUV2 = HQX_RGBtoYUV[w[k]];
           if ( ( abs((YUV1 & Ymask) - (YUV2 & Ymask)) > trY ) ||
                ( abs((YUV1 & Umask) - (YUV2 & Umask)) > trU ) ||
                ( abs((YUV1 & Vmask) - (YUV2 & Vmask)) > trV ) )
@@ -3190,7 +3153,7 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
       }
 
       for (k=1; k<=9; k++)
-        c[k] = LUT16to32[w[k]];
+        c[k] = HQX_LUT16to32[w[k]];
 
       switch (pattern)
       {
@@ -6815,18 +6778,12 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
   }
 }
 
-void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int BpL )
+void hq4x( unsigned char * pIn, unsigned char * pOut, const int Xres, const int Yres, const int BpL )
 {
   int  i, j, k;
   int  prevline, nextline;
   int  w[10];
   int  c[10];
-
-  if (!initialized)
-  {
-    InitLUTs();
-    initialized = true;
-  }
 
   //   +----+----+----+
   //   |    |    |    |
@@ -6879,7 +6836,7 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
       int pattern = 0;
       int flag = 1;
 
-      YUV1 = RGBtoYUV[w[5]];
+      YUV1 = HQX_RGBtoYUV[w[5]];
 
       for (k=1; k<=9; k++)
       {
@@ -6887,7 +6844,7 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
 
         if ( w[k] != w[5] )
         {
-          YUV2 = RGBtoYUV[w[k]];
+          YUV2 = HQX_RGBtoYUV[w[k]];
           if ( ( abs((YUV1 & Ymask) - (YUV2 & Ymask)) > trY ) ||
                ( abs((YUV1 & Umask) - (YUV2 & Umask)) > trU ) ||
                ( abs((YUV1 & Vmask) - (YUV2 & Vmask)) > trV ) )
@@ -6897,7 +6854,7 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
       }
 
       for (k=1; k<=9; k++)
-        c[k] = LUT16to32[w[k]];
+        c[k] = HQX_LUT16to32[w[k]];
 
       switch (pattern)
       {

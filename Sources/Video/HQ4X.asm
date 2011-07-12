@@ -18,10 +18,10 @@
 ;along with this program; if not, write to the Free Software
 ;Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-GLOBAL _hq4x_16
+GLOBAL _hq4x_x86
 
-EXTERN _LUT16to32
-EXTERN _RGBtoYUV
+EXTERN _HQX_LUT16to32
+EXTERN _HQX_RGBtoYUV
 
 SECTION .bss
 linesleft resd 1
@@ -63,12 +63,12 @@ SECTION .text
     jz      %%fin
     mov     edx,[%1]
     shl     edx,2
-    add     edx,_RGBtoYUV
+    add     edx,_HQX_RGBtoYUV
     movd    mm1,[edx]
     movq    mm5,mm1
     mov     edx,[%2]
     shl     edx,2
-    add     edx,_RGBtoYUV
+    add     edx,_HQX_RGBtoYUV
     movd    mm2,[edx]
     psubusb mm1,mm2
     psubusb mm2,mm5
@@ -182,7 +182,7 @@ SECTION .text
 %endmacro
 
 %macro Interp3 3
-    mov        eax, _LUT16to32
+    mov        eax, _HQX_LUT16to32
     mov        edx, %2
     movd       mm1, [eax+edx*4]
     mov        edx, %3
@@ -215,7 +215,7 @@ SECTION .text
 %endmacro
 
 %macro Interp6 4
-    mov        eax, _LUT16to32
+    mov        eax, _HQX_LUT16to32
     mov        edx, %2
     movd       mm1, [eax+edx*4]
     mov        edx, %3
@@ -240,7 +240,7 @@ SECTION .text
 %endmacro
 
 %macro Interp7 4
-    mov        eax, _LUT16to32
+    mov        eax, _HQX_LUT16to32
     mov        edx, %2
     movd       mm1, [eax+edx*4]
     mov        edx, %3
@@ -264,7 +264,7 @@ SECTION .text
 %endmacro
 
 %macro Interp8 3
-    mov        eax, _LUT16to32
+    mov        eax, _HQX_LUT16to32
     mov        edx, %2
     movd       mm1, [eax+edx*4]
     mov        edx, %3
@@ -866,7 +866,7 @@ Xres         equ 16
 Yres         equ 20
 pitch        equ 24
 
-_hq4x_16:
+_hq4x_x86:
     push ebp
     mov ebp,esp
     pushad
@@ -942,7 +942,7 @@ _hq4x_16:
     movzx   edx,ax  
     mov     [w9],edx
 .flags
-    mov     ebx,_RGBtoYUV
+    mov     ebx,_HQX_RGBtoYUV
     mov     eax,[w5]
     xor     ecx,ecx
     movd    mm5,[ebx+eax*4]
