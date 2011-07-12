@@ -6,10 +6,11 @@
    any modification or use of this software. */
 
 #include "APU.h"
+#include "ExSound.hpp"
 #include "Local.hpp"
 #include "MMC5.hpp"
 
-namespace Sound {
+namespace ExSound {
 namespace MMC5 {
 
 // --- Lookup tables. ---
@@ -382,4 +383,4 @@ void Interface::mix(const real input)
 }
 
 } //namespace MMC5
-} //namespace Sound
+} //namespace ExSound

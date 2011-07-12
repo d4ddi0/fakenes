@@ -8,7 +8,7 @@
 #include "ExSound.hpp"
 #include "Local.hpp"
 
-namespace Sound {
+namespace ExSound {
 namespace Sourcer {
 
 // Define some macros to make our code cleaner while still giving decent performance.
@@ -18,7 +18,7 @@ namespace Sourcer {
 #define CurrentSource  sources[source]
 
 // const-correctness is a pain!
-#define ConstSource(x) ((const Sound::Interface*)(x))
+#define ConstSource(x) ((const ExSound::Interface*)(x))
 
 Interface::Interface(void)
 {
@@ -34,7 +34,7 @@ void Interface::clearSources(void)
    totalSources = 0;
 }
 
-void Interface::attachSource(Sound::Interface* interface)
+void Interface::attachSource(ExSound::Interface* interface)
 {
    RT_ASSERT(interface);
 
@@ -150,4 +150,4 @@ void Interface::mix(real input)
 }
 
 } //namespace Sourcer
-} //namespace Sound
+} //namespace ExSound

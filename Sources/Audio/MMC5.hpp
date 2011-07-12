@@ -10,7 +10,7 @@
 #include "ExSound.hpp"
 #include "Local.hpp"
 
-namespace Sound {
+namespace ExSound {
 namespace MMC5 {
 
 class Interface;
@@ -67,7 +67,7 @@ protected:
    uint8 output;  // save
 };
 
-class Interface : public Sound::Interface {
+class Interface : public ExSound::Interface {
 public:
    void reset(void);
    uint8 read(const uint16 address) const;
@@ -87,6 +87,6 @@ private:
 };
 
 } //namespace MMC5
-} //namespace Sound
+} //namespace ExSound
 
 #endif // !Audio__MMC5_hpp__included

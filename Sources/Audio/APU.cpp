@@ -63,9 +63,9 @@ static const real apu_vln_average_weight = 0.2;
 static APU apu;
 
 // External/Expansion Sound (ExSound) support.
-static Sound::Sourcer::Interface apu_exsound_sourcer;
-static Sound::MMC5::Interface apu_exsound_mmc5;
-static Sound::VRC6::Interface apu_exsound_vrc6;
+static ExSound::Sourcer::Interface apu_exsound_sourcer;
+static ExSound::MMC5::Interface apu_exsound_mmc5;
+static ExSound::VRC6::Interface apu_exsound_vrc6;
 
 // Internal function prototypes (defined at bottom).
 static forceinline void synchronize(void);

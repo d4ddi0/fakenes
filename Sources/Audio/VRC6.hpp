@@ -10,7 +10,7 @@
 #include "ExSound.hpp"
 #include "Local.hpp"
 
-namespace Sound {
+namespace ExSound {
 namespace VRC6 {
 
 class Interface;
@@ -64,7 +64,7 @@ private:
    uint8 volume;  // save
 };
 
-class Interface : public Sound::Interface {
+class Interface : public ExSound::Interface {
 public:
    void reset(void);
    void write(const uint16 address, const uint8 value);
@@ -80,6 +80,6 @@ private:
 };
                         
 } //namespace VRC6
-} //namespace Sound
+} //namespace ExSound
 
 #endif // !Audio__VRC6_hpp__included

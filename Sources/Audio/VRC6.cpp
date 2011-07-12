@@ -6,10 +6,11 @@
    any modification or use of this software. */
 
 #include "APU.h"
+#include "ExSound.hpp"
 #include "Local.hpp"
 #include "VRC6.hpp"
 
-namespace Sound {
+namespace ExSound {
 namespace VRC6 {
 
 void Square::reset(void)
@@ -300,4 +301,4 @@ void Interface::mix(const real input)
 }
 
 } //namespace VRC6
-} //namespace Sound
+} //namespace ExSound

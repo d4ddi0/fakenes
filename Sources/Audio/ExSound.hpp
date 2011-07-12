@@ -9,7 +9,7 @@
 #define Audio__ExSound_hpp__included
 #include "Local.hpp"
 
-namespace Sound {
+namespace ExSound {
 
 // These are just templates - they do nothing unless you derive from them and replace their virtual members.
 class Channel {
@@ -45,12 +45,12 @@ namespace Sourcer {
 
 static const int MaximumSources = 8;
 
-class Interface : public Sound::Interface {
+class Interface : public ExSound::Interface {
 public:
    Interface(void);
 
    void clearSources(void);
-   void attachSource(Sound::Interface* interface);
+   void attachSource(ExSound::Interface* interface);
    int getSources(void) const;
    int getMaximumSources(void) const;
 
@@ -63,11 +63,11 @@ public:
    void mix(real input);
 
 private:
-   Sound::Interface* sources[MaximumSources];
+   ExSound::Interface* sources[MaximumSources];
    int totalSources;
 };
 
 } //namespace Sourcer
-} //namespace Sound
+} //namespace ExSound
 
 #endif // !Audio__ExSound_hpp__included
