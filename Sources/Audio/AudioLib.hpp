@@ -5,12 +5,9 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
-#ifndef AUDIO__AUDIOLIB_H__INCLUDED
-#define AUDIO__AUDIOLIB_H__INCLUDED
-#include "Common/Global.h"
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef Audio__AudioLib_hpp__included
+#define Audio__AudioLib_hpp__included
+#include "Local.hpp"
 
 extern int audiolib_init(void);
 extern void audiolib_exit(void);
@@ -21,7 +18,4 @@ extern void audiolib_free_buffer(void* buffer);
 extern void audiolib_suspend(void);
 extern void audiolib_resume(void);
 
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
-#endif /* !AUDIO__AUDIOLIB_H__INCLUDED */
+#endif // !Audio__AudioLib_hpp__included

@@ -6,7 +6,7 @@
    any modification or use of this software. */
 
 #include "Audio.h"
-#include "AudioLib.h"
+#include "AudioLib.hpp"
 #include "AudioLibAtoms.hpp"
 #include "Internals.h"
 #include "Local.hpp"

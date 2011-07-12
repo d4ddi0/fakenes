@@ -7,7 +7,7 @@
 
 #include "APU.h"
 #include "Audio.h"
-#include "AudioLib.h"
+#include "AudioLib.hpp"
 #include "Local.hpp"
 
 /* TODO: Fix WAV recording stuff up to work properly on big-endian platforms(currently it produces a big-endian ordered
