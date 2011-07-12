@@ -1,21 +1,13 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   sprites.cpp: Implementation of the PPU sprites renderer.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   Copyright (c) 2001-2011, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use. */
-
-#include <cstdlib>
-#include <cstring>
-#include "../include/common.h"
-#include "../include/binary.h"
-#include "../include/mmc.h"
-#include "../include/ppu.h"
-#include "../include/ppu_int.h"
-#include "../include/types.h"
-#include "renderer.hpp"
-#include "sprites.hpp"
+#include "Local.hpp"
+#include "Renderer.hpp"
+#include "Sprites.hpp"
 
 namespace Renderer {
 namespace Sprites {

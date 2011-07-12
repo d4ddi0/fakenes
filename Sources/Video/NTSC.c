@@ -7,7 +7,7 @@
 
 #include <assert.h>
 #include <math.h>
-#include "common.h"  // for FakeNES
+#include "Common/Global.h"  // for FakeNES
 
 /* Based on algorithm by NewRisingSun */
 /* Copyright (C) 2006 Shay Green. This module is free software; you

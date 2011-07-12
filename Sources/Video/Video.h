@@ -1,16 +1,15 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   video.h: Declarations for the video interface.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   Copyright (c) 2001-2006, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use. */
-
-#ifndef VIDEO_H_INCLUDED
-#define VIDEO_H_INCLUDED
-#include "common.h"
-#include "gui.h"
-#include "types.h"
+#ifndef VIDEO__VIDEO_H__INCLUDED
+#define VIDEO__VIDEO_H__INCLUDED
+#include "Common/Global.h"
+#include "Common/Types.h"
+#include "GUI/GUI.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -128,5 +127,5 @@ extern void video_legacy_shadow_textprintf(BITMAP* bitmap, FONT* font, const int
 
 #ifdef __cplusplus
 }
-#endif
-#endif   /* !VIDEO_H_INCLUDED */
+#endif /* __cplusplus */
+#endif /* !VIDEO__VIDEO_H__INCLUDED */

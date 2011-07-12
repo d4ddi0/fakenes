@@ -1,15 +1,14 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   background.hpp: Declarations for the PPU background renderer.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   Copyright (c) 2001-2007, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use. */
-
-#ifndef _RENDERER__BACKGROUND_HPP
-#define _RENDERER__BACKGROUND_HPP
-#include "../include/common.h"
-#include "renderer.hpp"
+#ifndef Video__Background_hpp__included
+#define Video__Background_hpp__included
+#include "Local.hpp"
+#include "Renderer.hpp"
 
 namespace Renderer {
 namespace Background {
@@ -27,4 +26,4 @@ extern void Clock();
 } // namespace Background
 } // namespace Renderer
 
-#endif //!_RENDERER__BACKGROUND_HPP
+#endif // !Video__Background_hpp__included

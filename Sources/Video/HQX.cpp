@@ -16,10 +16,8 @@
 //License along with this program; if not, write to the Free Software
 //Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-#include <stdlib.h>
-#include "common.h"
-
-typedef char bool; // from C++ to C
+#include "Local.hpp"
+#include "HQX.hpp"
 
 static int   LUT16to32[65536];
 static int   RGBtoYUV[65536];
@@ -30,7 +28,7 @@ static const  int   Vmask = 0x000000FF;
 static const  int   trY   = 0x00300000;
 static const  int   trU   = 0x00000700;
 static const  int   trV   = 0x00000006;
-static bool inited = FALSE;
+static bool initialized = false;
 
 static inline void Interp1(unsigned char * pc, int c1, int c2)
 {
@@ -384,10 +382,10 @@ void hq2x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
   int  w[10];
   int  c[10];
 
-  if (!inited)
+  if (!initialized)
   {
     InitLUTs();
-    inited = TRUE;
+    initialized = true;
   }
 
   //   +----+----+----+
@@ -3117,10 +3115,10 @@ void hq3x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
   int  w[10];
   int  c[10];
 
-  if (!inited)
+  if (!initialized)
   {
     InitLUTs();
-    inited = TRUE;
+    initialized = true;
   }
 
   //   +----+----+----+
@@ -6824,10 +6822,10 @@ void hq4x ( unsigned char * pIn, unsigned char * pOut, int Xres, int Yres, int B
   int  w[10];
   int  c[10];
 
-  if (!inited)
+  if (!initialized)
   {
     InitLUTs();
-    inited = TRUE;
+    initialized = true;
   }
 
   //   +----+----+----+

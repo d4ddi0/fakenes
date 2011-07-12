@@ -1,18 +1,13 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   renderer.cpp: Declarations for the PPU renderer.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   Copyright (c) 2001-2007, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use. */
-
-#ifndef _RENDERER__RENDERER_HPP
-#define _RENDERER__RENDERER_HPP
-#include <allegro.h>
-#include "../include/common.h"
-#include "../include/ppu.h"
-#include "../include/ppu_int.h"
-#include "../include/types.h"
+#ifndef Video__Renderer_hpp__included
+#define Video__Renderer_hpp__included
+#include "Local.hpp"
 
 /* This macro helps with creating scanline-length arrays for storing the results of calculations
    for use on a per-clock basis to improve performance. */
@@ -117,9 +112,9 @@ extern void Frame();
 extern void Line(const int line);
 extern void Pixel();
 extern void Clock();
-extern void Load(PACKFILE* file, const int version);
-extern void Save(PACKFILE* file, const int version);
+extern void Load(FILE_CONTEXT* file, const int version);
+extern void Save(FILE_CONTEXT* file, const int version);
 
 } // namespace Renderer
 
-#endif //!_RENDERER__RENDERER_HPP
+#endif // !Video__Renderer_hpp__included

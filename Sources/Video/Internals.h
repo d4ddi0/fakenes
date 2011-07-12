@@ -1,16 +1,15 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   ppu_int.h: Internal declarations for the PPU emulation.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   Copyright (c) 2001-2007, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use. */
-
-#ifndef PPU_INT_H_INCLUDED
-#define PPU_INT_H_INCLUDED
-#include "common.h"
-#include "timing.h"
-#include "types.h"
+#ifndef VIDEO__INTERNALS_H__INCLUDED
+#define VIDEO__INTERNALS_H__INCLUDED
+#include "Common/Global.h"
+#include "Common/Types.h"
+#include "System/Timing.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -148,5 +147,5 @@ extern PPU__ARRAY( UINT8,  ppu__sprite_vram,         PPU__SPRITE_VRAM_SIZE      
 
 #ifdef __cplusplus
 }
-#endif
-#endif /* !PPU_INT_H_INCLUDED */
+#endif /* __cplusplus */
+#endif /* !VIDEO__INTERNALS_H__INCLUDED */

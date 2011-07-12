@@ -1,16 +1,14 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   color.h: Fast routines for color management.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   Copyright (c) 2001-2006, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use. */
-
-#ifndef COLOR_H_INCLUDED
-#define COLOR_H_INCLUDED
-#include "common.h"
-#include "types.h"
-#include "video.h"
+#ifndef VIDEO__COLOR_H__INCLUDED
+#define VIDEO__COLOR_H__INCLUDED
+#include "Common/Global.h"
+#include "Common/Types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -31,7 +29,7 @@ extern "C" {
 #define GREEN_CSHIFTS_16   5
 #define BLUE_CSHIFTS_16    0
 
-static INLINE UINT16 color_mix_16(const UINT16 c1, const UINT16 c2)
+ INLINE UINT16 color_mix_16(const UINT16 c1, const UINT16 c2)
 {
    return ((((c1 & RED_CMASK_16) + (c2 & RED_CMASK_16)) >> 1) & RED_CMASK_16) |
           ((((c1 & GREEN_CMASK_16) + (c2 & GREEN_CMASK_16)) >> 1) & GREEN_CMASK_16) |
@@ -119,7 +117,10 @@ static INLINE UINT16 color_darken_16(const UINT16 c, const int amount)
    return color_pack_16(r, g, b);
 }
 
+extern void rgb_to_hsl(const int r, const int g, const int b, REAL *h, REAL *s, REAL *l);
+extern void hsl_to_rgb(const REAL h, const REAL s, const REAL l, int* r, int* g, int* b);
+
 #ifdef __cplusplus
 }
-#endif
-#endif   /* !COLOR_H_INCLUDED */
+#endif /* __cplusplus */
+#endif /* !VIDEO__COLOR_H__INCLUDED */

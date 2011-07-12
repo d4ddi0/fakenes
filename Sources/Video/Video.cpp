@@ -1,40 +1,12 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   video.c: Implementation of the video interface.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   Copyright (c) 2001-2006, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use. */
-
-#include <allegro.h>
-#ifdef USE_ALLEGROGL
-#include <alleggl.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include <string>
-#include <vector>
-#include "apu.h"
-#include "audio.h"
-#include "common.h"
-#include "color.h"
-#include "cpu.h"
-#include "data.h"
-#include "debug.h"
-#include "gui.h"
-#include "hsl.h"
-#include "input.h"
-#include "load.h"
-#include "log.h"
-#include "machine.h"
-#include "ppu.h"
-#include "ppu_int.h"
-#include "timing.h"
-#include "types.h"
-#include "video.h"
+#include "Local.hpp"
+#include "Video.h"
 
 // TODO: Finish display update routines.
 // TODO: Check for non-power-of-2 texture support.
