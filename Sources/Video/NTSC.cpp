@@ -1,7 +1,6 @@
-
-/* snes_ntsc 0.2.1. http://www.slack.net/~ant/ */
-
-/* compilable in C or C++; just change the file extension */
+/* NTSC composite video to RGB emulator/blitter.
+   Based upon the original snes_ntsc v0.2.1, but lightly stripped down somewhat.
+   Originally downloaded from http://www.slack.net/~ant/. */
 
 #include "Local.hpp"
 #include "NTSC.hpp"
@@ -27,10 +26,10 @@ enum { disable_correction = 0 }; /* for debugging */
 
 /* begin mostly common NES/SNES/SMS code */
 
-snes_ntsc_setup_t const snes_ntsc_monochrome = { 0,-1, 0, 0,.2,  0,.2,-.2,-.2,-1, 0, 1, 0, 0 };
-snes_ntsc_setup_t const snes_ntsc_composite  = { 0, 0, 0, 0, 0,  0, 0,  0,  0, 0, 0, 1, 0, 0 };
-snes_ntsc_setup_t const snes_ntsc_svideo     = { 0, 0, 0, 0,.2,  0,.2, -1, -1, 0, 0, 1, 0, 0 };
-snes_ntsc_setup_t const snes_ntsc_rgb        = { 0, 0, 0, 0,.2,  0,.7, -1, -1,-1, 0, 1, 0, 0 };
+ntsc_setup_t const ntsc_monochrome = { 0,-1, 0, 0,.2,  0,.2,-.2,-.2,-1, 0, 1, 0, 0 };
+ntsc_setup_t const ntsc_composite  = { 0, 0, 0, 0, 0,  0, 0,  0,  0, 0, 0, 1, 0, 0 };
+ntsc_setup_t const ntsc_svideo     = { 0, 0, 0, 0,.2,  0,.2, -1, -1, 0, 0, 1, 0, 0 };
+ntsc_setup_t const ntsc_rgb        = { 0, 0, 0, 0,.2,  0,.7, -1, -1,-1, 0, 1, 0, 0 };
 
 enum { alignment_count = 3 }; /* different pixel alignments with respect to yiq quads */
 
@@ -41,7 +40,7 @@ enum { rescale_out = 7 };
 
 struct ntsc_impl_t
 {
-	float to_rgb [snes_ntsc_burst_count] [6];
+	float to_rgb [ntsc_burst_count] [6];
 	float brightness;
 	float contrast;
 	float artifacts;
@@ -52,7 +51,7 @@ struct ntsc_impl_t
 
 #define PI 3.14159265358979323846f
 
-static void init_ntsc_impl( struct ntsc_impl_t* impl, snes_ntsc_setup_t const* setup )
+static void init_ntsc_impl( struct ntsc_impl_t* impl, ntsc_setup_t const* setup )
 {
 	float kernels [kernel_size * 2];
 	
@@ -184,7 +183,7 @@ static void init_ntsc_impl( struct ntsc_impl_t* impl, snes_ntsc_setup_t const* s
 		else
 			hue += PI / 180 * 15;
 		
-		for ( i = 0; i < snes_ntsc_burst_count; i++ )
+		for ( i = 0; i < ntsc_burst_count; i++ )
 		{
 			float s = (float) sin( hue ) * sat;
 			float c = (float) cos( hue ) * sat;
@@ -205,7 +204,7 @@ static void init_ntsc_impl( struct ntsc_impl_t* impl, snes_ntsc_setup_t const* s
 
 /* kernel generation */
 
-enum { rgb_kernel_size = snes_ntsc_burst_size / alignment_count };
+enum { rgb_kernel_size = ntsc_burst_size / alignment_count };
 
 static float const rgb_offset = rgb_unit * 2 + 0.5f;
 static ntsc_rgb_t const ntsc_rgb_bias = rgb_unit * 2 * ntsc_rgb_builder;
@@ -297,23 +296,23 @@ static void gen_kernel( struct ntsc_impl_t* impl, float y, float i, float q, nts
 			i = t;
 		}
 	}
-	while ( to_rgb < impl->to_rgb [snes_ntsc_burst_count] );
+	while ( to_rgb < impl->to_rgb [ntsc_burst_count] );
 }
 
 static void merge_fields( ntsc_rgb_t* io )
 {
 	int n;
-	for ( n = snes_ntsc_burst_size; n; --n )
+	for ( n = ntsc_burst_size; n; --n )
 	{
-		ntsc_rgb_t p0 = io [snes_ntsc_burst_size * 0] + ntsc_rgb_bias;
-		ntsc_rgb_t p1 = io [snes_ntsc_burst_size * 1] + ntsc_rgb_bias;
-		ntsc_rgb_t p2 = io [snes_ntsc_burst_size * 2] + ntsc_rgb_bias;
+		ntsc_rgb_t p0 = io [ntsc_burst_size * 0] + ntsc_rgb_bias;
+		ntsc_rgb_t p1 = io [ntsc_burst_size * 1] + ntsc_rgb_bias;
+		ntsc_rgb_t p2 = io [ntsc_burst_size * 2] + ntsc_rgb_bias;
 		/* merge fields without losing precision */
-		io [snes_ntsc_burst_size * 0] =
+		io [ntsc_burst_size * 0] =
 				((p0 + p1 - ((p0 ^ p1) & ntsc_rgb_builder)) >> 1) - ntsc_rgb_bias;
-		io [snes_ntsc_burst_size * 1] =
+		io [ntsc_burst_size * 1] =
 				((p1 + p2 - ((p1 ^ p2) & ntsc_rgb_builder)) >> 1) - ntsc_rgb_bias;
-		io [snes_ntsc_burst_size * 2] =
+		io [ntsc_burst_size * 2] =
 				((p2 + p0 - ((p2 ^ p0) & ntsc_rgb_builder)) >> 1) - ntsc_rgb_bias;
 		++io;
 	}
@@ -322,7 +321,7 @@ static void merge_fields( ntsc_rgb_t* io )
 static void correct_errors( ntsc_rgb_t color, ntsc_rgb_t* out )
 {
 	int burst;
-	for ( burst = 0; burst < snes_ntsc_burst_count; burst++ )
+	for ( burst = 0; burst < ntsc_burst_count; burst++ )
 	{
 		int i;
 		for ( i = 0; i < rgb_kernel_size / 2; i++ )
@@ -350,13 +349,13 @@ static void correct_errors( ntsc_rgb_t color, ntsc_rgb_t* out )
 }
 /* end common code */
 
-void snes_ntsc_init( snes_ntsc_t* ntsc, snes_ntsc_setup_t const* setup )
+void ntsc_init( ntsc_t* ntsc, ntsc_setup_t const* setup )
 {
 	float to_float [32];
 	int entry;
 	struct ntsc_impl_t impl;
 	if ( !setup )
-		setup = &snes_ntsc_composite;
+		setup = &ntsc_composite;
 	init_ntsc_impl( &impl, setup );
 	
 	{
@@ -366,7 +365,7 @@ void snes_ntsc_init( snes_ntsc_t* ntsc, snes_ntsc_setup_t const* setup )
 			to_float [i] = (float) pow( (1 / 31.0) * i, gamma ) * rgb_unit;
 	}
 	
-	for ( entry = 0; entry < snes_ntsc_color_count; entry++ )
+	for ( entry = 0; entry < ntsc_color_count; entry++ )
 	{
 		/* Reduce number of significant bits of source color. Clearing the
 		low bits of R and B were least notictable. Modifying green was too
@@ -374,15 +373,6 @@ void snes_ntsc_init( snes_ntsc_t* ntsc, snes_ntsc_setup_t const* setup )
 		int ir = entry >> 8 & 0x1E;
 		int ig = entry >> 4 & 0x1F;
 		int ib = entry << 1 & 0x1E;
-		
-		if ( setup->bsnes_colortbl )
-		{
-			int bgr15 = (ib << 10) | (ig << 5) | ir;
-			unsigned long rgb16 = setup->bsnes_colortbl [bgr15];
-			ir = rgb16 >> 11 & 0x1E;
-			ig = rgb16 >>  6 & 0x1F;
-			ib = rgb16       & 0x1E;
-		}
 		
 		{
 			float r = to_float [ir];
@@ -437,161 +427,28 @@ Enabling this if your compiler supports it will allow better optimization. */
 #endif
 
 /* Default to 16-bit RGB input and output */
-#ifndef SNES_NTSC_IN_FORMAT
-	#define SNES_NTSC_IN_FORMAT SNES_NTSC_RGB16
+#ifndef NTSC_IN_FORMAT
+	#define NTSC_IN_FORMAT NTSC_RGB16
 #endif
 
-#ifndef SNES_NTSC_OUT_DEPTH
-	#define SNES_NTSC_OUT_DEPTH 16
+#ifndef NTSC_OUT_DEPTH
+	#define NTSC_OUT_DEPTH 16
 #endif
 
 #include <limits.h>
 
-#if SNES_NTSC_OUT_DEPTH > 16
+#if NTSC_OUT_DEPTH > 16
 	#if UINT_MAX == 0xFFFFFFFF
-		typedef unsigned int  snes_ntsc_out_t;
+		typedef unsigned int  ntsc_out_t;
 	#elif ULONG_MAX == 0xFFFFFFFF
-		typedef unsigned long snes_ntsc_out_t;
+		typedef unsigned long ntsc_out_t;
 	#else
 		#error "Need 32-bit int type"
 	#endif
 #else
 	#if USHRT_MAX == 0xFFFF
-		typedef unsigned short snes_ntsc_out_t;
+		typedef unsigned short ntsc_out_t;
 	#else
 		#error "Need 16-bit int type"
 	#endif
 #endif
-
-/* useful if you have a linker which doesn't remove unused code from executable */
-#ifndef SNES_NTSC_NO_BLITTERS
-
-/* Use this as a starting point for writing your own blitter. To allow easy upgrades
-to new versions of this library, put your blitter in a separate source file rather
-than modifying this one directly. */
-
-void snes_ntsc_blit( snes_ntsc_t const* ntsc, unsigned short const* snes_in,
-		long in_row_width, int burst_phase, int in_width, int in_height,
-		void* rgb_out, long out_pitch )
-{
-	int chunk_count = (in_width - 1) / snes_ntsc_in_chunk;
-	for ( ; in_height; --in_height )
-	{
-		/* begin row and read first input pixel */
-		unsigned short const* line_in = snes_in;
-		SNES_NTSC_LORES_ROW( ntsc, burst_phase,
-				snes_ntsc_black, snes_ntsc_black, *line_in++ );
-		snes_ntsc_out_t* restrict line_out = (snes_ntsc_out_t*) rgb_out;
-		int n;
-		
-		/* blit main chunks, each using 3 input pixels to generate 7 output pixels */
-		for ( n = chunk_count; n; --n )
-		{
-			/* order of input and output pixels must not be altered */
-			SNES_NTSC_PIXEL_IN( 0, line_in [0] );
-			SNES_NTSC_LORES_OUT( 0, line_out [0], SNES_NTSC_OUT_DEPTH );
-			SNES_NTSC_LORES_OUT( 1, line_out [1], SNES_NTSC_OUT_DEPTH );
-			
-			SNES_NTSC_PIXEL_IN( 1, line_in [1] );
-			SNES_NTSC_LORES_OUT( 2, line_out [2], SNES_NTSC_OUT_DEPTH );
-			SNES_NTSC_LORES_OUT( 3, line_out [3], SNES_NTSC_OUT_DEPTH );
-			
-			SNES_NTSC_PIXEL_IN( 2, line_in [2] );
-			SNES_NTSC_LORES_OUT( 4, line_out [4], SNES_NTSC_OUT_DEPTH );
-			SNES_NTSC_LORES_OUT( 5, line_out [5], SNES_NTSC_OUT_DEPTH );
-			SNES_NTSC_LORES_OUT( 6, line_out [6], SNES_NTSC_OUT_DEPTH );
-			
-			line_in  += 3;
-			line_out += 7;
-		}
-		
-		/* you can eliminate the need for the final chunk below by padding
-		input with three extra black pixels at the end of each row */
-		
-		/* finish final pixels without starting any new ones */
-		SNES_NTSC_PIXEL_IN( 0, snes_ntsc_black );
-		SNES_NTSC_LORES_OUT( 0, line_out [0], SNES_NTSC_OUT_DEPTH );
-		SNES_NTSC_LORES_OUT( 1, line_out [1], SNES_NTSC_OUT_DEPTH );
-		
-		SNES_NTSC_PIXEL_IN( 1, snes_ntsc_black );
-		SNES_NTSC_LORES_OUT( 2, line_out [2], SNES_NTSC_OUT_DEPTH );
-		SNES_NTSC_LORES_OUT( 3, line_out [3], SNES_NTSC_OUT_DEPTH );
-		
-		SNES_NTSC_PIXEL_IN( 2, snes_ntsc_black );
-		SNES_NTSC_LORES_OUT( 4, line_out [4], SNES_NTSC_OUT_DEPTH );
-		SNES_NTSC_LORES_OUT( 5, line_out [5], SNES_NTSC_OUT_DEPTH );
-		SNES_NTSC_LORES_OUT( 6, line_out [6], SNES_NTSC_OUT_DEPTH );
-		
-		/* advance burst phase and line pointers */
-		burst_phase = (burst_phase + 1) % snes_ntsc_burst_count;
-		snes_in += in_row_width;
-		rgb_out = (char*) rgb_out + out_pitch;
-	}
-}
-
-void snes_ntsc_blit_hires( snes_ntsc_t const* ntsc, unsigned short const* snes_in,
-		long in_row_width, int burst_phase, int in_width, int in_height,
-		void* rgb_out, long out_pitch )
-{
-	int chunk_count = (in_width - 2) / (snes_ntsc_in_chunk * 2);
-	for ( ; in_height; --in_height )
-	{
-		unsigned short const* line_in = snes_in;
-		SNES_NTSC_HIRES_ROW( ntsc, burst_phase,
-				snes_ntsc_black, snes_ntsc_black, snes_ntsc_black, line_in [0], line_in [1] );
-		snes_ntsc_out_t* restrict line_out = (snes_ntsc_out_t*) rgb_out;
-		int n;
-		line_in += 2;
-		
-		for ( n = chunk_count; n; --n )
-		{
-			SNES_NTSC_PIXEL_IN( 0, line_in [0] );
-			SNES_NTSC_HIRES_OUT( 0, line_out [0], SNES_NTSC_OUT_DEPTH );
-			
-			SNES_NTSC_PIXEL_IN( 1, line_in [1] );
-			SNES_NTSC_HIRES_OUT( 1, line_out [1], SNES_NTSC_OUT_DEPTH );
-			
-			SNES_NTSC_PIXEL_IN( 2, line_in [2] );
-			SNES_NTSC_HIRES_OUT( 2, line_out [2], SNES_NTSC_OUT_DEPTH );
-			
-			SNES_NTSC_PIXEL_IN( 3, line_in [3] );
-			SNES_NTSC_HIRES_OUT( 3, line_out [3], SNES_NTSC_OUT_DEPTH );
-			
-			SNES_NTSC_PIXEL_IN( 4, line_in [4] );
-			SNES_NTSC_HIRES_OUT( 4, line_out [4], SNES_NTSC_OUT_DEPTH );
-			
-			SNES_NTSC_PIXEL_IN( 5, line_in [5] );
-			SNES_NTSC_HIRES_OUT( 5, line_out [5], SNES_NTSC_OUT_DEPTH );
-			SNES_NTSC_HIRES_OUT( 6, line_out [6], SNES_NTSC_OUT_DEPTH );
-			
-			line_in  += 6;
-			line_out += 7;
-		}
-		
-		SNES_NTSC_PIXEL_IN( 0, snes_ntsc_black );
-		SNES_NTSC_HIRES_OUT( 0, line_out [0], SNES_NTSC_OUT_DEPTH );
-		
-		SNES_NTSC_PIXEL_IN( 1, snes_ntsc_black );
-		SNES_NTSC_HIRES_OUT( 1, line_out [1], SNES_NTSC_OUT_DEPTH );
-		
-		SNES_NTSC_PIXEL_IN( 2, snes_ntsc_black );
-		SNES_NTSC_HIRES_OUT( 2, line_out [2], SNES_NTSC_OUT_DEPTH );
-		
-		SNES_NTSC_PIXEL_IN( 3, snes_ntsc_black );
-		SNES_NTSC_HIRES_OUT( 3, line_out [3], SNES_NTSC_OUT_DEPTH );
-		
-		SNES_NTSC_PIXEL_IN( 4, snes_ntsc_black );
-		SNES_NTSC_HIRES_OUT( 4, line_out [4], SNES_NTSC_OUT_DEPTH );
-		
-		SNES_NTSC_PIXEL_IN( 5, snes_ntsc_black );
-		SNES_NTSC_HIRES_OUT( 5, line_out [5], SNES_NTSC_OUT_DEPTH );
-		SNES_NTSC_HIRES_OUT( 6, line_out [6], SNES_NTSC_OUT_DEPTH );
-		
-		burst_phase = (burst_phase + 1) % snes_ntsc_burst_count;
-		snes_in += in_row_width;
-		rgb_out = (char*) rgb_out + out_pitch;
-	}
-}
-
-#endif
-
