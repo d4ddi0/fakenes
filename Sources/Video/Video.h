@@ -90,8 +90,6 @@ enum {
    VIDEO_PROFILE_OUTPUT_SCALE_HEIGHT
 };
 
-extern BOOL video__swap_rgb;
-
 extern void video_load_config(void);
 extern void video_save_config(void);
 extern int video_init(void);

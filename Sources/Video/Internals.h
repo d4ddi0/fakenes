@@ -145,6 +145,11 @@ extern PPU__ARRAY( UINT8,  ppu__palette_vram,        PPU__PALETTE_VRAM_SIZE     
 extern PPU__ARRAY( UINT8*, ppu__sprite_palettes,     PPU__SPRITE_PALETTES_SIZE     );
 extern PPU__ARRAY( UINT8,  ppu__sprite_vram,         PPU__SPRITE_VRAM_SIZE         );
 
+/* *************************************
+   ********** VIDEO SUBSYSTEM **********
+   *************************************/
+extern BOOL video__swap_rgb;
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

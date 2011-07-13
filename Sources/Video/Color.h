@@ -9,6 +9,7 @@
 #define VIDEO__COLOR_H__INCLUDED
 #include "Common/Global.h"
 #include "Common/Types.h"
+#include "Video/Internals.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -117,6 +118,7 @@ static INLINE UINT16 color_darken_16(const UINT16 c, const int amount)
    return color_pack_16(r, g, b);
 }
 
+/* Functions from 'Color.cpp'. */
 extern void rgb_to_hsl(const int r, const int g, const int b, REAL *h, REAL *s, REAL *l);
 extern void hsl_to_rgb(const REAL h, const REAL s, const REAL l, int* r, int* g, int* b);
 
