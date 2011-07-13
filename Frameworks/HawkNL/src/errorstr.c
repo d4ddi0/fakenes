@@ -24,7 +24,7 @@
   Based on code supplied by Ryan Haksi <cryogen@infoserve.net>
 */
 
-#if defined WINDOWS || defined WIN32 || defined WIN64 || defined (_WIN32_WCE)
+#if defined SYSTEM_WINDOWS || defined WIN32 || defined WIN64 || defined (_WIN32_WCE)
 # if !defined (_WIN32_WCE)
 #  include <errno.h>
 # endif

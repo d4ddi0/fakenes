@@ -1109,7 +1109,7 @@ static int main_menu_open (void)
 
    /* Retrive path from configuration file. */
    USTRING_CLEAR(path);
-#ifdef POSIX
+#ifdef SYSTEM_POSIX
    ustrncat (path, get_config_string ("gui", "open_path", "~/"), (sizeof(path) - 1));
 #else
    ustrncat (path, get_config_string ("gui", "open_path", "/"), (sizeof(path) - 1));

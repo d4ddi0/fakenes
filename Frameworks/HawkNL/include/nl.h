@@ -52,7 +52,7 @@ extern "C" {
 /* undefine this to remove parallel code */
 #define NL_INCLUDE_PARALLEL
 
-#if defined(WINDOWS) || defined (WIN32) || defined (WIN64) || defined (_WIN32_WCE)
+#if defined(SYSTEM_WINDOWS) || defined (WIN32) || defined (WIN64) || defined (_WIN32_WCE)
 #define WINDOWS_APP
 #endif
 

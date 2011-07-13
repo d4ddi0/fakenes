@@ -2486,8 +2486,9 @@ dir_write_check:
 		/* Set an environment variable. The value is space sensitive, so if you
 		 * wish to use spaces, encapsulate the value in ''s. Using '?=' instead
 		 * of '=' will only set the variable if it isn't already set. */
-		if(strncmp(ptr, "+=", 2) == 0 || strncmp(ptr, "-=", 2) == 0 ||
-		   strncmp(ptr, "?=", 2) == 0 || ptr[0] == '=')
+		if((strncmp(ptr, "+=", 2) == 0) || (strncmp(ptr, "-=", 2) == 0) ||
+		   (strncmp(ptr, "?=", 2) == 0) || (ptr[0] == '=') ||
+                   (strncmp(ptr, ":=", 2) == 0))
 		{
 			char *val = ptr;
 			int ovr = 1;
@@ -2496,15 +2497,24 @@ dir_write_check:
 				++val;
 			ptr = linebuf;
 
-			if(*(val-1) == '+')
+			if((*(val-1) == '+') || (*(val-1) == ':'))
 			{
 				int i;
+
+                                int space = 0;
+				if(*(val-1) == ':')
+                                	space = 1;
 
 				*(val-1) = 0;
 				++val;
 				while(*val && isspace(*val))
 					++val;
-				i = snprintf(buffer, sizeof(buffer), "%s", getvar(ptr));
+
+				if((space == 1) && (strlen(getvar(ptr)) > 0))
+					i = snprintf(buffer, sizeof(buffer), "%s ", getvar(ptr));
+				else
+					i = snprintf(buffer, sizeof(buffer), "%s", getvar(ptr));
+
 				if(*val)
 				{
 					do {

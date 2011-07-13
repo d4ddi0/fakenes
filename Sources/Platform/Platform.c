@@ -15,7 +15,7 @@
 #include "platform.h"
 #include "types.h"
 
-#ifdef POSIX
+#ifdef SYSTEM_POSIX
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -23,7 +23,7 @@
 extern int errno;
 #endif
 
-#ifdef POSIX
+#ifdef SYSTEM_POSIX
 
 UINT8 * homedir = NIL;
 
@@ -47,7 +47,7 @@ int platform_init (void)
     UINT8 buffer2 [256];
 
 
-#ifdef POSIX
+#ifdef SYSTEM_POSIX
 
     /* by amit */
 
