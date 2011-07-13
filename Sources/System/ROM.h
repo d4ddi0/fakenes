@@ -58,10 +58,10 @@ extern ROM global_rom;
 
 /* Control byte flags. */
 enum {
-   ROM_CTRL_MIRRORING    = (1 << 0);
-   ROM_CTRL_BATTERY      = (1 << 1);
-   ROM_CTRL_TRAINER      = (1 << 2);
-   ROM_CTRL_FOUR_SCREEN  = (1 << 2);
+   ROM_CTRL_MIRRORING    = (1 << 0),
+   ROM_CTRL_BATTERY      = (1 << 1),
+   ROM_CTRL_TRAINER      = (1 << 2),
+   ROM_CTRL_FOUR_SCREEN  = (1 << 2)
 };
 
 /* Shortcut macros. */

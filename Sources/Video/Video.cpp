@@ -5,6 +5,8 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
+#include "Color.h"
+#include "Internals.h"
 #include "Local.hpp"
 #include "PPU.h"
 #include "Video.h"
@@ -130,7 +132,7 @@ static VideoOutput Output;
 enum {
    DirtyNone    = 0,
    DirtyColor   = 1 << 0,
-   DirtyDisplay = 1 << 1,
+   DirtyDisplay = 1 << 1
 };
 
 static LIST dirty;
@@ -1556,7 +1558,7 @@ static void LoadFonts()
 static void UpdateColor()
 {
    // Determine which palette to use.
-   RGB* palette;
+   RGB* palette = NULL;
    switch(Color.palette) {
       case VIDEO_PALETTE_NESTER:
          palette = DATA_TO_RGB(PALETTE_NESTER);
@@ -1850,7 +1852,7 @@ static void DrawHUD()
    y += line + 2;
 
    video_legacy_shadow_textprintf(buffer, font, left + indent, y, color, opacity,
-      "PC: $%04X", *cpu_active_pc);
+      "PC: $%04X", cpu_get_register(CPU_REGISTER_PC));
 
    solid_mode();
 }
@@ -1871,9 +1873,13 @@ static void DrawMessages()
 
    /* Gather our text sources. Generally, this will include only the message history,
       but in chat mode it may also include the current chat line(s). */
+   vector<const UDATA*> sources;
+   vector<int> intensities;
+
    const int maxSources = history.size() + 2;
-   const UDATA* sources[maxSources];
-   int intensities[maxSources];
+   sources.resize(maxSources);
+   intensities.resize(maxSources);
+
    int nextSource = 0;
 
    for(int i = 0; i < maxSources; i++) {
@@ -1884,7 +1890,7 @@ static void DrawMessages()
    // Determine if we are in full chat mode.
    const bool chatMode = input_mode & INPUT_MODE_CHAT;
 
-   for(int i = 0; i < history.size(); i++) {
+   for(sized i = 0; i < history.size(); i++) {
       const Message& message = history[i];
       // Skip empty lines for a more compact layout.
       if(ustrlen(message.text) == 0)

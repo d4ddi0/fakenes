@@ -206,6 +206,11 @@ cpu_time_t cpu_execute(const cpu_time_t time)
    return 0;
 }
 
+void cpu_burn(const cpu_time_t time)
+{
+   CORE::Burn(time);
+}
+
 /* Interrupt routines. cpu_set_interrupt() queues an interrupt to
    occur at a specific time (in master clock cycles), and
    cpu_clear_interrupt() both unqueues any pending interrupts and
@@ -237,9 +242,31 @@ cpu_time_t cpu_get_time_elapsed(cpu_time_t* time)
    return elapsed;
 }
 
-void cpu_burn(const cpu_time_t time)
+/* Note: This function is currently uncached so multiple successive calls
+   (e.g displaying all of the registers) will be inefficient. */
+int cpu_get_register(const CPU_REGISTER register)
 {
-   CORE::Burn(time);
+   COREContext context;
+   CORE::GetContext(&context);
+
+   switch(register) {
+      case CPU_REGISTER_PC:
+         return context.registers.pc;
+      case CPU_REGISTER_A:
+         return context.registers.a;
+      case CPU_REGISTER_X:
+         return context.registers.x;
+      case CPU_REGISTER_Y:
+         return context.registers.y;
+      case CPU_REGISTER_S:
+         return context.registers.s;
+      case CPU_REGISTER_P:
+         return context.registers.p;
+
+      default:
+         GenericWarning();
+         return 0;
+   }
 }
 
 // Save state routines.

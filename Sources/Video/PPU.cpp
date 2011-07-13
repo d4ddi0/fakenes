@@ -57,7 +57,7 @@ static forceinline bool ClockScanlineTimer(int16 &nextScanline);
 
 // Frame timing.
 static forceinline void Synchronize();
-static forceinline Process(const cpu_time_t time);
+static forceinline cpu_time_t Process(const cpu_time_t time);
 static forceinline cpu_time_t GetTimeElapsed();
 static linear void StartFrame();
 static linear void EndFrame();
@@ -720,7 +720,7 @@ cpu_time_t ppu_execute(const cpu_time_t time)
       not being used (e.g the CPU is in unchained mode). */
 
    // Process individual clock cycles.
-   const cpu_time_t processed = process(time);
+   const cpu_time_t processed = Process(time);
    // Update timestamp.
    PPUState::clockCounter = cpu_get_time();
 
@@ -732,7 +732,7 @@ void ppu_predict_interrupts(const cpu_time_t cycles, const unsigned flags)
    SyncHelper();
 
    // Save parameters for re-prediction if a mid-scanline change occurs.
-   PPUState::predictionTimestamp = cpu_get_cycles();
+   PPUState::predictionTimestamp = cpu_get_time();
    // We'll actually emulate a little bit longer than requested, since it doesn't hurt to do so.
    PPUState::predictionCycles = cycles + PREDICTION_BUFFER_CYCLES + (1 * PPU_CLOCK_MULTIPLIER);
 
@@ -834,59 +834,59 @@ void ppu_load_state(FILE_CONTEXT* file, const int version)
    RT_ASSERT(file);
 
    // Restore internal state.
-   clockCounter = pack_igetl(file);
-   clockBuffer = pack_igetl(file);
-   scanline = pack_igetw(file);
-   scanlineTimer = pack_igetw(file);
-   isOddFrame = LOAD_BOOLEAN(pack_getc(file));
-   predictionTimestamp = pack_igetl(file);
-   predictionCycles = pack_igetl(file);
+   clockCounter = file->read_long(file);
+   clockBuffer = file->read_long(file);
+   scanline = file->read_word(file);
+   scanlineTimer = file->read_word(file);
+   isOddFrame = file->read_boolean(file);
+   predictionTimestamp = file->read_long(file);
+   predictionCycles = file->read_long(file);
 
-   readBuffer = pack_getc(file);
-   writeBuffer = pack_getc(file);
-   addressLatch = LOAD_BOOLEAN(pack_getc(file));
+   readBuffer = file->read_byte(file);
+   writeBuffer = file->read_byte(file);
+   addressLatch = file->read_boolean(file);
 
-   oamDMATimer = pack_getc(file);
-   oamDMAReadAddress = pack_igetw(file);
-   oamDMAWriteAddress = pack_igetw(file);
-   oamDMAByte = pack_getc(file);
-   oamDMAFlipFlop = LOAD_BOOLEAN(pack_getc(file));
+   oamDMATimer = file->read_byte(file);
+   oamDMAReadAddress = file->read_word(file);
+   oamDMAWriteAddress = file->read_word(file);
+   oamDMAByte = file->read_byte(file);
+   oamDMAFlipFlop = file->read_boolean(file);
 
-   vblankQuirkTime = pack_getc(file);
+   vblankQuirkTime = file->read_byte(file);
 
    // Restore registers.
-   ppu_write(0x2000, pack_getc(file));
-   ppu_write(0x2001, pack_getc(file));
-   ppu_write(0x2003, pack_getc(file));
+   ppu_write(0x2000, file->read_byte(file));
+   ppu_write(0x2001, file->read_byte(file));
+   ppu_write(0x2003, file->read_byte(file));
 
-   const UINT16 register_2005 = pack_igetw(file);
+   const UINT16 register_2005 = file->read_word(file);
    ppu_write(0x2005, (register_2005 & 0xFF00) >> 8);
    ppu_write(0x2005, register_2005 & 0x00FF);
 
-   const UINT16 register_2006 = pack_igetw(file);
+   const UINT16 register_2006 = file->read_word(file);
    ppu_write(0x2006, (register_2006 & 0xFF00) >> 8);
    ppu_write(0x2006, register_2006 & 0x00FF);
  
    // Restore flags.
-   ppu__hblank_started = LOAD_BOOLEAN(pack_getc(file));
-   ppu__vblank_started = LOAD_BOOLEAN(pack_getc(file));
-   ppu__sprite_collision = LOAD_BOOLEAN(pack_getc(file));
-   ppu__sprite_overflow = LOAD_BOOLEAN(pack_getc(file));
-   ppu__force_rendering = LOAD_BOOLEAN(pack_getc(file));
+   ppu__hblank_started = file->read_boolean(file);
+   ppu__vblank_started = file->read_boolean(file);
+   ppu__sprite_collision = file->read_boolean(file);
+   ppu__sprite_overflow = file->read_boolean(file);
+   ppu__force_rendering = file->read_boolean(file);
 
    // Restore mirroring.
-   ppu_set_mirroring(pack_getc(file));
+   ppu_set_mirroring(file->read_byte(file));
 
    // Restore VRAM.
    const int count = mmc_get_name_table_count();
    if(count > 0)
-      pack_fread(ppu__name_table_vram, PPU__BYTES_PER_NAME_TABLE * count, file);
+      file->read(file, ppu__name_table_vram, PPU__BYTES_PER_NAME_TABLE * count);
 
    if(mmc_uses_pattern_vram())
-      pack_fread(ppu__pattern_table_vram, PPU__PATTERN_TABLE_VRAM_SIZE, file);
+      file->read(file, ppu__pattern_table_vram, PPU__PATTERN_TABLE_VRAM_SIZE);
 
-   pack_fread(ppu__palette_vram, PPU__PALETTE_VRAM_SIZE, file);
-   pack_fread(ppu__sprite_vram, PPU__SPRITE_VRAM_SIZE, file);
+   file->read(file, ppu__palette_vram, PPU__PALETTE_VRAM_SIZE);
+   file->read(file, ppu__sprite_vram, PPU__SPRITE_VRAM_SIZE);
 }
 
 void ppu_save_state(FILE_CONTEXT* file, const int version)
@@ -896,54 +896,54 @@ void ppu_save_state(FILE_CONTEXT* file, const int version)
    RT_ASSERT(file);
 
    // Save internal state.
-   pack_iputl(clockCounter, file);
-   pack_iputl(clockBuffer, file);
-   pack_iputw(scanline, file);
-   pack_iputw(scanlineTimer, file);
-   pack_putc(SAVE_BOOLEAN(isOddFrame), file);
-   pack_iputl(predictionTimestamp, file);
-   pack_iputl(predictionCycles, file);
+   file->write_long(file, clockCounter);
+   file->write_long(file, clockBuffer);
+   file->write_word(file, scanline);
+   file->write_word(file, scanlineTimer);
+   file->write_boolean(file, isOddFrame);
+   file->write_long(file, predictionTimestamp);
+   file->write_long(file, predictionCycles);
 
-   pack_putc(readBuffer, file);
-   pack_putc(writeBuffer, file);
-   pack_putc(SAVE_BOOLEAN(addressLatch), file);
+   file->write_byte(file, readBuffer);
+   file->write_byte(file, writeBuffer);
+   file->write_boolean(file, addressLatch);
 
-   pack_putc(oamDMATimer, file);
-   pack_iputw(oamDMAReadAddress, file);
-   pack_iputw(oamDMAWriteAddress, file);
-   pack_putc(oamDMAByte, file);
-   pack_putc(SAVE_BOOLEAN(oamDMAFlipFlop), file);
+   file->write_byte(file, oamDMATimer);
+   file->write_word(file, oamDMAReadAddress);
+   file->write_word(file, oamDMAWriteAddress);
+   file->write_byte(file, oamDMAByte);
+   file->write_boolean(file, oamDMAFlipFlop);
 
-   pack_putc(vblankQuirkTime, file);
+   file->write_byte(file, vblankQuirkTime);
 
    // Save registers.
-   pack_putc(ppu__register_2000, file);
-   pack_putc(ppu__register_2001, file);
-   pack_putc(ppu__register_2003, file);
-   pack_iputw(ppu__register_2005, file);
-   pack_iputw(ppu__register_2006, file);
+   file->write_byte(file, ppu__register_2000);
+   file->write_byte(file, ppu__register_2001);
+   file->write_byte(file, ppu__register_2003);
+   file->write_word(file, ppu__register_2005);
+   file->write_word(file, ppu__register_2006);
 
    // Save flags.
-   pack_putc(SAVE_BOOLEAN(ppu__hblank_started), file);
-   pack_putc(SAVE_BOOLEAN(ppu__vblank_started), file);
-   pack_putc(SAVE_BOOLEAN(ppu__sprite_collision), file);
-   pack_putc(SAVE_BOOLEAN(ppu__sprite_overflow), file);
-   pack_putc(SAVE_BOOLEAN(ppu__force_rendering), file);
+   file->write_boolean(file, ppu__hblank_started);
+   file->write_boolean(file, ppu__vblank_started);
+   file->write_boolean(file, ppu__sprite_collision);
+   file->write_boolean(file, ppu__sprite_overflow);
+   file->write_boolean(file, ppu__force_rendering);
 
    // Save mirroring.
-   pack_putc(ppu__mirroring, file);
+   file->write_byte(file, ppu__mirroring);
 
    /* Save VRAM. Name tables and pattern tables only need to be saved when in use, while
       palettes and sprite VRAM must always be saved. */
    const int count = mmc_get_name_table_count();
    if(count > 0)
-      pack_fwrite(ppu__name_table_vram, PPU__BYTES_PER_NAME_TABLE * count, file);
+      file->write(file, ppu__name_table_vram, PPU__BYTES_PER_NAME_TABLE * count);
 
    if(mmc_uses_pattern_vram())
-      pack_fwrite(ppu__pattern_table_vram, PPU__PATTERN_TABLE_VRAM_SIZE, file);
+      file->write(file, ppu__pattern_table_vram, PPU__PATTERN_TABLE_VRAM_SIZE);
 
-   pack_fwrite(ppu__palette_vram, PPU__PALETTE_VRAM_SIZE, file);
-   pack_fwrite(ppu__sprite_vram, PPU__SPRITE_VRAM_SIZE, file);
+   file->write(file, ppu__palette_vram, PPU__PALETTE_VRAM_SIZE);
+   file->write(file, ppu__sprite_vram, PPU__SPRITE_VRAM_SIZE);
 }
 
 ENUM ppu_get_mirroring(void)
@@ -1453,9 +1453,9 @@ static void PredictInterrupts(const cpu_time_t cycles, const unsigned flags)
 
    // Clear pending interrupts just in case.
    if(flags & PPU_PREDICT_NMI)
-      cpu_unqueue_interrupt(CPU_INTERRUPT_NMI);
+      cpu_clear_interrupt(CPU_INTERRUPT_NMI);
    if(flags & PPU_PREDICT_MMC_IRQ)
-      cpu_unqueue_interrupt(CPU_INTERRUPT_IRQ_MMC);
+      cpu_clear_interrupt(CPU_INTERRUPT_IRQ_MAPPER_PROXY);
 
    // Save variables since we just want to simulate.
    const int16 savedScanline = scanline;
@@ -1492,9 +1492,9 @@ static void PredictInterrupts(const cpu_time_t cycles, const unsigned flags)
          // Calculate the time which an interrupt(s) will occur.
          const cpu_time_t time = predictionTimestamp + (current * PPU_CLOCK_MULTIPLIER);
          if(nmiTrigger)
-            cpu_queue_interrupt(CPU_INTERRUPT_NMI, time);
+            cpu_set_interrupt(CPU_INTERRUPT_NMI, time);
          if(irqTrigger)
-            cpu_queue_interrupt(CPU_INTERRUPT_IRQ_MMC, time);
+            cpu_set_interrupt(CPU_INTERRUPT_IRQ_MAPPER_PROXY, time);
       }
               
       // Clock the scanline timer.
@@ -1509,7 +1509,7 @@ static void PredictInterrupts(const cpu_time_t cycles, const unsigned flags)
 static void RepredictInterrupts(const unsigned flags)
 {
    // Determine how much time has elapsed since our initial prediction.
-   const cpu_time_t timestamp = cpu_get_cycles();
+   const cpu_time_t timestamp = cpu_get_time();
    const cpu_time_t cyclesElapsed = (cpu_rtime_t)timestamp - (cpu_rtime_t)PPUState::predictionTimestamp;
    // Calculate how many cycles are left in the prediction buffer.
    const cpu_rtime_t cyclesRemaining = (cpu_rtime_t)PPUState::predictionCycles - cyclesElapsed;
@@ -1560,7 +1560,7 @@ static void Synchronize()
    const cpu_time_t time = cpu_get_time_elapsed(&PPUState::clockCounter);
    if(time == 0)
       // Nothing to do. 
-      return 0;
+      return;
 
    // Set a simple flag to avoid re-entry, which is bad.
    PPUState::synchronizing = true;
@@ -1575,7 +1575,7 @@ static void Synchronize()
 static cpu_time_t Process(const cpu_time_t time)
 {
    // Scale from master clock to PPU and buffer the remainder to avoid possibly losing cycles.
-   const cpu_time_t cycles = (time + PPUState::clockBuffer) / PPU_CLOCK_DIVIDER;
+   cpu_time_t cycles = (time + PPUState::clockBuffer) / PPU_CLOCK_DIVIDER;
    PPUState::clockBuffer = time - (cycles * PPU_CLOCK_MULTIPLIER);
 
    // Note: This is always > 0 when PPUState::clockBuffer > 0.
@@ -1649,7 +1649,7 @@ static cpu_time_t Process(const cpu_time_t time)
       /* If timeWarp is set, we need to re-evaluate the time elapsed. This can happen if cycles have
          been stolen from the CPU while the PPU was synchronizing, e.g by sprite DMA. */
       if(PPUState::timeWarp) {
-         time += GetTimeElapsed();
+         cycles += GetTimeElapsed();
          PPUState::timeWarp = false;
       }
    }

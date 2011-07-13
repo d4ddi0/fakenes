@@ -9,7 +9,7 @@
 #include "Local.hpp"
 
 // Function prototypes (defined at bottom).
-static real Hue_2_RGB(const real v1, const real v2, const real vH);
+static real Hue_2_RGB(const real v1, const real v2, real vH);
 
 // --------------------------------------------------------------------------------
 // PUBLIC INTERFACE
@@ -115,7 +115,7 @@ void hsl_to_rgb(const REAL h, const REAL s, const REAL l, int* r, int* g, int* b
 // PRIVATE FUNCTIONS
 // --------------------------------------------------------------------------------
 
-static real Hue_2_RGB(const real v1, const real v2, const real vH)             //Function Hue_2_RGB
+static real Hue_2_RGB(const real v1, const real v2, real vH)             //Function Hue_2_RGB
 {
    if (vH < 0)
       vH += 1;

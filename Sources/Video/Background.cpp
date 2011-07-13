@@ -65,7 +65,7 @@ void Clear() {
    ClearEvaluation();
 }
 
-inline void Load()
+forceinline void Load()
 {
    /* Reload shift registers, latch and counter. This happens synchronously with the
       data fetches performed by Background::Clock(). */
@@ -85,7 +85,7 @@ inline void Load()
 }
 
 // Logic that takes place before a pixel is built.
-inline void Prelogic()
+forceinline void Prelogic()
 {
    /* The background counter is clocked once per pixel, in synchronization with tile fetching.
       Each time a tile is fetched, it reaches zero and loads the new data. */
@@ -98,7 +98,7 @@ inline void Prelogic()
 }
 
 // Logic that takes place after a pixel is built.
-inline void Postlogic()
+forceinline void Postlogic()
 {
    /* Clock the shift registers, moving the next pixel up.
       Shifting to the left brings it closer to the raster position. */
@@ -113,7 +113,7 @@ inline void Postlogic()
 
 /* This function just performs minimal logic for the background.
    It's used when frame skipping. */
-inline void Logic()
+forceinline void Logic()
 {
    Prelogic();
    Postlogic();
@@ -189,7 +189,7 @@ void Line()
 
 #endif
 
-inline void Pixel(const bool rendering)
+forceinline void Pixel(const bool rendering)
 {
    // Check if we are frame-skipping.
    if(!rendering) {
@@ -259,7 +259,7 @@ inline void Pixel(const bool rendering)
 }
 
 // This function is called when the background is disabled.
-inline void PixelStub(const bool rendering)
+forceinline void PixelStub(const bool rendering)
 {
    /* Just clear rendering buffers. This produces the backdrop, or overscan color located
       at the very first palette VRAM byte. */
@@ -342,7 +342,7 @@ inline void PixelStub(const bool rendering)
    T and it doesn't get copied into V except on writes to $2006. So the changes to
    vertical scrolling only show up when T is copied into V at frame start.
 */
-inline void Clock()
+forceinline void Clock()
 {
    /* The data for each tile is fetched during this phase.
       Each memory access takes 2 PPU cycles to complete,

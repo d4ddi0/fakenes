@@ -7,6 +7,7 @@
 
 #ifndef Video__Renderer_hpp__included
 #define Video__Renderer_hpp__included
+#include "Internals.h"
 #include "Local.hpp"
 
 /* This macro helps with creating scanline-length arrays for storing the results of calculations

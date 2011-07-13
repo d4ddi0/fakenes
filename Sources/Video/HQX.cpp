@@ -60,6 +60,22 @@ quick void Interp2(unsigned char * pc, const int c1, const int c2, const int c3)
   *((int*)pc) = (c1*2+c2+c3) >> 2;
 }
 
+quick void Interp3(unsigned char * pc, const int c1, const int c2)
+{
+  //*((int*)pc) = (c1*7+c2)/8;
+
+  *((int*)pc) = ((((c1 & 0x00FF00)*7 + (c2 & 0x00FF00) ) & 0x0007F800) +
+                 (((c1 & 0xFF00FF)*7 + (c2 & 0xFF00FF) ) & 0x07F807F8)) >> 3;
+}
+
+quick void Interp4(unsigned char * pc, const int c1, const int c2, const int c3)
+{
+  //*((int*)pc) = (c1*2+(c2+c3)*7)/16;
+
+  *((int*)pc) = ((((c1 & 0x00FF00)*2 + ((c2 & 0x00FF00) + (c3 & 0x00FF00))*7 ) & 0x000FF000) +
+                 (((c1 & 0xFF00FF)*2 + ((c2 & 0xFF00FF) + (c3 & 0xFF00FF))*7 ) & 0x0FF00FF0)) >> 4;
+}
+
 quick void Interp5(unsigned char * pc, const int c1, const int c2)
 {
   *((int*)pc) = (c1+c2) >> 1;
@@ -79,6 +95,14 @@ quick void Interp7(unsigned char * pc, const int c1, const int c2, const int c3)
 
   *((int*)pc) = ((((c1 & 0x00FF00)*6 + (c2 & 0x00FF00) + (c3 & 0x00FF00) ) & 0x0007F800) +
                  (((c1 & 0xFF00FF)*6 + (c2 & 0xFF00FF) + (c3 & 0xFF00FF) ) & 0x07F807F8)) >> 3;
+}
+
+quick void Interp8(unsigned char * pc, const int c1, const int c2)
+{
+  //*((int*)pc) = (c1*5+c2*3)/8;
+
+  *((int*)pc) = ((((c1 & 0x00FF00)*5 + (c2 & 0x00FF00)*3 ) & 0x0007F800) +
+                 (((c1 & 0xFF00FF)*5 + (c2 & 0xFF00FF)*3 ) & 0x07F807F8)) >> 3;
 }
 
 quick void Interp9(unsigned char * pc, const int c1, const int c2, const int c3)

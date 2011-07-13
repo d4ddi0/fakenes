@@ -52,6 +52,16 @@ enum {
    CPU_MAP_ALL = CPU_MAP_BLOCK_64K
 };
 
+/* Valid registers for calls to cpu_get_register(). */
+enum CPU_REGISTER {
+   CPU_REGISTER_PC = 0,
+   CPU_REGISTER_A,
+   CPU_REGISTER_X,
+   CPU_REGISTER_Y,
+   CPU_REGISTER_S,
+   CPU_REGISTER_P
+};
+
 /* Data types used for execution times. */
 typedef UINT32 cpu_time_t;
 typedef INT32 cpu_rtime_t;
@@ -72,11 +82,12 @@ extern void cpu_update(void);
 extern UINT8 cpu_read(const UINT16 address);
 extern void cpu_write(const UINT16 address, const UINT8 data);
 extern cpu_time_t cpu_execute(const cpu_time_t time);
+extern void cpu_burn(const cpu_time_t time);
 extern void cpu_set_interrupt(const CPU_INTERRUPT type, const cpu_time_t time);
 extern void cpu_clear_interrupt(const CPU_INTERRUPT type);
 extern cpu_time_t cpu_get_time(void);
 extern cpu_time_t cpu_get_time_elapsed(cpu_time_t* time);
-extern void cpu_burn(const cpu_time_t time);
+extern int cpu_get_register(const CPU_REGISTER register);
 extern void cpu_load_state(PACKFILE *file, const int version);
 extern void cpu_save_state(PACKFILE *file, const int version);
 extern void cpu_enable_sram(void);
