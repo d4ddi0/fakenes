@@ -5,6 +5,7 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
+#include "Internals.h"
 #include "Local.hpp"
 #include "Renderer.hpp"
 #include "Sprites.hpp"
