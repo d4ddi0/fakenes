@@ -6,6 +6,7 @@
    any modification or use of this software. */
 
 #include "Local.hpp"
+#include "PPU.h"
 #include "Video.h"
 
 // TODO: Finish display update routines.
