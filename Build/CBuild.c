@@ -1446,10 +1446,10 @@ static char *expand_string(char *str, const char *stp, size_t len,
 		while(buf[i])
 		{
 			if(buf[i] == '&' || buf[i] == '\'' || buf[i] == '"' ||
-			   buf[i] == '\\')
+			   buf[i] == '^')
 			{
 				memmove(buf+i+1, buf+i, BUF_SIZE-i-1);
-				buf[i] = '\\';
+				buf[i] = '^';
 				++i;
 			}
 			++i;
@@ -1580,7 +1580,7 @@ static int check_obj_deps(char *base, char *src, time_t obj_time)
 
 		while(*stp && !isspace(*stp))
 		{
-			if(*stp == '\\')
+			if(*stp == '^')
 				memmove(stp, stp+1, strlen(stp));
 			if(*stp) ++stp;
 		}
@@ -3242,7 +3242,7 @@ next_src_file:
 					}
 					else
 					{
-						if(cmd_ptr[0] == '\\' && cmd_ptr[1] != 0 &&
+						if(cmd_ptr[0] == '^' && cmd_ptr[1] != 0 &&
 						   i+2 < (signed)sizeof(buffer))
 							buffer[i++] = *(cmd_ptr++);
 						buffer[i++] = *(cmd_ptr++);
