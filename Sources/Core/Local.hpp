@@ -16,5 +16,6 @@
 #include "Common/Debug.h"
 #include "Common/Global.h"
 #include "Common/Types.h"
+#include "Platform/File.h"
 
 #endif // !Core__Local_hpp__included
