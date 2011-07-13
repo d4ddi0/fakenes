@@ -589,7 +589,7 @@ static char *expand_string(char *str, const char *stp, size_t len,
 					continue;
 				}
 			}
-			else if(*ptr == '\\')
+			else if(*ptr == '^')
 				memmove(ptr, ptr+1, strlen(ptr));
 
 			if(*ptr) ++ptr;
@@ -1778,17 +1778,17 @@ static int build_command(char *buffer, size_t bufsize, char *barename,
 		}
 		else if(strncasecmp(ptr, "<!>", 3) == 0)
 		{
-			i += snprintf(buffer+i, bufsize-i, "\\\"'%s'\\\"", srcname);
+			i += snprintf(buffer+i, bufsize-i, "^\"'%s'^\"", srcname);
 			ptr += 3;
 		}
 		else if(strncasecmp(ptr, "<@>", 3) == 0)
 		{
-			i += snprintf(buffer+i, bufsize-i, "\\\"'%s'\\\"", objname);
+			i += snprintf(buffer+i, bufsize-i, "^\"'%s'^\"", objname);
 			ptr += 3;
 		}
 		else
 		{
-			if(ptr[0] == '\\' && ptr[1] != 0 && i+2 < bufsize)
+			if(ptr[0] == '^' && ptr[1] != 0 && i+2 < bufsize)
 				buffer[i++] = *(ptr++);
 			buffer[i++] = *(ptr++);
 			buffer[i] = 0;
@@ -1836,7 +1836,7 @@ static int build_obj_list(char *buffer, size_t bufsize, time_t base_time,
 
 		if(ext) *ext = 0;
 		i += snprintf(buffer+i, bufsize-i,
-		              " \\\"${OBJ_DIR}${PATH_SEP}'%s'${OBJ_EXT}\\\"", ptr);
+		              " ^\"${OBJ_DIR}${PATH_SEP}'%s'${OBJ_EXT}^\"", ptr);
 		if(ext) *ext = '.';
 
 		ptr += strlen(ptr);
@@ -2909,15 +2909,15 @@ compile_more_sources:
 				*ext = 0;
 				if(*getvar("DEP_OPT"))
 					i += snprintf(buffer+i, sizeof(buffer)-i,
-					            " ${DEP_OPT}\\\"${DEP_DIR}${PATH_SEP}'%s'${DEP_EXT}\\\"",
+					            " ${DEP_OPT}^\"${DEP_DIR}${PATH_SEP}'%s'${DEP_EXT}^\"",
 					              ptr);
 				i += snprintf(buffer+i, sizeof(buffer)-i,
-				              " ${OUT_OPT}\\\"${OBJ_DIR}${PATH_SEP}'%s'${OBJ_EXT}\\\"",
+				              " ${OUT_OPT}^\"${OBJ_DIR}${PATH_SEP}'%s'${OBJ_EXT}^\"",
 				              ptr);
 				*ext = '.';
 
 				i += snprintf(buffer+i, sizeof(buffer)-i,
-				              " ${SRC_OPT}\\\"'%s'\\\"", src);
+				              " ${SRC_OPT}^\"'%s'^\"", src);
 
 compile_it:
 				expand_string(buffer, "", sizeof(buffer), 0);
