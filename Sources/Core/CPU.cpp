@@ -251,17 +251,17 @@ int cpu_get_register(const CPU_REGISTER register)
 
    switch(register) {
       case CPU_REGISTER_PC:
-         return context.registers.pc;
+         return context.registers.pc.word;
       case CPU_REGISTER_A:
          return context.registers.a;
+      case CPU_REGISTER_P:
+         return context.registers.p;
+      case CPU_REGISTER_S:
+         return context.registers.s;
       case CPU_REGISTER_X:
          return context.registers.x;
       case CPU_REGISTER_Y:
          return context.registers.y;
-      case CPU_REGISTER_S:
-         return context.registers.s;
-      case CPU_REGISTER_P:
-         return context.registers.p;
 
       default:
          GenericWarning();
@@ -270,7 +270,7 @@ int cpu_get_register(const CPU_REGISTER register)
 }
 
 // Save state routines.
-void cpu_load_state(PACKFILE* file, const int version)
+void cpu_load_state(FILE_CONTEXT* file, const int version)
 {
    Safeguard(file);
 
@@ -278,15 +278,15 @@ void cpu_load_state(PACKFILE* file, const int version)
    memset(context, 0, sizeof(COREContext));
 
    // Load clock counter.
-   context.time = pack_igetl(file);
+   context.time = file->read_long(file);
 
    // Load registers.
-   context.registers.pc.word = pack_igetw(file);
-   context.registers.a = pack_getc(file);
-   context.registers.p = pack_getc(file);
-   context.registers.s = pack_getc(file);
-   context.registers.x = pack_getc(file);
-   context.registers.y = pack_getc(file);
+   context.registers.pc.word = file->read_word(file);
+   context.registers.a = file->read_byte(file);
+   context.registers.p = file->read_byte(file);
+   context.registers.s = file->read_byte(file);
+   context.registers.x = file->read_byte(file);
+   context.registers.y = file->read_byte(file);
 
    // Load interrupt queue.
    context.interrupts.clear();
@@ -294,24 +294,24 @@ void cpu_load_state(PACKFILE* file, const int version)
    const int count = pack_getc(file);
    for(int i = 0; i < count; i++) {
       COREInterrupt interrupt;
-      interrupt.time = pack_igetl(file);
-      interrupt.type = pack_getc(file);
+      interrupt.time = file->read_long(file);
+      interrupt.type = file->read_byte(file);
 
       context.interrupts.push_back(interrupt);
    }
 
    // Miscellaneous.
-   context.afterCLI = LOAD_BOOLEAN(pack_getc(file));
+   context.afterCLI = file->read_boolean(file);
 
    // Load memory contents.
-   pack_fread(cpu__save_ram, CPU__SAVE_RAM_SIZE, file);
-   pack_fread(cpu__work_ram, CPU__WORK_RAM_SIZE, file);
+   file->read(file, cpu__save_ram, CPU__SAVE_RAM_SIZE);
+   file->read(file, cpu__work_ram, CPU__WORK_RAM_SIZE);
 
    // Set context.
    CORE::SetContext(context);
 }
 
-void cpu_save_state(PACKFILE* file, const int version)
+void cpu_save_state(FILE_CONTEXT* file, const int version)
 {
    Safeguard(file);
 
@@ -319,32 +319,33 @@ void cpu_save_state(PACKFILE* file, const int version)
    CORE::GetContext(&context);
 
    // Save clock counter.
-   pack_iputl(context.time, file);
+   file->write_long(file, context.time);
 
    // Save registers.
-   pack_iputw(context.registers.pc.word, file);
-   pack_putc(context.registers.a, file);
-   pack_putc(context.registers.p, file);
-   pack_putc(context.registers.s, file);
-   pack_putc(context.registers.x, file);
-   pack_putc(context.registers.y, file);
+   file->write_word(file, context.registers.pc.word);
+   file->write_byte(file, context.registers.a);
+   file->write_byte(file, context.registers.p);
+   file->write_byte(file, context.registers.s);
+   file->write_byte(file, context.registers.x);
+   file->write_byte(file, context.registers.y);
 
    // Save interrupt queue.
-   pack_putc(file, context.interrupts.size());
+   file->write_byte(file, context.interrupts.size());
+
    for(COREInterruptQueue::iterator i = context.interrupts.begin(); i != context.interrupts.end(); ) {
       COREInterrupt& interrupt = *i;
-      pack_putc(interrupt.type, file);
-      pack_iputl(interrupt.time, file);
+      file->write_byte(file, interrupt.type);
+      file->write_long(file, interrupt.time);
 
       i++;
    }
 
    // Miscellaneous.
-   pack_putc(SAVE_BOOLEAN(context.afterCLI), file);
+   file->write_boolean(file context.afterCLI);
 
    // Save memory contents.
-   pack_fwrite(cpu__save_ram, CPU__SAVE_RAM_SIZE, file);
-   pack_fwrite(cpu__work_ram, CPU__WORK_RAM_SIZE, file);
+   file->write(file, cpu__save_ram, CPU__SAVE_RAM_SIZE);
+   file->write(file, cpu__work_ram, CPU__WORK_RAM_SIZE);
 }
 
 /* Memory-mapping routines. These allow for the configuration of the

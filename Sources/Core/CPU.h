@@ -9,6 +9,7 @@
 #define CORE__CPU_H__INCLUDED
 #include "Common/Global.h"
 #include "Common/Types.h"
+#include "Platform/File.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -56,10 +57,10 @@ enum {
 enum CPU_REGISTER {
    CPU_REGISTER_PC = 0,
    CPU_REGISTER_A,
-   CPU_REGISTER_X,
-   CPU_REGISTER_Y,
+   CPU_REGISTER_P,
    CPU_REGISTER_S,
-   CPU_REGISTER_P
+   CPU_REGISTER_X,
+   CPU_REGISTER_Y
 };
 
 /* Data types used for execution times. */
@@ -88,8 +89,8 @@ extern void cpu_clear_interrupt(const CPU_INTERRUPT type);
 extern cpu_time_t cpu_get_time(void);
 extern cpu_time_t cpu_get_time_elapsed(cpu_time_t* time);
 extern int cpu_get_register(const CPU_REGISTER register);
-extern void cpu_load_state(PACKFILE *file, const int version);
-extern void cpu_save_state(PACKFILE *file, const int version);
+extern void cpu_load_state(FILE_CONTEXT* file, const int version);
+extern void cpu_save_state(FILE_CONTEXT* file, const int version);
 extern void cpu_enable_sram(void);
 extern void cpu_disable_sram(void);
 extern void cpu_map_block_address(const UINT16 address, const int pages, UINT8* data);
