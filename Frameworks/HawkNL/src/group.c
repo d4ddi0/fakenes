@@ -24,7 +24,7 @@
 
 #define FD_SETSIZE              8192
 
-#if defined WIN32 || defined WIN64 || defined (_WIN32_WCE)
+#if defined WINDOWS || defined WIN32 || defined WIN64 || defined (_WIN32_WCE)
 /* Windows systems */
 #ifdef _MSC_VER
 #pragma warning (disable:4201)

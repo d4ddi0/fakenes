@@ -35,7 +35,7 @@
 #endif
 
 
-#if defined WIN32 || defined WIN64 || defined (_WIN32_WCE)
+#if defined WINDOWS || defined WIN32 || defined WIN64 || defined (_WIN32_WCE)
 
 #include "wsock.h"
 

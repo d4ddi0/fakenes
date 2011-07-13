@@ -24,31 +24,30 @@
   Based on code supplied by Ryan Haksi <cryogen@infoserve.net>
 */
 
-#if defined WIN32 || defined WIN64 || defined (_WIN32_WCE)
-#if !defined (_WIN32_WCE)
-#include <errno.h>
-#endif
-#include "wsock.h"
+#if defined WINDOWS || defined WIN32 || defined WIN64 || defined (_WIN32_WCE)
+# if !defined (_WIN32_WCE)
+#  include <errno.h>
+# endif
+# include "wsock.h"
 #elif macintosh
 /* POSIX compat Mac systems ie pre OSX with GUSI2 installed */
-#include <unistd.h>
-#include <types.h>
-#include <stdio.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <string.h>
-#include <errno.h>
-#include <sys/time.h>
-
+# include <unistd.h>
+# include <types.h>
+# include <stdio.h>
+# include <fcntl.h>
+# include <sys/ioctl.h>
+# include <sys/types.h>
+# include <sys/socket.h>
+# include <string.h>
+# include <errno.h>
+# include <sys/time.h>
 #else
 /* POSIX systems */
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/errno.h>
-#include <netdb.h>
-#include <string.h>
+# include <sys/types.h>
+# include <sys/socket.h>
+# include <sys/errno.h>
+# include <netdb.h>
+# include <string.h>
 #endif
 
 #include "nlinternal.h"

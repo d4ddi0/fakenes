@@ -29,7 +29,7 @@
 #define FD_SETSIZE              8192
 
 
-#if defined WIN32 || defined WIN64
+#if defined WINDOWS || defined WIN32 || defined WIN64
 
 #include "wsock.h"
 #ifndef sleep
