@@ -2937,7 +2937,7 @@ compile_it:
 						printf("%s\n", buffer);
 					else
 						printf("% 3d%% Compiling %s.\n",
-							(current_file * 100) / total_files,
+							(current_file * 100) / (total_files + 1),
 							src);
 					fflush(stdout);
 				}
