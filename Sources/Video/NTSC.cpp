@@ -3,11 +3,8 @@
 
 /* compilable in C or C++; just change the file extension */
 
-#include "snes_ntsc.h"
-
-#include <assert.h>
-#include <math.h>
-#include "Common/Global.h"  // for FakeNES
+#include "Local.hpp"
+#include "NTSC.hpp"
 
 /* Based on algorithm by NewRisingSun */
 /* Copyright (C) 2006 Shay Green. This module is free software; you

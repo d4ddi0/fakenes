@@ -5,7 +5,7 @@
 
 #ifndef SNES_NTSC_H
 #define SNES_NTSC_H
-#include "Common/Global.h"  // for FakeNES
+#include "Local.hpp"
 
 /* Image parameters, ranging from -1.0 to 1.0 */
 typedef struct snes_ntsc_setup_t
