@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-#ifdef DEBUG
+#ifdef EANBLE_DEBUG
 #   define DEBUG_PRINTF log_printf
 #else
 #   define DEBUG_PRINTF
