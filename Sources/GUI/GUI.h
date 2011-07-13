@@ -1,22 +1,20 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   gui.h: Declarations for the object-based GUI.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   Copyright (c) 2001-2006, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use. */
-
-#ifndef GUI_H_INCLUDED
-#define GUI_H_INCLUDED
+#ifndef GUI__GUI_H__INCLUDED
+#define GUI__GUI_H__INCLUDED
 #include <allegro.h>
-#include "common.h"
-#include "types.h"
+#include "Common/Global.h"
+#include "Common/Types.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct _GUI_COLOR
-{
+typedef struct _GUI_COLOR {
     REAL r, g, b;
     int packed;
 
@@ -40,27 +38,27 @@ typedef GUI_COLOR GUI_THEME[GUI_TOTAL_COLORS];
 
 extern BOOL gui_is_active;
 extern GUI_THEME gui_theme;
-extern RGB *gui_image_palette;
+extern RGB* gui_image_palette;
 
 extern int gui_mouse_x_position, gui_mouse_y_position;
 extern int gui_game_x, gui_game_y, gui_game_width, gui_game_height;
 
-extern void gui_load_config (void);
-extern void gui_save_config (void);
-extern void gui_preinit (void);
-extern int gui_init (void);
-extern void gui_exit (void);
-extern void show_gui (BOOL);
+extern void gui_load_config(void);
+extern void gui_save_config(void);
+extern void gui_preinit(void);
+extern int gui_init(void);
+extern void gui_exit(void);
+extern void show_gui(BOOL);
 extern void gui_update_display(void);
-extern int gui_alert (const UDATA *, const UDATA *, const UDATA *, const UDATA *, const UDATA *, const UDATA *, int, int);
-extern void gui_message (int, const UDATA *, ...);
-extern void gui_log_message (const UDATA *);
-extern void gui_heartbeat (void);
-extern void gui_handle_keypress (int, int);
-extern void gui_stop_replay (void);
-extern void gui_set_theme (const GUI_THEME *);
+extern int gui_alert(const UDATA*, const UDATA*, const UDATA*, const UDATA*, const UDATA*, const UDATA*, int, int);
+extern void gui_message(int, const UDATA*, ...);
+extern void gui_log_message(const UDATA*);
+extern void gui_heartbeat(void);
+extern void gui_handle_keypress(int, int);
+extern void gui_stop_replay(void);
+extern void gui_set_theme(const GUI_THEME*);
 
 #ifdef __cplusplus
 }
-#endif   /* __cplusplus */
-#endif   /* !GUI_H_INCLUDED */
+#endif /* __cplusplus */
+#endif /* !GUI__GUI_H__INCLUDED */
