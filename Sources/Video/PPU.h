@@ -1,18 +1,16 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   ppu.h: Declarations for the PPU emulation.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   Copyright (c) 2001-2007, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use. */
-
-#ifndef PPU_H_INCLUDED
-#define PPU_H_INCLUDED
-#include <allegro.h>
-#include "common.h"
-#include "cpu.h"
-#include "rom.h"
-#include "types.h"
+#ifndef VIDEO__PPU_H__INCLUDED
+#define VIDEO__PPU_H__INCLUDED
+#include "Common/Global.h"
+#include "Common/Types.h"
+#include "Core/CPU.h"
+#include "Platform/File.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -71,8 +69,8 @@ extern void ppu_sync_update(void);
 extern ENUM ppu_get_status(void);
 extern void ppu_set_option(const ENUM option, const BOOL value);
 extern BOOL ppu_get_option(const ENUM option);
-extern void ppu_load_state(PACKFILE* file, const int version);
-extern void ppu_save_state(PACKFILE* file, const int version);
+extern void ppu_load_state(FILE_CONTEXT* file, const int version);
+extern void ppu_save_state(FILE_CONTEXT* file, const int version);
 extern ENUM ppu_get_mirroring(void);
 extern void ppu_set_mirroring(const ENUM mirroring);
 extern void ppu_set_default_mirroring(const ENUM mirroring);
@@ -92,5 +90,5 @@ extern UINT16 ppu_get_background_color(void);
 
 #ifdef __cplusplus
 }
-#endif
-#endif /* !PPU_H_INCLUDED */
+#endif /* __cplusplus */
+#endif /* !VIDEO__PPU_H__INCLUDED */

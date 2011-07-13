@@ -6,6 +6,7 @@
    any modification or use of this software. */
 
 #include "Background.hpp"
+#include "Internals.h"
 #include "Local.hpp"
 #include "Renderer.hpp"
 

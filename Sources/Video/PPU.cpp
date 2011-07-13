@@ -1,34 +1,18 @@
-/* FakeNES - A free, portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES emulator.
+   Copyright © 2011 Digital Carat
 
-   ppu.cpp: Implementation of the NES Picture
-   Processing Unit (PPU) emulation.
+   This is free software. See 'License.txt' for additional copyright and
+   licensing information. You must read and accept the license prior to
+   any modification or use of this software. */
 
-   Copyright (c) 2001-2011, FakeNES Team.
-   This is free software.  See 'LICENSE' for details.
-   You must read and accept the license prior to use. */
- 
-#include <allegro.h>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include "binary.h"
-#include "common.h"
-#include "color.h"
-#include "cpu.h"
-#include "input.h"
-#include "log.h"
-#include "machine.h"
-#include "mmc.h"
-#include "ppu.h"
-#include "ppu_int.h"
-#include "rom.h"
-#include "renderer/renderer.hpp"
-#include "timing.h"
-#include "types.h"
-#include "video.h"
+#include "Color.h"
+#include "Internals.h"
+#include "Local.hpp"
+#include "PPU.h"
+#include "Renderer.hpp"
 
 #define INLINE_MA6R
-#include "renderer/renderer.cpp"
+#include "Renderer.cpp"
 
 /* Coding conventions:
      - Functions and variables exposed publically must follow legacy conventions.

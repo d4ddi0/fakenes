@@ -15,6 +15,7 @@
 #endif
 #include <cassert>
 #include <cmath>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <string>
@@ -34,6 +35,7 @@
 #include "System/Input.h"
 #include "System/Mapper.h"
 #include "System/Machine.h"
+#include "System/ROM.h"
 #include "System/Timing.h"
 
 #endif // !Video__Local_hpp__included

@@ -5,8 +5,10 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
+#include "Background.hpp"
 #include "Local.hpp"
 #include "Renderer.hpp"
+#include "Sprites.hpp"
 
 #define INLINE_8EWR
 #define INLINE_P2EC
