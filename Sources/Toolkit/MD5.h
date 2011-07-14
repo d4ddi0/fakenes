@@ -174,7 +174,7 @@ void	md5_finish(md5_t *md5_p, void *signature);
  * signature - A 16 byte buffer that will contain the MD5 signature.
  */
 extern
-void	md5_buffer(const char *buffer, const md5_size buf_len,
+void	md5_buffer(const void *buffer, const md5_size buf_len,
 		   void *signature);
 
 /*

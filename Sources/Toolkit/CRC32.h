@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-extern UITN32 crc32_start(void);
+extern UINT32 crc32_start(void);
 extern void crc32_end(UINT32* crc32);
 extern void crc32_update(UINT32* crc32, const UINT8 data);
 extern UINT32 calculate_crc32(const void* buffer, const SIZE size);

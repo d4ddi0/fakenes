@@ -24,13 +24,13 @@ const uint32 seed = 0xFFFFFFFF;
 } // namespace anonymous
 
 // Function prototypes (defined at bottom). */
-static linear void Initialize();
+static exclusive void Initialize();
 
 // --------------------------------------------------------------------------------
 // PUBLIC INTERFACE
 // --------------------------------------------------------------------------------
 
-UITN32 crc32_start(void)
+UINT32 crc32_start(void)
 {
    return seed;
 }
@@ -46,7 +46,7 @@ void crc32_update(UINT32* crc32, const UINT8 data)
 {           
    Safeguard(crc32);
 
-   *crc32 = table[(*crc32 ^ value) & 0xFF] ^ ((*crc32 >> 8) & 0x00FFFFFF);
+   *crc32 = table[(*crc32 ^ data) & 0xFF] ^ ((*crc32 >> 8) & 0x00FFFFFF);
 }
 
 UINT32 calculate_crc32(const void* buffer, const SIZE size)
@@ -62,7 +62,7 @@ UINT32 calculate_crc32(const void* buffer, const SIZE size)
    uint32 crc32 = crc32_start();
 
    for(sized position = 0; position < size; position++)
-      crc32_update(&crc32, buffer[position]);
+      crc32_update(&crc32, data[position]);
 
    crc32_end(&crc32);
 
@@ -73,7 +73,7 @@ UINT32 calculate_crc32(const void* buffer, const SIZE size)
 // PRIVATE INTERFACE
 // --------------------------------------------------------------------------------
 
-static linear void Initialize()
+static exclusive void Initialize()
 {
    for(sized i = 0; i < TableSize; i++) {
       uint32 value = i;
