@@ -23,7 +23,7 @@
 #ifndef HAWKLIB_H
 #define HAWKLIB_H
 
-#if defined(WINDOWS) || defined (WIN32) || defined (WIN64) || defined (_WIN32_WCE)
+#if defined(SYSTEM_WINDOWS) || defined (WIN32) || defined (WIN64) || defined (_WIN32_WCE)
 #define HL_WINDOWS_APP
 #endif
 
