@@ -217,7 +217,8 @@ int load_ines_rom (PACKFILE *file, ROM *rom)
 
    /* Compute CRC32 for PRG-ROM. */
    rom->prg_rom_crc32 = calculate_crc32(rom->prg_rom, size);
-   log_printf("PRG-ROM CRC is %08X\n", rom->prg_rom_crc32);
+   rom->prg_rom_md5 = calculate_md5(rom->prg_rom, size);
+   log_printf("PRG-ROM CRC: %08X, MD5: %s\n", rom->prg_rom_crc32, rom->prg_rom_md5.hex);
 
    /* Load CHR-ROM. */
    if (rom->chr_rom_pages > 0)
@@ -235,7 +236,8 @@ int load_ines_rom (PACKFILE *file, ROM *rom)
 
       /* Compute CRC for CHR-ROM. */
       rom->chr_rom_crc32 = calculate_crc32(rom->chr_rom, size);
-      log_printf("CHR-ROM CRC is %08X\n", rom->chr_rom-crc32);
+      rom->chr_rom_md5 = calculate_md5(rom->chr_rom, size);
+      log_printf("PRG-ROM CRC: %08X, MD5: %s\n", rom->chr_rom_crc32, rom->chr_rom_md5.hex);
    }
 
    /* Copy SRAM flag. */

@@ -28,7 +28,7 @@
 #ifndef TOOLKIT__MD5_H__INCLUDED
 #define TOOLKIT__MD5_H__INCLUDED
 #include <stdlib.h>		/* For memset(). */
-#include <string.h>		/* For memset(). */
+#include <string.h>		/* For memset() and stricmp(). */
 #include "Common/Debug.h"	/* For SAFEGUARD(). */
 #include "Common/Global.h"
 #include "Common/Types.h"	/* For UINT8, UINT32 and SIZE. */
@@ -227,26 +227,20 @@ void	md5_sig_from_string(void *signature, const char *str);
 
 /* ******************************************************************************** */
 
-typedef struct _MD5_WORDS {
-  md5_uint32 a, b, c, d;
-  
-} MD5_WORDS;
+/* Two characters for each byte, plus the null character. */
+#define MD5_HEX_SIZE ((MD5_SIZE * 2) + 1)
 
-typedef union _MD5_HASH {
-  MD5_WORDS words;
+typedef struct _MD5_HASH {
   md5_uint8 bytes[MD5_SIZE];
-  
+  char hex[MD5_HEX_SIZE];
+
 } MD5_HASH;
 
 /* Wrapper function - defined in 'MD5.c'. */
 extern MD5_HASH calculate_md5(const void* buffer, const md5_size size);
 
-/* This macro compares if two MD5_HASH structures match. */
-#define MD5_COMPARE(_A, _B) \
-   ( ((_A).words.a == (_B).words.a) && \
-     ((_A).words.b == (_B).words.b) && \
-     ((_A).words.c == (_B).words.c) && \
-     ((_A).words.d == (_B).words.d) ) 
+/* This macro compares if two MD5 hashes match. */
+#define MD5_COMPARE(_A, _B) (stricmp(_A.hex, _B.hex) == 0)
    
 #ifdef __cplusplus
 }

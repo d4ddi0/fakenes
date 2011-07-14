@@ -634,8 +634,9 @@ MD5_HASH calculate_md5(const void* buffer, const md5_size size)
 
   MD5_HASH hash;
   memset(&hash, 0, sizeof(MD5_HASH));
-  
+
   md5_buffer(buffer, size, hash.bytes);
-  
+  md5_sig_to_string(hash.bytes, hash.hex, MD5_HEX_SIZE);
+
   return hash;
 }

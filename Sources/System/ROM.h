@@ -9,6 +9,7 @@
 #define SYSTEM__ROM_H__INCLUDED
 #include "Common/Global.h"
 #include "Common/Types.h"
+#include "Toolkit/MD5.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,6 +22,9 @@ typedef struct _ROM
    UINT32 trainer_crc32;               /* Checksum for trainer. */
    UINT32 prg_rom_crc32;               /* Checksum for PRG-ROM. */
    UINT32 chr_rom_crc32;               /* Checksum for CHR-ROM. */
+   MD5_HASH trainer_md5;               /* Checksum for trainer(MD5). */
+   MD5_HASH prg_rom_md5;               /* Checksum for PRG-ROM(MD5). */
+   MD5_HASH chr_rom_md5;               /* Checksum for CHR-ROM(MD5). */
    int prg_rom_pages;                  /* Number of PRG-ROM pages. */
    int chr_rom_pages;                  /* Nimber of CHR-ROM pages. */
    UINT8 control_byte_1;               /* Header control byte #1. */
@@ -73,6 +77,7 @@ enum {
 #define ROM_PRG_ROM_PAGE_LOOKUP        global_rom.prg_rom_page_lookup
 #define ROM_PRG_ROM_PAGE_OVERFLOW_MASK global_rom.prg_rom_page_overflow_mask
 #define ROM_PRG_ROM_CRC                global_rom.prg_rom_crc32
+#define ROM_PRG_ROM_MD5                global_rom.prg_rom_md5.hex
 
 #define ROM_CHR_ROM                    global_rom.chr_rom
 #define ROM_CHR_ROM_PAGES              global_rom.chr_rom_pages
@@ -80,6 +85,7 @@ enum {
 #define ROM_CHR_ROM_PAGE_LOOKUP        global_rom.chr_rom_page_lookup
 #define ROM_CHR_ROM_PAGE_OVERFLOW_MASK global_rom.chr_rom_page_overflow_mask
 #define ROM_CHR_ROM_CRC                global_rom.chr_rom_crc32
+#define ROM_CHR_ROM_MD5                global_rom.chr_rom_md5.hex
 
 #define ROM_HAS_TRAINER               (global_rom.control_byte_1 & ROM_CTRL_TRAINER)
 #define ROM_TRAINER                   global_rom.trainer
