@@ -21,7 +21,7 @@
 
 /* Generates a single clock, and updates the APU and PPU in asynchronous mode. All
    write access to the clock counter has to go through this. */
-quick void T(Clock)() {
+express void T(Clock)() {
 #if !defined(COREFast)
 	core.time += timeStep;
 #endif
@@ -34,7 +34,7 @@ quick void T(Clock)() {
 
 /* Fetches a byte from the address contained in PC, then increments PC.
     Time taken: One clock. */
-quick uint8 T(Fetch)() {
+express uint8 T(Fetch)() {
 	const uint8 data = cpu__fast_read(_PC);
 	_PC++;
 	T(Clock)();
@@ -43,7 +43,7 @@ quick uint8 T(Fetch)() {
 
 /* Fetches both bytes of a 16-bit word. The low byte is fetched first.
     Time taken: Two clocks. */
-quick uint16 T(FetchWord)() {
+express uint16 T(FetchWord)() {
 	byte_pair data;
 	data.bytes.low = T(Fetch)();
 	data.bytes.high = T(Fetch)();
@@ -53,7 +53,7 @@ quick uint16 T(FetchWord)() {
 /* Fetches a byte from the address contained in PC, throws it away, and increments PC.
    If COREFast is defined, the fetch itself is eliminated.
     Time taken: One clock. */
-quick void T(DummyFetch)() {
+express void T(DummyFetch)() {
 #if !defined(COREFast)
 	cpu__fast_read(_PC);
 #endif
@@ -63,7 +63,7 @@ quick void T(DummyFetch)() {
 
 /* Reads a byte from an arbitrary address.
     Time taken: One clock. */
-quick uint8 T(Read)(const uint16 address) {
+express uint8 T(Read)(const uint16 address) {
 	const uint8 data = cpu__fast_read(address);
 	T(Clock)();
 	return data;
@@ -71,7 +71,7 @@ quick uint8 T(Read)(const uint16 address) {
 
 /* Reads both bytes of a 16-bit word. The low byte is read first.
     Time taken: Two clocks. */
-quick uint16 T(ReadWord)(const uint16 address) {
+express uint16 T(ReadWord)(const uint16 address) {
  	byte_pair data;
 	data.bytes.low = T(Read)(address);
 	data.bytes.high = T(Read)(address + 1);
@@ -81,7 +81,7 @@ quick uint16 T(ReadWord)(const uint16 address) {
 /* Reads a byte from an arbitrary address, then throws it away. If "COREFast" is
    defined, the read itself is eliminated.
     Time taken: One clock. */
-quick void T(DummyRead)(const uint16 address) {
+express void T(DummyRead)(const uint16 address) {
 #if !defined(COREFast)
 	cpu__fast_read(address);
 #endif
@@ -90,7 +90,7 @@ quick void T(DummyRead)(const uint16 address) {
 
 /* Writes a byte to an arbitrary address.
     Time taken: One clock. */
-quick void T(Write)(const uint16 address, const uint8 data) {
+express void T(Write)(const uint16 address, const uint8 data) {
 	cpu__fast_write(address, data);
 	T(Clock)();
 }
@@ -98,7 +98,7 @@ quick void T(Write)(const uint16 address, const uint8 data) {
 /* Writes a byte to an arbitrary address. If "COREFast" is defined, the write
    itself is eliminated.
     Time taken: One clock. */
-quick void T(DummyWrite)(const uint16 address, const uint8 data) {
+express void T(DummyWrite)(const uint16 address, const uint8 data) {
 #if !defined(COREFast)
 	cpu__fast_write(address, data);
 #endif
@@ -108,7 +108,7 @@ quick void T(DummyWrite)(const uint16 address, const uint8 data) {
 /* Reads a byte from the stack, using the stack pointer S. Note that the clock
    occurs after incrementing the stack pointer, before the read.
     Time taken: One clock+. */
-quick uint8 T(ReadStack)() {
+express uint8 T(ReadStack)() {
 	_S++;
 	T(Clock)();
 	const uint8 data = cpu__fast_ram_read(0x0100 + _S);
@@ -117,7 +117,7 @@ quick uint8 T(ReadStack)() {
 
 /* Writes a byte to the stack, using the stack pointer S.
     Time taken: One clock. */
-quick void T(WriteStack)(const uint8 data) {
+express void T(WriteStack)(const uint8 data) {
 	cpu__fast_ram_write(0x0100 + _S, data);
 	_S--;
 	T(Clock)();
@@ -126,7 +126,7 @@ quick void T(WriteStack)(const uint8 data) {
 /* Reads a byte from zero page ($00-$FF). If an address larger than $FF is passed,
    it will be wrapped during the conversion to 8-bit.
     Time taken: One clock. */
-quick uint8 T(ReadZeroPage)(const uint8 address) {
+express uint8 T(ReadZeroPage)(const uint8 address) {
 	const uint8 data = cpu__fast_ram_read(address);
 	T(Clock)();
 	return data;
@@ -136,7 +136,7 @@ quick uint8 T(ReadZeroPage)(const uint8 address) {
    than $FF is passed, it will be wrapped during the conversion to 8-bit.
    As always, the low byte is read first.
     Time taken: Two clocks. */
-quick uint16 T(ReadZeroPageWord)(const uint8 address) {
+express uint16 T(ReadZeroPageWord)(const uint8 address) {
  	byte_pair data;
 	data.bytes.low = T(ReadZeroPage)(address);
 	data.bytes.high = T(ReadZeroPage)(address + 1);
@@ -145,7 +145,7 @@ quick uint16 T(ReadZeroPageWord)(const uint8 address) {
 /* Writes a byte to zero page ($00-$FF). If an address larger than $FF is passed,
    it will be wrapped during the conversion to 8-bit.
     Time taken: One clock. */
-quick void T(WriteZeroPage)(const uint8 address, const uint8 data) {
+express void T(WriteZeroPage)(const uint8 address, const uint8 data) {
 	cpu__fast_ram_write(address, data);
 	T(Clock)();
 }

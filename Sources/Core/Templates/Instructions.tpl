@@ -7,7 +7,7 @@
 
 /* This allows instruction code to be embedded within addressing mode templates.
    It is only needed for branch and R-M-W instructions. */
-#define Embeddable	extern inline
+#define Embeddable	extern_inline
 
 /* Even though it isn't really used anymore, the 'register' keyword is held over even in the
    newest language standards. so we have to work around it. */
@@ -44,7 +44,7 @@
 /* *** ADC *** */
 /* *********** */
 // Note: Decimal mode is not supported by the 2A03, and thus is not implemented here.
-quick void T(InstructionADC)(WithData) {
+express void T(InstructionADC)(WithData) {
 	const uint16 result = data + _A + _CF;
 	const uint8 masked = result & 0xFF;
 	T(UpdateCF)(result > 0xFF);
@@ -57,7 +57,7 @@ quick void T(InstructionADC)(WithData) {
 /* *********** */
 /* *** AND *** */
 /* *********** */
-quick void T(InstructionAND)(WithData) {
+express void T(InstructionAND)(WithData) {
 	_A = data & _A;
 	T(UpdateZF)(_A);
 	T(UpdateNF)(_A);
@@ -95,7 +95,7 @@ Embeddable bool T(InstructionBVS)() { return T(InstructionBxx)(_VF, 1); }	// Ove
 /* *********** */
 /* *** BIT *** */
 /* *********** */
-quick void T(InstructionBIT)(WithData) {
+express void T(InstructionBIT)(WithData) {
 	T(UpdateZF)(data & _A);
 	T(UpdateVF)(Bit6 & data);
 	T(UpdateNF)(data);
@@ -114,7 +114,7 @@ quick void T(InstructionBIT)(WithData) {
    5  $0100,S  W  push P on stack (with B flag set), decrement S
    6   $FFFE   R  fetch PCL
    7   $FFFF   R  fetch PCH */
-quick void T(InstructionBRK)() {
+express void T(InstructionBRK)() {
 	T(WriteStack)(_PCH);			// Clock 3
 	T(WriteStack)(_PCL);			// Clock 4
 	const bool interrupted = T(InterruptPending)();
@@ -127,7 +127,7 @@ quick void T(InstructionBRK)() {
 		/* IRQ and BRK behave identically, aside from the B flag being set,
                    so there is nothing special that needs to be done. However, if the
                    interrupt was an NMI, we have to override the vector. */
-		if(core.interrupts.first().type == COREInterruptNMI) {
+		if(core.interrupts.front().type == COREInterruptNMI) {
 			// Since the NMI is actually occuring here, clear it.
 			ClearInterrupt(COREInterruptNMI);
 			// Redirect the interrupt vector to $FFFA.
@@ -141,32 +141,32 @@ quick void T(InstructionBRK)() {
 /* ************************** */
 /* *** CLC, CLD, CLI, CLV *** */
 /* ************************** */
-quick void T(FlagCLx)(WithFlag) {
+express void T(FlagCLx)(WithFlag) {
 	SetFlag(flag, false);
 }
 
-quick void T(InstructionCLC)() { T(FlagCLx)(_CF); }
-quick void T(InstructionCLD)() { T(FlagCLx)(_DF); }
-quick void T(InstructionCLV)() { T(FlagCLx)(_VF); }
+express void T(InstructionCLC)() { T(FlagCLx)(_CF); }
+express void T(InstructionCLD)() { T(FlagCLx)(_DF); }
+express void T(InstructionCLV)() { T(FlagCLx)(_VF); }
 
 // The effect of CLI is delayed by one instruction. See Core.hpp for more information.
-quick void T(InstructionCLI)() {
+express void T(InstructionCLI)() {
 	core.afterCLI = true;
 }
 
 /* ********************* */
 /* *** CMP, CPX, CPY *** */
 /* ********************* */
-quick void T(RegisterCPx)(const WithRegister, WithData) {
+express void T(RegisterCPx)(const WithRegister, WithData) {
 	const uint16 result = register - data;
 	T(UpdateZF)(result & 0xFF);
 	T(UpdateNF)(result);
 	T(UpdateCF)(result < 0x100);
 }
 
-quick void T(InstructionCMP)(WithData) { T(RegisterCPx)(_A, data); }
-quick void T(InstructionCPX)(WithData) { T(RegisterCPx)(_X, data); }
-quick void T(InstructionCPY)(WithData) { T(RegisterCPx)(_Y, data); }
+express void T(InstructionCMP)(WithData) { T(RegisterCPx)(_A, data); }
+express void T(InstructionCPX)(WithData) { T(RegisterCPx)(_X, data); }
+express void T(InstructionCPY)(WithData) { T(RegisterCPx)(_Y, data); }
 
 /* ********************* */
 /* *** DEC, DEX, DEY *** */
@@ -178,19 +178,19 @@ Embeddable FromVariable T(InstructionDEC)(WithVariable) {
 	return variable;
 }
 
-quick void T(RegisterDEx)(WithRegister) {
+express void T(RegisterDEx)(WithRegister) {
 	register--;
 	T(UpdateZF)(register);
 	T(UpdateNF)(register);
 }
 
-quick void T(InstructionDEX)() { T(RegisterDEx)(_X); }
-quick void T(InstructionDEY)() { T(RegisterDEx)(_Y); }
+express void T(InstructionDEX)() { T(RegisterDEx)(_X); }
+express void T(InstructionDEY)() { T(RegisterDEx)(_Y); }
 
 /* *********** */
 /* *** EOR *** */
 /* *********** */
-quick void T(InstructionEOR)(WithData) {
+express void T(InstructionEOR)(WithData) {
     	_A = data ^ _A;
 	T(UpdateZF)(_A);
 	T(UpdateNF)(_A);
@@ -206,14 +206,14 @@ Embeddable FromVariable T(InstructionINC)(WithVariable) {
 	return variable;
 }
 
-quick void T(RegisterINx)(WithRegister) {
+express void T(RegisterINx)(WithRegister) {
 	register++;
 	T(UpdateZF)(register);
 	T(UpdateNF)(register);
 }
 
-quick void T(InstructionINX)() { T(RegisterINx)(_X); }
-quick void T(InstructionINY)() { T(RegisterINx)(_Y); }
+express void T(InstructionINX)() { T(RegisterINx)(_X); }
+express void T(InstructionINY)() { T(RegisterINx)(_Y); }
 
 /* *********** */
 /* *** JMP *** */
@@ -222,7 +222,7 @@ quick void T(InstructionINY)() { T(RegisterINx)(_Y); }
     #  address R/W description
     2    PC     R  fetch low address byte, increment PC
     3    PC     R  copy low address byte to PCL, fetch high address byte to PCH */
-quick void T(InstructionJMP1)() {
+express void T(InstructionJMP1)() {
 	const uint8 lowByte = T(Fetch)();	// Clock 2
 	_PCL = lowByte;				// Clock 3
 	_PCH = T(Read)(_PC);			// Clock 3
@@ -234,7 +234,7 @@ quick void T(InstructionJMP1)() {
     3     PC      R  fetch pointer address high, increment PC
     4   pointer   R  fetch low address to latch
     5  pointer+1* R  fetch PCH, copy latch to PCL */
-quick void T(InstructionJMP2)() {
+express void T(InstructionJMP2)() {
 	byte_pair pointer;
 	pointer.bytes.low = T(Fetch)();			// Clock 2
 	pointer.bytes.high = T(Fetch)();		// Clock 3
@@ -252,7 +252,7 @@ quick void T(InstructionJMP2)() {
    4  $0100,S  W  push PCH on stack, decrement S
    5  $0100,S  W  push PCL on stack, decrement S
    6    PC     R  copy low address byte to PCL, fetch high address byte to PCH */
-quick void T(InstructionJSR)() {	
+express void T(InstructionJSR)() {	
 	const uint8 lowByte = T(Fetch)();	// Clock 2
 	T(Clock)();				// Clock 3
 	T(WriteStack)(_PCH);			// Clock 4
@@ -264,15 +264,15 @@ quick void T(InstructionJSR)() {
 /* ********************* */
 /* *** LDA, LDX, LDY *** */
 /* ********************* */
-quick void T(RegisterLDx)(WithRegister, WithData) {
+express void T(RegisterLDx)(WithRegister, WithData) {
 	register = data;
 	T(UpdateZF)(register);
 	T(UpdateNF)(register);
 }
 
-quick void T(InstructionLDA)(WithData) { T(RegisterLDx)(_A, data); }
-quick void T(InstructionLDX)(WithData) { T(RegisterLDx)(_X, data); }
-quick void T(InstructionLDY)(WithData) { T(RegisterLDx)(_Y, data); }
+express void T(InstructionLDA)(WithData) { T(RegisterLDx)(_A, data); }
+express void T(InstructionLDX)(WithData) { T(RegisterLDx)(_X, data); }
+express void T(InstructionLDY)(WithData) { T(RegisterLDx)(_Y, data); }
 
 /* *********** */
 /* *** LSR *** */
@@ -288,13 +288,13 @@ Embeddable FromVariable T(InstructionLSR)(WithVariable) {
 /* *********** */
 /* *** NOP *** */
 /* *********** */
-quick void T(InstructionNOP)() {
+express void T(InstructionNOP)() {
 }
 
 /* *********** */
 /* *** ORA *** */
 /* *********** */
-quick void T(InstructionORA)(WithData) {
+express void T(InstructionORA)(WithData) {
 	_A = data | _A;
 	T(UpdateZF)(_A);
 	T(UpdateNF)(_A);
@@ -305,11 +305,11 @@ quick void T(InstructionORA)(WithData) {
 /* **************** */
 /* #  address R/W description
    3  $0100,S  W  push register on stack, decrement S */
-quick void T(RegisterPHx)(const WithRegister) {
+express void T(RegisterPHx)(const WithRegister) {
 	T(WriteStack)(register);	// Clock 3
 }
 
-quick void T(InstructionPHA)() {
+express void T(InstructionPHA)() {
 	T(RegisterPHx)(_A);
 }
 
@@ -317,7 +317,7 @@ quick void T(InstructionPHA)() {
     PHP and BRK both always set bits 4 and 5 of the byte they push on the stack. NMI and IRQ
     both always clear bit 4 and set bit 5 of the byte they push on the stack. Thus, the
     status flags register only has 6 bits, not 8. */
-quick void T(InstructionPHP)() {
+express void T(InstructionPHP)() {
 	T(PackFlags)();
 	T(RegisterPHx)(_P | COREFlagBreak); 
 }
@@ -328,18 +328,18 @@ quick void T(InstructionPHP)() {
 /*  #  address R/W description
     3  $0100,S  R  increment S
     4  $0100,S  R  pull register from stack */
-quick void T(RegisterPLx)(WithRegister) {
+express void T(RegisterPLx)(WithRegister) {
 	register = T(ReadStack)();	// Clock 3,4-
 	T(Clock)();			// Clock 4
 }
 
-quick void T(InstructionPLA)() {
+express void T(InstructionPLA)() {
 	T(RegisterPLx)(_A);
 	T(UpdateZF)(_A);
 	T(UpdateNF)(_A);
 }
 
-quick void T(InstructionPLP)() {	
+express void T(InstructionPLP)() {	
 	T(RegisterPLx)(_P);
 	T(UnpackFlags)();
 }
@@ -374,7 +374,7 @@ Embeddable FromVariable T(InstructionROR)(WithVariable) {
    4  $0100,S  R  pull P from stack, increment S
    5  $0100,S  R  pull PCL from stack, increment S
    6  $0100,S  R  pull PCH from stack */
-quick void T(InstructionRTI)() {
+express void T(InstructionRTI)() {
 	_P = T(ReadStack)();		// Clock 3,4-
 	T(UnpackFlags)();
 	_PCL = T(ReadStack)();		// Clock 4,5-
@@ -390,7 +390,7 @@ quick void T(InstructionRTI)() {
    4  $0100,S  R  pull PCL from stack, increment S
    5  $0100,S  R  pull PCH from stack
    6    PC     R  increment PC */
-quick void T(InstructionRTS)() {
+express void T(InstructionRTS)() {
 	_PCL = T(ReadStack)();		// Clock 3,4-
 	_PCH = T(ReadStack)();		// Clock 4,5-
 	T(Clock)();			// Clock 5
@@ -401,7 +401,7 @@ quick void T(InstructionRTS)() {
 /* *** SBC *** */
 /* *********** */
 // Note: Decimal mode is not supported by the 2A03, and thus is not implemented here.
-quick void T(InstructionSBC)(WithData) {
+express void T(InstructionSBC)(WithData) {
 	const uint16 result = _A - data - (_CF ? 0 : 1);
 	const uint8 masked = result & 0xFF;
 	T(UpdateCF)(result < 0x100);
@@ -414,40 +414,40 @@ quick void T(InstructionSBC)(WithData) {
 /* ********************* */
 /* *** SEC, SED, SEI *** */
 /* ********************* */
-quick void T(FlagSEx)(WithFlag) {
+express void T(FlagSEx)(WithFlag) {
 	SetFlag(flag, true);
 }
 
-quick void T(InstructionSEC)() { T(FlagSEx)(_CF); }
-quick void T(InstructionSED)() { T(FlagSEx)(_DF); }
-quick void T(InstructionSEI)() { T(FlagSEx)(_IF); }
+express void T(InstructionSEC)() { T(FlagSEx)(_CF); }
+express void T(InstructionSED)() { T(FlagSEx)(_DF); }
+express void T(InstructionSEI)() { T(FlagSEx)(_IF); }
 
 /* ********************* */
 /* *** STA, STY, STX *** */
 /* ********************* */
-quick FromRegister T(InstructionSTA)() { return _A; };
-quick FromRegister T(InstructionSTX)() { return _X; };
-quick FromRegister T(InstructionSTY)() { return _Y; };
+express FromRegister T(InstructionSTA)() { return _A; }
+express FromRegister T(InstructionSTX)() { return _X; }
+express FromRegister T(InstructionSTY)() { return _Y; }
 
 /* ******************************* */
 /* *** TAX, TAY, TSX, TXA, TYA *** */
 /* ******************************* */
-quick void T(RegisterTxx)(const WithRegister1, WithRegister2) {
+express void T(RegisterTxx)(const WithRegister1, WithRegister2) {
 	register2 = register1;
 	T(UpdateZF)(register2);
 	T(UpdateNF)(register2);
 }
 
-quick void T(InstructionTAX)() { T(RegisterTxx)(_A, _X); }
-quick void T(InstructionTAY)() { T(RegisterTxx)(_A, _Y); }
-quick void T(InstructionTSX)() { T(RegisterTxx)(_S, _X); }
-quick void T(InstructionTXA)() { T(RegisterTxx)(_X, _A); }
-quick void T(InstructionTYA)() { T(RegisterTxx)(_Y, _A); }
+express void T(InstructionTAX)() { T(RegisterTxx)(_A, _X); }
+express void T(InstructionTAY)() { T(RegisterTxx)(_A, _Y); }
+express void T(InstructionTSX)() { T(RegisterTxx)(_S, _X); }
+express void T(InstructionTXA)() { T(RegisterTxx)(_X, _A); }
+express void T(InstructionTYA)() { T(RegisterTxx)(_Y, _A); }
 
 /* *********** */
 /* *** TXS *** */
 /* *********** */
-quick void T(InstructionTXS)() {
+express void T(InstructionTXS)() {
 	_S = _X;
 }
 

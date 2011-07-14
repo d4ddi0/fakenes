@@ -65,7 +65,7 @@ void Clear() {
    ClearEvaluation();
 }
 
-forceinline void Load()
+force_inline void Load()
 {
    /* Reload shift registers, latch and counter. This happens synchronously with the
       data fetches performed by Background::Clock(). */
@@ -85,7 +85,7 @@ forceinline void Load()
 }
 
 // Logic that takes place before a pixel is built.
-forceinline void Prelogic()
+force_inline void Prelogic()
 {
    /* The background counter is clocked once per pixel, in synchronization with tile fetching.
       Each time a tile is fetched, it reaches zero and loads the new data. */
@@ -98,7 +98,7 @@ forceinline void Prelogic()
 }
 
 // Logic that takes place after a pixel is built.
-forceinline void Postlogic()
+force_inline void Postlogic()
 {
    /* Clock the shift registers, moving the next pixel up.
       Shifting to the left brings it closer to the raster position. */
@@ -113,7 +113,7 @@ forceinline void Postlogic()
 
 /* This function just performs minimal logic for the background.
    It's used when frame skipping. */
-forceinline void Logic()
+force_inline void Logic()
 {
    Prelogic();
    Postlogic();
@@ -189,7 +189,7 @@ void Line()
 
 #endif
 
-forceinline void Pixel(const bool rendering)
+force_inline void Pixel(const bool rendering)
 {
    // Check if we are frame-skipping.
    if(!rendering) {
@@ -259,7 +259,7 @@ forceinline void Pixel(const bool rendering)
 }
 
 // This function is called when the background is disabled.
-forceinline void PixelStub(const bool rendering)
+force_inline void PixelStub(const bool rendering)
 {
    /* Just clear rendering buffers. This produces the backdrop, or overscan color located
       at the very first palette VRAM byte. */
@@ -342,7 +342,7 @@ forceinline void PixelStub(const bool rendering)
    T and it doesn't get copied into V except on writes to $2006. So the changes to
    vertical scrolling only show up when T is copied into V at frame start.
 */
-forceinline void Clock()
+force_inline void Clock()
 {
    /* The data for each tile is fetched during this phase.
       Each memory access takes 2 PPU cycles to complete,

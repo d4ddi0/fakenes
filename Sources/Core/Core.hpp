@@ -85,14 +85,15 @@ namespace CORE {
 
 extern bool Initialize();
 extern void Reset();
-extern CORETime Execute(const CORETime time);
-extern CORETime ExecuteFast(const CORETime time);
-extern CORETime ExecuteAsynchronous(const CORETime time);
+extern linear_function CORETime Execute(const CORETime time);
+extern linear_function CORETime ExecuteFast(const CORETime time);
+extern linear_function CORETime ExecuteAsynchronous(const CORETime time);
 extern void Burn(const CORETime time);
 extern void SetInterrupt(const COREInterruptType type, const CORETime time);
 extern void ClearInterrupt(const COREInterruptType type);
-extern void GetContext(COREContext* context);
-extern void SetContext(const COREContext* context);
+extern void GetContext(COREContext& context);
+extern void SetContext(const COREContext& context);
+extern void ClearContext(COREContext& context);
 extern CORETime GetTime();
 extern CORETime GetTimeElapsed(const CORETime timestamp);
 extern void BuildTimeTable();

@@ -19,8 +19,8 @@
      - Functions and variables used only privately may follow newer, cleaner conventions.
      - A fixed-width data type must be used on anything that gets saved to a save state file.
      - When a variable won't be saved to a save state, try to stick with int or unsigned.
-     - The 'linear' keyword should be used on any function called only once.
-     - Similarly, the 'forceinline' keyword should be used on functions that get called excessively.
+     - The 'exclusive' keyword should be used on any function called only once.
+     - Similarly, the 'force_inline' keyword should be used on functions that get called excessively.
      - When a variable won't be modified, make its value const, to improve optimization.
      - When calling functions, pass parameters as const whenever possible. */
 
@@ -30,20 +30,20 @@
 /* Internal functions:
       These are used exclusively by this file only. */
 // Color mapping.
-static linear void BuildColorMap();
-static forceinline void MapColor(const UINT8 index, const UINT16 value);
+static exclusive void BuildColorMap();
+static force_inline void MapColor(const UINT8 index, const UINT16 value);
 
 // VRAM reading & writing.
-static linear uint8 VRAMRead();
-static forceinline uint8 VRAMReadUnbuffered(const uint16 address);
-static linear void VRAMWrite(const uint8 data);
-static forceinline void IncrementVRAMAddress();
-static forceinline void UpdateVRAMAddress();
+static exclusive uint8 VRAMRead();
+static force_inline uint8 VRAMReadUnbuffered(const uint16 address);
+static exclusive void VRAMWrite(const uint8 data);
+static force_inline void IncrementVRAMAddress();
+static force_inline void UpdateVRAMAddress();
 
 // Sprite VRAM (OAM) reading & writing.
-static linear uint8 OAMRead();
-static forceinline void OAMWrite(const uint8 data);
-static linear void StartOAMDMA(const uint8 page);
+static exclusive uint8 OAMRead();
+static force_inline void OAMWrite(const uint8 data);
+static exclusive void StartOAMDMA(const uint8 page);
 
 // Mirroring, name tables and pattern tables.
 static void SetupMirroring();
@@ -53,19 +53,19 @@ static void UpdatePatternTables();
 // Interrupt prediction (PPU and MMC).
 static void PredictInterrupts(const cpu_time_t cycles, const unsigned flags);
 static void RepredictInterrupts(const unsigned flags);
-static forceinline bool ClockScanlineTimer(int16 &nextScanline);
+static force_inline bool ClockScanlineTimer(int16 &nextScanline);
 
 // Frame timing.
-static forceinline void Synchronize();
-static forceinline cpu_time_t Process(const cpu_time_t time);
-static forceinline cpu_time_t GetTimeElapsed();
-static linear void StartFrame();
-static linear void EndFrame();
-static linear void StartScanline();
-static linear void StartScanlineCycle(const cpu_time_t cycle);
-static linear void EndScanline();
-static linear void OAMDMA();
-static forceinline void LoadCachedSettings();
+static force_inline void Synchronize();
+static force_inline cpu_time_t Process(const cpu_time_t time);
+static force_inline cpu_time_t GetTimeElapsed();
+static exclusive void StartFrame();
+static exclusive void EndFrame();
+static exclusive void StartScanline();
+static exclusive void StartScanlineCycle(const cpu_time_t cycle);
+static exclusive void EndScanline();
+static exclusive void OAMDMA();
+static force_inline void LoadCachedSettings();
 
 /* Internal state:
       These variables store internal state information, particularly timing information.
@@ -328,7 +328,7 @@ int ppu_init(void)
 
 void ppu_exit(void)
 {
-#ifdef DEBUG
+#ifdef ENABLE_DEBUG
    FILE* file = fopen("ppu_dump.bin", "wb");
    if(file) {
       for(unsigned i = 0; i < PPU__SPRITE_VRAM_SIZE; i++)
@@ -1136,14 +1136,14 @@ UINT16 ppu_get_background_color(void)
 // PRIVATE FUNCTIONS
 // --------------------------------------------------------------------------------
 
-static linear void BuildColorMap()
+static exclusive void BuildColorMap()
 {
    // Restore all colors and recalculate color tinting.
    for(unsigned i = 0; i < PPU__COLOR_MAP_SIZE; i++)
       MapColor(i, PPUState::colorMap[i]);
 }
 
-static forceinline void MapColor(const UINT8 index, const UINT16 value)
+static force_inline void MapColor(const UINT8 index, const UINT16 value)
 {
    RT_ASSERT(index < PPU__COLOR_MAP_SIZE);
 
@@ -1190,7 +1190,7 @@ static forceinline void MapColor(const UINT8 index, const UINT16 value)
    one should first read this register and discard the result.
    This behavior doesn't occur when the VRAM address is in the $3F00-$3FFF palette range;
    reads come directly from palette RAM and don't affect the internal buffer. */
-static linear uint8 VRAMRead()
+static exclusive uint8 VRAMRead()
 {
    // Valid addresses are $0000-$3FFF; higher addresses will be mirrored down.
    const unsigned address = ppu__vram_address & 0x3FFF;
@@ -1211,7 +1211,7 @@ static linear uint8 VRAMRead()
    return data;
 }
 
-static forceinline uint8 VRAMReadUnbuffered(const uint16 address)
+static force_inline uint8 VRAMReadUnbuffered(const uint16 address)
 {
    // If the MMC has a handler installed, we need to call it.
    if(mmc_check_address_lines)
@@ -1244,7 +1244,7 @@ static forceinline uint8 VRAMReadUnbuffered(const uint16 address)
    }
 }
 
-static linear void VRAMWrite(const uint8 data)
+static exclusive void VRAMWrite(const uint8 data)
 {
    if(mmc_check_address_lines)
       mmc_check_address_lines(ppu__vram_address);
@@ -1276,17 +1276,17 @@ static linear void VRAMWrite(const uint8 data)
    IncrementVRAMAddress();
 }
 
-static forceinline void IncrementVRAMAddress()
+static force_inline void IncrementVRAMAddress()
 {
    ppu__vram_address += ppu__vram_address_increment;
 }
 
-static forceinline void UpdateVRAMAddress()
+static force_inline void UpdateVRAMAddress()
 {
    ppu__vram_address = ppu__vram_address_latch;
 }
 
-static linear uint8 OAMRead()
+static exclusive uint8 OAMRead()
 {
    /* Each OAM entry is 29 bits wide.
       The unimplemented bits of each sprite's byte 2 do not exist in the PPU.
@@ -1303,7 +1303,7 @@ static linear uint8 OAMRead()
       return ppu__sprite_vram[ppu__oam_address];
 }
 
-static forceinline void OAMWrite(const uint8 data)
+static force_inline void OAMWrite(const uint8 data)
 {
    /* Writes will increment OAMADDR after the write;
       reads during vertical or forced blanking return the value from OAM at that address but do not increment. */
@@ -1311,7 +1311,7 @@ static forceinline void OAMWrite(const uint8 data)
    ppu__oam_address++;
 }
 
-static linear void StartOAMDMA(const uint8 page)
+static exclusive void StartOAMDMA(const uint8 page)
 {
    using namespace PPUState;
 
@@ -1524,7 +1524,7 @@ static void RepredictInterrupts(const unsigned flags)
    PredictInterrupts(ppuCyclesRemaining, flags);
 }
 
-static forceinline bool ClockScanlineTimer(int16 &nextScanline)
+static force_inline bool ClockScanlineTimer(int16 &nextScanline)
 {
    using namespace PPUState;
 
@@ -1660,7 +1660,7 @@ static cpu_time_t Process(const cpu_time_t time)
 
 /* This simply gets the amount of time elasped (in PPU cycles). Synchronize() and Process() have
    their own version of this; since it has to be split up for them. */
-static forceinline cpu_time_t GetTimeElapsed()
+static force_inline cpu_time_t GetTimeElapsed()
 {
    // Calculate the delta period.
    const cpu_time_t time = cpu_get_time_elapsed(&PPUState::clockCounter);
@@ -1676,7 +1676,7 @@ static forceinline cpu_time_t GetTimeElapsed()
    return ppuTime;
 }
 
-static linear void StartFrame()
+static exclusive void StartFrame()
 {
    /* frame start (line 0) (if background and sprites are enabled):
         v=t */
@@ -1691,7 +1691,7 @@ static linear void StartFrame()
       input_update_zapper_offsets();
 }
 
-static linear void EndFrame()
+static exclusive void EndFrame()
 {
    // Toggle the even/odd frame flag, which slightly changes the numbers of cycles per scanline.
    PPUState::isOddFrame = !PPUState::isOddFrame;
@@ -1712,7 +1712,7 @@ static linear void EndFrame()
    frame_lock = TRUE;
 }
 
-static linear void StartScanline() 
+static exclusive void StartScanline() 
 {
    // Visible lines, #0-239
    if((PPUState::scanline >= PPU_FIRST_DISPLAYED_LINE) &&
@@ -1747,7 +1747,7 @@ static linear void StartScanline()
 
 /* This is only called for scanlines -1 to 239, as the PPU is idle during other lines
    (excepting what is handled by StartScanline(), of course). */
-static linear void StartScanlineCycle(const cpu_time_t cycle)
+static exclusive void StartScanlineCycle(const cpu_time_t cycle)
 {
    /* Generate a clock for the renderer. This handles things like background and sprite
       timing, pretty much everything that doesn't involve drawing a pixel. */
@@ -1773,7 +1773,7 @@ static linear void StartScanlineCycle(const cpu_time_t cycle)
    }
 }
 
-static linear void EndScanline()
+static exclusive void EndScanline()
 {
    // Here we just handle some cleanup for events that occured in StartScanline().
    if((PPUState::scanline >= PPU_FIRST_DISPLAYED_LINE) &&
@@ -1800,7 +1800,7 @@ static linear void EndScanline()
    }
 }
 
-static linear void OAMDMA()
+static exclusive void OAMDMA()
 {
    using namespace PPUState;
 
@@ -1841,7 +1841,7 @@ static linear void OAMDMA()
    oamDMAFlipFlop = !oamDMAFlipFlop;
 }
 
-static forceinline void LoadCachedSettings()
+static force_inline void LoadCachedSettings()
 {
    ppu__enable_background_layer = cache_enable_background_layer;
    ppu__enable_sprite_back_layer = cache_enable_sprite_back_layer;

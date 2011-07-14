@@ -57,7 +57,7 @@
 #define BEGIN(_Code)	case _Code: {
 #define END		break; }
 
-quick void T(ParseOpcode)(const uint8 opcode) {
+static exclusive void T(ParseOpcode)(const uint8 opcode) {
 	switch(opcode) {
 		/* ADC (ADd with Carry)
 		   MODE           SYNTAX       HEX LEN TIM
@@ -265,7 +265,7 @@ quick void T(ParseOpcode)(const uint8 opcode) {
 		BEGIN(0xBD) READ(ABSOLUTE_X,  LDA) END
 		BEGIN(0xB9) READ(ABSOLUTE_Y,  LDA) END
 		BEGIN(0xA1) READ(INDIRECT_X,  LDA) END
-		BEGIN(0xB1) READ(INDIRECTy,   LDA) END
+		BEGIN(0xB1) READ(INDIRECT_Y,  LDA) END
 
 		/* LDX (LoaD X register)
 		   MODE           SYNTAX       HEX LEN TIM
@@ -291,7 +291,7 @@ quick void T(ParseOpcode)(const uint8 opcode) {
 		BEGIN(0xA4) READ(ZERO_PAGE,   LDY) END
 		BEGIN(0xB4) READ(ZERO_PAGE_X, LDY) END
 		BEGIN(0xAC) READ(ABSOLUTE,    LDY) END
-		BEGIN(0xBC) READ(ABSOLUTE_x,  LDY) END
+		BEGIN(0xBC) READ(ABSOLUTE_X,  LDY) END
 
 		/* LSR (Logical Shift Right)
 		   MODE           SYNTAX       HEX LEN TIM

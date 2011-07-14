@@ -190,10 +190,6 @@ int machine_init(void)
       return 1;
    }
 
-   /* Reset everything. Although this should be already performed by the respective
-      init functions, we do it again here just in case. */
-   machine_reset();
-
    /* Reset game clock. */
    machine_reset_game_clock();
 

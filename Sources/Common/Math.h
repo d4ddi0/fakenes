@@ -39,18 +39,18 @@ extern "C" {
 #define Epsilon (EPSILON)
 
 template<typename TYPE>
-TYPE Round(const TYPE value)
+constant_function TYPE Round(const TYPE value)
 {
    return (TYPE)ROUND(value);
 }
 
 template<typename TYPE>
-TYPE Minimum(const TYPE a, const TYPE b) {
+constant_function TYPE Minimum(const TYPE a, const TYPE b) {
    return MIN2(a, b);
 }
 
 template<typename TYPE>
-TYPE Maximum(const TYPE a, const TYPE b) {
+constant_function TYPE Maximum(const TYPE a, const TYPE b) {
    return MAX2(a, b);
 }
 

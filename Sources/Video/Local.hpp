@@ -23,6 +23,7 @@
 #include "Common/Binary.h"
 #include "Common/Debug.h"
 #include "Common/Global.h"
+#include "Common/Inline.h"
 #include "Common/Math.h"
 #include "Common/Types.h"
 #include "Audio/APU.h"

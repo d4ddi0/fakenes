@@ -7,8 +7,6 @@
 
 #ifndef COMMON__GLOBAL_H__INCLUDED
 #define COMMON__GLOBAL_H__INCLUDED
-/* Allegro defines some things such as INLINE. However, in the future we won't use it. */
-#include <allegro.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -29,23 +27,13 @@ extern "C" {
 #undef NULL
 #define NULL 0
 
-/* For GCC, we can force it to always inline. Without this, it would refuse to inline
-   functions which are too large. Note that normally Allegro defines INLINE, so we
-   have to undefine it before redefining it. */
 #ifdef __GNUC__
-#   undef INLINE
-#   define INLINE __attribute__((always_inline)) inline
+#   define CONSTANT_FUNCTION __attribute__((const))
+#   define PURE_FUNCTION __attribute__((pure)) 
 #else
-#   ifndef INLINE
-#      define INLINE inline
-#   endif
+#   define CONSTANT_FUNCTION
+#   define PURE_FUNCTION
 #endif
-
-/* The LINEAR macro is used for when a function is only ever called once. */
-#define LINEAR INLINE
-/* The QUICK macro serves as a shortcut for a function that must run as fast as
-   possible. Generally this equates to a static inline function. */
-#define QUICK static INLINE
 
 #ifdef __cplusplus
 } // extern "C"
@@ -55,12 +43,8 @@ extern "C" {
 
 #define null (NULL)
 
-/* Note that the 'inline' keyword should never be used, as it can cause problems due to
-   the way macro expansion is handled with INLINE. */
-#define forceinline INLINE
-
-#define linear LINEAR
-#define quick QUICK
+#define constant_function CONSTANT_FUNCTION
+#define pure_function PURE_FUNCTION
 
 #endif /* __cplusplus */
 #endif /* !COMMON__GLOBAL_H__INCLUDED */

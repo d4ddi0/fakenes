@@ -7,7 +7,6 @@
 
 #include "Core.hpp"
 #include "CPU.h"
-#include "CPUAtoms.hpp"
 #include "Internals.h"
 #include "Local.hpp"
 #include "Patch.h"
@@ -56,16 +55,22 @@ static void DummyWrite(const UINT16 address, const UINT8 data);
 
 void cpu_load_config(void)
 {
-   executionModel = get_config_int("system", "execution_model", CPU_EXECUTION_MODEL_DEFAULT);
-   switch(executionModel) {
+   // Yay for type-correctness! ^_^
+   const int model = get_config_int("system", "execution_model", CPU_EXECUTION_MODEL_DEFAULT);
+   switch(model) {
       case CPU_EXECUTION_MODEL_NORMAL:
-      case CPU_EXECUTION_MODEL_TURBO:
-      case CPU_EXECUTION_MODEL_UNCHAINED:
+         executionModel = CPU_EXECUTION_MODEL_NORMAL;
+         break;
+      case CPU_EXECUTION_MODEL_FAST:
+         executionModel = CPU_EXECUTION_MODEL_FAST;
+         break;
+      case CPU_EXECUTION_MODEL_ASYNCHRONOUS:
+         executionModel = CPU_EXECUTION_MODEL_ASYNCHRONOUS;
          break;
 
       default: {
          WARN("Invalid execution model specified, falling back to the default.");
-         executionModel = CPU_EXECUTION_MODEL_DEFAULT:
+         executionModel = CPU_EXECUTION_MODEL_DEFAULT;
       }
    }
 }
@@ -247,7 +252,7 @@ cpu_time_t cpu_get_time_elapsed(cpu_time_t* time)
 int cpu_get_register(const CPU_REGISTER index)
 {
    COREContext context;
-   CORE::GetContext(&context);
+   CORE::GetContext(context);
 
    switch(index) {
       case CPU_REGISTER_PC:
@@ -275,7 +280,7 @@ void cpu_load_state(FILE_CONTEXT* file, const int version)
    Safeguard(file);
 
    COREContext context;
-   memset(context, 0, sizeof(COREContext));
+   CORE::ClearContext(context);
 
    // Load clock counter.
    context.time = file->read_long(file);
@@ -291,11 +296,11 @@ void cpu_load_state(FILE_CONTEXT* file, const int version)
    // Load interrupt queue.
    context.interrupts.clear();
 
-   const int count = pack_getc(file);
+   const int count = file->read_byte(file);
    for(int i = 0; i < count; i++) {
       COREInterrupt interrupt;
+      interrupt.type = static_cast<COREInterruptType>(file->read_byte(file));
       interrupt.time = file->read_long(file);
-      interrupt.type = file->read_byte(file);
 
       context.interrupts.push_back(interrupt);
    }
@@ -316,7 +321,7 @@ void cpu_save_state(FILE_CONTEXT* file, const int version)
    Safeguard(file);
 
    COREContext context;
-   CORE::GetContext(&context);
+   CORE::GetContext(context);
 
    // Save clock counter.
    file->write_long(file, context.time);
@@ -341,7 +346,7 @@ void cpu_save_state(FILE_CONTEXT* file, const int version)
    }
 
    // Miscellaneous.
-   file->write_boolean(file context.afterCLI);
+   file->write_boolean(file, context.afterCLI);
 
    // Save memory contents.
    file->write(file, cpu__save_ram, CPU__SAVE_RAM_SIZE);

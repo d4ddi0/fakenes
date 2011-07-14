@@ -87,7 +87,7 @@ void Line(const int line)
 
 /* Like Render_Line(), this is called only for visible lines, for the first 256
    clock cycles which equate to a single pixel each. */
-forceinline void Pixel()
+force_inline void Pixel()
 {
    /* This is set if frame skipping is disabled, or when rendering has been forced
       (i.e for sprite #0 hitscan or lightgun emulation) */
@@ -125,7 +125,7 @@ forceinline void Pixel()
 /* This is called for each clock cycle of every line, whether the PPU is within
    the rendering stage or not, except during vblank. The PPU idle line (240) also
    does not trigger this function. */
-forceinline void Clock()
+force_inline void Clock()
 {
    // Clock the background and sprite generators.
    if(ppu__enable_background)

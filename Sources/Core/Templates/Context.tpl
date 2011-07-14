@@ -26,7 +26,7 @@
 	_Flag = (_Value) ? 1 : 0
 
 // Packs individual flags into bits of the status register (P).
-quick void T(PackFlags)() {
+express void T(PackFlags)() {
 	_P = COREFlagReserved;
 	_P |= _CF ? COREFlagCarry     : 0;
 	_P |= _ZF ? COREFlagZero      : 0;
@@ -38,7 +38,7 @@ quick void T(PackFlags)() {
 }
 
 // Unpacks the bits of the status register (P) into individual flags again.
-quick void T(UnpackFlags)() {
+express void T(UnpackFlags)() {
 	SetFlag(_CF, _P & COREFlagCarry);
 	SetFlag(_ZF, _P & COREFlagZero);
 	SetFlag(_IF, _P & COREFlagInterrupt);
@@ -47,7 +47,7 @@ quick void T(UnpackFlags)() {
 	SetFlag(_NF, _P & COREFlagNegative);
 }
 
-quick void T(UpdateZF)(const uint8 result) { SetFlag(_ZF, (result == 0)); }
-quick void T(UpdateNF)(const uint8 result) { SetFlag(_NF, result & _10000000b); }
-quick void T(UpdateCF)(const bool condition) { SetFlag(_CF, condition); }
-quick void T(UpdateVF)(const bool condition) { SetFlag(_VF, condition); }
+express void T(UpdateZF)(const uint8 result) { SetFlag(_ZF, (result == 0)); }
+express void T(UpdateNF)(const uint8 result) { SetFlag(_NF, result & _10000000b); }
+express void T(UpdateCF)(const bool condition) { SetFlag(_CF, condition); }
+express void T(UpdateVF)(const bool condition) { SetFlag(_VF, condition); }

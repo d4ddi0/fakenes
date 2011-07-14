@@ -8,6 +8,7 @@
 #ifndef CORE__INTERNALS_H__INCLUDED
 #define CORE__INTERNALS_H__INCLUDED
 #include "Common/Global.h"
+#include "Common/Inline.h"
 #include "Common/Types.h"
 #include "Core/CPU.h"
 #ifdef __cplusplus
@@ -60,7 +61,7 @@ extern CPU__ARRAY( UINT8, cpu__save_ram,  CPU__SAVE_RAM_SIZE );
 /* Fast memory access routines. These avoid the function call overhead
    associated with cpu_read() and cpu_write(), by getting embedded
    directly into the caller routine. */
-QUICK UINT8 cpu__fast_read(const UINT16 address)
+EXPRESS UINT8 cpu__fast_read(const UINT16 address)
 {
    const int page = address / CPU__MAP_PAGE_SIZE;
 
@@ -76,7 +77,7 @@ QUICK UINT8 cpu__fast_read(const UINT16 address)
    }
 }
 
-QUICK void cpu__fast_write(const UINT16 address, const UINT8 data)
+EXPRESS void cpu__fast_write(const UINT16 address, const UINT8 data)
 {
    const int page = address / CPU__MAP_PAGE_SIZE;
 
@@ -95,12 +96,12 @@ QUICK void cpu__fast_write(const UINT16 address, const UINT8 data)
 /* Unpaged memory access routines. Code may use these to bypass
    memory-mapped I/O for performance. This is used for example for
    zero page accesses by the core. */
-QUICK UINT8 cpu__fast_ram_read(const UINT16 address)
+EXPRESS UINT8 cpu__fast_ram_read(const UINT16 address)
 {
    return cpu__work_ram[address] + cpu__read_patch[address];
 }
 
-QUICK void cpu__fast_ram_write(const UINT16 address, const UINT8 data)
+EXPRESS void cpu__fast_ram_write(const UINT16 address, const UINT8 data)
 {
    cpu__work_ram[address] = data;
 }

@@ -19,7 +19,7 @@
 #	define T_(_Name, _Suffix) T__(_Name, _Suffix)
 #	define T(_Name) T_(_Name, CORESuffix)
 #else
-#	define T(_Name)
+#	define T(_Name) _Name
 #endif
 
 // Keep these in order, or things will break. :p

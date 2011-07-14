@@ -48,30 +48,30 @@ CORETime timeTable[TimeTableSize];
 /* We sort the interrupt queue by time, so that the first interrupt in the list always
    occurs first. This allows us to simplify checks for pending interrupts to only
    checking the first entry in the queue. */
-bool InterruptQueueTimeSorter(COREInterrupt first, COREInterrupt second) {
+constant_function bool InterruptQueueTimeSorter(const COREInterrupt first, const COREInterrupt second) {
 	return first.time < second.time;
 }
 
 // Similarly, NMI generally takes priority over IRQ.
-bool InterruptQueuePrioritySorter(COREInterrupt first, COREInterrupt second) {
+constant_function bool InterruptQueuePrioritySorter(const COREInterrupt first, const COREInterrupt second) {
 	return (first.type == COREInterruptNMI);
 }
 
 } // namespace anonymous
 
+// Public interface begins here.
+namespace CORE {
+
 /* Import and expand all of our templates into useable code. The generated functions
    occupy their own namespace, 'Templates', and are static. */
 #include "Core/Templates.hpp"
-
-// Public interface begins here.
-namespace CORE {
 
 /* At power-up:
     P = $34 (interrupt inhibit set) 
     A, X, Y = 0 
     S = $FD */
 bool Initialize() {
-	memset(&core, 0, sizeof(COREContext));
+	ClearContext(core);
 
 	_PCL = cpu_read(COREInterruptVectorRESET);
 	_PCH = cpu_read(COREInterruptVectorRESET + 1);
@@ -79,6 +79,8 @@ bool Initialize() {
 	SetFlag(_IF, true);
 
 	BuildTimeTable();
+
+	return true;
 }
 
 /* After reset:
@@ -96,7 +98,7 @@ void Reset() {
 	SetFlag(_IF, true);
 }
 
-CORETime Execute(const CORETime time) {
+linear_function CORETime Execute(const CORETime time) {
 	// Grab our initial timestamp so we can avoid emulating for too long.
 	const CORETime timestamp = core.time;
 
@@ -112,7 +114,7 @@ CORETime Execute(const CORETime time) {
 }
 
 #define ExecuteTemplate(_Suffix) \
-CORETime Execute##_Suffix(const CORETime time) { \
+linear_function CORETime Execute##_Suffix(const CORETime time) { \
 	const CORETime timestamp = core.time; \
 	while(true) { \
 		Templates::Step##_Suffix(); \
@@ -148,7 +150,7 @@ void SetInterrupt(const COREInterruptType type, const CORETime time) {
 /* This clears all interrupts of a given type, even if more than one is set to occur
    at different times. The interrupts are both unqueued and acknowledged. */
 void ClearInterrupt(const COREInterruptType type) {
-	for(COREInterruptQueue::iterator i = core.interrupts.begin(); i != core.interrupts.end(); )
+	for(COREInterruptQueue::iterator i = core.interrupts.begin(); i != core.interrupts.end(); ) {
 		COREInterrupt& interrupt = *i;
 		if(interrupt.type != type) {
 			i++;
@@ -161,22 +163,27 @@ void ClearInterrupt(const COREInterruptType type) {
 
 /* This returns a copy of the internal context (e.g for state saving).
    The flags are packed into the status register 'P'. */
-void GetContext(COREContext* context) {
-	Safeguard(context);
-
-	PackFlags();
-	memcpy(context, &core, sizeof(COREContext));
+void GetContext(COREContext& context) {
+	Templates::PackFlags();
+	context = core;
 }
 
 /* This sets the internal context to the contents of a user-provided one.
    The flags are unpacked from the status register 'P'. */
-void SetContext(const COREContext* context) {
-	Safeguard(context);
-
-	UnpackFlags();
-	memcpy(&core, context, sizeof(COREContext));
+void SetContext(const COREContext& context) {
+	core = context;
+	Templates::UnpackFlags();
 }
 
+// This properly initializes a context object.
+void ClearContext(COREContext& context) {
+	context.time = 0;
+	context.interrupts.clear();
+	context.afterCLI = false;
+
+	memset(&context.registers, 0, sizeof(CORERegisters));
+	memset(&context.flags, 0, sizeof(COREFlags));
+}
 
 /* This returns the current execution time, in master clock cycles. It is not an
    infinite counter, so be careful of wrapping: calculations that compute deltas

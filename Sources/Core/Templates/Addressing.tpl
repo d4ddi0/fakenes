@@ -27,7 +27,7 @@
 #define FromRegister	const uint8&
 
 // This returns true if a wrap-around will occur (A+B > $FF).
-quick bool T(Wrap)(const uint8 a, const uint8 b) {
+express constant_function bool T(Wrap)(const uint8 a, const uint8 b) {
 	return (a + b) < a;
 }
 
@@ -60,7 +60,7 @@ quick bool T(Wrap)(const uint8 a, const uint8 b) {
 /* Accumulator or implied addressing:
     #  address R/W description
     2    PC     R  read next instruction byte (and throw it away) */
-quick void T(AddressImplied)() {
+express void T(AddressImplied)() {
 	T(DummyRead)(_PC);	// Clock 2
 }
 
@@ -74,7 +74,7 @@ WithInstruction void T(AddressAccumulatorRMW)() {
     2    PC     R  fetch low byte of address, increment PC
     3    PC     R  fetch high byte of address, increment PC
     4  address  R  read from effective address */
-quick FromData T(AddressAbsoluteRead)() {
+express FromData T(AddressAbsoluteRead)() {
 	const uint16 address = T(FetchWord)();	// Clocks 2-3
 	return T(Read)(address);		// Clock 4
 }
@@ -99,7 +99,7 @@ WithInstruction void T(AddressAbsoluteRMW)() {
     2    PC     R  fetch low byte of address, increment PC
     3    PC     R  fetch high byte of address, increment PC
     4  address  W  write register to effective address */
-quick void T(AddressAbsoluteWrite)(WithRegister) {
+express void T(AddressAbsoluteWrite)(WithRegister) {
 	const uint16 address = T(FetchWord)();	// Clocks 2-3
 	T(Write)(address, register);		// Clock 4
 }
@@ -110,10 +110,10 @@ quick void T(AddressAbsoluteWrite)(WithRegister) {
     3     PC      R  fetch high byte of address, add index register to low address byte, increment PC
     4  address+I* R  read from effective address, fix the high byte of effective address
     5+ address+I  R  re-read from effective address */
-quick FromData T(AddressAbsoluteIndexedRead)(WithRegister) {
+express FromData T(AddressAbsoluteIndexedRead)(WithRegister) {
 	byte_pair address;
 	address.word = T(FetchWord)();		// Clocks 2-3
-	if(T(Wrap)(address.bytes.low, register) {
+	if(T(Wrap)(address.bytes.low, register)) {
 		uint16 savedAddress = address.word;
 #if !defined(COREFast)
 		address.bytes.low += register;	// Clock 3+
@@ -127,8 +127,8 @@ quick FromData T(AddressAbsoluteIndexedRead)(WithRegister) {
 	}
 }
 
-quick FromData T(AddressAbsoluteXRead)() { return T(AddressAbsoluteIndexedRead)(_X); }
-quick FromData T(AddressAbsoluteYRead)() { return T(AddressAbsoluteIndexedRead)(_Y); }
+express FromData T(AddressAbsoluteXRead)() { return T(AddressAbsoluteIndexedRead)(_X); }
+express FromData T(AddressAbsoluteYRead)() { return T(AddressAbsoluteIndexedRead)(_Y); }
 
 /* Absolute indexed addressing (Read-Modify-Write):
     #   address  R/W description
@@ -162,7 +162,7 @@ WithInstruction void T(AddressAbsoluteXRMW)() { T(AddressAbsoluteIndexedRMW)<ins
     3     PC      R  fetch high byte of address, add index register to low address byte, increment PC
     4  address+I* R  read from effective address, fix the high byte of effective address
     5  address+I  W  write to effective address */
-quick void T(AddressAbsoluteIndexedWrite)(WithIndex, WithRegister) {
+express void T(AddressAbsoluteIndexedWrite)(WithIndex, WithRegister) {
 	byte_pair address;
 	address.word = T(FetchWord)();		// Clocks 2-3
 	uint16 savedAddress = address.word;
@@ -174,13 +174,13 @@ quick void T(AddressAbsoluteIndexedWrite)(WithIndex, WithRegister) {
 	T(Write)(savedAddress, register);	// Clock 5
 }
 
-quick void T(AddressAbsoluteXWrite)(WithRegister) { T(AddressAbsoluteIndexedWrite)(_X, register); }
-quick void T(AddressAbsoluteYWrite)(WithRegister) { T(AddressAbsoluteIndexedWrite)(_Y, register); }
+express void T(AddressAbsoluteXWrite)(WithRegister) { T(AddressAbsoluteIndexedWrite)(_X, register); }
+express void T(AddressAbsoluteYWrite)(WithRegister) { T(AddressAbsoluteIndexedWrite)(_Y, register); }
 
 /* Immediate addressing (Read):
    #  address R/W description
    2    PC     R  fetch value, increment PC */
-quick FromData T(AddressImmediateRead)() {
+express FromData T(AddressImmediateRead)() {
 	return T(Fetch)();	// Clock 2
 }
 
@@ -191,7 +191,7 @@ quick FromData T(AddressImmediateRead)() {
     4   pointer+X   R  fetch effective address low
     5  pointer+X+1  R  fetch effective address high
     6    address    R  read from effective address */
-quick FromData T(AddressIndexedIndirectRead)() {
+express FromData T(AddressIndexedIndirectRead)() {
 	uint8 pointer = T(Fetch)();				// Clock 2
 	T(DummyRead)(pointer);					// Clock 3
 	pointer += _X;						// Clock 3+
@@ -199,7 +199,7 @@ quick FromData T(AddressIndexedIndirectRead)() {
 	return T(Read)(address);				// Clock 6
 }
 
-quick FromData T(AddressIndirectXRead)() { return T(AddressIndexedIndirectRead)(); }
+express FromData T(AddressIndirectXRead)() { return T(AddressIndexedIndirectRead)(); }
 
 /* Indexed indirect addressing (Read-Modify-Write):
     #    address   R/W description
@@ -230,7 +230,7 @@ WithInstruction void T(AddressIndirectXRMW)() { T(AddressIndexedIndirectRMW)<ins
     4   pointer+X   R  fetch effective address low
     5  pointer+X+1  R  fetch effective address high
     6    address    W  write to effective address */
-quick void T(AddressIndexedIndirectWrite)(WithRegister) {
+express void T(AddressIndexedIndirectWrite)(WithRegister) {
 	uint8 pointer = T(Fetch)();				// Clock 2
 	T(DummyRead)(pointer);					// Clock 3
 	pointer += _X;						// Clock 3+
@@ -238,7 +238,7 @@ quick void T(AddressIndexedIndirectWrite)(WithRegister) {
 	T(Write)(address, register);				// Clock 6
 }
 
-quick void T(AddressIndirectXWrite)(WithRegister) { T(AddressIndexedIndirectWrite)(register); }
+express void T(AddressIndirectXWrite)(WithRegister) { T(AddressIndexedIndirectWrite)(register); }
 
 /* Indirect indexed addressing (Read):
     #    address   R/W description
@@ -247,7 +247,7 @@ quick void T(AddressIndirectXWrite)(WithRegister) { T(AddressIndexedIndirectWrit
     4   pointer+1   R  fetch effective address high, add Y to low byte of effective address
     5   address+Y*  R  read from effective address, fix high byte of effective address
     6+  address+Y   R  read from effective address */
-quick FromData T(AddressIndirectIndexedRead)() {
+express FromData T(AddressIndirectIndexedRead)() {
 	const uint8 pointer = T(Fetch)();		// Clock 2
 	byte_pair address;
 	address.word = T(ReadZeroPageWord)(pointer);	// Clocks 3-4
@@ -265,7 +265,7 @@ quick FromData T(AddressIndirectIndexedRead)() {
 	}
 }
 
-quick FromData T(AddressIndirectYRead)() { return T(AddressIndirectIndexedRead)(); }
+express FromData T(AddressIndirectYRead)() { return T(AddressIndirectIndexedRead)(); }
 
 /* Indirect indexed addressing (Read-Modify-Write):
     #    address   R/W description
@@ -288,7 +288,7 @@ WithInstruction void T(AddressIndirectIndexedRMW)() {
 	savedAddress += _Y;				// Clock 5+
 	uint8 data = T(Read)(savedAddress);		// Clock 6
 	T(DummyWrite)(savedAddress, data);		// Clock 7
-	data = instruction(data)			// Clock 7+
+	data = instruction(data);			// Clock 7+
 	T(Write)(savedAddress, data);			// Clock 8
 }
 
@@ -301,7 +301,7 @@ WithInstruction void T(AddressIndirectYRMW)() { T(AddressIndirectIndexedRMW)<ins
     4   pointer+1   R  fetch effective address high, add Y to low byte of effective address
     5   address+Y*  R  read from effective address, fix high byte of effective address
     6   address+Y   W  write to effective address */
-quick void T(AddressIndirectIndexedWrite)(WithRegister) {
+express void T(AddressIndirectIndexedWrite)(WithRegister) {
 	const uint8 pointer = T(Fetch)();		// Clock 2
 	byte_pair address;
 	address.word = T(ReadZeroPageWord)(pointer);	// Clocks 3-4
@@ -314,7 +314,7 @@ quick void T(AddressIndirectIndexedWrite)(WithRegister) {
 	T(Write)(savedAddress, register);		// Clock 6
 }
 
-quick void T(AddressIndirectYWrite)(WithRegister) { T(AddressIndirectIndexedWrite)(register); }
+express void T(AddressIndirectYWrite)(WithRegister) { T(AddressIndirectIndexedWrite)(register); }
 
 /* Relative addressing:
     #   address  R/W description
@@ -344,7 +344,7 @@ WithInstructor void T(AddressRelative)() {
     #  address R/W description
     2    PC     R  fetch address, increment PC
     3  address  R  read from effective address */
-quick FromData T(AddressZeroPageRead)() {
+express FromData T(AddressZeroPageRead)() {
 	const uint8 address = T(Fetch)();	// Clock 2
 	return T(ReadZeroPage)(address);	// Clock 3
 }
@@ -367,7 +367,7 @@ WithInstruction void T(AddressZeroPageRMW)() {
     #  address R/W description
     2    PC     R  fetch address, increment PC
     3  address  W  write register to effective address */
-quick void T(AddressZeroPageWrite)(WithRegister) {
+express void T(AddressZeroPageWrite)(WithRegister) {
 	const uint8 address = T(Fetch)();	// Clock 2
 	T(WriteZeroPage)(address, register);	// Clock 3
 }
@@ -377,15 +377,15 @@ quick void T(AddressZeroPageWrite)(WithRegister) {
     2     PC      R  fetch address, increment PC
     3   address   R  read from address, add index register to it
     4  address+I* R  read from effective address */
-quick FromData T(AddressZeroPageIndexedRead)(WithRegister) {
+express FromData T(AddressZeroPageIndexedRead)(WithRegister) {
 	uint8 address = T(Fetch)();		// Clock 2
 	T(DummyRead)(address);			// Clock 3
 	address += register;			// Clock 3+
 	return T(ReadZeroPage)(address);	// Clock 4
 }
 
-quick FromData T(AddressZeroPageXRead)() { return T(AddressZeroPageIndexedRead)(_X); }
-quick FromData T(AddressZeroPageYRead)() { return T(AddressZeroPageIndexedRead)(_Y); }
+express FromData T(AddressZeroPageXRead)() { return T(AddressZeroPageIndexedRead)(_X); }
+express FromData T(AddressZeroPageYRead)() { return T(AddressZeroPageIndexedRead)(_Y); }
 
 /* Zero page indexed addressing (Read-Modify-Write):
     #   address  R/W description
@@ -412,15 +412,15 @@ WithInstruction void T(AddressZeroPageXRMW)() { T(AddressZeroPageIndexedRMW)<ins
     2     PC      R  fetch address, increment PC
     3   address   R  read from address, add index register to it
     4  address+I* W  write to effective address */
-quick void T(AddressZeroPageIndexedWrite)(WithIndex, WithRegister) {
+express void T(AddressZeroPageIndexedWrite)(WithIndex, WithRegister) {
 	uint8 address = T(Fetch)();		// Clock 2
 	T(DummyRead)(address);			// Clock 3
 	address += index;			// Clock 3+
 	T(WriteZeroPage)(address, register);	// Clock 4
 }
 
-quick void T(AddressZeroPageXWrite)(WithRegister) { T(AddressZeroPageIndexedWrite)(_X, register); }
-quick void T(AddressZeroPageYWrite)(WithRegister) { T(AddressZeroPageIndexedWrite)(_Y, register); }
+express void T(AddressZeroPageXWrite)(WithRegister) { T(AddressZeroPageIndexedWrite)(_X, register); }
+express void T(AddressZeroPageYWrite)(WithRegister) { T(AddressZeroPageIndexedWrite)(_Y, register); }
 
 // Clean up the namespace.
 #undef WithIndex

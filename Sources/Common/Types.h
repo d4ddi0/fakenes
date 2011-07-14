@@ -19,6 +19,7 @@
 #include <stdlib.h> /* For size_t. */
 #include <string.h>
 #include "Common/Global.h"
+#include "Common/Inline.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -175,7 +176,7 @@ typedef fakenes_ustring_t USTRING;
 #define STRING_CLEAR(_STRING)             	STRING_CLEAR_SIZE((__STRING), STRING_SIZE)
 #define USTRING_CLEAR(_STRING)          	USTRING_CLEAR_SIZE((_STRING), USTRING_SIZE)
 
-static INLINE int fix(int value, const int base, const int limit)
+EXPRESS CONSTANT_FUNCTION int fix(int value, const int base, const int limit)
 {
    if(value < base)
       value = base;
@@ -185,7 +186,7 @@ static INLINE int fix(int value, const int base, const int limit)
    return value;
 }
 
-static INLINE REAL fixf(REAL value, const REAL base, const REAL limit)
+EXPRESS CONSTANT_FUNCTION REAL fixf(REAL value, const REAL base, const REAL limit)
 {
    if(value < base)
       value = base;
@@ -215,7 +216,7 @@ typedef fakenes_uint_t uint;
 
 /* This should be used instead of fix/fixf() when possible. */
 template<typename TYPE>
-TYPE Clamp(TYPE value, const TYPE minimum, const TYPE maximum)
+constant_function TYPE Clamp(TYPE value, const TYPE minimum, const TYPE maximum)
 {
    if( value < minimum )
       value = minimum;

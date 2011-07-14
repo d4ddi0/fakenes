@@ -25,14 +25,14 @@ typedef struct _PatchWrapper {
 typedef vector<PatchWrapper> PatchTableType;
 PatchTableType patchTable;
 
-linear uint32 GetSignature(const MEMORY_PATCH& patch)
+force_inline uint32 GetSignature(const MEMORY_PATCH& patch)
 {
    return (patch.address << 16) | (patch.value << 8) | patch.match_value;
 }
 
 /* We sort the patch table by enabled status, so that only patches that
    are actually used will degrade performance. */
-bool PatchTableSorter(PatchWrapper first, PatchWrapper second) {
+constant_function bool PatchTableSorter(const PatchWrapper first, const PatchWrapper second) {
 	return first.patch.enabled;
 }
 
@@ -52,7 +52,7 @@ BOOL add_patch(const MEMORY_PATCH* patch)
    memcpy(&wrapper.patch, patch, sizeof(MEMORY_PATCH));
 
    patchTable.push_back(wrapper);
-   patchTable.sort(PatchTableSorter);
+   sort(patchTable.begin(), patchTable.end(), PatchTableSorter);
 
    return TRUE;
 }
@@ -79,7 +79,7 @@ MEMORY_PATCH* get_patch(const int index)
 {
    Safeguard(index >= 0);
 
-   if(index >= patchTable.size()) {
+   if((sized)index >= patchTable.size()) {
       // We've reached the end of the patch list, so let the caller know.
       return NULL;
    }

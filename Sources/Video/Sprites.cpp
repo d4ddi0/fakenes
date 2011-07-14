@@ -47,7 +47,7 @@ const unsigned Attribute_Priority = _00100000b;
 const unsigned Attribute_HFlip    = _01000000b;
 const unsigned Attribute_VFlip    = _10000000b;
 
-forceinline void ClearSprites() {
+force_inline void ClearSprites() {
     for(int i = 0; i < SpritesPerLine; i++) {
        RenderSpriteContext& sprite = render.sprites[i];
        sprite.index = 0;
@@ -61,7 +61,7 @@ forceinline void ClearSprites() {
     render.spriteCount = 0;
 }
 
-forceinline void ClearEvaluation() {
+force_inline void ClearEvaluation() {
    RenderSpriteEvaluation& e = render.spriteEvaluation;
 
    e.state = 1;
@@ -73,7 +73,7 @@ forceinline void ClearEvaluation() {
    e.data = 0x00;
 }
 
-linear void Clear()
+exclusive void Clear()
 {
     ClearSprites();
     ClearEvaluation();
@@ -84,7 +84,7 @@ linear void Clear()
 
 /* This function just performs minimal logic for a sprite. It's used when frame skipping,
     or when the frame buffer has been locked for writes. */
-forceinline void Logic(RenderSpriteContext& sprite) {
+force_inline void Logic(RenderSpriteContext& sprite) {
     if(sprite.dead)
         return;
 
@@ -106,7 +106,7 @@ forceinline void Logic(RenderSpriteContext& sprite) {
        sprite.dead = TRUE;
 }
 
-forceinline uint8 ReadOAM(const int index, const unsigned offset)
+force_inline uint8 ReadOAM(const int index, const unsigned offset)
 {
    /* Read a byte from primary OAM, updating the OAM address accordingly. This step is neccessary
       for games that detect OAM access during sprite evaluation, such as Micro Machines. */
@@ -114,14 +114,14 @@ forceinline uint8 ReadOAM(const int index, const unsigned offset)
    return ppu__sprite_vram[ppu__oam_address];
 }
 
-forceinline uint8 ReadSOAM(const int index, const unsigned offset)
+force_inline uint8 ReadSOAM(const int index, const unsigned offset)
 {
    // Reads a byte from secondary OAM.
    const unsigned address = (index * BytesPerSprite) + offset;
    return render.secondaryOAM[address];
 }
 
-forceinline void WriteSOAM(const int index, const unsigned offset, const uint8 data)
+force_inline void WriteSOAM(const int index, const unsigned offset, const uint8 data)
 {
    // Writes a byte to secondary OAM.
    const unsigned address = (index * BytesPerSprite) + offset;
@@ -174,7 +174,7 @@ void Line() {
     * If the sprite has background priority:
           * If the BG pixel is zero, the sprite pixel is output.
           * If the BG pixel is nonzero, the BG pixel is output. */
-forceinline void Pixel(const bool rendering)
+force_inline void Pixel(const bool rendering)
 {
     // Check if we are frame-skipping.
     if(!rendering) {
@@ -336,7 +336,7 @@ forceinline void Pixel(const bool rendering)
 #define JUMP_3	JUMP(3)
 #define JUMP_4	JUMP(4)
 
-forceinline void Clock() {
+force_inline void Clock() {
   /* Kind of ugly, but it works. Note that emulation starts on an odd cycle (1),
       and most writes take place on even cycles (2, 4, 6, etc.). */
    const int cycle = render.clock;
