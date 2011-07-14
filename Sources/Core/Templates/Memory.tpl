@@ -44,9 +44,9 @@ quick uint8 T(Fetch)() {
 /* Fetches both bytes of a 16-bit word. The low byte is fetched first.
     Time taken: Two clocks. */
 quick uint16 T(FetchWord)() {
-	pair data;
-	data.low = T(Fetch)();
-	data.high = T(Fetch)();
+	byte_pair data;
+	data.bytes.low = T(Fetch)();
+	data.bytes.high = T(Fetch)();
 	return data.word;
 }
 
@@ -72,7 +72,7 @@ quick uint8 T(Read)(const uint16 address) {
 /* Reads both bytes of a 16-bit word. The low byte is read first.
     Time taken: Two clocks. */
 quick uint16 T(ReadWord)(const uint16 address) {
- 	pair data;
+ 	byte_pair data;
 	data.bytes.low = T(Read)(address);
 	data.bytes.high = T(Read)(address + 1);
 	return data.word;
@@ -137,7 +137,7 @@ quick uint8 T(ReadZeroPage)(const uint8 address) {
    As always, the low byte is read first.
     Time taken: Two clocks. */
 quick uint16 T(ReadZeroPageWord)(const uint8 address) {
- 	pair data;
+ 	byte_pair data;
 	data.bytes.low = T(ReadZeroPage)(address);
 	data.bytes.high = T(ReadZeroPage)(address + 1);
 	return data.word;

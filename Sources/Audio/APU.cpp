@@ -1524,7 +1524,7 @@ void apu_write(const UINT16 address, UINT8 value)
 cpu_time_t apu_execute(const cpu_time_t time)
 {
    /* Note: DO NOT synchronize here, as this function is only called when the synchronizing
-      engine is *not* being used (e.g the CPU is in unchained mode). */
+      engine is *not* being used (e.g the CPU is in asynchronous mode). */
 
    // Process individual clock cycles.
    const cpu_time_t processed = process(time);

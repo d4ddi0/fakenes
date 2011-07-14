@@ -717,7 +717,7 @@ void ppu_write(const UINT16 address, const UINT8 data)
 cpu_time_t ppu_execute(const cpu_time_t time)
 {
    /* Don't synchronize here, as this function is only called when the synchronizing engine is
-      not being used (e.g the CPU is in unchained mode). */
+      not being used (e.g the CPU is in asynchronous mode). */
 
    // Process individual clock cycles.
    const cpu_time_t processed = Process(time);

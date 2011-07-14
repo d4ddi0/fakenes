@@ -5,10 +5,10 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
-#include "Core/Core.hpp"
-#include "Core/CPU.h"
-#include "Core/Internals.h"
-#include "Core/Local.hpp"
+#include "Core.hpp"
+#include "CPU.h"
+#include "Internals.h"
+#include "Local.hpp"
 
 namespace {
 
@@ -20,7 +20,7 @@ COREContext core;
 CORETime timeStep = 0;
 
 // Size of the time table; or more specifically the number of opcodes.
-const size_t TimeTableSize = 0xFF + 1;
+const sized TimeTableSize = 0xFF + 1;
 
 /* Table containing the execution times of each opcode. This is actually expanded into
    master clock cycles by BuildTimeTable() before use. */
@@ -96,28 +96,35 @@ void Reset() {
 	SetFlag(_IF, true);
 }
 
+CORETime Execute(const CORETime time) {
+	// Grab our initial timestamp so we can avoid emulating for too long.
+	const CORETime timestamp = core.time;
+
+	while(true) {
+		// Execute a single instruction or interrupt.
+		Templates::Step();
+
+		// Check the time elapsed. If we've reached our limit, exit. 
+		const CORETime timeElapsed = (CORETimeDelta)core.time - (CORETimeDelta)timestamp;
+		if(timeElapsed >= time)
+			return timeElapsed;
+	}
+}
+
 #define ExecuteTemplate(_Suffix) \
 CORETime Execute##_Suffix(const CORETime time) { \
-	// Grab our initial timestamp so we can avoid emulating for too long. \
 	const CORETime timestamp = core.time; \
-	\
 	while(true) { \
-		// Execute a single instruction or interrupt. \
 		Templates::Step##_Suffix(); \
-		\
-		// Check the time elapsed. If we've reached our limit, exit. \
 		const CORETime timeElapsed = (CORETimeDelta)core.time - (CORETimeDelta)timestamp; \
 		if(timeElapsed >= time) \
 			return timeElapsed; \
 	} \
 }
 
-// Generate Execute().
-ExecuteTemplate()
-// Generate ExecuteTurbo().
-ExecuteTemplate(Turbo)
-// Generate ExecuteUnchained().
-ExecuteTemplate(Unchained)
+// Generate the Execute() variants.
+ExecuteTemplate(Fast)
+ExecuteTemplate(Asynchronous)
 
 /* This steals clocks from the CPU, causing external hardware to be "overclocked"
    while the processor is unable to do anything. As the amount is specified in master
@@ -188,7 +195,7 @@ CORETime GetTimeElapsed(const CORETime timestamp) {
 /* This rebuilds the internal time table. you need to call this function any time
    CPU_CLOCK_MULTIPLIER changes (e.g from going from NTSC to PAL). */
 void BuildTimeTable() {
-	for(size_t i = 0; i < TimeTableSize; i++)
+	for(sized i = 0; i < TimeTableSize; i++)
 		timeTable[i] = TimeTableBase[i] * CPU_CLOCK_MULTIPLIER;
 
 	timeStep = 1 * CPU_CLOCK_MULTIPLIER;

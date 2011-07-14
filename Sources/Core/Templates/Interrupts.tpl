@@ -7,7 +7,7 @@
 
 /* Checks if an interrupt is pending, either NMI or IRQ. This will not signal an IRQ as pending
    if the interrupt inhibit (I) flag is set in the processor status register. */
-quick bool T(InterruptPending) {
+quick bool T(InterruptPending)() {
 	// Check if any interrupts are queued, and return if the queue is empty.
 	if(core.interrupts.size() == 0)
 		return false;
@@ -18,7 +18,7 @@ quick bool T(InterruptPending) {
 
 	// Check if the alotted time has passed.
 	if(interrupt.time >= core.time) {
-		if(interrypt.type == COREInterruptNMI) {
+		if(interrupt.type == COREInterruptNMI) {
 			// NMIs cannot be inhibited.
 			return true;
 		} else {

@@ -89,13 +89,13 @@ MEMORY_PATCH* get_patch(const int index)
 
 void map_patches(const UINT16 start_address, const UINT16 end_address)
 {
-   const size_t count = patchTable.size();
+   const sized count = patchTable.size();
    if(count == 0) {
       // No patches are currently available.
       return;
    }
 
-   for(size_t i = 0; i < count; i++) {
+   for(sized i = 0; i < count; i++) {
       PatchWrapper& wrapper = patchTable[i];
 
       // Get a direct reference to the patch to keep this clean.

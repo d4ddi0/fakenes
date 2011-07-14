@@ -14,13 +14,13 @@
 extern "C" {
 #endif
 
-/* Execution modes. These trade off performance for accuracy; Turbo is
-   the fastest and most inaccurate, while Unchained runs the APU and PPU
-   at every CPU clock cycle and supports advanced mapper logic. */
+/* Execution modes. These trade off performance for accuracy; fast is
+   the fastest and most inaccurate, while asynchronous runs the APU and
+   PPU at every CPU clock cycle and supports advanced mapper logic. */
 enum CPU_EXECUTION_MODEL {
    CPU_EXECUTION_MODEL_NORMAL = 0,
-   CPU_EXECUTION_MODEL_TURBO,
-   CPU_EXECUTION_MODEL_UNCHAINED,
+   CPU_EXECUTION_MODEL_FAST,
+   CPU_EXECUTION_MODEL_ASYNCHRONOUS,
 
    /* Default to a balance between speed and accuracy. */
    CPU_EXECUTION_MODEL_DEFAULT = CPU_EXECUTION_MODEL_NORMAL
@@ -69,8 +69,8 @@ typedef INT32 cpu_rtime_t;
 
 /* These macros define the format of CPU read and write handlers for
    special-cased memory-mapped I/O. */
-#define CPU_READ_HANDLER(_NAME)		UINT8 (*_NAME)(const UINT16 address)
-#define CPU_WRITE_HANDLER(_NAME)	void (*_NAME)(const UINT16 address, const UINT8 data)
+typedef UINT8 (*CPU_READ_HANDLER)(const UINT16 address);
+typedef void (*CPU_WRITE_HANDLER)(const UINT16 address, const UINT8 data);
 
 extern void cpu_load_config(void);
 extern void cpu_save_config(void);
@@ -88,7 +88,7 @@ extern void cpu_set_interrupt(const CPU_INTERRUPT type, const cpu_time_t time);
 extern void cpu_clear_interrupt(const CPU_INTERRUPT type);
 extern cpu_time_t cpu_get_time(void);
 extern cpu_time_t cpu_get_time_elapsed(cpu_time_t* time);
-extern int cpu_get_register(const CPU_REGISTER register);
+extern int cpu_get_register(const CPU_REGISTER index);
 extern void cpu_load_state(FILE_CONTEXT* file, const int version);
 extern void cpu_save_state(FILE_CONTEXT* file, const int version);
 extern void cpu_enable_sram(void);
@@ -96,8 +96,8 @@ extern void cpu_disable_sram(void);
 extern void cpu_map_block_address(const UINT16 address, const int pages, UINT8* data);
 extern void cpu_map_block_read_address(const UINT16 address, const int pages, const UINT8* data);
 extern void cpu_map_block_write_address(const UINT16 address, const int pages, UINT8* data);
-extern void cpu_map_block_read_handler(const UINT16 address, const int pages, CPU_READ_HANDLER(handler));
-extern void cpu_map_block_write_handler(const UINT16 address, const int pages, CPU_WRITE_HANDLER(handler));
+extern void cpu_map_block_read_handler(const UINT16 address, const int pages, CPU_READ_HANDLER handler);
+extern void cpu_map_block_write_handler(const UINT16 address, const int pages, CPU_WRITE_HANDLER handler);
 extern void cpu_map_block_rom(const UINT16 address, const int pages, const int rom_page);
 extern void cpu_unmap_block(const UINT16 address, const int pages);
 extern void cpu_unmap_block_read(const UINT16 address, const int pages);

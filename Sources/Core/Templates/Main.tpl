@@ -10,15 +10,17 @@
 #	define CORESuffix Fast
 #elif defined(COREAsynchronous)
 #	define CORESuffix Asynchronous
-#else
-#	define CORESuffix
 #endif
 
 /* This is used to templatize functions depending on the mode. The absurd apperance is because
    the C preprocessor doesn't expand tokenized arguments to macros. */
-#define T__(_Name, _Suffix) _Name##_Suffix
-#define T_(_Name, _Suffix) T__(_Name, _Suffix)
-#define T(_Name) T_(_Name, CORESuffix)
+#ifdef CORESuffix
+#	define T__(_Name, _Suffix) _Name##_Suffix
+#	define T_(_Name, _Suffix) T__(_Name, _Suffix)
+#	define T(_Name) T_(_Name, CORESuffix)
+#else
+#	define T(_Name)
+#endif
 
 // Keep these in order, or things will break. :p
 #include "Core/Templates/Context.tpl"

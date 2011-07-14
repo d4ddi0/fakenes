@@ -20,7 +20,7 @@ extern "C" {
 /* Memory map. */
 #define CPU__MAP_SIZE		(0xFFFF + 1)
 #define CPU__MAP_PAGE_SIZE	1024
-#define CPU__MAP_PAGE_MASK	(CPU_MAP_PAGE_SIZE - 1)
+#define CPU__MAP_PAGE_MASK	(CPU__MAP_PAGE_SIZE - 1)
 #define CPU__MAP_PAGES		(CPU__MAP_SIZE / CPU__MAP_PAGE_SIZE)
 
 /* Memory-mapped I/O is handled in one of two ways: Either via address
@@ -33,11 +33,11 @@ extern "C" {
 #define CPU__WRITE_ADDRESS_SIZE	CPU__MAP_PAGES
 #define CPU__WRITE_HANDLER_SIZE	CPU__MAP_PAGES
 
-extern CPU__ARRAY( const UINT8*, cpu__read_address,  CPU__READ_ADDRESS_SIZE  );
-extern CPU__ARRAY( void*,        cpu__read_handler,  CPU__READ_HANDLER_SIZE  );
-extern CPU__ARRAY( INT8,         cpu__read_patch,    CPU__READ_PATCH_SIZE    );
-extern CPU__ARRAY( UINT8*,       cpu__write_address, CPU__WRITE_ADDRESS_SIZE );
-extern CPU__ARRAY( void*,        cpu__write_handler, CPU__WRITE_HANDLER_SIZE );
+extern CPU__ARRAY( const UINT8*,      cpu__read_address,  CPU__READ_ADDRESS_SIZE  );
+extern CPU__ARRAY( CPU_READ_HANDLER,  cpu__read_handler,  CPU__READ_HANDLER_SIZE  );
+extern CPU__ARRAY( INT8,              cpu__read_patch,    CPU__READ_PATCH_SIZE    );
+extern CPU__ARRAY( UINT8*,            cpu__write_address, CPU__WRITE_ADDRESS_SIZE );
+extern CPU__ARRAY( CPU_WRITE_HANDLER, cpu__write_handler, CPU__WRITE_HANDLER_SIZE );
 
 /* cpu__work_ram:
     This array contains the contents of work RAM (WRAM, or just RAM),
@@ -62,33 +62,33 @@ extern CPU__ARRAY( UINT8, cpu__save_ram,  CPU__SAVE_RAM_SIZE );
    directly into the caller routine. */
 QUICK UINT8 cpu__fast_read(const UINT16 address)
 {
-   const int page = address / CPU__RAM_PAGE_SIZE;
+   const int page = address / CPU__MAP_PAGE_SIZE;
 
-   if(cpu_read_handler[page]) {
+   if(cpu__read_handler[page]) {
       /* Use read handler. */
-      CPU_READ_HANDLER(handler) = cpu__read_handler[page];
+      CPU_READ_HANDLER handler = cpu__read_handler[page];
       return handler(address);
    }
    else {
       /* No read handler. */
       const UINT8* read = cpu__read_address[page];
-      return read[address & CPU__RAM_PAGE_MASK] + cpu__read_patch[address];
-   ]
+      return read[address & CPU__MAP_PAGE_MASK] + cpu__read_patch[address];
+   }
 }
 
 QUICK void cpu__fast_write(const UINT16 address, const UINT8 data)
 {
-   const int page = address / CPU__RAM_PAGE_SIZE;
+   const int page = address / CPU__MAP_PAGE_SIZE;
 
-   if(cpu_write_handler[page]) {
+   if(cpu__write_handler[page]) {
       /* Use write handler. */
-      CPU_WRITE_HANDLER(handler) = cpu__write_handler[page];
+      CPU_WRITE_HANDLER handler = cpu__write_handler[page];
       handler(address, data);
    }
    else {
       /* No write handler. */
       UINT8* write = cpu__write_address[page];
-      write[address & CPU__RAM_PAGE_MASK] = data;  
+      write[address & CPU__MAP_PAGE_MASK] = data;  
    }
 }
 
@@ -97,7 +97,7 @@ QUICK void cpu__fast_write(const UINT16 address, const UINT8 data)
    zero page accesses by the core. */
 QUICK UINT8 cpu__fast_ram_read(const UINT16 address)
 {
-   return cpu__work_ram[address] + cpu_read_patch[address];
+   return cpu__work_ram[address] + cpu__read_patch[address];
 }
 
 QUICK void cpu__fast_ram_write(const UINT16 address, const UINT8 data)

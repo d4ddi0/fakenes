@@ -9,6 +9,10 @@
    It is only needed for branch and R-M-W instructions. */
 #define Embeddable	extern inline
 
+/* Even though it isn't really used anymore, the 'register' keyword is held over even in the
+   newest language standards. so we have to work around it. */
+#define register	_register
+
 #define WithData	const uint8 data	// Accept read-only data.
 #define WithFlag	uint8& flag		// Accept a flag.
 #define WithRegister	uint8& register		// Accept a register.
@@ -231,7 +235,7 @@ quick void T(InstructionJMP1)() {
     4   pointer   R  fetch low address to latch
     5  pointer+1* R  fetch PCH, copy latch to PCL */
 quick void T(InstructionJMP2)() {
-	pair pointer;
+	byte_pair pointer;
 	pointer.bytes.low = T(Fetch)();			// Clock 2
 	pointer.bytes.high = T(Fetch)();		// Clock 3
 	const uint8 latch = T(Read)(pointer.word);	// Clock 4
@@ -247,7 +251,7 @@ quick void T(InstructionJMP2)() {
    3  $0100,S  R  internal operation (predecrement S?)
    4  $0100,S  W  push PCH on stack, decrement S
    5  $0100,S  W  push PCL on stack, decrement S
-   6    PC     R  copy low address byte to PCL, fetch high address byte to PCH
+   6    PC     R  copy low address byte to PCL, fetch high address byte to PCH */
 quick void T(InstructionJSR)() {	
 	const uint8 lowByte = T(Fetch)();	// Clock 2
 	T(Clock)();				// Clock 3

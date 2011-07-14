@@ -5,12 +5,12 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
-#include "Core/Core.hpp"
-#include "Core/CPU.h"
-#include "Core/CPUAtoms.hpp"
-#include "Core/Internals.h"
-#include "Core/Local.hpp"
-#include "Core/Patch.h"
+#include "Core.hpp"
+#include "CPU.h"
+#include "CPUAtoms.hpp"
+#include "Internals.h"
+#include "Local.hpp"
+#include "Patch.h"
 
 using namespace std;
 
@@ -38,11 +38,11 @@ const int WRAMBlockSize = CPU_MAP_BLOCK_2K;
 } // namespace anonymous
 
 // Memory-map.
-CPU__ARRAY( const UINT8*, cpu__read_address,  CPU__READ_ADDRESS_SIZE  );
-CPU__ARRAY( void*,        cpu__read_handler,  CPU__READ_HANDLER_SIZE  );
-CPU__ARRAY( INT8,         cpu__read_patch,    CPU__READ_PATCH_SIZE    );
-CPU__ARRAY( UINT8*,       cpu__write_address, CPU__WRITE_ADDRESS_SIZE );
-CPU__ARRAY( void*,        cpu__write_handler, CPU__WRITE_HANDLER_SIZE );
+CPU__ARRAY( const UINT8*,      cpu__read_address,  CPU__READ_ADDRESS_SIZE  );
+CPU__ARRAY( CPU_READ_HANDLER,  cpu__read_handler,  CPU__READ_HANDLER_SIZE  );
+CPU__ARRAY( INT8,              cpu__read_patch,    CPU__READ_PATCH_SIZE    );
+CPU__ARRAY( UINT8*,            cpu__write_address, CPU__WRITE_ADDRESS_SIZE );
+CPU__ARRAY( CPU_WRITE_HANDLER, cpu__write_handler, CPU__WRITE_HANDLER_SIZE );
 
 // Internal and external (cartridge) memory.
 CPU__ARRAY( UINT8, cpu__save_ram,  CPU__SAVE_RAM_SIZE );
@@ -193,10 +193,10 @@ cpu_time_t cpu_execute(const cpu_time_t time)
    switch(executionModel) {
       case CPU_EXECUTION_MODEL_NORMAL:
          return CORE::Execute(time);
-      case CPU_EXECUTION_MODEL_TURBO:
-         return CORE::ExecuteTurbo(time);
-      case CPU_EXECUTION_MODEL_UNCHAINED:
-         return CORE::ExecuteUnchained(time);
+      case CPU_EXECUTION_MODEL_FAST:
+         return CORE::ExecuteFast(time);
+      case CPU_EXECUTION_MODEL_ASYNCHRONOUS:
+         return CORE::ExecuteAsynchronous(time);
 
       default:
          WARN_GENERIC();
@@ -244,12 +244,12 @@ cpu_time_t cpu_get_time_elapsed(cpu_time_t* time)
 
 /* Note: This function is currently uncached so multiple successive calls
    (e.g displaying all of the registers) will be inefficient. */
-int cpu_get_register(const CPU_REGISTER register)
+int cpu_get_register(const CPU_REGISTER index)
 {
    COREContext context;
    CORE::GetContext(&context);
 
-   switch(register) {
+   switch(index) {
       case CPU_REGISTER_PC:
          return context.registers.pc.word;
       case CPU_REGISTER_A:

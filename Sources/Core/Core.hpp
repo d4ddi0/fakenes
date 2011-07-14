@@ -55,12 +55,12 @@ typedef struct _CORERegisters {
    cooresponding byte pushed onto the stack by the BRK and PHP instructions is
    simply always set, but is never set by a hardware interrupt. */
 typedef struct _COREFlags {
-	uint8 c :1;	/. Carry flag.
-	uint8 z :1;	// Zero flag.
-	uint8 i :1;	// Interrupt flag.
-	uint8 d :1;	// Decimal mode flag. 
-	uint8 v :1;	// Overflow flag.
-	uint8 n :1;	// Negative flag.
+	uint8 c;	// Carry flag.
+	uint8 z;	// Zero flag.
+	uint8 i;	// Interrupt flag.
+	uint8 d;	// Decimal mode flag. 
+	uint8 v;	// Overflow flag.
+	uint8 n;	// Negative flag.
 } COREFlags;
 
 typedef struct _COREInterrupt {
@@ -86,8 +86,8 @@ namespace CORE {
 extern bool Initialize();
 extern void Reset();
 extern CORETime Execute(const CORETime time);
-extern CORETime ExecuteTurbo(const CORETime time);
-extern CORETime ExecuteUnchained(const CORETime time);
+extern CORETime ExecuteFast(const CORETime time);
+extern CORETime ExecuteAsynchronous(const CORETime time);
 extern void Burn(const CORETime time);
 extern void SetInterrupt(const COREInterruptType type, const CORETime time);
 extern void ClearInterrupt(const COREInterruptType type);

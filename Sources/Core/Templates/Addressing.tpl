@@ -5,7 +5,7 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
-/* This is used for passing an index register to be used as an offset.
+// This is used for passing an index register to be used as an offset.
 #define WithIndex	const uint8& index
 
 /* This is used for passing an instruction template within an R-M-W sequence. The instruction
@@ -19,6 +19,7 @@
 #define WithInstructor	template<bool (instructor)()>
 
 // This is used for passing a register to be used as a data source.
+#define register	_register
 #define WithRegister	const uint8& register
 // This is used for returning general-purpose data.
 #define FromData	uint8
