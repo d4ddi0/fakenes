@@ -970,7 +970,7 @@ NLboolean ipx_StringToAddr(const NLchar *string, NLaddress *address)
 #define DO(src,dest)    \
     buffer[0] = string[(sizeof(NLchar) * src)];    \
     buffer[1] = string[src + 1];    \
-    if(_stscanf (buffer, (const NLchar *)TEXT("%x"), &val) != 1)   \
+    if(_stscanf (buffer, (const NLchar *)TEXT("%x"), (unsigned int*)&val) != 1)   \
         return NL_FALSE; \
     ((struct sockaddr_ipx *)address)->dest = (char)val
 
@@ -1029,11 +1029,11 @@ NLboolean ipx_GetNameFromAddrAsync(const NLaddress *address, NLchar *name)
 
 NLboolean ipx_GetAddrFromName(const NLchar *name, NLaddress *address)
 {
-    NLint n;
+    NLuint n;
     NLchar buffer[(sizeof(NLchar) * 32)];
 
     address->valid = NL_TRUE;
-    n = (NLint)_tcslen(name);
+    n = (NLuint)_tcslen(name);
 
     if(n == (sizeof(NLchar) * 12))
     {
