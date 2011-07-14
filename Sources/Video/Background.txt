@@ -1,0 +1,73 @@
+PPU background rendering as I understand it:
+
+The unit possess two internal VRAM address registers, an active one (V) that the
+software can directly modify (via $2006) and a "shadow" or latch (T), which is
+periodically loaded into V in three scenarios: At the start of a frame, at the
+start of HBlank (though only partially), and at the second write to $2006
+(PPUADDR). The per-frame and per-scanline updates do not occur if rendering is
+disabled. All normal operations, such as setting the scrolling positions,
+normally modify T, and not V. Only writes to $2006 modify V directly, which is
+actually done by modifying T internally and then copying it into V.
+
+V is designed so that it contains a considerable amount of unique information
+while still being directly useable as a VRAM address for purposes such as name
+table access. The contents of V are encoded as:
+   Bit 15 xDDDCCBBBBBAAAAA Bit 0
+   A = Coarse X scroll (X), or more specifically the X tile position (0-31)
+   B = Course Y scroll (Y), or more specifically the Y tile position (0-29)
+   C = Name table (N, 0-3), these bits come from bits0-1 of $2000 (PPUCTRL)
+   D = Fine vertical scroll (Ys), which is the tile Y offset (0-7)
+   x = Unused, making the register effectively only 15 bits wide
+
+There has been some suggestions that V is actually a set of daisy-chained scroll
+registers inside of the PPU, treaded as a single unit at times due to the
+daisy-chaining, which does seem to be the case (see below).
+
+Some important things to note are that the fine X scroll (Xs) is handled by a
+separate pipeline from the one which fetches data, thus it is stored in a
+separate, 3-bit wide register, which is fed into the shifters during
+rasterization. Furthermore, while Y is 5-bits wide and can contain a value of
+0-31 like X, the PPU normally wraps it around at 29 (see below). V is
+structured in such a way that it can be directly incremented after each tile;
+this initially adds 1 to X, but eventually X will wrap around to 0 (after 32
+tiles have been fetched) and overflow. Along with some bit inversions, this
+simulates an "infinite" 2-D tile matrix with only simple logic.
+
+At the end of the rendering portion of each scanline, starting with the sprite
+evaluation scanline -1 (or 240 if you  prefer), the PPU fetches the first two
+tiles for the next scanline, tiles #0 and #1. This is so they an be loaded into
+the background shift registers and latches at the start of the next line which
+makes fine X scrolling immediately possible. This means that the first tile to
+get fetched on each line is actually tile #2. As the unit performs fetches for
+272 clock cycles per scanline (256 during rasterization, 16 during HBlank),
+and each tile takes 8 cycles to fetch completely, 34 tiles total are fetched
+per scanline. This is because of Xs, when non-zero, may cause the playing field
+to overflow beyond the screen limits, making the minimal amount of tiles that
+the PPU can fetch 33 when fine X scrolling is required. The 34th tile is simply
+a garbage fetch that is not used for anything.
+
+In order to simulate the effect of a camera panning over a large background,
+the horizontal name table bit (Xt, or bit 10) of V is inverted whenever X wraps
+around from 31 to 0. Consider the 33rd fetch of a line, where X has wrapped
+around and Xt is inverted, the tile fetched is actually the first tile of the
+next name table, on the same line, making it appear as if there is seamless
+horizontal scrolling. Similarly, when Y wraps around from 29 to 0, the vertical
+name table bit (Yt, or bit 11) is inverted. It is important to note that this
+*only* happens when Y wraps around from 29 to 0. If you set Y to a higher value
+manually using $2006, it will wrap at 31 instead and not invert Yt. This causes
+vertical scrolling offsets higher than 239 to appear negative, although with
+graphical glitches due to data being fetched incorrectly.
+
+There is one major gotcha: As stated before, T is partially loaded into V at the
+beginning of HBlank, when the fetch for tile #0 is performed, effectively
+resetting X and Xt to the values which were last set by software (via $2006),
+which makes tile fetches start from the same horizontal location every scanline.
+Bcause of this, the first tile fetched on the "next" scanline is actually (X+2),
+due to the prefetching that occurs here. The rest of V is left unmodified.
+
+An issue with vertical scrolling is that changes to the low byte of $2005
+(Y scroll position) do not take effect until the next frame, as they only modify
+T and it doesn't get copied into V except on writes to $2006. So the changes to
+vertical scrolling only show up when T is copied into V at frame start.
+
+- Thu 14 Jul 2011

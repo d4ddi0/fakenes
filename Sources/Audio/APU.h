@@ -15,24 +15,27 @@
 extern "C" {
 #endif
 
-/* Function prototypes */
-extern void apu_load_config(void);
-extern void apu_save_config(void);
-extern int apu_init(void);
-extern void apu_exit(void);
-extern void apu_reset(void);
-extern void apu_reset_exsound(const ENUM exsound_id);
-extern void apu_update(void);
-extern void apu_clear_exsound(void);
-extern void apu_enable_exsound(const ENUM exsound_id);
-extern UINT8 apu_read(const UINT16 address);
-extern void apu_write(const UINT16 address, UINT8 value);
-extern cpu_time_t apu_execute(const cpu_time_t time);
-extern void apu_predict_irqs(const cpu_time_t time);
-extern void apu_sync_update(void);
-extern void apu_load_state(FILE_CONTEXT* file, const int version);
-extern void apu_save_state(FILE_CONTEXT* file, const int version);
-extern REAL* apu_get_visdata(void);
+enum {
+   APU_EMULATION_FAST = 0,
+   APU_EMULATION_ACCURATE,
+   APU_EMULATION_HIGH_QUALITY
+};
+
+enum {
+   APU_EXSOUND_MMC5,
+   APU_EXSOUND_VRC6
+};
+
+enum {
+   APU_VISDATA_SQUARE_1 = 0,
+   APU_VISDATA_SQUARE_2,
+   APU_VISDATA_TRIANGLE,
+   APU_VISDATA_NOISE,
+   APU_VISDATA_DMC,
+   APU_VISDATA_MASTER_1,
+   APU_VISDATA_MASTER_2,
+   APU_VISDATA_ENTRIES
+};
 
 typedef struct apu_options_s {
    BOOL enabled;       /* Enable emulation */
@@ -61,27 +64,23 @@ typedef struct apu_options_s {
 
 extern apu_options_t apu_options;
 
-enum {
-   APU_EMULATION_FAST = 0,
-   APU_EMULATION_ACCURATE,
-   APU_EMULATION_HIGH_QUALITY
-};
-
-enum {
-   APU_EXSOUND_MMC5,
-   APU_EXSOUND_VRC6
-};
-
-enum {
-   APU_VISDATA_SQUARE_1 = 0,
-   APU_VISDATA_SQUARE_2,
-   APU_VISDATA_TRIANGLE,
-   APU_VISDATA_NOISE,
-   APU_VISDATA_DMC,
-   APU_VISDATA_MASTER_1,
-   APU_VISDATA_MASTER_2,
-   APU_VISDATA_ENTRIES
-};
+extern void apu_load_config(void);
+extern void apu_save_config(void);
+extern int apu_init(void);
+extern void apu_exit(void);
+extern void apu_reset(void);
+extern void apu_reset_exsound(const ENUM exsound_id);
+extern void apu_update(void);
+extern void apu_clear_exsound(void);
+extern void apu_enable_exsound(const ENUM exsound_id);
+extern UINT8 apu_read(const UINT16 address);
+extern void apu_write(const UINT16 address, UINT8 value);
+extern cpu_time_t apu_execute(const cpu_time_t time);
+extern void apu_predict_irqs(const cpu_time_t time);
+extern void apu_sync_update(void);
+extern void apu_load_state(FILE_CONTEXT* file, const int version);
+extern void apu_save_state(FILE_CONTEXT* file, const int version);
+extern REAL* apu_get_visdata(void);
 
 #ifdef __cplusplus
 }

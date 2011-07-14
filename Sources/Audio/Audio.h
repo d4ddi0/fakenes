@@ -13,6 +13,15 @@
 extern "C" {
 #endif
 
+/* Subsystems. */
+enum {
+   AUDIO_SUBSYSTEM_NONE = 0,
+   AUDIO_SUBSYSTEM_AUTOMATIC,
+   AUDIO_SUBSYSTEM_SAFE,
+   AUDIO_SUBSYSTEM_ALLEGRO,
+   AUDIO_SUBSYSTEM_OPENAL
+};
+
 typedef struct audio_options_s {
    BOOL enable_output;
    ENUM subsystem;
@@ -38,15 +47,6 @@ extern void audio_visopen(unsigned num_frames);
 extern void audio_visclose(void);
 extern BOOL audio_is_visopen(void);
 extern UINT16* audio_get_visdata(void);
-
-/* Subsystems. */
-enum {
-   AUDIO_SUBSYSTEM_NONE = 0,
-   AUDIO_SUBSYSTEM_AUTOMATIC,
-   AUDIO_SUBSYSTEM_SAFE,
-   AUDIO_SUBSYSTEM_ALLEGRO,
-   AUDIO_SUBSYSTEM_OPENAL
-};
 
 #ifdef __cplusplus
 }
