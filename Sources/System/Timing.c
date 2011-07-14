@@ -87,6 +87,8 @@ void timing_update_timing(void)
    /* Update the NSF player. */
    if(nsf_is_loaded)
       nsf_update_timing();
+
+   cpu_update();
 }
 
 void timing_update_machine_type(void)
