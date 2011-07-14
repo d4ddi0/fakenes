@@ -52,7 +52,7 @@ typedef INT64 FILE_OFFSET;
 typedef struct _FILE_BUFFER {
    FILE_SIZE size, limit;
    FILE_SIZE position;
-   void* data;
+   UINT8* data;
 
 } FILE_BUFFER;
 

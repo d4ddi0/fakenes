@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "zlib.h"
-#include "unzip.h"
+#include "Unzip.h"
 
 #ifdef STDC
 #  include <stddef.h>
@@ -169,7 +169,7 @@ local int unzlocal_getShort (fin,pX)
     uLong *pX;
 {
     uLong x ;
-    int i;
+    int i=0;
     int err;
 
     err = unzlocal_getByte(fin,&i);
@@ -191,7 +191,7 @@ local int unzlocal_getLong (fin,pX)
     uLong *pX;
 {
     uLong x ;
-    int i;
+    int i=0;
     int err;
 
     err = unzlocal_getByte(fin,&i);

@@ -5,13 +5,8 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include "Common/Global.h"
-#include "Common/Debug.h"
-#include "Common/Types.h"
 #include "File.h"
+#include "Local.hpp"
 
 namespace {
 
@@ -38,7 +33,7 @@ FILE_CONTEXT* open_file(const UDATA* filename, const FILE_MODE mode, const FILE_
 {
    Safeguard(filename);
 
-   FILE_CONTEXT* file = malloc(sizeof(FILE_CONTEXT));
+   FILE_CONTEXT* file = (FILE_CONTEXT*)malloc(sizeof(FILE_CONTEXT));
    if(!file) {
       Warning("Out of memory.");
       return NULL;
@@ -54,7 +49,7 @@ FILE_CONTEXT* open_file(const UDATA* filename, const FILE_MODE mode, const FILE_
    if(mode == FILE_MODE_READ) {
       access = "r";
    } else if(mode == FILE_MODE_WRITE) {
-      access = "w":
+      access = "w";
    } else {
       GenericWarning();
       return NULL;
@@ -72,7 +67,7 @@ FILE_CONTEXT* open_file(const UDATA* filename, const FILE_MODE mode, const FILE_
 
 FILE_CONTEXT* open_memory_file(const FILE_MODE mode, const FILE_ORDER order)
 {
-   FILE_CONTEXT* file = malloc(sizeof(FILE_CONTEXT));
+   FILE_CONTEXT* file = (FILE_CONTEXT*)malloc(sizeof(FILE_CONTEXT));
    if(!file) {
       Warning("Out of memory.");
       return NULL;
@@ -84,7 +79,7 @@ FILE_CONTEXT* open_memory_file(const FILE_MODE mode, const FILE_ORDER order)
    file->mode = mode;
    file->order = order;
 
-   file->buffer.data = malloc(ChunkSize);
+   file->buffer.data = (uint8*)malloc(ChunkSize);
    if(!file->buffer.data) {
       Warning("Out of memory.");
       free(file);
@@ -129,7 +124,7 @@ void set_file_buffer(FILE_CONTEXT* file, void* data, const FILE_SIZE size)
       return;
    }
 
-   file->buffer.data = data;
+   file->buffer.data = (uint8*)data;
    file->buffer.size = size;
    file->buffer.limit = size;
    file->buffer.position = 0;
@@ -137,7 +132,7 @@ void set_file_buffer(FILE_CONTEXT* file, void* data, const FILE_SIZE size)
 
 // --------------------------------------------------------------------------------
 
-static forceinline uint16 SwapWord(const uint16 data, FILE_ORDER order)
+static pure_function inline uint16 SwapWord(const uint16 data, FILE_ORDER order)
 {
    // We only need to swap when a mismatch is detected.
    if((order == FILE_ORDER_NATIVE) || (order == NativeOrder))
@@ -148,14 +143,14 @@ static forceinline uint16 SwapWord(const uint16 data, FILE_ORDER order)
    return (lower << 8) | upper;
 }
 
-static forceinline uint32 SwapLong(const uint32 data, FILE_ORDER order)
+static pure_function inline uint32 SwapLong(const uint32 data, FILE_ORDER order)
 {
    if((order == FILE_ORDER_NATIVE) || (order == NativeOrder))
       return data;
 
    const uint16 lower = data & 0x0000FFFF;
    const uint16 upper = (data & 0xFFFF0000) >> 16;
-   return (SwapWord(upper) << 16) | SwapWord(lower);
+   return (SwapWord(upper, order) << 16) | SwapWord(lower, order);
 }
 
 static FILE_SIZE File_Read(FILE_CONTEXT* file, void* data, const FILE_SIZE size)
@@ -196,7 +191,9 @@ static FILE_SIZE File_Read(FILE_CONTEXT* file, void* data, const FILE_SIZE size)
    const FILE_SIZE end = Clamp<FILE_SIZE>(start + size, 0, buffer.size);
    const FILE_SIZE count = end - start;
 
-   memcpy(data, buffer.data + start, count);
+   const uint8* copyBuffer = (const uint8*)buffer.data;
+   memcpy(data, copyBuffer + start, count);
+
    return count;
 }
 
@@ -238,17 +235,18 @@ static FILE_SIZE File_Write(FILE_CONTEXT* file, const void* data, const FILE_SIZ
       while(resized < end)
          resized += ChunkSize;
 
-      buffer.data = realloc(buffer.data, resized);
+      buffer.data = (uint8*)realloc(buffer.data, resized);
       if(!buffer.data)
          GenericWarning();
 
       buffer.limit = resized;
    }
 
-   memcpy(buffer.data + start, data, size);
-   buffer.position += size;
+   const uint8* copyBuffer = (const uint8*)data;
+   memcpy(buffer.data + start, copyBuffer, size);
 
    // If we passed the end of the file, we have to adjust the size.
+   buffer.position += size;
    if(buffer.position >= buffer.size)
       buffer.size = buffer.position + 1;
 
@@ -260,12 +258,17 @@ static void File_SeekFrom(FILE_CONTEXT* file, const FILE_OFFSET offset)
    Safeguard(file);
 
    if(file->type == FILE_TYPE_PHYSICAL) {
-      fseek(file, offset, SEEK_CUR);
+      if(!file->handle) {
+         GenericWarning();
+         return;
+      }
+
+      fseek(file->handle, offset, SEEK_CUR);
       return;
    }
 
    // TODO: Handle excessive negative offsets that cause wrapping.
-   file->buffer->position += offset;
+   file->buffer.position += offset;
 }
 
 static void File_SeekTo(FILE_CONTEXT* file, const FILE_SIZE position)
@@ -273,11 +276,16 @@ static void File_SeekTo(FILE_CONTEXT* file, const FILE_SIZE position)
    Safeguard(file);
 
    if(file->type == FILE_TYPE_PHYSICAL) {
-      fseek(file, position, SEEK_SET);
+      if(!file->handle) {
+         GenericWarning();
+         return;
+      }
+
+      fseek(file->handle, position, SEEK_SET);
       return;
    }
 
-   file->buffer->position = position;
+   file->buffer.position = position;
 }
 
 static void File_Flush(FILE_CONTEXT* file)
@@ -341,13 +349,13 @@ static BOOL File_ReadBoolean(FILE_CONTEXT* file)
 {
    Safeguard(file);
 
-   const uint8 data = file->get_byte(file);
+   const uint8 data = file->read_byte(file);
    return TRUE_OR_FALSE(data);
 }
 
 static REAL File_ReadReal(FILE_CONTEXT* file)
 {
-   const uint32 data = file->get_long(file);
+   const uint32 data = file->read_long(file);
    const float* data_ptr = (float*)&data;
    return *data_ptr;
 }
@@ -380,7 +388,7 @@ static void File_WriteBoolean(FILE_CONTEXT* file, const BOOL data)
    Safeguard(file);
 
    const uint8 value = ZERO_OR_ONE(data);
-   file->put_byte(file, value);
+   file->write_byte(file, value);
 }
 
 static void File_WriteReal(FILE_CONTEXT* file, const REAL data)
@@ -388,7 +396,7 @@ static void File_WriteReal(FILE_CONTEXT* file, const REAL data)
    Safeguard(file);
 
    const uint32* data_ptr = (uint32*)&data;
-   file->put_long(file, *data_ptr);
+   file->write_long(file, *data_ptr);
 }
 
 static void Finalize(FILE_CONTEXT* file)
@@ -400,14 +408,14 @@ static void Finalize(FILE_CONTEXT* file)
    file->flush = File_Flush;
    file->close = File_Close;
 
-   file->get_byte = File_ReadByte;
-   file->get_word = File_ReadWord;
-   file->get_long = File_ReadLong;
-   file->get_boolean = File_ReadBoolean;
-   file->get_real = File_ReadReal;
-   file->put_byte = File_WriteByte;
-   file->put_word = File_WriteWord;
-   file->put_long = File_WriteLong;
-   file->put_boolean = File_WriteBoolean;
-   file->put_real = File_WriteReal;
+   file->read_byte = File_ReadByte;
+   file->read_word = File_ReadWord;
+   file->read_long = File_ReadLong;
+   file->read_boolean = File_ReadBoolean;
+   file->read_real = File_ReadReal;
+   file->write_byte = File_WriteByte;
+   file->write_word = File_WriteWord;
+   file->write_long = File_WriteLong;
+   file->write_boolean = File_WriteBoolean;
+   file->write_real = File_WriteReal;
 }
