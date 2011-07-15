@@ -26,7 +26,7 @@
 #ifdef HL_WINDOWS_APP
 #define VOID_CAST	(LPVOID)(DWORD_PTR)
 #define VOID_CATCH	(DWORD_PTR)
-#define KEY_CAST	(HTKey)(DWORD_PTR)
+#define KEY_CAST	(HTkey)(DWORD_PTR)
 #define KEY_CATCH	(DWORD)(DWORD_PTR)
 #else
 #include <stdint.h>
@@ -376,7 +376,7 @@ HL_EXP HTkey HL_APIENTRY htThreadNewKey(void)
     /* Windows threads */
     DWORD key = TlsAlloc();
 
-    if(key == (KEY_CAST 0xFFFFFFFF))
+    if(key == 0xFFFFFFFF)
     {
         return KEY_NULL;
     }
