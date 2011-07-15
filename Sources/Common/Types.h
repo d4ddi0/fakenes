@@ -10,6 +10,7 @@
 /* Allegro defines some types. However, in the future we won't use it. */
 #include <allegro.h>
 #ifdef ALLEGRO_WINDOWS
+#define WIN32_LEAN_AND_MEAN
 #include <winalleg.h>
 #endif
 #ifdef C99_TYPES
@@ -123,7 +124,7 @@ typedef fakenes_int8_t INT8;
 typedef fakenes_uint16_t UINT16;
 typedef fakenes_int16_t INT16;
 
-#ifdef ALLEGRO_WINDOWS
+#ifdef SYSTEM_WINDOWS
    /* Override Win32 typedefs. */
 #  define UINT32 fakenes_uint32_t
 #  define INT32 fakenes_int32_t

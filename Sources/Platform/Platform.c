@@ -252,7 +252,7 @@ int platform_init (void)
     get_executable_name (buffer, sizeof (buffer));
 
 
-#ifdef ALLEGRO_WINDOWS
+#ifdef SYSTEM_WINDOWS
 
    replace_filename (buffer2, buffer, "fakenesw.cfg", sizeof (buffer2));
 

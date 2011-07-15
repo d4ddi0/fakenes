@@ -27,4 +27,9 @@
 #include "System/Timing.h"
 #include "Video/PPU.h"
 
+// Resolve Windows API conflicts.
+#ifdef SYSTEM_WINDOWS
+#undef ABSOLUTE
+#endif
+
 #endif // !Core__Local_hpp__included

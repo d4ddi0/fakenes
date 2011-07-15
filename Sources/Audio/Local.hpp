@@ -29,8 +29,8 @@
 #include "System/Machine.h"
 #include "System/Timing.h"
 
-// Curse you, Windows!
-#ifdef ALLEGRO_WINDOWS
+// Resolve Windows API conflicts.
+#ifdef SYSTEM_WINDOWS
 #undef interface
 #endif
 
