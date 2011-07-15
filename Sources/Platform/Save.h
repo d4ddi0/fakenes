@@ -23,6 +23,9 @@ extern "C" {
 #define NEW_SAVE_TITLE_SIZE   255
 #define NEW_SAVE_TITLE_SIZE_Z (NEW_SAVE_TITLE_SIZE + 1)
 
+typedef void (*LOAD_STATE_HANDLER)(FILE_CONTEXT *file, const int version);
+typedef void (*SAVE_STATE_HANDLER)(FILE_CONTEXT *file, const int version);
+
 extern UDATA* get_replay_title(int, UDATA*, int);
 extern BOOL open_replay(int, const char*, const UDATA*);
 extern void close_replay(void);
