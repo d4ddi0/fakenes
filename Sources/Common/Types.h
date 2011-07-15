@@ -127,19 +127,17 @@ typedef fakenes_int16_t INT16;
    /* Override Win32 typedefs. */
 #  define UINT32 fakenes_uint32_t
 #  define INT32 fakenes_int32_t
-
 #  define UINT64 fakenes_uint64_t
 #  define INT64 fakenes_int64_t
-
 #  define BOOL fakenes_bool_t
+#  define SIZE fakenes_size_t
 #else
    typedef fakenes_uint32_t UINT32;
    typedef fakenes_int32_t INT32;
-
    typedef fakenes_uint64_t UINT64;
    typedef fakenes_int64_t INT64;
-
    typedef fakenes_bool_t BOOL;
+   typedef fakenes_size_t SIZE;
 #endif
 
 typedef fakenes_char_t CHAR;
@@ -149,7 +147,6 @@ typedef fakenes_flags_t FLAGS;
 typedef fakenes_list_t LIST;
 typedef fakenes_pair_t PAIR;
 typedef fakenes_real_t REAL;
-typedef fakenes_size_t SIZE;
 typedef fakenes_string_t STRING;
 typedef fakenes_ucchar_t UCCHAR;
 typedef fakenes_udata_t UDATA;
