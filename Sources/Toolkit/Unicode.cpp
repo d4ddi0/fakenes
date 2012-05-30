@@ -311,8 +311,8 @@ template<typename TYPE>
 void Expand(const UTF_DATA* input, ustring& output, const sized size)
 {
    const TYPE* buffer = (const TYPE*)data;
-
    const sized length = size / sizeof(TYPE);
+
    for(sized i = 0; i < length; i++)
       output += (ucchar)buffer[i];
 }
@@ -321,8 +321,8 @@ template<typename TYPE>
 void Expand(const UTF_DATA* input, vector<TYPE>& output, const sized size)
 {
    const TYPE* buffer = (const TYPE*)data;
-
    const sized length = size / sizeof(TYPE);
+
    for(sized i = 0; i < length; i++) {
       const TYPE c = buffer[i];
       output.push_back(c);
@@ -334,53 +334,49 @@ ustring ustring_from_data(const UTF_DATA* data, const UNICODE_FORMAT format, con
    Safeguard(data);
    Safeguard(size > 0);
 
-   ustring converted = ustring();
+   ustring output = ustring();
 
    switch(format) {
-      case UNICODE_FORMAT_SMALLEST:
-      case UNICODE_FORMAT_FASTEST: {
-         Warning("You must specify a specific format for input data.");
-         break;
-      }
-
       case UNICODE_FORMAT_ASCII: {
-         Expand<uint8>(data, converted, size);
+         Expand<uint8>(data, output, size);
          break;
       }
 
       case UNICODE_FORMAT_UTF8: {
          // Copy the read-only data into a vector.
-         vector<uint8> input;
-         Expand<uint8>(data, input, size);
+         vector<uint8> copied;
+         Expand<uint8>(data, copied, size);
 
          // Replace any invalid code sequences.
-         vector<uint8> output;
-         utf8::replace_invalid(input.begin(), input.end(), back_inserter(output));
+         vector<uint8> repaired;
+         utf8::replace_invalid(copied.begin(), copied.end(), back_inserter(repaired));
+         copied.clear();
 
          // Convert to internal format.
-         utf8::utf8to32(output.begin(), output.end(), back_inserter(converted));
+         utf8::utf8to32(repaired.begin(), repaired.end(), back_inserter(output));
+         repaired.clear();
 
          break;
       }
 
       case UNICODE_FORMAT_UTF16: {
          // Copy the read-only data into a vector.
-         vector<uint16> buffer;
-         Expand<uint16>(data, buffer, size);
+         vector<uint16> copied;
+         Expand<uint16>(data, copied, size);
 
          // Convert from UTF-16 to UTF-8.
-         vector<uint8> input;
-         utf8::utf16to8(buffer.begin(), buffer.end(), back_inserter(input));
-         buffer.clear();
+         vector<uint8> converted;
+         utf8::utf16to8(copied.begin(), copied.end(), back_inserter(converted));
+         copied.clear();
 
          // Replace any invalid code sequences.
-         vector<uint8> output;
-         utf8::replace_invalid(input.begin(), input.end(), back_inserter(output));
-         input.clear();
+         vector<uint8> repaired;
+         utf8::replace_invalid(converted.begin(), converted.end(), back_inserter(repaired));
+         converted.clear();
 
          // Convert to internal format.
-         utf8::utf8to32(output.begin(), output.end(), back_inserter(converted));
-         output.clear();
+         utf8::utf8to32(repaired.begin(), repaired.end(), back_inserter(output));
+         repaired.clear();
 
          break;
       }
@@ -396,7 +392,7 @@ ustring ustring_from_data(const UTF_DATA* data, const UNICODE_FORMAT format, con
       }
    }
 
-   return converted;
+   return output;
 }
 
 /* This creates a ustring from an STL string. Note that the format is
@@ -457,8 +453,76 @@ ustring ustring_from_utf_string(const UTF_STRING& input)
 */
 UTF_DATA* ustring_to_data(const ustring& input, const UNICODE_FORMAT format, sized& size)
 {
-   vector<UTF_DATA> temp;
-   size = temp.size();
+   const sized length = input.length();
+   vector<UTF_DATA> output;
+
+   switch(format) {
+      case UNICODE_FORMAT_ASCII: {
+         for(sized i = 0; i < length; i++) {
+            const ucchar& c = input[i];
+
+            const UTF_DATA data = (c <= 0x7F) ? c : '?';
+            output.push_back(data);
+         }
+
+         break;
+      }
+
+      case UNICODE_FORMAT_UTF8: {
+         utf8::utf32to8(input.begin(), input.end(), back_inserter(output));
+         break;
+      }
+
+      case UNICODE_FORMAT_UTF16: {
+         vector<uint16> temp;
+         vector<uint32> temp2;
+         utf8::utf32to8(input.begin(), input.end(), back_inserter(temp));
+         utf8::utf8to16(temp.begin(), temp.end(), back_inserter(temp2));
+
+         for(sized i = 0; i < length; i++) {
+            const ucchar& c = temp2[i];
+
+            const UTF_DATA d0 = (c >> 8) & 0xFF;
+            const UTF_DATA d1 = c & 0xFF;
+
+            output.push_back(d0);
+            output.push_back(d1);
+         }
+         break;
+      }
+
+      case UNICODE_FORMAT_UTF32: {
+         for(sized i = 0; i < length; i++) {
+            const ucchar& c = input[i];
+
+            const UTF_DATA d0 = (c >> 24) & 0xFF;
+            const UTF_DATA d1 = (c >> 16) & 0xFF;
+            const UTF_DATA d2 = (c >> 8) & 0xFF;
+            const UTF_DATA d3 = c & 0xFF;
+
+            output.push_back(d0);
+            output.push_back(d1);
+            output.push_back(d2);
+            output.push_back(d3);
+         }
+
+         break;
+      }
+
+      default: {
+         GenericWarning();
+         break;
+      }
+   }
+
+   const sized new_size = output.size();
+   const UTF_DATA* copy = new UTF_DATA[new_size];
+   memcpy(copy, &output[0], new_size);
+   output.clear();
+
+   size = new_size;
+
+   return copy;
 }
 
 /* This version stores the encoded data in a buffer instead of a block
@@ -485,6 +549,15 @@ UTF_DATA* ustring_to_data(const ustring& input, UTF_DATA* output, const UNICODE_
 */
 std::string ustring_to_string(const ustring& input)
 {
+   sized size;
+   UTF_DATA* data = ustring_to_data(input, UNICODE_FORMAT_ASCII, size);
+   string output = string();
+   for(sized i = 0; i < size; i++) {
+      const char c = data[i];
+      output += c;
+   }
+   delete[] data;
+   return output;
 }
 
 /* This converts a ustring to a C string, using the ASCII character

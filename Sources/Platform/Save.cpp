@@ -5,37 +5,42 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
-/* Text that appears in "unused" menu slots for states and replays. */
-#define UNUSED_SLOT_TEXT   "Empty"
+#include "File.h"
+#include "Local.hpp"
+#include "Save.h"
 
-/* FNSS version supported/created. */
-#define FNSS_VERSION 0x300
+namespace {
+
+// Text that appears in "unused" menu slots for states and replays.
+const UDATA* UnusedSlotText = "Empty";
+
+// FNSS version supported/created.
+const uint16 FNSS_Version = 0x300;
+
+} // namespace anonymous
 
 // --------------------------------------------------------------------------------
 // PUBLIC INTERFACE
 // --------------------------------------------------------------------------------
 
-/* -- Replay functions. -- */
-
-UDATA *get_replay_title (int index, UDATA *title, int size)
+/* This gets the current title of the replay slot 'index' and stores up
+   to 'size'(-1) characters of it in 'title'.
+ 
+   Returns a copy of 'title' upon success, otherwise NULL. */
+UDATA* get_replay_title(const int index, UDATA* title, const SIZE size)
 {
-   /* This function gets the title of the replay # 'index' and stores up
-      to 'size' characters of it in 'title'.  Returns a copy of 'title'.
-      */
-
    USTRING filename;
 
-   /* Generate filename. */
-   get_replay_filename (filename, index, sizeof (filename));
+   // Generate filename.
+   get_replay_filename(filename, index, sizeof(filename));
+   // Retrieve title.
+   get_save_title(filename, title, size);
 
-   /* Retrieve title. */
-   get_save_title (filename, title, size);
-
-   return (title);
+   return title;
 }
 
-static PACKFILE *replay_file = NULL;
-static PACKFILE *replay_file_chunk = NULL;
+static FILE_CONTEXT* replay_file = NULL;
+static FILE_CONTEXT* replay_file_chunk = NULL;
 
 BOOL open_replay (int index, const char *mode, const UDATA *title)
 {

@@ -84,20 +84,7 @@ typedef unsigned        fakenes_flags_t;  /* Flags. */
 typedef fakenes_flags_t fakenes_list_t;   /* List of flags. */
 typedef double          fakenes_real_t;   /* Real number. */
 typedef size_t		fakenes_size_t;   /* Size or offset. */
-typedef int		fakenes_ucchar_t; /* Unicode character. */
-typedef char            fakenes_udata_t;  /* Unicode data (variable-length). */
 typedef unsigned int    fakenes_uint_t;   /* Unsigned integer, unsized. */
-
-/* Maximum length (in fakenes_udata_t's) of a UTF-8 character. */
-#define MAX_UTF8_SEGMENTS  sizeof(fakenes_ucchar_t)
-
-/* String data types. */
-#define MAX_STRING_LENGTH  1024  /* In characters. */
-#define STRING_SIZE        ( MAX_STRING_LENGTH * sizeof(fakenes_char_t) )
-#define USTRING_SIZE       ( MAX_STRING_LENGTH * sizeof(fakenes_udata_t) * MAX_UTF8_SEGMENTS )
-
-typedef fakenes_char_t fakenes_string_t[MAX_STRING_LENGTH];
-typedef fakenes_udata_t fakenes_ustring_t[MAX_STRING_LENGTH * MAX_UTF8_SEGMENTS];
 
 /* Pair data type for CPU core. */
 typedef union
@@ -148,10 +135,6 @@ typedef fakenes_flags_t FLAGS;
 typedef fakenes_list_t LIST;
 typedef fakenes_pair_t PAIR;
 typedef fakenes_real_t REAL;
-typedef fakenes_string_t STRING;
-typedef fakenes_ucchar_t UCCHAR;
-typedef fakenes_udata_t UDATA;
-typedef fakenes_ustring_t USTRING;
 
 #define LOAD_BOOLEAN(_INTEGER) ( TRUE_OR_FALSE(_INTEGER) )
 #define SAVE_BOOLEAN(_BOOLEAN) ( ZERO_OR_ONE(_BOOLEAN) )
@@ -167,12 +150,6 @@ typedef fakenes_ustring_t USTRING;
    if( (_SET) ) \
       LIST_ADD( (_LIST), (_FLAGS) ); \
 }
-
-/* String clearing macros. */
-#define STRING_CLEAR_SIZE(_STRING, _SIZE)	memset((_STRING), 0, (_SIZE))
-#define USTRING_CLEAR_SIZE     	        	STRING_CLEAR_SIZE
-#define STRING_CLEAR(_STRING)             	STRING_CLEAR_SIZE((__STRING), STRING_SIZE)
-#define USTRING_CLEAR(_STRING)          	USTRING_CLEAR_SIZE((_STRING), USTRING_SIZE)
 
 EXPRESS CONSTANT_FUNCTION int fix(int value, const int base, const int limit)
 {
