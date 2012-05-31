@@ -88,28 +88,24 @@ void delete_utf_string(UTF_STRING* utf_string)
 UTF_DATA* get_utf_string_data(UTF_STRING* utf_string)
 {
    Safeguard(utf_string);
-
    return utf_string->data;
 }
 
 const UTF_DATA* get_utf_string_const_data(const UTF_STRING* utf_string)
 {
    Safeguard(utf_string);
-
    return utf_string->data;
 }
 
 SIZE get_utf_string_size(const UTF_STRING* string)
 {
    Safeguard(utf_string);
-
    return utf_string->size;
 }
 
 SIZE get_utf_string_length(const UTF_STRING* string)
 {
    Safeguard(utf_string);
-
    return utf_string->length;
 }
 
@@ -296,7 +292,6 @@ UTF_STRING* utf_strdup(const UTF_STRING* utf_string)
 SIZE utf_strlen(const UTF_STRING* utf_string)
 {
    Safeguard(utf_string);
-
    return utf_string->length;
 }
 
@@ -308,7 +303,7 @@ SIZE utf_strlen(const UTF_STRING* utf_string)
    any supported Unicode format.
 */
 template<typename TYPE>
-void Expand(const UTF_DATA* input, ustring& output, const sized size)
+void Expand(const utf_data* input, ustring& output, const sized size)
 {
    const TYPE* buffer = (const TYPE*)data;
    const sized length = size / sizeof(TYPE);
@@ -318,7 +313,7 @@ void Expand(const UTF_DATA* input, ustring& output, const sized size)
 }
 
 template<typename TYPE>
-void Expand(const UTF_DATA* input, vector<TYPE>& output, const sized size)
+void Expand(const utf_data* input, vector<TYPE>& output, const sized size)
 {
    const TYPE* buffer = (const TYPE*)data;
    const sized length = size / sizeof(TYPE);
@@ -329,7 +324,7 @@ void Expand(const UTF_DATA* input, vector<TYPE>& output, const sized size)
    }
 }
 
-ustring ustring_from_data(const UTF_DATA* data, const UNICODE_FORMAT format, const sized size)
+ustring ustring_from_data(const utf_data* data, const UNICODE_FORMAT format, const sized size)
 {
    Safeguard(data);
    Safeguard(size > 0);
@@ -416,7 +411,6 @@ ustring ustring_from_string(const std::string& input)
 ustring ustring_from_c_string(const char* input)
 {
    Safeguard(input);
-
    return ustring_from_c_string(input, strlen(input));
 }
 
@@ -428,13 +422,13 @@ ustring ustring_from_c_string(const char* input, const sized size)
    Safeguard(input);
    Safeguard(size > 0);
 
-   return ustring_from_data((const UTF_DATA*)input, UNICODE_FORMAT_ASCII, size);
+   return ustring_from_data((const utf_data*)input, UNICODE_FORMAT_ASCII, size);
 }
 
 /* This creates a ustring from a UTF_STRING. This is mainly used by the
    legacy interface as a workhorse.
 */
-ustring ustring_from_utf_string(const UTF_STRING& input)
+ustring ustring_from_utf_string(const utf_string& input)
 {
    // Check for an empty input string.
    if(!input.data || (input.size == 0) || (input.length == 0))
@@ -451,17 +445,17 @@ ustring ustring_from_utf_string(const UTF_STRING& input)
    and updates the 'size' parameter to reflect how much memory was
    allocated to store the encoded data.
 */
-UTF_DATA* ustring_to_data(const ustring& input, const UNICODE_FORMAT format, sized& size)
+utf_data* ustring_to_data(const ustring& input, const UNICODE_FORMAT format, sized& size)
 {
    const sized length = input.length();
-   vector<UTF_DATA> output;
+   vector<utf_data> output;
 
    switch(format) {
       case UNICODE_FORMAT_ASCII: {
          for(sized i = 0; i < length; i++) {
             const ucchar& c = input[i];
 
-            const UTF_DATA data = (c <= 0x7F) ? c : '?';
+            const utf_data data = (c <= 0x7F) ? c : '?';
             output.push_back(data);
          }
 
@@ -482,12 +476,13 @@ UTF_DATA* ustring_to_data(const ustring& input, const UNICODE_FORMAT format, siz
          for(sized i = 0; i < length; i++) {
             const ucchar& c = temp2[i];
 
-            const UTF_DATA d0 = (c >> 8) & 0xFF;
-            const UTF_DATA d1 = c & 0xFF;
+            const utf_data d0 = (c >> 8) & 0xFF;
+            const utf_data d1 = c & 0xFF;
 
             output.push_back(d0);
             output.push_back(d1);
          }
+
          break;
       }
 
@@ -495,10 +490,10 @@ UTF_DATA* ustring_to_data(const ustring& input, const UNICODE_FORMAT format, siz
          for(sized i = 0; i < length; i++) {
             const ucchar& c = input[i];
 
-            const UTF_DATA d0 = (c >> 24) & 0xFF;
-            const UTF_DATA d1 = (c >> 16) & 0xFF;
-            const UTF_DATA d2 = (c >> 8) & 0xFF;
-            const UTF_DATA d3 = c & 0xFF;
+            const utf_data d0 = (c >> 24) & 0xFF;
+            const utf_data d1 = (c >> 16) & 0xFF;
+            const utf_data d2 = (c >> 8) & 0xFF;
+            const utf_data d3 = c & 0xFF;
 
             output.push_back(d0);
             output.push_back(d1);
@@ -516,12 +511,11 @@ UTF_DATA* ustring_to_data(const ustring& input, const UNICODE_FORMAT format, siz
    }
 
    const sized new_size = output.size();
-   const UTF_DATA* copy = new UTF_DATA[new_size];
+   const utf_data* copy = new utf_data[new_size];
    memcpy(copy, &output[0], new_size);
    output.clear();
 
    size = new_size;
-
    return copy;
 }
 
@@ -530,16 +524,17 @@ UTF_DATA* ustring_to_data(const ustring& input, const UNICODE_FORMAT format, siz
    the buffer can be limited, although if not enough space is
    available the encoding may break and become invalid.
 */
-UTF_DATA* ustring_to_data(const ustring& input, UTF_DATA* output, const UNICODE_FORMAT format, sized& size)
+utf_data* ustring_to_data(const ustring& input, utf_data* output, const UNICODE_FORMAT format, sized& size)
 {
    Safeguard(output);
    Safeguard(size > 0);
 
    sized temp_size = 0;
-   const UTF_DATA* temp = ustring_to_data(input, format, temp_size);
+   const utf_data* temp = ustring_to_data(input, format, temp_size);
    const sized count = MIN2(size, temp_size);
    memcpy(output, temp, count);
    delete[] temp;
+
    size = count;
    return output;
 }
@@ -550,12 +545,13 @@ UTF_DATA* ustring_to_data(const ustring& input, UTF_DATA* output, const UNICODE_
 std::string ustring_to_string(const ustring& input)
 {
    sized size;
-   UTF_DATA* data = ustring_to_data(input, UNICODE_FORMAT_ASCII, size);
+   utf_data* data = ustring_to_data(input, UNICODE_FORMAT_ASCII, size);
    string output = string();
    for(sized i = 0; i < size; i++) {
       const char c = data[i];
       output += c;
    }
+
    delete[] data;
    return output;
 }
@@ -571,14 +567,14 @@ char* ustring_to_c_string(const ustring& input, char* output, sized& size)
 {
 }
 
-UTF_STRING* ustring_to_utf_string(const ustring& input, const UNICODE_FORMAT format)
+utf_string* ustring_to_utf_string(const ustring& input, const UNICODE_FORMAT format)
 {
 }
 
-UTF_STRING* ustring_to_utf_string(const ustring& input, UTF_STRING& output)
+utf_string* ustring_to_utf_string(const ustring& input, utf_string& output)
 {
 }
 
-UTF_STRING* ustring_to_utf_string(const ustring& input, UTF_STRING& output, const UNICODE_FORMAT format)
+utf_string* ustring_to_utf_string(const ustring& input, utf_string& output, const UNICODE_FORMAT format)
 {
 }

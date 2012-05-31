@@ -87,21 +87,24 @@ extern SIZE utf_strlen(const UTF_STRING* utf_string);
 
 #include <string>
 
-typedef UCCHAR ucchar;
+typedef UCCHAR		ucchar;
+typedef UTF_DATA	utf_data;
+typedef UTF_STRING	utf_string;
+
 typedef std::basic_string<ucchar> ustring;
 
-extern ustring ustring_from_data(const UTF_DATA* data, const UNICODE_FORMAT format);
+extern ustring ustring_from_data(const utf_data* data, const UNICODE_FORMAT format);
 extern ustring ustring_from_string(const std::string& input);
 extern ustring ustring_from_c_string(const char* input);
 extern ustring ustring_from_c_string(const char* input, const sized size);
-extern ustring ustring_from_utf_string(const UTF_STRING& input);
-extern UTF_DATA* ustring_to_data(const ustring& input, UTF_DATA* output, const UNICODE_FORMAT format, sized& size);
+extern ustring ustring_from_utf_string(const utf_string& input);
+extern utf_data* ustring_to_data(const ustring& input, utf_data* output, const UNICODE_FORMAT format, sized& size);
 extern std::string ustring_to_string(const ustring& input);
 extern char* ustring_to_c_string(const ustring& input);
 extern char* ustring_to_c_string(const ustring& input, char* output, sized& size);
-extern UTF_STRING* ustring_to_utf_string(const ustring& input, const UNICODE_FORMAT format);
-extern UTF_STRING* ustring_to_utf_string(const ustring& input, UTF_STRING& output);
-extern UTF_STRING* ustring_to_utf_string(const ustring& input, UTF_STRING& output, const UNICODE_FORMAT format);
+extern utf_string* ustring_to_utf_string(const ustring& input, const UNICODE_FORMAT format);
+extern utf_string* ustring_to_utf_string(const ustring& input, utf_string& output);
+extern utf_string* ustring_to_utf_string(const ustring& input, utf_string& output, const UNICODE_FORMAT format);
 
 #endif /* __cplusplus */
 #endif /* !TOOLKIT__UNICODE_H__INCLUDED */
