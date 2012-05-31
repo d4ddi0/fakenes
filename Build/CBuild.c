@@ -44,6 +44,15 @@ exit $?
 * first name. I got the name from the fact that it uses pure C, and only C. ;)
 */
 
+#if defined(__unix__) && defined(__STRICT_ANSI__)
+/* Include strcasecmp, strncasecmp, and strdup */
+/* (strdup may only be available for BSD in earlier glibc, not POSIX). */
+/* This should be done before any other headers are included. */
+//#define _BSD_SOURCE 1
+#define _POSIX_C_SOURCE 200112L
+#include <strings.h>
+#endif
+
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
