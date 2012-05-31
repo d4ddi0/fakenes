@@ -47,16 +47,27 @@ enum UNICODE_FORMAT {
    /* This represents the most efficient (performance-wise) format. */
    UNICODE_FORMAT_FASTEST  = UNICODE_FORMAT_UTF32,
    /* This represents the most compatible format. */
-   UNICODE_FORMAT_SAFEST   = UNICODE_FORMAT_ASCII
-};
+   UNICODE_FORMAT_SAFEST   = UNICODE_FORMAT_ASCII,
 
+   /* This represents the native format of the platform. In other words, this
+    * is what it expects for filenames, console-printed text, etc. */
+#if defined(SYSTEM_LINUX) || defined(SYSTEM_MACOSX)
+   UNICODE_FORMAT_NATIVE = UNICODE_FORMAT_UTF8
+#elif defined(SYSTEM_WINDOWS)
+   /* Windows 2000 and above only. */
+   /* TODO: Add a test in the build system for Win9x and WinNT. */
+   UNICODE_FORMAT_NATIVE = UNICODE_FORMAT_UTF16
+#else
+   UNICODE_FORMAT_NATIVE = UNICODE_FORMAT_ASCII
+#endif
+};
 /* A single Unicode character. */
 typedef UINT32 UCCHAR;
 /* A stream of Unicode data. Each character may be made up of multiple
    segments each represented by UTF_DATA (an unsigned byte). */
 typedef UINT8 UTF_DATA; 
 
-typedef _UTF_STRING {
+typedef struct _UTF_STRING {
    UNICODE_FORMAT format;
    UTF_DATA* data;
    SIZE size, length;
