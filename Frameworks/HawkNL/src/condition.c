@@ -20,6 +20,11 @@
   Or go to http://www.gnu.org/copyleft/lgpl.html
 */
 
+#ifndef NL_WIN_THREADS
+/* Include timespec (POSIX.1b 1993) */
+#define _POSIX_C_SOURCE 199309L
+#endif
+
 #include "nlinternal.h"
 
 #ifdef NL_WIN_THREADS

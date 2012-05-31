@@ -20,6 +20,16 @@
   Or go to http://www.gnu.org/copyleft/lgpl.html
 */
 
+#ifndef WINDOWS_APP
+/* Include gethostname */
+#define _POSIX_C_SOURCE 200112L
+/* Include ip_mreq */
+#include <netinet/in.h>
+typedef struct ip_mreq {
+	struct in_addr imr_multiaddr;
+	struct in_addr imr_interface;
+} IP_MREQ, *PIP_MREQ;
+#endif
 
 #define FD_SETSIZE      8192
 

@@ -20,6 +20,11 @@
   Or go to http://www.gnu.org/copyleft/lgpl.html
 */
 
+#ifndef HL_WINDOWS_APP
+/* Include nanosleep (POSIX.1b 1993) */
+#define _POSIX_C_SOURCE 199309L
+#endif
+
 #include "htinternal.h"
 
 /* These macros allow integers to be stored in a void pointer. */

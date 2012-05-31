@@ -20,6 +20,12 @@
   Or go to http://www.gnu.org/copyleft/lgpl.html
 */
 
+#ifndef HT_WIN_THREADS
+/* Include pthread_mutexattr_settype */
+/* Include PTHREAD_MUTEX_ERRORCHECK */
+#define _XOPEN_SOURCE 500
+#endif
+
 #include "htinternal.h"
 
 #ifdef HT_WIN_THREADS
