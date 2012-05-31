@@ -1890,7 +1890,7 @@ static void DrawMessages()
    // Determine if we are in full chat mode.
    const bool chatMode = input_mode & INPUT_MODE_CHAT;
 
-   for(sized i = 0; i < history.size(); i++) {
+   for(extent i = 0; i < history.size(); i++) {
       const Message& message = history[i];
       // Skip empty lines for a more compact layout.
       if(ustrlen(message.text) == 0)

@@ -250,14 +250,14 @@ SIZE utf_stricmp(const UTF_STRING* first, const UTF_STRING* second)
    ustring s1 = ustring_from_utf_string(*first);
    ustring s2 = ustring_from_utf_string(*second);
 
-   sized length = s1.length();
-   for(sized i = 0; i < length; i++) {
+   extent length = s1.length();
+   for(extent i = 0; i < length; i++) {
       ucchar& c = s1[i];
       c = toupper(c);
    }
 
    length = s2.length();
-   for(sized i = 0; i < length; i++) {
+   for(extent i = 0; i < length; i++) {
       ucchar& c = s2[i];
       c = toupper(c);
    }
@@ -303,28 +303,28 @@ SIZE utf_strlen(const UTF_STRING* utf_string)
    any supported Unicode format.
 */
 template<typename TYPE>
-void Expand(const utf_data* input, ustring& output, const sized size)
+void Expand(const utf_data* input, ustring& output, const extent size)
 {
    const TYPE* buffer = (const TYPE*)data;
-   const sized length = size / sizeof(TYPE);
+   const extent length = size / sizeof(TYPE);
 
-   for(sized i = 0; i < length; i++)
+   for(extent i = 0; i < length; i++)
       output += (ucchar)buffer[i];
 }
 
 template<typename TYPE>
-void Expand(const utf_data* input, vector<TYPE>& output, const sized size)
+void Expand(const utf_data* input, vector<TYPE>& output, const extent size)
 {
    const TYPE* buffer = (const TYPE*)data;
-   const sized length = size / sizeof(TYPE);
+   const extent length = size / sizeof(TYPE);
 
-   for(sized i = 0; i < length; i++) {
+   for(extent i = 0; i < length; i++) {
       const TYPE c = buffer[i];
       output.push_back(c);
    }
 }
 
-ustring ustring_from_data(const utf_data* data, const UNICODE_FORMAT format, const sized size)
+ustring ustring_from_data(const utf_data* data, const UNICODE_FORMAT format, const extent size)
 {
    Safeguard(data);
    Safeguard(size > 0);
@@ -417,7 +417,7 @@ ustring ustring_from_c_string(const char* input)
 /* This version allows you to specify the length of the input string
    manually, which can be safer.
 */
-ustring ustring_from_c_string(const char* input, const sized size)
+ustring ustring_from_c_string(const char* input, const extent size)
 {
    Safeguard(input);
    Safeguard(size > 0);
@@ -445,14 +445,14 @@ ustring ustring_from_utf_string(const utf_string& input)
    and updates the 'size' parameter to reflect how much memory was
    allocated to store the encoded data.
 */
-utf_data* ustring_to_data(const ustring& input, const UNICODE_FORMAT format, sized& size)
+utf_data* ustring_to_data(const ustring& input, const UNICODE_FORMAT format, extent& size)
 {
-   const sized length = input.length();
+   const extent length = input.length();
    vector<utf_data> output;
 
    switch(format) {
       case UNICODE_FORMAT_ASCII: {
-         for(sized i = 0; i < length; i++) {
+         for(extent i = 0; i < length; i++) {
             const ucchar& c = input[i];
 
             const utf_data data = (c <= 0x7F) ? c : '?';
@@ -473,7 +473,7 @@ utf_data* ustring_to_data(const ustring& input, const UNICODE_FORMAT format, siz
          utf8::utf32to8(input.begin(), input.end(), back_inserter(temp));
          utf8::utf8to16(temp.begin(), temp.end(), back_inserter(temp2));
 
-         for(sized i = 0; i < length; i++) {
+         for(extent i = 0; i < length; i++) {
             const ucchar& c = temp2[i];
 
             const utf_data d0 = (c >> 8) & 0xFF;
@@ -487,7 +487,7 @@ utf_data* ustring_to_data(const ustring& input, const UNICODE_FORMAT format, siz
       }
 
       case UNICODE_FORMAT_UTF32: {
-         for(sized i = 0; i < length; i++) {
+         for(extent i = 0; i < length; i++) {
             const ucchar& c = input[i];
 
             const utf_data d0 = (c >> 24) & 0xFF;
@@ -510,7 +510,7 @@ utf_data* ustring_to_data(const ustring& input, const UNICODE_FORMAT format, siz
       }
    }
 
-   const sized new_size = output.size();
+   const extent new_size = output.size();
    const utf_data* copy = new utf_data[new_size];
    memcpy(copy, &output[0], new_size);
    output.clear();
@@ -524,14 +524,14 @@ utf_data* ustring_to_data(const ustring& input, const UNICODE_FORMAT format, siz
    the buffer can be limited, although if not enough space is
    available the encoding may break and become invalid.
 */
-utf_data* ustring_to_data(const ustring& input, utf_data* output, const UNICODE_FORMAT format, sized& size)
+utf_data* ustring_to_data(const ustring& input, utf_data* output, const UNICODE_FORMAT format, extent& size)
 {
    Safeguard(output);
    Safeguard(size > 0);
 
-   sized temp_size = 0;
+   extent temp_size = 0;
    const utf_data* temp = ustring_to_data(input, format, temp_size);
-   const sized count = MIN2(size, temp_size);
+   const extent count = MIN2(size, temp_size);
    memcpy(output, temp, count);
    delete[] temp;
 
@@ -544,10 +544,10 @@ utf_data* ustring_to_data(const ustring& input, utf_data* output, const UNICODE_
 */
 std::string ustring_to_string(const ustring& input)
 {
-   sized size;
+   extent size;
    utf_data* data = ustring_to_data(input, UNICODE_FORMAT_ASCII, size);
    string output = string();
-   for(sized i = 0; i < size; i++) {
+   for(extent i = 0; i < size; i++) {
       const char c = data[i];
       output += c;
    }
@@ -563,7 +563,7 @@ char* ustring_to_c_string(const ustring& input)
 {
 }
 
-char* ustring_to_c_string(const ustring& input, char* output, sized& size)
+char* ustring_to_c_string(const ustring& input, char* output, extent& size)
 {
 }
 

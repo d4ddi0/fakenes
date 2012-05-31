@@ -20,7 +20,7 @@ COREContext core;
 CORETime timeStep = 0;
 
 // Size of the time table; or more specifically the number of opcodes.
-const sized TimeTableSize = 0xFF + 1;
+const extent TimeTableSize = 0xFF + 1;
 
 /* Table containing the execution times of each opcode. This is actually expanded into
    master clock cycles by BuildTimeTable() before use. */
@@ -202,7 +202,7 @@ CORETime GetTimeElapsed(const CORETime timestamp) {
 /* This rebuilds the internal time table. you need to call this function any time
    CPU_CLOCK_MULTIPLIER changes (e.g from going from NTSC to PAL). */
 void BuildTimeTable() {
-	for(sized i = 0; i < TimeTableSize; i++)
+	for(extent i = 0; i < TimeTableSize; i++)
 		timeTable[i] = TimeTableBase[i] * CPU_CLOCK_MULTIPLIER;
 
 	timeStep = 1 * CPU_CLOCK_MULTIPLIER;

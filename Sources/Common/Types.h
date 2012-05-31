@@ -186,10 +186,12 @@ typedef fakenes_int32_t int32;
 
 typedef fakenes_pair_t byte_pair;
 typedef fakenes_real_t real;
-typedef fakenes_size_t sized;
+/* Sizes in the C++ portions of the program are refered to as extents.
+   This is because 'size' is often used for variable names. */
+typedef fakenes_size_t extent;
 typedef fakenes_uint_t uint;
 
-/* This should be used instead of fix/fixf() when possible. */
+// This should be used instead of fix/fixf() when possible.
 template<typename TYPE>
 constant_function TYPE Clamp(TYPE value, const TYPE minimum, const TYPE maximum)
 {
