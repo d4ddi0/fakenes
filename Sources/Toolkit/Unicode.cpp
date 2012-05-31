@@ -27,7 +27,6 @@ using namespace std;
 */
 UTF_STRING* create_utf_string(const UNICODE_FORMAT format)
 {
-   // Allocate memory.
    UTF_STRING* utf_string = new UTF_STRING;
    if(!utf_string) {
       Warning("Out of memory.");
@@ -42,10 +41,12 @@ UTF_STRING* create_utf_string(const UNICODE_FORMAT format)
 
 /* This creates a new string from a block of character data. The data
    may be in any supported Unicode format, and a check will first be
-   made to ensure that it is valid.
+   made to ensure that it is valid. The size parameter defines the
+   length of the string in bytes, not characters.
 
    Note: You can also use UNICODE_FORMAT_ASCII combined with a cast to
-   convert from standard C strings to UTF.
+   convert from standard C strings to UTF. However, you shouldn't
+   include the null termination character in the length.
 
    Returns the new string upon sucess, otherwise a null value.
 */
@@ -124,10 +125,10 @@ UTF_STRING* clear_utf_string(UTF_STRING* utf_string)
    utf_string->length = 0;
 }
 
-/* This converts a string one encoding to another. If some characters
-   cannot be properly represented in the new format, they will be lost.
-   Traditionally, this results in them being replaced with an ASCII
-   question mark (?) character code 0x3F.
+/* This converts a string from one encoding to another. If some
+   characters cannot be properly represented in the new format, they
+   will be lost. Traditionally, this results in them being replaced
+   with an ASCII question mark (?) character code 0x3F.
 
    If an error occurs, the string is left unmodified and a null value
    is returned instead of the converted string.
@@ -173,7 +174,7 @@ UCCHAR utf_putc(UTF_STRING* utf_string, const SIZE position, const UCCHAR code)
    if(position >= utf_string->length)
       return 0;
 
-   ustring slave = ustring_form_utf_string(*utf_string);
+   ustring slave = ustring_from_utf_string(*utf_string);
    if(position >= slave.length())
       return 0;
 
@@ -268,7 +269,7 @@ SIZE utf_stricmp(const UTF_STRING* first, const UTF_STRING* second)
 /* This creates a copy of a string. The new copy must be deleted when
    you are done with it, just like the original. As this creates an
    entirely new copy of the same format, it is not vulnerable to the
-   encoding limtations of utf_strcpy(). */
+   encoding limtations of utf_strcpy().
 
    Returns the duplicated string, or a null value on error.
 */
@@ -415,14 +416,16 @@ ustring ustring_from_c_string(const char* input)
 }
 
 /* This version allows you to specify the length of the input string
-   manually, which can be safer.
+   manually, which can be safer. As this function is designed to accept
+   C-style strings, rather than raw data, it assumes that 'size'
+   includes a null termination character.
 */
 ustring ustring_from_c_string(const char* input, const extent size)
 {
    Safeguard(input);
    Safeguard(size > 0);
 
-   return ustring_from_data((const utf_data*)input, UNICODE_FORMAT_ASCII, size);
+   return ustring_from_data((const utf_data*)input, UNICODE_FORMAT_ASCII, size - 1);
 }
 
 /* This creates a ustring from a UTF_STRING. This is mainly used by the
@@ -557,14 +560,29 @@ std::string ustring_to_string(const ustring& input)
 }
 
 /* This converts a ustring to a C string, using the ASCII character
-   encoding. For a different encoding, use ustring_to_data().
-*/
-char* ustring_to_c_string(const ustring& input)
-{
-}
+   encoding. For a different encoding, use ustring_to_data(). The
+   resulting C-style string will always be null terminated, even if
+   the output buffer is not large enough.
 
+   Returns the actual number of characters written to the output
+   buffer, including thet null termination character.
+*/
 char* ustring_to_c_string(const ustring& input, char* output, extent& size)
 {
+   Safeguard(output);
+
+   if( size == 0 )
+      return output;
+
+   const std::string converted = ustring_to_string(input);
+   const extent count = MIN2(converted.length(), size - 1);
+   for(extent i = 0; i < count; i++)
+      output[i] = input[i];
+
+   output[i] = 0;
+
+   size = count + 1;
+   return output;
 }
 
 utf_string* ustring_to_utf_string(const ustring& input, const UNICODE_FORMAT format)
