@@ -15,8 +15,8 @@ exit $?
 */
 
 /* This a heavily modified version of CBuild for FakeNES. Notable changes
-* include better support for Windows and DOS style paths, code cleanups and
-* an extended scripting system. */
+ * include better support for Windows and DOS style paths, code cleanups and
+ * an extended scripting system. */
 
 /* This is the default file opened by CBuild. */
 #define DEFAULT_FILE "Build/CBuild.cfg"
@@ -48,7 +48,7 @@ exit $?
 /* Include strcasecmp, strncasecmp, and strdup */
 /* (strdup may only be available for BSD in earlier glibc, not POSIX). */
 /* This should be done before any other headers are included. */
-//#define _BSD_SOURCE 1
+#define _BSD_SOURCE 1
 #define _POSIX_C_SOURCE 200112L
 #include <strings.h>
 #endif

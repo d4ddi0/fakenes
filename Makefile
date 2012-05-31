@@ -37,7 +37,7 @@ ifdef VERBOSE
 endif
 
 # Note that these flags are only used to compile CBuild.
-CFLAGS = -pedantic -O2 -g -W -Wall
+CFLAGS = -std=c99 -pedantic -Os -g -Wall -Wextra
 
 INSTALL_PATH = /usr/bin
 
