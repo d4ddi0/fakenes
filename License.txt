@@ -1,7 +1,7 @@
 Copyright © 2001-2007 FakeNES Team
 Copyright © 2001-2007 FakeNES Contributors
 Copyright © 2001-2004 Charles Bilyue'
-Copyright © 2011 Digital Carat
+Copyright © 2011-2012 Digital Carat Group
 Portions Copyright © 2003 MaxSt ( maxst@hiend3d.com )
 Portions Copyright © 2006 Shay Green
 

@@ -300,9 +300,6 @@ SIZE utf_strlen(const UTF_STRING* utf_string)
 // MODERN INTERFACE
 // --------------------------------------------------------------------------------
 
-/* This creates a ustring from a block of data. The data may be in
-   any supported Unicode format.
-*/
 template<typename TYPE>
 void Expand(const utf_data* input, ustring& output, const extent size)
 {
@@ -325,6 +322,9 @@ void Expand(const utf_data* input, vector<TYPE>& output, const extent size)
    }
 }
 
+/* This creates a ustring from a block of data. The data may be in
+   any supported Unicode format.
+*/
 ustring ustring_from_data(const utf_data* data, const UNICODE_FORMAT format, const extent size)
 {
    Safeguard(data);
