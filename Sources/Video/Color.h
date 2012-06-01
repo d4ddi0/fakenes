@@ -31,40 +31,40 @@ extern "C" {
 #define GREEN_CSHIFTS_16   5
 #define BLUE_CSHIFTS_16    0
 
-EXPRESS CONSTANT_FUNCTION UINT16 color_mix_16(const UINT16 c1, const UINT16 c2)
+EXPRESS_FUNCTION CONSTANT_FUNCTION UINT16 color_mix_16(const UINT16 c1, const UINT16 c2)
 {
    return ((((c1 & RED_CMASK_16) + (c2 & RED_CMASK_16)) >> 1) & RED_CMASK_16) |
           ((((c1 & GREEN_CMASK_16) + (c2 & GREEN_CMASK_16)) >> 1) & GREEN_CMASK_16) |
           ((((c1 & BLUE_CMASK_16) + (c2 & BLUE_CMASK_16)) >> 1) & BLUE_CMASK_16);
 }
 
-EXPRESS CONSTANT_FUNCTION UINT16 color_mix_16_fast(const UINT16 c1, const UINT16 c2)
+EXPRESS_FUNCTION CONSTANT_FUNCTION UINT16 color_mix_16_fast(const UINT16 c1, const UINT16 c2)
 {
    return (c1 + c2) >> 1;
 }
 
-EXPRESS CONSTANT_FUNCTION UINT16 _color_pack_16(const int r, const int g, const int b)
+EXPRESS_FUNCTION CONSTANT_FUNCTION UINT16 _color_pack_16(const int r, const int g, const int b)
 {
    return ((r >> RED_SHIFTS_16) << RED_CSHIFTS_16) |
           ((g >> GREEN_SHIFTS_16) << GREEN_CSHIFTS_16) |
           ((b >> BLUE_SHIFTS_16) << BLUE_CSHIFTS_16);
 }
 
-EXPRESS CONSTANT_FUNCTION void _color_unpack_16(const UINT16 c, int *r, int *g, int *b)
+EXPRESS_FUNCTION CONSTANT_FUNCTION void _color_unpack_16(const UINT16 c, int *r, int *g, int *b)
 {
    *r = ((c & RED_CMASK_16) >> RED_CSHIFTS_16) << RED_SHIFTS_16;
    *g = ((c & GREEN_CMASK_16) >> GREEN_CSHIFTS_16) << GREEN_SHIFTS_16;
    *b = ((c & BLUE_CMASK_16) >> BLUE_CSHIFTS_16) << BLUE_SHIFTS_16;
 }
 
-EXPRESS PURE_FUNCTION UINT16 color_pack_16(const int r, const int g, const int b)
+EXPRESS_FUNCTION PURE_FUNCTION UINT16 color_pack_16(const int r, const int g, const int b)
 {
    return video__swap_rgb ?
       _color_pack_16(b, g, r) : _color_pack_16(r, g, b);
 
 }
 
-EXPRESS PURE_FUNCTION void color_unpack_16(const UINT16 c, int *r, int *g, int *b)
+EXPRESS_FUNCTION PURE_FUNCTION void color_unpack_16(const UINT16 c, int *r, int *g, int *b)
 {
    if(video__swap_rgb)
       _color_unpack_16(c, b, g, r);
@@ -72,7 +72,7 @@ EXPRESS PURE_FUNCTION void color_unpack_16(const UINT16 c, int *r, int *g, int *
       _color_unpack_16(c, r, g, b);
 }
 
-EXPRESS CONSTANT_FUNCTION UINT16 color_add_16(const UINT16 c1, const UINT16 c2)
+EXPRESS_FUNCTION CONSTANT_FUNCTION UINT16 color_add_16(const UINT16 c1, const UINT16 c2)
 {
    const UINT16 lsb_mask = 0x821;
    const UINT16 msb_mask = 0x8410;
@@ -89,7 +89,7 @@ EXPRESS CONSTANT_FUNCTION UINT16 color_add_16(const UINT16 c1, const UINT16 c2)
 }
 
 /* Meh, this is slow, but oh well. */
-EXPRESS PURE_FUNCTION UINT16 color_brighten_16(const UINT16 c, const int amount)
+EXPRESS_FUNCTION PURE_FUNCTION UINT16 color_brighten_16(const UINT16 c, const int amount)
 {
    int r, g, b;
    color_unpack_16(c, &r, &g, &b);
@@ -104,7 +104,7 @@ EXPRESS PURE_FUNCTION UINT16 color_brighten_16(const UINT16 c, const int amount)
    return color_pack_16(r, g, b);
 }
 
-EXPRESS PURE_FUNCTION UINT16 color_darken_16(const UINT16 c, const int amount)
+EXPRESS_FUNCTION PURE_FUNCTION UINT16 color_darken_16(const UINT16 c, const int amount)
 {
    int r, g, b;
    color_unpack_16(c, &r, &g, &b);

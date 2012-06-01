@@ -6,7 +6,7 @@
    any modification or use of this software. */
 
 // This executes a single instruction or interrupt.
-static exclusive void T(Step)() {
+static discrete_function void T(Step)() {
 	// Check if an interupt is pending.
 	if(T(InterruptPending)()) {
 		// Get the profile of the first interrupt in the queue.

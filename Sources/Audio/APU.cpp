@@ -73,7 +73,7 @@ static force_inline cpu_time_t process(const cpu_time_t time);
 static force_inline void mix(void);
 static force_inline void filter(real& sample, APULPFilter *lpEnv, APUDCFilter* dcEnv);
 static force_inline void amplify(real& sample);
-express void enqueue(real& sample);
+express_function void enqueue(real& sample);
 
 // Channel indices.
 enum {
@@ -244,7 +244,7 @@ static void apu_load_envelope(APUEnvelope& env, FILE_CONTEXT* file, const int ve
 }
 
 // Sweep unit for squares.
-static exclusive void apu_sweep(APUChannel& chan, APUSweep& sweep)
+static discrete_function void apu_sweep(APUChannel& chan, APUSweep& sweep)
 {
    if(sweep.timer > 0) {
       sweep.timer--;
@@ -318,7 +318,7 @@ static force_inline void apu_update_length_counter(APUWaveformChannel& chan)
       chan.length--;
 }
 
-static exclusive void apu_update_square(APUSquare& chan, const FLAGS update_flags)
+static discrete_function void apu_update_square(APUSquare& chan, const FLAGS update_flags)
 {
    if(update_flags & UPDATE_ENVELOPE)
       apu_envelope(chan, chan.envelope);
@@ -350,7 +350,7 @@ static exclusive void apu_update_square(APUSquare& chan, const FLAGS update_flag
    }
 }
 
-static exclusive void apu_save_square(const APUSquare& chan, FILE_CONTEXT* file, const int version)
+static discrete_function void apu_save_square(const APUSquare& chan, FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -378,7 +378,7 @@ static exclusive void apu_save_square(const APUSquare& chan, FILE_CONTEXT* file,
    file->write_byte(file, chan.duty_cycle);
 }
 
-static exclusive void apu_load_square(APUSquare& chan, FILE_CONTEXT* file, const int version)
+static discrete_function void apu_load_square(APUSquare& chan, FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -401,7 +401,7 @@ static exclusive void apu_load_square(APUSquare& chan, FILE_CONTEXT* file, const
 }
 
 // Linear counter for triangle
-static exclusive void apu_update_linear_counter(APUTriangle& chan)
+static discrete_function void apu_update_linear_counter(APUTriangle& chan)
 {
    /* When clocked by the frame sequencer, the following actions occur in order:
 
@@ -418,7 +418,7 @@ static exclusive void apu_update_linear_counter(APUTriangle& chan)
       chan.halt_counter = false;          
 }
 
-static exclusive void apu_update_triangle(APUTriangle& chan, const FLAGS update_flags)
+static discrete_function void apu_update_triangle(APUTriangle& chan, const FLAGS update_flags)
 {
    if(update_flags & UPDATE_LENGTH)
       apu_update_length_counter(chan);
@@ -455,7 +455,7 @@ static exclusive void apu_update_triangle(APUTriangle& chan, const FLAGS update_
    }
 }
 
-static exclusive void apu_save_triangle(const APUTriangle& chan, FILE_CONTEXT* file, const int version)
+static discrete_function void apu_save_triangle(const APUTriangle& chan, FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -477,7 +477,7 @@ static exclusive void apu_save_triangle(const APUTriangle& chan, FILE_CONTEXT* f
    file->write_byte(file, chan.cached_linear_length);
 }
 
-static exclusive void apu_load_triangle(APUTriangle& chan, FILE_CONTEXT* file, const int version)
+static discrete_function void apu_load_triangle(APUTriangle& chan, FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -495,7 +495,7 @@ static exclusive void apu_load_triangle(APUTriangle& chan, FILE_CONTEXT* file, c
    chan.cached_linear_length = file->read_byte(file);
 }
 
-static exclusive void apu_update_noise(APUNoise& chan, const FLAGS update_flags)
+static discrete_function void apu_update_noise(APUNoise& chan, const FLAGS update_flags)
 {
    if(update_flags & UPDATE_ENVELOPE)
       apu_envelope(chan, chan.envelope);
@@ -529,7 +529,7 @@ static exclusive void apu_update_noise(APUNoise& chan, const FLAGS update_flags)
    }
 }
 
-static exclusive void apu_save_noise(const APUNoise& chan, FILE_CONTEXT* file, const int version)
+static discrete_function void apu_save_noise(const APUNoise& chan, FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -555,7 +555,7 @@ static exclusive void apu_save_noise(const APUNoise& chan, FILE_CONTEXT* file, c
    file->write_word(file, chan.shift16);
 }
 
-static exclusive void apu_load_noise(APUNoise& chan, FILE_CONTEXT* file, const int version)
+static discrete_function void apu_load_noise(APUNoise& chan, FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -582,7 +582,7 @@ static force_inline void apu_reload_dmc(APUDMC& chan)
    chan.dma_length = chan.cached_dmalength;
 }
 
-static exclusive void apu_update_dmc(APUDMC& chan)
+static discrete_function void apu_update_dmc(APUDMC& chan)
 {
    // -- Memory reader --
    // Any time the sample buffer is in an empty state and bytes remaining is not zero, the following occur:
@@ -725,7 +725,7 @@ static void apu_predict_dmc_irq(APUDMC& chan, const cpu_time_t cycles)
    chan = saved_chan;
 }
 
-static exclusive void apu_save_dmc(const APUDMC& chan, FILE_CONTEXT* file, const int version)
+static discrete_function void apu_save_dmc(const APUDMC& chan, FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -758,7 +758,7 @@ static exclusive void apu_save_dmc(const APUDMC& chan, FILE_CONTEXT* file, const
    file->write_boolean(file, chan.irq_occurred);
 }
 
-static exclusive void apu_load_dmc(APUDMC& chan, FILE_CONTEXT* file, const int version)
+static discrete_function void apu_load_dmc(APUDMC& chan, FILE_CONTEXT* file, const int version)
 {
    RT_ASSERT(file);
 
@@ -2090,7 +2090,7 @@ static force_inline void amplify(real& sample)
       sample = 0;
 }
 
-express void enqueue(real& sample)
+express_function void enqueue(real& sample)
 {
    audio_queue_sample(sample);
 }

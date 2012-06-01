@@ -7,7 +7,7 @@
 
 /* Checks if an interrupt is pending, either NMI or IRQ. This will not signal an IRQ as pending
    if the interrupt inhibit (I) flag is set in the processor status register. */
-express bool T(InterruptPending)() {
+express_function bool T(InterruptPending)() {
 	// Check if any interrupts are queued, and return if the queue is empty.
 	if(core.interrupts.size() == 0)
 		return false;
@@ -33,7 +33,7 @@ express bool T(InterruptPending)() {
 
 /* Executes a single interrupt and clears it if NMI or single-shot IRQ. Note that if the
    interrupt is an IRQ, it will be executed regardless of I flag state. */
-express void T(Interrupt)(const COREInterruptType type) {
+express_function void T(Interrupt)(const COREInterruptType type) {
 	// Check if this is a NMI or single-shot IRQ.
 	if((type == COREInterruptNMI) || (type == COREInterruptIRQ)) {
 		// Clear and acknowledge the interrupt.

@@ -15,21 +15,22 @@ extern "C" {
    However, these days LOAD_BOOLEAN and SAVE_BOOLEAN should be used instead. */
 #undef TRUE
 #undef FALSE
-#define TRUE  1
-#define FALSE 0
+#define TRUE	1
+#define FALSE	0
 
 /* This resolves a boolean condition to an integral value. */
-#define TRUE_OR_FALSE(_CONDITION) ( (_CONDITION) ? TRUE : FALSE )
-#define ZERO_OR_ONE(_CONDITION) ( (_CONDITION) ? 1 : 0 )
+#define TRUE_OR_FALSE(_CONDITION)	( (_CONDITION) ? TRUE : FALSE )
+#define ZERO_OR_ONE(_CONDITION)		( (_CONDITION) ? 1 : 0 )
 
 /* Usually NULL is defined as (void*)0, however it is often more useful for it to just
    equal zero, since it is compatible with pointers either way. */
 #undef NULL
-#define NULL 0
+#define NULL	0
+#define NULLPTR (void*)0
 
 #ifdef __GNUC__
-#   define CONSTANT_FUNCTION __attribute__((const))
-#   define PURE_FUNCTION __attribute__((pure)) 
+#   define CONSTANT_FUNCTION	__attribute__((const))
+#   define PURE_FUNCTION	__attribute__((pure)) 
 #else
 #   define CONSTANT_FUNCTION
 #   define PURE_FUNCTION
@@ -38,13 +39,13 @@ extern "C" {
 #ifdef __cplusplus
 } // extern "C"
 
-#define true  (TRUE)
-#define false (FALSE)
+#define true	(TRUE)
+#define false	(FALSE)
+#define null	(NULL)
+#define nullptr	(NULLPTR)
 
-#define null (NULL)
-
-#define constant_function CONSTANT_FUNCTION
-#define pure_function PURE_FUNCTION
+#define constant_function	CONSTANT_FUNCTION
+#define pure_function		PURE_FUNCTION
 
 #endif /* __cplusplus */
 #endif /* !COMMON__GLOBAL_H__INCLUDED */

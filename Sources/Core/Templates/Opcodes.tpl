@@ -57,7 +57,7 @@
 #define BEGIN(_Code)	case _Code: {
 #define END		break; }
 
-static exclusive void T(ParseOpcode)(const uint8 opcode) {
+static discrete_function void T(ParseOpcode)(const uint8 opcode) {
 	switch(opcode) {
 		/* ADC (ADd with Carry)
 		   MODE           SYNTAX       HEX LEN TIM

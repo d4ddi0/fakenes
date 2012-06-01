@@ -44,7 +44,7 @@
 /* *** ADC *** */
 /* *********** */
 // Note: Decimal mode is not supported by the 2A03, and thus is not implemented here.
-express void T(InstructionADC)(WithData) {
+express_function void T(InstructionADC)(WithData) {
 	const uint16 result = data + _A + _CF;
 	const uint8 masked = result & 0xFF;
 	T(UpdateCF)(result > 0xFF);
@@ -57,7 +57,7 @@ express void T(InstructionADC)(WithData) {
 /* *********** */
 /* *** AND *** */
 /* *********** */
-express void T(InstructionAND)(WithData) {
+express_function void T(InstructionAND)(WithData) {
 	_A = data & _A;
 	T(UpdateZF)(_A);
 	T(UpdateNF)(_A);
@@ -95,7 +95,7 @@ Embeddable bool T(InstructionBVS)() { return T(InstructionBxx)(_VF, 1); }	// Ove
 /* *********** */
 /* *** BIT *** */
 /* *********** */
-express void T(InstructionBIT)(WithData) {
+express_function void T(InstructionBIT)(WithData) {
 	T(UpdateZF)(data & _A);
 	T(UpdateVF)(Bit6 & data);
 	T(UpdateNF)(data);
@@ -114,7 +114,7 @@ express void T(InstructionBIT)(WithData) {
    5  $0100,S  W  push P on stack (with B flag set), decrement S
    6   $FFFE   R  fetch PCL
    7   $FFFF   R  fetch PCH */
-express void T(InstructionBRK)() {
+express_function void T(InstructionBRK)() {
 	T(WriteStack)(_PCH);			// Clock 3
 	T(WriteStack)(_PCL);			// Clock 4
 	const bool interrupted = T(InterruptPending)();
@@ -141,32 +141,32 @@ express void T(InstructionBRK)() {
 /* ************************** */
 /* *** CLC, CLD, CLI, CLV *** */
 /* ************************** */
-express void T(FlagCLx)(WithFlag) {
+express_function void T(FlagCLx)(WithFlag) {
 	SetFlag(flag, false);
 }
 
-express void T(InstructionCLC)() { T(FlagCLx)(_CF); }
-express void T(InstructionCLD)() { T(FlagCLx)(_DF); }
-express void T(InstructionCLV)() { T(FlagCLx)(_VF); }
+express_function void T(InstructionCLC)() { T(FlagCLx)(_CF); }
+express_function void T(InstructionCLD)() { T(FlagCLx)(_DF); }
+express_function void T(InstructionCLV)() { T(FlagCLx)(_VF); }
 
 // The effect of CLI is delayed by one instruction. See Core.hpp for more information.
-express void T(InstructionCLI)() {
+express_function void T(InstructionCLI)() {
 	core.afterCLI = true;
 }
 
 /* ********************* */
 /* *** CMP, CPX, CPY *** */
 /* ********************* */
-express void T(RegisterCPx)(const WithRegister, WithData) {
+express_function void T(RegisterCPx)(const WithRegister, WithData) {
 	const uint16 result = register - data;
 	T(UpdateZF)(result & 0xFF);
 	T(UpdateNF)(result);
 	T(UpdateCF)(result < 0x100);
 }
 
-express void T(InstructionCMP)(WithData) { T(RegisterCPx)(_A, data); }
-express void T(InstructionCPX)(WithData) { T(RegisterCPx)(_X, data); }
-express void T(InstructionCPY)(WithData) { T(RegisterCPx)(_Y, data); }
+express_function void T(InstructionCMP)(WithData) { T(RegisterCPx)(_A, data); }
+express_function void T(InstructionCPX)(WithData) { T(RegisterCPx)(_X, data); }
+express_function void T(InstructionCPY)(WithData) { T(RegisterCPx)(_Y, data); }
 
 /* ********************* */
 /* *** DEC, DEX, DEY *** */
@@ -178,19 +178,19 @@ Embeddable FromVariable T(InstructionDEC)(WithVariable) {
 	return variable;
 }
 
-express void T(RegisterDEx)(WithRegister) {
+express_function void T(RegisterDEx)(WithRegister) {
 	register--;
 	T(UpdateZF)(register);
 	T(UpdateNF)(register);
 }
 
-express void T(InstructionDEX)() { T(RegisterDEx)(_X); }
-express void T(InstructionDEY)() { T(RegisterDEx)(_Y); }
+express_function void T(InstructionDEX)() { T(RegisterDEx)(_X); }
+express_function void T(InstructionDEY)() { T(RegisterDEx)(_Y); }
 
 /* *********** */
 /* *** EOR *** */
 /* *********** */
-express void T(InstructionEOR)(WithData) {
+express_function void T(InstructionEOR)(WithData) {
     	_A = data ^ _A;
 	T(UpdateZF)(_A);
 	T(UpdateNF)(_A);
@@ -206,14 +206,14 @@ Embeddable FromVariable T(InstructionINC)(WithVariable) {
 	return variable;
 }
 
-express void T(RegisterINx)(WithRegister) {
+express_function void T(RegisterINx)(WithRegister) {
 	register++;
 	T(UpdateZF)(register);
 	T(UpdateNF)(register);
 }
 
-express void T(InstructionINX)() { T(RegisterINx)(_X); }
-express void T(InstructionINY)() { T(RegisterINx)(_Y); }
+express_function void T(InstructionINX)() { T(RegisterINx)(_X); }
+express_function void T(InstructionINY)() { T(RegisterINx)(_Y); }
 
 /* *********** */
 /* *** JMP *** */
@@ -222,7 +222,7 @@ express void T(InstructionINY)() { T(RegisterINx)(_Y); }
     #  address R/W description
     2    PC     R  fetch low address byte, increment PC
     3    PC     R  copy low address byte to PCL, fetch high address byte to PCH */
-express void T(InstructionJMP1)() {
+express_function void T(InstructionJMP1)() {
 	const uint8 lowByte = T(Fetch)();	// Clock 2
 	_PCL = lowByte;				// Clock 3
 	_PCH = T(Read)(_PC);			// Clock 3
@@ -234,7 +234,7 @@ express void T(InstructionJMP1)() {
     3     PC      R  fetch pointer address high, increment PC
     4   pointer   R  fetch low address to latch
     5  pointer+1* R  fetch PCH, copy latch to PCL */
-express void T(InstructionJMP2)() {
+express_function void T(InstructionJMP2)() {
 	byte_pair pointer;
 	pointer.bytes.low = T(Fetch)();			// Clock 2
 	pointer.bytes.high = T(Fetch)();		// Clock 3
@@ -252,7 +252,7 @@ express void T(InstructionJMP2)() {
    4  $0100,S  W  push PCH on stack, decrement S
    5  $0100,S  W  push PCL on stack, decrement S
    6    PC     R  copy low address byte to PCL, fetch high address byte to PCH */
-express void T(InstructionJSR)() {	
+express_function void T(InstructionJSR)() {	
 	const uint8 lowByte = T(Fetch)();	// Clock 2
 	T(Clock)();				// Clock 3
 	T(WriteStack)(_PCH);			// Clock 4
@@ -264,15 +264,15 @@ express void T(InstructionJSR)() {
 /* ********************* */
 /* *** LDA, LDX, LDY *** */
 /* ********************* */
-express void T(RegisterLDx)(WithRegister, WithData) {
+express_function void T(RegisterLDx)(WithRegister, WithData) {
 	register = data;
 	T(UpdateZF)(register);
 	T(UpdateNF)(register);
 }
 
-express void T(InstructionLDA)(WithData) { T(RegisterLDx)(_A, data); }
-express void T(InstructionLDX)(WithData) { T(RegisterLDx)(_X, data); }
-express void T(InstructionLDY)(WithData) { T(RegisterLDx)(_Y, data); }
+express_function void T(InstructionLDA)(WithData) { T(RegisterLDx)(_A, data); }
+express_function void T(InstructionLDX)(WithData) { T(RegisterLDx)(_X, data); }
+express_function void T(InstructionLDY)(WithData) { T(RegisterLDx)(_Y, data); }
 
 /* *********** */
 /* *** LSR *** */
@@ -288,13 +288,13 @@ Embeddable FromVariable T(InstructionLSR)(WithVariable) {
 /* *********** */
 /* *** NOP *** */
 /* *********** */
-express void T(InstructionNOP)() {
+express_function void T(InstructionNOP)() {
 }
 
 /* *********** */
 /* *** ORA *** */
 /* *********** */
-express void T(InstructionORA)(WithData) {
+express_function void T(InstructionORA)(WithData) {
 	_A = data | _A;
 	T(UpdateZF)(_A);
 	T(UpdateNF)(_A);
@@ -305,11 +305,11 @@ express void T(InstructionORA)(WithData) {
 /* **************** */
 /* #  address R/W description
    3  $0100,S  W  push register on stack, decrement S */
-express void T(RegisterPHx)(const WithRegister) {
+express_function void T(RegisterPHx)(const WithRegister) {
 	T(WriteStack)(register);	// Clock 3
 }
 
-express void T(InstructionPHA)() {
+express_function void T(InstructionPHA)() {
 	T(RegisterPHx)(_A);
 }
 
@@ -317,7 +317,7 @@ express void T(InstructionPHA)() {
     PHP and BRK both always set bits 4 and 5 of the byte they push on the stack. NMI and IRQ
     both always clear bit 4 and set bit 5 of the byte they push on the stack. Thus, the
     status flags register only has 6 bits, not 8. */
-express void T(InstructionPHP)() {
+express_function void T(InstructionPHP)() {
 	T(PackFlags)();
 	T(RegisterPHx)(_P | COREFlagBreak); 
 }
@@ -328,18 +328,18 @@ express void T(InstructionPHP)() {
 /*  #  address R/W description
     3  $0100,S  R  increment S
     4  $0100,S  R  pull register from stack */
-express void T(RegisterPLx)(WithRegister) {
+express_function void T(RegisterPLx)(WithRegister) {
 	register = T(ReadStack)();	// Clock 3,4-
 	T(Clock)();			// Clock 4
 }
 
-express void T(InstructionPLA)() {
+express_function void T(InstructionPLA)() {
 	T(RegisterPLx)(_A);
 	T(UpdateZF)(_A);
 	T(UpdateNF)(_A);
 }
 
-express void T(InstructionPLP)() {	
+express_function void T(InstructionPLP)() {	
 	T(RegisterPLx)(_P);
 	T(UnpackFlags)();
 }
@@ -374,7 +374,7 @@ Embeddable FromVariable T(InstructionROR)(WithVariable) {
    4  $0100,S  R  pull P from stack, increment S
    5  $0100,S  R  pull PCL from stack, increment S
    6  $0100,S  R  pull PCH from stack */
-express void T(InstructionRTI)() {
+express_function void T(InstructionRTI)() {
 	_P = T(ReadStack)();		// Clock 3,4-
 	T(UnpackFlags)();
 	_PCL = T(ReadStack)();		// Clock 4,5-
@@ -390,7 +390,7 @@ express void T(InstructionRTI)() {
    4  $0100,S  R  pull PCL from stack, increment S
    5  $0100,S  R  pull PCH from stack
    6    PC     R  increment PC */
-express void T(InstructionRTS)() {
+express_function void T(InstructionRTS)() {
 	_PCL = T(ReadStack)();		// Clock 3,4-
 	_PCH = T(ReadStack)();		// Clock 4,5-
 	T(Clock)();			// Clock 5
@@ -401,7 +401,7 @@ express void T(InstructionRTS)() {
 /* *** SBC *** */
 /* *********** */
 // Note: Decimal mode is not supported by the 2A03, and thus is not implemented here.
-express void T(InstructionSBC)(WithData) {
+express_function void T(InstructionSBC)(WithData) {
 	const uint16 result = _A - data - (_CF ? 0 : 1);
 	const uint8 masked = result & 0xFF;
 	T(UpdateCF)(result < 0x100);
@@ -414,40 +414,40 @@ express void T(InstructionSBC)(WithData) {
 /* ********************* */
 /* *** SEC, SED, SEI *** */
 /* ********************* */
-express void T(FlagSEx)(WithFlag) {
+express_function void T(FlagSEx)(WithFlag) {
 	SetFlag(flag, true);
 }
 
-express void T(InstructionSEC)() { T(FlagSEx)(_CF); }
-express void T(InstructionSED)() { T(FlagSEx)(_DF); }
-express void T(InstructionSEI)() { T(FlagSEx)(_IF); }
+express_function void T(InstructionSEC)() { T(FlagSEx)(_CF); }
+express_function void T(InstructionSED)() { T(FlagSEx)(_DF); }
+express_function void T(InstructionSEI)() { T(FlagSEx)(_IF); }
 
 /* ********************* */
 /* *** STA, STY, STX *** */
 /* ********************* */
-express FromRegister T(InstructionSTA)() { return _A; }
-express FromRegister T(InstructionSTX)() { return _X; }
-express FromRegister T(InstructionSTY)() { return _Y; }
+express_function FromRegister T(InstructionSTA)() { return _A; }
+express_function FromRegister T(InstructionSTX)() { return _X; }
+express_function FromRegister T(InstructionSTY)() { return _Y; }
 
 /* ******************************* */
 /* *** TAX, TAY, TSX, TXA, TYA *** */
 /* ******************************* */
-express void T(RegisterTxx)(const WithRegister1, WithRegister2) {
+express_function void T(RegisterTxx)(const WithRegister1, WithRegister2) {
 	register2 = register1;
 	T(UpdateZF)(register2);
 	T(UpdateNF)(register2);
 }
 
-express void T(InstructionTAX)() { T(RegisterTxx)(_A, _X); }
-express void T(InstructionTAY)() { T(RegisterTxx)(_A, _Y); }
-express void T(InstructionTSX)() { T(RegisterTxx)(_S, _X); }
-express void T(InstructionTXA)() { T(RegisterTxx)(_X, _A); }
-express void T(InstructionTYA)() { T(RegisterTxx)(_Y, _A); }
+express_function void T(InstructionTAX)() { T(RegisterTxx)(_A, _X); }
+express_function void T(InstructionTAY)() { T(RegisterTxx)(_A, _Y); }
+express_function void T(InstructionTSX)() { T(RegisterTxx)(_S, _X); }
+express_function void T(InstructionTXA)() { T(RegisterTxx)(_X, _A); }
+express_function void T(InstructionTYA)() { T(RegisterTxx)(_Y, _A); }
 
 /* *********** */
 /* *** TXS *** */
 /* *********** */
-express void T(InstructionTXS)() {
+express_function void T(InstructionTXS)() {
 	_S = _X;
 }
 
