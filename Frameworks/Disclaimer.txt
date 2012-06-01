@@ -1,0 +1,6 @@
+Third-party frameworks may not be covered by the same licenses as FakeNES.
+Because of this, we do our best to make minimal changes to their sources, and
+they are included here only for convenience and should not be considered a part
+of the project for any legal reasons whatsoever.
+
+Friday, June 1st 2012
