@@ -151,7 +151,7 @@ typedef fakenes_real_t REAL;
       LIST_ADD( (_LIST), (_FLAGS) ); \
 }
 
-EXPRESS CONSTANT_FUNCTION int fix(int value, const int base, const int limit) {
+EXPRESS_FUNCTION CONSTANT_FUNCTION int fix(int value, const int base, const int limit) {
    if(value < base)
       value = base;
    if(value > limit)
@@ -160,7 +160,7 @@ EXPRESS CONSTANT_FUNCTION int fix(int value, const int base, const int limit) {
    return value;
 }
 
-EXPRESS CONSTANT_FUNCTION REAL fixf(REAL value, const REAL base, const REAL limit) {
+EXPRESS_FUNCTION CONSTANT_FUNCTION REAL fixf(REAL value, const REAL base, const REAL limit) {
    if(value < base)
       value = base;
    if(value > limit)
