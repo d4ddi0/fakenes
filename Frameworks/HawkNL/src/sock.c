@@ -25,13 +25,17 @@
 #define _POSIX_C_SOURCE 200112L
 /* Include ip_mreq */
 #include <netinet/in.h>
+/*
 typedef struct ip_mreq {
 	struct in_addr imr_multiaddr;
 	struct in_addr imr_interface;
 } IP_MREQ, *PIP_MREQ;
+*/
 #endif
 
+#ifndef FD_SETSIZE
 #define FD_SETSIZE      8192
+#endif
 
 #include <memory.h>
 #include <stdio.h>
