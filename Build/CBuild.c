@@ -2379,6 +2379,24 @@ platform_check:
                 pass = 1;
 #endif
 
+#if defined(__x86_64__)
+            else if(strcasecmp("x64", ptr) == 0)
+                pass = 1;
+#endif
+/* *** Begin 64-bit detection. *** */
+/* Limited detection of 64-bit architechtures by macros generally only works on GCC. */
+/* Because of that, we check sizeof(int) and sizeof(long) as well. */
+/* On a 32-bit architechture, neither of these will be over four bytes long. */
+            else if(strcasecmp("lp64", ptr) == 0)
+            {
+#if defined(__x86_64__) || defined(__ia64__) || defined(_M_IA64) || defined(__ppc64__) || defined(__LP64__)
+                pass = 1;
+#endif
+                if((sizeof(int) == 8) || (sizeof(long) == 8))
+                    pass = 1;
+            }
+/* *** End 64-bit detection. *** */
+
             if((pass != 0) != !!reverse)
             {
                 memmove(linebuf, next, strlen(next)+1);

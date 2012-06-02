@@ -65,8 +65,8 @@ distclean: $(CBUILD)
 #	Clean up all builds and sanitize the source tree.
 	@$(CBUILD) clean
 	@$(CBUILD) clean --debug
-	@$(CBUILD) clean --profile
 	@$(CBUILD) clean --optimize
+	@$(CBUILD) clean --profile
 	@echo Removing build system files.
 	@$(RM) $(CBUILD)
 
