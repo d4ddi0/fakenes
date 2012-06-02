@@ -51,6 +51,7 @@ extern "C" {
 #   define INLINE
 #   define FORCE_INLINE
 #   define EXTERN_INLINE	extern
+
 #   define DISCRETE_FUNCTION
 #   define EXPRESS_FUNCTION	static
 #   define LINEAR_FUNCTION
@@ -83,7 +84,8 @@ extern "C" {
 
 #define force_inline		FORCE_INLINE
 #define extern_inline		EXTERN_INLINE
-#define discrete_function	EXCLUSIVE
+
+#define discrete_function	DISCRETE_FUNCTION
 #define express_function	EXPRESS_FUNCTION
 #define kernel_function		KERNEL_FUNCTION
 #define linear_function		LINEAR_FUNCTION

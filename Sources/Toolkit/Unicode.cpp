@@ -251,14 +251,14 @@ SIZE utf_stricmp(const UTF_STRING* first, const UTF_STRING* second)
    ustring s1 = ustring_from_utf_string(*first);
    ustring s2 = ustring_from_utf_string(*second);
 
-   extent length = s1.length();
-   for(extent i = 0; i < length; i++) {
+   size_type length = s1.length();
+   for(size_type i = 0; i < length; i++) {
       ucchar& c = s1[i];
       c = toupper(c);
    }
 
    length = s2.length();
-   for(extent i = 0; i < length; i++) {
+   for(size_type i = 0; i < length; i++) {
       ucchar& c = s2[i];
       c = toupper(c);
    }
@@ -301,22 +301,22 @@ SIZE utf_strlen(const UTF_STRING* utf_string)
 // --------------------------------------------------------------------------------
 
 template<typename TYPE>
-void Expand(const utf_data* input, ustring& output, const extent size)
+void Expand(const utf_data* input, ustring& output, const size_type size)
 {
    const TYPE* buffer = (const TYPE*)data;
-   const extent length = size / sizeof(TYPE);
+   const size_type length = size / sizeof(TYPE);
 
-   for(extent i = 0; i < length; i++)
+   for(size_type i = 0; i < length; i++)
       output += (ucchar)buffer[i];
 }
 
 template<typename TYPE>
-void Expand(const utf_data* input, vector<TYPE>& output, const extent size)
+void Expand(const utf_data* input, vector<TYPE>& output, const size_type size)
 {
    const TYPE* buffer = (const TYPE*)data;
-   const extent length = size / sizeof(TYPE);
+   const size_type length = size / sizeof(TYPE);
 
-   for(extent i = 0; i < length; i++) {
+   for(size_type i = 0; i < length; i++) {
       const TYPE c = buffer[i];
       output.push_back(c);
    }
@@ -325,7 +325,7 @@ void Expand(const utf_data* input, vector<TYPE>& output, const extent size)
 /* This creates a ustring from a block of data. The data may be in
    any supported Unicode format.
 */
-ustring ustring_from_data(const utf_data* data, const UNICODE_FORMAT format, const extent size)
+ustring ustring_from_data(const utf_data* data, const UNICODE_FORMAT format, const size_type size)
 {
    Safeguard(data);
    Safeguard(size > 0);
@@ -420,7 +420,7 @@ ustring ustring_from_c_string(const char* input)
    C-style strings, rather than raw data, it assumes that 'size'
    includes a null termination character.
 */
-ustring ustring_from_c_string(const char* input, const extent size)
+ustring ustring_from_c_string(const char* input, const size_type size)
 {
    Safeguard(input);
    Safeguard(size > 0);
@@ -448,14 +448,14 @@ ustring ustring_from_utf_string(const utf_string& input)
    and updates the 'size' parameter to reflect how much memory was
    allocated to store the encoded data.
 */
-utf_data* ustring_to_data(const ustring& input, const UNICODE_FORMAT format, extent& size)
+utf_data* ustring_to_data(const ustring& input, const UNICODE_FORMAT format, size_type& size)
 {
-   const extent length = input.length();
+   const size_type length = input.length();
    vector<utf_data> output;
 
    switch(format) {
       case UNICODE_FORMAT_ASCII: {
-         for(extent i = 0; i < length; i++) {
+         for(size_type i = 0; i < length; i++) {
             const ucchar& c = input[i];
 
             const utf_data data = (c <= 0x7F) ? c : '?';
@@ -476,7 +476,7 @@ utf_data* ustring_to_data(const ustring& input, const UNICODE_FORMAT format, ext
          utf8::utf32to8(input.begin(), input.end(), back_inserter(temp));
          utf8::utf8to16(temp.begin(), temp.end(), back_inserter(temp2));
 
-         for(extent i = 0; i < length; i++) {
+         for(size_type i = 0; i < length; i++) {
             const ucchar& c = temp2[i];
 
             const utf_data d0 = (c >> 8) & 0xFF;
@@ -490,7 +490,7 @@ utf_data* ustring_to_data(const ustring& input, const UNICODE_FORMAT format, ext
       }
 
       case UNICODE_FORMAT_UTF32: {
-         for(extent i = 0; i < length; i++) {
+         for(size_type i = 0; i < length; i++) {
             const ucchar& c = input[i];
 
             const utf_data d0 = (c >> 24) & 0xFF;
@@ -513,7 +513,7 @@ utf_data* ustring_to_data(const ustring& input, const UNICODE_FORMAT format, ext
       }
    }
 
-   const extent new_size = output.size();
+   const size_type new_size = output.size();
    const utf_data* copy = new utf_data[new_size];
    memcpy(copy, &output[0], new_size);
    output.clear();
@@ -527,14 +527,14 @@ utf_data* ustring_to_data(const ustring& input, const UNICODE_FORMAT format, ext
    the buffer can be limited, although if not enough space is
    available the encoding may break and become invalid.
 */
-utf_data* ustring_to_data(const ustring& input, utf_data* output, const UNICODE_FORMAT format, extent& size)
+utf_data* ustring_to_data(const ustring& input, utf_data* output, const UNICODE_FORMAT format, size_type& size)
 {
    Safeguard(output);
    Safeguard(size > 0);
 
-   extent temp_size = 0;
+   size_type temp_size = 0;
    const utf_data* temp = ustring_to_data(input, format, temp_size);
-   const extent count = MIN2(size, temp_size);
+   const size_type count = MIN2(size, temp_size);
    memcpy(output, temp, count);
    delete[] temp;
 
@@ -547,10 +547,10 @@ utf_data* ustring_to_data(const ustring& input, utf_data* output, const UNICODE_
 */
 std::string ustring_to_string(const ustring& input)
 {
-   extent size;
+   size_type size;
    utf_data* data = ustring_to_data(input, UNICODE_FORMAT_ASCII, size);
    string output = string();
-   for(extent i = 0; i < size; i++) {
+   for(size_type i = 0; i < size; i++) {
       const char c = data[i];
       output += c;
    }
@@ -567,7 +567,7 @@ std::string ustring_to_string(const ustring& input)
    Returns the actual number of characters written to the output
    buffer, including thet null termination character.
 */
-char* ustring_to_c_string(const ustring& input, char* output, extent& size)
+char* ustring_to_c_string(const ustring& input, char* output, size_type& size)
 {
    Safeguard(output);
 
@@ -575,8 +575,8 @@ char* ustring_to_c_string(const ustring& input, char* output, extent& size)
       return output;
 
    const std::string converted = ustring_to_string(input);
-   const extent count = MIN2(converted.length(), size - 1);
-   for(extent i = 0; i < count; i++)
+   const size_type count = MIN2(converted.length(), size - 1);
+   for(size_type i = 0; i < count; i++)
       output[i] = input[i];
 
    output[i] = 0;

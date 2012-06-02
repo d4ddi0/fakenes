@@ -39,8 +39,7 @@ extern "C" {
 #define Epsilon (EPSILON)
 
 template<typename TYPE>
-constant_function TYPE Round(const TYPE value)
-{
+constant_function TYPE Round(const TYPE value) {
    return (TYPE)ROUND(value);
 }
 

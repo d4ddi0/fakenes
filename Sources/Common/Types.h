@@ -151,8 +151,7 @@ typedef fakenes_real_t REAL;
       LIST_ADD( (_LIST), (_FLAGS) ); \
 }
 
-EXPRESS CONSTANT_FUNCTION int fix(int value, const int base, const int limit)
-{
+EXPRESS CONSTANT_FUNCTION int fix(int value, const int base, const int limit) {
    if(value < base)
       value = base;
    if(value > limit)
@@ -161,8 +160,7 @@ EXPRESS CONSTANT_FUNCTION int fix(int value, const int base, const int limit)
    return value;
 }
 
-EXPRESS CONSTANT_FUNCTION REAL fixf(REAL value, const REAL base, const REAL limit)
-{
+EXPRESS CONSTANT_FUNCTION REAL fixf(REAL value, const REAL base, const REAL limit) {
    if(value < base)
       value = base;
    if(value > limit)
@@ -186,15 +184,14 @@ typedef fakenes_int32_t int32;
 
 typedef fakenes_pair_t byte_pair;
 typedef fakenes_real_t real;
-/* Sizes in the C++ portions of the program are refered to as extents.
+/* Sizes in the C++ portions of the program are refered to as size_type.
    This is because 'size' is often used for variable names. */
-typedef fakenes_size_t extent;
+typedef fakenes_size_t size_type;
 typedef fakenes_uint_t uint;
 
 // This should be used instead of fix/fixf() when possible.
 template<typename TYPE>
-constant_function TYPE Clamp(TYPE value, const TYPE minimum, const TYPE maximum)
-{
+constant_function TYPE Clamp(TYPE value, const TYPE minimum, const TYPE maximum) {
    if( value < minimum )
       value = minimum;
    if( value > maximum )

@@ -16,7 +16,7 @@ namespace {
 
 bool initialized = false;
 
-const extent TableSize = 256;
+const size_type TableSize = 256;
 
 uint32 table[TableSize];
 const uint32 seed = 0xFFFFFFFF;
@@ -24,7 +24,7 @@ const uint32 seed = 0xFFFFFFFF;
 } // namespace anonymous
 
 // Function prototypes (defined at bottom). */
-static exclusive void Initialize();
+static discrete_function void Initialize();
 
 // --------------------------------------------------------------------------------
 // PUBLIC INTERFACE
@@ -61,7 +61,7 @@ UINT32 calculate_crc32(const void* buffer, const SIZE size)
 
    uint32 crc32 = crc32_start();
 
-   for(extent position = 0; position < size; position++)
+   for(size_type position = 0; position < size; position++)
       crc32_update(&crc32, data[position]);
 
    crc32_end(&crc32);
@@ -73,9 +73,9 @@ UINT32 calculate_crc32(const void* buffer, const SIZE size)
 // PRIVATE INTERFACE
 // --------------------------------------------------------------------------------
 
-static exclusive void Initialize()
+static discrete_function void Initialize()
 {
-   for(extent i = 0; i < TableSize; i++) {
+   for(size_type i = 0; i < TableSize; i++) {
       uint32 value = i;
 
       for(uint bit = 0; bit < 8; bit++) {

@@ -79,7 +79,7 @@ MEMORY_PATCH* get_patch(const int index)
 {
    Safeguard(index >= 0);
 
-   if((extent)index >= patchTable.size()) {
+   if((size_type)index >= patchTable.size()) {
       // We've reached the end of the patch list, so let the caller know.
       return NULL;
    }
@@ -89,13 +89,13 @@ MEMORY_PATCH* get_patch(const int index)
 
 void map_patches(const UINT16 start_address, const UINT16 end_address)
 {
-   const extent count = patchTable.size();
+   const size_type count = patchTable.size();
    if(count == 0) {
       // No patches are currently available.
       return;
    }
 
-   for(extent i = 0; i < count; i++) {
+   for(size_type i = 0; i < count; i++) {
       PatchWrapper& wrapper = patchTable[i];
 
       // Get a direct reference to the patch to keep this clean.
