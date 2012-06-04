@@ -175,6 +175,7 @@ EXPRESS_FUNCTION CONSTANT_FUNCTION REAL fixf(REAL value, const REAL base, const 
 /* Lowercase C++ style aliases. This generally only includes the integer data types,
    abstract floating point data type (real), and the pair data type. Almost
    everything else, such as bool, is already provided by C++. */
+
 typedef fakenes_uint8_t uint8;
 typedef fakenes_int8_t int8;
 typedef fakenes_uint16_t uint16;
@@ -183,6 +184,7 @@ typedef fakenes_uint32_t uint32;
 typedef fakenes_int32_t int32;
 
 typedef fakenes_pair_t byte_pair;
+typedef fakenes_enum_t enum_type;
 typedef fakenes_real_t real;
 /* Sizes in the C++ portions of the program are refered to as size_type.
    This is because 'size' is often used for variable names. */

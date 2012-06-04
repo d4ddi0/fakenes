@@ -39,34 +39,6 @@ apu_options_t apu_options = {
    TRUE, //    Extra 3
 };
 
-/* Coefficients for the low pass filter.  The sum of these values should always be equal to 1.0.
-   Note that the low pass filter is not used in the High Quality mode, since it is already implied by the mixing method. */
-static const real apu_lpf_input_weight = 0.75;
-static const real apu_lpf_previous_weight = 0.25;
-
-// Options for the DC blocking filter.
-static const real apu_dcf_frequency = 16.0; // Hz
-static const real apu_dcf_step_time = 0.01; // In seconds
-
-// Options for automatic gain control.
-static const real apu_agc_attack_time = 0.100; // In seconds
-static const real apu_agc_release_time = 0.100;
-static const real apu_agc_gain_floor = 0.5;
-static const real apu_agc_gain_ceiling = 2.0;
-
-// Options for the volume level normalizer.
-static const int apu_vln_samples_accumulate = 256;
-static const int apu_vln_samples_buffer = 1024;
-static const real apu_vln_average_weight = 0.2;
-
-// Static APU context.
-static APU apu;
-
-// External/Expansion Sound (ExSound) support.
-static ExSound::Sourcer::Interface apu_exsound_sourcer;
-static ExSound::MMC5::Interface apu_exsound_mmc5;
-static ExSound::VRC6::Interface apu_exsound_vrc6;
-
 // Internal function prototypes (defined at bottom).
 static force_inline void synchronize(void);
 static force_inline cpu_time_t process(const cpu_time_t time);
@@ -74,6 +46,16 @@ static force_inline void mix(void);
 static force_inline void filter(real& sample, APULPFilter *lpEnv, APUDCFilter* dcEnv);
 static force_inline void amplify(real& sample);
 express_function void enqueue(real& sample);
+
+namespace {
+
+// Static APU context.
+APU apu;
+
+// External/Expansion Sound (ExSound) support.
+ExSound::Sourcer::Interface apu_exsound_sourcer;
+ExSound::MMC5::Interface apu_exsound_mmc5;
+ExSound::VRC6::Interface apu_exsound_vrc6;
 
 // Channel indices.
 enum {
@@ -87,70 +69,6 @@ enum {
    APU_CHANNEL_EXTRA_3,
    APU_CHANNELS
 };
-
-// --- Lookup tables. ---
-static const uint8 length_lut[32] = {
-   0x0A, 0xFE, 0x14, 0x02, 0x28, 0x04, 0x50, 0x06, 0xA0, 0x08, 0x3C, 0x0A,
-   0x0E, 0x0C, 0x1A, 0x0E, 0x0C, 0x10, 0x18, 0x12, 0x30, 0x14, 0x60, 0x16,
-   0xC0, 0x18, 0x48, 0x1A, 0x10, 0x1C, 0x20, 0x1E
-};
-
-static const uint16 noise_period_lut_ntsc[16] = {
-   0x004, 0x008, 0x010, 0x020, 0x040, 0x060, 0x080, 0x0A0, 0x0CA, 0x0FE,
-   0x17C, 0x1FC, 0x2FA, 0x3F8, 0x7F2, 0xFE4
-};
-
-static const uint16 noise_period_lut_pal[16] = {
-   0x004, 0x007, 0x00E, 0x01E, 0x03C, 0x058, 0x076, 0x094, 0x0BC, 0x0EC,
-   0x162, 0x1D8, 0x2C4, 0x3B0, 0x762, 0xEC2
-};
-
-static const uint16 dmc_period_lut_ntsc[16] = {
-   0x1AC, 0x17C, 0x154, 0x140, 0x11E, 0x0FE, 0x0E2, 0x0D6, 0x0BE, 0x0A0,
-   0x08E, 0x080, 0x06A, 0x054, 0x048, 0x036
-};
-
-static const uint16 dmc_period_lut_pal[16] = {
-   0x18E, 0x162, 0x13C, 0x12A, 0x114, 0x0EC, 0x0D2, 0x0C6, 0x0B0, 0x094,
-   0x084, 0x076, 0x062, 0x04E, 0x042, 0x032
-};
-
-/* Periods for the frame sequencer, 0=4step, 1=5step.  The periods are
-   represented as delays from the current step to the next step.
-
-   In 4-step mode, the first period is loaded immediately.  For 5-step mode,
-   the first period is loaded after the sequencer has been clocked once. */
-static const uint16 frame_sequencer_period_lut_ntsc[2][5] = {
-   { 0x1D23, 0x1D20, 0x1D22, 0x1D22, 0x1D22 },
-   { 0x1D22, 0x1D20, 0x1D22, 0x1D22, 0x1D1C }
-};
-
-static const uint16 frame_sequencer_period_lut_pal[2][5] = {
-   { 0x207B, 0x207A, 0x2078, 0x207A, 0x207A },
-   { 0x207A, 0x207A, 0x2078, 0x207A, 0x207A }
-};
-
-// Pulse sequences for each step 0-7 of each duty cycle 0-3 on the square wave channels.
-static const uint8 square_duty_lut[4][8] = {
-   { 0x0, 0xF, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 },
-   { 0x0, 0xF, 0xF, 0x0, 0x0, 0x0, 0x0, 0x0 },
-   { 0x0, 0xF, 0xF, 0xF, 0xF, 0x0, 0x0, 0x0 },
-   { 0xF, 0x0, 0x0, 0xF, 0xF, 0xF, 0xF, 0xF }
-};
-
-// Output sequence for each of the triangle's 32 steps.
-static const uint8 triangle_lut[32] = {
-   0xF, 0xE, 0xD, 0xC, 0xB, 0xA, 0x9, 0x8, 0x7, 0x6, 0x5, 0x4, 0x3, 0x2,
-   0x1, 0x0, 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA, 0xB,
-   0xC, 0xD, 0xE, 0xF
-};
-
-// Mixer tables.
-static real square_table[31];
-static real tnd_table[203];
-
-// Maximum Triangle+Noise+DMC output of the mixer - for prenormalization.
-#define MAX_TND (163.67 / (24329.0 / (3 * 15 + 2 * 15 + 127) + 100))
 
 // Update flags for sound generators.
 enum {
@@ -174,6 +92,92 @@ enum {
    APU_PREDICT_IRQ_DMC   = (1 << 0),
    APU_PREDICT_IRQ_FRAME = (1 << 1)
 };
+
+// Mixer tables.
+real square_table[31];
+real tnd_table[203];
+
+// Maximum Triangle+Noise+DMC output of the mixer - for prenormalization.
+const real MAX_TND = 163.67 / (24329.0 / (3 * 15 + 2 * 15 + 127) + 100);
+
+/* Coefficients for the low pass filter.  The sum of these values should always be equal to 1.0.
+   Note that the low pass filter is not used in the High Quality mode, since it is already implied by the mixing method. */
+const real apu_lpf_input_weight = 0.75;
+const real apu_lpf_previous_weight = 0.25;
+
+// Options for the DC blocking filter.
+const real apu_dcf_frequency = 16.0; // Hz
+const real apu_dcf_step_time = 0.01; // In seconds
+
+// Options for automatic gain control.
+const real apu_agc_attack_time = 0.100; // In seconds
+const real apu_agc_release_time = 0.100;
+const real apu_agc_gain_floor = 0.5;
+const real apu_agc_gain_ceiling = 2.0;
+
+// Options for the volume level normalizer.
+const int apu_vln_samples_accumulate = 256;
+const int apu_vln_samples_buffer = 1024;
+const real apu_vln_average_weight = 0.2;
+
+// --- Lookup tables. ---
+const uint8 length_lut[32] = {
+   0x0A, 0xFE, 0x14, 0x02, 0x28, 0x04, 0x50, 0x06, 0xA0, 0x08, 0x3C, 0x0A,
+   0x0E, 0x0C, 0x1A, 0x0E, 0x0C, 0x10, 0x18, 0x12, 0x30, 0x14, 0x60, 0x16,
+   0xC0, 0x18, 0x48, 0x1A, 0x10, 0x1C, 0x20, 0x1E
+};
+
+const uint16 noise_period_lut_ntsc[16] = {
+   0x004, 0x008, 0x010, 0x020, 0x040, 0x060, 0x080, 0x0A0, 0x0CA, 0x0FE,
+   0x17C, 0x1FC, 0x2FA, 0x3F8, 0x7F2, 0xFE4
+};
+
+const uint16 noise_period_lut_pal[16] = {
+   0x004, 0x007, 0x00E, 0x01E, 0x03C, 0x058, 0x076, 0x094, 0x0BC, 0x0EC,
+   0x162, 0x1D8, 0x2C4, 0x3B0, 0x762, 0xEC2
+};
+
+const uint16 dmc_period_lut_ntsc[16] = {
+   0x1AC, 0x17C, 0x154, 0x140, 0x11E, 0x0FE, 0x0E2, 0x0D6, 0x0BE, 0x0A0,
+   0x08E, 0x080, 0x06A, 0x054, 0x048, 0x036
+};
+
+const uint16 dmc_period_lut_pal[16] = {
+   0x18E, 0x162, 0x13C, 0x12A, 0x114, 0x0EC, 0x0D2, 0x0C6, 0x0B0, 0x094,
+   0x084, 0x076, 0x062, 0x04E, 0x042, 0x032
+};
+
+/* Periods for the frame sequencer, 0=4step, 1=5step.  The periods are
+   represented as delays from the current step to the next step.
+
+   In 4-step mode, the first period is loaded immediately.  For 5-step mode,
+   the first period is loaded after the sequencer has been clocked once. */
+const uint16 frame_sequencer_period_lut_ntsc[2][5] = {
+   { 0x1D23, 0x1D20, 0x1D22, 0x1D22, 0x1D22 },
+   { 0x1D22, 0x1D20, 0x1D22, 0x1D22, 0x1D1C }
+};
+
+const uint16 frame_sequencer_period_lut_pal[2][5] = {
+   { 0x207B, 0x207A, 0x2078, 0x207A, 0x207A },
+   { 0x207A, 0x207A, 0x2078, 0x207A, 0x207A }
+};
+
+// Pulse sequences for each step 0-7 of each duty cycle 0-3 on the square wave channels.
+const uint8 square_duty_lut[4][8] = {
+   { 0x0, 0xF, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 },
+   { 0x0, 0xF, 0xF, 0x0, 0x0, 0x0, 0x0, 0x0 },
+   { 0x0, 0xF, 0xF, 0xF, 0xF, 0x0, 0x0, 0x0 },
+   { 0xF, 0x0, 0x0, 0xF, 0xF, 0xF, 0xF, 0xF }
+};
+
+// Output sequence for each of the triangle's 32 steps.
+const uint8 triangle_lut[32] = {
+   0xF, 0xE, 0xD, 0xC, 0xB, 0xA, 0x9, 0x8, 0x7, 0x6, 0x5, 0x4, 0x3, 0x2,
+   0x1, 0x0, 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xA, 0xB,
+   0xC, 0xD, 0xE, 0xF
+};
+
+} // namespace anonymous
 
 // IRQ reprediction handler.
 static void apu_repredict_irqs(const unsigned predictionFlags);
