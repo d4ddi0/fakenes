@@ -10,8 +10,10 @@
 /* We need Allegro.h for allegro_message(). */
 #include <allegro.h>
 #include <stdlib.h>
+#include <string.h>
 #include "Common/Global.h"
 #include "Platform/Log.h"
+#include "Toolkit/Unicode.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -24,8 +26,14 @@ extern "C" {
 
 /* Warning macros to help with debugging. */
 #define WARN(message) { \
-   allegro_message("WARNING\n\n" message "\n\nat line %d of %s", __LINE__, __FILE__); \
-   log_printf("\nWarning: " message " (line %d, %s)\n", __LINE__, __FILE__); \
+   const char* format = "WARNING\n\n" message "\n\nat line %d of %s"; \
+   allegro_message(format, __LINE__, __FILE__); \
+   \
+   UTF_STRING* converted = create_utf_string_from_data(UNICODE_FORMAT_FASTEST, \
+      (const UTF_DATA*)format, UNICODE_FORMAT_ASCII, strlen(format)); \
+   \
+   log_printf(converted, __LINE__, __FILE__); \
+   delete_utf_string(converted); \
 }
 
 #define WARN_GENERIC() \

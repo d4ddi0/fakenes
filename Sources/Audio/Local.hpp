@@ -28,6 +28,7 @@
 #include "Platform/Log.h"
 #include "System/Machine.h"
 #include "System/Timing.h"
+#include "Toolkit/Unicode.h"
 
 // Resolve Windows API conflicts.
 #ifdef SYSTEM_WINDOWS

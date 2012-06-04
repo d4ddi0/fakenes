@@ -9,6 +9,7 @@
 #define AUDIO__AUDIO_H__INCLUDED
 #include "Common/Global.h"
 #include "Common/Types.h"
+#include "Toolkit/Unicode.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,7 +42,7 @@ extern void audio_exit(void);
 extern void audio_update(void);
 extern void audio_suspend(void);
 extern void audio_resume(void);
-extern int audio_open_wav(const UDATA* filename);
+extern int audio_open_wav(const UTF_STRING* filename);
 extern void audio_close_wav(void);
 extern void audio_visopen(unsigned num_frames);
 extern void audio_visclose(void);

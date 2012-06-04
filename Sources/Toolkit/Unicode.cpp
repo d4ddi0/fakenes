@@ -133,7 +133,7 @@ UTF_STRING* clear_utf_string(UTF_STRING* utf_string)
    If an error occurs, the string is left unmodified and a null value
    is returned instead of the converted string.
 */
-UTF_STRING* convert_utf_string(UTF_STRING* utf_string, const UNICODE_FORMAT format)
+UTF_STRING* convert_utf_string(const UTF_STRING* utf_string, const UNICODE_FORMAT format)
 {
    Safeguard(utf_string);
 

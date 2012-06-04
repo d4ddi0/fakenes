@@ -9,17 +9,18 @@
 #define PLATFORM__LOG_H__INCLUDED
 #include "Common/Global.h"
 #include "Common/Types.h"
+#include "Toolkit/Unicode.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 extern void log_open(const char*);
 extern void log_close(void);
-extern void log_printf(const UDATA*, ...);
-extern UDATA* get_log_text(void);
+extern void log_printf(const UTF_STRING*, ...);
+extern UTF_STRING* get_log_text(void);
 extern void console_clear(void);
-extern void console_printf(const UDATA*, ...);
-extern UDATA* get_console_text(void);
+extern void console_printf(const UTF_STRING*, ...);
+extern UTF_STRING* get_console_text(void);
 
 #ifdef __cplusplus
 }

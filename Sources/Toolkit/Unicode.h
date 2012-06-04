@@ -83,7 +83,7 @@ extern const UTF_DATA* get_utf_string_const_data(const UTF_STRING* utf_string);
 extern SIZE get_utf_string_size(const UTF_STRING* string);
 extern SIZE get_utf_string_length(const UTF_STRING* string);
 extern UTF_STRING* clear_utf_string(UTF_STRING* utf_string);
-extern UTF_STRING* convert_utf_string(UTF_STRING* utf_string, const UNICODE_FORMAT format);
+extern UTF_STRING* convert_utf_string(const UTF_STRING* utf_string, const UNICODE_FORMAT format);
 extern UCCHAR utf_getc(const UTF_STRING* utf_string, const SIZE position);
 extern UCCHAR utf_putc(UTF_STRING* utf_string, const SIZE position, const UCCHAR code);
 extern SIZE utf_strcpy(UTF_STRING* to, const UTF_STRING* from);
