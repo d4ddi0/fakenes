@@ -39,6 +39,9 @@ apu_options_t apu_options = {
    TRUE, //    Extra 3
 };
 
+// IRQ reprediction handler.
+static void apu_repredict_irqs(const FLAGS predictionFlags);
+
 // Internal function prototypes (defined at bottom).
 static force_inline void synchronize(void);
 static force_inline cpu_time_t process(const cpu_time_t time);
@@ -178,9 +181,6 @@ const uint8 triangle_lut[32] = {
 };
 
 } // namespace anonymous
-
-// IRQ reprediction handler.
-static void apu_repredict_irqs(const unsigned predictionFlags);
 
 // --- Sound generators. ---
 
@@ -322,18 +322,18 @@ static force_inline void apu_update_length_counter(APUWaveformChannel& chan)
       chan.length--;
 }
 
-static discrete_function void apu_update_square(APUSquare& chan, const FLAGS update_flags)
+static discrete_function void apu_update_square(APUSquare& chan, const FLAGS updateFlags)
 {
-   if(update_flags & UPDATE_ENVELOPE)
+   if(updateFlags & UPDATE_ENVELOPE)
       apu_envelope(chan, chan.envelope);
 
-   if(update_flags & UPDATE_SWEEP)
+   if(updateFlags & UPDATE_SWEEP)
       apu_sweep(chan, chan.sweep);
 
-   if(update_flags & UPDATE_LENGTH)
+   if(updateFlags & UPDATE_LENGTH)
       apu_update_length_counter(chan);
 
-   if(update_flags & UPDATE_OUTPUT) {
+   if(updateFlags & UPDATE_OUTPUT) {
       if(chan.timer > 0) {
          chan.timer -= apu.timer_delta;
          if(chan.timer > 0)
@@ -422,15 +422,15 @@ static discrete_function void apu_update_linear_counter(APUTriangle& chan)
       chan.halt_counter = false;          
 }
 
-static discrete_function void apu_update_triangle(APUTriangle& chan, const FLAGS update_flags)
+static discrete_function void apu_update_triangle(APUTriangle& chan, const FLAGS updateFlags)
 {
-   if(update_flags & UPDATE_LENGTH)
+   if(updateFlags & UPDATE_LENGTH)
       apu_update_length_counter(chan);
 
-   if(update_flags & UPDATE_LINEAR)
+   if(updateFlags & UPDATE_LINEAR)
       apu_update_linear_counter(chan);
 
-   if(update_flags & UPDATE_OUTPUT) {
+   if(updateFlags & UPDATE_OUTPUT) {
       if(chan.timer > 0) {
          chan.timer -= apu.timer_delta;
          if(chan.timer > 0)
@@ -499,15 +499,15 @@ static discrete_function void apu_load_triangle(APUTriangle& chan, FILE_CONTEXT*
    chan.cached_linear_length = file->read_byte(file);
 }
 
-static discrete_function void apu_update_noise(APUNoise& chan, const FLAGS update_flags)
+static discrete_function void apu_update_noise(APUNoise& chan, const FLAGS updateFlags)
 {
-   if(update_flags & UPDATE_ENVELOPE)
+   if(updateFlags & UPDATE_ENVELOPE)
       apu_envelope(chan, chan.envelope);
 
-   if(update_flags & UPDATE_LENGTH)
+   if(updateFlags & UPDATE_LENGTH)
       apu_update_length_counter(chan);
 
-   if(update_flags & UPDATE_OUTPUT) {
+   if(updateFlags & UPDATE_OUTPUT) {
       if(chan.timer > 0) {
          chan.timer -= apu.timer_delta;
          if(chan.timer > 0)
@@ -789,14 +789,14 @@ static discrete_function void apu_load_dmc(APUDMC& chan, FILE_CONTEXT* file, con
    chan.irq_occurred = file->read_boolean(file);
 }
 
-static force_inline void apu_update_channels(const FLAGS update_flags)
+static force_inline void apu_update_channels(const FLAGS updateFlags)
 {
-   apu_update_square(apu.square[0], update_flags);
-   apu_update_square(apu.square[1], update_flags);
+   apu_update_square(apu.square[0], updateFlags);
+   apu_update_square(apu.square[1], updateFlags);
 
-   apu_update_triangle(apu.triangle, update_flags);
-   apu_update_noise(apu.noise, update_flags);
-   if(update_flags & UPDATE_OUTPUT)
+   apu_update_triangle(apu.triangle, updateFlags);
+   apu_update_noise(apu.noise, updateFlags);
+   if(updateFlags & UPDATE_OUTPUT)
       apu_update_dmc(apu.dmc);
 }
 
@@ -1557,7 +1557,7 @@ void apu_predict_irqs(const cpu_time_t time)
    apu_predict_frame_irq(cycles);
 }
 
-static void apu_repredict_irqs(const unsigned predictionFlags)
+static void apu_repredict_irqs(const FLAGS predictionFlags)
 {
    /* Normally, the IRQ predictors are only called once per scanline.
 

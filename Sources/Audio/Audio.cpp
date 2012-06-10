@@ -72,7 +72,7 @@ static unsigned audioBufferedFrames = 0;
 volatile int audio_fps = 0;
 
 // Variables for the WAV writer(see bottom).
-static FILE* wavFile = null;
+static FILE_CONTEXT* wavFile = null;
 static unsigned wavSize = 0;
 
 /* Visualization buffer.  This is an actual ring buffer (not a fake one like the audio buffer) into which all data from the
@@ -123,7 +123,7 @@ int audio_init(void)
            "Possible causes for this problem:\n"
            "  - There is no sound hardware present\n"
            "  - The installed sound drivers are not working properly\n"
-           "  - The sound API (e.g Allegro or OpenAL) is not cooperating for some reason\n"
+           "  - The sound API (e.g Allegro, SDL or OpenAL) is not cooperating for some reason\n"
            "  - The sound system is already in use by another application\n"
            "\n"
            "Usually, the sound system is just in use by another application.\n"
@@ -305,7 +305,7 @@ void audio_update(void)
                            sample ^= 0x80;
                         }
 
-                        putc(sample, wavFile);
+                        wavFile->write_byte(wavFile, sample);
                         wavSize++;
                      }
 
@@ -322,9 +322,9 @@ void audio_update(void)
                            sample ^= 0x8000;
                         }
 
-                        putc(sample & 0xFF, wavFile);
-                        putc((sample & 0xFF00) >> 8, wavFile);
-
+                        // putc(sample & 0xFF, wavFile);
+                        // putc((sample & 0xFF00) >> 8, wavFile);
+			wavFile->write_word(wavFile, sample);
                         wavSize += 2;
                      }
 
@@ -428,12 +428,12 @@ int audio_open_wav(const UTF_STRING* filename)
    Safeguard(filename);
 
    /* Open file. */
-   wavFile = fopen(filename, "wb");
+   wavFile = open_file(filename, FILE_MODE_WRITE, FILE_ORDER_INTEL);
    if(!wavFile)
       return 1;
 
    // Skip header space.
-   fseek(wavFile, WAV_HEADER_SIZE, SEEK_SET);
+   wavFile->seek_to(wavFile, WAV_HEADER_SIZE);
 
    // Clear size counter.
    wavSize = 0;
@@ -446,32 +446,38 @@ void audio_close_wav(void)
 {
    if(wavFile) {
       // Write header.
-      fseek(wavFile, 0, SEEK_SET);
+      wavFile->seek_to(wavFile, 0);
 
       WAVRIFFTypeChunk riff;
       riff.chunkID = WAV_ID('R','I','F','F');
       riff.chunkSize = (WAV_HEADER_SIZE + wavSize) - 8;
       riff.riffType = WAV_ID('W','A','V','E');
-      fwrite(&riff, sizeof(riff), 1, wavFile);
+      wavFile->write(wavFile, (void*)&riff, sizeof(riff));
 
+      /* Available formats (compressions):
+         0x0001 	WAVE_FORMAT_PCM 	PCM
+         0x0003 	WAVE_FORMAT_IEEE_FLOAT 	IEEE float
+         0x0006 	WAVE_FORMAT_ALAW 	8-bit ITU-T G.711 A-law
+         0x0007 	WAVE_FORMAT_MULAW 	8-bit ITU-T G.711 µ-law
+         0xFFFE 	WAVE_FORMAT_EXTENSIBLE 	Determined by SubFormat */
       WAVFormatChunk fmt;
       fmt.chunkID = WAV_ID('f','m','t',' ');
       fmt.chunkSize = sizeof(fmt) - 8;
-      fmt.formatTag = 1; // No compression.
+      fmt.formatTag = 0x0001; // No compression.
       fmt.channels = audio_channels;
       fmt.samplesPerSec = audio_sample_rate;
       fmt.avgBytesPerSec = (audio_sample_rate * audio_channels) * (audio_sample_bits / 8);
       fmt.blockAlign = audio_channels * (audio_sample_bits / 8);
       fmt.bitsPerSample = audio_sample_bits;
-      fwrite(&fmt,  sizeof(fmt),  1, wavFile);
+      wavFile->write(wavFile, (void*)&fmt, sizeof(fmt));
       
       WAVDataChunk data;
       data.chunkID = WAV_ID('d','a','t','a');
       data.chunkSize = (sizeof(data) + wavSize) - 8;
-      fwrite(&data, sizeof(data), 1, wavFile);
+      wavFile->write(wavFile, (void*)&data, sizeof(data));
 
       // Close file.
-      fclose(wavFile);
+      wavFile->close(wavFile);
       wavFile = null;
       // Clear counter.
       wavSize = 0;
@@ -521,6 +527,5 @@ UINT16* audio_get_visdata(void)
    }
 
    memcpy(&visdata[0], &audioVisBuffer[0], audioVisBufferSize * sizeof(uint16));
-
    return visdata;
 }
