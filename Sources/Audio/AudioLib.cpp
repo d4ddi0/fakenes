@@ -1,5 +1,5 @@
 /* FakeNES - A portable, Open Source NES emulator.
-   Copyright © 2011 Digital Carat
+   Copyright © 2011-2012 Digital Carat Group
 
    This is free software. See 'License.txt' for additional copyright and
    licensing information. You must read and accept the license prior to
@@ -49,7 +49,7 @@ int audiolib_init(void)
          break;
       }
 
-#ifdef USE_OPENAL
+#if defined(USE_OPENAL)
       case AUDIO_SUBSYSTEM_AUTOMATIC:	// Prefer OpenAL when auto
       case AUDIO_SUBSYSTEM_OPENAL: {
          audiolibDriver = new AudiolibOpenALDriver;
@@ -327,7 +327,7 @@ void AudiolibAllegroDriver::resume(void)
    voice_start(stream->voice);
 }
 
-#ifdef USE_OPENAL
+#if defined(USE_OPENAL)
 // --- OpenAL driver. ---
 #define AUDIOLIB_OPENAL_BUFFERS	2
 
