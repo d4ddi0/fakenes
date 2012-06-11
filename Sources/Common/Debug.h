@@ -29,9 +29,7 @@ extern "C" {
    const char* format = "WARNING\n\n" message "\n\nat line %d of %s"; \
    allegro_message(format, __LINE__, __FILE__); \
    \
-   UTF_STRING* converted = create_utf_string_from_data(UNICODE_FORMAT_FASTEST, \
-      (const UTF_DATA*)format, UNICODE_FORMAT_ASCII, strlen(format)); \
-   \
+   UTF_STRING* converted = create_utf_string_from_c_string(UNICODE_FORMAT_FASTEST, format_); \
    log_printf(converted, __LINE__, __FILE__); \
    delete_utf_string(converted); \
 }

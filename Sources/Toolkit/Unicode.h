@@ -1,5 +1,5 @@
 /* FakeNES - A portable, Open Source NES emulator.
-   Copyright © 2011 Digital Carat
+   Copyright © 2011-2012 Digital Carat Group
 
    This is free software. See 'License.txt' for additional copyright and
    licensing information. You must read and accept the license prior to
@@ -37,9 +37,9 @@ extern "C" {
 
 /* Supported Unicode formats. */
 enum UNICODE_FORMAT {
-   UNICODE_FORMAT_ASCII = 0,
-   UNICODE_FORMAT_UTF8,
-   UNICODE_FORMAT_UTF16,
+   UNICODE_FORMAT_ASCII = 0, /* Used by DOS and C-style strings. */
+   UNICODE_FORMAT_UTF8,      /* Used by Linux, compatible with ASCII. */
+   UNICODE_FORMAT_UTF16,     /* Used by Windows. */
    UNICODE_FORMAT_UTF32,
 
    /* This represents the most light-weight format. */
@@ -68,14 +68,17 @@ typedef UINT32 UCCHAR;
 typedef UINT8 UTF_DATA; 
 
 typedef struct _UTF_STRING {
-   UNICODE_FORMAT format;
-   UTF_DATA* data;
-   SIZE size, length;
+   UNICODE_FORMAT format; /* Unicode format of the string. */
+   UTF_DATA* data;        /* Segmented data buffer. */
+   SIZE size, length;     /* Size of the string in bytes, and length of
+                             the string in characters. */
 
 } UTF_STRING;
 
 extern UTF_STRING* create_utf_string(const UNICODE_FORMAT format);
 extern UTF_STRING* create_utf_string_from_data(const UNICODE_FORMAT format, const UTF_DATA* data, const UNICODE_FORMAT data_format, const SIZE size);
+extern UTF_STRING* create_utf_string_from_c_string(const UNICODE_FORMAT format, const char* input);
+extern UTF_STRING* create_utf_string_from_c_string_size(const UNICODE_FORMAT format, const char* input, const SIZE size);
 extern void delete_utf_string(UTF_STRING* utf_string);
 extern UNICODE_FORMAT get_utf_string_format(const UTF_STRING* utf_string);
 extern UTF_DATA* get_utf_string_data(UTF_STRING* utf_string);

@@ -1,5 +1,5 @@
 /* FakeNES - A portable, Open Source NES emulator.
-   Copyright © 2011 Digital Carat
+   Copyright © 2011-2012 Digital Carat Group
 
    This is free software. See 'License.txt' for additional copyright and
    licensing information. You must read and accept the license prior to
@@ -30,10 +30,11 @@ UTF_STRING* create_utf_string(const UNICODE_FORMAT format)
    UTF_STRING* utf_string = new UTF_STRING;
    if(!utf_string) {
       Warning("Out of memory.");
-      return NULL;
+      return NULLPTR;
    }
 
-   memset(utf_string, 0, sizeof(UTF_STRING));
+   memset((void*)utf_string, 0, sizeof(UTF_STRING));
+   clear_utf_string(utf_string);
 
    utf_string->format = format;
    return utf_string;
@@ -54,9 +55,28 @@ UTF_STRING* create_utf_string_from_data(const UNICODE_FORMAT format,
    const UTF_DATA* data, const UNICODE_FORMAT data_format, const SIZE size)
 {
    Safeguard(data);
-   Safeguard(size > 0);
+
+   if(size == 0)
+      return create_utf_string(format);
 
    const ustring slave = ustring_from_data(data, data_format, size);
+   return ustring_to_utf_string(slave, format);
+}
+
+/* These functions easily convert from C-style strings. */
+UTF_STRING* create_utf_string_from_c_string(const UNICODE_FORMAT format, const char* input)
+{
+   Safeguard(input);
+
+   const ustring slave = ustring_from_c_string(input);
+   return ustring_to_utf_string(slave, format);
+}
+
+UTF_STRING* create_utf_string_from_c_string_size(const UNICODE_FORMAT format, const char* input, const SIZE size)
+{
+   Safeguard(input);
+
+   const ustring slave = ustring_from_c_string(input, size);
    return ustring_to_utf_string(slave, format);
 }
 
@@ -120,7 +140,7 @@ UTF_STRING* clear_utf_string(UTF_STRING* utf_string)
    if(utf_string->data)
       delete[] utf_string->data;
 
-   utf_string->data = NULL;
+   utf_string->data = NULLPTR;
    utf_string->size = 0;
    utf_string->length = 0;
 }
@@ -279,11 +299,11 @@ UTF_STRING* utf_strdup(const UTF_STRING* utf_string)
 
    UTF_STRING* duplicate = create_utf_string(utf_string->format);
    if(!duplicate)
-      return 0;
+      return NULLPTR;
 
    if(utf_strcpy(duplicate, utf_string) == 0) {
       delete_utf_string(duplicate);
-      return NULL;
+      return NULLPTR;
    }
 
    return duplicate;
@@ -515,7 +535,7 @@ utf_data* ustring_to_data(const ustring& input, const UNICODE_FORMAT format, siz
 
    const size_type new_size = output.size();
    const utf_data* copy = new utf_data[new_size];
-   memcpy(copy, &output[0], new_size);
+   memcpy((void*)copy, (void*)&output[0], new_size);
    output.clear();
 
    size = new_size;
@@ -535,7 +555,7 @@ utf_data* ustring_to_data(const ustring& input, utf_data* output, const UNICODE_
    size_type temp_size = 0;
    const utf_data* temp = ustring_to_data(input, format, temp_size);
    const size_type count = MIN2(size, temp_size);
-   memcpy(output, temp, count);
+   memcpy((void*)output, (void*)temp, count);
    delete[] temp;
 
    size = count;
