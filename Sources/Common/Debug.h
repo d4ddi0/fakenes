@@ -25,20 +25,20 @@ extern "C" {
 #endif
 
 /* Warning macros to help with debugging. */
-#define WARN(message) { \
-   const char* format = "WARNING\n\n" message "\n\nat line %d of %s"; \
-   allegro_message(format, __LINE__, __FILE__); \
+#define WARN(_MESSAGE) { \
+   const char* _format = "WARNING\n\n" _MESSAGE "\n\nat line %d of %s"; \
+   allegro_message(_format, __LINE__, __FILE__); \
    \
-   UTF_STRING* converted = create_utf_string_from_c_string(UNICODE_FORMAT_FASTEST, format_); \
-   log_printf(converted, __LINE__, __FILE__); \
-   delete_utf_string(converted); \
+   UTF_STRING* _converted = create_utf_string_from_c_string(UNICODE_FORMAT_FASTEST, _format); \
+   log_printf(_converted, __LINE__, __FILE__); \
+   delete_utf_string(_converted); \
 }
 
 #define WARN_GENERIC() \
    WARN("***Possible code fault***\nPlease report this to the developers.")
 
-#define WARN_BREAK(message) { \
-   WARN(message); \
+#define WARN_BREAK(_MESSAGE) { \
+   WARN(_MESSAGE); \
    return; \
 }
 
@@ -52,7 +52,7 @@ extern "C" {
    } \
 }
 
-#define SAFEGUARD(_GUARD) RT_ASSERT((_GUARD))
+#define SAFEGUARD(_CONDITION) RT_ASSERT((_CONDITION))
 
 #ifdef __cplusplus
 #   define Warning		WARN
