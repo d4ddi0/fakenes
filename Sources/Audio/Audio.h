@@ -1,5 +1,5 @@
-/* FakeNES - A portable, Open Source NES emulator.
-   Copyright © 2011 Digital Carat
+/* FakeNES - A portable, Open Source NES and Famicom emulator.
+   Copyright © 2011-2012 Digital Carat Group
 
    This is free software. See 'License.txt' for additional copyright and
    licensing information. You must read and accept the license prior to

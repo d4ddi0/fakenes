@@ -1,4 +1,4 @@
-/* FakeNES - A portable, Open Source NES emulator.
+/* FakeNES - A portable, Open Source NES and Famicom emulator.
    Copyright © 2011-2012 Digital Carat Group
 
    This is free software. See 'License.txt' for additional copyright and
@@ -38,34 +38,32 @@ UINT32 crc32_start(void)
 void crc32_end(UINT32* crc32)
 {
    Safeguard(crc32);
-
    *crc32 ^= seed;
 }
 
 void crc32_update(UINT32* crc32, const UINT8 data)
 {           
    Safeguard(crc32);
-
    *crc32 = table[(*crc32 ^ data) & 0xFF] ^ ((*crc32 >> 8) & 0x00FFFFFF);
 }
 
 UINT32 calculate_crc32(const void* buffer, const SIZE size)
 {
    Safeguard(buffer);
-   Safeguard(size > 0);
+
+   if(size == 0)
+      return 0;
 
    if(!initialized)
       Initialize();
 
    const uint8* data = (const uint8*)buffer;
-
    uint32 crc32 = crc32_start();
 
    for(size_type position = 0; position < size; position++)
       crc32_update(&crc32, data[position]);
 
    crc32_end(&crc32);
-
    return crc32;
 }
 
