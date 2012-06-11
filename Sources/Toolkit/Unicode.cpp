@@ -320,26 +320,71 @@ SIZE utf_strlen(const UTF_STRING* utf_string)
 // MODERN INTERFACE
 // --------------------------------------------------------------------------------
 
+/* This expands a UTF_DATA buffer to fill a ustring. The width of each data
+ * segment is specified as a template argument (as a data type).
+ * 
+ * This is invoked after using the UTF8-CPP library to convert from the
+ * dynamically encoded UTF formats to raw character codes of a fixed width. For
+ * example, data that is already in ASCII format can easily be expanded to fill
+ * a ustring by adding 3 bytes of padding to each character, transforming it
+ * from an 8-bit 'char' value to a 32-bit UCCHAR value.
+ * 
+ * As the STL template basic_string which ustring is based upon utilizes
+ * operator overloading, we can do this quite simply using concatentation of
+ * individual characters combined with type-casting.
+ */
 template<typename TYPE>
 void Expand(const utf_data* input, ustring& output, const size_type size)
 {
-   const TYPE* buffer = (const TYPE*)data;
+   Safeguard(input);
+
+   if(size == 0)
+      return;
+
+   const TYPE* buffer = (const TYPE*)input;
    const size_type length = size / sizeof(TYPE);
 
    for(size_type i = 0; i < length; i++)
       output += (ucchar)buffer[i];
 }
 
+/* This remaps a UTF_DATA buffer to fill an arbitrary buffer.
+ * 
+ * This is similar to the above template function, except instead of always
+ * expanding to the internal format of UCCHAR, it can expand to any format for
+ * which there is a data type available. THE CONVERSION MAY BE LOSSY!
+ * 
+ * The output buffer is represented as a STL vector of the data type.
+ */
 template<typename TYPE>
-void Expand(const utf_data* input, vector<TYPE>& output, const size_type size)
+void Convert(const utf_data* input, vector<TYPE>& output, const size_type size)
 {
-   const TYPE* buffer = (const TYPE*)data;
+   if(size == 0)
+      return;
+
+   const TYPE* buffer = (const TYPE*)input;
    const size_type length = size / sizeof(TYPE);
 
-   for(size_type i = 0; i < length; i++) {
-      const TYPE c = buffer[i];
-      output.push_back(c);
-   }
+   for(size_type i = 0; i < length; i++)
+      output.push_back(buffer[i]);
+}
+
+/* Like the above, but performs a lossless copy with no conversion. If any
+ * conversion is to take place, an error will be generated.
+ */
+template<typename TYPE>
+void Copy(const utf_data* input, vector<TYPE>& output, const size_type size)
+{
+   if(size == 0)
+      return;
+
+   /* Make sure the data types match (the length is the same). */
+   if(size != (size / sizeof(TYPE)))
+      GenericWarning();
+   
+   /* When the source and destination buffers are of the same data type,
+    * invoking Convert() is equivalent to a lossless copy. */
+   Convert<TYPE>(input, output, size);
 }
 
 /* This creates a ustring from a block of data. The data may be in
@@ -348,57 +393,61 @@ void Expand(const utf_data* input, vector<TYPE>& output, const size_type size)
 ustring ustring_from_data(const utf_data* data, const UNICODE_FORMAT format, const size_type size)
 {
    Safeguard(data);
-   Safeguard(size > 0);
 
    ustring output = ustring();
+   if(size == 0)
+      return output;
 
    switch(format) {
       case UNICODE_FORMAT_ASCII: {
+         // Convert to internal format.
          Expand<uint8>(data, output, size);
          break;
       }
 
       case UNICODE_FORMAT_UTF8: {
-         // Copy the read-only data into a vector.
-         vector<uint8> copied;
-         Expand<uint8>(data, copied, size);
+         // Copy the read-only data into a read-write buffer.
+         vector<uint8> buffer;
+         Copy<uint8>(data, buffer, size);
 
          // Replace any invalid code sequences.
-         vector<uint8> repaired;
-         utf8::replace_invalid(copied.begin(), copied.end(), back_inserter(repaired));
-         copied.clear();
+         vector<uint8> patched;
+         utf8::replace_invalid(buffer.begin(), buffer.end(), back_inserter(patched));
+         buffer.clear();
 
          // Convert to internal format.
-         utf8::utf8to32(repaired.begin(), repaired.end(), back_inserter(output));
-         repaired.clear();
+         utf8::utf8to32(patched.begin(), patched.end(), back_inserter(output));
+         patched.clear();
 
          break;
       }
 
       case UNICODE_FORMAT_UTF16: {
          // Copy the read-only data into a vector.
-         vector<uint16> copied;
-         Expand<uint16>(data, copied, size);
+         vector<uint16> buffer;
+         Copy<uint16>(data, copied, size);
 
-         // Convert from UTF-16 to UTF-8.
+         /* Convert from UTF-16 to UTF-8 since the UTF8-CPP library can only
+	  * repair broken sequences in the UTF-8 encoding. */
          vector<uint8> converted;
-         utf8::utf16to8(copied.begin(), copied.end(), back_inserter(converted));
-         copied.clear();
+         utf8::utf16to8(buffer.begin(), buffer.end(), back_inserter(converted));
+         buffer.clear();
 
          // Replace any invalid code sequences.
-         vector<uint8> repaired;
-         utf8::replace_invalid(converted.begin(), converted.end(), back_inserter(repaired));
+         vector<uint8> patched;
+         utf8::replace_invalid(converted.begin(), converted.end(), back_inserter(patched));
          converted.clear();
 
          // Convert to internal format.
-         utf8::utf8to32(repaired.begin(), repaired.end(), back_inserter(output));
-         repaired.clear();
+         utf8::utf8to32(patched.begin(), patched.end(), back_inserter(output));
+         patched.clear();
 
          break;
       }
 
       case UNICODE_FORMAT_UTF32: {
-         Expand<uint32>(data, converted, size);
+         // Convert to internal format.
+         Copy<uint32>(data, converted, size);
          break;
       }
 
@@ -432,7 +481,12 @@ ustring ustring_from_string(const std::string& input)
 ustring ustring_from_c_string(const char* input)
 {
    Safeguard(input);
-   return ustring_from_c_string(input, strlen(input));
+
+   const size_type legnth = strlen(input);
+   if(length == 0)
+      return ustring();
+
+   return ustring_from_c_string(input, length);
 }
 
 /* This version allows you to specify the length of the input string
@@ -443,9 +497,12 @@ ustring ustring_from_c_string(const char* input)
 ustring ustring_from_c_string(const char* input, const size_type size)
 {
    Safeguard(input);
-   Safeguard(size > 0);
 
-   return ustring_from_data((const utf_data*)input, UNICODE_FORMAT_ASCII, size - 1);
+   const size_type length = size - 1;
+   if(length == 0)
+      return ustring();
+
+   return ustring_from_data((const utf_data*)input, UNICODE_FORMAT_ASCII, length);
 }
 
 /* This creates a ustring from a UTF_STRING. This is mainly used by the

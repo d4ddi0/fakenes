@@ -38,7 +38,7 @@ ifdef VERBOSE
 	CBUILD_OPTIONS += --verbose
 endif
 
-# Which system to build for, this is passed to gcc as -march
+# Which system to build for, this is passed to gcc as '-march'.
 ifdef SYSTEM
 	CBUILD_OPTIONS += --system=$(SYSTEM)
 endif
@@ -46,6 +46,7 @@ endif
 # Note that these flags are only used to compile CBuild.
 CFLAGS = -std=c99 -pedantic -Os -g -Wall -Wextra
 
+# Default install path on Unices (e.g Linux and Mac).
 INSTALL_PATH = /usr/bin
 
 .PHONY: all bootstrap clean distclean install uninstall
