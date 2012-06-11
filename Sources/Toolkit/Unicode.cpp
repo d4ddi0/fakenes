@@ -5,6 +5,7 @@
    licensing information. You must read and accept the license prior to
    any modification or use of this software. */
 
+#include <utf8.h> // UTF8-CPP
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
