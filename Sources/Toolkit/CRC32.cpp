@@ -58,18 +58,18 @@ void crc32_update(UINT32* crc32, const UINT8 data) {
 }
 
 UINT32 calculate_crc32(const void* buffer, const SIZE size) {
-	Safeguard(buffer);
-
-	if( size == 0 )
-		return 0;
+	Safeguard( buffer );
 
 	if( !initialized )
 		Initialize();
 
+	if( size == 0 )
+		return 0;
+
 	const uint8* data = (const uint8*)buffer;
 	uint32 crc32 = crc32_start();
-	for( size_type position = 0; position < size; position++ )
-		crc32_update(&crc32, data[position]);
+	for( size_type offset = 0; offset < size; offset++ )
+		crc32_update(&crc32, data[offset]);
 
 	crc32_end(&crc32);
 	return crc32;
