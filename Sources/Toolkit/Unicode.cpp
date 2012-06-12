@@ -5,7 +5,7 @@
  * licensing information. You must read and accept the license prior to any
  * modification or use of this software.
  */
-#include <utf8.h>	// For UTF8-CPP.
+#include <utf8.h>	// For UTF8-CPP functions.
 #include <cctype>	// For toupper().
 #include <cstdlib>
 #include <cstring>
@@ -29,22 +29,22 @@ using namespace std;
 UTF_STRING* create_utf_string(const UNICODE_FORMAT format) {
 	/* Allocate and initialize the memory to contain the UTF_STRING class.
 	 * The memory for data is allocated separately as needed. */
-	UTF_STRING* utf_string = new UTF_STRING;
-	if( !utf_string ) {
+	UTF_STRING* output = new UTF_STRING;
+	if( !output ) {
 		Warning("Out of memory.");
 		return NULLPTR;
 	}
 
-	memset((void*)utf_string, 0, sizeof(UTF_STRING));
+	memset((void*)output, 0, sizeof(UTF_STRING));
 
 	/* Just initializing the memory of the UTF_STIRNG isn't quite
 	 * sufficient; we also have to call clear_utf_string() to ensure that
 	 * it contains a valid empty string. */
-	clear_utf_string(utf_string);
+	clear_utf_string(output);
 
 	// Lastly, we set the encoding and return the UTF_STRING.
-	utf_string->format = format;
-	return utf_string;
+	output->format = format;
+	return output;
 }
 
 /* This creates a new UTF_STRING from a block of character data. The data may
@@ -54,36 +54,36 @@ UTF_STRING* create_utf_string(const UNICODE_FORMAT format) {
  * 
  * Returns the new string upon sucess, otherwise a null value.
  */
-UTF_STRING* create_utf_string_from_data(const UNICODE_FORMAT format, const UTF_DATA* data, const UNICODE_FORMAT data_format, const SIZE size) {
-	Safeguard( data );
+UTF_STRING* create_utf_string_from_data(const UNICODE_FORMAT format, const UTF_DATA* source, const UNICODE_FORMAT source_format, const SIZE size) {
+	Safeguard( source );
 
 	if( size == 0 )
 		return create_utf_string(format);
 
-	const ucstring slave = ucstring_from_data(data, data_format, size);
+	const ucstring slave = ucstring_from_data(source, source_format, size);
 	return ucstring_to_utf_string(slave, format);
 }
 
 /* These functions easily convert from C strings. Make sure that any strings
  * passed to these functions are properly null terminated.
  */
-UTF_STRING* create_utf_string_from_c_string(const UNICODE_FORMAT format, const char* input) {
-	Safeguard(input);
+UTF_STRING* create_utf_string_from_c_string(const UNICODE_FORMAT format, const char* source) {
+	Safeguard( source );
 
-	const size_type length = strlen(input);
+	const size_type length = strlen(source);
 	if( length == 0 )
 		return create_utf_string(format);
 
-	return create_utf_string_from_c_string_length(format, input, length);
+	return create_utf_string_from_c_string_length(format, source, length);
 }
 
-UTF_STRING* create_utf_string_from_c_string_length(const UNICODE_FORMAT format, const char* input, const SIZE length) {
-	Safeguard( input );
+UTF_STRING* create_utf_string_from_c_string_length(const UNICODE_FORMAT format, const char* source, const SIZE length) {
+	Safeguard( source );
 
 	if( length == 0 )
 		return create_utf_string(format);
 
-	const ucstring slave = ucstring_from_c_string(input, length);
+	const ucstring slave = ucstring_from_c_string(source, length);
 	return ucstring_to_utf_string(slave, format);
 }
 
@@ -91,10 +91,10 @@ UTF_STRING* create_utf_string_from_c_string_length(const UNICODE_FORMAT format, 
  * create_utf_string*() functions. After invoking delete_utf_string(), the
  * pointer should be set to a null value manually for safety.
  */
-void delete_utf_string(UTF_STRING* utf_string) {
-	if( utf_string ) {
-		clear_utf_string(utf_string);
-		delete utf_string;
+void delete_utf_string(UTF_STRING* target) {
+	if( target ) {
+		clear_utf_string(target);
+		delete target;
 	}
 }
 
@@ -112,24 +112,24 @@ void delete_utf_string(UTF_STRING* utf_string) {
  * get_utf_string_length():
  * 	Gets the number of characters in the string.
  */
-UTF_DATA* get_utf_string_data(UTF_STRING* utf_string) {
-	Safeguard( utf_string );
-	return utf_string->data;
+UTF_DATA* get_utf_string_data(UTF_STRING* source) {
+	Safeguard( source );
+	return source->data;
 }
 
-const UTF_DATA* get_utf_string_const_data(const UTF_STRING* utf_string) {
-	Safeguard( utf_string );
-	return utf_string->data;
+const UTF_DATA* get_utf_string_const_data(const UTF_STRING* source) {
+	Safeguard( source );
+	return source->data;
 }
 
-SIZE get_utf_string_size(const UTF_STRING* string) {
-	Safeguard( utf_string );
-	return utf_string->size;
+SIZE get_utf_string_size(const UTF_STRING* source) {
+	Safeguard( source );
+	return source->size;
 }
 
-SIZE get_utf_string_length(const UTF_STRING* string) {
-	Safeguard( utf_string );
-	return utf_string->length;
+SIZE get_utf_string_length(const UTF_STRING* source) {
+	Safeguard( source );
+	return source->length;
 }
 
 /* This clears a UTF_STRING, and de-allocates any memory that it may be using
@@ -139,15 +139,15 @@ SIZE get_utf_string_length(const UTF_STRING* string) {
  * UTF_STRING is empty is to call clear_utf_string(). Check the return value of
  * utf_strlen() when testing for emptiness (length=0).
  */
-UTF_STRING* clear_utf_string(UTF_STRING* utf_string) {
-	Safeguard( utf_string );
+UTF_STRING* clear_utf_string(UTF_STRING* target) {
+	Safeguard( target );
 
-	if( utf_string->data )
-		delete[] utf_string->data;
+	if( target->data )
+		delete[] target->data;
 
-	utf_string->data = NULLPTR;
-	utf_string->size = 0;
-	utf_string->length = 0;
+	target->data = NULLPTR;
+	target->size = 0;
+	target->length = 0;
 }
 
 /* This converts a UTF_STRING from one encoding to another. If some characters
@@ -158,11 +158,11 @@ UTF_STRING* clear_utf_string(UTF_STRING* utf_string) {
  * If an error occurs, the string is left unmodified and a null value is
  * returned instead of the converted string.
  */
-UTF_STRING* convert_utf_string(const UTF_STRING* utf_string, const UNICODE_FORMAT format) {
-	Safeguard( utf_string );
+UTF_STRING* convert_utf_string(const UTF_STRING* target, const UNICODE_FORMAT format) {
+	Safeguard( target );
 
-	const ucstring slave = ucstring_from_utf_string(*utf_string);
-	return ucstring_to_utf_string(slave, *utf_string, format);
+	const ucstring slave = ucstring_from_utf_string(*target);
+	return ucstring_to_utf_string(slave, *target, format);
 }
 
 /* This gets a single Unicode character from a UTF_STRING. Note that the
@@ -171,13 +171,13 @@ UTF_STRING* convert_utf_string(const UTF_STRING* utf_string, const UNICODE_FORMA
  * Returns the character code, or zero if the requested character is past the
  * end of the string.
  */
-UCCHAR utf_getc(const UTF_STRING* utf_string, const SIZE position) {
-	Safeguard( utf_string );
+UCCHAR utf_getc(const UTF_STRING* source, const SIZE position) {
+	Safeguard( source );
 
-	if( position >= utf_string->length )
+	if( position >= source->length )
 		return 0;
 
-	const ucstring slave = ucstring_from_utf_string(*utf_string);
+	const ucstring slave = ucstring_from_utf_string(*source);
 	if( position >= slave.length() )
 		return 0;
 
@@ -191,18 +191,18 @@ UCCHAR utf_getc(const UTF_STRING* utf_string, const SIZE position) {
  * Returns the character code written to the string. If an error occurs, the
  * string is left unmodified and zero is returned.
  */
-UCCHAR utf_putc(UTF_STRING* utf_string, const SIZE position, const UCCHAR code) {
-	Safeguard( utf_string );
+UCCHAR utf_putc(UTF_STRING* target, const SIZE position, const UCCHAR code) {
+	Safeguard( target );
 
-	if( position >= utf_string->length )
+	if( position >= target->length )
 		return 0;
 
-	ucstring slave = ucstring_from_utf_string(*utf_string);
+	ucstring slave = ucstring_from_utf_string(*target);
 	if( position >= slave.length() )
 		return 0;
 
 	slave[position] = code;
-	if( !ucstring_to_utf_string(slave, *utf_string) )
+	if( !ucstring_to_utf_string(slave, *target) )
 		return 0;
 
 	return code;
@@ -291,14 +291,14 @@ SIZE utf_stricmp(const UTF_STRING* first, const UTF_STRING* second) {
  * 
  * Returns the duplicated string, or a null value on error.
  */
-UTF_STRING* utf_strdup(const UTF_STRING* utf_string) {
-	Safeguard( utf_string );
+UTF_STRING* utf_strdup(const UTF_STRING* source) {
+	Safeguard( source );
 
-	UTF_STRING* duplicate = create_utf_string(utf_string->format);
+	UTF_STRING* duplicate = create_utf_string(source->format);
 	if( !duplicate )
 		return NULLPTR;
 
-	if( utf_strcpy(duplicate, utf_string) == 0 ) {
+	if( utf_strcpy(duplicate, source) == 0 ) {
 		delete_utf_string(duplicate);
 		return NULLPTR;
 	}
@@ -307,11 +307,17 @@ UTF_STRING* utf_strdup(const UTF_STRING* utf_string) {
 }
 
 /* This returns the length of a UTF_STRING, in characters. This is functionally
- * identical to get_utf_string_length().
+ * identical to get_utf_string_length(), except that it also checks for a valid
+ * data buffer and data size, making it generally safer.
  */
-SIZE utf_strlen(const UTF_STRING* utf_string) {
-	Safeguard( utf_string );
-	return utf_string->length;
+SIZE utf_strlen(const UTF_STRING* source) {
+	Safeguard( source );
+
+	if( !source->data ||
+	    ( source->size == 0 ) || ( source->length == 0 ) )
+		return 0;
+	
+	return source->length;
 }
 
 // --------------------------------------------------------------------------------
@@ -355,37 +361,16 @@ void Expand(const utf_data* input, ucstring& output, const size_type size) {
  * The output buffer is represented as a STL vector, sized as needed.
  */
 template<typename INPUT_TYPE, typename OUTPUT_TYPE>
-void Convert(const utf_data* input, vector<OUTPUT_TYPE>& output, const size_type size) {
-	if( size == 0 ) {
-		output.clear();
+void Convert(const utf_data* input, vector<OUTPUT_TYPE>& output, const size_type size, const unsigned minimum, const unsigned maximum) {
+	output.clear();
+	if( size == 0 )
 		return;
-	}
 
 	const INPUT_TYPE* buffer = (const INPUT_TYPE*)input;
 	const size_type length = size / sizeof(INPUT_TYPE);
-
-	if( sizeof(OUTPUT_TYPE) < sizeof(INPUT_TYPE) ) {
-		// Downconversion
-		const size_type bits = sizeof(OUTPUT_TYPE) * 8;
-		unsigned maximum = 2;
-		for( size_type i = 0; i < (bits - 1); i++ )
-			maximum *= 2;
-
-		// 2^8 gives 256, so subtract one from the result.
-		maximum--;
-
-		for( size_type i = 0; i < length; i++ ) {
-			unsigned c = (unsigned)buffer[i];
-			if( c > maximum )
-				c = 0x3F; // ASCII '?'
-
-			output.push_back((OUTPUT_TYPE)c);
-		}
-	}
-	else {
-		// Upconversion
-		for( size_type i = 0; i < length; i++ )
-			output.push_back((OUTPUT_TYPE)buffer[i]);
+	for( size_type i = 0; i < length; i++ ) {
+		const unsigned c = Clamp<unsigned>((unsigned)input[i], minimum, maximum);
+		output.push_back((OUTPUT_TYPE)c);
 	}
 }
 
@@ -404,14 +389,14 @@ void Copy(const utf_data* input, vector<TYPE>& output, const size_type size) {
 	/* When copying, reverse-compute length to avoid a potential buffer
 	 * overflow in cases where the input buffer does not contain an exact
 	 * integer quantity of data units. */
-	memcpy((void*)input, (void*)&output[0], length * sizeof(TYPE));
+	memcpy((void*)input, ArrayCast(output, void*), length * sizeof(TYPE));
 }
 
 /* This creates a ucstring from a block of data. The data may be in
    any supported Unicode format.
 */
-ucstring ucstring_from_data(const utf_data* data, const UNICODE_FORMAT format, const size_type size) {
-	Safeguard( data );
+ucstring ucstring_from_data(const utf_data* source, const UNICODE_FORMAT format, const size_type size) {
+	Safeguard( source );
 
 	ucstring output = ucstring();
 	if( size == 0 )
@@ -419,14 +404,19 @@ ucstring ucstring_from_data(const utf_data* data, const UNICODE_FORMAT format, c
 
 	switch( format ) {
 		case UNICODE_FORMAT_ASCII:
+			// Replace any invalid code sequences.
+			vector<char> patched;
+			Convert<uint8, char>(source, patched, size, 0x0, 0x7F);
+
 			// Convert to internal format.
-			Expand<uint8>(data, output, size);
+			Expand<char>(ArrayCast(patched, const utf_data*), output, size);
+			patched.clear();
 			break;
       
 		case UNICODE_FORMAT_UTF8: {
 			// Copy the read-only data into a read-write buffer.
 			vector<uint8> buffer;
-			Copy<uint8>(data, buffer, size);
+			Copy<uint8>(source, buffer, size);
 
 			// Replace any invalid code sequences.
 			vector<uint8> patched;
@@ -440,13 +430,13 @@ ucstring ucstring_from_data(const utf_data* data, const UNICODE_FORMAT format, c
 		}
 
 		case UNICODE_FORMAT_UTF16: {
-			// Copy the read-only data into a vector.
+			// Copy the read-only data into a read-write buffer.
 			vector<uint16> buffer;
-			Copy<uint16>(data, copied, size);
+			Copy<uint16>(source, buffer, size);
 
 			/* Convert from UTF-16 to UTF-8 since the UTF8-CPP
-			 * library can only repair broken sequences in the
-			 * standard UTF-8 encoding. */
+			 * library can only repair broken code sequences in the
+			 * UTF-8 encoding. */
 			vector<uint8> converted;
 			utf8::utf16to8(buffer.begin(), buffer.end(), back_inserter(converted));
 			buffer.clear();
@@ -464,7 +454,7 @@ ucstring ucstring_from_data(const utf_data* data, const UNICODE_FORMAT format, c
 
 		case UNICODE_FORMAT_UTF32:
 			// Convert to internal format.
-			Copy<uint32>(data, output, size);
+			Expand<uint32>(source, output, size);
 			break;
 
 		default:
@@ -477,91 +467,78 @@ ucstring ucstring_from_data(const utf_data* data, const UNICODE_FORMAT format, c
 
 /* This creates a ucstring from an STL string.
  */
-ucstring ucstring_from_string(const std::string& input) {
+ucstring ucstring_from_string(const std::string& source) {
 	// Check for an empty input string.
-	if( input.length() == 0 )
+	if( source.length() == 0 )
 		return ucstring();
 
-	return ucstring_from_c_string(input.c_str());
+	return ucstring_from_c_string(source.c_str());
 }
 
 /* This creates a ucstring from a C string, automatically detecting the length
  * with a call to strlen(), which is potentially unsafe. Make sure that any
  * strings passed to this function are properly null terminated.
  */
-ucstring ucstring_from_c_string(const char* input)
-{
-   Safeguard(input);
+ucstring ucstring_from_c_string(const char* source) {
+	Safeguard( source );
 
-   const size_type legnth = strlen(input);
-   if(length == 0)
-      return ucstring();
+	const size_type length = strlen(source);
+	if( length == 0 )
+		return ucstring();
 
-   return ucstring_from_c_string(input, length);
+	return ucstring_from_c_string(source, length);
 }
 
-/* This version allows you to specify the length of the input string
-   manually, which can be safer. As this function is designed to accept
-   C-style strings, rather than raw data, it assumes that 'length'
-   excludes the null termination character, so it can be used to
-   convert strings that are not null-terminated.
+/* This version allows you to explicitly specify the length of the input string
+ * (in characters), and thus can safely handle unterminated strings.
 */
-ucstring ucstring_from_c_string(const char* input, const size_type length)
-{
-   Safeguard(input);
+ucstring ucstring_from_c_string(const char* source, const size_type length) {
+	Safeguard( source );
 
-   if(length == 0)
-      return ucstring();
+	if( length == 0 )
+		return ucstring();
 
-   return ucstring_from_data((const utf_data*)input, UNICODE_FORMAT_ASCII, length);
+	return ucstring_from_data((const utf_data*)source, UNICODE_FORMAT_ASCII, length);
 }
 
 /* This creates a ucstring from a UTF_STRING. This is mainly used by the
    legacy interface as a workhorse.
 */
-ucstring ucstring_from_utf_string(const utf_string& input)
-{
-   // Check for an empty input string.
-   if(!input.data || (input.size == 0) || (input.length == 0))
-      return ucstring();
+ucstring ucstring_from_utf_string(const utf_string& source) {
+	// Check for an empty input string.
+	if( utf_strlen(source) == 0 )
+		return ucstring();
 
-   return ucstring_from_data(input.data, input.format, input.size);
+	return ucstring_from_data(source.data, source.format, source.size);
 }
 
-/* This converts a ucstring to a block of data using the specified format.
-   As the length of the encoded data can't be known ahead of time, this
-   function automatically allocates the neccessary memory.
-
-   Returns the block of data upon success, which must later be deleted,
-   and updates the 'size' parameter to reflect how much memory was
-   allocated to store the encoded data.
+/* This converts a ucstring to a block of data using the specified format. As
+ * the size of the encoded data can't be known ahead of time, this function
+ * automatically allocates the neccessary memory.
+ * 
+ * Returns the block of data upon success, which must later be delete[]'d, and
+ * updates the 'size' parameter to reflect how much memory was allocated to
+ * fully store the encoded data.
 */
-utf_data* ucstring_to_data(const ucstring& input, const UNICODE_FORMAT format, size_type& size)
-{
-   const size_type length = input.length();
-   vector<utf_data> output;
+utf_data* ucstring_to_data(const ucstring& source, const UNICODE_FORMAT format, size_type& size) {
+	const size_type length = source.length();
 
-   switch(format) {
-      case UNICODE_FORMAT_ASCII: {
-         for(size_type i = 0; i < length; i++) {
-            const ucchar& c = input[i];
+	vector<utf_data> output;
 
-            const utf_data data = (c <= 0x7F) ? c : '?';
-            output.push_back(data);
-         }
-
-         break;
-      }
+	switch( format ) {
+		case UNICODE_FORMAT_ASCII:
+			Convert<ucchar, uint8>(source, copied, size);
+			break;
 
       case UNICODE_FORMAT_UTF8: {
-         utf8::utf32to8(input.begin(), input.end(), back_inserter(output));
+         utf8::utf32to8(source.begin(), source.end(), back_inserter(output));
          break;
       }
 
       case UNICODE_FORMAT_UTF16: {
          vector<uint16> temp;
          vector<uint32> temp2;
-         utf8::utf32to8(input.begin(), input.end(), back_inserter(temp));
+         utf8::utf32to8(source.begin(), source.end(), back_inserter(temp));
          utf8::utf8to16(temp.begin(), temp.end(), back_inserter(temp2));
 
          for(size_type i = 0; i < length; i++) {
@@ -579,7 +556,7 @@ utf_data* ucstring_to_data(const ucstring& input, const UNICODE_FORMAT format, s
 
       case UNICODE_FORMAT_UTF32: {
          for(size_type i = 0; i < length; i++) {
-            const ucchar& c = input[i];
+            const ucchar& c = source[i];
 
             const utf_data d0 = (c >> 24) & 0xFF;
             const utf_data d1 = (c >> 16) & 0xFF;
@@ -615,10 +592,9 @@ utf_data* ucstring_to_data(const ucstring& input, const UNICODE_FORMAT format, s
    the buffer can be limited, although if not enough space is
    available the encoding may break and become invalid.
 */
-utf_data* ucstring_to_data(const ucstring& input, utf_data* output, const UNICODE_FORMAT format, size_type& size)
+utf_data* ucstring_to_data(const ucstring& source, utf_data* target, const UNICODE_FORMAT format, size_type& size)
 {
-   Safeguard(output);
-   Safeguard(size > 0);
+   Safeguard( target );
 
    size_type temp_size = 0;
    const utf_data* temp = ucstring_to_data(input, format, temp_size);
@@ -633,10 +609,10 @@ utf_data* ucstring_to_data(const ucstring& input, utf_data* output, const UNICOD
 /* This converts a ucstring to an STL string, using the ASCII character
    encoding. For a different encoding, use ucstring_to_data().
 */
-std::string ucstring_to_string(const ucstring& input)
+std::string ucstring_to_string(const ucstring& source)
 {
    size_type size;
-   utf_data* data = ucstring_to_data(input, UNICODE_FORMAT_ASCII, size);
+   utf_data* data = ucstring_to_data(source, UNICODE_FORMAT_ASCII, size);
    string output = string();
    for(size_type i = 0; i < size; i++) {
       const char c = data[i];
@@ -655,32 +631,32 @@ std::string ucstring_to_string(const ucstring& input)
    Returns the actual number of characters written to the output
    buffer, including thet null termination character.
 */
-char* ucstring_to_c_string(const ucstring& input, char* output, size_type& size)
+char* ucstring_to_c_string(const ucstring& source, char* target, size_type& size)
 {
-   Safeguard(output);
+   Safeguard( target );
 
    if( size == 0 )
-      return output;
+      return target;
 
-   const std::string converted = ucstring_to_string(input);
+   const std::string converted = ucstring_to_string(source);
    const size_type count = MIN2(converted.length(), size - 1);
    for(size_type i = 0; i < count; i++)
-      output[i] = input[i];
+      target[i] = source[i];
 
-   output[i] = 0;
+   target[i] = 0;
 
    size = count + 1;
-   return output;
+   return target;
 }
 
-utf_string* ucstring_to_utf_string(const ucstring& input, const UNICODE_FORMAT format)
+utf_string* ucstring_to_utf_string(const ucstring& source, const UNICODE_FORMAT format)
 {
 }
 
-utf_string* ucstring_to_utf_string(const ucstring& input, utf_string& output)
+utf_string* ucstring_to_utf_string(const ucstring& source, utf_string& target)
 {
 }
 
-utf_string* ucstring_to_utf_string(const ucstring& input, utf_string& output, const UNICODE_FORMAT format)
+utf_string* ucstring_to_utf_string(const ucstring& source, utf_string& target, const UNICODE_FORMAT format)
 {
 }

@@ -36,6 +36,9 @@ extern "C" {
 #   define PURE_FUNCTION
 #endif
 
+#define ARRAY_BASE(_ARRAY)		(&(_ARRAY)[0])
+#define ARRAY_CAST(_ARRAY, _TYPE)	(((_TYPE))ARRAY_BASE((_ARRAY)))
+
 #ifdef __cplusplus
 } // extern "C"
 
@@ -43,9 +46,12 @@ extern "C" {
 #define false	(FALSE)
 #define null	(NULL)
 #define nullptr	(NULLPTR)
-
+ 
 #define constant_function	CONSTANT_FUNCTION
 #define pure_function		PURE_FUNCTION
+
+#define ArrayBase		ARRAY_BASE
+#define ArrayCast		ARRAY_CAST
 
 #endif /* __cplusplus */
 #endif /* !COMMON__GLOBAL_H__INCLUDED */
