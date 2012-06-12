@@ -21,10 +21,23 @@ uint32 table[TableSize];
 
 const uint32 seed = 0xFFFFFFFF;
 
-} // namespace anonymous
+discrete_function void Initialize() {
+	for( size_type i = 0; i < TableSize; i++ ) {
+		uint32 value = i;
+		for( uint bit = 0; bit < 8; bit++ ) {
+			if( value & 1 )
+				value = (value >> 1) ^ 0xEDB88320;
+			else
+				value >>= 1;
+		}
 
-// Function prototypes (defined at bottom). */
-static discrete_function void Initialize();
+		table[i] = value;
+	}
+
+	initialized = true;
+}
+
+} // namespace anonymous
 
 // --------------------------------------------------------------------------------
 // PUBLIC INTERFACE
@@ -60,24 +73,4 @@ UINT32 calculate_crc32(const void* buffer, const SIZE size) {
 
 	crc32_end(&crc32);
 	return crc32;
-}
-
-// --------------------------------------------------------------------------------
-// PRIVATE INTERFACE
-// --------------------------------------------------------------------------------
-
-static discrete_function void Initialize() {
-	for( size_type i = 0; i < TableSize; i++ ) {
-		uint32 value = i;
-		for( uint bit = 0; bit < 8; bit++ ) {
-			if( value & 1 )
-				value = (value >> 1) ^ 0xEDB88320;
-			else
-				value >>= 1;
-		}
-
-		table[i] = value;
-	}
-
-	initialized = true;
 }
