@@ -1,12 +1,12 @@
 /* FakeNES - A portable, Open Source NES and Famicom emulator.
-   Copyright © 2011-2012 Digital Carat Group
-
-   This is free software. See 'License.txt' for additional copyright and
-   licensing information. You must read and accept the license prior to
-   any modification or use of this software.
-
-   Original version by Charles Bilyue' (TRAC). */
-
+ * Copyright © 2011-2012 Digital Carat Group
+ * 
+ * This is free software. See 'License.txt' for additional copyright and
+ * licensing information. You must read and accept the license prior to any
+ * modification or use of this software.
+ * 
+ * Original version by Charles Bilyue' (TRAC).
+ */
 #include "Common/Debug.h"
 #include "Common/Global.h"
 #include "Common/Types.h"
@@ -17,8 +17,8 @@ namespace {
 bool initialized = false;
 
 const size_type TableSize = 256;
-
 uint32 table[TableSize];
+
 const uint32 seed = 0xFFFFFFFF;
 
 } // namespace anonymous
@@ -30,62 +30,54 @@ static discrete_function void Initialize();
 // PUBLIC INTERFACE
 // --------------------------------------------------------------------------------
 
-UINT32 crc32_start(void)
-{
-   return seed;
+UINT32 crc32_start(void) {
+	return seed;
 }
 
-void crc32_end(UINT32* crc32)
-{
-   Safeguard(crc32);
-   *crc32 ^= seed;
+void crc32_end(UINT32* crc32) {
+	Safeguard( crc32 );
+	*crc32 ^= seed;
 }
 
-void crc32_update(UINT32* crc32, const UINT8 data)
-{           
-   Safeguard(crc32);
-   *crc32 = table[(*crc32 ^ data) & 0xFF] ^ ((*crc32 >> 8) & 0x00FFFFFF);
+void crc32_update(UINT32* crc32, const UINT8 data) {           
+	Safeguard( crc32 );
+	*crc32 = table[(*crc32 ^ data) & 0xFF] ^ ((*crc32 >> 8) & 0x00FFFFFF);
 }
 
-UINT32 calculate_crc32(const void* buffer, const SIZE size)
-{
-   Safeguard(buffer);
+UINT32 calculate_crc32(const void* buffer, const SIZE size) {
+	Safeguard(buffer);
 
-   if(size == 0)
-      return 0;
+	if( size == 0 )
+		return 0;
 
-   if(!initialized)
-      Initialize();
+	if( !initialized )
+		Initialize();
 
-   const uint8* data = (const uint8*)buffer;
-   uint32 crc32 = crc32_start();
+	const uint8* data = (const uint8*)buffer;
+	uint32 crc32 = crc32_start();
+	for( size_type position = 0; position < size; position++ )
+		crc32_update(&crc32, data[position]);
 
-   for(size_type position = 0; position < size; position++)
-      crc32_update(&crc32, data[position]);
-
-   crc32_end(&crc32);
-   return crc32;
+	crc32_end(&crc32);
+	return crc32;
 }
 
 // --------------------------------------------------------------------------------
 // PRIVATE INTERFACE
 // --------------------------------------------------------------------------------
 
-static discrete_function void Initialize()
-{
-   for(size_type i = 0; i < TableSize; i++) {
-      uint32 value = i;
+static discrete_function void Initialize() {
+	for( size_type i = 0; i < TableSize; i++ ) {
+		uint32 value = i;
+		for( uint bit = 0; bit < 8; bit++ ) {
+			if( value & 1 )
+				value = (value >> 1) ^ 0xEDB88320;
+			else
+				value >>= 1;
+		}
 
-      for(uint bit = 0; bit < 8; bit++) {
-         if(value & 1)
-            value = (value >> 1) ^ 0xEDB88320;
-         else
-            value >>= 1;
-      }
+		table[i] = value;
+	}
 
-      table[i] = value;
-   }
-
-   initialized = true;
+	initialized = true;
 }
-
