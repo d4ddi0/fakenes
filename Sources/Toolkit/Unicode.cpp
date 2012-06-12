@@ -42,15 +42,17 @@ UTF_STRING* create_utf_string(const UNICODE_FORMAT format) {
 	 * it contains a valid empty string. */
 	clear_utf_string(output);
 
-	// Lastly, we set the encoding and return the UTF_STRING.
+	// Lastly, we set the format and return the string.
 	output->format = format;
 	return output;
 }
 
-/* This creates a new UTF_STRING from a block of character data. The data may
- * be in any supported Unicode format, and a check will first be made to ensure
- * that it is valid. The size parameter defines the length of the string in
- * data segments (UTF_DATA), not characters.
+/* This creates a new UTF_STRING from a block of character data, which may be
+ * in any supported Unicode format, and the size parameter defines the length
+ * of the string in UTF_DATA segments (bytes), not characters.
+ * 
+ * Note that if the requested format is different from the source format,
+ * some loss (from unrepresentable characters) may occur.
  * 
  * Returns the new string upon sucess, otherwise a null value.
  */
@@ -88,8 +90,8 @@ UTF_STRING* create_utf_string_from_c_string_length(const UNICODE_FORMAT format, 
 }
 
 /* This de-allocates the memory used by a UTF_STRING created by any of the
- * create_utf_string*() functions. After invoking delete_utf_string(), the
- * pointer should be set to a null value manually for safety.
+ * create_utf_string*() functions. After calling delete_utf_string(), the
+ * pointer should be set to a null value for safety.
  */
 void delete_utf_string(UTF_STRING* target) {
 	if( target ) {
@@ -101,25 +103,48 @@ void delete_utf_string(UTF_STRING* target) {
 /* These functions just return internal information contained within the
  * UTF_STRING class. This is the *proper* way to access such information, as
  * fields from UTF_STRING should never be referenced directly in case they are
- * changed in a future implementation.
+ * changed in a future version.
  * 
  * get_utf_string_data():
  * 	Returns a pointer to the internal data buffer.
- * get_utf_string_const_data():
+ * get_utf_string_data_const():
+ * 	Likewise, but with const-correctness.
+ * get_utf_string_linear_data():
+ * 	Returns a pointer to the internal data buffer, in linear format.
+ * 	This only works with UNICODE_FORMAT_LINEAR.
+ * get_utf_string_linear_data_const():
  * 	Likewise, but with const-correctness.
  * get_utf_string_size():
- * 	Gets the size of the data, in bytes.
+ * 	Gets the size of the data, in UTF_DATA segments.
  * get_utf_string_length():
- * 	Gets the number of characters in the string.
+ * 	Gets the number of actual characters in the string.
  */
 UTF_DATA* get_utf_string_data(UTF_STRING* source) {
 	Safeguard( source );
 	return source->data;
 }
 
-const UTF_DATA* get_utf_string_const_data(const UTF_STRING* source) {
+const UTF_DATA* get_utf_string_data_const(const UTF_STRING* source) {
 	Safeguard( source );
 	return source->data;
+}
+
+UCCHAR* get_utf_string_linear_data(UTF_STRING* source) {
+	Safeguard( source );
+
+	if( source->format != UNICODE_FORMAT_LINEAR )
+		return NULLPTR;
+	
+	return source->linear_data;
+}
+
+const UCCHAR* get_utf_string_linear_data_const(const UTF_STRING* source) {
+	Safeguard( source );
+
+	if( source->format != UNICODE_FORMAT_LINEAR )
+		return NULLPTR;
+
+	return source->linear_data;
 }
 
 SIZE get_utf_string_size(const UTF_STRING* source) {
@@ -135,7 +160,7 @@ SIZE get_utf_string_length(const UTF_STRING* source) {
 /* This clears a UTF_STRING, and de-allocates any memory that it may be using
  * internally to store character data.
  * 
- * Empty strings are encoding-specific, so the safest way to ensure that a
+ * Empty strings are format-specific, so the safest way to ensure that a
  * UTF_STRING is empty is to call clear_utf_string(). Check the return value of
  * utf_strlen() when testing for emptiness (length=0).
  */
@@ -146,23 +171,33 @@ UTF_STRING* clear_utf_string(UTF_STRING* target) {
 		delete[] target->data;
 
 	target->data = NULLPTR;
+	target->linear_data = NULLPTR;
 	target->size = 0;
 	target->length = 0;
 }
 
 /* This converts a UTF_STRING from one encoding to another. If some characters
- * cannot be properly represented in the new format, they will be lost.
- * Traditionally, this results in them being replaced with an ASCII equivalent
- * question mark (?) character code 0x3F.
+ * cannot be properly represented in the new format, they may be lost.
  * 
  * If an error occurs, the string is left unmodified and a null value is
  * returned instead of the converted string.
  */
-UTF_STRING* convert_utf_string(const UTF_STRING* target, const UNICODE_FORMAT format) {
+UTF_STRING* convert_utf_string(UTF_STRING* target, const UNICODE_FORMAT format) {
 	Safeguard( target );
 
 	const ucstring slave = ucstring_from_utf_string(*target);
 	return ucstring_to_utf_string(slave, *target, format);
+}
+
+/* This creates a new UTF_STRING instead of performing an in-place conversion,
+ * allowing it be used with read-only source strings. The returned UTF_STRING
+ * must be deleted when you are done with it.
+ */
+UTF_STRING* convert_utf_string_const(const UTF_STRING* source, const UNICODE_FORMAT format) {
+	Safeguard( source );
+
+	const ucstring slave = ucstring_from_utf_string(*source);
+	return ucstring_to_utf_string(slave, format);
 }
 
 /* This gets a single Unicode character from a UTF_STRING. Note that the
@@ -177,16 +212,26 @@ UCCHAR utf_getc(const UTF_STRING* source, const SIZE position) {
 	if( position >= source->length )
 		return 0;
 
-	const ucstring slave = ucstring_from_utf_string(*source);
-	if( position >= slave.length() )
-		return 0;
+	if( source->format == UNICODE_FORMAT_LINEAR ) {
+		return source->linear_data[position];
+	}
+	else {
+		const ucstring slave = ucstring_from_utf_string(*source);
+		if( position >= slave.length() )
+			return 0;
 
-	return slave[position];
+		return slave[position];
+	}
 }
 
 /* This sets a Unicode character in a UTF_STRING. It only works if the string
  * is already large enough to hold the character; the string will not
- * automatically grow to accomodate the character.
+ * automatically grow to accomodate the new character.
+ * 
+ * Note that if you write a character code that is out of range of the current
+ * Unicode format of the string, the behavior is undefined, so this function is
+ * only 100% safe to use with UNICODE_FORMAT_LINEAR which is guaranteed to be
+ * able to store a full UCCHAR in all cases.
  * 
  * Returns the character code written to the string. If an error occurs, the
  * string is left unmodified and zero is returned.
@@ -197,13 +242,18 @@ UCCHAR utf_putc(UTF_STRING* target, const SIZE position, const UCCHAR code) {
 	if( position >= target->length )
 		return 0;
 
-	ucstring slave = ucstring_from_utf_string(*target);
-	if( position >= slave.length() )
-		return 0;
+	if( target->format == UNICODE_FORMAT_LINEAR ) {
+		target->linear_data[position] = code;
+	}
+	else {
+		ucstring slave = ucstring_from_utf_string(*target);
+		if( position >= slave.length() )
+			return 0;
 
-	slave[position] = code;
-	if( !ucstring_to_utf_string(slave, *target) )
-		return 0;
+		slave[position] = code;
+		if( !ucstring_to_utf_string(slave, *target) )
+			return 0;
+	}
 
 	return code;
 }
@@ -530,53 +580,48 @@ utf_data* ucstring_to_data(const ucstring& source, const UNICODE_FORMAT format, 
 			Convert<ucchar, uint8>(source, copied, size);
 			break;
 
-      case UNICODE_FORMAT_UTF8: {
-         utf8::utf32to8(source.begin(), source.end(), back_inserter(output));
-         break;
-      }
+		case UNICODE_FORMAT_UTF8:
+			utf8::utf32to8(source.begin(), source.end(), back_inserter(output));
+			break;
+      
+		case UNICODE_FORMAT_UTF16: {
+			vector<uint16> temp;
+			vector<uint32> temp2;
+			utf8::utf32to8(source.begin(), source.end(), back_inserter(temp));
+			utf8::utf8to16(temp.begin(), temp.end(), back_inserter(temp2));
 
-      case UNICODE_FORMAT_UTF16: {
-         vector<uint16> temp;
-         vector<uint32> temp2;
-         utf8::utf32to8(source.begin(), source.end(), back_inserter(temp));
-         utf8::utf8to16(temp.begin(), temp.end(), back_inserter(temp2));
+			for(size_type i = 0; i < length; i++) {
+				const ucchar& c = temp2[i];
+				const utf_data d0 = (c >> 8) & 0xFF;
+				const utf_data d1 = c & 0xFF;
+				output.push_back(d0);
+				output.push_back(d1);
+			}
 
-         for(size_type i = 0; i < length; i++) {
-            const ucchar& c = temp2[i];
+			break;
+		}
 
-            const utf_data d0 = (c >> 8) & 0xFF;
-            const utf_data d1 = c & 0xFF;
+		case UNICODE_FORMAT_UTF32: {
+			for(size_type i = 0; i < length; i++) {
+				const ucchar& c = source[i];
+				const utf_data d0 = (c >> 24) & 0xFF;
+				const utf_data d1 = (c >> 16) & 0xFF;
+				const utf_data d2 = (c >> 8) & 0xFF;
+				const utf_data d3 = c & 0xFF;
+				output.push_back(d0);
+				output.push_back(d1);
+				output.push_back(d2);
+				output.push_back(d3);
+			}
 
-            output.push_back(d0);
-            output.push_back(d1);
-         }
+			break;
+		}
 
-         break;
-      }
-
-      case UNICODE_FORMAT_UTF32: {
-         for(size_type i = 0; i < length; i++) {
-            const ucchar& c = source[i];
-
-            const utf_data d0 = (c >> 24) & 0xFF;
-            const utf_data d1 = (c >> 16) & 0xFF;
-            const utf_data d2 = (c >> 8) & 0xFF;
-            const utf_data d3 = c & 0xFF;
-
-            output.push_back(d0);
-            output.push_back(d1);
-            output.push_back(d2);
-            output.push_back(d3);
-         }
-
-         break;
-      }
-
-      default: {
-         GenericWarning();
-         break;
-      }
-   }
+		default:
+			GenericWarning();
+			break;
+	}
+	}
 
    const size_type new_size = output.size();
    const utf_data* copy = new utf_data[new_size];

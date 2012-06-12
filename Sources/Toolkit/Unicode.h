@@ -42,11 +42,18 @@ enum UNICODE_FORMAT {
 	UNICODE_FORMAT_UTF16,		/* Used by Windows. */
 	UNICODE_FORMAT_UTF32,
 
+	/* There is a special format UNICODE_FORMAT_LINEAR which guarantees
+	 * that the stored character data is always in a linear format; in
+	 * other words, you can access it directly as an array of UCCHARs by
+	 * calling get_utf_string_linear_data().  Some functions for
+	 * are optimized to work with linear data. */
+	UNICODE_FORMAT_LINEAR	= UNICODE_FORMAT_UTF32,
+	
 	/* UNICODE_FORMAT_SMALLEST represents the most light-weight format,
 	 * FASTEST represents the most efficient (performance-wise) format, and
 	 * SAFEST represents the most compatible format. */
 	UNICODE_FORMAT_SMALLEST	= UNICODE_FORMAT_UTF8,
-	UNICODE_FORMAT_FASTEST	= UNICODE_FORMAT_UTF32,
+	UNICODE_FORMAT_FASTEST	= UNICODE_FORMAT_LINEAR,
 	UNICODE_FORMAT_SAFEST	= UNICODE_FORMAT_ASCII,
 
 	/* This represents the native format of the platform. In other words,
@@ -68,9 +75,10 @@ typedef UINT32	UCCHAR;
 typedef UINT8	UTF_DATA; 
 
 typedef struct _UTF_STRING {
-   UNICODE_FORMAT	format;		/* Unicode format of the string. */
-   UTF_DATA*		data;		/* Segmented data buffer. */
-   SIZE			size, length;	/* Size of the string in bytes, and
+	UNICODE_FORMAT	format;		/* Unicode format of the string. */
+	UTF_DATA*	data;		/* Segmented data buffer. */
+	UCCHAR* 	linear_data;	/* UNICODE_FORMAT_LINEAR only. */
+	SIZE		size, length;	/* Size of the string in bytes, and
 					   length of the string in characters. */
 } UTF_STRING;
 
@@ -81,11 +89,14 @@ extern UTF_STRING*	create_utf_string_from_c_string_length(const UNICODE_FORMAT f
 extern void		delete_utf_string(UTF_STRING* target);
 extern UNICODE_FORMAT	get_utf_string_format(const UTF_STRING* source);
 extern UTF_DATA*	get_utf_string_data(UTF_STRING* source);
-extern const UTF_DATA*	get_utf_string_const_data(const UTF_STRING* source);
+extern const UTF_DATA*	get_utf_string_data_const(const UTF_STRING* source);
+extern UCCHAR*		get_utf_string_linear_data(UTF_STRING* source);
+extern const UCCHAR*	get_utf_string_linear_data_const(const UTF_STRING* source);
 extern SIZE		get_utf_string_size(const UTF_STRING* source);
 extern SIZE		get_utf_string_length(const UTF_STRING* source);
 extern UTF_STRING*	clear_utf_string(UTF_STRING* target);
-extern UTF_STRING*	convert_utf_string(const UTF_STRING* target, const UNICODE_FORMAT format);
+extern UTF_STRING*	convert_utf_string(UTF_STRING* target, const UNICODE_FORMAT format);
+extern UTF_STRING*	convert_utf_string_const(const UTF_STRING* source, const UNICODE_FORMAT format);
 extern UCCHAR		utf_getc(const UTF_STRING* source, const SIZE position);
 extern UCCHAR		utf_putc(UTF_STRING* target, const SIZE position, const UCCHAR code);
 extern SIZE		utf_strcpy(UTF_STRING* to, const UTF_STRING* from);
