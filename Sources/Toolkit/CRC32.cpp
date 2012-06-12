@@ -44,6 +44,9 @@ discrete_function void Initialize() {
 // --------------------------------------------------------------------------------
 
 UINT32 crc32_start(void) {
+	if( !initialized )
+		Initialize();
+
 	return seed;
 }
 
@@ -59,9 +62,6 @@ void crc32_update(UINT32* crc32, const UINT8 data) {
 
 UINT32 calculate_crc32(const void* buffer, const SIZE size) {
 	Safeguard( buffer );
-
-	if( !initialized )
-		Initialize();
 
 	if( size == 0 )
 		return 0;
