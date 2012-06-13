@@ -13,7 +13,13 @@
 extern "C" {
 #endif
 
-/* The Unicode routines are split into two parts:
+/* This is the implementation of the Unicode routines, which allow text to be
+ * stored both in ASCII and multiple Unicode UTF encoded formats for the
+ * purposes of representing multilingual text in a portable way. It primarily
+ * uses the UTF8-CPP library as a workhorse, along with alot of wrapper and
+ * glue code to make it as robust and extensible as possible.
+ * 
+ * The Unicode routines are split into two parts:
  * 
  * The legacy interface (UTF_STRING), which works with both C and C++. This
  * creates strings encoded directly in Unicode UTF formats. Such strings can
@@ -34,6 +40,19 @@ extern "C" {
  * performance with UTF_STRINGs, use UNICODE_FORMAT_FASTEST as the format and
  * only convert to another format prior to display, similar to how ucstrings
  * are meant to be used (although this increases memory usage).
+ * 
+ * These routines are designed for core multilanguage support and thus
+ * currently lack a full set of Unicode-compatible features:
+ * - Endianness and Byte Order Mark (BOM) is not supported. This is not usually
+ *   an issue since most UTF input should match the endianess of the machine
+ *   the software is currently running on.
+ * - Text direction (left-right) is not supported directly, although it could
+ *   be handled by a renderer if checks were added.
+ * - Code points that either compose less than a single character or more than
+ *   one character are not supported for string length checking. Currently each
+ *   code point (UCCHAR) must represent an individual character.
+ * 
+ * Some of these limitations may be marginalized in future versions.
  */
 /* Supported Unicode formats. */
 enum UNICODE_FORMAT {
